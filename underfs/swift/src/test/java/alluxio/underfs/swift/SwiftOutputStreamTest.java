@@ -65,7 +65,7 @@ public class SwiftOutputStreamTest {
     when(mHttpConMock.getOutputStream()).thenThrow(new IOException(errorMessage));
     mThrown.expect(IOException.class);
     mThrown.expectMessage(errorMessage);
-    new SwiftOutputStream(mHttpConMock);
+    new SwiftOutputStream(mHttpConMock).close();
   }
 
   /**
@@ -77,6 +77,7 @@ public class SwiftOutputStreamTest {
   public void testWrite1() throws Exception {
     SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     stream.write(1);
+    stream.close();
     verify(mOutputStreamMock).write(1);
   }
 
@@ -91,6 +92,7 @@ public class SwiftOutputStreamTest {
     SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     byte[] b = new byte[1];
     stream.write(b, 1, 1);
+    stream.close();
     verify(mOutputStreamMock).write(b, 1, 1);
   }
 
@@ -105,6 +107,7 @@ public class SwiftOutputStreamTest {
     SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     byte[] b = new byte[1];
     stream.write(b);
+    stream.close();
     verify(mOutputStreamMock).write(b);
   }
 
@@ -147,6 +150,7 @@ public class SwiftOutputStreamTest {
   public void testFlush() throws Exception {
     SwiftOutputStream stream = new SwiftOutputStream(mHttpConMock);
     stream.flush();
+    stream.close();
     verify(mOutputStreamMock).flush();
   }
 }

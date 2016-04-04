@@ -349,7 +349,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       mFileSystemMaster
           .mount(new AlluxioURI(path), new AlluxioURI(ufsPath), MountOptions.defaults());
       return Response.ok().build();
-    } catch (AlluxioException | IOException | NullPointerException e) {
+    } catch (AlluxioException | IOException | NullPointerException | IllegalArgumentException e) {
       LOG.warn(e.getMessage());
       return Response.serverError().entity(e.getMessage()).build();
     }

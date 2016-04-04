@@ -12,30 +12,47 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.CommonUtils;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for free command.
  */
 public class FreeCommandTest extends AbstractAlluxioShellTest {
+
+  @BeforeClass
+  public static void beforeClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
+        HeartbeatContext.SLEEPING_TIMER_CLASS);
+  }
+
   @Test
   public void freeTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
+    long blockId = mFileSystem.getStatus(new AlluxioURI("/testFile")).getBlockIds().get(0);
+
     mFsShell.run("free", "/testFile");
-    Configuration configuration = mLocalAlluxioCluster.getMasterConf();
-    CommonUtils.sleepMs(configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS));
+    triggerWorkerHeartbeats(blockId);
     Assert.assertFalse(
         mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
   }
@@ -43,23 +60,50 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void freeWildCardTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-
-    Configuration configuration = mLocalAlluxioCluster.getMasterConf();
+    long blockId =
+        mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo/foobar1")).getBlockIds().get(0);
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
-    CommonUtils.sleepMs(null,
-        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+
+    triggerWorkerHeartbeats(blockId);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
     Assert.assertTrue(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
+    blockId =
+        mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar/foobar3")).getBlockIds().get(0);
     ret = mFsShell.run("free", "/testWild*/*/");
-    CommonUtils.sleepMs(null,
-        configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS) * 2 + 10);
+    triggerWorkerHeartbeats(blockId);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
+  }
+
+  // Execution of the blocks free needs two heartbeats.
+  private void triggerWorkerHeartbeats(long blockId) {
+    try {
+      // Schedule 1st heartbeat from worker.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+      // Waiting for the removal of blockMeta from worker.
+      while (mLocalAlluxioCluster.getWorker().getBlockWorker().hasBlockMeta(blockId)) {
+        CommonUtils.sleepMs(50);
+      }
+
+      // Schedule 2nd heartbeat from worker.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+      // Ensure the 2nd heartbeat is finished.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 }

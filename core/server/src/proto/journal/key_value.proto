@@ -28,6 +28,12 @@ message DeleteStoreEntry {
 }
 
 // next available id: 3
+message RenameStoreEntry {
+  optional int64 old_store_id = 1;
+  optional int64 new_store_id = 2;
+}
+
+// next available id: 3
 message MergeStoreEntry {
   optional int64 from_store_id = 1;
   optional int64 to_store_id = 2;

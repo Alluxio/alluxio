@@ -100,7 +100,7 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  FILE_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
@@ -114,7 +114,8 @@ public enum ExceptionMessage {
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src contains wildcards."),
+      "The destination cannot be an existent file when the src is a directory or contains"
+            +  " wildcards."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
@@ -160,6 +161,7 @@ public enum ExceptionMessage {
   // key-value
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
+  KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

@@ -110,7 +110,10 @@ public final class PathUtils {
   }
 
   /**
-   * Gets the path components of the given path.
+   * Gets the path components of the given path. The first component will be an empty string.
+   *
+   * "/a/b/c" => {"", "a", "b", "c"}
+   * "/" => {""}
    *
    * @param path The path to split
    * @return the path split into components
@@ -119,9 +122,7 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
-      String[] ret = new String[1];
-      ret[0] = "";
-      return ret;
+      return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
   }
@@ -198,6 +199,17 @@ public final class PathUtils {
     StackTraceElement caller = new Throwable().getStackTrace()[1];
     long time = System.nanoTime();
     return "/" + caller.getClassName() + "/" + caller.getMethodName() + "/" + time;
+  }
+
+  /**
+   * Adds a trailing separator if it does not exists in path.
+   *
+   * @param path the file name
+   * @param separator trailing separator to add
+   * @return updated path with trailing separator
+   */
+  public static String normalizePath(String path, String separator) {
+    return path.endsWith(separator) ? path : path + separator;
   }
 
   private PathUtils() {} // prevent instantiation
