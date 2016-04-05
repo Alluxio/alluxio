@@ -48,6 +48,7 @@ import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link DataServer}.
@@ -165,17 +166,21 @@ public class DataServerIntegrationTest {
 
   @Test
   public void readMultiFiles() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     final int length = WORKER_CAPACITY_BYTES / 2 + 1;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file1", WriteType.MUST_CACHE, length);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     BlockInfo block1 = getFirstBlockInfo(new AlluxioURI("/file1"));
     DataServerMessage recvMsg1 = request(block1);
     assertValid(recvMsg1, length, block1.getBlockId(), 0, length);
 
     FileSystemTestUtils.createByteFile(mFileSystem, "/file2", WriteType.MUST_CACHE, length);
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     BlockInfo block2 = getFirstBlockInfo(new AlluxioURI("/file2"));
     DataServerMessage recvMsg2 = request(block2);
     assertValid(recvMsg2, length, block2.getBlockId(), 0, length);
