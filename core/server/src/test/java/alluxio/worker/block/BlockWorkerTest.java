@@ -20,7 +20,6 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.DataServer;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.meta.BlockMeta;
@@ -108,11 +107,10 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Resets the worker context and close the data server on clean up.
+   * Resets the worker context.
    */
   @After
   public void after() throws IOException {
-    ((DataServer) Whitebox.getInternalState(mBlockWorker, "mDataServer")).close();
     WorkerContext.reset();
   }
 
