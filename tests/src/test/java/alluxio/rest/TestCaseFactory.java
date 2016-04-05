@@ -28,7 +28,7 @@ public class TestCaseFactory {
    * @param suffix the suffix to use
    * @param parameters the parameters to use
    * @param method the method to use
-   * @param expectedResult the expected result to use
+   * @param expectedResult the expected result to use; null implies empty response
    * @param resource the local Alluxio cluster resource
    * @return a REST API test case
    */
@@ -44,7 +44,7 @@ public class TestCaseFactory {
    * @param suffix the suffix to use
    * @param parameters the parameters to use
    * @param method the method to use
-   * @param expectedResult the expected result to use
+   * @param expectedResult the expected result to use; null implies empty response
    * @param resource the local Alluxio cluster resource
    * @return a REST API test case
    */
