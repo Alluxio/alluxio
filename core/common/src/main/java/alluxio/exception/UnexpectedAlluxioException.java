@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.exception;
 
 /**
@@ -17,7 +18,7 @@ public final class UnexpectedAlluxioException extends AlluxioException {
   private static final long serialVersionUID = -1029072354884843903L;
 
   /**
-   * @param e an exception to wrap.
+   * @param e an exception to wrap
    */
   public UnexpectedAlluxioException(RuntimeException e) {
     super(e);
