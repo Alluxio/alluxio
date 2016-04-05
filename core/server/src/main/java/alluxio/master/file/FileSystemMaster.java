@@ -384,6 +384,30 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * @param inode the inode to get the {@linke FileInfo} for
+   * @return the {@link FileInfo} for the given inode
+   * @throws FileDoesNotExistException if the file does not exist
+   */
+  @GuardedBy("mInodeTree")
+  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
+    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    AlluxioURI path = mInodeTree.getPath(inode);
+    AlluxioURI resolvedPath;
+    try {
+      resolvedPath = mMountTable.resolve(path);
+    } catch (InvalidPathException e) {
+      throw new FileDoesNotExistException(e.getMessage(), e);
+    }
+    // Only set the UFS path if the path is nested under a mount point.
+    if (!path.equals(resolvedPath)) {
+      fileInfo.setUfsPath(resolvedPath.toString());
+    }
+    MasterContext.getMasterSource().incFileInfosGot(1);
+    return fileInfo;
+  }
+
+  /**
    * @param fileId the file id
    * @return the persistence state for the given file
    * @throws FileDoesNotExistException if the file does not exist
@@ -2059,32 +2083,6 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setPermission((short) entry.getPermission());
     }
     setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options);
-  }
-
-  /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
-   * @param inode the inode to get the {@linke FileInfo} for
-   * @return the {@link FileInfo} for the given inode
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  @GuardedBy("mInodeTree")
-  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
-    FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
-    fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
-    AlluxioURI path = mInodeTree.getPath(inode);
-    AlluxioURI resolvedPath;
-    try {
-      resolvedPath = mMountTable.resolve(path);
-    } catch (InvalidPathException e) {
-      throw new FileDoesNotExistException(e.getMessage(), e);
-    }
-    // Only set the UFS path if the path is nested under a mount point.
-    if (!path.equals(resolvedPath)) {
-      fileInfo.setUfsPath(resolvedPath.toString());
-    }
-    MasterContext.getMasterSource().incFileInfosGot(1);
-    return fileInfo;
   }
 
   /**
