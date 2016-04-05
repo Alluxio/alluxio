@@ -12,6 +12,8 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import alluxio.client.keyvalue.Index;
@@ -71,18 +73,18 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    * @throws ThriftIOException if a non-Alluxio related exception occurs
    */
   @Override
-  public ByteBuffer get(long blockId, ByteBuffer key) throws AlluxioTException, ThriftIOException {
-    try {
-      ByteBuffer value = getInternal(blockId, key);
-      if (value == null) {
-        return ByteBuffer.allocate(0);
+  public ByteBuffer get(final long blockId, final ByteBuffer key)
+      throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<ByteBuffer>() {
+      @Override
+      public ByteBuffer call() throws AlluxioException, IOException {
+        ByteBuffer value = getInternal(blockId, key);
+        if (value == null) {
+          return ByteBuffer.allocate(0);
+        }
+        return copyAsNonDirectBuffer(value);
       }
-      return copyAsNonDirectBuffer(value);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    });
   }
 
   private ByteBuffer copyAsNonDirectBuffer(ByteBuffer directBuffer) {
@@ -127,59 +129,58 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   }
 
   @Override
-  public List<ByteBuffer> getNextKeys(long blockId, ByteBuffer currentKey, int numKeys)
+  public List<ByteBuffer> getNextKeys(final long blockId, final ByteBuffer key, final int numKeys)
       throws AlluxioTException, ThriftIOException {
-    try {
-      final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-      final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-      try {
-        ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
-        Index index = reader.getIndex();
-        PayloadReader payloadReader = reader.getPayloadReader();
+    return RpcUtils.call(new RpcCallableThrowsIOException<List<ByteBuffer>>() {
+      @Override
+      public List<ByteBuffer> call() throws AlluxioException, IOException {
+        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
+        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
+        try {
+          ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
+          Index index = reader.getIndex();
+          PayloadReader payloadReader = reader.getPayloadReader();
 
-        List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(numKeys);
-        for (int i = 0; i < numKeys; i++) {
-          ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
-          if (nextKey == null) {
-            break;
+          List<ByteBuffer> ret = Lists.newArrayListWithExpectedSize(numKeys);
+          ByteBuffer currentKey = key;
+          for (int i = 0; i < numKeys; i++) {
+            ByteBuffer nextKey = index.nextKey(currentKey, payloadReader);
+            if (nextKey == null) {
+              break;
+            }
+            ret.add(copyAsNonDirectBuffer(nextKey));
+            currentKey = nextKey;
           }
-          ret.add(copyAsNonDirectBuffer(nextKey));
-          currentKey = nextKey;
+          return ret;
+        } catch (InvalidWorkerStateException e) {
+          // We shall never reach here
+          LOG.error("Reaching invalid state to get all keys", e);
+        } finally {
+          mBlockWorker.unlockBlock(lockId);
         }
-        return ret;
-      } catch (InvalidWorkerStateException e) {
-        // We shall never reach here
-        LOG.error("Reaching invalid state to get all keys", e);
-      } finally {
-        mBlockWorker.unlockBlock(lockId);
+        return Collections.emptyList();
       }
-      return Collections.emptyList();
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    });
   }
 
   // TODO(cc): Try to remove the duplicated try-catch logic in other methods like getNextKeys.
   @Override
-  public int getSize(long blockId) throws AlluxioTException, ThriftIOException {
-    try {
-      final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-      final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-      try {
-        return getReader(sessionId, lockId, blockId).size();
-      } catch (InvalidWorkerStateException e) {
-        // We shall never reach here
-        LOG.error("Reaching invalid state to get size", e);
-      } finally {
-        mBlockWorker.unlockBlock(lockId);
+  public int getSize(final long blockId) throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<Integer>() {
+      @Override
+      public Integer call() throws AlluxioException, IOException {
+        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
+        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
+        try {
+          return getReader(sessionId, lockId, blockId).size();
+        } catch (InvalidWorkerStateException e) {
+          // We shall never reach here
+          LOG.error("Reaching invalid state to get size", e);
+        } finally {
+          mBlockWorker.unlockBlock(lockId);
+        }
+        return 0;
       }
-      return 0;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    });
   }
 }
