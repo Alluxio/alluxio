@@ -85,10 +85,14 @@ public final class PermissionStatus {
    * Applies umask.
    *
    * @param umask the umask to apply
+   * @param configuration the configuration
    * @return a new {@link PermissionStatus}
    * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
-  public PermissionStatus applyUMask(FileSystemPermission umask) {
+  public PermissionStatus applyUMask(FileSystemPermission umask, Configuration configuration) {
+    if (!SecurityUtils.isAuthorizationEnabled(configuration)) {
+      return new PermissionStatus(mUserName, mGroupName, mPermission);
+    }
     FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
     return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
@@ -117,9 +121,9 @@ public final class PermissionStatus {
    * @throws java.io.IOException when getting login user fails
    */
   public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication
-      return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
+    if (!SecurityUtils.isSecurityEnabled(conf)) {
+      // no authentication, every action is permitted
+      return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
     }
     if (remote) {
       // get the username through the authentication mechanism

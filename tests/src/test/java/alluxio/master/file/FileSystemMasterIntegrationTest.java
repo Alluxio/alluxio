@@ -134,6 +134,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
+      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -191,6 +192,7 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
+      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -324,7 +326,8 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
+          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
 
@@ -758,6 +761,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   @Test
   public void ttlExpiredCreateFileTest() throws Exception {
     mFsMaster.mkdir(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
