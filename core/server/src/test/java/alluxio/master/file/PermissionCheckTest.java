@@ -20,7 +20,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.options.CreatePathOptions;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -176,21 +175,21 @@ public final class PermissionCheckTest {
 
     // create "/testDir" for user1
     inodeTree.createPath(new AlluxioURI(TEST_DIR_URI),
-        new CreatePathOptions.Builder(MasterContext.getConf()).setDirectory(true)
+        CreateDirectoryOptions.defaults()
             .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)).build());
+                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
 
     // create "/testDir/file" for user1
     inodeTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI),
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)).build());
+                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
 
     // create "/testFile" for user2
     inodeTree.createPath(new AlluxioURI(TEST_FILE_URI),
-        new CreatePathOptions.Builder(MasterContext.getConf()).setBlockSizeBytes(Constants.KB)
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermissionStatus(
-                new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)).build());
+                new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
   }
 
   /**

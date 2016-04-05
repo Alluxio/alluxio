@@ -29,7 +29,6 @@ import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -248,7 +247,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that an exception is in the
-<<<<<<< HEAD
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
    *
