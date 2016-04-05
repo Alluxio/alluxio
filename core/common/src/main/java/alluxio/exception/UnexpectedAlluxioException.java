@@ -18,6 +18,15 @@ public final class UnexpectedAlluxioException extends AlluxioException {
   private static final long serialVersionUID = -1029072354884843903L;
 
   /**
+   * Constructs a new exception with the specified detail message.
+   *
+   * @param message the detail message
+   */
+  public UnexpectedAlluxioException(String message) {
+    super(message);
+  }
+
+  /**
    * @param e an exception to wrap
    */
   public UnexpectedAlluxioException(RuntimeException e) {
