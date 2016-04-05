@@ -117,22 +117,6 @@ public final class FileUtils {
   }
 
   /**
-   * Deletes the file or directory.
-   *
-   * Current implementation uses {@link java.io.File#delete()}, may change if there is a better
-   * solution.
-   *
-   * @param path pathname string of file or directory
-   * @throws IOException when fails to delete
-   */
-  public static void delete(String path) throws IOException {
-    File file = new File(path);
-    if (!file.delete()) {
-      throw new IOException("Failed to delete " + path);
-    }
-  }
-
-  /**
    * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
    *
