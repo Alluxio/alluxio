@@ -12,10 +12,10 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +42,7 @@ public final class RpcUtils {
       throw e.toAlluxioTException();
     } catch (RuntimeException e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new AlluxioException(Throwables.getRootCause(e)).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toAlluxioTException();
     }
   }
 
@@ -65,7 +65,7 @@ public final class RpcUtils {
       throw new ThriftIOException(e.getMessage());
     } catch (RuntimeException e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new AlluxioException(Throwables.getRootCause(e)).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toAlluxioTException();
     }
   }
 
