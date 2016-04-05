@@ -6,13 +6,15 @@ group: Frameworks
 priority: 0
 ---
 
-该指南描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)并且使用HDFS作为Alluxio底层存储系统。Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从底层存储系统读写数据。
+该指南描述了如何在Alluxio上运行[Apache Spark](http://spark-project.org/)。HDFS作为一个分布式底层存储系统的一个例子。请注意，Alluxio除HDFS之外也支持其它的底层存储系统，计算框架(如Spark)可以通过Alluxio从任意数量的底层存储系统读写数据。
 
 ## 兼容性
 
 Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 ## 前期准备
+
+### 一般设置
 
 * Alluxio集群根据向导搭建完成(可以是[本地模式](Running-Alluxio-Locally.html)或者[集群模式](Running-Alluxio-on-a-Cluster.html))。
 
@@ -23,6 +25,8 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 * 请添加如下代码到`spark/conf/spark-env.sh`。
 
 {% include Running-Spark-on-Alluxio/earlier-spark-version-bash.md %}
+
+###针对HDFS的额外设置
 
 * 如果Alluxio运行Hadoop 1.x集群之上，创建一个新文件`spark/conf/core-site.xml`包含以下内容：
 
@@ -41,15 +45,37 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 这一部分说明如何将Alluxio作为Spark应用的输入输出源。
 
-将文件`foo`放到HDFS（假定namenode运行在`localhost`）:
+### 使用已经存于Alluxio的数据
 
-{% include Running-Spark-on-Alluxio/foo.md %}
+首先，我们将从Alluxio文件系统中拷贝一些本地数据。将文件`LICENSE`放到Alluxio（假定你正处在Alluxio工程目录下）:
+
+{% include Running-Spark-on-Alluxio/license-local.md %}
 
 在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
 
-{% include Running-Spark-on-Alluxio/Alluxio-In-Out-Scala.md %}
+{% include Running-Spark-on-Alluxio/alluxio-local-in-out-scala.md %}
 
-打开浏览器，查看[http://localhost:19999](http://localhost:19999)。可以发现多出一个输出文件`bar`,每一行是由文件`foo`的对应行复制2次得到。
+打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
+每一行是由文件`LICENSE`的对应行复制2次得到。
+
+### 使用来自HDFS的数据
+ 
+Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到HDFS中（假定namenode节点运行在`localhost`，并且Alluxio工程目录是`alluxio`）:
+
+{% include Running-Spark-on-Alluxio/license-hdfs.md %}
+
+注意：Alluxio没有文件的概念。你可以通过浏览web UI验证这点。在`spark-shell`中运行如下命令（假定Alluxio Master运行在`localhost`）:
+
+{% include Running-Spark-on-Alluxio/alluxio-hdfs-in-out-scala.md %}
+
+打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
+每一行是由文件`LICENSE`的对应行复制2次得到。并且，现在`LICENSE`文件出现在Alluxio文件系统空间。
+
+注意：`LICENSE`文件很可能不在Alluxio存储（不是In-Memory)。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
+
+  {% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
+
+### 使用容错模式
 
 当以容错模式运行Alluxio时，可以使用任何一个Alluxio master：
 
