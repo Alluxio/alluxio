@@ -93,4 +93,44 @@ public class UnderStoreBlockInStreamTest {
     Assert.assertEquals(-1, inStream.read());
     Assert.assertEquals(0, inStream.remaining());
   }
+
+  /**
+   * Tests that array read methods read the correct data.
+   *
+   * @throws IOException when reading from the stream fails
+   */
+  @Test
+  public void arrayReadTest() throws IOException {
+    arrayReadInternal(mBlockStream, 0);
+  }
+
+  @Test
+  public void arrayReadEOFTest() throws IOException {
+    arrayReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
+  }
+
+  private void arrayReadInternal(UnderStoreBlockInStream inStream, int startIndex)
+      throws IOException {
+    long remaining = inStream.remaining();
+    int size = (int) BLOCK_LENGTH / 10;
+    byte[] readBytes = new byte[size];
+
+    // Read first 10 bytes
+    Assert.assertEquals(size, inStream.read(readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
+    remaining -= 10;
+    Assert.assertEquals(remaining, inStream.remaining());
+
+    // Read next 10 bytes
+    Assert.assertEquals(size, inStream.read(readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + size, size, readBytes));
+    remaining -= 10;
+    Assert.assertEquals(remaining, inStream.remaining());
+
+    // Read with offset and length
+    Assert.assertEquals(1, inStream.read(readBytes, size - 1, 1));
+    Assert.assertEquals(startIndex + size * 2, readBytes[size - 1]);
+    remaining--;
+    Assert.assertEquals(remaining, inStream.remaining());
+  }
 }
