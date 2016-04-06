@@ -31,6 +31,8 @@ public final class ClientRWLock implements ReadWriteLock {
   private static final int MAX_AVAILABLE = 100;
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
+  /** Reference count. */
+  private Integer mReferences = 0;
 
   @Override
   public Lock readLock() {
@@ -40,6 +42,27 @@ public final class ClientRWLock implements ReadWriteLock {
   @Override
   public Lock writeLock() {
     return new SessionLock(MAX_AVAILABLE);
+  }
+
+  /**
+   * Increments the reference count.
+   */
+  public void addReference() {
+    synchronized (mReferences) {
+      mReferences++;
+    }
+  }
+
+  /**
+   * Decrements the reference count.
+   *
+   * @return the new reference count
+   */
+  public Integer dropReference() {
+    synchronized (mReferences) {
+      mReferences--;
+      return mReferences;
+    }
   }
 
   private final class SessionLock implements Lock {
