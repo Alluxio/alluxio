@@ -35,7 +35,7 @@ public final class DirectedAcyclicGraphTest {
   }
 
   /*
-   * Test some simple graphs.
+   * Tests some simple graphs.
    */
   @Test
   public void simpleGraphTest() {
@@ -52,7 +52,7 @@ public final class DirectedAcyclicGraphTest {
   }
 
   /**
-   * More complicated graph to test topological sort. Other functionalities such as add/deleteLeaf
+   * More complicated graph to test topological sort. Other functionalities such as add
    * are tested indirectly also.
    */
   @Test
