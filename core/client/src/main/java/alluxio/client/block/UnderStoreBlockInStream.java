@@ -93,7 +93,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   public void seek(long pos) throws IOException {
     long offset = mPos - mInitPos;
     if (pos < offset) {
-      setUnderStoreStream(pos);
+      setUnderStoreStream(mInitPos + pos);
     } else {
       long toSkip = pos - offset;
       if (skip(toSkip) != toSkip) {
