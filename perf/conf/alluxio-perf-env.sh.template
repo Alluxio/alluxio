@@ -9,11 +9,11 @@ export ALLUXIO_PERF_WORKSPACE="/tmp/alluxio-perf-workspace"
 export ALLUXIO_PERF_OUT_DIR="$ALLUXIO_PERF_HOME/result"
 
 # The alluxio-perf master service address
-ALLUXIO_PERF_MASTER_HOSTNAME="AlluxioMaster"
+ALLUXIO_PERF_MASTER_HOSTNAME=localhost
 ALLUXIO_PERF_MASTER_PORT=23333
 
 # The alluxio master host name
-ALLUXIO_MASTER_HOSTNAME="AlluxioMaster"
+ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_ADDRESS:-localhost}
 ALLUXIO_MASTER_PORT=19998
 
 # The number of threads per worker
@@ -34,7 +34,7 @@ ALLUXIO_PERF_FAILED_PERCENTAGE=1
 ALLUXIO_PERF_SHARED_FS="false"
 
 # Alluxio's under file system address
-ALLUXIO_UNDERFS_ADDRESS=hdfs://AlluxioMaster:9000
+ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-hdfs://localhost:9000}
 
 # AWS access key
 AWS_ACCESS_KEY_ID=
