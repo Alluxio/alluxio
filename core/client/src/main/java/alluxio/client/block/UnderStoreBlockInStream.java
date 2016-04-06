@@ -57,8 +57,13 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public int read() throws IOException {
+    if (remaining() == 0) {
+      return -1;
+    }
     int data = mUnderStoreStream.read();
-    mPos++;
+    if (data != -1) {
+      mPos++;
+    }
     return data;
   }
 
