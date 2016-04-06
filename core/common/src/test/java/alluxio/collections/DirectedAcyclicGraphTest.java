@@ -11,22 +11,22 @@
 
 package alluxio.collections;
 
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
 /**
  * Tests the {@link DirectedAcyclicGraph} class.
  */
-public class DirectedAcyclicGraphTest {
+public final class DirectedAcyclicGraphTest {
   private DirectedAcyclicGraph<Integer> mGraph;
 
-  /*
+  /**
    * Initialize.
    */
   @Before
@@ -51,7 +51,7 @@ public class DirectedAcyclicGraphTest {
     Assert.assertTrue(mGraph.getRoots().isEmpty());
   }
 
-  /*
+  /**
    * More complicated graph to test topological sort. Other functionalities such as add/deleteLeaf
    * are tested indirectly also.
    */
