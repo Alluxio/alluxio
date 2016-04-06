@@ -79,7 +79,7 @@ public class UnderStoreBlockInStreamTest {
    *
    * @param inStream the stream to read from
    * @param startIndex the start index of the file to read from
-   * @throws IOException  when reading from the stream fails
+   * @throws IOException when reading from the stream fails
    */
   private void singleByteReadInternal(UnderStoreBlockInStream inStream, int startIndex)
       throws IOException {
