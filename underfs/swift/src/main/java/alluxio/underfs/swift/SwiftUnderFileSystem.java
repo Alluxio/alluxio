@@ -79,15 +79,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     super(configuration);
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-    config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -121,6 +127,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
+    if (newPath.endsWith("_SUCCESS")) {
+      String plainName = newPath.substring(0, newPath.indexOf("_SUCCESS"));
+      LOG.debug("Plain name: {}", plainName);
+      SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
+      out.close();
+    }
     SwiftOutputStream out = SwiftDirectClient.put(mAccess, newPath);
     return out;
   }
@@ -175,6 +187,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
+    if (newPath.endsWith("_temporary")) {
+      return true;
+    }
     return isObjectExists(newPath);
   }
 
@@ -339,10 +354,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean copy(String src, String dst) {
     LOG.debug("copy from {} to {}", src, dst);
+    String strippedSrcPath = stripPrefixIfPresent(src);
+    String strippedDstPath = stripPrefixIfPresent(dst);
     try {
       Container container = mAccount.getContainer(mContainerName);
-      container.getObject(src).copyObject(container,
-          container.getObject(dst));
+      container.getObject(strippedSrcPath).copyObject(container,
+          container.getObject(strippedDstPath));
       return true;
     } catch (Exception e) {
       LOG.error(e.getMessage());
