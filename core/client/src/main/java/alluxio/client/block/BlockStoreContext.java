@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -63,6 +64,7 @@ public enum BlockStoreContext {
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
+  @GuardedBy("ConcurrentHashMap")
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
@@ -233,12 +235,10 @@ public enum BlockStoreContext {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
     }
-    synchronized (mLocalBlockWorkerClientPoolMap) {
-      for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
-        pool.close();
-      }
-      mLocalBlockWorkerClientPoolMap.clear();
+    for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
+      pool.close();
     }
+    mLocalBlockWorkerClientPoolMap.clear();
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
     mLocalBlockWorkerClientPoolInitialized = false;
   }
