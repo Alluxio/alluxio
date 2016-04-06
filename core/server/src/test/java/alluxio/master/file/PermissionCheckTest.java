@@ -174,18 +174,21 @@ public final class PermissionCheckTest {
     InodeTree inodeTree = Whitebox.getInternalState(mFileSystemMaster, "mInodeTree");
 
     // create "/testDir" for user1
+    AuthenticatedClientUser.set(TEST_USER_1.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_DIR_URI),
         CreateDirectoryOptions.defaults()
             .setPermissionStatus(
                 new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
 
     // create "/testDir/file" for user1
+    AuthenticatedClientUser.set(TEST_USER_1.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI),
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermissionStatus(
                 new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
 
     // create "/testFile" for user2
+    AuthenticatedClientUser.set(TEST_USER_2.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_FILE_URI),
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
             .setPermissionStatus(
