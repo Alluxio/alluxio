@@ -14,7 +14,8 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when the path in Alluxio is invalid.
+ * The exception thrown when the path in Alluxio is invalid. A path could be invalid due to being
+ * malformed (e.g. /a/ /b) or due to being used in the wrong way (e.g. rename /a to /a/b).
  */
 @ThreadSafe
 public class InvalidPathException extends AlluxioException {

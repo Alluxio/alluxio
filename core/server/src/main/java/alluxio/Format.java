@@ -64,7 +64,7 @@ public final class Format {
 
     Configuration configuration = new Configuration();
 
-    if ("MASTER".equals(args[0].toUpperCase())) {
+    if ("MASTER".equalsIgnoreCase(args[0])) {
 
       String masterJournal =
           configuration.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -84,7 +84,7 @@ public final class Format {
       UnderFileSystemUtils.touch(
           PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
               + System.currentTimeMillis()), configuration);
-    } else if ("WORKER".equals(args[0].toUpperCase())) {
+    } else if ("WORKER".equalsIgnoreCase(args[0])) {
       String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
       int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level++) {

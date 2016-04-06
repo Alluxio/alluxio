@@ -49,7 +49,7 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
 
     for (Map.Entry<String, Metric> entry : operations.entrySet()) {
       if (entry.getValue() instanceof Gauge) {
-        request.setAttribute(entry.getKey(), ((Gauge) entry.getValue()).getValue());
+        request.setAttribute(entry.getKey(), ((Gauge<?>) entry.getValue()).getValue());
       } else if (entry.getValue() instanceof Counter) {
         request.setAttribute(entry.getKey(), ((Counter) entry.getValue()).getCount());
       }

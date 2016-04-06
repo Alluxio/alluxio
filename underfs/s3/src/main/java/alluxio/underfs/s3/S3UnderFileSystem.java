@@ -35,6 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -103,7 +104,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
-    mBucketPrefix = Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR;
+    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
   }
 
   @Override
@@ -250,7 +251,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return null;
     }
     // Non recursive list
-    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return listInternal(path, false);
   }
 
@@ -459,7 +460,22 @@ public class S3UnderFileSystem extends UnderFileSystem {
       // If no exception is thrown, the key exists as a folder
       return true;
     } catch (ServiceException s) {
-      return false;
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        String dir = stripPrefixIfPresent(key);
+        String dirPrefix = dir.endsWith(PATH_SEPARATOR) ? dir : dir + PATH_SEPARATOR;
+        // Check if anything begins with <folder_path>/
+        S3Object[] objs = mClient.listObjects(mBucketName, dirPrefix, "");
+        // If there are, this is a folder and we can create the necessary metadata
+        if (objs.length > 0) {
+          mkdirsInternal(dir);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
     }
   }
 
@@ -470,8 +486,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return key.equals(Constants.HEADER_S3N + mBucketName)
-        || key.equals(Constants.HEADER_S3N + mBucketName + PATH_SEPARATOR);
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+        PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR));
   }
 
   /**
@@ -486,21 +502,24 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       // Gets all the objects under the path, because we have no idea if there are non Alluxio
       // managed "directories"
       S3Object[] objs = mClient.listObjects(mBucketName, path, "");
       if (recursive) {
-        String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i++) {
+        List<String> ret = new ArrayList<>();
+        for (S3Object obj : objs) {
           // Remove parent portion of the key
-          String child = getChildName(objs[i].getKey(), path);
+          String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
+          // Only add if the path is not empty (removes results equal to the path)
+          if (!child.isEmpty()) {
+            ret.add(child);
+          }
         }
-        return ret;
+        return ret.toArray(new String[ret.size()]);
       }
       // Non recursive list
       Set<String> children = new HashSet<String>();
@@ -513,7 +532,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
         // Prune the special folder suffix
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
-        children.add(child);
+        if (!child.isEmpty()) {
+          children.add(child);
+        }
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {

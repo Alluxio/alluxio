@@ -19,6 +19,7 @@
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/
 /deploy/vagrant/conf/ec2.yml
+/deploy/vagrant/conf/gce.yml
 /deploy/vagrant/conf/init.yml
 /deploy/vagrant/files/
 /deploy/vagrant/shared/

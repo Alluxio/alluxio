@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-if [[ -n "$BASH_VERSION" ]]; then
+if [[ -n "${BASH_VERSION}" ]]; then
     BIN="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-elif [[ -n "$ZSH_VERSION" ]]; then
+elif [[ -n "${ZSH_VERSION}" ]]; then
     BIN="$( cd "$( dirname "${(%):-%x}" )" && pwd )"
 else
     echo "Please, launch your scripts from zsh or bash only." >&2
@@ -11,8 +11,8 @@ fi
 
 get_env () {
   DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
-  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
-  . $ALLUXIO_LIBEXEC_DIR/alluxio-config.sh
+  ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
+  . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   ALLUXIO_MASTER_PORT=${ALLUXIO_MASTER_PORT:-19998}
   ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
@@ -22,7 +22,8 @@ get_env () {
 check_java_version () {
   local java_mjr_vers=$(${JAVA} -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F'.' '{print $1 $2}')
   if [[ ${java_mjr_vers} -lt 18 ]]; then
-    echo "It seems you are running a version of Java which is older then Java8. Please, use Java 8 to use alluxio-fuse" >&2
+    echo "It seems you are running a version of Java which is older then Java8.
+     Please, use Java8 to use alluxio-fuse" >&2
     return 1
   else
     return 0
@@ -49,9 +50,9 @@ set_java_opt () {
     -Dalluxio.logger.type=alluxio.fuse
     -Dalluxio.master.port=${ALLUXIO_MASTER_PORT}
     -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}
-    -Dalluxio.logs.dir=$ALLUXIO_LOGS_DIR
+    -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}
     -Dalluxio.logger.type="FUSE_LOGGER"
-    -Dlog4j.configuration=file:$ALLUXIO_CONF_DIR/log4j.properties
+    -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties
   "
 }
 
@@ -62,10 +63,10 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
-  (nohup $JAVA -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS}\
+  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS}\
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
-    -o big_writes > $ALLUXIO_LOGS_DIR/fuse.out 2>&1) &
+    -o big_writes > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
   # sleep: workaround to let the bg java process exit on errors, if any
   sleep 2s
   if kill -0 $! > /dev/null 2>&1 ; then
