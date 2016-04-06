@@ -214,7 +214,7 @@ public enum BlockStoreContext {
     if (blockWorkerClient.isLocal()) {
       // Return local worker client to its resource pool.
       WorkerNetAddress address = blockWorkerClient.getWorkerNetAddress();
-      if(!mLocalBlockWorkerClientPoolMap.containsKey(address)){
+      if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
         LOG.error("The client to worker at {} to release is no longer registered in the context.",
             address);
       }
