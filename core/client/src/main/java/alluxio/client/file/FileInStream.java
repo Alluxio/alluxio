@@ -24,6 +24,7 @@ import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
@@ -69,6 +70,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** Constant error message for block ID not cached. */
   private static final String BLOCK_ID_NOT_CACHED =
       "The block with ID {} could not be cached into Alluxio storage.";
+  /** Error message for cache collision. */
+  private static final String BLOCK_ID_EXISTS_SO_NOT_CACHED =
+      "The block with ID {} is already stored in the target worker, canceling the cache request.";
 
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
@@ -127,7 +131,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException e) {
-        LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+        logCacheStreamIOException(e);
         mShouldCacheCurrentBlock = false;
       }
     }
@@ -163,7 +167,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           mCurrentCacheStream.write(b, currentOffset, bytesRead);
         } catch (IOException e) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         }
       }
@@ -258,11 +262,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
                 mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
           }
         } catch (IOException e) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         } catch (AlluxioException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
-          throw new IOException(e);
+          mShouldCacheCurrentBlock = false;
         }
       }
     }
@@ -315,6 +319,18 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
+   * Logs IO exceptions thrown in response to the worker cache request. If the exception is not an
+   * expected exception, a warning will be logged with the stack trace.
+   */
+  private void logCacheStreamIOException(IOException e) {
+    if (e.getCause() instanceof BlockAlreadyExistsException) {
+      LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
+    } else {
+      LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+    }
+  }
+
+  /**
    * Similar to {@link #checkAndAdvanceBlockInStream()}, but a specific position can be specified
    * and the stream pointer will be at that offset after this method completes.
    *
@@ -338,11 +354,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           mCurrentCacheStream =
               mContext.getAlluxioBlockStore().getOutStream(currentBlockId, blockSize, address);
         } catch (IOException e) {
-          LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+          logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
         } catch (AlluxioException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
-          throw new IOException(e);
+          mShouldCacheCurrentBlock = false;
         }
       } else {
         mShouldCacheCurrentBlock = false;
@@ -379,7 +395,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           blockId, e);
       if (!mStatus.isPersisted()) {
         LOG.error("Could not obtain data for block with ID {} from Alluxio."
-            + " The block will not be persisted in the under file storage.", blockId);
+            + " The block is also not available in the under storage.", blockId);
         throw e;
       }
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;

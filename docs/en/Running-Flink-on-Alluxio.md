@@ -37,15 +37,22 @@ following contents:
 
 #### Specify path to `core-site.xml` in `conf/flink-config.yaml`
 
-Next, you have to specify the path to the Hadoop configuration in Flink. Open the 
+Next, you have to specify the path to the Hadoop configuration in Flink. Open the
 `conf/flink-config.yaml` file in the Flink root directory and set the `fs.hdfs.hadoopconf`
 configuration value to the **directory** containing the `core-site.xml`. (For newer Hadoop versions,
 the directory usually ends with `etc/hadoop`.)
 
-#### Make the Alluxio Client jar available to Flink
+#### Generate and Distribute the Alluxio Client Jar
 
-In the last step, we need to make the Alluxio `jar` file available to Flink, because it contains the
-configured `alluxio.hadoop.FileSystem` class.
+In order to communicate with Alluxio, we need to provide Flink programs with the Alluxio Core Client
+jar.
+Generate the Flink compatible client jar by building the entire project with the Flink profile from
+the top level `alluxio` directory:
+
+{% include Running-Flink-on-Alluxio/flink-profile-build.md %}
+
+We need to make the Alluxio `jar` file available to Flink, because it contains the configured
+`alluxio.hadoop.FileSystem` class.
 
 There are different ways to achieve that:
 
@@ -64,3 +71,17 @@ To use Alluxio with Flink, just specify paths with the `alluxio://` scheme.
 
 If Alluxio is installed locally, a valid path would look like this
 `alluxio://localhost:19998/user/hduser/gutenberg`.
+
+## Wordcount Example
+
+This example assumes you have set up Alluxio and Flink as previously described.
+
+Put the file `LICENSE` into Alluxio, assuming you are in the top level Alluxio project directory:
+
+{% include Running-Flink-on-Alluxio/license.md %}
+
+Run the following command from the top level Flink project directory:
+
+{% include Running-Flink-on-Alluxio/wordcount.md %}
+
+Open your browser and check [http://localhost:19999/browse](http://localhost:19999/browse). There should be an output file `output` which contains the word counts of the file `LICENSE`.
