@@ -146,7 +146,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       if (allowExists != null) {
         options.setAllowExists(allowExists);
       }
-      mFileSystemMaster.mkdir(new AlluxioURI(path), options);
+      mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
       return Response.ok().build();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
@@ -184,7 +184,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       if (ttl != null) {
         options.setTtl(ttl);
       }
-      mFileSystemMaster.create(new AlluxioURI(path), options);
+      mFileSystemMaster.createFile(new AlluxioURI(path), options);
       return Response.ok().build();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
@@ -372,7 +372,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") boolean recursive) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
+      mFileSystemMaster.delete(new AlluxioURI(path), recursive);
       return Response.ok().build();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());

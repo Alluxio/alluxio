@@ -246,6 +246,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         request.setAttribute("InvalidPathException",
             "Error: invalid path " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      } catch (AccessControlException e) {
+        request.setAttribute("AccessControlException",
+            "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
       }
       fileInfos.add(toAdd);
     }

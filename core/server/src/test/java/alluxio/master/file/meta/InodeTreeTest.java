@@ -21,7 +21,6 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.PermissionChecker;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
@@ -41,7 +40,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 import java.util.Set;
@@ -91,7 +89,6 @@ public final class InodeTreeTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     MasterContext.reset(conf);
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    verifyPermissionChecker(true, TEST_PERMISSION_STATUS.getUserName(), "test-supergroup");
   }
 
   /**
@@ -120,7 +117,7 @@ public final class InodeTreeTest {
     Inode<?> root = mTree.getInodeByPath(new AlluxioURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    verifyPermissionChecker(true, root.getUserName(), "test-supergroup");
+    Assert.assertEquals(TEST_PERMISSION_STATUS.getUserName(), root.getUserName());
     Inode<?> newRoot = mTree.getInodeByPath(new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -623,14 +620,5 @@ public final class InodeTreeTest {
     for (Inode<?> child : children) {
       Assert.assertTrue(childNames.contains(child.getName()));
     }
-  }
-
-  private void verifyPermissionChecker(boolean enabled, String owner, String group) {
-    Assert.assertEquals(enabled, Whitebox.getInternalState(PermissionChecker.class,
-        "sPermissionCheckEnabled"));
-    Assert.assertEquals(owner, Whitebox.getInternalState(PermissionChecker.class,
-        "sFileSystemOwner"));
-    Assert.assertEquals(group, Whitebox.getInternalState(PermissionChecker.class,
-        "sFileSystemSuperGroup"));
   }
 }
