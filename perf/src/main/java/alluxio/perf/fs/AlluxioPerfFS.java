@@ -62,6 +62,7 @@ public class AlluxioPerfFS implements PerfFS {
    *
    * @throws IOException
    */
+  @Override
   public void close() throws IOException {}
 
   /**
@@ -71,6 +72,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path) throws IOException {
     long size = new Configuration().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     return create(path, (int) size);
@@ -84,6 +86,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
     return create(path, blockSizeByte, "MUST_CACHE");
   }
@@ -97,6 +100,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path, int blockSizeByte, String writeType) throws IOException {
     WriteType type = WriteType.valueOf(writeType);
     AlluxioURI uri = new AlluxioURI(path);
@@ -119,6 +123,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if success, false otherwise.
    * @throws IOException
    */
+  @Override
   public boolean createEmptyFile(String path) throws IOException {
     AlluxioURI uri = new AlluxioURI(path);
     try {
@@ -140,6 +145,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if success, false otherwise.
    * @throws IOException
    */
+  @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
     try {
@@ -157,6 +163,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if exists, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean exists(String path) throws IOException {
     try {
       return mFs.exists(new AlluxioURI(path));
@@ -172,6 +179,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the length of the file in bytes
    * @throws IOException
    */
+  @Override
   public long getLength(String path) throws IOException {
     AlluxioURI uri = new AlluxioURI(path);
     try {
@@ -191,6 +199,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if it's a directory, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean isDirectory(String path) throws IOException {
     AlluxioURI uri = new AlluxioURI(path);
     try {
@@ -210,6 +219,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if it's a file, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean isFile(String path) throws IOException {
     return !isDirectory(path);
   }
@@ -223,6 +233,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the list contains the full paths of the listed files
    * @throws IOException
    */
+  @Override
   public List<String> listFullPath(String path) throws IOException {
     List<URIStatus> files;
     try {
@@ -250,6 +261,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if success, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     AlluxioURI uri = new AlluxioURI(path);
     try {
@@ -267,6 +279,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the input stream of the opened file
    * @throws IOException
    */
+  @Override
   public InputStream open(String path) throws IOException {
     AlluxioURI uri = new AlluxioURI(path);
     try {
@@ -284,6 +297,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return the input stream of the opened file
    * @throws IOException
    */
+  @Override
   public InputStream open(String path, String readType) throws IOException {
     ReadType type = ReadType.valueOf(readType);
     AlluxioURI uri = new AlluxioURI(path);
@@ -302,6 +316,7 @@ public class AlluxioPerfFS implements PerfFS {
    * @return true if success, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean rename(String src, String dst) throws IOException {
     AlluxioURI srcURI = new AlluxioURI(src);
     AlluxioURI dstURI = new AlluxioURI(dst);

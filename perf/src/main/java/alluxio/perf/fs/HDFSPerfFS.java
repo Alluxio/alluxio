@@ -68,6 +68,7 @@ public class HDFSPerfFS implements PerfFS {
    *
    * @throws IOException
    */
+  @Override
   public void close() throws IOException {
     mTfs.close();
   }
@@ -79,6 +80,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path) throws IOException {
     Path p = new Path(path);
     return mTfs.create(p);
@@ -92,6 +94,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
     Path p = new Path(path);
     return mTfs.create(p);
@@ -106,6 +109,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the output stream of the created file
    * @throws IOException
    */
+  @Override
   public OutputStream create(String path, int blockSizeByte, String writeType) throws IOException {
     // Write type not applicable
     Path p = new Path(path);
@@ -119,6 +123,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if success, false otherwise.
    * @throws IOException
    */
+  @Override
   public boolean createEmptyFile(String path) throws IOException {
     Path p = new Path(path);
     if (mTfs.exists(p)) {
@@ -137,6 +142,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if success, false otherwise.
    * @throws IOException
    */
+  @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     return mTfs.delete(new Path(path), recursive);
   }
@@ -148,6 +154,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if exists, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean exists(String path) throws IOException {
     return mTfs.exists(new Path(path));
   }
@@ -159,6 +166,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the length of the file in bytes
    * @throws IOException
    */
+  @Override
   public long getLength(String path) throws IOException {
     Path p = new Path(path);
     if (!mTfs.exists(p)) {
@@ -174,6 +182,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if it's a directory, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean isDirectory(String path) throws IOException {
     Path p = new Path(path);
     if (!mTfs.exists(p)) {
@@ -189,6 +198,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if it's a file, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean isFile(String path) throws IOException {
     Path p = new Path(path);
     if (!mTfs.exists(p)) {
@@ -206,6 +216,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the list contains the full paths of the listed files
    * @throws IOException
    */
+  @Override
   public List<String> listFullPath(String path) throws IOException {
     List<FileStatus> files = Arrays.asList(mTfs.listStatus(new Path(path)));
     if (files == null) {
@@ -228,6 +239,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if success, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
     Path p = new Path(path);
     if (mTfs.exists(p)) {
@@ -243,6 +255,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the input stream of the opened file
    * @throws IOException
    */
+  @Override
   public InputStream open(String path) throws IOException {
     Path p = new Path(path);
     if (!mTfs.exists(p)) {
@@ -259,6 +272,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return the input stream of the opened file
    * @throws IOException
    */
+  @Override
   public InputStream open(String path, String readType) throws IOException {
     // Read type not applicable
     Path p = new Path(path);
@@ -276,6 +290,7 @@ public class HDFSPerfFS implements PerfFS {
    * @return true if success, false otherwise
    * @throws IOException
    */
+  @Override
   public boolean rename(String src, String dst) throws IOException {
     Path srcPath = new Path(src);
     Path dstPath = new Path(dst);
