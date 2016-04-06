@@ -316,10 +316,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             continue;
           }
           for (long workerId : new ArrayList<Long>(masterBlockInfo.getWorkers())) {
-            masterBlockInfo.removeWorker(workerId);
-            MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
-            if (worker != null) {
-              worker.updateToRemovedBlock(true, blockId);
+            MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+            if (workerInfo != null) {
+              workerInfo.updateToRemovedBlock(true, blockId);
             }
           }
           // Two cases here:
@@ -610,8 +609,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
-            removedBlockId);
+        LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
+            + " on Master!", workerInfo.getId(), removedBlockId);
+        // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
+        // Ideally, the delete/free I/O flow should never reach this point. Because Master may
+        // update the block metadata only after receiving the acknowledgement from Workers.
+        workerInfo.removeBlock(removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }

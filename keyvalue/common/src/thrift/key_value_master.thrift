@@ -49,6 +49,13 @@ service KeyValueMasterClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
+   * Renames a completed key-value store.
+   */
+  void renameStore( /** the old path of the store */ 1: string oldPath,
+      /**the new path of the store*/ 2:string newPath)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
    * Merges one completed key-value store to another completed key-value store.
    */
   void mergeStore( /** the path of the store to be merged */ 1: string fromPath,

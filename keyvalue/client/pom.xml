@@ -51,7 +51,33 @@
   </dependencies>
 
   <profiles>
+    <!-- build profile for Apache Flink -->
+    <!-- Profile used to build alluxio client jar used for Apache Flink. This will be activated by using -Pflink -->
+    <!-- in the maven command line. -->
+    <profile>
+      <id>flink</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <!-- The dependencies are the same as the default dependencies, except jboss netty is excluded as it is provided by Apache Flink runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
     <!-- build profile for Apache Spark -->
+    <!-- Profile used to build alluxio keyvalue client jar used for Apache Spark. This will be activated by using -->
+    <!-- -Pspark in the maven command line. -->
     <profile>
       <id>spark</id>
       <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->

@@ -28,18 +28,34 @@ public abstract class AlluxioException extends Exception {
    *
    * @param te the type of the exception
    */
-  public AlluxioException(AlluxioTException te) {
+  protected AlluxioException(AlluxioTException te) {
     super(te.getMessage());
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given cause.
+   *
+   * @param cause the cause
+   */
   protected AlluxioException(Throwable cause) {
     super(cause);
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given message.
+   *
+   * @param message the message
+   */
   protected AlluxioException(String message) {
     super(message);
   }
 
+  /**
+   * Constructs an {@link AlluxioException} with the given message and cause.
+   *
+   * @param message the message
+   * @param cause the cause
+   */
   protected AlluxioException(String message, Throwable cause) {
     super(message, cause);
   }

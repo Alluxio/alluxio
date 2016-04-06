@@ -227,7 +227,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         mBlockWorker.removeBlock(mSessionId, mBlockId);
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
       } catch (IOException e) {
-        LOG.warn("Failed master free block cmd for: {} due to concurrent read.", mBlockId, e);
+        LOG.warn("Failed master free block cmd for: {}.", mBlockId, e);
       } catch (InvalidWorkerStateException e) {
         LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {

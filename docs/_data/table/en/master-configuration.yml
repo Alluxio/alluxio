@@ -35,7 +35,7 @@ alluxio.master.port:
   The port that Alluxio master node runs on.
 alluxio.master.retry:
   The number of retries that the client connects to master
-alluxio.master.ttlchecker.interval.ms:
+alluxio.master.ttl.checker.interval.ms:
   Time interval (in milliseconds) to periodically delete the files with expired ttl value.
 alluxio.master.web.bind.host:
   The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
