@@ -27,42 +27,41 @@
 
   <properties>
     <failIfNoTests>false</failIfNoTests>
-    <alluxio.version>1.0.2-SNAPSHOT</alluxio.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
-      <version>${alluxio.version}</version>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-core-client</artifactId>
-      <version>${alluxio.version}</version>
+      <artifactId>alluxio-core-client-internal</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
-      <version>${alluxio.version}</version>
+      <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-hdfs</artifactId>
-      <version>${alluxio.version}</version>
+      <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-s3</artifactId>
-      <version>${alluxio.version}</version>
+      <version>${project.version}</version>
       <scope>compile</scope>
     </dependency>    
     <dependency>
       <groupId>org.apache.thrift</groupId>
       <artifactId>libthrift</artifactId>
-      <version>0.9.1</version>
+      <version>0.9.3</version>
       <exclusions>
         <exclusion>
           <groupId>org.slf4j</groupId>
