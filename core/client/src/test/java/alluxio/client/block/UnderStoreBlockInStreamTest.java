@@ -95,7 +95,7 @@ public class UnderStoreBlockInStreamTest {
   }
 
   /**
-   * Tests that array read methods read the correct data.
+   * Tests that array read methods read the correct data, for the first block of the file.
    *
    * @throws IOException when reading from the stream fails
    */
@@ -104,11 +104,23 @@ public class UnderStoreBlockInStreamTest {
     arrayReadInternal(mBlockStream, 0);
   }
 
+  /**
+   * Tests that array read methods read the correct data, for the last block of the file.
+   *
+   * @throws IOException when reading from the stream fails
+   */
   @Test
   public void arrayReadEOFTest() throws IOException {
     arrayReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
+  /**
+   * Internal test case to verify array read methods an in stream.
+   *
+   * @param inStream the stream to read from
+   * @param startIndex the start index of the file to read from
+   * @throws IOException when reading from the stream fails
+   */
   private void arrayReadInternal(UnderStoreBlockInStream inStream, int startIndex)
       throws IOException {
     long remaining = inStream.remaining();
