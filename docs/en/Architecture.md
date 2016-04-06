@@ -25,7 +25,7 @@ under storage can back all the applications and frameworks running on top of All
 the potential to mount multiple under storage systems, Alluxio can serve as a unifying layer for any
 number of varied data sources.
 
-![Stack]({{site.data.img.stack}})
+![Stack]({{site.data.img.stack}}){: .img-responsive}
 
 # Alluxio Components
 

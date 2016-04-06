@@ -37,3 +37,8 @@
 dependency-reduced-pom.xml
 target/
 tests.log*
+/.sass-cache/
+/docs/bootstrap-sass/test/
+/docs/bootstrap-sass/lib/
+/docs/bootstrap-sass/tasks/
+/docs/bootstrap-sass/templates/
