@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -24,6 +25,8 @@ import alluxio.worker.ClientMetrics;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -31,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -50,11 +52,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum BlockStoreContext {
   INSTANCE;
 
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterClientPool mBlockMasterClientPool;
 
-  /** A map from the worker's address to its client pool. */
-  @GuardedBy("itself")
-  private Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
+  /**
+   * A map from the worker's address to its client pool. Guarded by
+   * {@link #initializeLocalBlockWorkerClientPool()} for client acquisition. There is no guard for
+   * releasing client, and client can be released anytime.
+   */
+  private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
   @GuardedBy("ConcurrentHashMap")
@@ -71,7 +77,7 @@ public enum BlockStoreContext {
    * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
    * manner.
    */
-  private void initializeLocalBlockWorkerClientPool() {
+  private synchronized void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
           NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
@@ -150,13 +156,11 @@ public enum BlockStoreContext {
    */
   public BlockWorkerClient acquireLocalWorkerClient() {
     initializeLocalBlockWorkerClientPool();
-    synchronized (mLocalBlockWorkerClientPoolMap) {
-      if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
-        return null;
-      }
-      // return any local worker
-      return mLocalBlockWorkerClientPoolMap.values().iterator().next().acquire();
+    if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
+      return null;
     }
+    // return any local worker
+    return mLocalBlockWorkerClientPoolMap.values().iterator().next().acquire();
   }
 
   /**
@@ -169,12 +173,10 @@ public enum BlockStoreContext {
    */
   public BlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
     initializeLocalBlockWorkerClientPool();
-    synchronized (mLocalBlockWorkerClientPoolMap) {
-      if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
-        return null;
-      }
-      return mLocalBlockWorkerClientPoolMap.get(address).acquire();
+    if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
+      return null;
     }
+    return mLocalBlockWorkerClientPoolMap.get(address).acquire();
   }
 
   /**
@@ -212,10 +214,11 @@ public enum BlockStoreContext {
     if (blockWorkerClient.isLocal()) {
       // Return local worker client to its resource pool.
       WorkerNetAddress address = blockWorkerClient.getWorkerNetAddress();
-      synchronized (mLocalBlockWorkerClientPoolMap) {
-        Preconditions.checkState(mLocalBlockWorkerClientPoolMap.containsKey(address));
-        mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
+      if(!mLocalBlockWorkerClientPoolMap.containsKey(address)){
+        LOG.error("The client to worker at {} to release is no longer registered in the context.",
+            address);
       }
+      mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
     } else {
       // Destroy remote worker client.
       blockWorkerClient.close();
