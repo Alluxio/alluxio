@@ -45,8 +45,8 @@ public final class DirectedAcyclicGraphTest {
 
     // One node.
     mGraph.add((Integer) (1), new ArrayList<Integer>());
-    Assert.assertEquals(mGraph.getRoots().size(), 1);
-    Assert.assertEquals(mGraph.getRoots().get(0), (Integer) (1));
+    Assert.assertEquals(1, mGraph.getRoots().size());
+    Assert.assertEquals((Integer) (1), mGraph.getRoots().get(0));
     mGraph.deleteLeaf((Integer) (1));
     Assert.assertTrue(mGraph.getRoots().isEmpty());
   }
@@ -67,6 +67,7 @@ public final class DirectedAcyclicGraphTest {
     parents.clear();
     mGraph.add((Integer) (3), parents);
     mGraph.add((Integer) (4), parents);
+    parents.add((Integer) (1));
     parents.add((Integer) (3));
     parents.add((Integer) (4));
     mGraph.add((Integer) (2), parents);
@@ -93,7 +94,7 @@ public final class DirectedAcyclicGraphTest {
       }
       seen.add(i);
     }
-    Assert.assertEquals(seen.size(), 6);
+    Assert.assertEquals(6, seen.size());
 
     // Sort part of the graph.
     toSort.clear();
@@ -108,7 +109,7 @@ public final class DirectedAcyclicGraphTest {
       }
       seen.add(i);
     }
-    Assert.assertEquals(seen.size(), 2);
+    Assert.assertEquals(2, seen.size());
   }
 }
 
