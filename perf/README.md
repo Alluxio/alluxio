@@ -26,19 +26,6 @@ The following steps show how to run a Alluxio-Perf test.
 Optional: if you are running perf against S3 UFS, please also set `ALLUXIO_UNDERFS_ADDRESS`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`.
 
 3. Edit `perf/conf/slaves` to add testing slave nodes. It's recommended to be the same as `{alluxio.home}/conf/workers`. By the way, duplicate slave name is allowed which implies start multi-processes tests on one slave node.
-4. User the deploy.py to deploy the perf-validation folder to all the worker nodes. This is needed because the test is performed in a distributed way.
-
-    $python deploy.py <numMachine> <numClient>
-
-You will need to press Enter after the script is run.
-
-5. Run script
-
-    $python benchmark.py `<taskConf>`
-
-  where `<taskConf>` is the task configuration file, such as `20GB10Thread.conf`  and `5GB1Thread.conf`. The benchmark output is at `benchmark.csv`
-
-Benchmark results are aggregated in `benchmark.csv` file.
 
 ##Other Alluxio-Perf Commands
 - The running test command is `perf/bin/alluxio-perf <TestCase>`
