@@ -20,6 +20,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
@@ -36,6 +38,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -50,6 +53,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test behavior of {@link FileSystemMaster}.
@@ -309,6 +313,7 @@ public class FileSystemMasterIntegrationTest {
   // Modify current time so that implementations can't accidentally pass unit tests by ignoring
   // this specified time and always using System.currentTimeMillis()
   private static final long TEST_CURRENT_TIME = 300;
+  private static final long TTL_CHECKER_INTERVAL_MS = 1000;
 
   /**
    * The authenticate user is gotten from current thread local. If MasterInfo starts a concurrent
@@ -324,12 +329,19 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
+          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
   private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @BeforeClass
+  public static void beforeClass() {
+    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
+        HeartbeatContext.SCHEDULED_TIMER_CLASS);
+  }
 
   @Before
   public final void before() throws Exception {
@@ -768,7 +780,13 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile1")));
     Assert.assertEquals(fileId, folderInfo.getFileId());
     Assert.assertEquals(ttl, folderInfo.getTtl());
-    CommonUtils.sleepMs(5000);
+    // Sleep for the ttl expiration.
+    CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10,
+        TimeUnit.SECONDS));
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.getFileInfo(fileId);
   }
