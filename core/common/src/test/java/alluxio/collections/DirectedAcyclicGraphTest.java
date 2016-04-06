@@ -34,7 +34,7 @@ public final class DirectedAcyclicGraphTest {
     mGraph = new DirectedAcyclicGraph<>();
   }
 
-  /*
+  /**
    * Tests some simple graphs.
    */
   @Test
