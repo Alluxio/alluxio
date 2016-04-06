@@ -118,15 +118,23 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     return skipped;
   }
 
-  private void setUnderStoreStream(long pos) throws IOException {
+  /**
+   * Sets {@link #mUnderStoreStream} to the appropriate UFS stream starting from the specified
+   * position. The specified position is the absolute position within the file, and not the
+   * position relative to the start of the block.
+   *
+   * @param absPos the absolute position of the UFS file
+   * @throws IOException if the stream from the position cannot be created
+   */
+  private void setUnderStoreStream(long absPos) throws IOException {
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
     mPos = 0;
-    if (pos != skip(pos)) {
-      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
+    if (absPos != skip(absPos)) {
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(absPos));
     }
   }
 }
