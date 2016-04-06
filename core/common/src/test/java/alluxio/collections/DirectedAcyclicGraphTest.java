@@ -76,7 +76,7 @@ public final class DirectedAcyclicGraphTest {
 
     // Sort the whole graph.
     Set<Integer> toSort = new HashSet<>();
-    for (int i = 1; i <= 6; ++i) {
+    for (int i = 1; i <= 6; i++) {
       toSort.add(i);
     }
 
