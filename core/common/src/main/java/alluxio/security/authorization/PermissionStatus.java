@@ -104,6 +104,7 @@ public final class PermissionStatus {
         .DEFAULT_FS_FULL_PERMISSION));
   }
 
+  // TODO(binfan): remove remote parameter by making two different get methods
   /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
