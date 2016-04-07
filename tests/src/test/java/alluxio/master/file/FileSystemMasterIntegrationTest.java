@@ -332,7 +332,6 @@ public class FileSystemMasterIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
   private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
@@ -776,8 +775,6 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(ttl, folderInfo.getTtl());
   }
 
-  @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false"})
   @Test
   public void ttlExpiredCreateFileTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());

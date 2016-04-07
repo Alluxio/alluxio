@@ -37,7 +37,7 @@ public abstract class CreatePathOptions<T> {
   protected CreatePathOptions() throws IOException {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
+    mPermissionStatus = PermissionStatus.getDefault(MasterContext.getConf());
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
