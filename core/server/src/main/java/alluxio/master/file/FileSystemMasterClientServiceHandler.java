@@ -13,9 +13,10 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.RpcUtils.RpcCallable;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -65,86 +66,96 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public void completeFile(String path, CompleteFileTOptions options) throws AlluxioTException {
-    try {
-      mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
-  }
-
-  @Override
-  public void createDirectory(String path, CreateDirectoryTOptions options)
-      throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster.mkdir(new AlluxioURI(path), new CreateDirectoryOptions(options));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
-  }
-
-  @Override
-  public void createFile(String path, CreateFileTOptions options) throws AlluxioTException,
-      ThriftIOException {
-    try {
-      mFileSystemMaster.create(new AlluxioURI(path), new CreateFileOptions(options));
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
-  }
-
-  @Override
-  public void free(String path, boolean recursive) throws AlluxioTException {
-    try {
-      mFileSystemMaster.free(new AlluxioURI(path), recursive);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
-  }
-
-  @Override
-  public List<FileBlockInfo> getFileBlockInfoList(String path) throws AlluxioTException {
-    try {
-      List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
-      for (alluxio.wire.FileBlockInfo fileBlockInfo :
-          mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))) {
-        result.add(ThriftUtils.toThrift(fileBlockInfo));
+  public void completeFile(final String path, final CompleteFileTOptions options)
+      throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mFileSystemMaster.completeFile(new AlluxioURI(path), new CompleteFileOptions(options));
+        return null;
       }
-      return result;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+    });
   }
 
   @Override
-  public long getNewBlockIdForFile(String path) throws AlluxioTException {
-    try {
-      return mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void createDirectory(final String path, final CreateDirectoryTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.createDirectory(new AlluxioURI(path),
+            new CreateDirectoryOptions(options));
+        return null;
+      }
+    });
   }
 
   @Override
-  public FileInfo getStatus(String path) throws AlluxioTException {
-    try {
-      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new AlluxioURI(path)));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void createFile(final String path, final CreateFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
+        return null;
+      }
+    });
   }
 
   @Override
-  public FileInfo getStatusInternal(long fileId) throws AlluxioTException {
-    try {
-      return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void free(final String path, final boolean recursive) throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mFileSystemMaster.free(new AlluxioURI(path), recursive);
+        return null;
+      }
+    });
+  }
+
+  @Override
+  public List<FileBlockInfo> getFileBlockInfoList(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<List<FileBlockInfo>>() {
+      @Override
+      public List<FileBlockInfo> call() throws AlluxioException {
+        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        for (alluxio.wire.FileBlockInfo fileBlockInfo :
+            mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))) {
+          result.add(ThriftUtils.toThrift(fileBlockInfo));
+        }
+        return result;
+      }
+    });
+  }
+
+  @Override
+  public long getNewBlockIdForFile(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws AlluxioException {
+        return mFileSystemMaster.getNewBlockIdForFile(new AlluxioURI(path));
+      }
+    });
+  }
+
+  @Override
+  public FileInfo getStatus(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<FileInfo>() {
+      @Override
+      public FileInfo call() throws AlluxioException {
+        return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(new AlluxioURI(path)));
+      }
+    });
+  }
+
+  @Override
+  public FileInfo getStatusInternal(final long fileId) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<FileInfo>() {
+      @Override
+      public FileInfo call() throws AlluxioException {
+        return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
+      }
+    });
   }
 
   /**
@@ -159,97 +170,100 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public List<FileInfo> listStatus(String path) throws AlluxioTException {
-    try {
-      List<FileInfo> result = new ArrayList<FileInfo>();
-      for (alluxio.wire.FileInfo fileInfo :
-          mFileSystemMaster.getFileInfoList(new AlluxioURI(path))) {
-        result.add(ThriftUtils.toThrift(fileInfo));
+  public List<FileInfo> listStatus(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<List<FileInfo>>() {
+      @Override
+      public List<FileInfo> call() throws AlluxioException {
+        List<FileInfo> result = new ArrayList<FileInfo>();
+        for (alluxio.wire.FileInfo fileInfo :
+            mFileSystemMaster.getFileInfoList(new AlluxioURI(path))) {
+          result.add(ThriftUtils.toThrift(fileInfo));
+        }
+        return result;
       }
-      return result;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+    });
   }
 
   @Override
-  public long loadMetadata(String alluxioPath, boolean recursive)
+  public long loadMetadata(final String alluxioPath, final boolean recursive)
       throws AlluxioTException, ThriftIOException {
-    try {
-      return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
+      @Override
+      public Long call() throws AlluxioException, IOException {
+        return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive);
+      }
+    });
   }
 
   @Override
-  public void mount(String alluxioPath, String ufsPath, MountTOptions options)
+  public void mount(final String alluxioPath, final String ufsPath, final MountTOptions options)
       throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster
-          .mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath), new MountOptions(options));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.mount(new AlluxioURI(alluxioPath), new AlluxioURI(ufsPath),
+            new MountOptions(options));
+        return null;
+      }
+    });
   }
 
   @Override
-  public void remove(String path, boolean recursive)
+  public void remove(final String path, final boolean recursive)
       throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster.deleteFile(new AlluxioURI(path), recursive);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.delete(new AlluxioURI(path), recursive);
+        return null;
+      }
+    });
   }
 
   @Override
-  public void rename(String srcPath, String dstPath)
+  public void rename(final String srcPath, final String dstPath)
       throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
+        return null;
+      }
+    });
   }
 
   @Override
-  public void scheduleAsyncPersist(String path) throws AlluxioTException {
-    try {
-      mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
-    } catch (FileDoesNotExistException e) {
-      throw e.toAlluxioTException();
-    } catch (InvalidPathException e) {
-      throw e.toAlluxioTException();
-    }
+  public void scheduleAsyncPersist(final String path) throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mFileSystemMaster.scheduleAsyncPersistence(new AlluxioURI(path));
+        return null;
+      }
+    });
   }
 
   // TODO(calvin): Do not rely on client side options
   @Override
-  public void setAttribute(String path, SetAttributeTOptions options) throws AlluxioTException {
-    try {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void setAttribute(final String path, final SetAttributeTOptions options)
+      throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+          mFileSystemMaster.setAttribute(new AlluxioURI(path), new SetAttributeOptions(options));
+          return null;
+      }
+    });
   }
 
   @Override
-  public void unmount(String alluxioPath) throws AlluxioTException, ThriftIOException {
-    try {
-      mFileSystemMaster.unmount(new AlluxioURI(alluxioPath));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public void unmount(final String alluxioPath) throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mFileSystemMaster.unmount(new AlluxioURI(alluxioPath));
+        return null;
+      }
+    });
   }
 }

@@ -200,7 +200,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     // large number of small files
     InodeDirectory inodeDirectory = createInodeDirectory();
     int nFiles = (int) 1E5;
-    Inode[] inodes = new Inode[nFiles];
+    Inode<?>[] inodes = new Inode[nFiles];
     for (int i = 0; i < nFiles; i++) {
       inodes[i] = createInodeFile(i + 1);
       inodeDirectory.addChild(inodes[i]);

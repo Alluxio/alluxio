@@ -95,6 +95,7 @@ public class BlockWorkerTest {
     conf.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
     conf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+
     mBlockWorker = new BlockWorker();
 
     Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
@@ -109,7 +110,7 @@ public class BlockWorkerTest {
    * Resets the worker context.
    */
   @After
-  public void after() {
+  public void after() throws IOException {
     WorkerContext.reset();
   }
 

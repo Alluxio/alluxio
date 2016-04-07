@@ -137,9 +137,9 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(counters).when(metricRegistry).getCounters();
 
     // Mock gauges.
-    Gauge blocksCachedGauge = PowerMockito.mock(Gauge.class);
+    Gauge<?> blocksCachedGauge = PowerMockito.mock(Gauge.class);
     Mockito.doReturn(blocksCached).when(blocksCachedGauge).getValue();
-    SortedMap<String, Gauge> gauges = Maps.newTreeMap();
+    SortedMap<String, Gauge<?>> gauges = Maps.newTreeMap();
     gauges.put(blocksCachedProperty, blocksCachedGauge);
     Mockito.doReturn(gauges).when(metricRegistry).getGauges();
 

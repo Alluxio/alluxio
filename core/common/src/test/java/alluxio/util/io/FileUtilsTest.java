@@ -130,37 +130,6 @@ public class FileUtilsTest {
   }
 
   /**
-   * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
-   */
-  @Test
-  public void deleteFileTest() throws IOException {
-    File tempFile = mTestFolder.newFile("fileToDelete");
-    File tempFolder = mTestFolder.newFolder("dirToDelete");
-    // Delete a file and a directory
-    FileUtils.delete(tempFile.getAbsolutePath());
-    FileUtils.delete(tempFolder.getAbsolutePath());
-    Assert.assertFalse(tempFile.exists());
-    Assert.assertFalse(tempFolder.exists());
-  }
-
-  /**
-   * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
-   * non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
-   */
-  @Test
-  public void deleteNonExistentFileTest() throws IOException {
-    // ghostFile is never created, so deleting should fail
-    File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
-    mException.expect(IOException.class);
-    FileUtils.delete(ghostFile.getAbsolutePath());
-    Assert.fail("deleting a non-existent file should have failed");
-  }
-
-  /**
    * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
    *
    * @throws IOException thrown if a non-Alluxio related exception occurs

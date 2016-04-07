@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.util.io.FileUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 
@@ -57,12 +56,8 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       long initialSize = ClientContext.getConf().getBytes(Constants.USER_FILE_BUFFER_BYTES);
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
-      FileUtils.createBlockPath(blockPath);
       mWriter = new LocalFileBlockWriter(blockPath);
       mCloser.register(mWriter);
-      // Change the permission of the temporary file in order that the worker can move it.
-      FileUtils.changeLocalFileToFullPermission(blockPath);
-      LOG.info("LocalBlockOutStream created new file block, block path: {}", blockPath);
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;

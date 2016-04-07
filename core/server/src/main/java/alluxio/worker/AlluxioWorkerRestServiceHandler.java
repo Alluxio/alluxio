@@ -14,6 +14,7 @@ package alluxio.worker;
 import alluxio.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
 
 import com.codahale.metrics.Counter;
@@ -64,7 +65,8 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    return Response.ok(mWorker.getWorkerAddress().toString()).build();
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(mWorker.getWorkerAddress().toString())).build();
   }
 
   /**
@@ -162,7 +164,8 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    return Response.ok(Version.VERSION).build();
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(Version.VERSION)).build();
   }
 
   /**
@@ -204,14 +207,16 @@ public final class AlluxioWorkerRestServiceHandler {
     // spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty = CommonUtils.argsToString(".",
         WorkerContext.getWorkerSource().getName(), WorkerSource.BLOCKS_CACHED);
-    Gauge blocksCached = metricRegistry.getGauges().get(blocksCachedProperty);
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> blocksCached =
+        (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
-    metrics.put(blocksCachedProperty, ((Integer) blocksCached.getValue()).longValue());
+    metrics.put(blocksCachedProperty, blocksCached.getValue().longValue());
 
     return Response.ok(metrics).build();
   }
