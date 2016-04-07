@@ -67,10 +67,7 @@ public final class PermissionStatusTest {
     FileSystemPermission umaskPermission = new FileSystemPermission((short) 0022);
     PermissionStatus permissionStatus =
         new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    permissionStatus = permissionStatus.applyUMask(umaskPermission, conf);
+    permissionStatus = permissionStatus.applyUMask(umaskPermission);
 
     Assert.assertEquals(FileSystemAction.ALL, permissionStatus.getPermission().getUserAction());
     Assert.assertEquals(FileSystemAction.READ_EXECUTE,
@@ -81,7 +78,7 @@ public final class PermissionStatusTest {
   }
 
   /**
-   * Tests the {@link PermissionStatus#get(Configuration, boolean)} method.
+   * Tests the {@link PermissionStatus#getAsLoginUser(Configuration)} method.
    */
   @Test
   public void getPermissionStatusTest() throws Exception {
@@ -90,23 +87,21 @@ public final class PermissionStatusTest {
 
     // no authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "false");
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("", "", (short) 0777, permissionStatus);
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     AuthenticatedClientUser.set("test_client_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("test_client_user", "test_client_user", (short) 0755, permissionStatus);
 
     // authentication is enabled, and remote is false
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    permissionStatus = PermissionStatus.get(conf, false);
+    permissionStatus = PermissionStatus.getAsLoginUser(conf);
     verifyPermissionStatus("test_login_user", "test_login_user", (short) 0755, permissionStatus);
   }
 
@@ -128,21 +123,21 @@ public final class PermissionStatusTest {
 
     // no authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("", "", (short) 0777, permissionStatus);
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     AuthenticatedClientUser.set("test_client_user");
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("test_client_user", "group1", (short) 0755, permissionStatus);
 
     // authentication is enabled, and remote is false
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    permissionStatus = PermissionStatus.get(conf, false);
+    permissionStatus = PermissionStatus.getAsLoginUser(conf);
     verifyPermissionStatus("test_login_user", "group1", (short) 0755, permissionStatus);
   }
 
@@ -164,14 +159,13 @@ public final class PermissionStatusTest {
 
     // no authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("", "", (short) 0777, permissionStatus);
 
     // authentication is enabled, and remote is true
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     AuthenticatedClientUser.set("test_client_user");
-    permissionStatus = PermissionStatus.get(conf, true);
+    permissionStatus = PermissionStatus.getDefault(conf);
     verifyPermissionStatus("test_client_user", "", (short) 0755, permissionStatus);
   }
 

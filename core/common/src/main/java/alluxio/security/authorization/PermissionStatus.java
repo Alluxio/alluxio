@@ -85,21 +85,17 @@ public final class PermissionStatus {
    * Applies umask.
    *
    * @param umask the umask to apply
-   * @param configuration the configuration
    * @return a new {@link PermissionStatus}
    * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
-  public PermissionStatus applyUMask(FileSystemPermission umask, Configuration configuration) {
-    if (!SecurityUtils.isAuthorizationEnabled(configuration)) {
-      return new PermissionStatus(mUserName, mGroupName, mPermission);
-    }
+  public PermissionStatus applyUMask(FileSystemPermission umask) {
     FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
     return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
 
   /**
    * Gets the Directory default {@link PermissionStatus}. Currently the default dir permission is
-   * 0777.
+   * 0777. (Test only)
    *
    * @return the default {@link PermissionStatus} for directories
    */
@@ -108,34 +104,39 @@ public final class PermissionStatus {
         .DEFAULT_FS_FULL_PERMISSION));
   }
 
-  // TODO(binfan): remove remote parameter by making two different get methods
   /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
    * @param conf the runtime configuration of Alluxio
-   * @param remote true if the request is for creating permission from client side, the
-   *               username binding into inode will be gotten from {@code AuthenticatedClientUser
-   *               .get().getName()}.
-   *               If the remote is false, the username binding into inode will be gotten from
-   *               {@link alluxio.security.LoginUser}.
    * @return the {@link PermissionStatus} for a file or a directory
    * @throws java.io.IOException when getting login user fails
    */
-  public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
-    if (!SecurityUtils.isSecurityEnabled(conf)) {
+  public static PermissionStatus getDefault(Configuration conf) throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
       // no authentication, every action is permitted
       return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
     }
-    if (remote) {
-      // get the username through the authentication mechanism
-      User user = AuthenticatedClientUser.get(conf);
-      if (user == null) {
-        throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-      }
-      return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
-          user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
+    // get the username through the authentication mechanism
+    User user = AuthenticatedClientUser.get(conf);
+    if (user == null) {
+      throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
     }
+    return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
+        user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
+  }
 
+  /**
+   * Creates the {@link PermissionStatus} for a file or a directory.
+   *
+   * @param conf the runtime configuration of Alluxio
+   * @return the {@link PermissionStatus} for a file or a directory
+   * @throws java.io.IOException when getting login user fails
+   */
+  public static PermissionStatus getAsLoginUser(Configuration conf) throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+      // no authentication, every action is permitted
+      return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
+    }
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
     return new PermissionStatus(loginUserName,

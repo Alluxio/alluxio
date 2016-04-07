@@ -21,6 +21,7 @@ import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
+import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -226,7 +227,10 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
     Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK, MasterContext.getConf()));
+    if (!SecurityUtils.isAuthorizationEnabled(MasterContext.getConf())) {
+      return super.setPermissionStatus(permissionStatus);
+    }
+    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
   }
 
   /**
