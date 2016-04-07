@@ -35,7 +35,7 @@ alluxio.worker.evictor.lrfu.step.factor:
   "A factor in [0, 1] to control the behavior of LRFU: smaller value makes LRFU more similar to
   LFU; and larger value makes LRFU closer to LRU."
 alluxio.worker.evictor.lirs.hir.percent:
-  The percent of HIR cache on each tier. LIRS divides each tier HIR cache and LIR cache.
+  The percent of HIR cache on each tier. LIRS divides each tier into HIR cache and LIR cache.
   HIR cache stores blocks with long reuse distance and LIR cache stores blocks with short reuse distance.
 alluxio.worker.file.persist.pool.size:
   The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.
