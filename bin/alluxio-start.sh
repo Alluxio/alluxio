@@ -215,7 +215,7 @@ case "${WHAT}" in
     if [[ $2 != "NoMount" ]]; then
       ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
       stat=$?
-      if [[ ${stat} -ne 0 ]]; the
+      if [[ ${stat} -ne 0 ]]; then
         echo "Mount failed, not starting"
         exit 1
       fi
