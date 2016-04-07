@@ -343,7 +343,7 @@
               <systemPropertyVariables>
                 <ufs>alluxio.underfs.gcs.GCSUnderStorageCluster</ufs>
                 <!-- Change "myAccessKey" to your access key for this test -->
-                <fs.gcs.accessKeyId>myAccessKey</fs.gcs.acccessKeyId>
+                <fs.gcs.accessKeyId>myAccessKey</fs.gcs.accessKeyId>
                 <!-- Change "mySecretKey" to your secret key for this test -->
                 <fs.gcs.secretAccessKey>mySecretKey</fs.gcs.secretAccessKey>
                 <!-- Change "gs://my-bucket/alluxio-test" to the name of your
