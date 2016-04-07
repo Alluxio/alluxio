@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -64,7 +63,6 @@ public enum BlockStoreContext {
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
-  @GuardedBy("ConcurrentHashMap")
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
@@ -218,8 +216,10 @@ public enum BlockStoreContext {
       if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
         LOG.error("The client to worker at {} to release is no longer registered in the context.",
             address);
+        blockWorkerClient.close();
+      } else {
+        mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
       }
-      mLocalBlockWorkerClientPoolMap.get(address).release(blockWorkerClient);
     } else {
       // Destroy remote worker client.
       blockWorkerClient.close();
