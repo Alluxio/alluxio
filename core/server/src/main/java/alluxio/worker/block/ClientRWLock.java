@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -32,7 +33,7 @@ public final class ClientRWLock implements ReadWriteLock {
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
   /** Reference count. */
-  private Integer mReferences = 0;
+  private AtomicInteger mReferences = new AtomicInteger();
 
   @Override
   public Lock readLock() {
@@ -48,9 +49,7 @@ public final class ClientRWLock implements ReadWriteLock {
    * Increments the reference count.
    */
   public void addReference() {
-    synchronized (mReferences) {
-      mReferences++;
-    }
+    mReferences.incrementAndGet();
   }
 
   /**
@@ -59,10 +58,7 @@ public final class ClientRWLock implements ReadWriteLock {
    * @return the new reference count
    */
   public Integer dropReference() {
-    synchronized (mReferences) {
-      mReferences--;
-      return mReferences;
-    }
+    return mReferences.decrementAndGet();
   }
 
   private final class SessionLock implements Lock {
