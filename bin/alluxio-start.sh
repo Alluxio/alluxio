@@ -79,6 +79,22 @@ do_mount() {
   esac
 }
 
+check_local_mode() {
+  if [[ "$1" = "NoMount" ]]; then
+    if [[ $(uname -s) == Darwin ]]; then
+      echo "Local mode without mounting is only supported in Linux now."
+      echo -e "${USAGE}"
+      exit 1
+    fi
+    if [[ ${ALLUXIO_RAM_FOLDER} != "/dev/shm" || ${ALLUXIO_RAM_FOLDER} != "/dev/shm/" ]]; then
+      echo "WARNING: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
+      echo "Use Mount mode if use ramfs."
+      echo -e "${USAGE}"
+      exit 1
+    fi
+  fi
+}
+
 stop() {
   ${BIN}/alluxio-stop.sh all
 }
@@ -208,6 +224,7 @@ case "${WHAT}" in
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2
     ;;
   local)
+    check_local_mode $2
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
       sleep 1
