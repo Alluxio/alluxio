@@ -13,6 +13,9 @@
     S3_BUCKET: "{{ s3_bucket }}"
     S3_ID: "{{ s3_id }}"
     S3_KEY: "{{ s3_key }}"
+    GCS_BUCKET: "{{ gcs_bucket }}"
+    GCS_ID: "{{ gcs_id }}"
+    GCS_KEY: "{{ gcs_key }}"
 
 - name: set usezookeeper and zookeeper address if number of masters is larger than 1
   script: zookeeper.sh
