@@ -1,0 +1,116 @@
+<!--
+  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+  ~ (the “License”). You may not use this work except in compliance with the License, which is
+  ~ available at www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+  ~ either express or implied, as more fully set forth in the License.
+  ~
+  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-underfs</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-underfs-gcs</artifactId>
+  <name>Alluxio Under File System - GCS</name>
+  <description>Google Cloud Storage (GCS) Under File System implementation</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>net.java.dev.jets3t</groupId>
+      <artifactId>jets3t</artifactId>
+    </dependency>
+
+    <!-- The following are jets3t dependencies
+     (see http://mvnrepository.com/artifact/net.java.dev.jets3t/jets3t/0.9.4).
+     We need to explicitly include them, because jets3t is shaded. -->
+    <!-- TODO(jsimsa): Investigate whether the same outcome can be achieved
+     using the promoteTransitiveDependencies option of the maven shade plugin. -->
+    <dependency>
+      <groupId>com.jamesmurty.utils</groupId>
+      <artifactId>java-xmlbuilder</artifactId>
+      <version>0.4</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.3</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <id>shade-jets3t</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <artifactSet>
+                <includes>
+                  <include>net.java.dev.jets3t</include>
+                </includes>
+              </artifactSet>
+              <filters>
+                <filter>
+                  <artifact>net.java.dev.jets3t:jets3t</artifact>
+                  <includes>
+                    <include>org/jets3t/**</include>
+                  </includes>
+                </filter>
+              </filters>
+              <relocations>
+                <relocation>
+                  <pattern>org.jets3t</pattern>
+                  <shadedPattern>alluxio.org.jets3t</shadedPattern>
+                </relocation>
+              </relocations>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

@@ -18,6 +18,7 @@ import alluxio.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.util.FormatUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -101,7 +102,8 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    return Response.ok(mMaster.getMasterAddress().toString()).build();
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(mMaster.getMasterAddress().toString())).build();
   }
 
   /**
@@ -121,14 +123,16 @@ public final class AlluxioMasterRestServiceHandler {
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty = CommonUtils.argsToString(".",
         MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
-    Gauge filesPinned = metricRegistry.getGauges().get(filesPinnedProperty);
+    @SuppressWarnings("unchecked")
+    Gauge<Integer> filesPinned =
+        (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);
 
     // Get values of the counters and gauges and put them into a metrics map.
     SortedMap<String, Long> metrics = new TreeMap<>();
     for (Map.Entry<String, Counter> counter : counters.entrySet()) {
       metrics.put(counter.getKey(), counter.getValue().getCount());
     }
-    metrics.put(filesPinnedProperty, ((Integer) filesPinned.getValue()).longValue());
+    metrics.put(filesPinnedProperty, filesPinned.getValue().longValue());
 
     return Response.ok(metrics).build();
   }
@@ -163,7 +167,8 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    return Response.ok(Version.VERSION).build();
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(Version.VERSION)).build();
   }
 
   /**

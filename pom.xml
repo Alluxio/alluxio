@@ -184,7 +184,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.0</version>
+        <version>3.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -665,11 +665,21 @@
     </profile>
 
     <!--
+        build profile for Apache Spark.
         Empty spark profile to avoid missing profile complaints. Client
         submodules do more interesting things with this profile.
     -->
     <profile>
       <id>spark</id>
+    </profile>
+
+    <!--
+        build profile for Apache Flink.
+        Empty flinkprofile to avoid missing profile complaints. Client
+        submodules do more interesting things with this profile.
+    -->
+    <profile>
+      <id>flink</id>
     </profile>
 
     <profile>
