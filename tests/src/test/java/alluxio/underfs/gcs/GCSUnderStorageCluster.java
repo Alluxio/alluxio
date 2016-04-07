@@ -26,8 +26,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 /**
- * This class will use Amazon GCS as the backing store. The integration properties should be
- * specified in the module's pom file. Each instance of the cluster will run with a separate base
+ * This class will use Google Cloud Storage as the backing store. The integration properties should
+ * be specified in the module's pom file. Each instance of the cluster will run with a separate base
  * directory (user prefix + uuid). Each test will attempt to clean up their test directories, but
  * in cases of complete failure (ie. jvm crashed) the directory will need to be cleaned up through
  * manual means.
