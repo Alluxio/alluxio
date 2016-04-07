@@ -212,12 +212,6 @@ case "${WHAT}" in
       stop ${BIN}
       sleep 1
     fi
-    ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
-    stat=$?
-    if [[ ${stat} -ne 0 ]]; then
-      echo "Mount failed, not starting"
-      exit 1
-    fi
     if [ ! -z $2 ] && [ $2 != "-f" ]; then
       echo -e "${USAGE}"
       exit 1
