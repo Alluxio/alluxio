@@ -52,9 +52,7 @@ public final class BlockLockManager {
 
     @Override
     protected ClientRWLock createNewResource() {
-      ClientRWLock lock = new ClientRWLock();
-      lock.addReference();
-      return lock;
+      return new ClientRWLock();
     }
   };
 
@@ -125,27 +123,24 @@ public final class BlockLockManager {
    */
   private ClientRWLock getBlockLock(long blockId) {
     ClientRWLock blockLock;
-    boolean acquireNewLock;
     synchronized (mSharedMapsLock) {
       blockLock = mLocks.get(blockId);
       if (blockLock != null) {
         blockLock.addReference();
       }
-      acquireNewLock = blockLock == null;
     }
-    if (acquireNewLock) {
+    if (blockLock == null) {
       // Acquire the lock outside the synchronized section because #acquire might need to block.
       blockLock = mLockPool.acquire();
-      // Note that the acquire method will increment the reference count for the acquired lock.
       synchronized (mSharedMapsLock) {
         if (mLocks.containsKey(blockId)) {
           // Someone else acquired a block lock for blockId while we were acquiring one. Use theirs.
-          blockLock.dropReference();
           mLockPool.release(blockLock);
           blockLock = mLocks.get(blockId);
         } else {
           mLocks.put(blockId, blockLock);
         }
+        blockLock.addReference();
       }
     }
     return blockLock;
