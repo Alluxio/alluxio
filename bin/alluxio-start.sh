@@ -87,11 +87,12 @@ check_local_mode() {
       exit 1
     fi
     if [[ ${ALLUXIO_RAM_FOLDER} != "/dev/shm" || ${ALLUXIO_RAM_FOLDER} != "/dev/shm/" ]]; then
-      echo "WARNING: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
-      echo "Use Mount mode if use ramfs."
+      echo "ERROR: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
       echo -e "${USAGE}"
       exit 1
     fi
+    echo "Warning: Alluxio is running on tmpfs that supports swapping."
+    echo "Check swap stats via vmstat first if Alluxio is slow."
   fi
 }
 
