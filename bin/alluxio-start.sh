@@ -56,6 +56,7 @@ check_mount_mode() {
         if [[ $( uname -a) == Darwin* ]]; then
           # Assuming Max OS X
           echo "ERROR: tmpFS is only enabled in Linux."
+          echo -e "${USAGE}"
           exit 1
         fi
         echo "Warning: Alluxio is running on tmpfs that supports swapping."
