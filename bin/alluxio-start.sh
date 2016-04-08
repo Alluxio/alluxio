@@ -66,11 +66,9 @@ check_mount_mode() {
 do_mount() {
   MOUNT_FAILED=0
   case "$1" in
-    Mount|SudoMount)
+    Mount|SudoMount|NoMount)
       ${LAUNCHER} ${BIN}/alluxio-mount.sh $1
       MOUNT_FAILED=$?
-      ;;
-    NoMount)
       ;;
     *)
       echo "This command requires a mount mode be specified"
