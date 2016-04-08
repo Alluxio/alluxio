@@ -47,6 +47,7 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
+# Called when ${MOPT}=NoMount
 check_tmpfs_mode() {
   if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
     echo "Warning: Alluxio is running on tmpfs that supports swapping."
@@ -66,7 +67,7 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-    check_tmpfs_mode
+      check_tmpfs_mode
     ;;
     *)
       if [[ -z $1 ]]; then
