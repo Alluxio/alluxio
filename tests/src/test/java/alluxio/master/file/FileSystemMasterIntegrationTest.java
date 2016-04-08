@@ -325,7 +325,7 @@ public class FileSystemMasterIntegrationTest {
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
 
   @Rule

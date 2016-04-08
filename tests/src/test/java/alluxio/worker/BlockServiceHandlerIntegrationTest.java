@@ -56,7 +56,7 @@ public class BlockServiceHandlerIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Rule

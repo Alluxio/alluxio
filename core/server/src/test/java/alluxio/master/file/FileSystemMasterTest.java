@@ -88,7 +88,7 @@ public final class FileSystemMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
-  public ManuallyScheduleHeartbeat manuallySchedule = new ManuallyScheduleHeartbeat(
+  public ManuallyScheduleHeartbeat mManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
