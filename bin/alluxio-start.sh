@@ -47,27 +47,22 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
-# Called when ${MOPT}=NoMount
-check_nomount_mode() {
-  if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-    echo "Warning: Alluxio is running on tmpfs that supports swapping."
-    echo "Warning: Check vmstat if Alluxio is slow."
-    if [[ $( uname -a) == Darwin* ]]; then
-      # Assuming Max OS X
-      echo "ERROR: tmpFS is only enabled in Linux."
-      exit 1
-    fi
-  else
-    echo "WARNING: using NoMount but ALLUXIO_RAM_FOLDER is not set to /dev/shm."
-  fi
-}
-
 check_mount_mode() {
   case "$1" in
     Mount);;
     SudoMount);;
     NoMount)
-      check_nomount_mode
+      if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+        echo "Warning: Alluxio is running on tmpfs that supports swapping."
+        echo "Warning: Check vmstat if Alluxio is slow."
+        if [[ $( uname -a) == Darwin* ]]; then
+          # Assuming Max OS X
+          echo "ERROR: tmpFS is only enabled in Linux."
+          exit 1
+        fi
+      else
+        echo "WARNING: using NoMount but ALLUXIO_RAM_FOLDER is not set to /dev/shm."
+      fi
     ;;
     *)
       if [[ -z $1 ]]; then
