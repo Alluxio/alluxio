@@ -60,7 +60,7 @@ check_mount_mode() {
           exit 1
         else
           echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
-          ALLUXIO_RAM_FOLDER="dev/shm"
+          export ALLUXIO_RAM_FOLDER="/dev/shm"
         fi
       fi
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
