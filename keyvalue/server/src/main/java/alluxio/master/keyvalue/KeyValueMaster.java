@@ -245,9 +245,9 @@ public final class KeyValueMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, AccessControlException {
     try {
       // Create this dir
-      mFileSystemMaster.mkdir(path, CreateDirectoryOptions.defaults().setRecursive(true));
+      mFileSystemMaster.createDirectory(path, CreateDirectoryOptions.defaults().setRecursive(true));
     } catch (IOException e) {
-      // TODO(binfan): Investigate why mFileSystemMaster.mkdir throws IOException
+      // TODO(binfan): Investigate why {@link mFileSystemMaster.createDirectory} throws IOException
       throw new InvalidPathException(
           String.format("Failed to createStore: can not create path %s", path), e);
     } catch (FileDoesNotExistException e) {
@@ -296,7 +296,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throws IOException, InvalidPathException, FileDoesNotExistException, AlluxioException {
     long fileId = getFileId(uri);
     checkIsCompletePartition(fileId, uri);
-    mFileSystemMaster.deleteFile(uri, true);
+    mFileSystemMaster.delete(uri, true);
     deleteStoreInternal(fileId);
     writeJournalEntry(newDeleteStoreEntry(fileId));
     flushJournal();
