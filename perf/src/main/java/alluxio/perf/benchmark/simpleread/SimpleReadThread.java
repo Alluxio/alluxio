@@ -75,7 +75,7 @@ public class SimpleReadThread extends PerfThread {
     mBufferSize = taskConf.getIntProperty("buffer.size.bytes");
     mReadType = taskConf.getProperty("read.type");
     try {
-      mFileSystem = PerfConstants.getFileSystem(mReadType);
+      mFileSystem = PerfConstants.getFileSystem();
       String readDir = taskConf.getProperty("read.dir");
       List<String> candidates = mFileSystem.listFullPath(readDir);
       if (candidates == null || candidates.isEmpty()) {

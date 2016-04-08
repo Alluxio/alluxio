@@ -76,11 +76,10 @@ public class MetadataThread extends PerfThread {
     mClientsNum = taskConf.getIntProperty("clients.per.thread");
     mOpTimeMs = taskConf.getIntProperty("op.second.per.thread") * 1000;
     mWorkDir = taskConf.getProperty("work.dir");
-    String fs = taskConf.getProperty("fs");
     try {
       mClients = new PerfFS[mClientsNum];
       for (int i = 0; i < mClientsNum; i ++) {
-        mClients[i] = PerfConstants.getFileSystem(fs);
+        mClients[i] = PerfConstants.getFileSystem();
       }
     } catch (IOException e) {
       LOG.error("Failed to setup thread, task " + mTaskId + " - thread " + mId, e);
