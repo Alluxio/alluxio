@@ -22,6 +22,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
@@ -29,10 +30,9 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -47,6 +47,11 @@ public final class FreeAndDeleteIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat manuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.WORKER_BLOCK_SYNC,
+      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+
   /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -55,6 +60,7 @@ public final class FreeAndDeleteIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, 100 * Constants.MB,
       Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
@@ -63,22 +69,6 @@ public final class FreeAndDeleteIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
-  }
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
   }
 
   @Test
