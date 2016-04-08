@@ -53,13 +53,13 @@ check_mount_mode() {
     SudoMount);;
     NoMount)
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-        echo "Warning: Alluxio is running on tmpfs that supports swapping."
-        echo "Warning: Check vmstat if Alluxio is slow."
         if [[ $( uname -a) == Darwin* ]]; then
           # Assuming Max OS X
           echo "ERROR: tmpFS is only enabled in Linux."
           exit 1
         fi
+        echo "Warning: Alluxio is running on tmpfs that supports swapping."
+        echo "Warning: Check vmstat if Alluxio is slow."
       else
         echo "WARNING: using NoMount but ALLUXIO_RAM_FOLDER is not set to /dev/shm."
       fi
