@@ -42,7 +42,7 @@ for slave in $UNIQ_SLAVES; do
   slavenum=`echo $TSLAVES | grep -o "$slave\s" | wc -l`
   lasttaskid=`expr $taskid + $slavenum - 1`
   echo -n "Connect to $slave... "
-  $bin/alluxio-perf-start.sh $slave $taskid $lasttaskid $TOTAL_TASKS $1 2>&1
+  ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=no -t $slave $bin/alluxio-perf-start.sh $slave $taskid $lasttaskid $TOTAL_TASKS $1 2>&1
   sleep 0.02
   taskid=`expr $lasttaskid + 1`
 done
