@@ -113,7 +113,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Constants.GB * 2L;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
