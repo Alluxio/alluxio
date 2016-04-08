@@ -48,7 +48,7 @@ get_env() {
 }
 
 # Called when ${MOPT}=NoMount
-check_tmpfs_mode() {
+check_nomount_mode() {
   if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
     echo "Warning: Alluxio is running on tmpfs that supports swapping."
     echo "Warning: Check vmstat if Alluxio is slow."
@@ -67,7 +67,7 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      check_tmpfs_mode
+      check_nomount_mode
     ;;
     *)
       if [[ -z $1 ]]; then
