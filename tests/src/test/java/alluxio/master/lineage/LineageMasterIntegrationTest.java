@@ -61,7 +61,7 @@ public final class LineageMasterIntegrationTest {
   private static final int BUFFER_BYTES = 100;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule = new ManuallyScheduleHeartbeat(
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
       HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
 

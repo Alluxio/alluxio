@@ -48,7 +48,7 @@ public class TieredStoreIntegrationTest {
   private SetAttributeOptions mSetUnpinned;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule = new ManuallyScheduleHeartbeat(
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
           HeartbeatContext.MASTER_TTL_CHECK,
           HeartbeatContext.WORKER_BLOCK_SYNC,
           HeartbeatContext.WORKER_PIN_LIST_SYNC);

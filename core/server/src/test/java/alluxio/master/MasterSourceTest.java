@@ -79,7 +79,7 @@ public final class MasterSourceTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   @Rule
-  public ManuallyScheduleHeartbeat manuallySchedule =
+  public ManuallyScheduleHeartbeat mManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
 
   @BeforeClass

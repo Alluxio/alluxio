@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class FreeCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
