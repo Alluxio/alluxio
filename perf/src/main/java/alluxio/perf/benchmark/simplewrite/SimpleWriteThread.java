@@ -80,7 +80,7 @@ public class SimpleWriteThread extends PerfThread {
     mFileLength = taskConf.getLongProperty("file.length.bytes");
     mWriteType = taskConf.getProperty("write.type");
     try {
-      mFileSystem = PerfConstants.getFileSystem(mWriteType);
+      mFileSystem = PerfConstants.getFileSystem();
       String writeDir = taskConf.getProperty("write.dir");
       int filesNum = taskConf.getIntProperty("files.per.thread");
       mWriteFiles = ListGenerator.generateWriteFiles(mId, filesNum, writeDir);
