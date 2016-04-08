@@ -16,10 +16,11 @@ import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -28,15 +29,11 @@ import java.util.concurrent.TimeUnit;
  * Tests the "pin" and "unpin" commands.
  */
 public class PinCommandTest extends AbstractAlluxioShellTest {
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_PIN_LIST_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
+  @ClassRule
+  public static ManuallyScheduleHeartbeat manuallyScheduleRule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_TTL_CHECK,
+      HeartbeatContext.WORKER_BLOCK_SYNC,
+      HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
   /**
    * Tests the "pin" and "unpin" commands. Creates a file and tests if unpinning it , then pinning
