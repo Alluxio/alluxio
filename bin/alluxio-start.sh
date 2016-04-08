@@ -55,7 +55,7 @@ check_mount_mode() {
       if ! mount | grep ${ALLUXIO_RAM_FOLDER} > /dev/null; then
         if [[ $( uname -a) == Darwin* ]]; then
           # Assuming Mac OS X
-          echo "ERROR: mount mode is required."
+          echo "ERROR: NoMount is not supported in Mac OS X."
           echo -e "${USAGE}"
           exit 1
         else
