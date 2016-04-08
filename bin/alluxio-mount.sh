@@ -208,9 +208,6 @@ function mount_local() {
 }
 
 case "${1}" in
-  NoMount)
-    if [[ $(uname -a) == Darwin* ]]; then
-      # Assuming Max OS X
   Mount|SudoMount)
     case "${2}" in
       ""|local)
