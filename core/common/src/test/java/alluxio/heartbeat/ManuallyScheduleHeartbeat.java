@@ -19,7 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * A rule which will temporarily change a thread to being manually scheduled. See
+ * A rule which will temporarily change a heartbeat to being manually scheduled. See
  * {@link HeartbeatScheduler}.
  */
 public final class ManuallyScheduleHeartbeat implements TestRule {
