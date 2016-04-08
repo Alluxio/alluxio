@@ -52,7 +52,6 @@
 # fi
 # export ALLUXIO_CLASSPATH=${ALLUXIO_CLASSPATH:-${HADOOP_ALLUXIO_CLASSPATH}}
 
-export ALLUXIO_RAM_FOLDER="/dev/shm/"
 if [[ $(uname -s) == Darwin ]]; then
   # Assuming Mac OS X
   export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}

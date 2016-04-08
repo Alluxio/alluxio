@@ -82,17 +82,17 @@ do_mount() {
 check_local_mode() {
   if [[ "$1" = "NoMount" ]]; then
     if [[ $(uname -s) == Darwin ]]; then
-      echo "Local mode without mounting is only supported in Linux now."
+      echo "Local NoMount mode is only supported in Linux now. Remove NoMount."
       echo -e "${USAGE}"
       exit 1
     fi
     if [[ ${ALLUXIO_RAM_FOLDER} != "/dev/shm" || ${ALLUXIO_RAM_FOLDER} != "/dev/shm/" ]]; then
-      echo "ERROR: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
-      echo -e "${USAGE}"
-      exit 1
+      echo "Warning: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
+      echo "Warning: Overriding ALLUXIO_RAM_FOLDER to /dev/shm."
+      export ALLUXIO_RAM_FOLDER="/dev/shm/"
     fi
     echo "Warning: Alluxio is running on tmpfs that supports swapping."
-    echo "Check swap stats via vmstat first if Alluxio is slow."
+    echo "Warning: Check vmstat if Alluxio is slow."
   fi
 }
 
@@ -230,20 +230,27 @@ case "${WHAT}" in
       stop ${BIN}
       sleep 1
     fi
-    if [[ $2 != "NoMount" ]]; then
-      ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
-      stat=$?
-      if [[ ${stat} -ne 0 ]]; then
-        echo "Mount failed, not starting"
+    case "$2" in
+      Mount|SudoMount|-f)
+        ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
+        stat=$?
+        if [[ ${stat} -ne 0 ]]; then
+          echo "Mount failed, not starting"
+          exit 1
+        fi
+        if [[ "$2" != "-f" ]]; then
+          shift
+        fi
+        ;;
+      NoMount)
+        shift
+      ;;
+      *)
+      if [ ! -z $2 ]; then
+        echo -e "${USAGE}"
         exit 1
       fi
-    else
-      shift
-    fi
-    if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${USAGE}"
-      exit 1
-    fi
+    esac
     start_master $2
     sleep 2
     start_worker NoMount
