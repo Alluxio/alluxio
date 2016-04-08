@@ -87,7 +87,7 @@ check_local_mode() {
       exit 1
     fi
     if [[ ${ALLUXIO_RAM_FOLDER} != "/dev/shm" || ${ALLUXIO_RAM_FOLDER} != "/dev/shm/" ]]; then
-      echo "Warning: ALLUXIO_RAM_FOLDER is not set to /dev/shm in NoMount local mode."
+      echo "Warning: ALLUXIO_RAM_FOLDER is not set to /dev/shm in local NoMount mode."
       echo "Warning: Overriding ALLUXIO_RAM_FOLDER to /dev/shm."
       export ALLUXIO_RAM_FOLDER="/dev/shm/"
     fi
