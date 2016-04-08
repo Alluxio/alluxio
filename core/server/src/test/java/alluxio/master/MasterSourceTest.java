@@ -42,6 +42,7 @@ import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -78,8 +79,8 @@ public final class MasterSourceTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  @Rule
-  public ManuallyScheduleHeartbeat mManuallySchedule =
+  @ClassRule
+  public static ManuallyScheduleHeartbeat mManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
 
   @BeforeClass
