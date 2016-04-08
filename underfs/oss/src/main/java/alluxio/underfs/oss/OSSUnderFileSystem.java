@@ -156,16 +156,16 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in OSS, however the maximum
-   * allowed size of one file is currently 5 GB.
+   * Gets the block size in bytes. There is no concept of a block in OSS and the maximum size of
+   * one file is 5 GB. This method defaults to the default user block size in Alluxio.
    *
    * @param path the file name
-   * @return 5 GB in bytes
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.GB * 5;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
