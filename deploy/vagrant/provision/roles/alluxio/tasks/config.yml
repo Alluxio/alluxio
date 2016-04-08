@@ -17,6 +17,9 @@
     GCS_ID: "{{ gcs_id }}"
     GCS_KEY: "{{ gcs_key }}"
 
+- name: Source the bashrc file
+  shell: source ~/.bashrc
+
 - name: set usezookeeper and zookeeper address if number of masters is larger than 1
   script: zookeeper.sh
   when: alluxio_masters > 1

@@ -4,4 +4,6 @@
 # this is guaranteed by generation process of /alluxio/conf/workers in script vagrant/create.
 UFS_MASTER=$(tail -n1 /alluxio/conf/workers)
 
-export ALLUXIO_UNDERFS_ADDRESS="hdfs://${UFS_MASTER}:9000"
+echo "
+export ALLUXIO_UNDERFS_ADDRESS=\"hdfs://${UFS_MASTER}:9000\"
+" >> ~/.bashrc
