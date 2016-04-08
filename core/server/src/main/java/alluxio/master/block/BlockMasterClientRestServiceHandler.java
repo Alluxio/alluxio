@@ -14,6 +14,7 @@ package alluxio.master.block;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -52,7 +53,8 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).build();
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME)).build();
   }
 
   /**

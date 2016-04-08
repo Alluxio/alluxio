@@ -1,0 +1,3 @@
+```bash
+export ALLUXIO_UNDERFS_ADDRESS=gs://GCS_BUCKET/GCS_DIRECTORY
+```

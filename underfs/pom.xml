@@ -28,7 +28,19 @@
     <module>oss</module>
     <module>swift</module>
     <module>s3</module>
+    <module>gcs</module>
   </modules>
+
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>net.java.dev.jets3t</groupId>
+        <artifactId>jets3t</artifactId>
+        <version>0.9.4</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
