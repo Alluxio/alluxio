@@ -59,7 +59,7 @@ public class RemoteBlockInStreamIntegrationTest {
   private static final int DELTA = 33;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Rule

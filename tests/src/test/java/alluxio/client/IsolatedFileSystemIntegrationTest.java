@@ -44,7 +44,7 @@ public class IsolatedFileSystemIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule =
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Rule

@@ -48,7 +48,7 @@ public final class FreeAndDeleteIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallySchedule = new ManuallyScheduleHeartbeat(
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.WORKER_BLOCK_SYNC,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 

@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class PinCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
-  public static ManuallyScheduleHeartbeat manuallyScheduleRule = new ManuallyScheduleHeartbeat(
+  public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.WORKER_BLOCK_SYNC,
       HeartbeatContext.WORKER_PIN_LIST_SYNC);
