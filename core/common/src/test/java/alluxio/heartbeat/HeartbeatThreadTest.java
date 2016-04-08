@@ -15,6 +15,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -119,7 +120,8 @@ public final class HeartbeatThreadTest {
     @Override
     public void run()  {
       try {
-        HeartbeatContext.setTimerClass(mThreadName, HeartbeatContext.SCHEDULED_TIMER_CLASS);
+        Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", mThreadName,
+            HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
