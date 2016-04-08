@@ -23,7 +23,8 @@ Where WHAT is one of:
 MOPT is one of:
   Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
   SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
-  NoMount\t\tDo not mount the configured RamFS
+  NoMount\t\tDo not mount the configured RamFS. Notice: Use NoMount and set ALLUXIO_RAM_FOLDER to
+  /dev/shm to use tmpFS to avoid sudo requirement.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 
@@ -46,11 +47,25 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
+check_tmpfs_mode() {
+  if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+    echo "tmpFS is enabled."
+    if [[ $( uname -a) == Darwin* ]]; then
+      # Assuming Max OS X
+      echo "ERROR: tmpFS is only enabled in Linux."
+      exit 1
+    fi
+  fi
+}
+
 check_mount_mode() {
   case "$1" in
     Mount);;
     SudoMount);;
-    NoMount);;
+    NoMount)
+
+
+    ;;
     *)
       if [[ -z $1 ]]; then
         echo "This command requires a mount mode be specified"
