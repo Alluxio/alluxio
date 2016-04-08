@@ -49,6 +49,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -87,8 +88,8 @@ public final class FileSystemMasterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Rule
-  public ManuallyScheduleHeartbeat mManuallySchedule = new ManuallyScheduleHeartbeat(
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 

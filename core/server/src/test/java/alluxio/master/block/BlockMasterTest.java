@@ -34,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -69,8 +70,8 @@ public class BlockMasterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Rule
-  public ManuallyScheduleHeartbeat mManuallySchedule = new ManuallyScheduleHeartbeat(
+  @ClassRule
+  public static ManuallyScheduleHeartbeat mManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
   /**
