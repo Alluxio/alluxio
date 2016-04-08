@@ -44,6 +44,7 @@ public final class AlluxioFuseUtils {
 
   /**
    * Runs the "id" command with the given options on the passed username.
+   * 
    * @param option option to pass to id (either -u or -g)
    * @param username the username on which to run the command
    * @return the uid (-u) or gid (-g) of username
