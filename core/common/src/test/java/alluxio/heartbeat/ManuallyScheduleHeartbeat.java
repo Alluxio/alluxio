@@ -11,9 +11,11 @@
 
 package alluxio.heartbeat;
 
+import com.google.common.base.Throwables;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
@@ -45,7 +47,12 @@ public final class ManuallyScheduleHeartbeat implements TestRule {
   @Override
   public Statement apply(final Statement statement, Description description) {
     for (String threadName : mThreads) {
-      HeartbeatContext.setTimerClass(threadName, HeartbeatContext.SCHEDULED_TIMER_CLASS);
+      try {
+        Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", threadName,
+            HeartbeatContext.SCHEDULED_TIMER_CLASS);
+      } catch (Exception e) {
+        throw Throwables.propagate(e);
+      }
     }
     return new Statement() {
       @Override
@@ -54,7 +61,8 @@ public final class ManuallyScheduleHeartbeat implements TestRule {
           statement.evaluate();
         } finally {
           for (String threadName : mThreads) {
-            HeartbeatContext.setTimerClass(threadName, HeartbeatContext.SLEEPING_TIMER_CLASS);
+            Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", threadName,
+                HeartbeatContext.SLEEPING_TIMER_CLASS);
           }
         }
       }
