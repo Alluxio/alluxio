@@ -12,13 +12,13 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 USAGE="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
-  local\t\t\tStart a master and worker locally
-  master\t\tStart the master on this node
-  safe\t\t\tScript will run continuously and start the master if it's not running
-  worker MOPT\t\tStart a worker on this node
-  workers MOPT\t\tStart workers on worker nodes
-  restart_worker\tRestart a failed worker on this node
-  restart_workers\tRestart any failed workers on worker nodes
+  local [MOPT] \t\t\tStart a master and worker locally. SudoMount is assumed is MOPT is missing.
+  master\t\tStart the master on this node.
+  safe\t\t\tScript will run continuously and start the master if it's not running.
+  worker MOPT\t\tStart a worker on this node.
+  workers MOPT\t\tStart workers on worker nodes.
+  restart_worker\tRestart a failed worker on this node.
+  restart_workers\tRestart any failed workers on worker nodes.
 
 MOPT is one of:
   Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
@@ -49,12 +49,15 @@ get_env() {
 
 check_tmpfs_mode() {
   if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
-    echo "tmpFS is enabled."
+    echo "Warning: Alluxio is running on tmpfs that supports swapping."
+    echo "Warning: Check vmstat if Alluxio is slow."
     if [[ $( uname -a) == Darwin* ]]; then
       # Assuming Max OS X
       echo "ERROR: tmpFS is only enabled in Linux."
       exit 1
     fi
+  else
+    echo "WARNING: using NoMount but ALLUXIO_RAM_FOLDER is not set to /dev/shm."
   fi
 }
 
@@ -63,8 +66,7 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-
-
+    check_tmpfs_mode
     ;;
     *)
       if [[ -z $1 ]]; then
@@ -81,32 +83,17 @@ check_mount_mode() {
 do_mount() {
   MOUNT_FAILED=0
   case "$1" in
-    Mount|SudoMount|NoMount)
+    Mount|SudoMount)
       ${LAUNCHER} ${BIN}/alluxio-mount.sh $1
       MOUNT_FAILED=$?
+      ;;
+    NoMount)
       ;;
     *)
       echo "This command requires a mount mode be specified"
       echo -e "${USAGE}"
       exit 1
   esac
-}
-
-check_local_mode() {
-  if [[ "$1" = "NoMount" ]]; then
-    if [[ $(uname -s) == Darwin ]]; then
-      echo "Local NoMount mode is only supported in Linux now. Remove NoMount."
-      echo -e "${USAGE}"
-      exit 1
-    fi
-    if [[ ${ALLUXIO_RAM_FOLDER} != "/dev/shm" || ${ALLUXIO_RAM_FOLDER} != "/dev/shm/" ]]; then
-      echo "Warning: ALLUXIO_RAM_FOLDER is not set to /dev/shm in local NoMount mode."
-      echo "Warning: Overriding ALLUXIO_RAM_FOLDER to /dev/shm."
-      export ALLUXIO_RAM_FOLDER="/dev/shm/"
-    fi
-    echo "Warning: Alluxio is running on tmpfs that supports swapping."
-    echo "Warning: Check vmstat if Alluxio is slow."
-  fi
 }
 
 stop() {
@@ -214,12 +201,33 @@ done
 shift $((OPTIND-1))
 
 WHAT=$1
-
 if [[ -z "${WHAT}" ]]; then
   echo "Error: no WHAT specified"
   echo -e "${USAGE}"
   exit 1
 fi
+shift
+
+
+MOPT=$1
+# Set MOPT.
+case "${WHAT}" in
+  all|worker|workers)
+    check_mount_mode ${MOPT}
+    shift
+    ;;
+  local)
+    if [[ -z ${MOPT} || ${MOPT} == "-f" ]]; then
+      MOPT="SudoMount"
+    else
+      shift
+    fi
+    check_mount_mode ${MOPT}
+    ;;
+  *)
+    MOPT=""
+    ;;
+esac
 
 # get environment
 get_env
@@ -227,64 +235,40 @@ get_env
 # ensure log/data dirs
 ensure_dirs
 
+if [ ! -z $1 ] && [ $1 != "-f" ]; then
+  echo -e "${USAGE}"
+  exit 1
+fi
+
 case "${WHAT}" in
   all)
-    check_mount_mode $2
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
     fi
-    start_master $3
+    start_master $1
     sleep 2
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2
+    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT}
     ;;
   local)
-    check_local_mode $2
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
       sleep 1
     fi
-    case "$2" in
-      Mount|SudoMount|-f)
-        ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
-        stat=$?
-        if [[ ${stat} -ne 0 ]]; then
-          echo "Mount failed, not starting"
-          exit 1
-        fi
-        if [[ "$2" != "-f" ]]; then
-          shift
-        fi
-        ;;
-      NoMount)
-        shift
-      ;;
-      *)
-      if [ ! -z $2 ]; then
-        echo -e "${USAGE}"
-        exit 1
-      fi
-    esac
-    start_master $2
+    start_master $1
     sleep 2
-    start_worker NoMount
+    start_worker ${MOPT}
     ;;
   master)
-    if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${USAGE}"
-      exit 1
-    fi
-    start_master $2
+    start_master $1
     ;;
   worker)
-    check_mount_mode $2
-    start_worker $2
+    start_worker $1
     ;;
   safe)
     run_safe
     ;;
   workers)
-    check_mount_mode $2
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2 \
+    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT} \
      ${ALLUXIO_MASTER_ADDRESS}
     ;;
   restart_worker)
