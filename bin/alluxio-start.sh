@@ -12,7 +12,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 USAGE="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
-  local [MOPT] \t\t\tStart a master and worker locally. SudoMount is assumed is MOPT is missing.
+  local [MOPT] \t\t\tStart a master and worker locally. SudoMount is assumed if MOPT is missing.
   master\t\tStart the master on this node.
   safe\t\t\tScript will run continuously and start the master if it's not running.
   worker MOPT\t\tStart a worker on this node.
@@ -52,17 +52,20 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+      if ! mount | grep ${ALLUXIO_RAM_FOLDER} > /dev/null; then
         if [[ $( uname -a) == Darwin* ]]; then
-          # Assuming Max OS X
-          echo "ERROR: tmpFS is only enabled in Linux."
+          # Assuming Mac OS X
+          echo "ERROR: mount mode is required."
           echo -e "${USAGE}"
           exit 1
+        else
+          echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
+          ALLUXIO_RAM_FOLDER="dev/shm"
         fi
-        echo "Warning: Alluxio is running on tmpfs that supports swapping."
-        echo "Warning: Check vmstat if Alluxio is slow."
-      else
-        echo "WARNING: using NoMount but ALLUXIO_RAM_FOLDER is not set to /dev/shm."
+      fi
+      if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+        echo "WARNING: using tmpFS which is not guaranteed to be in memory."
+        echo "WARNING: Check vimstat for memory statistics (e.g. swapping)."
       fi
     ;;
     *)
