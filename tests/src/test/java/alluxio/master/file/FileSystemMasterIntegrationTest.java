@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
@@ -38,7 +39,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -323,6 +324,10 @@ public class FileSystemMasterIntegrationTest {
    */
   private static final String TEST_AUTHENTICATE_USER = "test-user";
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat manuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
+
   @Rule
   public Timeout mGlobalTimeout = Timeout.seconds(60);
 
@@ -331,17 +336,12 @@ public class FileSystemMasterIntegrationTest {
       new LocalAlluxioClusterResource(1000, Constants.GB,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
           Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
-  private Configuration mMasterConfiguration;
-  private FileSystemMaster mFsMaster;
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
+  private Configuration mMasterConfiguration;
+  private FileSystemMaster mFsMaster;
 
   @Before
   public final void before() throws Exception {
