@@ -143,7 +143,7 @@ public final class BlockLockManager {
       // allocated to another thread, in which case we could just use that lock.
       if (blockLock == null) {
         blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
-        acquiredNewLock = true;
+        acquiredNewLock = (blockLock != null);
       }
     }
     // If we acquired a new block lock, we need to add it to the mLocks map.
