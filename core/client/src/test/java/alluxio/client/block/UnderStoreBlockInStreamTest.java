@@ -83,7 +83,7 @@ public class UnderStoreBlockInStreamTest {
    */
   private void singleByteReadInternal(UnderStoreBlockInStream inStream, int startIndex)
       throws IOException {
-    long remaining = mBlockStream.remaining();
+    long remaining = inStream.remaining();
     for (int i = startIndex; i < startIndex + BLOCK_LENGTH; i++) {
       Assert.assertEquals(i, inStream.read());
       remaining--;
