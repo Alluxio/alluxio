@@ -28,6 +28,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.BlockInfo;
@@ -35,7 +36,7 @@ import alluxio.wire.BlockInfo;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -84,11 +85,9 @@ public class DataServerIntegrationTest {
         blockReader);
   }
 
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Before
   public final void before() throws Exception {

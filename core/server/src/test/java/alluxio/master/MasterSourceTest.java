@@ -18,6 +18,7 @@ import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -41,6 +42,7 @@ import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -77,6 +79,10 @@ public final class MasterSourceTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
+
   @BeforeClass
   public static void beforeClass() throws Exception {
     sNestedFileOptions =
@@ -94,8 +100,6 @@ public final class MasterSourceTest {
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
