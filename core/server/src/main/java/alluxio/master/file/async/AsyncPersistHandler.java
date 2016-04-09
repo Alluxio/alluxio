@@ -14,6 +14,7 @@ package alluxio.master.file.async;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
@@ -69,7 +70,8 @@ public interface AsyncPersistHandler {
    * @return the list of files for persistence
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws AccessControlException if permission checking fails
    */
   List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException;
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException;
 }

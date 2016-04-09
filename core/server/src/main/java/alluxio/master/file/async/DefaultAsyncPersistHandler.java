@@ -13,6 +13,7 @@ package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FailedToCheckpointException;
 import alluxio.exception.FileDoesNotExistException;
@@ -82,9 +83,11 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @param path the path to the file
    * @return the id of the storing worker
    * @throws FileDoesNotExistException when the file does not exist on any worker
+   * @throws AccessControlException if permission checking fails
    */
   // TODO(calvin): Propagate the exceptions in certain cases
-  private long getWorkerStoringFile(AlluxioURI path) throws FileDoesNotExistException {
+  private long getWorkerStoringFile(AlluxioURI path)
+      throws FileDoesNotExistException, AccessControlException {
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
     List<FileBlockInfo> blockInfoList;
     try {
@@ -130,10 +133,11 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @return the list of files
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
+   * @throws AccessControlException if permission checking fails
    */
   @Override
   public synchronized List<PersistFile> pollFilesToPersist(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<PersistFile> filesToPersist = Lists.newArrayList();
     List<Long> fileIdsToPersist = Lists.newArrayList();
 
