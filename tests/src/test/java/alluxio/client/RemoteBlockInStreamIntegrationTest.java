@@ -22,7 +22,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.heartbeat.HeartbeatContext;
@@ -105,7 +104,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read()}. Read from underfs.
    */
   @Test
-  public void readTest1() throws IOException, AlluxioException {
+  public void readTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -166,7 +165,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
-  public void readTest2() throws IOException, AlluxioException {
+  public void readTest2() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -203,7 +202,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from underfs.
    */
   @Test
-  public void readTest3() throws IOException, AlluxioException {
+  public void readTest3() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -240,7 +239,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read()}. Read from remote data server.
    */
   @Test
-  public void readTest4() throws IOException, AlluxioException {
+  public void readTest4() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -271,7 +270,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read(byte[])}. Read from remote data server.
    */
   @Test
-  public void readTest5() throws IOException, AlluxioException {
+  public void readTest5() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -298,7 +297,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read(byte[], int, int)}. Read from remote data server.
    */
   @Test
-  public void readTest6() throws IOException, AlluxioException {
+  public void readTest6() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -325,7 +324,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#read(byte[])}. Read from underfs.
    */
   @Test
-  public void readTest7() throws IOException, AlluxioException {
+  public void readTest7() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -344,12 +343,9 @@ public class RemoteBlockInStreamIntegrationTest {
   /**
    * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * negative position.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest1() throws IOException, AlluxioException {
+  public void seekExceptionTest1() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     String uniqPath = PathUtils.uniqPath();
@@ -369,12 +365,9 @@ public class RemoteBlockInStreamIntegrationTest {
   /**
    * Tests {@link RemoteBlockInStream#seek(long)}. Validate the expected exception for seeking a
    * position that is past block size.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest2() throws IOException, AlluxioException {
+  public void seekExceptionTest2() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown
         .expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), 1));
@@ -394,12 +387,9 @@ public class RemoteBlockInStreamIntegrationTest {
 
   /**
    * Tests {@link RemoteBlockInStream#seek(long)}.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekTest() throws IOException, AlluxioException {
+  public void seekTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -422,7 +412,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, AlluxioException {
+  public void skipTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -451,7 +441,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file the whole way through with the STORE ReadType will recache it.
    */
   @Test
-  public void completeFileReadTriggersRecache() throws IOException, AlluxioException {
+  public void completeFileReadTriggersRecache() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int len = 2;
     AlluxioURI uri = new AlluxioURI(uniqPath);
@@ -470,7 +460,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * recache.
    */
   @Test
-  public void incompleteFileReadCancelsRecache() throws IOException, AlluxioException {
+  public void incompleteFileReadCancelsRecache() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     AlluxioURI uri = new AlluxioURI(uniqPath);
     FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, 2);
@@ -487,7 +477,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that reading a file consisting of more than one block from the underfs works.
    */
   @Test
-  public void readMultiBlockFile() throws IOException, AlluxioException {
+  public void readMultiBlockFile() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int blockSizeByte = 10;
     int numBlocks = 10;
@@ -512,7 +502,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests that seeking around a file cached locally works.
    */
   @Test
-  public void seekAroundLocalBlock() throws IOException, AlluxioException {
+  public void seekAroundLocalBlock() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     // The number of bytes per remote block read should be set to 100 in the before function
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath, 200, mWriteAlluxio);

@@ -32,7 +32,7 @@ import java.io.IOException;
  */
 public class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void persistTest() throws IOException, AlluxioException {
+  public void persistTest() throws Exception {
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
     Assert
@@ -45,7 +45,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistDirectoryTest() throws IOException, AlluxioException {
+  public void persistDirectoryTest() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -126,7 +126,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistTwiceTest() throws IOException, AlluxioException {
+  public void persistTwiceTest() throws Exception {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);

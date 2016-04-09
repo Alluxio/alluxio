@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystem;
-import alluxio.exception.AlluxioException;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.collect.Lists;
@@ -25,7 +24,6 @@ import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 
@@ -89,12 +87,9 @@ public final class KeyValuePartitionIntegrationTest {
    * Tests a {@link KeyValuePartitionWriter} can create a partition, write key-value pairs and
    * close. Meanwhile the {@link KeyValuePartitionReader} can open this saved partition and find
    * keys store by the writer.
-   *
-   * @throws IOException if unexpected non-Alluxio error happens
-   * @throws AlluxioException if unexpected Alluxio error happens
    */
   @Test
-  public void readerWriterTest() throws IOException, AlluxioException {
+  public void readerWriterTest() throws Exception {
     mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);

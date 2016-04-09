@@ -102,7 +102,6 @@ public final class MasterClientAuthenticationIntegrationTest {
    * successfully to the Master, it can successfully create file or not.
    *
    * @param filename
-   * @throws Exception
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =

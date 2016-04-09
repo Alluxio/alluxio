@@ -72,7 +72,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    * @param value offset within the file
    * @return object that is passed as a parameter to
    *         {@link #collectStats(OutputCollector, String,long, Object)}
-   * @throws IOException
    */
   abstract T doIO(Reporter reporter, String name, long value) throws IOException;
 
@@ -82,7 +81,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    *
    * @param name file name
    * @return the stream
-   * @throws IOException
    */
   public Closeable getIOStream(String name) throws IOException {
     return null;
@@ -96,7 +94,6 @@ public abstract class AbstractIOMapper<T> extends Configured implements
    * @param execTime IO execution time
    * @param doIOReturnValue value returned by
    *        {@link #doIO(Reporter, String,long)}
-   * @throws IOException
    */
   abstract void collectStats(OutputCollector<Text, Text> output, String name, long execTime,
       T doIOReturnValue) throws IOException;
