@@ -69,8 +69,7 @@ public final class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
 
   /**
-   * To guard access to {@link #mLocks}, {@link #mLockIdToRecordMap}, and
-   * {@link #mSessionIdToLockIdsMap}.
+   * To guard access to the Maps maintained by this class.
    */
   private final Object mSharedMapsLock = new Object();
 
@@ -123,12 +122,28 @@ public final class BlockLockManager {
    * @return the block lock
    */
   private ClientRWLock getBlockLock(long blockId) {
+    ClientRWLock blockLock;
     synchronized (mSharedMapsLock) {
-      if (!mLocks.containsKey(blockId)) {
-        mLocks.put(blockId, mLockPool.acquire());
+      blockLock = mLocks.get(blockId);
+      if (blockLock != null) {
+        blockLock.addReference();
       }
-      return mLocks.get(blockId);
     }
+    if (blockLock == null) {
+      // Acquire the lock outside the synchronized section because #acquire might need to block.
+      blockLock = mLockPool.acquire();
+      synchronized (mSharedMapsLock) {
+        if (mLocks.containsKey(blockId)) {
+          // Someone else acquired a block lock for blockId while we were acquiring one. Use theirs.
+          mLockPool.release(blockLock);
+          blockLock = mLocks.get(blockId);
+        } else {
+          mLocks.put(blockId, blockLock);
+        }
+        blockLock.addReference();
+      }
+    }
+    return blockLock;
   }
 
   /**
@@ -282,14 +297,11 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       ClientRWLock lock = mLocks.get(blockId);
       if (lock == null) {
-        throw new RuntimeException("The lock for block with id " + blockId + " does not exist");
+        // Someone else probably released the block lock already.
+        return;
       }
-      // We check that nobody is using the lock by trying to take a write lock. If we succeed, there
-      // can't be anyone else using the lock. If we fail, the lock is in use somewhere else and it
-      // is their responsibility to clean up the lock when they are done with it.
-      Lock writeLock = lock.writeLock();
-      if (writeLock.tryLock()) {
-        writeLock.unlock();
+      // If we were the last worker with a reference to the lock, clean it up.
+      if (lock.dropReference() == 0) {
         mLocks.remove(blockId);
         mLockPool.release(lock);
       }

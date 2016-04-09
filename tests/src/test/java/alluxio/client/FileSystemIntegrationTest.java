@@ -132,7 +132,7 @@ public class FileSystemIntegrationTest {
       mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
       try {
         mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
-        Assert.fail("mkdir should throw FileAlreadyExistsException");
+        Assert.fail("createDirectory should throw FileAlreadyExistsException");
       } catch (FileAlreadyExistsException e) {
         Assert.assertEquals(e.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));

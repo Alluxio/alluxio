@@ -61,6 +61,8 @@ public final class PreconditionMessage {
       "Acquire Remote Worker Client cannot not be called with local hostname";
   public static final String S3_BUCKET_MUST_BE_SET =
       "The %s system property must be set to use the S3UnderStorageCluster";
+  public static final String GCS_BUCKET_MUST_BE_SET =
+      "The %s system property must be set to use the GCSUnderStorageCluster";
   public static final String TTL_ONLY_FOR_FILE = "TTL can only be set for files";
   public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
   public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
