@@ -890,73 +890,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-<<<<<<< HEAD
    * @param path the path to get the info for
-||||||| merged common ancestors
-   * Returns the {@link FileBlockInfo} for given file and block index.
-   *
-   * @param fileId the file id to get the info for
-   * @param fileBlockIndex the block index of the file to get the block info for
-   * @return the {@link FileBlockInfo} for the file and block index
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockInfoException if the block size is invalid
-   * @throws InvalidPathException if the mount table is not able to resolve the file
-   */
-  public FileBlockInfo getFileBlockInfo(long fileId, int fileBlockIndex)
-      throws BlockInfoException, FileDoesNotExistException, InvalidPathException {
-    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
-    synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeById(fileId);
-      if (inode.isDirectory()) {
-        throw new FileDoesNotExistException(
-            ExceptionMessage.FILEID_MUST_BE_FILE.getMessage(fileId));
-      }
-      InodeFile file = (InodeFile) inode;
-      List<Long> blockIdList = new ArrayList<Long>(1);
-      blockIdList.add(file.getBlockIdByIndex(fileBlockIndex));
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (blockInfoList.size() != 1) {
-        throw new BlockInfoException(
-            "FileId " + fileId + " BlockIndex " + fileBlockIndex + " is not a valid block.");
-      }
-      FileBlockInfo blockInfo = generateFileBlockInfo(file, blockInfoList.get(0));
-      MasterContext.getMasterSource().incFileBlockInfosGot(1);
-      return blockInfo;
-    }
-  }
-
-  /**
-   * @param path the path to get the info for
-=======
-   * Gets the {@link FileBlockInfo} for all blocks of a file. If path is a directory, an exception
-   * is thrown.
-   * <p>
-   * This operation requires the client user to have {@link FileSystemAction#READ} permission on the
-   * the path.
-   *
-   * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
-   * @throws FileDoesNotExistException if the file does not exist or path is a directory
-   * @throws InvalidPathException if the path of the given file is invalid
-   * @throws AccessControlException if permission checking fails
-   */
-  public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
-    synchronized (mInodeTree) {
-      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      InodeFile inode = mInodeTree.getInodeFileByPath(path);
-      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inode);
-      MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
-      return ret;
-    }
-  }
-
-  /**
-   * Implementation of {@link #getFileBlockInfoList}.
-   *
-   * @param file The inode for the file to get block info list
->>>>>>> upstream/master
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws InvalidPathException if the path of the given file is invalid
    */
