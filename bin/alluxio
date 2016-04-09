@@ -91,14 +91,14 @@ function bootstrapConf {
         ;;
       glusterfs)
         ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/glusterfs:\/\/\//" ${dst}
-        ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a\\
+        ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
         export ALLUXIO_UNDERFS_GLUSTER_VOLUMES=\$\{ALLUXIO_UNDERFS_GLUSTER_VOLUMES:-alluxio_vol\}\\
         " ${dst}
         ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
         export ALLUXIO_UNDERFS_GLUSTER_MOUNTS=\${ALLUXIO_UNDERFS_GLUSTER_MOUNTS:-\/vol\}\\
         " ${dst}
         ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
-        export ALLUXIO_UNDERFS_GLUSTER_MR_DIR=\${ALLUXIO_UNDERFS_GLUSTER_MR_DIR:-\glusterfs:\/\/\/mapred\/system\}\\
+        export ALLUXIO_UNDERFS_GLUSTER_MR_DIR=\${ALLUXIO_UNDERFS_GLUSTER_MR_DIR:-glusterfs:\/\/\/mapred\/system\}\\
         " ${dst}
         ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
         ;;
