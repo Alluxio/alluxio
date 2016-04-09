@@ -24,11 +24,12 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -46,22 +47,18 @@ public class TieredStoreIntegrationTest {
   private SetAttributeOptions mSetPinned;
   private SetAttributeOptions mSetUnpinned;
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+          HeartbeatContext.MASTER_TTL_CHECK,
+          HeartbeatContext.WORKER_BLOCK_SYNC,
+          HeartbeatContext.WORKER_PIN_LIST_SYNC);
+
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000,
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_PIN_LIST_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
 
   @Before
   public final void before() throws Exception {

@@ -17,6 +17,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
+import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -63,8 +64,10 @@ public final class LineageMasterClientRestServiceHandler {
   @GET
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
-  public Response name() {
-    return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).build();
+  public Response getServiceName() {
+    // Need to encode the string as JSON because Jackson will not do it automatically.
+    return Response.ok(FormatUtils.encodeJson(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME))
+        .build();
   }
 
   /**
@@ -74,7 +77,7 @@ public final class LineageMasterClientRestServiceHandler {
   @GET
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
-  public Response version() {
+  public Response getServiceVersion() {
     return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).build();
   }
 

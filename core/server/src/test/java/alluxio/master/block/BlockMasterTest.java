@@ -16,6 +16,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.Journal;
@@ -33,6 +34,7 @@ import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -68,6 +70,10 @@ public class BlockMasterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+
   /**
    * Sets up the dependencies before a test runs.
    *
@@ -75,8 +81,6 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_WORKER_DETECTION,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
     mMaster.start(true);

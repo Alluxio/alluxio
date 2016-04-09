@@ -29,6 +29,7 @@ import alluxio.client.lineage.LineageMasterClient;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
@@ -39,7 +40,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -59,6 +60,11 @@ public final class LineageMasterIntegrationTest {
   private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BUFFER_BYTES = 100;
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+      HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
+
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
@@ -73,14 +79,6 @@ public final class LineageMasterIntegrationTest {
   private static final String OUT_FILE = "/test";
   private Configuration mTestConf;
   private CommandLineJob mJob;
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
 
   @Before
   public void before() throws Exception {
