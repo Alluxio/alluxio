@@ -43,8 +43,6 @@ public class SwiftOutputStreamTest {
 
   /**
    * Sets the properties and configuration before each test runs.
-   *
-   * @throws Exception when the {@link HttpURLConnection#getOutputStream()} throws exception
    */
   @Before
   public void before() throws Exception {
@@ -56,8 +54,6 @@ public class SwiftOutputStreamTest {
   /**
    * Tests to ensure IOException is thrown if {@link HttpURLConnection#getOutputStream()} throws an
    * IOException.
-   *
-   * @throws Exception when the IOException is not thrown
    */
   @Test
   public void testConstructor() throws Exception {
@@ -70,8 +66,6 @@ public class SwiftOutputStreamTest {
 
   /**
    * Tests to ensure {@link SwiftOutputStream#write(int)} calls {@link OutputStream#write(int)}.
-   *
-   * @throws Exception when {@link OutputStream#write(int)} is not called
    */
   @Test
   public void testWrite1() throws Exception {
@@ -84,8 +78,6 @@ public class SwiftOutputStreamTest {
   /**
    * Tests to ensure {@link SwiftOutputStream#write(byte[], int, int)} calls
    * {@link OutputStream#write(byte[], int, int)} .
-   *
-   * @throws Exception when {@link OutputStream#write(byte[], int, int)} is not called
    */
   @Test
   public void testWrite2() throws Exception {
@@ -99,8 +91,6 @@ public class SwiftOutputStreamTest {
   /**
    * Tests to ensure {@link SwiftOutputStream#write(byte[])} calls
    * {@link OutputStream#write(byte[])}.
-   *
-   * @throws Exception when {@link OutputStream#write(byte[])} is not called
    */
   @Test
   public void testWrite3() throws Exception {
@@ -113,9 +103,6 @@ public class SwiftOutputStreamTest {
 
   /**
    * Tests to ensure {@link HttpURLConnection#getErrorStream()} is called when 400 is returned.
-   *
-   * @throws Exception when {@link HttpURLConnection#getErrorStream()} and
-   *         {@link HttpURLConnection#disconnect()} are not called
    */
   @Test
   public void testCloseError() throws Exception {
@@ -128,9 +115,6 @@ public class SwiftOutputStreamTest {
 
   /**
    * Tests to ensure {@link HttpURLConnection#getInputStream()} is called when 200 is returned.
-   *
-   * @throws Exception when {@link HttpURLConnection#getInputStream()} and
-   *         {@link HttpURLConnection#disconnect()} are not called
    */
   @Test
   public void testCloseSuccess() throws Exception {
@@ -143,8 +127,6 @@ public class SwiftOutputStreamTest {
 
   /**
    * Tests to ensure {@link SwiftOutputStream#flush()} calls {@link OutputStream#flush()}.
-   *
-   * @throws Exception when flush is not called
    */
   @Test
   public void testFlush() throws Exception {
