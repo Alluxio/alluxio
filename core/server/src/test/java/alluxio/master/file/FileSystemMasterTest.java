@@ -395,13 +395,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-<<<<<<< HEAD
-    mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-||||||| merged common ancestors
-    long fileId = mFileSystemMaster.create(NESTED_FILE_URI, sNestedFileOptions);
-=======
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
->>>>>>> upstream/master
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -574,48 +568,6 @@ public final class FileSystemMasterTest {
   }
 
   /**
-<<<<<<< HEAD
-||||||| merged common ancestors
-   * Tests the persistence of file with block on multiple workers.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
-   */
-  @Test
-  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
-    long fileId = mFileSystemMaster.create(ROOT_FILE_URI, sNestedFileOptions);
-    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
-    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
-    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(2 * Constants.KB);
-    mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
-
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
-    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
-  }
-
-  /**
-=======
-   * Tests the persistence of file with block on multiple workers.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
-   */
-  @Test
-  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
-    long fileId = mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
-    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
-    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
-    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(2 * Constants.KB);
-    mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
-
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
-    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
-  }
-
-  /**
->>>>>>> upstream/master
    * Tests that lost files can successfully be detected.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
