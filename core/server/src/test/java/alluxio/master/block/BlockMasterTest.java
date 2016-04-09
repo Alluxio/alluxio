@@ -71,7 +71,7 @@ public class BlockMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat mManuallySchedule = new ManuallyScheduleHeartbeat(
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
 
   /**
