@@ -250,8 +250,9 @@ public class BlockLockManagerTest {
   /**
    * Tests that taking and releasing many block locks concurrently won't cause a failure.
    *
-   * This is done by creating 1500 threads, 500 for each of 3 different block ids. Each thread locks
-   * and then unlocks its block 100 times.
+   * This is done by creating 1500 threads, 300 for each of 5 different block ids. Each thread locks
+   * and then unlocks its block 100 times. After this, it takes a final lock on its block before
+   * returning. At the end of the test, the internal state of the lock manager is validated.
    */
   @Test(timeout = 10000)
   public void stressTest() throws Throwable {
