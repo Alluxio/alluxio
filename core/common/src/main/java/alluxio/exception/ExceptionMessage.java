@@ -36,7 +36,7 @@ public enum ExceptionMessage {
   BLOCK_UNAVAILABLE("Block {0} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Unable to request space from worker"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
-  NO_WORKER_AVAILABLE_ON_HOST("No Alluxio worker available for host {0}"),
+  NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
   // block lock manager
