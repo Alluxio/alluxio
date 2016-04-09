@@ -396,7 +396,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    */
   @GuardedBy("mInodeTree")
-  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     AlluxioURI path = mInodeTree.getPath(inode);
@@ -890,6 +890,31 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Gets the {@link FileBlockInfo} for all blocks of a file. If path is a directory, an exception
+   * is thrown.
+   * <p>
+   * This operation requires the client user to have {@link FileSystemAction#READ} permission on the
+   * the path.
+   *
+   * @param path the path to get the info for
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @throws FileDoesNotExistException if the file does not exist or path is a directory
+   * @throws InvalidPathException if the path of the given file is invalid
+   * @throws AccessControlException if permission checking fails
+   */
+  public List<FileBlockInfo> getFileBlockInfoList(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
+    MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
+    synchronized (mInodeTree) {
+      mPermissionChecker.checkPermission(FileSystemAction.READ, path);
+      InodeFile inode = mInodeTree.getInodeFileByPath(path);
+      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inode);
+      MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
+      return ret;
+    }
+  }
+
+  /**
    * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws InvalidPathException if the path of the given file is invalid
@@ -1351,7 +1376,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return true if the file was freed
    */
   @GuardedBy("mInodeTree")
-  private boolean freeInternal(Inode inode, boolean recursive) {
+  private boolean freeInternal(Inode<?> inode, boolean recursive) {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
       // true
