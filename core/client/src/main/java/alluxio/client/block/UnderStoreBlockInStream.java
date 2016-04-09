@@ -28,11 +28,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderStoreBlockInStream extends BlockInStream {
+  /** The start of this block. This is the absolute position within the under store stream. */
   private final long mInitPos;
+  /** The length of the block. */
   private final long mLength;
+  /** The UFS path for this block. */
   private final String mUfsPath;
 
+  /**
+   * The current position for this block stream. This is the absolute position within the under
+   * store stream.
+   */
   private long mPos;
+  /** The current under store stream. */
   private InputStream mUnderStoreStream;
 
   /**
