@@ -32,7 +32,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests {@link FileOutStream#write(int)}.
    */
   @Test
-  public void writeTest1() throws IOException, AlluxioException {
+  public void writeTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -41,8 +41,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
   }
 
-  private void writeTest1Util(AlluxioURI filePath, int len, CreateFileOptions op)
-      throws IOException, AlluxioException {
+  private void writeTest1Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     for (int k = 0; k < len; k++) {
       os.write((byte) k);
@@ -55,7 +54,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests {@link FileOutStream#write(byte[])}.
    */
   @Test
-  public void writeTest2() throws IOException, AlluxioException {
+  public void writeTest2() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -64,8 +63,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
   }
 
-  private void writeTest2Util(AlluxioURI filePath, int len, CreateFileOptions op)
-      throws IOException, AlluxioException {
+  private void writeTest2Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(len));
     os.close();
@@ -76,7 +74,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests {@link FileOutStream#write(byte[], int, int)}.
    */
   @Test
-  public void writeTest3() throws IOException, AlluxioException {
+  public void writeTest3() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -96,11 +94,9 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
 
   /**
    * Tests writing to a file and specify the location to be localhost.
-   *
-   * @throws IOException if file can not be opened successfully
    */
   @Test
-  public void writeSpecifyLocalTest() throws IOException, AlluxioException {
+  public void writeSpecifyLocalTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, mWriteLocal);
@@ -113,12 +109,9 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
   /**
    * Tests writing to a file for longer than HEARTBEAT_INTERVAL_MS to make sure the sessionId
    * doesn't change. Tracks [ALLUXIO-171].
-   *
-   * @throws IOException
-   * @throws InterruptedException
    */
   @Test
-  public void longWriteTest() throws IOException, InterruptedException, AlluxioException {
+  public void longWriteTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath, mWriteUnderStore);
@@ -133,11 +126,9 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
    * Tests if out-of-order writes are possible. Writes could be out-of-order when the following are
    * both true: - a "large" write (over half the internal buffer size) follows a smaller write. -
    * the "large" write does not cause the internal buffer to overflow.
-   *
-   * @throws IOException
    */
   @Test
-  public void outOfOrderWriteTest() throws IOException, AlluxioException {
+  public void outOfOrderWriteTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, mWriteAlluxio);
 

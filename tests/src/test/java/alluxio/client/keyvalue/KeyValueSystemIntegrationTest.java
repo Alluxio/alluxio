@@ -283,7 +283,6 @@ public final class KeyValueSystemIntegrationTest {
    * @param size the number of key-value pairs
    * @param pairs the key-value pairs in the store, null if you don't want to know them
    * @return the URI to the store
-   * @throws Exception if any error happens
    */
   private AlluxioURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());

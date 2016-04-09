@@ -118,8 +118,6 @@ public final class TestCase {
 
   /**
    * Runs the test case.
-   *
-   * @throws Exception if an error occurs
    */
   public void run() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();

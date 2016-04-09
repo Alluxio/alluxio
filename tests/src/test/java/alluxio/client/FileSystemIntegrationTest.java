@@ -59,12 +59,12 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void getRootTest() throws IOException, AlluxioException {
+  public void getRootTest() throws Exception {
     Assert.assertEquals(0, mFileSystem.getStatus(new AlluxioURI("/")).getFileId());
   }
 
   @Test
-  public void createFileTest() throws IOException, AlluxioException {
+  public void createFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = 1; k < 5; k++) {
       AlluxioURI uri = new AlluxioURI(uniqPath + k);
@@ -74,7 +74,7 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void createFileWithFileAlreadyExistsExceptionTest() throws IOException, AlluxioException {
+  public void createFileWithFileAlreadyExistsExceptionTest() throws Exception {
     AlluxioURI uri = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(uri, mWriteBoth).close();
     Assert.assertNotNull(mFileSystem.getStatus(uri));
@@ -86,14 +86,14 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void createFileWithInvalidPathExceptionTest() throws IOException, AlluxioException {
+  public void createFileWithInvalidPathExceptionTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_INVALID.getMessage("root/testFile1"));
     mFileSystem.createFile(new AlluxioURI("root/testFile1"), mWriteBoth);
   }
 
   @Test
-  public void deleteFileTest() throws IOException, AlluxioException {
+  public void deleteFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
 
     for (int k = 0; k < 5; k++) {
@@ -113,7 +113,7 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void getFileStatusTest() throws IOException, AlluxioException {
+  public void getFileStatusTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int writeBytes = USER_QUOTA_UNIT_BYTES * 2;
     AlluxioURI uri = new AlluxioURI(uniqPath);
@@ -124,7 +124,7 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void mkdirTest() throws IOException, AlluxioException {
+  public void mkdirTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
     for (int k = 0; k < 10; k++) {
@@ -140,7 +140,7 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest1() throws IOException, AlluxioException {
+  public void renameFileTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     AlluxioURI path1 = new AlluxioURI(uniqPath + 1);
     mFileSystem.createFile(path1, mWriteBoth).close();
@@ -158,7 +158,7 @@ public class FileSystemIntegrationTest {
   }
 
   @Test
-  public void renameFileTest2() throws IOException, AlluxioException {
+  public void renameFileTest2() throws Exception {
     AlluxioURI uniqUri = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(uniqUri, mWriteBoth).close();
     URIStatus f = mFileSystem.getStatus(uniqUri);
@@ -170,11 +170,10 @@ public class FileSystemIntegrationTest {
   /**
    * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
    * second Ufs.
+   *
    * @return the path of the alternate Ufs directory
-   * @throws InvalidPathException if the UNDERFS_ADDRESS is not properly formed
-   * @throws IOException if a UnderFS I/O error occurs
    */
-  private String createAlternateUfs() throws InvalidPathException, IOException {
+  private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
         new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
             .getParent();
@@ -186,15 +185,15 @@ public class FileSystemIntegrationTest {
 
   /**
    * Deletes the alternate under file system directory.
+   *
    * @param alternateUfsRoot the root of the alternate Ufs
-   * @throws IOException if an UnderFS I/O error occurs
    */
-  private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
+  private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
     UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
   }
 
   @Test
-  public void mountAlternateUfsTest() throws IOException, AlluxioException {
+  public void mountAlternateUfsTest() throws Exception {
     String alternateUfsRoot = createAlternateUfs();
     try {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
