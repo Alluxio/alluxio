@@ -236,6 +236,9 @@ public class UnderStoreBlockInStreamTest {
     Assert.assertEquals(remaining, inStream.skip(remaining));
     Assert.assertEquals(-1, inStream.read());
     Assert.assertEquals(0, inStream.remaining());
+
+    // Seeking past the file should not seek at all.
+    Assert.assertEquals(0, inStream.skip(1));
   }
 
   /**
