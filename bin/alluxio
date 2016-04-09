@@ -78,7 +78,7 @@ function bootstrapConf {
   # Set under storage specific configuration
   case ${ufs} in
     local)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/\$\{ALLUXIO_HOME\}\/under-storage/" ${dst}
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/\$\{ALLUXIO_HOME\}\/underFSStorage/" ${dst}
       ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
       ;;
     hdfs)
