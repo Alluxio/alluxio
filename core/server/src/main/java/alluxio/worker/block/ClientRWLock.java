@@ -46,7 +46,7 @@ public final class ClientRWLock implements ReadWriteLock {
   }
 
   /**
-   * Reports the reference count.
+   * @return the reference count
    */
   public Integer getReferenceCount() {
     return mReferences.get();
