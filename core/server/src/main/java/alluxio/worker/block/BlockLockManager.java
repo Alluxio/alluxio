@@ -201,8 +201,8 @@ public final class BlockLockManager {
     synchronized (mSharedMapsLock) {
       Set<Long> sessionLockIds = mSessionIdToLockIdsMap.get(sessionId);
       if (sessionLockIds == null) {
-        LOG.warn("Attempted to unlock block {} with session {}, but the session has not taken" +
-            " any block locks", blockId, sessionId);
+        LOG.warn("Attempted to unlock block {} with session {}, but the session has not taken"
+            + " any block locks", blockId, sessionId);
         return;
       }
       for (long lockId : sessionLockIds) {
@@ -333,9 +333,9 @@ public final class BlockLockManager {
    * Checks the internal state of the manager to make sure invariants hold.
    *
    * This method is intended for testing purposes. A runtime exception will be thrown if invalid
-   * state is encountered.   *
+   * state is encountered.
    */
-  public void validate() throws Exception {
+  public void validate() {
     synchronized (mSharedMapsLock) {
       // Compute block lock reference counts based off of lock records
       ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = Maps.newConcurrentMap();

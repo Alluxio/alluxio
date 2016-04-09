@@ -66,7 +66,7 @@ public abstract class ResourcePool<T> {
    * {@link #release(Object)}} after the use of this resource completes to return this resource to
    * the pool.
    *
-   * @return a resource taken from the pool, or null if the operation times out
+   * @return a resource taken from the pool
    */
   public T acquire() {
     return acquire(null, null);
@@ -77,8 +77,8 @@ public abstract class ResourcePool<T> {
    * This method is like {@link #acquire()}, but it will time out if an object cannot be
    * acquired before the specified amount of time.
    *
-   * @param an amount of time to wait, null to wait indefinitely
-   * @param the unit to use for time, null to wait indefinitely
+   * @param time an amount of time to wait, null to wait indefinitely
+   * @param unit the unit to use for time, null to wait indefinitely
    * @return a resource taken from the pool, or null if the operation times out
    */
   public T acquire(Integer time, TimeUnit unit) {
