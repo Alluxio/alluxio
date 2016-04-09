@@ -34,7 +34,6 @@
 /logs/*.log*
 /logs/*.out*
 /underFSStorage/
-/under-storage/
 dependency-reduced-pom.xml
 target/
 tests.log*
