@@ -146,12 +146,14 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void free(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    LOG.debug("free {} by default FreeOptions", path);
     free(path, FreeOptions.defaults());
   }
 
   @Override
   public void free(AlluxioURI path, FreeOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
+    LOG.debug("free {} by default FreeOptions", path);
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
