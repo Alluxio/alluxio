@@ -53,7 +53,7 @@ check_mount_mode() {
     SudoMount);;
     NoMount)
       if ! mount | grep ${ALLUXIO_RAM_FOLDER} > /dev/null; then
-        if [[ $( uname -a) == Darwin* ]]; then
+        if [[ $( uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported in Mac OS X."
           echo -e "${USAGE}"
@@ -208,7 +208,6 @@ if [[ -z "${WHAT}" ]]; then
 fi
 shift
 
-
 MOPT=$1
 # Set MOPT.
 case "${WHAT}" in
@@ -229,24 +228,26 @@ case "${WHAT}" in
     ;;
 esac
 
+FORMAT=$1
+if [ ! -z ${FORMAT} ] && [ ${FORMAT} != "-f" ]; then
+  echo -e "${USAGE}"
+  exit 1
+fi
+
 # get environment
 get_env
 
 # ensure log/data dirs
 ensure_dirs
 
-if [ ! -z $1 ] && [ $1 != "-f" ]; then
-  echo -e "${USAGE}"
-  exit 1
-fi
-
 case "${WHAT}" in
   all)
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
     fi
-    start_master $1
+    start_master ${FORMAT}
     sleep 2
+
     ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT}
     ;;
   local)
@@ -254,15 +255,15 @@ case "${WHAT}" in
       stop ${BIN}
       sleep 1
     fi
-    start_master $1
+    start_master ${FORMAT}
     sleep 2
     start_worker ${MOPT}
     ;;
   master)
-    start_master $1
+    start_master ${FORMAT}
     ;;
   worker)
-    start_worker $1
+    start_worker ${MOPT}
     ;;
   safe)
     run_safe
