@@ -130,13 +130,13 @@ public class UnderStoreBlockInStreamTest {
     // Read first 10 bytes
     Assert.assertEquals(size, inStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
-    remaining -= 10;
+    remaining -= size;
     Assert.assertEquals(remaining, inStream.remaining());
 
     // Read next 10 bytes
     Assert.assertEquals(size, inStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + size, size, readBytes));
-    remaining -= 10;
+    remaining -= size;
     Assert.assertEquals(remaining, inStream.remaining());
 
     // Read with offset and length
@@ -239,6 +239,7 @@ public class UnderStoreBlockInStreamTest {
 
     // Seeking past the file should not seek at all.
     Assert.assertEquals(0, inStream.skip(1));
+    Assert.assertEquals(0, inStream.remaining());
   }
 
   /**
