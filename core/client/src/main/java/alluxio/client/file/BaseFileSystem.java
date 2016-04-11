@@ -204,17 +204,16 @@ public class BaseFileSystem implements FileSystem {
   @Override
   public void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    LOG.debug("loadMetadata {} by default LoadMetadataOptions", path);
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
-    LOG.debug("loadMetadata {} by LoadMetadataOptions {}", path, options);
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
+      LOG.info("loaded metadata {} with options {}", path, options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
