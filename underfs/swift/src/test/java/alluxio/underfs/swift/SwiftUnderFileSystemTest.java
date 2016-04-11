@@ -94,6 +94,7 @@ public class SwiftUnderFileSystemTest {
         mMockContainerPrefix + "dir/file",
         "swift://test-container-wrong/dir/file",
         "dir/file",
+        "/dir/file",
     };
     String[] results = new String[]{
         "swift://" + mMockContainerName,
@@ -101,6 +102,7 @@ public class SwiftUnderFileSystemTest {
         "file",
         "dir/file",
         "swift://test-container-wrong/dir/file",
+        "dir/file",
         "dir/file",
     };
     for (int i = 0; i < inputs.length; i++) {
