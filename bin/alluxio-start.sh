@@ -65,7 +65,7 @@ check_mount_mode() {
       fi
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
         echo "WARNING: Using tmpFS which is not guaranteed to be in memory."
-        echo "WARNING: Check vimstat for memory statistics (e.g. swapping)."
+        echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
       fi
     ;;
     *)
