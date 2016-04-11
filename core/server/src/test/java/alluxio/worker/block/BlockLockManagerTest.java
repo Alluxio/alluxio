@@ -250,23 +250,25 @@ public class BlockLockManagerTest {
   /**
    * Tests that taking and releasing many block locks concurrently won't cause a failure.
    *
-   * This is done by creating 1500 threads, 300 for each of 5 different block ids. Each thread locks
+   * This is done by creating 1000 threads, 500 for each of 2 different block ids. Each thread locks
    * and then unlocks its block 100 times. After this, it takes a final lock on its block before
    * returning. At the end of the test, the internal state of the lock manager is validated.
    */
   @Test(timeout = 10000)
   public void stressTest() throws Throwable {
-    int numBlocks = 5;
-    int threadsPerBlock = 300;
+    final int numBlocks = 2;
+    final int threadsPerBlock = 500;
+    final int lockUnlocksPerThread = 100;
     setMaxLocks(numBlocks);
     final BlockLockManager manager = new BlockLockManager();
     final List<Thread> threads = Lists.newArrayList();
     final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
-    // If there is an exception, we will store it here.
-    final AtomicReference<Throwable> failedThreadThrowable = new AtomicReference<Throwable>();
+    // If there are exceptions, we will store them here.
+    final AtomicReference<List<Throwable>> failedThreadThrowables =
+        new AtomicReference<List<Throwable>>(Lists.<Throwable>newArrayList());
     Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread th, Throwable ex) {
-        failedThreadThrowable.set(ex);
+        failedThreadThrowables.get().add(ex);
       }
     };
     for (int blockId = 0; blockId < numBlocks; blockId++) {
@@ -280,8 +282,8 @@ public class BlockLockManagerTest {
             } catch (Exception e) {
               throw Throwables.propagate(e);
             }
-            // Lock and unlock the block 100 times.
-            for (int j = 0; j < 100; j++) {
+            // Lock and unlock the block lockUnlocksPerThread times.
+            for (int j = 0; j < lockUnlocksPerThread; j++) {
               long lockId = manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
               try {
                 manager.unlockBlock(lockId);
@@ -304,8 +306,12 @@ public class BlockLockManagerTest {
     for (Thread t : threads) {
       t.join();
     }
-    if (failedThreadThrowable.get() != null) {
-      throw failedThreadThrowable.get();
+    if (!failedThreadThrowables.get().isEmpty()) {
+      StringBuilder sb = new StringBuilder("Failed with the following errors:\n");
+      for (Throwable failedThreadThrowable : failedThreadThrowables.get()) {
+        sb.append(Throwables.getStackTraceAsString(failedThreadThrowable));
+      }
+      Assert.fail(sb.toString());
     }
     manager.validate();
   }
