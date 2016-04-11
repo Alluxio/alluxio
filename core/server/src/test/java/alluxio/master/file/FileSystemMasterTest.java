@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
@@ -48,6 +49,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -85,6 +87,11 @@ public final class FileSystemMasterTest {
   /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_TTL_CHECK,
+      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   /**
    * Sets up the dependencies before a single test runs.
@@ -126,10 +133,6 @@ public final class FileSystemMasterTest {
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
