@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -345,18 +346,15 @@ public final class LineageMaster extends AbstractMaster {
    * @param plan the plan for checkpointing
    * @throws FileDoesNotExistException when a file doesn't exist
    */
-  public synchronized void scheduleForCheckpoint(CheckpointPlan plan)
-      throws FileDoesNotExistException {
+  public synchronized void scheduleCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
       Lineage lineage = mLineageStore.getLineage(lineageId);
       // schedule the lineage file for persistence
       for (long file : lineage.getOutputFiles()) {
         try {
           mFileSystemMaster.scheduleAsyncPersistence(mFileSystemMaster.getPath(file));
-        } catch (InvalidPathException e) {
-          // Shouldn't hit this case, since we are querying directly from the master
-          LOG.error("The file {} to persist had an invalid path associated with it.", file, e);
-          throw new FileDoesNotExistException(e.getMessage());
+        } catch (AlluxioException e) {
+          LOG.error("Failed to persist the file {}.", file, e);
         }
       }
     }
