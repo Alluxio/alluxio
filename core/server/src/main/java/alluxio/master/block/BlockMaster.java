@@ -305,8 +305,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
+   * @param delete whether to delete blocks metadata in Master
    */
-  public void removeBlocks(List<Long> blockIds) {
+  public void removeBlocks(List<Long> blockIds, boolean delete) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         for (long blockId : blockIds) {
@@ -315,13 +316,21 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             continue;
           }
           for (long workerId : new ArrayList<Long>(masterBlockInfo.getWorkers())) {
-            masterBlockInfo.removeWorker(workerId);
-            MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
-            if (worker != null) {
-              worker.updateToRemovedBlock(true, blockId);
+            MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+            if (workerInfo != null) {
+              workerInfo.updateToRemovedBlock(true, blockId);
             }
           }
-          mLostBlocks.remove(blockId);
+          // Two cases here:
+          // 1) For delete: delete the block metadata.
+          // 2) For free: keep the block metadata. mLostBlocks will be changed in
+          // processWorkerRemovedBlocks
+          if (delete) {
+            // Make sure blockId is removed from mLostBlocks when the block metadata is deleted.
+            // Otherwise blockId in mLostBlock can be dangling index if the metadata is gone.
+            mLostBlocks.remove(blockId);
+            mBlocks.remove(blockId);
+          }
         }
       }
     }
@@ -600,8 +609,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
-            removedBlockId);
+        LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
+            + " on Master!", workerInfo.getId(), removedBlockId);
+        // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
+        // Ideally, the delete/free I/O flow should never reach this point. Because Master may
+        // update the block metadata only after receiving the acknowledgement from Workers.
+        workerInfo.removeBlock(removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }
@@ -720,7 +733,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             MasterWorkerInfo worker = iter.next();
             final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
             if (lastUpdate > masterWorkerTimeoutMs) {
-              LOG.error("The worker {} got timed out!", worker);
+              LOG.error("The worker {} got timed out after {}ms without a heartbeat!", worker,
+                  lastUpdate);
               mLostWorkers.add(worker);
               iter.remove();
               processLostWorker(worker);

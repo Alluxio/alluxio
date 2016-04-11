@@ -18,9 +18,9 @@ import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang.builder.ToStringBuilder;
 
 import java.util.Collections;
 import java.util.List;
@@ -143,6 +143,8 @@ public final class Lineage implements JournalEntryRepresentable {
 
   @Override
   public String toString() {
-    return ToStringBuilder.reflectionToString(this);
+    return Objects.toStringHelper(this).add("inputFiles", mInputFiles)
+        .add("outputFiles", mOutputFiles).add("job", mJob).add("id", mId)
+        .add("creationTimeMs", mCreationTimeMs).toString();
   }
 }

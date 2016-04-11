@@ -317,6 +317,7 @@ public class IndexedSet<T> implements Iterable<T> {
    *
    * Refactored for being called from both {@link #remove(Object)} and {@link alluxio.collections
    * .IndexedSet.IndexedSetIterator#remove()}
+   *
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {

@@ -14,6 +14,7 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataNettyBuffer;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -114,8 +115,8 @@ public final class RPCBlockReadResponse extends RPCResponse {
 
   @Override
   public String toString() {
-    return "RPCBlockReadResponse(" + mBlockId + ", " + mOffset
-        + ", " + mLength + ", " + mStatus + ")";
+    return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
+        .add("length", mLength).add("status", mStatus).toString();
   }
 
   /**

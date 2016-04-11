@@ -11,6 +11,7 @@
 
 package alluxio.network.protocol;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import com.google.common.primitives.Shorts;
@@ -97,6 +98,12 @@ public final class RPCBlockWriteResponse extends RPCResponse {
     out.writeLong(mOffset);
     out.writeLong(mLength);
     out.writeShort(mStatus.getId());
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
+        .add("length", mLength).add("sessionId", mSessionId).add("status", mStatus).toString();
   }
 
   /**

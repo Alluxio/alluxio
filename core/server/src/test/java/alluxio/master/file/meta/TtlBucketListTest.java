@@ -18,6 +18,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,12 +32,9 @@ public class TtlBucketListTest {
   private static final long BUCKET1_END = BUCKET1_START + BUCKET_INTERVAL;
   private static final long BUCKET2_START = BUCKET1_END;
   private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
-  private static final InodeFile BUCKET1_FILE1 = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(0).setTtl(BUCKET1_START).build();
-  private static final InodeFile BUCKET1_FILE2 = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(1).setTtl(BUCKET1_END - 1).build();
-  private static final InodeFile BUCKET2_FILE = new InodeFile.Builder().setCreationTimeMs(0)
-      .setBlockContainerId(2).setTtl(BUCKET2_START).build();
+  private static final InodeFile BUCKET1_FILE1 = new InodeFile(0).setTtl(BUCKET1_START);
+  private static final InodeFile BUCKET1_FILE2 = new InodeFile(1).setTtl(BUCKET1_END - 1);
+  private static final InodeFile BUCKET2_FILE = new InodeFile(2).setTtl(BUCKET2_START);
   private static long sOldTtlIntervalMs;
 
   private TtlBucketList mBucketList;
@@ -48,6 +46,9 @@ public class TtlBucketListTest {
   public static void beforeClass() {
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
     TtlBucketPrivateAccess.setTtlIntervalMs(BUCKET_INTERVAL);
+    Whitebox.setInternalState(BUCKET1_FILE1, "mCreationTimeMs", 0);
+    Whitebox.setInternalState(BUCKET1_FILE2, "mCreationTimeMs", 0);
+    Whitebox.setInternalState(BUCKET2_FILE, "mCreationTimeMs", 0);
   }
 
   /**

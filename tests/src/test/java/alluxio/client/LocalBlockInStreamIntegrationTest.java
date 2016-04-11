@@ -83,7 +83,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#read()}.
+   * Tests {@link alluxio.client.block.LocalBlockInStream#read()}.
    */
   @Test
   public void readTest1() throws IOException, AlluxioException {
@@ -124,7 +124,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#read(byte[])}.
+   * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException, AlluxioException {
@@ -149,7 +149,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#read(byte[], int, int)}.
+   * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException, AlluxioException {
@@ -174,7 +174,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
    * exception for seeking a negative position.
    *
    * @throws IOException
@@ -200,7 +200,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
+   * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
    * exception for seeking a position that is past buffer limit.
    *
    * @throws IOException
@@ -226,7 +226,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
+   * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
    *
    * @throws IOException
    * @throws AlluxioException
@@ -251,7 +251,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   /**
-   * Test {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
+   * Tests {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
   public void skipTest() throws IOException, AlluxioException {

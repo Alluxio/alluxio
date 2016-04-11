@@ -18,6 +18,7 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
@@ -287,19 +288,9 @@ public final class MasterWorkerInfo {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("MasterWorkerInfo(");
-    sb.append(" ID: ").append(mId);
-    sb.append(", mWorkerAddress: ").append(mWorkerAddress);
-    sb.append(", TOTAL_BYTES: ").append(mCapacityBytes);
-    sb.append(", mUsedBytes: ").append(mUsedBytes);
-    sb.append(", mAvailableBytes: ").append(mCapacityBytes - mUsedBytes);
-    sb.append(", mLastUpdatedTimeMs: ").append(mLastUpdatedTimeMs);
-    sb.append(", mBlocks: [ ");
-    for (long blockId : mBlocks) {
-      sb.append(blockId).append(", ");
-    }
-    sb.append("] )");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
+        .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
+        .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
   }
 
   /**

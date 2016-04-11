@@ -26,7 +26,7 @@ public abstract class AbstractInodeTest {
   public static final String TEST_GROUP_NAME = "group1";
 
   private static PermissionStatus sPermissionStatus =
-      new PermissionStatus(TEST_USER_NAME, TEST_GROUP_NAME, (short)0755);
+      new PermissionStatus(TEST_USER_NAME, TEST_GROUP_NAME, (short) 0755);
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -35,12 +35,12 @@ public abstract class AbstractInodeTest {
   }
 
   protected static InodeDirectory createInodeDirectory() {
-    return new InodeDirectory.Builder().setName("test1").setId(1).setParentId(0)
-        .setPermissionStatus(sPermissionStatus).build();
+    return new InodeDirectory(1).setName("test1").setParentId(0)
+        .setPermissionStatus(sPermissionStatus);
   }
 
   protected InodeFile createInodeFile(long id) {
-    return new InodeFile.Builder().setName("testFile" + id).setBlockContainerId(id).setParentId(1)
-        .setBlockSizeBytes(Constants.KB).setPermissionStatus(sPermissionStatus).build();
+    return new InodeFile(id).setName("testFile" + id).setParentId(1).setBlockSizeBytes(Constants.KB)
+        .setPermissionStatus(sPermissionStatus);
   }
 }

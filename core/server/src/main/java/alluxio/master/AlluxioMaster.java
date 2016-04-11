@@ -14,13 +14,14 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.ValidateConf;
 import alluxio.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -58,6 +59,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static AlluxioMaster sAlluxioMaster = null;
+
   /**
    * Starts the Alluxio master server via {@code java -cp <ALLUXIO-VERSION> alluxio.Master}.
    *
@@ -69,12 +72,31 @@ public class AlluxioMaster {
       System.exit(-1);
     }
 
+    // validate the conf
+    if (!ValidateConf.validate()) {
+      LOG.error("Invalid configuration found");
+      System.exit(-1);
+    }
+
     try {
-      Factory.create().start();
+      AlluxioMaster master = get();
+      master.start();
     } catch (Exception e) {
       LOG.error("Uncaught exception terminating Master", e);
       System.exit(-1);
     }
+  }
+
+  /**
+   * Returns a handle to the Alluxio master instance.
+   *
+   * @return Alluxio master handle
+   */
+  public static synchronized AlluxioMaster get() {
+    if (sAlluxioMaster == null) {
+      sAlluxioMaster = Factory.create();
+    }
+    return sAlluxioMaster;
   }
 
   /** Maximum number of threads to serve the rpc server. */
@@ -88,6 +110,9 @@ public class AlluxioMaster {
 
   /** The socket for thrift rpc server. */
   private final TServerSocket mTServerSocket;
+
+  /** The transport provider to create thrift server transport. */
+  private final TransportProvider mTransportProvider;
 
   /** The address for the rpc server. */
   private final InetSocketAddress mMasterAddress;
@@ -210,6 +235,7 @@ public class AlluxioMaster {
         Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
             "Master web port is only allowed to be zero in test mode.");
       }
+      mTransportProvider = TransportProvider.Factory.create(conf);
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
@@ -239,7 +265,7 @@ public class AlluxioMaster {
       }
 
       mAdditionalMasters = Lists.newArrayList();
-      List<? extends  Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
+      List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
         if (master != null) {
@@ -298,24 +324,38 @@ public class AlluxioMaster {
   }
 
   /**
-   * @return internal {@link FileSystemMaster}, for unit test only
-   */
-  public FileSystemMaster getFileSystemMaster() {
-    return mFileSystemMaster;
-  }
-
-  /**
-   * @return internal {@link BlockMaster}, for unit test only
+   * @return internal {@link BlockMaster}
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
   }
 
   /**
-   * @return the millisecond when Alluxio Master starts serving, return -1 when not started
+   * @return internal {@link FileSystemMaster}
    */
-  public long getStarttimeMs() {
+  public FileSystemMaster getFileSystemMaster() {
+    return mFileSystemMaster;
+  }
+
+  /**
+   * @return internal {@link LineageMaster}
+   */
+  public LineageMaster getLineageMaster() {
+    return mLineageMaster;
+  }
+
+  /**
+   * @return the start time of the master in milliseconds
+   */
+  public long getStartTimeMs() {
     return mStartTimeMs;
+  }
+
+  /**
+   * @return the uptime of the master in milliseconds
+   */
+  public long getUptimeMs() {
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   /**
@@ -405,9 +445,8 @@ public class AlluxioMaster {
 
   protected void startServingWebServer() {
     Configuration conf = MasterContext.getConf();
-    mWebServer =
-        new MasterUIWebServer(ServiceType.MASTER_WEB, NetworkAddressUtils.getBindAddress(
-            ServiceType.MASTER_WEB, conf), this, conf);
+    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
 
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
@@ -437,7 +476,7 @@ public class AlluxioMaster {
     // Return a TTransportFactory based on the authentication type
     TTransportFactory transportFactory;
     try {
-      transportFactory = AuthenticationUtils.getServerTransportFactory(MasterContext.getConf());
+      transportFactory = mTransportProvider.getServerTransportFactory();
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
@@ -507,5 +546,12 @@ public class AlluxioMaster {
     String ufsAddress = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
     ufs.connectFromMaster(conf, NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf));
+  }
+
+  /**
+   * @return the master metric system reference
+   */
+  public MetricsSystem getMasterMetricsSystem() {
+    return mMasterMetricsSystem;
   }
 }

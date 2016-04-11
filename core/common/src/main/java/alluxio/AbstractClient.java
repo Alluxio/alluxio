@@ -16,7 +16,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authentication.AuthenticationUtils;
+import alluxio.security.authentication.TransportProvider;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
@@ -66,6 +66,9 @@ public abstract class AbstractClient implements Closeable {
    */
   protected long mServiceVersion;
 
+  /** Handler to the transport provider according to the authentication type. */
+  protected final TransportProvider mTransportProvider;
+
   /**
    * Creates a new client base.
    *
@@ -78,6 +81,7 @@ public abstract class AbstractClient implements Closeable {
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
+    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
   }
 
   /**
@@ -162,7 +166,7 @@ public abstract class AbstractClient implements Closeable {
               getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
-          new TBinaryProtocol(AuthenticationUtils.getClientTransport(mConfiguration, mAddress));
+          new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
       mProtocol = new TMultiplexedProtocol(binaryProtocol, getServiceName());
       try {
         mProtocol.getTransport().open();

@@ -28,12 +28,12 @@ public class MvCommandTest extends AbstractAlluxioShellTest {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1"}));
-    Assert.assertTrue(fileExist(new AlluxioURI("/testFolder1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testFolder1")));
     mFsShell.run("mv", "/testFolder1", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mv", "/testFolder1", "/testFolder"}));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
-    Assert.assertTrue(fileExist(new AlluxioURI("/testFolder")));
-    Assert.assertFalse(fileExist(new AlluxioURI("/testFolder1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/testFolder")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/testFolder1")));
   }
 
   @Test
@@ -43,9 +43,9 @@ public class MvCommandTest extends AbstractAlluxioShellTest {
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/test/File1"}));
     mFsShell.run("mv", "/test", "/test2");
     toCompare.append(getCommandOutput(new String[] {"mv", "/test", "/test2"}));
-    Assert.assertTrue(fileExist(new AlluxioURI("/test2/File1")));
-    Assert.assertFalse(fileExist(new AlluxioURI("/test")));
-    Assert.assertFalse(fileExist(new AlluxioURI("/test/File1")));
+    Assert.assertTrue(fileExists(new AlluxioURI("/test2/File1")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/test")));
+    Assert.assertFalse(fileExists(new AlluxioURI("/test/File1")));
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 

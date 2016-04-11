@@ -25,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.StringTokenizer;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -34,8 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class CommonUtils {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Random RANDOM = new Random();
 
   /**
    * @return current time in milliseconds
@@ -64,6 +65,26 @@ public final class CommonUtils {
   }
 
   /**
+   * Converts varargs of objects to a string.
+   *
+   * @param separator separator string
+   * @param args variable arguments
+   * @param <T> type of the objects
+   * @return concatenation of the string representation returned by Object#toString
+   *         of the individual objects
+   */
+  public static <T> String argsToString(String separator, T... args) {
+    StringBuilder sb = new StringBuilder();
+    for (T s : args) {
+      if (sb.length() != 0) {
+        sb.append(separator);
+      }
+      sb.append(s);
+    }
+    return sb.toString();
+  }
+
+  /**
    * Parses {@code ArrayList<String>} into {@code String[]}.
    *
    * @param src is the ArrayList of strings
@@ -72,6 +93,32 @@ public final class CommonUtils {
   public static String[] toStringArray(ArrayList<String> src) {
     String[] ret = new String[src.size()];
     return src.toArray(ret);
+  }
+
+  /**
+   * Generates a random string of the given length.
+   *
+   * @param length the length
+   * @return a random string
+   */
+  public static String randomString(int length) {
+    StringBuilder sb = new StringBuilder();
+    for (int i = 0; i < length; i++) {
+      sb.append((char) (RANDOM.nextInt(96) + 32)); // generates a random printable character
+    }
+    return sb.toString();
+  }
+
+  /**
+   * Generates a random byte array of the given length.
+   *
+   * @param length the length
+   * @return a random byte array
+   */
+  public static byte[] randomBytes(int length) {
+    byte[] result = new byte[length];
+    RANDOM.nextBytes(result);
+    return result;
   }
 
   /**
@@ -149,8 +196,6 @@ public final class CommonUtils {
     return ctor.newInstance(ctorArgs);
   }
 
-  private CommonUtils() {} // prevent instantiation
-
   /**
    * Gets the current user's group list from Unix by running the command 'groups' NOTE. For
    * non-existing user it will return EMPTY list. This method may return duplicate groups.
@@ -191,4 +236,6 @@ public final class CommonUtils {
     List<String> groups = groupMappingService.getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
+
+  private CommonUtils() {} // prevent instantiation
 }

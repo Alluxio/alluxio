@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Set;
 
 import alluxio.perf.fs.PerfFS;
-import alluxio.perf.fs.AlluxioPerfFS;
 import alluxio.perf.thrift.SlaveAlreadyRegisterException;
 import alluxio.perf.thrift.SlaveNotRegisterException;
 
@@ -76,7 +75,7 @@ public class SlaveStatus {
    * @throws IOException
    */
   public void cleanup() throws IOException {
-    PerfFS fs = AlluxioPerfFS.get();
+    PerfFS fs = PerfConstants.getFileSystem();
     synchronized (this) {
       for (String dir : mCleanupDirs) {
         if (fs.exists(dir)) {

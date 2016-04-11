@@ -26,6 +26,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -49,6 +50,18 @@ public class CommonUtilsTest {
     /* Check that currentTime falls into the interval [startTime + delta; startTime + 2*delta] */
     Assert.assertTrue(startTime + delta <= currentTime);
     Assert.assertTrue(currentTime <= 2 * delta + startTime);
+  }
+
+  /**
+   * Tests the {@link CommonUtils#argsToString(String, Object[])} method.
+   */
+  @Test
+  public void argsToStringTest() {
+    Assert.assertEquals("", CommonUtils.argsToString(".", ""));
+    Assert.assertEquals("foo", CommonUtils.argsToString(".", "foo"));
+    Assert.assertEquals("foo,bar", CommonUtils.argsToString(",", "foo", "bar"));
+    Assert.assertEquals("1", CommonUtils.argsToString("", 1));
+    Assert.assertEquals("1;2;3", CommonUtils.argsToString(";", 1, 2, 3));
   }
 
   /**
@@ -98,9 +111,7 @@ public class CommonUtilsTest {
 
     for (TestCase testCase : testCases) {
       ArrayList<String> input = new ArrayList<String>();
-      for (String s : testCase.mExpected) {
-        input.add(s);
-      }
+      Collections.addAll(input, testCase.mExpected);
       String[] got = CommonUtils.toStringArray(input);
       Assert.assertEquals(testCase.mExpected.length, got.length);
       for (int k = 0; k < got.length; k++) {
@@ -188,7 +199,7 @@ public class CommonUtilsTest {
     List<String> userGroups = new ArrayList<String>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    setupShellMocks(userName,userGroups);
+    setupShellMocks(userName, userGroups);
 
     List<String> groups = CommonUtils.getUnixGroups(userName);
 

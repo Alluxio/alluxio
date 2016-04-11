@@ -34,6 +34,7 @@ import alluxio.proto.journal.KeyValue.CompleteStoreEntry;
 import alluxio.proto.journal.KeyValue.CreateStoreEntry;
 import alluxio.proto.journal.KeyValue.DeleteStoreEntry;
 import alluxio.proto.journal.KeyValue.MergeStoreEntry;
+import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
 import alluxio.proto.journal.Lineage.LineageIdGeneratorEntry;
@@ -86,7 +87,7 @@ public abstract class AbstractJournalFormatterTest {
   protected static final String TEST_JOB_COMMAND = "Command";
   protected static final String TEST_JOB_OUTPUT_PATH = "/test/path";
   protected static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "group1", (short)0777);
+      new PermissionStatus("user1", "group1", (short) 0777);
   protected static final String TEST_PERSISTED_STATE = "PERSISTED";
   protected static final String TEST_KEY1 = "test_key1";
   protected static final String TEST_KEY2 = "test_key2";
@@ -254,6 +255,12 @@ public abstract class AbstractJournalFormatterTest {
             JournalEntry.newBuilder()
                 .setDeleteStore(DeleteStoreEntry.newBuilder()
                   .setStoreId(TEST_FILE_ID))
+                .build())
+        .add(
+            JournalEntry.newBuilder()
+                .setRenameStore(RenameStoreEntry.newBuilder()
+                    .setOldStoreId(TEST_FILE_ID)
+                    .setNewStoreId(TEST_FILE_ID + 1))
                 .build())
         .add(
             JournalEntry.newBuilder()

@@ -67,14 +67,16 @@ public final class JournalProtoUtils {
         return entry.getRename();
       case SET_ATTRIBUTE:
         return entry.getSetAttribute();
+      case CREATE_STORE:
+        return entry.getCreateStore();
       case COMPLETE_PARTITION:
         return entry.getCompletePartition();
       case COMPLETE_STORE:
         return entry.getCompleteStore();
-      case CREATE_STORE:
-        return entry.getCreateStore();
       case DELETE_STORE:
         return entry.getDeleteStore();
+      case RENAME_STORE:
+        return entry.getRenameStore();
       case MERGE_STORE:
         return entry.getMergeStore();
       case ENTRY_NOT_SET:

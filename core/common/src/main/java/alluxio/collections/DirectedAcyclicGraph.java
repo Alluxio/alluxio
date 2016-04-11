@@ -49,7 +49,7 @@ public class DirectedAcyclicGraph<T> {
    * @param parents the parents of the created node
    */
   public void add(T payload, List<T> parents) {
-    // this checks the payload doesn't exist in the graph, and therefore prevents cycles
+    // This checks the payload doesn't exist in the graph, and therefore prevents cycles.
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
     // construct the new node
@@ -171,7 +171,7 @@ public class DirectedAcyclicGraph<T> {
    * payloads to be in the DAG.
    *
    * @param payloads the set of input payloads
-   * @return the payloads after topogological sort
+   * @return the payloads after topological sort
    */
   public List<T> sortTopologically(Set<T> payloads) {
     List<T> result = Lists.newArrayList();

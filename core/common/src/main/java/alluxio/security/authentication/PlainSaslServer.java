@@ -11,38 +11,25 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
-import alluxio.exception.ExceptionMessage;
-import alluxio.security.User;
-import alluxio.util.SecurityUtils;
-
 import com.google.common.base.Preconditions;
 
-import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
-import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.security.sasl.AuthorizeCallback;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import javax.security.sasl.SaslServer;
+import javax.security.sasl.SaslServerFactory;
 
 /**
  * This class provides PLAIN SASL authentication.
- *
- * Because the Java SunSASL provider doesn't support the server-side PLAIN mechanism. There is a new
- * provider needed to register to support server-side PLAIN mechanism. This class completes three
- * basic steps to implement a SASL security provider:
- * <ol>
- * <li>Write a class that implements the {@link SaslServer} interface</li>
- * <li>Write a factory class implements the {@link javax.security.sasl.SaslServerFactory}</li>
- * <li>Write a JCA provider that registers the factory</li>
- * </ol>
- *
+ * <p/>
  * NOTE: When this SaslServer works on authentication (i.e., in the method
  * {@link #evaluateResponse(byte[])}, it always assigns authentication ID to authorization ID
  * currently.
@@ -154,7 +141,7 @@ public final class PlainSaslServer implements SaslServer {
   public void dispose() {
     if (mCompleted) {
       // clean up the user in threadlocal, when client connection is closed.
-      AuthorizedClientUser.remove();
+      AuthenticatedClientUser.remove();
     }
 
     mCompleted = false;
@@ -169,97 +156,39 @@ public final class PlainSaslServer implements SaslServer {
   }
 
   /**
-   * {@link PlainServerCallbackHandler} is used by the SASL mechanisms to get further information to
-   * complete the authentication. For example, a SASL mechanism might use this callback handler to
-   * do verification operation.
+   * This class is used to create an instances of {@link PlainSaslServer}. The parameter mechanism
+   * must be "PLAIN" when this Factory is called, or null will be returned.
    */
-  public static final class PlainServerCallbackHandler implements CallbackHandler {
-    private final AuthenticationProvider mAuthenticationProvider;
-
+  @ThreadSafe
+  public static class Factory implements SaslServerFactory {
     /**
-     * Constructs a new callback handler.
+     * Creates a {@link SaslServer} using the parameters supplied. It returns null if no SaslServer
+     * can be created using the parameters supplied. Throws {@link SaslException} if it cannot
+     * create a SaslServer because of an error.
      *
-     * @param authenticationProvider the authentication provider used
+     * @param mechanism the name of a SASL mechanism. (e.g. "PLAIN")
+     * @param protocol the non-null string name of the protocol for which the authentication is
+     *        being performed
+     * @param serverName the non-null fully qualified host name of the server to authenticate to
+     * @param props the possibly null set of properties used to select the SASL mechanism and to
+     *        configure the authentication exchange of the selected mechanism
+     * @param callbackHandler the possibly null callback handler to used by the SASL mechanisms to
+     *        do further operation
+     * @return A possibly null SaslServer created using the parameters supplied. If null, this
+     *         factory cannot produce a SaslServer using the parameters supplied.
+     * @exception SaslException If it cannot create a SaslServer because of an error.
      */
-    public PlainServerCallbackHandler(AuthenticationProvider authenticationProvider) {
-      mAuthenticationProvider = authenticationProvider;
+    @Override
+    public SaslServer createSaslServer(String mechanism, String protocol, String serverName,
+        Map<String, ?> props, CallbackHandler callbackHandler) throws SaslException {
+      Preconditions.checkArgument(PlainSaslServerProvider.MECHANISM.equals(mechanism));
+      return new PlainSaslServer(callbackHandler);
     }
 
     @Override
-    public void handle(Callback[] callbacks) throws IOException, UnsupportedCallbackException {
-      String username = null;
-      String password = null;
-      AuthorizeCallback ac = null;
-
-      for (Callback callback : callbacks) {
-        if (callback instanceof NameCallback) {
-          NameCallback nc = (NameCallback) callback;
-          username = nc.getName();
-        } else if (callback instanceof PasswordCallback) {
-          PasswordCallback pc = (PasswordCallback) callback;
-          password = new String(pc.getPassword());
-        } else if (callback instanceof AuthorizeCallback) {
-          ac = (AuthorizeCallback) callback;
-        } else {
-          throw new UnsupportedCallbackException(callback, "Unsupport callback");
-        }
-      }
-
-      mAuthenticationProvider.authenticate(username, password);
-
-      if (ac != null) {
-        ac.setAuthorized(true);
-
-        // After verification succeeds, a user with this authz id will be set to a Threadlocal.
-        AuthorizedClientUser.set(ac.getAuthorizedID());
-      }
+    public String[] getMechanismNames(Map<String, ?> props) {
+      return new String[] {PlainSaslServerProvider.MECHANISM};
     }
   }
 
-  /**
-   * An instance of this class represents a client user connecting to Alluxio service.
-   *
-   * It is maintained in a {@link ThreadLocal} variable based on the Thrift RPC mechanism.
-   * {@link org.apache.thrift.server.TThreadPoolServer} allocates a thread to serve a connection
-   * from client side and take back it when connection is closed. During the thread alive cycle,
-   * all the RPC happens in this thread. These RPC methods implemented in server side could
-   * get the client user by this class.
-   */
-  public static final class AuthorizedClientUser {
-
-    /**
-     * A {@link ThreadLocal} variable to maintain the client user along with a specific thread.
-     */
-    private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
-
-    /**
-     * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
-     *
-     * @param userName the name of the client user
-     */
-    public static void set(String userName) {
-      sUserThreadLocal.set(new User(userName));
-    }
-
-    /**
-     * Gets the {@link User} from the {@link ThreadLocal} variable.
-     *
-     * @param conf the runtime configuration of Alluxio Master
-     * @return the client user
-     * @throws IOException if authentication is not enabled
-     */
-    public static User get(Configuration conf) throws IOException {
-      if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-        throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
-      }
-      return sUserThreadLocal.get();
-    }
-
-    /**
-     * Removes the {@link User} from the {@link ThreadLocal} variable.
-     */
-    public static void remove() {
-      sUserThreadLocal.remove();
-    }
-  }
 }

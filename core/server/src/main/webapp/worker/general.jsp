@@ -1,14 +1,24 @@
+<%--
+~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+~ (the “License”). You may not use this work except in compliance with the License, which is
+~ available at www.apache.org/licenses/LICENSE-2.0
+~
+~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+~ either express or implied, as more fully set forth in the License.
+~
+~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+--%>
+
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.util.*" %>
 <%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIStorageDir" %>
+<%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIUsageOnTier" %>
 <%@ page import="alluxio.web.WebInterfaceWorkerGeneralServlet.UIWorkerInfo" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="../css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="../css/custom.min.css" rel="stylesheet">
-  <link href="../img/favicon.ico" rel="shortcut icon">
+  <jsp:include page="../header-links.jsp" />
 </head>
 <title>Alluxio</title>
 <body>
@@ -68,18 +78,15 @@
                   <th>Total Capacity / Used</th>
                   <th><%= request.getAttribute("capacityBytes") %> / <%= request.getAttribute("usedBytes") %></th>
                 </tr>
-                <% Map<String, Long> capacityBytesOnTiers = (Map<String, Long>) request.getAttribute("capacityBytesOnTiers"); %>
-                <% Map<String, Long> usedBytesOnTiers = (Map<String, Long>) request.getAttribute("usedBytesOnTiers"); %>
-                <% for (String tierAlias : capacityBytesOnTiers.keySet()) { %>
-                  <% if (capacityBytesOnTiers.get(tierAlias) > 0) { %>
+                <% List<UIUsageOnTier> usageOnTiers = (List<UIUsageOnTier>) request.getAttribute("usageOnTiers"); %>
+                <% for (UIUsageOnTier usageOnTier : usageOnTiers) { %>
                   <tr>
-                    <th><%= tierAlias %> Capacity / Used</th>
+                    <th><%= usageOnTier.getTierAlias() %> Capacity / Used</th>
                     <th>
-                      <%= FormatUtils.getSizeFromBytes(capacityBytesOnTiers.get(tierAlias)) %> /
-                      <%= FormatUtils.getSizeFromBytes(usedBytesOnTiers.get(tierAlias)) %>
+                      <%= FormatUtils.getSizeFromBytes(usageOnTier.getCapacityBytes()) %> /
+                      <%= FormatUtils.getSizeFromBytes(usageOnTier.getUsedBytes()) %>
                     </th>
                   </tr>
-                  <% } %>
                 <% } %>
               </tbody>
             </table>

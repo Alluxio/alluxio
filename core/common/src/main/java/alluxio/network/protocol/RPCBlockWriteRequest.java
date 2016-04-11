@@ -14,6 +14,7 @@ package alluxio.network.protocol;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
+import com.google.common.base.Objects;
 import com.google.common.primitives.Longs;
 import io.netty.buffer.ByteBuf;
 
@@ -96,6 +97,12 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   @Override
   public DataBuffer getPayloadDataBuffer() {
     return mData;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
+        .add("lenght", mLength).add("sessionId", mSessionId).toString();
   }
 
   /**

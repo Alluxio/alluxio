@@ -1,5 +1,5 @@
 # Alluxio-FUSE (Experimental)
-Mount a Alluxio file system using FUSE. 
+Mount an Alluxio file system using FUSE. 
 
 This project uses [jnr-fuse](https://github.com/SerCeMan/jnr-fuse) for FUSE on Java.
 

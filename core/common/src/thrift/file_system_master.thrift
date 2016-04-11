@@ -20,6 +20,10 @@ struct CreateFileTOptions {
   4: optional i64 ttl
 }
 
+struct MountTOptions {
+  1: optional bool readOnly
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -41,6 +45,7 @@ struct FileInfo {
   19: string groupName
   20: i32 permission
   21: string persistenceState
+  22: bool mountPoint
 }
 
 struct FileSystemCommand {
@@ -130,8 +135,9 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the UFS address of the root mount point.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
-  // TODO(gene): Is this necessary?
   string getUfsAddress()
 
   /**
@@ -155,7 +161,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * path. The path should not exist and should not be nested under any existing mount point.
    */
   void mount( /** the path of alluxio mount point */ 1: string alluxioPath,
-      /** the path of the under file system */ 2: string ufsPath)
+      /** the path of the under file system */ 2: string ufsPath,
+      /** the options for creating the mount point */ 3: MountTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**

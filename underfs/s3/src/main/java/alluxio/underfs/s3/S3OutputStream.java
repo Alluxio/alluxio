@@ -128,7 +128,9 @@ public class S3OutputStream extends OutputStream {
         LOG.warn("MD5 was not computed for: {}", mKey);
       }
       mClient.putObject(mBucketName, obj);
-      mFile.delete();
+      if (!mFile.delete()) {
+        LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
+      }
     } catch (ServiceException e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
