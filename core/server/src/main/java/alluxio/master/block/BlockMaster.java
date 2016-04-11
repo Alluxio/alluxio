@@ -733,7 +733,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             MasterWorkerInfo worker = iter.next();
             final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
             if (lastUpdate > masterWorkerTimeoutMs) {
-              LOG.error("The worker {} got timed out!", worker);
+              LOG.error("The worker {} got timed out after {}ms without a heartbeat!", worker,
+                  lastUpdate);
               mLostWorkers.add(worker);
               iter.remove();
               processLostWorker(worker);
