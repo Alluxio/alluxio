@@ -80,6 +80,13 @@ public final class LIRSEvictor extends AbstractEvictor {
   private Map<BlockStoreLocation, SpaceContainer> mSpaceManager =
       new ConcurrentHashMap<BlockStoreLocation, SpaceContainer>();
   /**
+   * Map from the the block id to the block size. Maintain the information of block size is because
+   * the space of HIR block or LIR block need to be reclaimed when
+   * {@link #onRemoveBlockByClient(long, long)} or {@link #onRemoveBlockByWorker(long, long)} is
+   * called.
+   */
+  private Map<Long, Long> mBlockIdToSize = new ConcurrentHashMap<Long, Long>();
+  /**
    * Record the information of all LIR blocks. Pair<BlockStoreLocation, Long> identifies a block
    * because one block may contain more than one ghost copies on all tiers. One ghost block is
    * used to mark the block removed from some tier but it may be referenced again in the future.
@@ -132,6 +139,7 @@ public final class LIRSEvictor extends AbstractEvictor {
             mHIRCache.put(key, BlockType.HIR_RESIDENT);
             hirBytes += blocksize;
           }
+          mBlockIdToSize.put(blockId, blocksize);
         }
         mSpaceManager.put(location, new SpaceContainer(hirBytes, lirBytes, totalBytes));
       }
@@ -172,11 +180,7 @@ public final class LIRSEvictor extends AbstractEvictor {
 
   @Override
   public void onAccessBlock(long sessionId, long blockId) {
-    try {
-      updateOnAccess(blockId);
-    } catch (BlockDoesNotExistException e) {
-      e.printStackTrace();
-    }
+    updateOnAccess(blockId);
   }
 
   @Override
@@ -191,43 +195,28 @@ public final class LIRSEvictor extends AbstractEvictor {
   @Override
   public void onMoveBlockByClient(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    try {
-      updateOnMove(blockId, oldLocation, newLocation);
-    } catch (BlockDoesNotExistException e) {
-      e.printStackTrace();
-    }
+    updateOnMove(blockId, oldLocation, newLocation);
   }
 
   @Override
   public void onMoveBlockByWorker(long sessionId, long blockId, BlockStoreLocation oldLocation,
       BlockStoreLocation newLocation) {
-    try {
-      updateOnMove(blockId, oldLocation, newLocation);
-    } catch (BlockDoesNotExistException e) {
-      e.printStackTrace();
-    }
+    updateOnMove(blockId, oldLocation, newLocation);
   }
 
   @Override
-  public void onRemoveBlockByClient(long sessionId, BlockMeta blockMeta) {
-    try {
-      updateOnRemove(blockMeta.getBlockId());
-    } catch (BlockDoesNotExistException e) {
-      e.printStackTrace();
-    }
+  public void onRemoveBlockByClient(long sessionId, long blockId) {
+    updateOnRemove(blockId);
   }
 
   @Override
-  public void onRemoveBlockByWorker(long sessionId, BlockMeta blockMeta) {
-    try {
-      updateOnRemove(blockMeta.getBlockId());
-    } catch (BlockDoesNotExistException e) {
-      e.printStackTrace();
-    }
+  public void onRemoveBlockByWorker(long sessionId, long blockId) {
+    updateOnRemove(blockId);
   }
 
   @Override
   protected void onRemoveBlockFromIterator(long blockId) {
+    mBlockIdToSize.remove(blockId);
     for (StorageTierView tierView : mManagerView.getTierViews()) {
       for (StorageDirView dirView : tierView.getDirViews()) {
         BlockStoreLocation location =
@@ -240,19 +229,14 @@ public final class LIRSEvictor extends AbstractEvictor {
     }
   }
 
-  private void updateOnAccess(long blockId) throws BlockDoesNotExistException {
+  private void updateOnAccess(long blockId) {
     for (StorageTierView tier : mManagerView.getTierViews()) {
       for (StorageDirView dir : tier.getDirViews()) {
         BlockStoreLocation location =
             new BlockStoreLocation(tier.getTierViewAlias(), dir.getDirViewIndex());
         Pair<BlockStoreLocation, Long> key = new Pair<BlockStoreLocation, Long>(location, blockId);
         SpaceContainer spaceContainer = mSpaceManager.get(location);
-        BlockMeta blockMeta = mManagerView.getBlockMeta(blockId);
-        if (blockMeta == null) {
-          throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION,
-              blockId, location);
-        }
-        long blockSize = blockMeta.getBlockSize();
+        long blockSize = mBlockIdToSize.get(blockId);
         if (mHIRCache.containsKey(key)) {
           if (mHIRCache.get(key).isMoved()) {
             if (mLIRCache.containsKey(key) || spaceContainer.getLIRBytes() + blockSize
@@ -304,6 +288,7 @@ public final class LIRSEvictor extends AbstractEvictor {
                 blockId, location);
           }
           long blockSize = blockMeta.getBlockSize();
+          mBlockIdToSize.put(blockId, blockSize);
           if (spaceContainer.getLIRBytes() + blockSize <= spaceContainer.getCapacity()
               * mLIRPercent) {
             // Move the block to LIR cache if LIR cache is not full
@@ -323,7 +308,7 @@ public final class LIRSEvictor extends AbstractEvictor {
   }
 
   private void updateOnMove(long blockId, BlockStoreLocation oldLocation,
-      BlockStoreLocation newLocation) throws BlockDoesNotExistException {
+      BlockStoreLocation newLocation) {
     // Check if the newLocation belongs to the oldLocation. If so, don't need to move
     if (newLocation.belongsTo(oldLocation)) {
       return;
@@ -334,12 +319,7 @@ public final class LIRSEvictor extends AbstractEvictor {
             new BlockStoreLocation(tier.getTierViewAlias(), dir.getDirViewIndex());
         Pair<BlockStoreLocation, Long> key = new Pair<BlockStoreLocation, Long>(location, blockId);
         SpaceContainer spaceContainer = mSpaceManager.get(location);
-        BlockMeta blockMeta = mManagerView.getBlockMeta(blockId);
-        if (blockMeta == null) {
-          throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION,
-              blockId, location);
-        }
-        long blockSize = blockMeta.getBlockSize();
+        long blockSize = mBlockIdToSize.get(blockId);
         // 1. Blocks in the StorageDir moved from
         if (location.belongsTo(oldLocation)) {
           if (mHIRCache.containsKey(key)) {
@@ -365,18 +345,13 @@ public final class LIRSEvictor extends AbstractEvictor {
     }
   }
 
-  private void updateOnRemove(long blockId) throws BlockDoesNotExistException {
+  private void updateOnRemove(long blockId) {
     for (StorageTierView tier : mManagerView.getTierViews()) {
       for (StorageDirView dir : tier.getDirViews()) {
         BlockStoreLocation location =
             new BlockStoreLocation(tier.getTierViewAlias(), dir.getDirViewIndex());
         SpaceContainer spaceContainer = mSpaceManager.get(location);
-        BlockMeta blockMeta = mManagerView.getBlockMeta(blockId);
-        if (blockMeta == null) {
-          throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION,
-              blockId, location);
-        }
-        long blockSize = blockMeta.getBlockSize();
+        long blockSize = mBlockIdToSize.get(blockId);
         Pair<BlockStoreLocation, Long> key = new Pair<BlockStoreLocation, Long>(location, blockId);
         if (mHIRCache.containsKey(key)) {
           // Reclaim HIR space and remove from HIR cache
@@ -393,6 +368,7 @@ public final class LIRSEvictor extends AbstractEvictor {
           }
           mLIRCache.remove(key);
         }
+        mBlockIdToSize.remove(blockId);
         mSpaceManager.put(location, spaceContainer);
         updateSizeOfLIR(location);
       }
@@ -410,7 +386,7 @@ public final class LIRSEvictor extends AbstractEvictor {
    * @param location location of the StorageDir
    * @throws BlockDoesNotExistException if the meta data of the block can not be found
    */
-  private void updateSizeOfLIR(BlockStoreLocation location) throws BlockDoesNotExistException {
+  private void updateSizeOfLIR(BlockStoreLocation location) {
     SpaceContainer spaceContainer = mSpaceManager.get(location);
     Iterator<Map.Entry<Pair<BlockStoreLocation, Long>, BlockType>> it =
         mLIRCache.entrySet().iterator();
@@ -433,12 +409,7 @@ public final class LIRSEvictor extends AbstractEvictor {
       } else if (blockType.isHIR_Resident() || !blockType.isResident()) {
         it.remove();
       } else if (blockType.isLIR()) {
-        BlockMeta blockMeta = mManagerView.getBlockMeta(entry.getKey().getSecond());
-        if (blockMeta == null) {
-          throw new BlockDoesNotExistException(ExceptionMessage.BLOCK_NOT_FOUND_AT_LOCATION,
-              entry.getKey().getSecond(), location);
-        }
-        long blockSize = blockMeta.getBlockSize();
+        long blockSize = mBlockIdToSize.get(entry.getKey().getSecond());
         spaceContainer.moveBlockFromLIRToHIR(blockSize);
         mHIRCache.put(entry.getKey(), BlockType.HIR_RESIDENT);
         it.remove();
