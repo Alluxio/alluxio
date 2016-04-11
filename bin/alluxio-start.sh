@@ -12,18 +12,19 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 USAGE="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
 Where WHAT is one of:
   all MOPT\t\tStart master and all workers.
-  local\t\t\tStart a master and worker locally
-  master\t\tStart the master on this node
-  safe\t\t\tScript will run continuously and start the master if it's not running
-  worker MOPT\t\tStart a worker on this node
-  workers MOPT\t\tStart workers on worker nodes
-  restart_worker\tRestart a failed worker on this node
-  restart_workers\tRestart any failed workers on worker nodes
+  local [MOPT] \t\t\tStart a master and worker locally. SudoMount is assumed if MOPT is missing.
+  master\t\tStart the master on this node.
+  safe\t\t\tScript will run continuously and start the master if it's not running.
+  worker MOPT\t\tStart a worker on this node.
+  workers MOPT\t\tStart workers on worker nodes.
+  restart_worker\tRestart a failed worker on this node.
+  restart_workers\tRestart any failed workers on worker nodes.
 
 MOPT is one of:
   Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
   SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
-  NoMount\t\tDo not mount the configured RamFS
+  NoMount\t\tDo not mount the configured RamFS. Notice: Use NoMount (Linux only) to use tmpFS
+  to avoid sudo requirement.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 
@@ -50,7 +51,23 @@ check_mount_mode() {
   case "$1" in
     Mount);;
     SudoMount);;
-    NoMount);;
+    NoMount)
+      if ! mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null; then
+        if [[ $( uname -s) == Darwin ]]; then
+          # Assuming Mac OS X
+          echo "ERROR: NoMount is not supported in Mac OS X."
+          echo -e "${USAGE}"
+          exit 1
+        else
+          echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
+          export ALLUXIO_RAM_FOLDER="/dev/shm"
+        fi
+      fi
+      if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
+        echo "WARNING: Using tmpFS which is not guaranteed to be in memory."
+        echo "WARNING: Check vmstat for memory statistics (e.g. swapping)."
+      fi
+    ;;
     *)
       if [[ -z $1 ]]; then
         echo "This command requires a mount mode be specified"
@@ -184,9 +201,35 @@ done
 shift $((OPTIND-1))
 
 WHAT=$1
-
 if [[ -z "${WHAT}" ]]; then
   echo "Error: no WHAT specified"
+  echo -e "${USAGE}"
+  exit 1
+fi
+shift
+
+MOPT=$1
+# Set MOPT.
+case "${WHAT}" in
+  all|worker|workers)
+    check_mount_mode ${MOPT}
+    shift
+    ;;
+  local)
+    if [[ -z ${MOPT} || ${MOPT} == "-f" ]]; then
+      MOPT="SudoMount"
+    else
+      shift
+    fi
+    check_mount_mode ${MOPT}
+    ;;
+  *)
+    MOPT=""
+    ;;
+esac
+
+FORMAT=$1
+if [ ! -z ${FORMAT} ] && [ ${FORMAT} != "-f" ]; then
   echo -e "${USAGE}"
   exit 1
 fi
@@ -199,50 +242,34 @@ ensure_dirs
 
 case "${WHAT}" in
   all)
-    check_mount_mode $2
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
     fi
-    start_master $3
+    start_master ${FORMAT}
     sleep 2
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2
+
+    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT}
     ;;
   local)
     if [[ "${killonstart}" != "no" ]]; then
       stop ${BIN}
       sleep 1
     fi
-    ${LAUNCHER} ${BIN}/alluxio-mount.sh SudoMount
-    stat=$?
-    if [[ ${stat} -ne 0 ]]; then
-      echo "Mount failed, not starting"
-      exit 1
-    fi
-    if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${USAGE}"
-      exit 1
-    fi
-    start_master $2
+    start_master ${FORMAT}
     sleep 2
-    start_worker NoMount
+    start_worker ${MOPT}
     ;;
   master)
-    if [ ! -z $2 ] && [ $2 != "-f" ]; then
-      echo -e "${USAGE}"
-      exit 1
-    fi
-    start_master $2
+    start_master ${FORMAT}
     ;;
   worker)
-    check_mount_mode $2
-    start_worker $2
+    start_worker ${MOPT}
     ;;
   safe)
     run_safe
     ;;
   workers)
-    check_mount_mode $2
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker $2 \
+    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT} \
      ${ALLUXIO_MASTER_ADDRESS}
     ;;
   restart_worker)
