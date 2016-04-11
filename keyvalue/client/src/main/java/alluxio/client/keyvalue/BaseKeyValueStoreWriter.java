@@ -181,10 +181,11 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     if (mWriter == null) {
       return;
     }
+    int keyCount = mWriter.keyCount();
     mWriter.close();
     List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
-    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
+    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId, keyCount);
     mMasterClient.completePartition(mStoreUri, info);
     mPartitionIndex++;
   }
