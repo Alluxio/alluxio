@@ -127,39 +127,37 @@ public final class BlockLockManager {
    * @return the block lock
    */
   private ClientRWLock getBlockLock(long blockId) {
-    ClientRWLock blockLock = null;
-    boolean acquiredNewLock = false;
-    while (blockLock == null) {
+    // Loop until we either find the block lock in the mLocks map, or successfully acquire a new
+    // block lock from the lock pool.
+    while (true) {
+      ClientRWLock blockLock;
       // Check whether a lock has already been allocated for the block id.
       synchronized (mSharedMapsLock) {
         blockLock = mLocks.get(blockId);
         if (blockLock != null) {
           blockLock.addReference();
+          return blockLock;
         }
       }
-      // If a block lock hasn't already been allocated, try to acquire a new one from the pool.
+      // Since a block lock hasn't already been allocated, try to acquire a new one from the pool.
       // Acquire the lock outside the synchronized section because #acquire might need to block.
       // We shouldn't wait indefinitely in acquire because the another lock for this block could be
       // allocated to another thread, in which case we could just use that lock.
-      if (blockLock == null) {
-        blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
-        acquiredNewLock = (blockLock != null);
-      }
-    }
-    // If we acquired a new block lock, we need to add it to the mLocks map.
-    if (acquiredNewLock) {
-      synchronized (mSharedMapsLock) {
-        if (mLocks.containsKey(blockId)) {
-          // Someone else acquired a block lock for blockId while we were acquiring one. Use theirs.
-          mLockPool.release(blockLock);
-          blockLock = mLocks.get(blockId);
-        } else {
-          mLocks.put(blockId, blockLock);
+      blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
+      if (blockLock != null) {
+        synchronized (mSharedMapsLock) {
+          // Check if someone else acquired a block lock for blockId while we were acquiring one.
+          if (mLocks.containsKey(blockId)) {
+            mLockPool.release(blockLock);
+            blockLock = mLocks.get(blockId);
+          } else {
+            mLocks.put(blockId, blockLock);
+          }
+          blockLock.addReference();
+          return blockLock;
         }
-        blockLock.addReference();
       }
     }
-    return blockLock;
   }
 
   /**
