@@ -70,6 +70,9 @@ public final class Constants {
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
   public static final String HEADER_SWIFT = "swift://";
+  // Google Cloud Storage header convention is "gs://".
+  // See https://cloud.google.com/storage/docs/cloud-console
+  public static final String HEADER_GCS = "gs://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -375,6 +378,9 @@ public final class Constants {
 
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+
+  public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
+  public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
 
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";

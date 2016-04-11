@@ -1,4 +1,4 @@
-Alluxio
+Alluxio (formerly Tachyon)
 =======
 
 The master branch is in version 1.1.0-SNAPSHOT:

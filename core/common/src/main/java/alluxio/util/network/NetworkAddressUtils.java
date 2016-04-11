@@ -478,7 +478,7 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get FQDN(Full Qualified Domain Name) from Java representations of network address, except
+   * Gets FQDN(Full Qualified Domain Name) from Java representations of network address, except
    * String representation which should be handled by {@link #resolveHostName(String)} which will
    * handle the situation where hostname is null.
    *

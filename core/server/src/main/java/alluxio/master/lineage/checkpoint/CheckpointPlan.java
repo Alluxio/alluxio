@@ -11,7 +11,7 @@
 
 package alluxio.master.lineage.checkpoint;
 
-import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
@@ -52,9 +52,6 @@ public final class CheckpointPlan {
 
   @Override
   public String toString() {
-    if (mToCheckPoint.isEmpty()) {
-      return "check point plan is empty";
-    }
-    return "toCheckpoint: " + Joiner.on(", ").join(mToCheckPoint);
+    return Objects.toStringHelper(this).add("toCheckPoint", mToCheckPoint).toString();
   }
 }

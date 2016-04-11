@@ -39,7 +39,7 @@ public class ChmodCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Test -R option for chmod recursively.
+   * Tests -R option for chmod recursively.
    *
    * @throws Exception
    */

@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
 import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A base class for running a Unix command.
  */

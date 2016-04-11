@@ -29,56 +29,45 @@ import javax.annotation.concurrent.ThreadSafe;
  * Alluxio file system's directory representation in the file system master.
  */
 @ThreadSafe
-public final class InodeDirectory extends Inode {
-
-  /**
-   * Builder for {@link InodeDirectory}.
-   */
-  public static class Builder extends Inode.Builder<InodeDirectory.Builder> {
-
-    /**
-     * Creates a new builder for {@link InodeDirectory}.
-     */
-    public Builder() {
-      super();
-      mDirectory = true;
-    }
-
-    /**
-     * Builds a new instance of {@link InodeDirectory}.
-     *
-     * @return a {@link InodeDirectory} instance
-     */
+public final class InodeDirectory extends Inode<InodeDirectory> {
+  private IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
-    public InodeDirectory build() {
-      return new InodeDirectory(this);
-    }
-
-    @Override
-    protected Builder getThis() {
-      return this;
-    }
-  }
-
-  private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
-    @Override
-    public Object getFieldValue(Inode o) {
+    public Object getFieldValue(Inode<?> o) {
       return o.getId();
     }
   };
 
-  private IndexedSet.FieldIndex<Inode> mNameIndex = new IndexedSet.FieldIndex<Inode>() {
+  private IndexedSet.FieldIndex<Inode<?>> mNameIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
-    public Object getFieldValue(Inode o) {
+    public Object getFieldValue(Inode<?> o) {
       return o.getName();
     }
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
+  private IndexedSet<Inode<?>> mChildren = new IndexedSet<Inode<?>>(mIdIndex, mNameIndex);
 
-  private InodeDirectory(InodeDirectory.Builder builder) {
-    super(builder);
+  private boolean mMountPoint;
+
+  /**
+   * Creates a new instance of {@link InodeDirectory}.
+   *
+   * @param id the id to use
+   */
+  public InodeDirectory(long id) {
+    super(id);
+    mDirectory = true;
+    mMountPoint = false;
+  }
+
+  private InodeDirectory(long id, long creationTimeMs) {
+    this(id);
+    mCreationTimeMs = creationTimeMs;
+  }
+
+  @Override
+  protected InodeDirectory getThis() {
+    return this;
   }
 
   /**
@@ -86,8 +75,85 @@ public final class InodeDirectory extends Inode {
    *
    * @param child the inode to add
    */
-  public synchronized void addChild(Inode child) {
+  public synchronized void addChild(Inode<?> child) {
     mChildren.add(child);
+  }
+
+  /**
+   * @param id the inode id of the child
+   * @return the inode with the given id, or null if there is no child with that id
+   */
+  public synchronized Inode<?> getChild(long id) {
+    return mChildren.getFirstByField(mIdIndex, id);
+  }
+
+  /**
+   * @param name the name of the child
+   * @return the inode with the given name, or null if there is no child with that name
+   */
+  public synchronized Inode<?> getChild(String name) {
+    return mChildren.getFirstByField(mNameIndex, name);
+  }
+
+  /**
+   * @return an unmodifiable set of the children inodes
+   */
+  public synchronized Set<Inode<?>> getChildren() {
+    return ImmutableSet.copyOf(mChildren.iterator());
+  }
+
+  /**
+   * @return the ids of the children
+   */
+  public synchronized Set<Long> getChildrenIds() {
+    Set<Long> ret = new HashSet<Long>(mChildren.size());
+    for (Inode<?> child : mChildren) {
+      ret.add(child.getId());
+    }
+    return ret;
+  }
+
+  /**
+   * @return the number of children in the directory
+   */
+  public synchronized int getNumberOfChildren() {
+    return mChildren.size();
+  }
+
+  /**
+   * @return true if the inode is a mount point, false otherwise
+   */
+  public synchronized boolean isMountPoint() {
+    return mMountPoint;
+  }
+
+  /**
+   * Removes the given inode from the directory.
+   *
+   * @param child the Inode to remove
+   * @return true if the inode was removed, false otherwise
+   */
+  public synchronized boolean removeChild(Inode<?> child) {
+    return mChildren.remove(child);
+  }
+
+  /**
+   * Removes the given child by its name from the directory.
+   *
+   * @param name the name of the Inode to remove
+   * @return true if the inode was removed, false otherwise
+   */
+  public synchronized boolean removeChild(String name) {
+    return mChildren.removeByField(mNameIndex, name);
+  }
+
+  /**
+   * @param mountPoint the mount point flag value to use
+   * @return the updated object
+   */
+  public synchronized InodeDirectory setMountPoint(boolean mountPoint) {
+    mMountPoint = mountPoint;
+    return this;
   }
 
   /**
@@ -102,11 +168,11 @@ public final class InodeDirectory extends Inode {
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(0);
+    ret.setLength(mChildren.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
-    ret.setFolder(true);
+    ret.setFolder(isDirectory());
     ret.setPinned(isPinned());
     ret.setCacheable(false);
     ret.setPersisted(isPersisted());
@@ -116,75 +182,13 @@ public final class InodeDirectory extends Inode {
     ret.setGroupName(getGroupName());
     ret.setPermission(getPermission());
     ret.setPersistenceState(getPersistenceState().toString());
+    ret.setMountPoint(isMountPoint());
     return ret;
-  }
-
-  /**
-   * @param id the inode id of the child
-   * @return the inode with the given id, or null if there is no child with that id
-   */
-  public synchronized Inode getChild(long id) {
-    return mChildren.getFirstByField(mIdIndex, id);
-  }
-
-  /**
-   * @param name the name of the child
-   * @return the inode with the given name, or null if there is no child with that name
-   */
-  public synchronized Inode getChild(String name) {
-    return mChildren.getFirstByField(mNameIndex, name);
-  }
-
-  /**
-   * @return an unmodifiable set of the children inodes
-   */
-  public synchronized Set<Inode> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
-  }
-
-  /**
-   * @return the ids of the children
-   */
-  public synchronized Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<Long>(mChildren.size());
-    for (Inode child : mChildren) {
-      ret.add(child.getId());
-    }
-    return ret;
-  }
-
-  /**
-   * @return the number of children in the directory
-   */
-  public synchronized int getNumberOfChildren() {
-    return mChildren.size();
-  }
-
-  /**
-   * Removes the given inode from the directory.
-   *
-   * @param child the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public synchronized boolean removeChild(Inode child) {
-    return mChildren.remove(child);
-  }
-
-  /**
-   * Removes the given child by its name from the directory.
-   *
-   * @param name the name of the Inode to remove
-   * @return true if the inode was removed, false otherwise
-   */
-  public synchronized boolean removeChild(String name) {
-    return mChildren.removeByField(mNameIndex, name);
   }
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("InodeDirectory(");
-    sb.append(super.toString()).append(",").append(getChildren()).append(")");
-    return sb.toString();
+    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
   }
 
   /**
@@ -197,16 +201,14 @@ public final class InodeDirectory extends Inode {
     PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
     InodeDirectory inode =
-        new InodeDirectory.Builder()
+        new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
             .setName(entry.getName())
-            .setId(entry.getId())
             .setParentId(entry.getParentId())
-            .setCreationTimeMs(entry.getCreationTimeMs())
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
-            .build();
+            .setMountPoint(entry.getMountPoint());
     return inode;
   }
 
@@ -223,6 +225,7 @@ public final class InodeDirectory extends Inode {
         .setUserName(getUserName())
         .setGroupName(getGroupName())
         .setPermission(getPermission())
+        .setMountPoint(isMountPoint())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

@@ -64,6 +64,7 @@ public class BasicOperations implements Callable<Boolean> {
     ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
     ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
         Integer.toString(mMasterLocation.getPort()));
+    ClientContext.init();
     FileSystem fs = FileSystem.Factory.get();
     writeFile(fs);
     return readFile(fs);

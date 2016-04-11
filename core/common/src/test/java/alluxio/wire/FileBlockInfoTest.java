@@ -50,8 +50,8 @@ public class FileBlockInfoTest {
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     long offset = random.nextLong();
-    long numUfsLocations = random.nextInt(10) + 1;
     List<WorkerNetAddress> ufsLocations = Lists.newArrayList();
+    long numUfsLocations = random.nextInt(10);
     for (int i = 0; i < numUfsLocations; i++) {
       ufsLocations.add(WorkerNetAddressTest.createRandom());
     }

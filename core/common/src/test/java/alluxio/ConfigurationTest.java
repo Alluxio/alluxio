@@ -178,7 +178,7 @@ public class ConfigurationTest {
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    Assert.assertEquals(Runtime.getRuntime().availableProcessors(), intValue);
+    Assert.assertEquals(512, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
@@ -221,7 +221,7 @@ public class ConfigurationTest {
     Assert.assertEquals(Constants.SECOND_MS, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
-    Assert.assertEquals(1, intValue);
+    Assert.assertEquals(256, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
     Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
@@ -337,7 +337,7 @@ public class ConfigurationTest {
     mCustomPropsConfiguration = new Configuration(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
-    mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES,"1GB");
+    mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
     Assert.assertEquals(1073741824,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }

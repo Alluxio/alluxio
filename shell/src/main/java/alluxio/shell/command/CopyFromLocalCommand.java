@@ -21,7 +21,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.shell.AlluxioShellUtils;
-import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -71,7 +70,6 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     if (srcFiles.size() == 0) {
       throw new IOException("Local path " + srcPath + " does not exist.");
     }
-
     if (srcPath.contains(AlluxioURI.WILDCARD)) {
       copyFromLocalWildcard(srcFiles, dstPath);
     } else {
@@ -80,15 +78,93 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
   }
 
   /**
+   * Copies a directory from local to Alluxio filesystem. The destination directory structure
+   * maintained as local directory. This method is used when input path is a directory.
+   *
+   * @param srcDir The source directory in the local filesystem
+   * @param dstPath The {@link AlluxioURI} of the destination
+   * @throws IOException if a non-Alluxio related exception occurs
+   *
+   */
+  private void copyFromLocalDir(File srcDir, AlluxioURI dstPath) throws IOException {
+    try {
+      boolean dstExistedBefore = mFileSystem.exists(dstPath);
+      createDstDir(dstPath);
+      List<String> errorMessages = Lists.newArrayList();
+      File[] fileList = srcDir.listFiles();
+      int misFiles = 0;
+      for (File srcFile : fileList) {
+        AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
+        try {
+          copyPath(srcFile, newURI);
+        } catch (IOException e) {
+          errorMessages.add(e.getMessage());
+          if (!mFileSystem.exists(newURI)) {
+            misFiles++;
+          }
+        }
+      }
+      if (errorMessages.size() != 0) {
+        if (misFiles == fileList.length) {
+          // If the directory doesn't exist and no files were created, then delete the directory
+          if (!dstExistedBefore && mFileSystem.exists(dstPath)) {
+            mFileSystem.delete(dstPath);
+          }
+        }
+        throw new IOException(Joiner.on('\n').join(errorMessages));
+      }
+    } catch (AlluxioException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  /**
    * Copies a list of files or directories specified by srcFiles from the local filesystem to
    * dstPath in the Alluxio filesystem space. This method is used when the input path contains
    * wildcards.
-   *
-   * @param srcFiles The list of files in the local filesystem
+   * @param srcFiles A list of source file in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
    * @throws IOException if a non-Alluxio related exception occurs
    */
   private void copyFromLocalWildcard(List<File> srcFiles, AlluxioURI dstPath) throws IOException {
+    try {
+      boolean dstExistedBefore = mFileSystem.exists(dstPath);
+      createDstDir(dstPath);
+      List<String> errorMessages = Lists.newArrayList();
+      int misFiles = 0;
+      for (File srcFile : srcFiles) {
+        AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
+        try {
+          copyPath(srcFile, newURI);
+          System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
+        } catch (IOException e) {
+          errorMessages.add(e.getMessage());
+          if (!mFileSystem.exists(newURI)) {
+            misFiles++;
+          }
+        }
+      }
+      if (errorMessages.size() != 0) {
+        if (misFiles == srcFiles.size()) {
+          // If the directory doesn't exist and no files were created, then delete the directory
+          if (!dstExistedBefore && mFileSystem.exists(dstPath)) {
+            mFileSystem.delete(dstPath);
+          }
+        }
+        throw new IOException(Joiner.on('\n').join(errorMessages));
+      }
+    } catch (AlluxioException e) {
+      throw new IOException(e.getMessage());
+    }
+  }
+
+  /**
+   * Create a directory in the Alluxio filesystem space. It will not throw any exception if the
+   * destination directory already exists.
+   * @param dstPath The {@link AlluxioURI} of the destination directory which will be created
+   * @throws IOException if a non-Alluxio related exception occurs
+   */
+  private void createDstDir(AlluxioURI dstPath) throws IOException {
     try {
       mFileSystem.createDirectory(dstPath);
     } catch (FileAlreadyExistsException e) {
@@ -105,26 +181,13 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     }
     if (!dstStatus.isFolder()) {
       throw new IOException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
-    }
-
-    List<String> errorMessages = Lists.newArrayList();
-    for (File srcFile : srcFiles) {
-      try {
-        copyFromLocal(srcFile,
-            new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcFile.getName())));
-      } catch (IOException e) {
-        errorMessages.add(e.getMessage());
-      }
-    }
-    if (errorMessages.size() != 0) {
-      throw new IOException(Joiner.on('\n').join(errorMessages));
+              ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
     }
   }
 
   /**
    * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
-   * Alluxio filesystem space. Will fail if the path given already exists in the filesystem.
+   * Alluxio filesystem space.
    *
    * @param srcFile The source file in the local filesystem
    * @param dstPath The {@link AlluxioURI} of the destination
@@ -132,15 +195,26 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    */
   private void copyFromLocal(File srcFile, AlluxioURI dstPath)
       throws IOException {
-    copyPath(srcFile, dstPath);
+    if (srcFile.isDirectory()) {
+      copyFromLocalDir(srcFile, dstPath);
+    } else {
+      copyPath(srcFile, dstPath);
+    }
     System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
   }
 
+  /**
+   * Copies a file or directory specified by srcPath from the local filesystem to dstPath in the
+   * Alluxio filesystem space.
+   * @param src The source file in the local filesystem
+   * @param dstPath The {@link AlluxioURI} of the destination
+   * @throws IOException if a non-Alluxio related exception occurs
+   */
   private void copyPath(File src, AlluxioURI dstPath) throws IOException {
     try {
       if (!src.isDirectory()) {
         // If the dstPath is a directory, then it should be updated to be the path of the file where
-        // src will be copied to
+        // src will be copied to.
         if (mFileSystem.exists(dstPath) && mFileSystem.getStatus(dstPath).isFolder()) {
           dstPath = dstPath.join(src.getName());
         }
@@ -158,7 +232,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           }
         } catch (IOException e) {
           // Close the out stream and delete the file, so we don't have an incomplete file lying
-          // around
+          // around.
           if (os != null) {
             os.cancel();
             if (mFileSystem.exists(dstPath)) {
@@ -172,19 +246,22 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       } else {
         mFileSystem.createDirectory(dstPath);
         List<String> errorMessages = Lists.newArrayList();
-        String[] fileList = src.list();
-        for (String file : fileList) {
-          AlluxioURI newPath = new AlluxioURI(dstPath, new AlluxioURI(file));
-          File srcFile = new File(src, file);
+        File[] fileList = src.listFiles();
+        int misFiles = 0;
+        for (File srcFile : fileList) {
+          AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
           try {
-            copyPath(srcFile, newPath);
+            copyPath(srcFile, newURI);
           } catch (IOException e) {
             errorMessages.add(e.getMessage());
+            if (!mFileSystem.exists(newURI)) {
+              misFiles++;
+            }
           }
         }
         if (errorMessages.size() != 0) {
-          if (errorMessages.size() == fileList.length) {
-            // If no files were created, then delete the directory
+          if (misFiles == fileList.length) {
+            // If the directory doesn't exist and no files were created, then delete the directory
             if (mFileSystem.exists(dstPath)) {
               mFileSystem.delete(dstPath);
             }

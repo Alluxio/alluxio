@@ -14,14 +14,11 @@ package alluxio.exception;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * The exception thrown when a file does not exist in Alluxio.
+ * The exception thrown when a path does not exist in Alluxio.
  */
 @ThreadSafe
 public class FileDoesNotExistException extends AlluxioException {
   private static final long serialVersionUID = -3162552529145071329L;
-
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.FILE_DOES_NOT_EXIST;
 
   /**
    * Constructs a new exception with the specified detail message.
@@ -29,7 +26,7 @@ public class FileDoesNotExistException extends AlluxioException {
    * @param message the detail message
    */
   public FileDoesNotExistException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class FileDoesNotExistException extends AlluxioException {
    * @param cause the cause
    */
   public FileDoesNotExistException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

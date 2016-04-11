@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,9 +48,7 @@ public class LockBlockResultTest {
     Random random = new Random();
 
     long lockId = random.nextLong();
-    byte[] bytes = new byte[5];
-    random.nextBytes(bytes);
-    String blockPath = new String(bytes);
+    String blockPath = CommonUtils.randomString(random.nextInt(10));
 
     result.setLockId(lockId);
     result.setBlockPath(blockPath);

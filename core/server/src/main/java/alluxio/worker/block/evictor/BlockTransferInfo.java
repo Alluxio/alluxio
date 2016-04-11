@@ -13,6 +13,8 @@ package alluxio.worker.block.evictor;
 
 import alluxio.worker.block.BlockStoreLocation;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -61,7 +63,7 @@ public class BlockTransferInfo {
 
   @Override
   public String toString() {
-    return "blockId: " + mBlockId + ", srcLocation: " + mSrcLocation
-        + ", destLocation: " + mDstLocation;
+    return Objects.toStringHelper(this).add("blockId", mBlockId).add("srcLocation", mSrcLocation)
+        .add("dstLocation", mDstLocation).toString();
   }
 }

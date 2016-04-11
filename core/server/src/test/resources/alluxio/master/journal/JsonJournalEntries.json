@@ -60,7 +60,8 @@
       "lastModificationTimeMs":1409349750338,
       "userName":"user1",
       "groupName":"group1",
-      "permission":511
+      "permission":511,
+      "mountPoint":true,
     }
   },
   "INODE_MTIME":{

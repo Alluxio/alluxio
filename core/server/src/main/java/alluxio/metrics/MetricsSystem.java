@@ -29,6 +29,7 @@ import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
  * periodically and pass the data to the sinks.
@@ -172,8 +173,7 @@ public class MetricsSystem {
       if (classPath != null) {
         try {
           Sink sink =
-              (Sink) Class.forName(classPath)
-                  .getConstructor(Properties.class, MetricRegistry.class)
+              (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), mMetricRegistry);
           if (entry.getKey().equals("servlet")) {
             mMetricsServlet = (MetricsServlet) sink;
@@ -234,5 +234,12 @@ public class MetricsSystem {
     } else {
       LOG.warn("Stopping a MetricsSystem that is not running");
     }
+  }
+
+  /**
+   * @return the metric registry
+   */
+  public MetricRegistry getMetricRegistry() {
+    return mMetricRegistry;
   }
 }

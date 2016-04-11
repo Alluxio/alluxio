@@ -10,21 +10,8 @@ priority: 1
 
 # 初始化设置
 
-这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[Local Mode](Running-Alluxio-Locally.html)或[Cluster Mode](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
-
-## 使用Hadoop 1.x
-
-如果运行的是Hadoop 1.x集群，确保在Hadoop的安装目录下的`conf`目录中有`core-site.xml`文件，并且已经加入了如下属性：
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
-该配置让你的MapReduce作业可以使用Alluxio来输入输出文件。如果你正在使用HDFS作为Alluxio的底层存储系统，同样有必要在`hdfs-site.xml`文件中添加这些属性：
-
-## 使用Hadoop 2.x
-
-如果你正在使用2.x版本的Hadoop集群，你应该不需要像上面那样在`core-site.xml`文件中添加属性。可是，有些情况下可能会遇到`java.io.IOException: No FileSystem for scheme: alluxio`的错误。例如，当YARN(与Hadoop相对)尝试去访问Alluxio文件时，可能发生该错误。如果遇到该错误，在`core-site.xml`文件中添加这些属性，然后重启YARN。
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
+为了运行一些简单的map-reduce实例，我们也推荐你下载[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
 # 编译Alluxio客户端
 
@@ -32,18 +19,24 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
-`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
+`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1 -DskipTests`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
 请访问[构建Alluxio主分支](Building-Alluxio-Master-Branch.html#distro-support)页面来获取其他发行版本的支持信息。
 
 编译成功后，新的Alluxio客户端Jar包可以在如下目录中找到：
 
     core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar
 
-本页面文档后续的内容都是基于这个Jar而展开。
+文档后续部分将会用到这个jar文件。
 
 # 配置Hadoop
 
-为了可以使Alluxio客户端Jar包对JobClient生效，你可以在`hadoop-env.sh`文件中将`HADOOP_CLASSPATH`修改为：
+首先, 确保在Hadoop的安装目录下的`conf`目录中有`core-site.xml`文件，并且已经加入了如下属性：
+
+{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
+
+该配置让你的MapReduce作业可以使用Alluxio来输入输出文件。如果你正在使用HDFS作为Alluxio的底层存储系统，同样有必要在`hdfs-site.xml`文件中添加这些属性：
+
+其次, 为了让JobClient可以访问Alluxio客户端Jar文件，你可以在`hadoop-env.sh`文件中将`HADOOP_CLASSPATH`修改为:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/config-hadoop.md %}
 
@@ -94,5 +87,3 @@ priority: 1
 作业完成后，wordcount的结果将存在Alluxio的`/wordcount/output`目录下。你可以通过运行如下命令来查看结果文件：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/cat-result.md %}
-
-你同样可以在底层存储系统HDFS namenode的WebUI上查看该文件，本地HDFS集群的WebUI在[localhost:50070](http://localhost:50070/)。

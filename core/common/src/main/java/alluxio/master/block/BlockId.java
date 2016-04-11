@@ -54,7 +54,7 @@ public final class BlockId {
   }
 
   /**
-   * @param blockId the block id to get the sequene number for
+   * @param blockId the block id to get the sequence number for
    * @return the sequence number of the specified block id
    */
   public static long getSequenceNumber(long blockId) {

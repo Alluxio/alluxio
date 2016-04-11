@@ -163,7 +163,7 @@ public class AlluxioFuseFileSystemTest {
     when(mFileSystem.getStatus(expectedPath)).thenReturn(status);
 
     FileInStream fakeInStream = mock(FileInStream.class);
-    when(fakeInStream.read(any(byte[].class),anyInt(),anyInt())).then(new Answer<Integer>() {
+    when(fakeInStream.read(any(byte[].class), anyInt(), anyInt())).then(new Answer<Integer>() {
       @Override
       public Integer answer(InvocationOnMock invocationOnMock) throws Throwable {
         byte[] myDest = (byte[]) invocationOnMock.getArguments()[0];

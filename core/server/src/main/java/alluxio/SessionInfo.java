@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -64,11 +65,8 @@ public class SessionInfo {
 
   @Override
   public synchronized String toString() {
-    StringBuilder sb = new StringBuilder("SessionInfo(");
-    sb.append(" mSessionId: ").append(mSessionId);
-    sb.append(", mLastHeartbeatMs: ").append(mLastHeartbeatMs);
-    sb.append(")");
-    return sb.toString();
+    return Objects.toStringHelper(this).add("sessionId", mSessionId)
+        .add("lastHeartbeatMs", mLastHeartbeatMs).toString();
   }
 
   @Override
