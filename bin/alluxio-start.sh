@@ -180,6 +180,12 @@ run_safe() {
 }
 
 main() {
+  # get environment
+  get_env
+
+  # ensure log/data dirs
+  ensure_dirs
+
   while getopts "hNw" o; do
     case "${o}" in
       h)
@@ -230,12 +236,6 @@ main() {
     echo -e "${USAGE}"
     exit 1
   fi
-
-  # get environment
-  get_env
-
-  # ensure log/data dirs
-  ensure_dirs
 
   case "${ACTION}" in
     all)
