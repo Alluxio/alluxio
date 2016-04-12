@@ -284,7 +284,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
-      LOG.info("Set attributes of file {} to ({})", path.getPath(), generateLogInfo(options));
+      LOG.info("Set attributes for path {} with options {}", path.getPath(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
@@ -305,40 +305,5 @@ public class BaseFileSystem implements FileSystem {
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
-  }
-
-  /**
-   * Generate the log info representation for {@link SetAttributeOptions}.
-   * @param options instance of SetAttributeOptions
-   * @return the log info
-   */
-  private String generateLogInfo(SetAttributeOptions options) {
-    StringBuilder sb = new StringBuilder();
-    if (options.hasPinned()) {
-      sb.append("pinned: " + options.getPinned() + ", ");
-    }
-    if (options.hasTtl()) {
-      sb.append("ttl: " + options.getTtl() + ", ");
-    }
-    if (options.hasPersisted()) {
-      sb.append("persisted: " + options.getPersisted() + ", ");
-    }
-    if (options.hasOwner()) {
-      sb.append("owner: " + options.getOwner() + ", ");
-    }
-    if (options.hasGroup()) {
-      sb.append("group: " + options.getGroup() + ", ");
-    }
-    if (options.hasPermission()) {
-      sb.append("permission: " + options.getPermission() + ", ");
-    }
-
-    if (sb.length() > 0) {
-      sb.append("recursive: " + options.isRecursive());
-    } else {
-      sb.append("no change");
-    }
-
-    return sb.toString();
   }
 }
