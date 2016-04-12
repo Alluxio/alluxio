@@ -251,15 +251,15 @@ main() {
         stop ${BIN}
         sleep 1
       fi
-      start_master ${FORMAT}
+      start_master "${FORMAT}"
       sleep 2
-      start_worker ${MOPT}
+      start_worker "${MOPT}"
       ;;
     master)
-      start_master ${FORMAT}
+      start_master "${FORMAT}"
       ;;
     worker)
-      start_worker ${MOPT}
+      start_worker "${MOPT}"
       ;;
     safe)
       run_safe
