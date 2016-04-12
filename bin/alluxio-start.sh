@@ -52,7 +52,8 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      if ! mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null; then
+      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
+      if [[ $? -ne 0  || -z "${ALLUXIO_RAM_FOLDER}" ]]; then
         if [[ $( uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported in Mac OS X."
@@ -61,6 +62,8 @@ check_mount_mode() {
         else
           echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
           export ALLUXIO_RAM_FOLDER="/dev/shm"
+          # Load env variables again to update those depending on ALLUXIO_RAM_FOLDER.
+          get_env
         fi
       fi
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
@@ -99,7 +102,6 @@ do_mount() {
 stop() {
   ${BIN}/alluxio-stop.sh all
 }
-
 
 start_master() {
   MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
@@ -179,6 +181,12 @@ run_safe() {
   done
 }
 
+# get environment
+get_env
+
+# ensure log/data dirs
+ensure_dirs
+
 while getopts "hNw" o; do
   case "${o}" in
     h)
@@ -233,12 +241,6 @@ if [ ! -z ${FORMAT} ] && [ ${FORMAT} != "-f" ]; then
   echo -e "${USAGE}"
   exit 1
 fi
-
-# get environment
-get_env
-
-# ensure log/data dirs
-ensure_dirs
 
 case "${WHAT}" in
   all)
