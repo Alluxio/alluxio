@@ -41,11 +41,6 @@
     </dependency>
     <dependency>
       <groupId>org.alluxio</groupId>
-      <artifactId>alluxio-underfs-orangefs</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-oss</artifactId>
       <version>${project.version}</version>
     </dependency>
@@ -110,6 +105,23 @@
         <dependency>
           <groupId>org.alluxio</groupId>
           <artifactId>alluxio-integration-yarn</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
+    <profile>
+      <id>orangefs-lgpl</id>
+      <activation>
+        <property>
+          <name>orangefs.version</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-orangefs</artifactId>
           <version>${project.version}</version>
         </dependency>
       </dependencies>

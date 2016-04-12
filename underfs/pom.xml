@@ -34,6 +34,11 @@
   <profiles>
     <profile>
       <id>orangefs-lgpl</id>
+      <activation>
+        <property>
+          <name>orangefs.version</name>
+        </property>
+      </activation>
       <modules>
         <module>orangefs</module>
       </modules>

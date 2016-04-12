@@ -240,6 +240,7 @@
       </build>
     </profile>
 
+    <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
     <profile>
       <id>orangefsTest</id>
       <dependencies>

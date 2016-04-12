@@ -158,7 +158,6 @@
     <license.header.path>build/license/</license.header.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.0</metrics.version>
-    <orangefs.version>2.9.4</orangefs.version>
     <powermock.version>1.6.1</powermock.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.2</slf4j.version>
@@ -715,5 +714,14 @@
         <module>integration/fuse</module>
       </modules>
     </profile>
+
+    <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
+    <profile>
+      <id>orangefs-lgpl</id>
+      <properties>
+        <orangefs.version>2.9.4</orangefs.version>
+      </properties>
+    </profile>
+
   </profiles>
 </project>
