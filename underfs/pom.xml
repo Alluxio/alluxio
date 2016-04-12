@@ -25,11 +25,20 @@
     <module>local</module>
     <module>hdfs</module>
     <module>glusterfs</module>
-    <module>orangefs</module>
     <module>oss</module>
     <module>swift</module>
     <module>s3</module>
   </modules>
+
+  <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
+  <profiles>
+    <profile>
+      <id>orangefs-lgpl</id>
+      <modules>
+        <module>orangefs</module>
+      </modules>
+    </profile>
+  </profiles>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
