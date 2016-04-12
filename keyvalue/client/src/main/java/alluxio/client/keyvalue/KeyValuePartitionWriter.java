@@ -68,8 +68,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
   boolean canPut(byte[] key, byte[] value);
 
   /**
-   * Returns the number of key-value pairs written to the partition.
-   * @return count of keys
+   * @return number of keys
    */
   int keyCount();
 }
