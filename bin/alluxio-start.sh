@@ -61,6 +61,8 @@ check_mount_mode() {
         else
           echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
           export ALLUXIO_RAM_FOLDER="/dev/shm"
+          # Set env again since some env variables depend on ALLUXIO_RAM_FOLDER.
+          get_env
         fi
       fi
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
