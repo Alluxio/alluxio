@@ -328,12 +328,60 @@ class S3Version
   end
 end
 
+class GCSVersion
+  def initialize(yml)
+    @bucket = ''
+    @id = ''
+    @key = ''
+
+    if yml == nil
+      return
+    end
+
+    @bucket = yml['Bucket']
+    if @bucket == nil
+      puts 'ERROR: GCS:Bucket is not set'
+      exit(1)
+    end
+    @id = ENV['GCS_ACCESS_KEY_ID']
+    if @id == nil
+      puts 'ERROR: GCS_ACCESS_KEY_ID needs to be set as environment variable'
+      exit(1)
+    end
+    @key = ENV['GCS_SECRET_ACCESS_KEY']
+    if @key == nil
+      puts 'ERROR: GCS_SECRET_ACCESS_KEY needs to be set as environment variable'
+      exit(1)
+    end
+  end
+
+  def id
+    return @id
+  end
+
+  def key
+    return @key
+  end
+
+  def bucket
+    return @bucket
+  end
+
+  def alluxio_dist(alluxio_version)
+    # The base version should work for GCS
+    return "alluxio-#{alluxio_version}-bin.tar.gz"
+  end
+end
+
 class UfsVersion
   def get_default_ufs(provider)
     case provider
     when 'vb'
       puts 'use hadoop2 as default ufs'
       return 'hadoop2'
+    when 'google'
+      puts 'use gcs as default ufs'
+      return 'gcs'
     when 'aws'
       puts 'use s3 as default ufs'
       return 's3'
@@ -351,12 +399,15 @@ class UfsVersion
 
     @hadoop = HadoopVersion.new(nil)
     @s3 = S3Version.new(nil)
+    @gcs = GCSVersion.new(nil)
 
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
       @hadoop = HadoopVersion.new(@yml['Hadoop'])
     when 's3'
       @s3 = S3Version.new(@yml['S3'])
+    when 'gcs'
+      @gcs = GCSVersion.new(@yml['GCS'])
     when 'glusterfs'
     else
       puts 'unsupported ufs'
@@ -376,12 +427,18 @@ class UfsVersion
     return @s3
   end
 
+  def gcs
+    return @gcs
+  end
+
   def alluxio_dist(alluxio_version)
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
       return @hadoop.alluxio_dist(alluxio_version)
     when 's3'
       return @s3.alluxio_dist(alluxio_version)
+    when 'gcs'
+      return @gcs.alluxio_dist(alluxio_version)
     when 'glusterfs'
     # The base version should work for glusterfs
       return "alluxio-#{alluxio_version}-bin.tar.gz"

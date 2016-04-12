@@ -21,6 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * {@link Inode} is an abstract class, with information shared by all types of Inodes.
+ *
  * @param <T> the concrete subclass of this object
  */
 @ThreadSafe
@@ -268,10 +269,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof Inode)) {
+    if (!(o instanceof Inode<?>)) {
       return false;
     }
-    Inode that = (Inode) o;
+    Inode<?> that = (Inode<?>) o;
     return mId == that.mId;
   }
 

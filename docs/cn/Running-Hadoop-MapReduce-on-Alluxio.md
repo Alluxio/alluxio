@@ -10,7 +10,8 @@ priority: 1
 
 # 初始化设置
 
-这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[Local Mode](Running-Alluxio-Locally.html)或[Cluster Mode](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
+这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
+为了运行一些简单的map-reduce实例，我们也推荐你下载[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
 # 编译Alluxio客户端
 
@@ -18,7 +19,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
-`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
+`<YOUR_HADOOP_VERSION>`版本支持很多不同的Hadoop发行版。例如：`mvn install -Dhadoop.version=2.7.1 -DskipTests`将会编译出适合Apache Hadoop 2.7.1版本的Alluxio。 
 请访问[构建Alluxio主分支](Building-Alluxio-Master-Branch.html#distro-support)页面来获取其他发行版本的支持信息。
 
 编译成功后，新的Alluxio客户端Jar包可以在如下目录中找到：
@@ -86,5 +87,3 @@ priority: 1
 作业完成后，wordcount的结果将存在Alluxio的`/wordcount/output`目录下。你可以通过运行如下命令来查看结果文件：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/cat-result.md %}
-
-你同样可以在底层存储系统HDFS namenode的WebUI上查看该文件，本地HDFS集群的WebUI在[localhost:50070](http://localhost:50070/)。

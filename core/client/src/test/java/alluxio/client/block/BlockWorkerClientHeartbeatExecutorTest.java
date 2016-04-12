@@ -15,8 +15,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link BlockWorkerClientHeartbeatExecutor} class.
@@ -37,6 +37,7 @@ public class BlockWorkerClientHeartbeatExecutorTest {
         new BlockWorkerClientHeartbeatExecutor(mock);
 
     heartbeatExecutor.heartbeat();
+    heartbeatExecutor.close();
 
     Mockito.verify(mock).periodicHeartbeat();
   }

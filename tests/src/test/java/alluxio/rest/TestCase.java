@@ -114,9 +114,11 @@ public class TestCase {
     connection.connect();
     Assert
         .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
-    ObjectMapper mapper = new ObjectMapper();
-    String expected = mapper.writeValueAsString(mExpectedResult);
-    expected = expected.replaceAll("^\"|\"$", ""); // needed to handle string return values
+    String expected = "";
+    if (mExpectedResult != null) {
+      ObjectMapper mapper = new ObjectMapper();
+      expected = mapper.writeValueAsString(mExpectedResult);
+    }
     Assert.assertEquals(mEndpoint, expected, getResponse(connection));
   }
 }

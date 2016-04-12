@@ -40,6 +40,10 @@ public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Configuration sConfiguration;
 
+  // prevent instantiation
+  private AlluxioFuse() {
+  }
+
   /**
    * Running this class will mount the file system according to
    * the options passed to this function {@link #parseOptions(String[])}.

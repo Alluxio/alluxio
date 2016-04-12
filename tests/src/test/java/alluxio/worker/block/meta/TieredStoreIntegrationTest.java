@@ -12,7 +12,6 @@
 package alluxio.worker.block.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
@@ -23,33 +22,36 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
-import alluxio.exception.AlluxioException;
-import alluxio.util.CommonUtils;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests for {@link alluxio.worker.block.meta.StorageTier}.
  */
 public class TieredStoreIntegrationTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MEM_CAPACITY_BYTES = 1000;
-  private static final int USER_QUOTA_UNIT_BYTES = 100;
 
-  private Configuration mWorkerConf;
   private FileSystem mFileSystem;
-  private int mWorkerToMasterHeartbeatIntervalMs;
   private SetAttributeOptions mSetPinned;
   private SetAttributeOptions mSetUnpinned;
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+          HeartbeatContext.MASTER_TTL_CHECK,
+          HeartbeatContext.WORKER_BLOCK_SYNC,
+          HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -61,27 +63,26 @@ public class TieredStoreIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWorkerConf = mLocalAlluxioClusterResource.get().getWorkerConf();
-    mWorkerToMasterHeartbeatIntervalMs =
-        mWorkerConf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
     mSetUnpinned = SetAttributeOptions.defaults().setPinned(false);
   }
 
   /**
    * Tests that deletes go through despite failing initially due to concurrent read.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void deleteWhileReadTest() throws IOException, AlluxioException {
+  public void deleteWhileReadTest() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+
     AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
 
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
-    Assert.assertTrue(mFileSystem.getStatus(file).getInMemoryPercentage() == 100);
+    Assert.assertEquals(100, mFileSystem.getStatus(file).getInMemoryPercentage());
     // Open the file
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.CACHE);
     FileInStream in = mFileSystem.openFile(file, options);
@@ -90,7 +91,9 @@ public class TieredStoreIntegrationTest {
     // Delete the file
     mFileSystem.delete(file);
 
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // After the delete, the master should no longer serve the file
     Assert.assertFalse(mFileSystem.exists(file));
@@ -102,31 +105,41 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(MEM_CAPACITY_BYTES, res));
     in.close();
 
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // After the file is closed, the master's delete should go through and new files can be created
     AlluxioURI newFile = new AlluxioURI("/test2");
     FileSystemTestUtils.createByteFile(mFileSystem, newFile, WriteType.MUST_CACHE,
         MEM_CAPACITY_BYTES);
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
-    Assert.assertTrue(mFileSystem.getStatus(newFile).getInMemoryPercentage() == 100);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertEquals(100, mFileSystem.getStatus(newFile).getInMemoryPercentage());
   }
 
   /**
    * Tests that pinning a file prevents it from being evicted.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void pinFileTest() throws IOException, AlluxioException {
+  public void pinFileTest() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
+        TimeUnit.SECONDS));
+
     // Create a file that fills the entire Alluxio store
     AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // Pin the file
     mFileSystem.setAttribute(file, mSetPinned);
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_PIN_LIST_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // Confirm the pin with master
     Assert.assertTrue(mFileSystem.getStatus(file).isPinned());
@@ -139,27 +152,35 @@ public class TieredStoreIntegrationTest {
 
   /**
    * Tests that pinning a file and then unpinning.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void unpinFileTest() throws IOException, AlluxioException {
+  public void unpinFileTest() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
+        TimeUnit.SECONDS));
+
     // Create a file that fills the entire Alluxio store
     AlluxioURI file1 = new AlluxioURI("/test1");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // Pin the file
     mFileSystem.setAttribute(file1, mSetPinned);
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
-
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_PIN_LIST_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
+        TimeUnit.SECONDS));
     // Confirm the pin with master
     Assert.assertTrue(mFileSystem.getStatus(file1).isPinned());
+
     // Unpin the file
     mFileSystem.setAttribute(file1, mSetUnpinned);
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
-
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_PIN_LIST_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
+        TimeUnit.SECONDS));
     // Confirm the unpin
     Assert.assertFalse(mFileSystem.getStatus(file1).isPinned());
 
@@ -168,21 +189,23 @@ public class TieredStoreIntegrationTest {
     AlluxioURI file2 = new AlluxioURI("/test2");
     FileSystemTestUtils
         .createByteFile(mFileSystem, file2, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     // File 2 should be in memory and File 1 should be evicted
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
-    Assert.assertFalse(mFileSystem.getStatus(file1).getInMemoryPercentage() == 100);
-    Assert.assertTrue(mFileSystem.getStatus(file2).getInMemoryPercentage() == 100);
+    Assert.assertEquals(0, mFileSystem.getStatus(file1).getInMemoryPercentage());
+    Assert.assertEquals(100, mFileSystem.getStatus(file2).getInMemoryPercentage());
   }
 
   /**
    * Tests the promotion of a file.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
    */
   @Test
-  public void promoteBlock() throws IOException, AlluxioException {
+  public void promoteBlock() throws Exception {
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+
     AlluxioURI uri1 = new AlluxioURI("/file1");
     AlluxioURI uri2 = new AlluxioURI("/file2");
     AlluxioURI uri3 = new AlluxioURI("/file3");
@@ -193,7 +216,9 @@ public class TieredStoreIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uri3, WriteType.CACHE_THROUGH,
         MEM_CAPACITY_BYTES / 2);
 
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     AlluxioURI toPromote = null;
     int toPromoteLen = 0;
@@ -227,7 +252,9 @@ public class TieredStoreIntegrationTest {
     int len = is.read(buf);
     is.close();
 
-    CommonUtils.sleepMs(LOG, mWorkerToMasterHeartbeatIntervalMs * 3);
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     Assert.assertEquals(toPromoteLen, len);
     Assert.assertEquals(100, mFileSystem.getStatus(toPromote).getInMemoryPercentage());

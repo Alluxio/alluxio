@@ -68,7 +68,7 @@ public class UfsUtilsIntegrationTest {
           mLocalAlluxioClusterResource.get().getMasterConf());
     }
 
-    UfsUtils.loadUfs(mFileSystem, new AlluxioURI(AlluxioURI.SEPARATOR), new AlluxioURI(
+    UfsUtils.loadUfs(new AlluxioURI(AlluxioURI.SEPARATOR), new AlluxioURI(
         mUfsRoot + AlluxioURI.SEPARATOR), new PrefixList("alluxio;exclusions", ";"),
         mLocalAlluxioClusterResource.get().getMasterConf());
 

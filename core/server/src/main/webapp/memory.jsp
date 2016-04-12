@@ -1,12 +1,21 @@
+<%--
+~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+~ (the “License”). You may not use this work except in compliance with the License, which is
+~ available at www.apache.org/licenses/LICENSE-2.0
+~
+~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+~ either express or implied, as more fully set forth in the License.
+~
+~ See the NOTICE file distributed with this work for information regarding copyright ownership.
+--%>
+
 <%@ page import="java.util.*" %>
 <%@ page import="alluxio.web.*" %>
 
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="css/bootstrap.min.css" rel="stylesheet" media="screen">
-  <link href="css/custom.min.css" rel="stylesheet">
-  <link href="img/favicon.ico" rel="shortcut icon">
+  <jsp:include page="header-links.jsp" />
 </head>
 <title>Alluxio</title>
 <body>
@@ -25,9 +34,11 @@
             <th>File Path</th>
             <th>Size</th>
             <th>Block Size</th>
-            <th>Permission</th>
-            <th>Owner</th>
-            <th>Group</th>
+            <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+              <th>Permission</th>
+              <th>Owner</th>
+              <th>Group</th>
+            <% } %>
             <th>Pin</th>
             <th>Creation Time</th>
             <th>Modification Time</th>
@@ -39,9 +50,11 @@
                   <th><%= fileInfo.getAbsolutePath() %></th>
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
-                  <th><%= fileInfo.getPermission() %></th>
-                  <th><%= fileInfo.getUserName() %></th>
-                  <th><%= fileInfo.getGroupName() %></th>
+                  <% if ((Boolean)request.getAttribute("showPermissions")) { %>
+                    <th><%= fileInfo.getPermission() %></th>
+                    <th><%= fileInfo.getUserName() %></th>
+                    <th><%= fileInfo.getGroupName() %></th>
+                  <% } %>
                   <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>
                   <th><%= fileInfo.getModificationTime() %></th>

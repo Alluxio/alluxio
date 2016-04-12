@@ -136,6 +136,15 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Dependency for findbugs (SuppressFBWarnings) -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>

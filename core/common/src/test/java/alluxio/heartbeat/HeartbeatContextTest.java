@@ -13,6 +13,7 @@ package alluxio.heartbeat;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -62,7 +63,7 @@ public class HeartbeatContextTest {
    * Tests that a new timer class can be added correctly.
    */
   @Test
-  public void addNewTimerClassesTest() {
+  public void addNewTimerClassesTest() throws Exception {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
@@ -76,7 +77,7 @@ public class HeartbeatContextTest {
 
     for (Class<? extends HeartbeatTimer> timerClass : timerMap.keySet()) {
       for (String name : timerMap.get(timerClass)) {
-        HeartbeatContext.setTimerClass(name, timerClass);
+        Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", name, timerClass);
         checkInstanceOf(name, timerClass);
       }
     }

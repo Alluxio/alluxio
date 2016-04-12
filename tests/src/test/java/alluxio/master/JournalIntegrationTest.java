@@ -77,7 +77,7 @@ public class JournalIntegrationTest {
     }
     os.close();
     URIStatus status = mFileSystem.getStatus(uri);
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     addBlockTestUtil(status);
   }
 
@@ -121,7 +121,7 @@ public class JournalIntegrationTest {
     ufs.create(ufsRoot + "/xyz");
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     loadMetadataTestUtil(status);
     deleteFsMasterJournalLogs();
     loadMetadataTestUtil(status);
@@ -156,7 +156,7 @@ public class JournalIntegrationTest {
       mFileSystem.createFile(new AlluxioURI("/a" + i),
           CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64)).close();
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
 
     String journalFolder =
         FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
@@ -192,7 +192,7 @@ public class JournalIntegrationTest {
         mFileSystem.delete(new AlluxioURI(dirPath), recDelete);
       }
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     deleteTestUtil();
     deleteFsMasterJournalLogs();
     deleteTestUtil();
@@ -214,7 +214,7 @@ public class JournalIntegrationTest {
 
   @Test
   public void emptyImageTest() throws Exception {
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
@@ -234,7 +234,7 @@ public class JournalIntegrationTest {
         mFileSystem.createFile(new AlluxioURI("/i" + i + "/j" + j), option).close();
       }
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     fileDirectoryTestUtil();
     deleteFsMasterJournalLogs();
     fileDirectoryTestUtil();
@@ -263,7 +263,7 @@ public class JournalIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/xyz");
     mFileSystem.createFile(filePath, option).close();
     URIStatus status = mFileSystem.getStatus(filePath);
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     fileTestUtil(status);
     deleteFsMasterJournalLogs();
     fileTestUtil(status);
@@ -304,7 +304,7 @@ public class JournalIntegrationTest {
     URIStatus file0Status = mFileSystem.getStatus(file0Path);
     URIStatus file1Status = mFileSystem.getStatus(file1Path);
 
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
 
     pinTestUtil(directoryStatus, file0Status, file1Status);
     deleteFsMasterJournalLogs();
@@ -338,7 +338,7 @@ public class JournalIntegrationTest {
     AlluxioURI directoryPath = new AlluxioURI("/xyz");
     mFileSystem.createDirectory(directoryPath);
     URIStatus status = mFileSystem.getStatus(directoryPath);
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     directoryTestUtil(status);
     deleteFsMasterJournalLogs();
     directoryTestUtil(status);
@@ -378,7 +378,7 @@ public class JournalIntegrationTest {
     for (String directory : directories) {
       directoryStatuses.put(directory, mFileSystem.getStatus(new AlluxioURI(directory)));
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     persistDirectoryLaterTestUtil(directoryStatuses);
     deleteFsMasterJournalLogs();
     persistDirectoryLaterTestUtil(directoryStatuses);
@@ -404,7 +404,7 @@ public class JournalIntegrationTest {
       CreateFileOptions option = CreateFileOptions.defaults().setBlockSizeBytes((i + 1) * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), option).close();
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     manyFileTestUtil();
     deleteFsMasterJournalLogs();
     manyFileTestUtil();
@@ -430,7 +430,7 @@ public class JournalIntegrationTest {
       CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes((i + 10) / 10 * 64);
       mFileSystem.createFile(new AlluxioURI("/a" + i), op);
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     multiEditLogTestUtil();
     deleteFsMasterJournalLogs();
     multiEditLogTestUtil();
@@ -447,60 +447,6 @@ public class JournalIntegrationTest {
     fsMaster.stop();
   }
 
-  // TODO(cc) The edit log behavior this test was testing no longer exists, do we need to add it
-  // back?
-  /// **
-  // * Test renaming completed edit logs.
-  // *
-  // * @throws Exception
-  // */
-  // @Test
-  // public void RenameEditLogTest() throws Exception {
-  // String journalPrefix = "/tmp/JournalDir" + String.valueOf(System.currentTimeMillis());
-  // Journal journal = new Journal(journalPrefix, mMasterAlluxioConf);
-  // UnderFileSystem ufs = UnderFileSystem.get(journalPrefix, mMasterAlluxioConf);
-  // ufs.delete(journalPrefix, true);
-  // ufs.mkdir(journalPrefix, true);
-  // OutputStream ops = ufs.create(journal.getCurrentLogFilePath());
-  // if (ops != null) {
-  // ops.close();
-  // }
-  // if (ufs != null) {
-  // ufs.close();
-  // }
-
-  // // Write operation and flush them to completed directory.
-  // JournalWriter journalWriter = journal.getNewWriter();
-  // journalWriter.setMaxLogSize(100);
-  // JournalOutputStream entryOs = journalWriter.getEntryOutputStream();
-  // for (int i = 0; i < 124; i++) {
-  // entryOs.writeEntry(new InodeFileEntry(System.currentTimeMillis(), i, "/sth" + i, 0L, false,
-  // System.currentTimeMillis(), Constants.DEFAULT_BLOCK_SIZE_BYTE, 10, false, false,
-  // "/sth" + i, Lists.newArrayList(1L)));
-  // entryOs.flush();
-  // }
-  // entryOs.close();
-
-  // // Rename completed edit logs when loading them.
-  // String completedDir = journal.getCompletedDirectory();
-  // ufs = UnderFileSystem.get(completedDir, mMasterAlluxioConf);
-  // int numOfCompleteFiles = ufs.list(completedDir).length;
-  // Assert.assertTrue(numOfCompleteFiles > 0);
-  // EditLog.setBackUpLogStartNum(numOfCompleteFiles / 2);
-  // log = new EditLog(journalPath, false, 0, mMasterAlluxioConf);
-  // int numOfCompleteFilesLeft = numOfCompleteFiles - numOfCompleteFiles / 2 + 1;
-  // Assert.assertEquals(numOfCompleteFilesLeft, ufs.list(completedStr).length);
-  // for (int i = 0; i < numOfCompleteFilesLeft; i++) {
-  // Assert.assertTrue(ufs.exists(completedStr + i + ".editLog"));
-  // }
-  // EditLog.setBackUpLogStartNum(-1);
-  // log.close();
-  // ufs.delete(journalPrefix, true);
-  // if (ufs != null) {
-  // ufs.close();
-  // }
-  // }
-
   /**
    * Tests file and directory creation, and rename.
    */
@@ -516,7 +462,7 @@ public class JournalIntegrationTest {
       }
       mFileSystem.rename(new AlluxioURI("/i" + i), new AlluxioURI("/ii" + i));
     }
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
     renameTestUtil();
     deleteFsMasterJournalLogs();
     renameTestUtil();
@@ -583,7 +529,7 @@ public class JournalIntegrationTest {
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
-    mLocalAlluxioCluster.stopTFS();
+    mLocalAlluxioCluster.stopFS();
 
     aclTestUtil(status);
     deleteFsMasterJournalLogs();

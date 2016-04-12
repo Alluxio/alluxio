@@ -92,7 +92,7 @@ public final class AlluxioBlockStoreTest {
 
     // Mock block store should return our mock clients
     sBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
-    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
+    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(sBlockWorkerClient);
     sMasterClient = PowerMockito.mock(BlockMasterClient.class);
     Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(
@@ -150,6 +150,6 @@ public final class AlluxioBlockStoreTest {
     Assert.assertEquals(Long.valueOf(BLOCK_LENGTH),
         Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
-        Whitebox.getInternalState(stream, "mLocation"));
+        Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
   }
 }

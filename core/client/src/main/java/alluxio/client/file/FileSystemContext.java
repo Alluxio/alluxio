@@ -63,7 +63,7 @@ public enum FileSystemContext {
   /**
    * @return the Alluxio block store
    */
-  public AlluxioBlockStore getAluxioBlockStore() {
+  public AlluxioBlockStore getAlluxioBlockStore() {
     return mAlluxioBlockStore;
   }
 
