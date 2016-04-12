@@ -205,6 +205,8 @@ public final class Constants {
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "alluxio.master.journal.log.size.bytes.max";
 
+  public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
+      "alluxio.master.file.async.persist.handler";
   public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
   public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
   public static final String MASTER_RPC_PORT = "alluxio.master.port";
