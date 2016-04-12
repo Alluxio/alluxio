@@ -9,11 +9,20 @@ priority: 2
 This guide describes how to configure Alluxio with [OrangeFS](http://www.orangefs.org/) as the 
 under storage system.
 
-# Initial Setup
+# Building Alluxio-OrangeFS Distro
 
-First, the Alluxio binaries must be on your machine. You can either
-[compile Alluxio](Building-Alluxio-Master-Branch.html), or
-[download the binaries locally](Running-Alluxio-Locally.html).
+The integration of Alluxio-OrangeFS depends on 
+[orangefs-jni](http://www.orangefs.org/fisheye/orangefs/browse/orangefs/branches/maven-repository/maven2/org/orangefs/usrint/orangefs-jni) 
+for an optimised I/O performance that is comparable to OrangeFS 
+[native performance](http://docs.orangefs.com/v_2_9/Design_Overview.htm).
+
+Due to licensing issues with runtime proprietary binaries, we do not include the `orangefs-jni` 
+dependency by default. To build an integrated distro, you need to either include the 
+orangefs-jni.jar that comes with 
+[OrangeFS distribution](http://docs.orangefs.com/v_2_9/HPC_Setup_.htm#Install_System_Software) 
+or compile Alluxio with maven option `-Porangefs-lgpl -Dorangefs.version=2.9.4` as a dependency 
+of your project. To build OrangeFS against Alluxio Master branch, you can reference 
+[compile Alluxio](Building-Alluxio-Master-Branch.html).
 
 Then, if you haven't already done so, create your configuration file from the template:
 
