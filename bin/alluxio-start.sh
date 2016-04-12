@@ -207,7 +207,7 @@ main() {
     esac
   done
 
-  shift $((OPTIND-1))
+  shift $((${OPTIND} - 1))
 
   ACTION=$1
   if [[ -z "${ACTION}" ]]; then
