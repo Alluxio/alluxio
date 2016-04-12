@@ -211,13 +211,14 @@ main() {
 
   MOPT=$1
   # Set MOPT.
-  if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
-    MOPT="SudoMount"
-  fi
   case "${ACTION}" in
     all|worker|workers|local)
+      if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
+        MOPT="SudoMount"
+      else
+        shift
+      fi
       check_mount_mode "${MOPT}"
-      shift
       ;;
     *)
       MOPT=""
