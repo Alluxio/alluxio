@@ -157,6 +157,25 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
   }
 
   /**
+   * Renames a completed key-value store.
+   *
+   * @param oldPath old URI of the store
+   * @param newPath new URI of the store
+   * @throws IOException if non-Alluxio error occurs
+   * @throws AlluxioException if other Alluxio error occurs
+   */
+  public synchronized void renameStore(final AlluxioURI oldPath, final AlluxioURI newPath)
+      throws IOException, AlluxioException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.renameStore(oldPath.getPath(), newPath.getPath());
+        return null;
+      }
+    });
+  }
+
+  /**
    * Merges one completed key-value store to another completed key-value store.
    *
    * @param fromPath URI of the store to be merged

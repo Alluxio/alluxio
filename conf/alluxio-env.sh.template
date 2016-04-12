@@ -8,7 +8,8 @@
 # - ALLUXIO_MASTER_ADDRESS, to bind the master to a different IP address or hostname
 # - ALLUXIO_UNDERFS_ADDRESS, to set the under filesystem address.
 # - ALLUXIO_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
-# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data
+# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data. Consider setting it to
+#   /dev/shm if tmpFS is used.
 
 
 # Support for Multihomed Networks.
@@ -81,7 +82,7 @@ fi
 export JAVA="${JAVA_HOME}/bin/java"
 export ALLUXIO_MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS:-localhost}
 export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-${ALLUXIO_HOME}/underFSStorage}
-#export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-hdfs://localhost:9000}
+#export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-hdfs://localhost:9000/alluxio}
 export ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-1GB}
 
 export ALLUXIO_SSH_FOREGROUND=${ALLUXIO_SSH_FOREGROUND:-"yes"}

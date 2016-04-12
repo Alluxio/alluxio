@@ -34,7 +34,7 @@ public class CompleteFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void filedsTest() {
+  public void fieldsTest() {
     Random random = new Random();
     long ufsLength = random.nextLong();
     long operationTimeMs = random.nextLong();

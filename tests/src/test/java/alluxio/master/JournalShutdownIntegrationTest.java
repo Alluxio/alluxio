@@ -158,7 +158,7 @@ public class JournalShutdownIntegrationTest {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
-    cluster.stopTFS();
+    cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();
@@ -177,7 +177,7 @@ public class JournalShutdownIntegrationTest {
       CommonUtils.sleepMs(TEST_TIME_MS);
       Assert.assertTrue(cluster.killLeader());
     }
-    cluster.stopTFS();
+    cluster.stopFS();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Ensure the client threads are stopped.
     mExecutorsForClient.shutdown();

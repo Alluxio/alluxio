@@ -45,6 +45,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -372,7 +374,7 @@ public final class TieredBlockStore implements BlockStore {
         String sessionFolderPath = PathUtils.concatPath(dir.getDirPath(), sessionId);
         try {
           if (new File(sessionFolderPath).exists()) {
-            FileUtils.delete(sessionFolderPath);
+            Files.delete(Paths.get(sessionFolderPath));
           }
         } catch (IOException e) {
           // This error means we could not delete the directory but should not affect the
@@ -473,7 +475,7 @@ public final class TieredBlockStore implements BlockStore {
       }
 
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.delete(path);
+      Files.delete(Paths.get(path));
 
       mMetadataWriteLock.lock();
       try {
@@ -493,11 +495,11 @@ public final class TieredBlockStore implements BlockStore {
    *
    * @param sessionId the id of session
    * @param blockId the id of block
+   * @return destination location to move the block
    * @throws BlockDoesNotExistException if block id can not be found in temporary blocks
    * @throws BlockAlreadyExistsException if block id already exists in committed blocks
    * @throws InvalidWorkerStateException if block id is not owned by session id
    * @throws IOException if I/O errors occur when deleting the block file
-   * @return destination location to move the block
    */
   private BlockStoreLocation commitBlockInternal(long sessionId, long blockId)
       throws BlockAlreadyExistsException, InvalidWorkerStateException, BlockDoesNotExistException,
@@ -853,7 +855,7 @@ public final class TieredBlockStore implements BlockStore {
             location);
       }
       // Heavy IO is guarded by block lock but not metadata lock. This may throw IOException.
-      FileUtils.delete(filePath);
+      Files.delete(Paths.get(filePath));
 
       mMetadataWriteLock.lock();
       try {

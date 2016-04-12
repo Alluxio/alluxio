@@ -17,12 +17,13 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.util.concurrent.TimeUnit;
@@ -34,12 +35,9 @@ import java.util.concurrent.TimeUnit;
  */
 public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
 
   @Test
   public void asyncWriteTest() throws Exception {

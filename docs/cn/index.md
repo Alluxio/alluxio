@@ -4,11 +4,12 @@ title: 概览
 group: Home
 ---
 
-Alluxio是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
+Alluxio（之前名为Tachyon）是世界上第一个以内存为中心的虚拟的分布式存储系统。它统一了数据访问的方式，为上层计算框架和底层存储系统构建了桥梁。
 应用只需要连接Alluxio即可访问存储在底层任意存储系统中的数据。此外，Alluxio的以内存为中心的架构使得数据的访问速度能比现有常规方案快几个数量级。
 
 在大数据生态系统中，Alluxio介于计算框架(如Apache Spark，Apache MapReduce，Apache Flink)和现有的存储系统（如Amazon S3，OpenStack Swift，GlusterFS，HDFS， Ceph，OSS）之间。
-Alluxio为大数据软件栈带来了显著的性能提升。以[百度](https://www.baidu.com)为例，使用Alluxio后，其数据处理性能提升了30倍。
+Alluxio为大数据软件栈带来了显著的性能提升。例如，[百度](https://www.baidu.com)采用Alluxio使他们数据分析流水线的吞吐量提升了[30倍](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf)。
+巴克莱银行使用Alluxio将他们的作业分析的耗时从[小时级降到秒级](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon)。
 除性能外，Alluxio为新型大数据应用作用于传统存储系统的数据建立了桥梁。
 用户可以以独立集群方式(如Amazon EC2)运行Alluxio，也可以从Apache Mesos或Apache YARN上启动Alluxio。
 
@@ -25,7 +26,7 @@ Alluxio是发展最快的开源大数据项目之一。自2013年4月开源以�
 
 [Github ](https://github.com/alluxio/alluxio/) |
 [ 版 本  ](http://alluxio.org/releases/) |
-[ 下 载  ](http://alluxio.org/downloads/) |
+[ 下 载  ](http://alluxio.org/download/) |
 [ 用户文档  ](Getting-Started.html) |
 [ 开发者文档  ](Contributing-to-Alluxio.html) |
 [ Meetup 小组  ](https://www.meetup.com/Alluxio/) |
@@ -69,6 +70,6 @@ InputStream和OutputStream的接口和对内存映射I/O的高效支持。我们
 
 # 下载
 
-你可以从[Alluxio下载页面](http://alluxio.org/downloads)获取已发布版本。每个版本都是由已编译二进
+你可以从[Alluxio下载页面](http://alluxio.org/download)获取已发布版本。每个版本都是由已编译二进
 制文件组成，与各种Hadoop版本兼容。如果你想从源码编译生成Alluxio，请前往
 [从Master分支构建Alluxio](Building-Alluxio-Master-Branch.html)。

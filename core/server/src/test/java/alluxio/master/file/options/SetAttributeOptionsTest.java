@@ -21,7 +21,7 @@ import java.util.Random;
  */
 public class SetAttributeOptionsTest {
   /**
-   * Tests the {@link CreateDirectoryOptions#defaults()} method.
+   * Tests the {@link SetAttributeOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() {
