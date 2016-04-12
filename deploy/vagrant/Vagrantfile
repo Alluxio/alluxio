@@ -88,6 +88,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               s3_key:    UfsV.s3.key,
               s3_bucket: UfsV.s3.bucket,
 
+              gcs_id:     UfsV.gcs.id,
+              gcs_key:    UfsV.gcs.key,
+              gcs_bucket: UfsV.gcs.bucket,
+
               provider: Provider,
           }
           # ans.verbose = "vvvv"
