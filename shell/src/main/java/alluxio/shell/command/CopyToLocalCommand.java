@@ -26,6 +26,7 @@ import alluxio.shell.AlluxioShellUtils;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -171,20 +172,29 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
    */
   private void copyFileToLocal(AlluxioURI srcPath, File dstFile) throws IOException {
     try {
+      String randomSuffix = String.format(".%s_copyToLocal_",
+          RandomStringUtils.randomAlphanumeric(8));
+      File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
+
       Closer closer = Closer.create();
       try {
         OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
         FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
-        FileOutputStream out = closer.register(new FileOutputStream(dstFile));
+        FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
         byte[] buf = new byte[64 * Constants.MB];
         int t = is.read(buf);
         while (t != -1) {
           out.write(buf, 0, t);
           t = is.read(buf);
         }
+        if (!tmpDst.renameTo(dstFile)) {
+          throw new IOException(
+              "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
+        }
         System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
       } finally {
         closer.close();
+        tmpDst.delete();
       }
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
