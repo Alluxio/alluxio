@@ -247,7 +247,7 @@ main() {
       start_master "${FORMAT}"
       sleep 2
 
-      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}"/alluxio-start.sh "worker" "${MOPT}"
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
       ;;
     local)
       if [[ "${killonstart}" != "no" ]]; then
@@ -268,14 +268,14 @@ main() {
       run_safe
       ;;
     workers)
-      ${LAUNCHER} "${BIN}"/alluxio-workers.sh "${BIN}"/alluxio-start.sh worker "${MOPT}" \
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
        "${ALLUXIO_MASTER_ADDRESS}"
       ;;
     restart_worker)
       restart_worker
       ;;
     restart_workers)
-      ${LAUNCHER} "${BIN}"/alluxio-workers.sh "${BIN}"/alluxio-start.sh restart_worker
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" restart_worker
       ;;
     *)
     echo "Error: Invalid ACTION: ${ACTION}"
@@ -290,3 +290,4 @@ main() {
 }
 
 main "$@"
+
