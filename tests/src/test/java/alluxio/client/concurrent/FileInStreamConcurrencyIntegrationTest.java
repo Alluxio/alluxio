@@ -12,7 +12,6 @@
 package alluxio.client.concurrent;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
@@ -43,14 +42,12 @@ public final class FileInStreamConcurrencyIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
   private static FileSystem sFileSystem = null;
-  private static Configuration sConfiguration;
   private static CreateFileOptions sWriteAlluxio;
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
+    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
   }
 
   /**
