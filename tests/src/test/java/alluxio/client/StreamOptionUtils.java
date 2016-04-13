@@ -11,7 +11,6 @@
 
 package alluxio.client;
 
-import alluxio.Configuration;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.policy.LocalFirstPolicy;
@@ -31,7 +30,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsCacheThrough(Configuration conf) {
+  public static CreateFileOptions getCreateFileOptionsCacheThrough() {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
@@ -41,7 +40,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsMustCache(Configuration conf) {
+  public static CreateFileOptions getCreateFileOptionsMustCache() {
     return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
   }
 
@@ -51,7 +50,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsThrough(Configuration conf) {
+  public static CreateFileOptions getCreateFileOptionsThrough() {
     return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
   }
 
@@ -61,7 +60,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsWriteLocal(Configuration conf) {
+  public static CreateFileOptions getCreateFileOptionsWriteLocal() {
     return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
         .setLocationPolicy(new LocalFirstPolicy());
   }
@@ -72,7 +71,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
-  public static OpenFileOptions getOpenFileOptionsCache(Configuration conf) {
+  public static OpenFileOptions getOpenFileOptionsCache() {
     return OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
   }
 
@@ -82,7 +81,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
-  public static OpenFileOptions getOpenFileOptionsNoCache(Configuration conf) {
+  public static OpenFileOptions getOpenFileOptionsNoCache() {
     return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
@@ -92,7 +91,7 @@ public final class StreamOptionUtils {
    * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
-  public static CreateFileOptions getCreateFileOptionsAsync(Configuration conf) {
+  public static CreateFileOptions getCreateFileOptionsAsync() {
     return CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
   }
 }
