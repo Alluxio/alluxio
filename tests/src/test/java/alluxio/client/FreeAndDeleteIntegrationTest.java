@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
@@ -61,8 +60,7 @@ public final class FreeAndDeleteIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @BeforeClass
