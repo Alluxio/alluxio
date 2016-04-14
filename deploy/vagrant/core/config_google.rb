@@ -22,7 +22,7 @@ def config_google(config, i, total, name)
     google.scopes = SCOPES
     google.disk_size = DISK_SIZE
     google.network = NETWORK
-    if (PREFIX != nil and SUBNET != "")
+    if (PREFIX != nil)
       google.name = PREFIX + "-" + name.downcase
     else
       google.name = name.downcase

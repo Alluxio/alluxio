@@ -17,13 +17,13 @@ import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 import alluxio.util.CommonUtils;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -33,18 +33,9 @@ import java.util.concurrent.TimeUnit;
  * Tests for free command.
  */
 public class FreeCommandTest extends AbstractAlluxioShellTest {
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
-  }
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
   public void freeTest() throws IOException, AlluxioException {

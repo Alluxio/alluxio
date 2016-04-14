@@ -25,6 +25,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockId;
 import alluxio.thrift.AlluxioTException;
 import alluxio.underfs.UnderFileSystem;
@@ -34,10 +35,9 @@ import alluxio.worker.block.BlockWorkerClientServiceHandler;
 
 import org.apache.thrift.TException;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -55,6 +55,10 @@ public class BlockServiceHandlerIntegrationTest {
   private static final long SESSION_ID = 1L;
   private static final int USER_QUOTA_UNIT_BYTES = 100;
 
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
@@ -64,18 +68,6 @@ public class BlockServiceHandlerIntegrationTest {
   private Configuration mMasterConfiguration;
   private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
-  }
 
   @Before
   public final void before() throws Exception {
