@@ -165,7 +165,7 @@ restart_worker() {
      .type="WORKER_ACCESS_LOGGER" \
      -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
-     alluxio.worker.AluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+     alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 
