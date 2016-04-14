@@ -1,6 +1,7 @@
-# hadoop1 | hadoop2 | glusterfs | s3
+# hadoop1 | hadoop2 | glusterfs | s3 | gcs
 # If it is not specified, a default value is used.
-# For AWS EC2, the default is s3, for other providers, it is hadoop2.
+# For AWS EC2, the default is s3; for Google Compute Engine, the default is gcs; for other
+# providers, it is hadoop2.
 Type:
 
 Hadoop:
@@ -20,6 +21,12 @@ Hadoop:
 # Doc on AccessKeyID and SecretAccessKey:
 # http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html
 S3:
-  # The bucket should be the name of an existing bucket (ex. alluxiodata, not
+  # The bucket should be the name of an existing bucket (e.g. alluxiodata, not
   # s3://alluxiodata, s3n://alluxiodata, etc.)
+  Bucket:
+
+# Doc on accessKeyID and secretAccessKey:
+# https://cloud.google.com/storage/docs/migrating#keys
+GCS:
+  # The bucket should be the name of an existing bucket (e.g. alluxiodata, not gs://alluxiodata)
   Bucket:
