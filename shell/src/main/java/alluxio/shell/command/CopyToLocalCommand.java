@@ -26,6 +26,7 @@ import alluxio.shell.AlluxioShellUtils;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.lang.RandomStringUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -171,8 +172,9 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
    */
   private void copyFileToLocal(AlluxioURI srcPath, File dstFile) throws IOException {
     try {
-      File tmpDst = File.createTempFile("copyToLocal", null);
-      tmpDst.deleteOnExit();
+      String randomSuffix = String.format(".%s_copyToLocal_",
+          RandomStringUtils.randomAlphanumeric(8));
+      File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
 
       Closer closer = Closer.create();
       try {
@@ -192,6 +194,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
       } finally {
         closer.close();
+        tmpDst.delete();
       }
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());

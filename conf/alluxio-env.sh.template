@@ -8,7 +8,8 @@
 # - ALLUXIO_MASTER_ADDRESS, to bind the master to a different IP address or hostname
 # - ALLUXIO_UNDERFS_ADDRESS, to set the under filesystem address.
 # - ALLUXIO_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
-# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data
+# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data. Consider setting it to
+#   /dev/shm if tmpFS is used.
 
 # Support for Multihomed Networks.
 # You can specify a hostname to bind each of services. If a wildcard
