@@ -18,27 +18,6 @@ In order to run some simple map-reduce examples, we also recommend you download 
 [map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1),
 or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
-## Using Hadoop 1.x
-
-If running a Hadoop 1.x cluster, ensure that the `core-site.xml` file in your Hadoop installation
-`conf` directory has the following properties added:
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
-This will allow your MapReduce jobs to use Alluxio for their input and output files. If you are
-using HDFS as the under storage system for Alluxio, it may be necessary to add these properties to
-the `hdfs-site.xml` file as well.
-
-## Using Hadoop 2.x
-
-If you are using a 2.x Hadoop cluster, you should not need the properties above in your
-`core-site.xml` file. However, in some cases you may encounter the error:
-`java.io.IOException: No FileSystem for scheme: alluxio`. For instance, this may happen when Yarn
-(as opposed to Hadoop) tries to access Alluxio files. If this error is encountered, add these
-properties to your `core-site.xml` file, and restart Yarn.
-
-{% include Running-Hadoop-MapReduce-on-Alluxio/config-core-site.md %}
-
 # Compiling the Alluxio Client
 
 In order to use Alluxio with your version of Hadoop, you will have to re-compile the Alluxio client

@@ -4,6 +4,8 @@ alluxio.master.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio master's heartbeats
 alluxio.master.hostname:
   The hostname of Alluxio master.
+alluxio.master.file.async.persist.handler:
+  The handler for processing the async persistence requests.
 alluxio.master.format.file_prefix:
   The file prefix of the file generated in the journal directory when the journal is
   formatted. The master will search for a file with this prefix when determining of the journal
