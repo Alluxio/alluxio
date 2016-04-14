@@ -36,8 +36,8 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   private final String mUfsPath;
 
   /**
-   * The current position for this block stream. This is the absolute position within the under
-   * store stream.
+   * The current position for this block stream. This is the position within this block, and not
+   * the absolute position within the file.
    */
   private long mPos;
   /** The current under store stream. */
@@ -55,7 +55,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     mInitPos = initPos;
     mLength = length;
     mUfsPath = ufsPath;
-    setUnderStoreStream(initPos);
+    setUnderStoreStream(0);
   }
 
   @Override
@@ -94,16 +94,15 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public long remaining() {
-    return mInitPos + mLength - mPos;
+    return mLength - mPos;
   }
 
   @Override
   public void seek(long pos) throws IOException {
-    long offset = mPos - mInitPos;
-    if (pos < offset) {
-      setUnderStoreStream(mInitPos + pos);
+    if (pos < mPos) {
+      setUnderStoreStream(pos);
     } else {
-      long toSkip = pos - offset;
+      long toSkip = pos - mPos;
       if (skip(toSkip) != toSkip) {
         throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
       }
@@ -117,7 +116,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return 0;
     }
     // Cannot skip beyond boundary
-    long toSkip = Math.min(mInitPos + mLength - mPos, n);
+    long toSkip = Math.min(mLength - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
     if (toSkip != skipped) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
@@ -128,21 +127,24 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   /**
    * Sets {@link #mUnderStoreStream} to the appropriate UFS stream starting from the specified
-   * position. The specified position is the absolute position within the file, and not the
-   * position relative to the start of the block.
+   * position. The specified position is the position within the block, and not the absolute
+   * position within the entire file.
    *
-   * @param absPos the absolute position of the UFS file
+   * @param pos the position within this block
    * @throws IOException if the stream from the position cannot be created
    */
-  private void setUnderStoreStream(long absPos) throws IOException {
+  private void setUnderStoreStream(long pos) throws IOException {
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
+    if (pos < 0 || pos > mLength) {
+      throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
+    }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
-    mPos = 0;
-    if (absPos != skip(absPos)) {
-      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(absPos));
+    if (mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
+    mPos = pos;
   }
 }
