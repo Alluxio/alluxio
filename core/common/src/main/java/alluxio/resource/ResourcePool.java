@@ -87,7 +87,7 @@ public abstract class ResourcePool<T> {
     Preconditions.checkState((time == null) == (unit == null));
     long endTimeMs = 0;
     if (time != null) {
-       endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
+      endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
     }
 
     // Try to take a resource without blocking
