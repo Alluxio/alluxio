@@ -139,7 +139,6 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -197,7 +196,6 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
