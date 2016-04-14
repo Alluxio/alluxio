@@ -64,6 +64,7 @@ public final class BlockWorkerClient extends AbstractClient {
   private long mSessionId;
   // This is the address of the data server on the worker.
   private InetSocketAddress mWorkerDataServerAddress;
+  private final WorkerNetAddress mWorkerNetAddress;
   private final ExecutorService mExecutorService;
   private final HeartbeatExecutor mHeartbeatExecutor;
   private Future<?> mHeartbeat;
@@ -83,12 +84,20 @@ public final class BlockWorkerClient extends AbstractClient {
   public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       Configuration conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
+    mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
     mIsLocal = isLocal;
     mClientMetrics = Preconditions.checkNotNull(clientMetrics);
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
+  }
+
+  /**
+   * @return the address of the worker
+   */
+  public WorkerNetAddress getWorkerNetAddress() {
+    return mWorkerNetAddress;
   }
 
   /**

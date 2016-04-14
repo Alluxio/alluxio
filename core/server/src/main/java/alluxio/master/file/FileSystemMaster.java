@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -33,6 +34,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.async.AsyncPersistHandler;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -145,6 +147,9 @@ public final class FileSystemMaster extends AbstractMaster {
   /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
 
+  /** The handler for async persistence. */
+  private final AsyncPersistHandler mAsyncPersistHandler;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -185,6 +190,8 @@ public final class FileSystemMaster extends AbstractMaster {
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
     mWorkerToAsyncPersistFiles = Maps.newHashMap();
+    mAsyncPersistHandler =
+        AsyncPersistHandler.Factory.create(MasterContext.getConf(), new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
   }
 
@@ -268,7 +275,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
         scheduleAsyncPersistenceInternal(getPath(fileId));
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (AlluxioException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -389,7 +396,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    */
   @GuardedBy("mInodeTree")
-  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
     AlluxioURI path = mInodeTree.getPath(inode);
@@ -908,9 +915,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Implementation of {@link #getFileBlockInfoList}.
-   *
-   * @param file The inode for the file to get block info list
+   * @param path the path to get the info for
    * @return a list of {@link FileBlockInfo} for all the blocks of the given file
    * @throws InvalidPathException if the path of the given file is invalid
    */
@@ -1371,7 +1376,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return true if the file was freed
    */
   @GuardedBy("mInodeTree")
-  private boolean freeInternal(Inode inode, boolean recursive) {
+  private boolean freeInternal(Inode<?> inode, boolean recursive) {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
       // true
@@ -1839,14 +1844,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * Schedules a file for async persistence.
    *
    * @param path the id of the file for persistence
-   * @return the id of the worker that persistence is scheduled on
-   * @throws FileDoesNotExistException when the file does not exist
-   * @throws InvalidPathException if the given path is invalid
+   * @throws AlluxioException if scheduling fails
    */
-  public long scheduleAsyncPersistence(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
     synchronized (mInodeTree) {
-      long workerId = scheduleAsyncPersistenceInternal(path);
+      scheduleAsyncPersistenceInternal(path);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
@@ -1854,127 +1856,17 @@ public final class FileSystemMaster extends AbstractMaster {
       writeJournalEntry(
           JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
       flushJournal();
-      return workerId;
     }
   }
 
   /**
    * @param path the path to schedule asynchronous persistence for
-   * @return the id of the worker that will perform the operation
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if an invalid path is encountered
+   * @throws AlluxioException if scheduling fails
    */
-  @GuardedBy("mInodeTree")
-  private long scheduleAsyncPersistenceInternal(AlluxioURI path) throws
-      FileDoesNotExistException, InvalidPathException {
-    // find the worker
-    long workerId = getWorkerStoringFile(path);
-
-    if (workerId == IdUtils.INVALID_WORKER_ID) {
-      LOG.warn("No worker found to schedule async persistence for file {}", path);
-      // no worker found, do nothing
-      return workerId;
-    }
-
-    // update the state
+  private void scheduleAsyncPersistenceInternal(AlluxioURI path) throws AlluxioException {
     Inode<?> inode = mInodeTree.getInodeByPath(path);
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    long fileId = inode.getId();
-
-    if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-      mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
-    }
-    mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
-
-    return workerId;
-  }
-
-  /**
-   * Gets a worker where the given file is stored.
-   *
-   * @param path the path to the file
-   * @return the id of the storing worker
-   * @throws FileDoesNotExistException when the file does not exist on any worker
-   */
-  // TODO(calvin): Propagate the exceptions in certain cases
-  @GuardedBy("mInodeTree")
-  private long getWorkerStoringFile(AlluxioURI path) throws FileDoesNotExistException {
-    Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
-    List<FileBlockInfo> blockInfoList;
-    try {
-      InodeFile inode = mInodeTree.getInodeFileByPath(path);
-      blockInfoList = getFileBlockInfoListInternal(inode);
-
-      for (FileBlockInfo fileBlockInfo : blockInfoList) {
-        for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
-          if (workerBlockCounts.containsKey(blockLocation.getWorkerId())) {
-            workerBlockCounts.put(blockLocation.getWorkerId(),
-                workerBlockCounts.get(blockLocation.getWorkerId()) + 1);
-          } else {
-            workerBlockCounts.put(blockLocation.getWorkerId(), 1);
-          }
-
-          // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the
-          // same worker, for now it returns the first worker that has all the blocks
-          if (workerBlockCounts.get(blockLocation.getWorkerId()) == blockInfoList.size()) {
-            return blockLocation.getWorkerId();
-          }
-        }
-      }
-    } catch (FileDoesNotExistException e) {
-      LOG.error("The file {} to persist does not exist", path);
-      return IdUtils.INVALID_WORKER_ID;
-    } catch (InvalidPathException e) {
-      LOG.error("The file {} to persist is invalid", path);
-      return IdUtils.INVALID_WORKER_ID;
-    }
-
-    if (workerBlockCounts.size() == 0) {
-      LOG.error("The file " + path + " does not exist on any worker");
-      return IdUtils.INVALID_WORKER_ID;
-    }
-
-    LOG.error("Not all the blocks of file {} stored on the same worker", path);
-    return IdUtils.INVALID_WORKER_ID;
-  }
-
-  /**
-   * Polls the files to send to the given worker for persistence. It also removes files from the
-   * worker entry in {@link #mWorkerToAsyncPersistFiles}.
-   *
-   * @param workerId the worker id
-   * @return the list of files
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the path is invalid
-   */
-  private List<PersistFile> pollFilesToCheckpoint(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
-    List<PersistFile> filesToPersist = Lists.newArrayList();
-    List<Long> fileIdsToPersist = Lists.newArrayList();
-
-    synchronized (mInodeTree) {
-      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-        return filesToPersist;
-      }
-
-      Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
-      for (long fileId : scheduledFiles) {
-        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-        if (inode.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = Lists.newArrayList();
-          for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal(inode)) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-          }
-
-          filesToPersist.add(new PersistFile(fileId, blockIds));
-          // update the inode file persistence state
-          inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-        }
-      }
-      mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
-    }
-    return filesToPersist;
+    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**
@@ -1989,20 +1881,20 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
       // Permission checking for each file is performed inside setAttribute
       setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
     }
 
-    // get the files for the given worker to checkpoint
-    List<PersistFile> filesToCheckpoint = pollFilesToCheckpoint(workerId);
-    if (!filesToCheckpoint.isEmpty()) {
-      LOG.debug("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
+    // get the files for the given worker to persist
+    List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+    if (!filesToPersist.isEmpty()) {
+      LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
     FileSystemCommandOptions options = new FileSystemCommandOptions();
-    options.setPersistOptions(new PersistCommandOptions(filesToCheckpoint));
+    options.setPersistOptions(new PersistCommandOptions(filesToPersist));
     return new FileSystemCommand(CommandType.Persist, options);
   }
 

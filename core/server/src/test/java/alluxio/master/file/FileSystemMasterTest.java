@@ -22,6 +22,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
@@ -49,6 +50,7 @@ import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -86,6 +88,11 @@ public final class FileSystemMasterTest {
   /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_TTL_CHECK,
+      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   /**
    * Sets up the dependencies before a single test runs.
@@ -127,10 +134,6 @@ public final class FileSystemMasterTest {
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_TTL_CHECK,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
     mBlockMaster = new BlockMaster(blockJournal);
     mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
@@ -404,7 +407,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -574,25 +577,6 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(blockId,
         (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
                 .getBlockIds().get(0));
-  }
-
-  /**
-   * Tests the persistence of file with block on multiple workers.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
-   */
-  @Test
-  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
-    long fileId = mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
-    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
-    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
-    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(2 * Constants.KB);
-    mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
-
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
-    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
   /**
