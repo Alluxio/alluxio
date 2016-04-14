@@ -71,6 +71,7 @@ public abstract class ResourcePool<T> {
   public T acquire() {
     return acquire(null, null);
   }
+
   /**
    * Acquires an object of type {code T} from the pool.
    *
@@ -84,6 +85,11 @@ public abstract class ResourcePool<T> {
   public T acquire(Integer time, TimeUnit unit) {
     // If either time or unit are null, the other should also be null.
     Preconditions.checkState((time == null) == (unit == null));
+    long endTimeMs = 0;
+    if (time != null) {
+       endTimeMs = System.currentTimeMillis() + unit.toMillis(time);
+    }
+
     // Try to take a resource without blocking
     T resource = mResources.poll();
     if (resource != null) {
@@ -107,7 +113,11 @@ public abstract class ResourcePool<T> {
             return resource;
           }
           if (time != null) {
-            if (!mNotEmpty.await(time, unit)) {
+            long currTimeMs = System.currentTimeMillis();
+            if (currTimeMs >= endTimeMs) {
+              return null;
+            }
+            if (!mNotEmpty.await(endTimeMs - currTimeMs, TimeUnit.MILLISECONDS)) {
               return null;
             }
           } else {
