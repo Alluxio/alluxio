@@ -178,19 +178,19 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   }
 
   @Override
-  public int read(byte[] b) throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+  public int read(byte[] buffer) throws IOException {
+    return read(buffer, 0, buffer.length);
   }
 
   @Override
-  public int read(byte[] b, int off, int len) throws IOException {
+  public int read(byte[] buffer, int offset, int length) throws IOException {
     if (mClosed) {
       throw new IOException("Cannot read from a closed stream.");
     }
     if (mAlluxioFileInputStream != null) {
       int ret = 0;
       try {
-        ret = mAlluxioFileInputStream.read(b, off, len);
+        ret = mAlluxioFileInputStream.read(buffer, offset, length);
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(ret);
         }
@@ -210,7 +210,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       return -1;
     }
     // Convert byteRead back to a signed byte
-    b[off] = (byte) byteRead;
+    buffer[offset] = (byte) byteRead;
     return 1;
   }
 
@@ -283,30 +283,14 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
     return BufferUtils.byteToInt(mBuffer[mBufferPosition++]);
   }
 
-  /**
-   * This method is not supported in {@link HdfsFileInputStream}.
-   *
-   * @param position N/A
-   * @param buffer N/A
-   * @throws IOException always
-   */
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    read(position, buffer, 0, buffer.length);
   }
 
-  /**
-   * This method is not supported in {@link HdfsFileInputStream}.
-   *
-   * @param position N/A
-   * @param buffer N/A
-   * @param offset N/A
-   * @param length N/A
-   * @throws IOException always
-   */
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    read(position, buffer, offset, length);
   }
 
   /**
