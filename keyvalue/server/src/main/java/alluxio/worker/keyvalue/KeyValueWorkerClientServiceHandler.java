@@ -14,7 +14,6 @@ package alluxio.worker.keyvalue;
 import alluxio.Constants;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
-import alluxio.Sessions;
 import alluxio.client.keyvalue.ByteBufferKeyValuePartitionReader;
 import alluxio.client.keyvalue.Index;
 import alluxio.client.keyvalue.PayloadReader;
@@ -26,9 +25,7 @@ import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.thrift.ThriftIOException;
 import alluxio.util.io.BufferUtils;
 import alluxio.worker.block.BlockWorker;
-import alluxio.worker.block.io.BlockReader;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +34,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -48,14 +44,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** BlockWorker handler for access block info. */
-  private final BlockWorker mBlockWorker;
+  /** A cache pool for ByteBufferKeyValuePartitionReader, map from blockId. */
+  private final ReaderCachePool mReaderPool;
 
   /**
    * @param blockWorker the {@link BlockWorker}
    */
   public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
-    mBlockWorker = Preconditions.checkNotNull(blockWorker);
+    mReaderPool = new ReaderCachePool(10, blockWorker);
   }
 
   @Override
@@ -104,28 +100,13 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
    */
   private ByteBuffer getInternal(long blockId, ByteBuffer keyBuffer)
       throws BlockDoesNotExistException, IOException {
-    final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-    final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
     try {
-      return getReader(sessionId, lockId, blockId).get(keyBuffer);
+      return mReaderPool.getReader(blockId).get(keyBuffer);
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
-    } finally {
-      mBlockWorker.unlockBlock(lockId);
     }
     return null;
-  }
-
-  private ByteBufferKeyValuePartitionReader getReader(long sessionId, long lockId, long blockId)
-      throws InvalidWorkerStateException, BlockDoesNotExistException, IOException {
-    BlockReader blockReader = mBlockWorker.readBlockRemote(sessionId, blockId, lockId);
-    ByteBuffer fileBuffer = blockReader.read(0, blockReader.getLength());
-    ByteBufferKeyValuePartitionReader reader = new ByteBufferKeyValuePartitionReader(fileBuffer);
-    // TODO(binfan): clean fileBuffer which is a direct byte buffer
-
-    blockReader.close();
-    return reader;
   }
 
   @Override
@@ -134,10 +115,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     return RpcUtils.call(new RpcCallableThrowsIOException<List<ByteBuffer>>() {
       @Override
       public List<ByteBuffer> call() throws AlluxioException, IOException {
-        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
         try {
-          ByteBufferKeyValuePartitionReader reader = getReader(sessionId, lockId, blockId);
+          ByteBufferKeyValuePartitionReader reader = mReaderPool.getReader(blockId);
           Index index = reader.getIndex();
           PayloadReader payloadReader = reader.getPayloadReader();
 
@@ -155,8 +134,6 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         } catch (InvalidWorkerStateException e) {
           // We shall never reach here
           LOG.error("Reaching invalid state to get all keys", e);
-        } finally {
-          mBlockWorker.unlockBlock(lockId);
         }
         return Collections.emptyList();
       }
@@ -169,15 +146,11 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     return RpcUtils.call(new RpcCallableThrowsIOException<Integer>() {
       @Override
       public Integer call() throws AlluxioException, IOException {
-        final long sessionId = Sessions.KEYVALUE_SESSION_ID;
-        final long lockId = mBlockWorker.lockBlock(sessionId, blockId);
         try {
-          return getReader(sessionId, lockId, blockId).size();
+          return mReaderPool.getReader(blockId).size();
         } catch (InvalidWorkerStateException e) {
           // We shall never reach here
           LOG.error("Reaching invalid state to get size", e);
-        } finally {
-          mBlockWorker.unlockBlock(lockId);
         }
         return 0;
       }
