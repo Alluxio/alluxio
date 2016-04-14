@@ -11,6 +11,7 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.master.MasterContext;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
@@ -213,7 +214,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public synchronized T setPermissionStatus(PermissionStatus permissionStatus) {
     if (permissionStatus != null) {
       mGroupName = permissionStatus.getGroupName();
-      mPermission = permissionStatus.getPermission().toShort();
+      mPermission = permissionStatus.getPermission().applyUMask(MasterContext.getConf()).toShort();
       mUserName = permissionStatus.getUserName();
     }
     return getThis();
