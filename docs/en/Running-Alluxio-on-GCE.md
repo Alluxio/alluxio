@@ -59,7 +59,16 @@ Copy `deploy/vagrant/conf/gce.yml.template` to `deploy/vagrant/conf/gce.yml` by:
 
 In the configuration file `deploy/vagrant/conf/gce.yml`, set the project id, service account, location to JSON key and ssh username you've just created.
 
-GCE currently defaults to using Hadoop2 as the underfs, as GCS is not yet supported with Alluxio. 
+For GCE, the default underfs is Google Cloud Storage (GCS). You need to sign into your
+[Google Cloud console](https://console.cloud.google.com), create a GCS bucket and write
+the bucket's name to the field `GCS:Bucket` in `conf/ufs.yml`. To use other under storage systems,
+configure the field `Type` and the corresponding configurations in `conf/ufs.yml`.
+
+To access GCS with access keys, you need to create [developer keys](https://cloud.google.com/storage/docs/migrating#keys)
+in GCS console [Interoperability setting](https://console.cloud.google.com/storage/settings)
+and set shell environment variables `GCS_ACCESS_KEY_ID` and `GCS_SECRET_ACCESS_KEY` by:
+
+{% include Running-Alluxio-on-GCE/access-key.md %}
 
 Now you can launch the Alluxio cluster by running
 the script under `deploy/vagrant`:

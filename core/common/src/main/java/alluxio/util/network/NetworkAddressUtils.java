@@ -486,6 +486,7 @@ public final class NetworkAddressUtils {
    * @return the resolved FQDN host name
    */
   public static String getFqdnHost(InetSocketAddress addr) {
+    Preconditions.checkNotNull(addr.getAddress(), "the address of " + addr + " is invalid.");
     return addr.getAddress().getCanonicalHostName();
   }
 
