@@ -389,14 +389,14 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests both directories and files have full permissions when the security is not turned on.
+   * Tests the permission bits are 0755 for directories and 0644 for files by default.
    */
   @Test
   public void permissionTest() throws Exception {
     Assert.assertFalse(SecurityUtils.isSecurityEnabled(new Configuration()));
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
-    Assert.assertEquals(0777, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
   }
 
   /**

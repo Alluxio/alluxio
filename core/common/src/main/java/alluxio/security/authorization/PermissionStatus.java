@@ -132,7 +132,7 @@ public final class PermissionStatus {
    * @return the {@link PermissionStatus} for a file or a directory
    * @throws java.io.IOException when getting login user fails
    */
-  public static PermissionStatus getAsLoginUser(Configuration conf) throws IOException {
+  public static PermissionStatus fromLoginUser(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
       // no authentication, every action is permitted
       return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());

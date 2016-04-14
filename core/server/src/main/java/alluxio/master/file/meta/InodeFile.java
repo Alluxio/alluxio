@@ -15,13 +15,11 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
-import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -38,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
   /** This default umask is used to calculate file permission from directory permission. */
-  private static final FileSystemPermission UMASK =
+  private static final FileSystemPermission INODE_FILE_UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
   private List<Long> mBlocks;
@@ -227,10 +225,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
     Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    if (!SecurityUtils.isAuthorizationEnabled(MasterContext.getConf())) {
-      return super.setPermissionStatus(permissionStatus);
-    }
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
+    return super.setPermissionStatus(permissionStatus.applyUMask(INODE_FILE_UMASK));
   }
 
   /**

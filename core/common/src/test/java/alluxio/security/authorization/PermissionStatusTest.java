@@ -78,7 +78,7 @@ public final class PermissionStatusTest {
   }
 
   /**
-   * Tests the {@link PermissionStatus#getAsLoginUser(Configuration)} method.
+   * Tests the {@link PermissionStatus#fromLoginUser(Configuration)} method.
    */
   @Test
   public void getPermissionStatusTest() throws Exception {
@@ -101,7 +101,7 @@ public final class PermissionStatusTest {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    permissionStatus = PermissionStatus.getAsLoginUser(conf);
+    permissionStatus = PermissionStatus.fromLoginUser(conf);
     verifyPermissionStatus("test_login_user", "test_login_user", (short) 0755, permissionStatus);
   }
 
@@ -137,7 +137,7 @@ public final class PermissionStatusTest {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    permissionStatus = PermissionStatus.getAsLoginUser(conf);
+    permissionStatus = PermissionStatus.fromLoginUser(conf);
     verifyPermissionStatus("test_login_user", "group1", (short) 0755, permissionStatus);
   }
 
