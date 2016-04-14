@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
@@ -95,12 +94,11 @@ public class RemoteBlockInStreamIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    Configuration configuration = mLocalAlluxioClusterResource.get().getMasterConf();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(configuration);
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(configuration);
-    mReadCache = StreamOptionUtils.getOpenFileOptionsCache(configuration);
-    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache(configuration);
+    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
+    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
+    mReadCache = StreamOptionUtils.getOpenFileOptionsCache();
+    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache();
   }
 
   /**
