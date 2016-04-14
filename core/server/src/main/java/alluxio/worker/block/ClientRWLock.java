@@ -48,7 +48,7 @@ public final class ClientRWLock implements ReadWriteLock {
   /**
    * @return the reference count
    */
-  public Integer getReferenceCount() {
+  public int getReferenceCount() {
     return mReferences.get();
   }
 
@@ -64,7 +64,7 @@ public final class ClientRWLock implements ReadWriteLock {
    *
    * @return the new reference count
    */
-  public Integer dropReference() {
+  public int dropReference() {
     return mReferences.decrementAndGet();
   }
 
