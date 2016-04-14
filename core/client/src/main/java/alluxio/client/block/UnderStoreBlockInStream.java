@@ -104,7 +104,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     } else {
       long toSkip = pos - mPos;
       if (skip(toSkip) != toSkip) {
-        throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
+        throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
       }
     }
   }
@@ -138,7 +138,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       mUnderStoreStream.close();
     }
     if (pos < 0 || pos > mLength) {
-      throw new IOException(ExceptionMessage.FAILED_SEEK_FORWARD.getMessage(pos));
+      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
