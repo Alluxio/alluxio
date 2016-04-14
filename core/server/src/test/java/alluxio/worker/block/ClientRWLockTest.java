@@ -71,7 +71,6 @@ public final class ClientRWLockTest {
     Assert.assertTrue(true);
   }
 
-
   /**
    * Tests reference counting.
    */
