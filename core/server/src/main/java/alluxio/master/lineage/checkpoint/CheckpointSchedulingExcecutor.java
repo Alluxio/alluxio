@@ -13,7 +13,6 @@ package alluxio.master.lineage.checkpoint;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
@@ -58,11 +57,7 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
     if (!plan.isEmpty()) {
       LOG.info("Checkpoint scheduler created the plan: {}", plan);
     }
-    try {
-      mLineageMaster.scheduleForCheckpoint(plan);
-    } catch (FileDoesNotExistException e) {
-      LOG.error("Checkpoint scheduling failed: {}", e);
-    }
+    mLineageMaster.scheduleCheckpoint(plan);
   }
 
   @Override
