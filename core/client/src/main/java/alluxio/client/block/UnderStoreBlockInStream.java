@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class UnderStoreBlockInStream extends BlockInStream {
-  /** The start of this block. This is the absolute position within the under store stream. */
+  /** The start of this block. This is the absolute position within the UFS file. */
   private final long mInitPos;
   /** The length of the block. */
   private final long mLength;
@@ -37,7 +37,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   /**
    * The current position for this block stream. This is the position within this block, and not
-   * the absolute position within the file.
+   * the absolute position within the UFS file.
    */
   private long mPos;
   /** The current under store stream. */
@@ -142,9 +142,11 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     }
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
+    // The stream is at the beginning of the file, so skip to the correct absolute position.
     if (mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
+    // Set the current block position to the specified block position.
     mPos = pos;
   }
 }
