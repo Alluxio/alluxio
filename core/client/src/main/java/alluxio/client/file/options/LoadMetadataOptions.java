@@ -56,6 +56,23 @@ public final class LoadMetadataOptions {
     return this;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LoadMetadataOptions)) {
+      return false;
+    }
+    LoadMetadataOptions that = (LoadMetadataOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRecursive);
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */

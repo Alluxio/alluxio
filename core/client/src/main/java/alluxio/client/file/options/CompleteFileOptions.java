@@ -53,6 +53,23 @@ public final class CompleteFileOptions {
     return this;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CompleteFileOptions)) {
+      return false;
+    }
+    CompleteFileOptions that = (CompleteFileOptions) o;
+    return Objects.equal(mUfsLength, that.mUfsLength);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mUfsLength);
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */
