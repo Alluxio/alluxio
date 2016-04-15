@@ -136,6 +136,12 @@ public class AlluxioURITest {
 
     AlluxioURI uri3 = new AlluxioURI(null, authority, path);
     Assert.assertEquals("//" + authority + absPath, uri3.toString());
+
+    AlluxioURI uri4 = new AlluxioURI("scheme:part1", authority, path);
+    Assert.assertEquals("scheme:part1://" + authority + absPath, uri4.toString());
+
+    AlluxioURI uri5 = new AlluxioURI("scheme:part1:part2", authority, path);
+    Assert.assertEquals("scheme:part1:part2://" + authority + absPath, uri5.toString());
   }
 
   /**
@@ -183,6 +189,15 @@ public class AlluxioURITest {
     testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar", "c:/foo");
     testParentChild("foo://bar boo:80/c:/foo", "foo://bar boo:80/d:/bar",
         "foo://bar boo:80/c:/foo");
+
+    testParentChild("parent://host:1234/a/d.txt", "parent://host:1234/a", "d.txt");
+    testParentChild("parent:part1://host:1234/a/d.txt", "parent:part1://host:1234/a", "d.txt");
+    testParentChild("parent:part1:part2://host:1234/a/d.txt", "parent:part1:part2://host:1234/a",
+        "d.txt");
+    testParentChild("child://h:1/d.txt", "parent://host:1234/a", "child://h:1/d.txt");
+    testParentChild("child:part1://h:1/d.txt", "parent://host:1234/a", "child:part1://h:1/d.txt");
+    testParentChild("child:part1:part2://h:1/d.txt", "parent://host:1234/a",
+        "child:part1:part2://h:1/d.txt");
   }
 
   /**
@@ -199,7 +214,21 @@ public class AlluxioURITest {
             new AlluxioURI("hdfs://127.0.0.1:8081/a/c/c.txt"),
             new AlluxioURI("hdfs://127.0.0.1:8082/a/c/c.txt"),
             new AlluxioURI("hdfs://localhost:8080/a/b/c.txt"),
-            new AlluxioURI("s3://localhost:8080/a/b/c.txt")};
+            new AlluxioURI("s3://localhost:8080/a/b/c.txt"),
+            new AlluxioURI("scheme://localhost:8080/a.txt"),
+            new AlluxioURI("scheme:scheme://localhost:8080/a.txt"),
+            new AlluxioURI("scheme:scheme://localhost:8080/b.txt"),
+            new AlluxioURI("scheme:schemeB://localhost:8080/a.txt"),
+            new AlluxioURI("scheme:schemeB://localhost:8080/b.txt"),
+            new AlluxioURI("schemeA:scheme://localhost:8080/a.txt"),
+            new AlluxioURI("schemeA:scheme://localhost:8080/b.txt"),
+            new AlluxioURI("schemeA:schemeB:schemeC://localhost:8080/a.txt"),
+            new AlluxioURI("schemeA:schemeB:schemeC://localhost:8080/b.txt"),
+            new AlluxioURI("schemeA:schemeB:schemeD://localhost:8080/a.txt"),
+            new AlluxioURI("schemeA:schemeB:schemeD://localhost:8080/b.txt"),
+            new AlluxioURI("schemeE:schemeB:schemeB://localhost:8080/a.txt"),
+            new AlluxioURI("schemeE:schemeB:schemeB://localhost:8080/b.txt"),
+        };
 
     for (int i = 0; i < uris.length - 1; i++) {
       Assert.assertTrue(uris[i].compareTo(uris[i + 1]) < 0);
@@ -224,6 +253,21 @@ public class AlluxioURITest {
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
       Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
     }
+
+    // Test multi-component schemes.
+    Assert.assertTrue(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")));
+    Assert.assertFalse(new AlluxioURI("part1://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")));
+    Assert.assertFalse(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("part1://127.0.0.1:3306/a.txt")));
+
+    Assert.assertTrue(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")));
+    Assert.assertFalse(new AlluxioURI("part2://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")));
+    Assert.assertFalse(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")
+        .equals(new AlluxioURI("part2://127.0.0.1:3306/a.txt")));
   }
 
   /**
@@ -349,6 +393,9 @@ public class AlluxioURITest {
     Assert.assertEquals("alluxio", new AlluxioURI("alluxio://localhost/").getScheme());
     Assert.assertEquals("hdfs", new AlluxioURI("hdfs://localhost/").getScheme());
     Assert.assertEquals("glusterfs", new AlluxioURI("glusterfs://localhost/").getScheme());
+    Assert.assertEquals("scheme:part1", new AlluxioURI("scheme:part1://localhost/").getScheme());
+    Assert.assertEquals("scheme:part1:part2",
+        new AlluxioURI("scheme:part1:part2://localhost/").getScheme());
   }
 
   /**
