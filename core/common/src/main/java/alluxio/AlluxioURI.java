@@ -22,6 +22,9 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
+ * This class represents a URI in the Alluxio system. This {@link AlluxioURI} can represent
+ * resources in the Alluxio namespace, as well as UFS namespaces.
+ *
  * It uses a {@link URI} internally. URI requires that String is escaped, {@link AlluxioURI} does
  * not.
  *
