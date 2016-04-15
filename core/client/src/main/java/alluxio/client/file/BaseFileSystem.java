@@ -285,6 +285,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.setAttribute(path, options);
+      LOG.info("Set attributes for path {} with options {}", path.getPath(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
