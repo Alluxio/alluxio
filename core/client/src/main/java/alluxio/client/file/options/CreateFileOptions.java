@@ -190,8 +190,13 @@ public final class CreateFileOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("locationPolicy", mLocationPolicy)
+        .add("ttl", mTtl)
+        .add("writeType", mWriteType)
+        .toString();
   }
 
   /**

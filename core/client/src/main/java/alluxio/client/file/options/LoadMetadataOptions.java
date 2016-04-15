@@ -78,6 +78,8 @@ public final class LoadMetadataOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

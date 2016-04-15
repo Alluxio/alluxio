@@ -123,8 +123,11 @@ public final class CreateDirectoryOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
-        .add("recursive", mRecursive).add("underStorageType", mUnderStorageType).toString();
+    return Objects.toStringHelper(this)
+        .add("allowExists", mAllowExists)
+        .add("recursive", mRecursive)
+        .add("underStorageType", mUnderStorageType)
+        .toString();
   }
 
   /**

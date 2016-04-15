@@ -165,7 +165,11 @@ public final class OutStreamOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("ttl", mTtl)
+        .add("locationPolicy", mLocationPolicy)
+        .add("writeType", mWriteType)
+        .toString();
   }
 }

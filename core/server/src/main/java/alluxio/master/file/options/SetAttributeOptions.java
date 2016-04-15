@@ -226,12 +226,12 @@ public class SetAttributeOptions {
     return Objects.toStringHelper(this)
         .add("mPinned", mPinned)
         .add("ttl", mTtl)
-        .add("mPersisted", mPersisted)
-        .add("mOwner", mOwner)
-        .add("mGroup", mGroup)
-        .add("mPermission", mPermission)
-        .add("mRecursive", mRecursive)
-        .add("mOperationTimeMs", mOperationTimeMs)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("permission", mPermission)
+        .add("recursive", mRecursive)
+        .add("operationTimeMs", mOperationTimeMs)
         .toString();
   }
 }

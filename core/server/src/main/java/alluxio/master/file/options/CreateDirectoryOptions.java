@@ -100,6 +100,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    */
   @Override
   public String toString() {
-    return toStringHelper().add("allowExists", mAllowExists).toString();
+    return toStringHelper()
+        .add("allowExists", mAllowExists)
+        .toString();
   }
 }
