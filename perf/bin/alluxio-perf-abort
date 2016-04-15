@@ -14,7 +14,7 @@ bin=`cd "$( dirname "$0" )"; pwd`
 
 DEFAULT_PERF_LIBEXEC_DIR="$bin"/../libexec
 ALLUXIO_PERF_LIBEXEC_DIR=${ALLUXIO_PERF_LIBEXEC_DIR:-$DEFAULT_PERF_LIBEXEC_DIR}
-. $ALLUXIO_PERF_LIBEXEC_DIR/ALLUXIO-perf-config.sh
+. $ALLUXIO_PERF_LIBEXEC_DIR/alluxio-perf-config.sh
 
 NODELIST=$ALLUXIO_PERF_CONF_DIR/slaves
 UNIQ_SLAVES=`sort "$NODELIST" | uniq | sed  "s/#.*$//;/^$/d"`
