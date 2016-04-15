@@ -22,18 +22,8 @@ import java.util.Map;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}
- * does not.
- *
- * {@link AlluxioURI} supports more than just strict {@link URI}. Some examples:
- *   * Windows paths
- *     * C:\
- *     * D:\path\to\file
- *     * E:\path\to\skip\..\file
- *   * URI with multiple scheme components
- *     * scheme://host:123/path
- *     * scheme:part2://host:123/path
- *     * scheme:part2:part3://host:123/path
+ * It uses a {@link URI} internally. URI requires that String is escaped, {@link AlluxioURI} does
+ * not.
  *
  * Does not support fragment in the URI.
  */
@@ -43,8 +33,6 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   public static final String SEPARATOR = "/";
   public static final String CUR_DIR = ".";
   public static final String WILDCARD = "*";
-  public static final char QUERY_SEPARATOR = '&';
-  public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 

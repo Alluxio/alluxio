@@ -19,10 +19,8 @@ import java.io.Serializable;
 import java.net.URISyntaxException;
 
 /**
- * It uses a hierarchical URI internally. URI requires that String is escaped, {@link URI}
- * does not.
- *
- * {@link URI} supports more than just strict {@link java.net.URI}. Some examples:
+ * This interface represents a URI. This {@link URI} supports more than just strict
+ * {@link java.net.URI}. Some examples:
  *   * Windows paths
  *     * C:\
  *     * D:\path\to\file
@@ -32,7 +30,7 @@ import java.net.URISyntaxException;
  *     * scheme:part2://host:123/path
  *     * scheme:part2:part3://host:123/path
  *
- * Does not support fragment in the URI.
+ * Currently, does not support fragment in the URI.
  */
 public interface URI extends Comparable<URI>, Serializable {
 
