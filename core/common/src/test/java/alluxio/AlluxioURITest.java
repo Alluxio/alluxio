@@ -17,6 +17,9 @@ import org.junit.Assert;
 import org.junit.Assume;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Unit tests for {@link AlluxioURI}.
  */
@@ -72,6 +75,29 @@ public class AlluxioURITest {
     Assert.assertEquals("hdfs://localhost/xy z/a b c/d", uri.join(new AlluxioURI("/d"))
         .toString());
     Assert.assertEquals("hdfs://localhost/xy z/a b c", uri.toString());
+  }
+
+  /**
+   * Tests the {@link AlluxioURI#AlluxioURI(String)} constructor with query parameter.
+   */
+  @Test
+  public void basicConstructorQueryTest() {
+    /**
+     * Some encodings:
+     * '&' -> %26
+     * '=' -> %3D
+     * ' ' -> %20
+     * '%' -> %25
+     * '+' -> %2B
+     */
+    String queryPart = "k1=v1&k2= spaces &k3=%3D%20escapes %20%25%26%2B&!@#$^*()-_=[]{};\"'<>,./";
+    AlluxioURI uri = new AlluxioURI("hdfs://localhost/a?" + queryPart);
+    Map<String, String> queryMap = uri.getQueryMap();
+    Assert.assertEquals(4, queryMap.size());
+    Assert.assertEquals("v1", queryMap.get("k1"));
+    Assert.assertEquals(" spaces ", queryMap.get("k2"));
+    Assert.assertEquals("= escapes  %&+", queryMap.get("k3"));
+    Assert.assertEquals("[]{};\"'<>,./", queryMap.get("!@#$^*()-_"));
   }
 
   /**
@@ -142,6 +168,29 @@ public class AlluxioURITest {
 
     AlluxioURI uri5 = new AlluxioURI("scheme:part1:part2", authority, path);
     Assert.assertEquals("scheme:part1:part2://" + authority + absPath, uri5.toString());
+  }
+
+  /**
+   * Tests the {@link AlluxioURI#AlluxioURI(String, String, String, Map)} constructor to build an
+   * URI from its different components with a query map.
+   */
+  @Test
+  public void constructWithQueryMapTest() {
+    String scheme = "alluxio";
+    String authority = "host:1234";
+    String path = "/a";
+    Map<String, String> queryMap = new HashMap<>();
+    queryMap.put("key", "123");
+    queryMap.put(" k2 ", " v2 ");
+    queryMap.put(" key: !*'();:@&=+$,/?#[]\"% ", " !*'();:@&=+$,/?#[]\"% ");
+    queryMap.put(" key: %26 %3D %20 %25 %2B ", " %26 %3D %20 %25 %2B ");
+
+    AlluxioURI uri1 = new AlluxioURI(scheme, authority, path, queryMap);
+    AlluxioURI uri2 = new AlluxioURI(uri1.toString());
+    Assert.assertEquals(queryMap, uri1.getQueryMap());
+    Assert.assertEquals(uri1.getQueryMap(), uri2.getQueryMap());
+    Map<String, String> m1 = uri1.getQueryMap();
+    Map<String, String> m2 = uri2.getQueryMap();
   }
 
   /**
@@ -216,6 +265,9 @@ public class AlluxioURITest {
             new AlluxioURI("hdfs://localhost:8080/a/b/c.txt"),
             new AlluxioURI("s3://localhost:8080/a/b/c.txt"),
             new AlluxioURI("scheme://localhost:8080/a.txt"),
+            new AlluxioURI("scheme://localhost:8080/a.txt?a=a"),
+            new AlluxioURI("scheme://localhost:8080/a.txt?b=b"),
+            new AlluxioURI("scheme://localhost:8080/a.txt?c=c"),
             new AlluxioURI("scheme:scheme://localhost:8080/a.txt"),
             new AlluxioURI("scheme:scheme://localhost:8080/b.txt"),
             new AlluxioURI("scheme:schemeB://localhost:8080/a.txt"),
@@ -253,8 +305,13 @@ public class AlluxioURITest {
     for (int i = 0; i < uriFromDifferentConstructor.length - 1; i++) {
       Assert.assertTrue(uriFromDifferentConstructor[i].equals(uriFromDifferentConstructor[i + 1]));
     }
+  }
 
-    // Test multi-component schemes.
+  /**
+   * Tests the {@link AlluxioURI#equals(Object)} method for multi-component schemes.
+   */
+  @Test
+  public void multiPartSchemeEqualsTest() {
     Assert.assertTrue(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")
         .equals(new AlluxioURI("scheme:part1://127.0.0.1:3306/a.txt")));
     Assert.assertFalse(new AlluxioURI("part1://127.0.0.1:3306/a.txt")
@@ -268,6 +325,29 @@ public class AlluxioURITest {
         .equals(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")));
     Assert.assertFalse(new AlluxioURI("scheme:part1:part2://127.0.0.1:3306/a.txt")
         .equals(new AlluxioURI("part2://127.0.0.1:3306/a.txt")));
+  }
+
+  /**
+   * Tests the {@link AlluxioURI#equals(Object)} method with query component.
+   */
+  @Test
+  public void queryEqualsTest() {
+    Map<String, String> queryMap = new HashMap<>();
+    queryMap.put("a", "b");
+    queryMap.put("c", "d");
+
+    Assert.assertTrue(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")
+        .equals(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")));
+    // There is no guarantee which order the queryMap will create the query string.
+    Assert.assertTrue(new AlluxioURI("scheme://host:123/a.txt?c=d&a=b")
+        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap))
+        || new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")
+        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap)));
+
+    Assert.assertFalse(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d&e=f")
+        .equals(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d")));
+    Assert.assertFalse(new AlluxioURI("scheme://host:123/a.txt?a=b&c=d&e=f")
+        .equals(new AlluxioURI("scheme", "host:123", "/a.txt", queryMap)));
   }
 
   /**

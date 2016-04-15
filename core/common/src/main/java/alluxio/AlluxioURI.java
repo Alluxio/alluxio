@@ -13,12 +13,20 @@ package alluxio;
 
 import alluxio.collections.Pair;
 
+import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -27,7 +35,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}
  * does not.
  *
- * Does not support fragment or query in the URI.
+ * Does not support fragment in the URI.
  */
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
@@ -53,6 +61,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   private final String mSchemePrefix;
 
+  /** A map representation of the query component of the URI. It may be empty. */
+  private final Map<String, String> mQueryMap;
+
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
    * elements and some additional normalization.
@@ -72,6 +83,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     // parse uri components
     String scheme = null;
     String authority = null;
+    String query = null;
 
     int start = 0;
 
@@ -109,10 +121,19 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       start = authEnd;
     }
 
-    // uri path is the rest of the string -- query & fragment not supported
+    // uri path is the rest of the string -- fragment not supported
     String path = pathStr.substring(start, pathStr.length());
 
-    mUri = createURI(scheme, authority, path);
+    // Parse the query part.
+    int question = path.indexOf('?');
+    if (question != -1) {
+      // There is a query.
+      query = path.substring(question + 1);
+      path = path.substring(0, question);
+    }
+    mQueryMap = parseQueryString(query);
+
+    mUri = createURI(scheme, authority, path, query);
   }
 
   /**
@@ -123,6 +144,18 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public AlluxioURI(String scheme, String authority, String path) {
+    this(scheme, authority, path, null);
+  }
+
+  /**
+   * Construct an {@link AlluxioURI} from components.
+   *
+   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
+   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
+   */
+  public AlluxioURI(String scheme, String authority, String path, Map<String, String> queryMap) {
     if (path == null) {
       throw new IllegalArgumentException("Can not create a uri with a null path.");
     }
@@ -131,8 +164,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     Pair<String, String> schemeComponents = getSchemeComponents(scheme);
     mSchemePrefix = schemeComponents.getFirst();
     scheme = schemeComponents.getSecond();
+    mQueryMap = queryMap;
 
-    mUri = createURI(scheme, authority, path);
+    mUri = createURI(scheme, authority, path, generateQueryString());
   }
 
   /**
@@ -149,7 +183,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       parentPath += SEPARATOR;
     }
     try {
-      parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, null, null);
+      parentUri =
+          new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, parentUri.getQuery(),
+              null);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
@@ -164,7 +200,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       mSchemePrefix = parent.mSchemePrefix;
     }
 
-    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+    mQueryMap = parseQueryString(resolved.getQuery());
+
+    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath(),
+        resolved.getQuery());
   }
 
   /**
@@ -228,6 +267,65 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     return uriScheme;
   }
 
+  /**
+   * @return the query string, generated from {@link #mQueryMap}
+   */
+  private String generateQueryString() {
+    if (mQueryMap == null || mQueryMap.isEmpty()) {
+      return null;
+    }
+    ArrayList<String> pairs = new ArrayList<>(mQueryMap.size());
+    try {
+      for (Map.Entry<String, String> entry : mQueryMap.entrySet()) {
+        pairs.add(URLEncoder.encode(entry.getKey(), "UTF-8") + "=" + URLEncoder
+            .encode(entry.getValue(), "UTF-8"));
+      }
+    } catch (UnsupportedEncodingException e) {
+      throw new RuntimeException(e);
+    }
+
+    Joiner joiner = Joiner.on('&');
+    return joiner.join(pairs);
+  }
+
+  /**
+   * Parses the given query string, and returns a map of the query parameters.
+   *
+   * @param query the query string to parse
+   * @return the map of query keys and values
+   */
+  private Map<String, String> parseQueryString(String query) {
+    Map<String, String> queryMap = new HashMap<>();
+    if (query == null || query.isEmpty()) {
+      return queryMap;
+    }
+    // The query string should escape '&'.
+    String[] entries = query.split("&");
+
+    try {
+      for (String entry : entries) {
+        // There should be at most 2 parts, since key and value both should escape '='.
+        String[] parts = entry.split("=");
+        if (parts.length == 0) {
+          // Skip this empty entry.
+        } else if (parts.length == 1) {
+          // There is no value part. Just use empty string as the value.
+          String key = URLDecoder.decode(parts[0], "UTF-8");
+          queryMap.put(key, "");
+        } else {
+          // Save the key and value.
+          String key = URLDecoder.decode(parts[0], "UTF-8");
+          String value = URLDecoder.decode(parts[1], "UTF-8");
+          queryMap.put(key, value);
+        }
+      }
+    } catch (UnsupportedEncodingException e) {
+      // This is unexpected.
+      throw new RuntimeException(e);
+    }
+    return queryMap;
+  }
+
   @Override
   public int compareTo(AlluxioURI other) {
     // Compare full schemes first.
@@ -245,12 +343,13 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
    * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @param query the query component of the URI. e.g. "a=b", "a=b,c=d,e=f"
    * @throws IllegalArgumentException when an illegal argument is encountered
    */
-  private URI createURI(String scheme, String authority, String path)
+  private URI createURI(String scheme, String authority, String path, String query)
       throws IllegalArgumentException {
     try {
-      return new URI(scheme, authority, normalizePath(path), null, null).normalize();
+      return new URI(scheme, authority, normalizePath(path), query, null).normalize();
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException(e);
     }
@@ -398,7 +497,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(getFullScheme(mUri.getScheme()), mUri.getAuthority(), parent);
+    return new AlluxioURI(getFullScheme(mUri.getScheme()), mUri.getAuthority(), parent, mQueryMap);
   }
 
   /**
@@ -417,6 +516,18 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public int getPort() {
     return mUri.getPort();
+  }
+
+  /**
+   * Gets the map of query parameters.
+   *
+   * @return the map of query parameters
+   */
+  public Map<String, String> getQueryMap() {
+    if (mQueryMap == null || mQueryMap.isEmpty()) {
+      return Collections.emptyMap();
+    }
+    return Collections.unmodifiableMap(mQueryMap);
   }
 
   /**
@@ -515,7 +626,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
-    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix);
+    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
+        mQueryMap);
   }
 
   /**
@@ -578,6 +690,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
         path = path.substring(1); // remove slash before drive
       }
       sb.append(path);
+    }
+    if (mUri.getQuery() != null) {
+      sb.append("?");
+      sb.append(mUri.getQuery());
     }
     return sb.toString();
   }
