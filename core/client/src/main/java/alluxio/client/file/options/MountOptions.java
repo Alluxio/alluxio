@@ -60,6 +60,23 @@ public final class MountOptions {
     return this;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equal(mReadOnly, that.mReadOnly);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mReadOnly);
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */

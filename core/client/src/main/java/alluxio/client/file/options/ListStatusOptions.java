@@ -34,6 +34,22 @@ public final class ListStatusOptions {
     // No options currently
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ListStatusOptions)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */

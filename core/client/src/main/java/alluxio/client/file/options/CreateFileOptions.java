@@ -46,6 +46,9 @@ public final class CreateFileOptions {
     return new CreateFileOptions();
   }
 
+  /**
+   * Creates a new instance with defaults from the configuration.
+   */
   private CreateFileOptions() {
     Configuration conf = ClientContext.getConf();
     mRecursive = true;
@@ -159,6 +162,27 @@ public final class CreateFileOptions {
   public OutStreamOptions toOutStreamOptions() {
     return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
         .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    CreateFileOptions that = (CreateFileOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mWriteType, that.mWriteType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
   }
 
   /**
