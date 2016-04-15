@@ -90,19 +90,28 @@ public final class PermissionStatus {
    *
    * @param umask the umask to apply
    * @return a new {@link PermissionStatus}
-   * @see FileSystemPermission#applyUMask(FileSystemPermission)
    */
   public PermissionStatus applyUMask(FileSystemPermission umask) {
     FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
     return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
 
+  /**
+   * Applies default umask to new created files.
+   *
+   * @return a new {@link PermissionStatus}
+   */
   public PermissionStatus applyFileUMask(Configuration conf) {
     FileSystemPermission newFileSystemPermission =
         mPermission.applyUMask(FileSystemPermission.getUMask(conf)).applyUMask(FILE_UMASK);
     return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
 
+  /**
+   * Applies default umask to new created directories.
+   *
+   * @return a new {@link PermissionStatus}
+   */
   public PermissionStatus applyDirectoryUMask(Configuration conf) {
     FileSystemPermission newFileSystemPermission =
         mPermission.applyUMask(FileSystemPermission.getUMask(conf));
