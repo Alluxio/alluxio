@@ -118,7 +118,6 @@ public final class CreateDirectoryOptions {
     return Objects.hashCode(mAllowExists, mRecursive, mUnderStorageType);
   }
 
-
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

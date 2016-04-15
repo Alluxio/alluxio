@@ -211,7 +211,7 @@ public class SetAttributeOptions {
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mPermission, that.mPermission)
         && Objects.equal(mRecursive, that.mRecursive);
-    }
+  }
 
   @Override
   public int hashCode() {
