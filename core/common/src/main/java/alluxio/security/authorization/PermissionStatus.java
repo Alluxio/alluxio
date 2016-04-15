@@ -99,6 +99,7 @@ public final class PermissionStatus {
   /**
    * Applies default umask to new created files.
    *
+   * @param conf the runtime configuration of Alluxio
    * @return a new {@link PermissionStatus}
    */
   public PermissionStatus applyFileUMask(Configuration conf) {
@@ -110,6 +111,7 @@ public final class PermissionStatus {
   /**
    * Applies default umask to new created directories.
    *
+   * @param conf the runtime configuration of Alluxio
    * @return a new {@link PermissionStatus}
    */
   public PermissionStatus applyDirectoryUMask(Configuration conf) {
