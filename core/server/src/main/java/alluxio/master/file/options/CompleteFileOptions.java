@@ -88,13 +88,12 @@ public final class CompleteFileOptions {
       return false;
     }
     CompleteFileOptions that = (CompleteFileOptions) o;
-    return Objects.equal(mUfsLength, that.mUfsLength)
-        && Objects.equal(mOperationTimeMs, that.mOperationTimeMs);
+    return Objects.equal(mUfsLength, that.mUfsLength);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUfsLength, mOperationTimeMs);
+    return Objects.hashCode(mUfsLength);
   }
 
   /**
@@ -103,8 +102,8 @@ public final class CompleteFileOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("mUfsLength", mUfsLength)
-        .add("mOperationTimeMs", mOperationTimeMs)
+        .add("ufsLength", mUfsLength)
+        .add("operationTimeMs", mOperationTimeMs)
         .toString();
   }
 }

@@ -261,6 +261,7 @@ public final class SetAttributeOptions {
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mPermission, that.mPermission)
@@ -269,7 +270,7 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mOwner, mGroup, mPermission, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mPermission, mRecursive);
   }
 
   /**
@@ -277,8 +278,14 @@ public final class SetAttributeOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("pinned", mPinned).add("ttl", mTtl)
-        .add("persisted", mPersisted).add("owner", mOwner).add("group", mGroup)
-        .add("permission", mPermission).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("pinned", mPinned)
+        .add("ttl", mTtl)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("permission", mPermission)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

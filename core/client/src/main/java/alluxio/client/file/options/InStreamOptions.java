@@ -111,7 +111,9 @@ public final class InStreamOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("readType", mReadType)
-        .add("locationPolicy", mLocationPolicy).toString();
+    return Objects.toStringHelper(this)
+        .add("locationPolicy", mLocationPolicy)
+        .add("readType", mReadType)
+        .toString();
   }
 }

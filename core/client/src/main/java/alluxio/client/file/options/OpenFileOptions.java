@@ -119,7 +119,9 @@ public final class OpenFileOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
-        .add("readType", mReadType).toString();
+    return Objects.toStringHelper(this)
+        .add("locationPolicy", mLocationPolicy)
+        .add("readType", mReadType)
+        .toString();
   }
 }

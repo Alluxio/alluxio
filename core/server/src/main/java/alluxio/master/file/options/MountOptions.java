@@ -14,6 +14,8 @@ package alluxio.master.file.options;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -74,5 +76,32 @@ public final class MountOptions {
   public MountOptions setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equal(mReadOnly, that.mReadOnly);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mReadOnly);
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("readOnly", mReadOnly)
+        .toString();
   }
 }

@@ -78,6 +78,8 @@ public final class FreeOptions {
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }
