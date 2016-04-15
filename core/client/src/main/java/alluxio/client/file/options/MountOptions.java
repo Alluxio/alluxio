@@ -77,9 +77,6 @@ public final class MountOptions {
     return Objects.hashCode(mReadOnly);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

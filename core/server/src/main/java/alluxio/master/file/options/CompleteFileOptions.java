@@ -96,9 +96,6 @@ public final class CompleteFileOptions {
     return Objects.hashCode(mUfsLength);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

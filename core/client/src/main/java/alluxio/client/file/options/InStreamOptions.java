@@ -106,9 +106,6 @@ public final class InStreamOptions {
     return Objects.hashCode(mLocationPolicy, mReadType);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

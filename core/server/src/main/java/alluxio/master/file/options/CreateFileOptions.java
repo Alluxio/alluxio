@@ -117,9 +117,6 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return toStringHelper()
