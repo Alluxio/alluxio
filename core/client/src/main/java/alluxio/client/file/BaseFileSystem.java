@@ -213,6 +213,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.loadMetadata(path, options);
+      LOG.info("loaded metadata {} with options {}", path.getParent(), options);
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
