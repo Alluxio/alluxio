@@ -46,9 +46,6 @@ public final class CreateFileOptions {
     return new CreateFileOptions();
   }
 
-  /**
-   * Creates a new instance with defaults from the configuration.
-   */
   private CreateFileOptions() {
     Configuration conf = ClientContext.getConf();
     mRecursive = true;
@@ -185,9 +182,6 @@ public final class CreateFileOptions {
     return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

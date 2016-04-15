@@ -218,9 +218,6 @@ public class SetAttributeOptions {
     return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mPermission, mRecursive);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)

@@ -160,9 +160,6 @@ public final class OutStreamOptions {
     return Objects.hashCode(mBlockSizeBytes, mTtl, mLocationPolicy, mWriteType);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
