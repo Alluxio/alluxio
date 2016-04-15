@@ -119,17 +119,6 @@ public final class PermissionStatus {
   }
 
   /**
-   * Gets the Directory default {@link PermissionStatus}. Currently the default dir permission is
-   * 0777. (Test only)
-   *
-   * @return the default {@link PermissionStatus} for directories
-   */
-  public static PermissionStatus getDirDefault() {
-    return new PermissionStatus("", "", new FileSystemPermission(Constants
-        .DEFAULT_FS_FULL_PERMISSION));
-  }
-
-  /**
    * Creates the {@link PermissionStatus} for a file or a directory.
    *
    * @param conf the runtime configuration of Alluxio
