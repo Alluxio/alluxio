@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
   /** This default umask is used to calculate file permission from directory permission. */
-  private static final FileSystemPermission INODE_FILE_UMASK =
+  public static final FileSystemPermission INODE_FILE_UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
   private List<Long> mBlocks;
@@ -220,12 +220,6 @@ public final class InodeFile extends Inode<InodeFile> {
   public synchronized InodeFile setLength(long length) {
     mLength = length;
     return getThis();
-  }
-
-  @Override
-  public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
-    Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(INODE_FILE_UMASK));
   }
 
   /**

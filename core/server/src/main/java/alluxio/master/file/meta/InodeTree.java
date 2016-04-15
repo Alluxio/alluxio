@@ -390,7 +390,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
             .setName(name).setParentId(currentInodeDirectory.getId()).setPersistenceState(
                 fileOptions.isPersisted() ? PersistenceState.PERSISTED :
                     PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(fileOptions.getPermissionStatus());
+            .setPermissionStatus(fileOptions.getPermissionStatus()
+                .applyUMask(InodeFile.INODE_FILE_UMASK));
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());

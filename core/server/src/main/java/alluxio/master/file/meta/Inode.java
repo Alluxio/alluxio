@@ -214,7 +214,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   public synchronized T setPermissionStatus(PermissionStatus permissionStatus) {
     if (permissionStatus != null) {
       mGroupName = permissionStatus.getGroupName();
-      mPermission = permissionStatus.getPermission().applyUMask(MasterContext.getConf()).toShort();
+      mPermission = permissionStatus.getPermission().toShort();
       mUserName = permissionStatus.getUserName();
     }
     return getThis();
