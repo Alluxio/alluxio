@@ -11,12 +11,15 @@
 
 package alluxio;
 
+import alluxio.collections.Pair;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -35,8 +38,20 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
-  // a hierarchical uri
+  /**
+   * A hierarchical URI. java.net.URI is used to hold the URI components as well as to reuse URI
+   * functionality.
+   */
   private final URI mUri;
+
+  /**
+   * java.net.URI does not handle a sub-component in the scheme. If the scheme has a sub-component,
+   * this prefix holds the first components, while the java.net.URI will only consider the last
+   * component. For example, the uri 'scheme:part1:part2://localhost:1234/' has multiple
+   * components in the scheme, so this variable will hold 'scheme:part1', while java.net.URI will
+   * handle the URI starting from 'part2'.
+   */
+  private final String mSchemePrefix;
 
   /**
    * Constructs an {@link AlluxioURI} from a String. Path strings are URIs, but with unescaped
@@ -64,9 +79,27 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     int colon = pathStr.indexOf(':');
     int slash = pathStr.indexOf('/');
     if ((colon != -1) && ((slash == -1) || (colon < slash))) { // has a scheme
-      scheme = pathStr.substring(0, colon);
-      start = colon + 1;
+      if (slash != -1) {
+        // There is a slash. The scheme may have multiple parts, so the scheme is everything before
+        // the slash.
+        start = slash;
+
+        // Ignore any trailing colons from the scheme.
+        while (slash > 0 && pathStr.charAt(slash - 1) == ':') {
+          slash--;
+        }
+        scheme = pathStr.substring(0, slash);
+      } else {
+        // There is no slash. The scheme is the component before the first colon.
+        scheme = pathStr.substring(0, colon);
+        start = colon + 1;
+      }
     }
+
+    // Handle schemes with two components.
+    Pair<String, String> schemeComponents = getSchemeComponents(scheme);
+    mSchemePrefix = schemeComponents.getFirst();
+    scheme = schemeComponents.getSecond();
 
     // parse uri authority, if any
     if (pathStr.startsWith("//", start) && (pathStr.length() - start > 2)) { // has authority
@@ -93,6 +126,12 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     if (path == null) {
       throw new IllegalArgumentException("Can not create a uri with a null path.");
     }
+
+    // Handle schemes with two components.
+    Pair<String, String> schemeComponents = getSchemeComponents(scheme);
+    mSchemePrefix = schemeComponents.getFirst();
+    scheme = schemeComponents.getSecond();
+
     mUri = createURI(scheme, authority, path);
   }
 
@@ -115,11 +154,88 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       throw new IllegalArgumentException(e);
     }
     URI resolved = parentUri.resolve(child.mUri);
+
+    // Determine which scheme prefix to take.
+    if (child.getPath() == null || parent.getPath() == null || child.getScheme() != null) {
+      // With these conditions, the resolved URI uses the child's scheme.
+      mSchemePrefix = child.mSchemePrefix;
+    } else {
+      // Otherwise, the parent scheme is used in the resolved URI.
+      mSchemePrefix = parent.mSchemePrefix;
+    }
+
     mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+  }
+
+  /**
+   * Compares the full schemes of this URI and a given URI.
+   *
+   * @param other the other {@link AlluxioURI} to compare the scheme
+   * @return a negative integer, zero, or a positive integer if this full scheme is respectively
+   *         less than, equal to, or greater than the full scheme of the other URI.
+   */
+  private int compareFullScheme(AlluxioURI other) {
+    // Both of these full schemes may be null.
+    String fullScheme = getFullScheme(mUri.getScheme());
+    String otherFullScheme = other.getFullScheme(other.mUri.getScheme());
+
+    if (fullScheme == null && otherFullScheme == null) {
+      return 0;
+    }
+    if (fullScheme != null) {
+      if (otherFullScheme != null) {
+        return fullScheme.compareToIgnoreCase(otherFullScheme);
+      }
+      // not null is greater than 'null'.
+      return 1;
+    }
+    // 'null' is less than not null.
+    return -1;
+  }
+
+  /**
+   * Returns a {@link Pair} of components of the given scheme. A given scheme may have have two
+   * components if it has the ':' character to specify a sub-protocol of the scheme. If the
+   * scheme does not have multiple components, the first component will be the empty string, and
+   * the second component will be the given scheme. If the given scheme is null, both components
+   * in the {@link Pair} will be null.
+   *
+   * @param scheme the scheme string
+   * @return a {@link Pair} with the scheme components
+   */
+  private Pair<String, String> getSchemeComponents(String scheme) {
+    if (scheme == null) {
+      return new Pair<>(null, null);
+    }
+    int colon = scheme.lastIndexOf(':');
+    if (colon == -1) {
+      return new Pair<>("", scheme);
+    }
+    return new Pair<>(scheme.substring(0, colon), scheme.substring(colon + 1));
+  }
+
+  /**
+   * @param uriScheme the given scheme, that comes from a {@link URI} instance
+   * @return the full scheme which combines the mSchemePrefix with the given scheme
+   */
+  private String getFullScheme(String uriScheme) {
+    if (uriScheme == null) {
+      return null;
+    }
+    if (mSchemePrefix.length() > 0) {
+      return mSchemePrefix + ":" + uriScheme;
+    }
+    return uriScheme;
   }
 
   @Override
   public int compareTo(AlluxioURI other) {
+    // Compare full schemes first.
+    int compare = compareFullScheme(other);
+    if (compare != 0) {
+      return compare;
+    }
+    // Full schemes are equal, so use java.net.URI compare.
     return mUri.compareTo(other.mUri);
   }
 
@@ -149,6 +265,9 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       return false;
     }
     AlluxioURI that = (AlluxioURI) o;
+    if (compareFullScheme(that) != 0) {
+      return false;
+    }
     return mUri.equals(that.mUri);
   }
 
@@ -279,7 +398,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent);
+    return new AlluxioURI(getFullScheme(mUri.getScheme()), mUri.getAuthority(), parent);
   }
 
   /**
@@ -306,7 +425,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the scheme, null if there is no scheme
    */
   public String getScheme() {
-    return mUri.getScheme();
+    return getFullScheme(mUri.getScheme());
   }
 
   /**
@@ -320,7 +439,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   @Override
   public int hashCode() {
-    return mUri.hashCode();
+    return Objects.hash(mUri, mSchemePrefix);
   }
 
   /**
@@ -329,7 +448,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return true if it has, false otherwise
    */
   public boolean hasScheme() {
-    return mUri.getScheme() != null;
+    return getFullScheme(mUri.getScheme()) != null;
   }
 
   /**
@@ -440,12 +559,13 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    if (mUri.getScheme() != null) {
-      sb.append(mUri.getScheme());
+    String fullScheme = getFullScheme(mUri.getScheme());
+    if (fullScheme != null) {
+      sb.append(fullScheme);
       sb.append("://");
     }
     if (mUri.getAuthority() != null) {
-      if (mUri.getScheme() == null) {
+      if (fullScheme == null) {
         sb.append("//");
       }
       sb.append(mUri.getAuthority());
@@ -453,7 +573,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
     if (mUri.getPath() != null) {
       String path = mUri.getPath();
       if (path.indexOf('/') == 0 && hasWindowsDrive(path, true) && // has windows drive
-          mUri.getScheme() == null && // but no scheme
+          fullScheme == null && // but no scheme
           mUri.getAuthority() == null) { // or authority
         path = path.substring(1); // remove slash before drive
       }
