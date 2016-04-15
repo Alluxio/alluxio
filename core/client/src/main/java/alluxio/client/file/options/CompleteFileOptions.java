@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The method options for completing a file.
+ * Method options for completing a file.
  */
 @PublicApi
 @NotThreadSafe
