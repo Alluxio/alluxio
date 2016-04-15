@@ -45,21 +45,6 @@ public final class PermissionStatusTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Tests the {@link PermissionStatus#getDirDefault()} method.
-   */
-  @Test
-  public void permissionStatusTest() {
-    PermissionStatus permissionStatus =
-        new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
-
-    verifyPermissionStatus("user1", "group1", (short) 0777, permissionStatus);
-
-    permissionStatus = PermissionStatus.getDirDefault();
-
-    verifyPermissionStatus("", "", (short) 0777, permissionStatus);
-  }
-
-  /**
    * Tests the {@link PermissionStatus#applyUMask(FileSystemPermission)} method.
    */
   @Test
