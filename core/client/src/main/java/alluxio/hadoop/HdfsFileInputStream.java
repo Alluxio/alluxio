@@ -34,6 +34,7 @@ import org.apache.hadoop.fs.Seekable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -290,13 +291,13 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    int nread = 0;
-    while (nread < length) {
-      int ret = read(position + nread, buffer, offset + nread, length - nread);
+    int n = 0; // total bytes read
+    while (n < length) {
+      int ret = read(position + n, buffer, offset + n, length - n);
       if (ret == -1) {
-        return;
+        throw new EOFException();
       }
-      nread += ret;
+      n += ret;
     }
   }
 
