@@ -14,6 +14,8 @@ package alluxio.master.file.options;
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -191,5 +193,45 @@ public class SetAttributeOptions {
   public SetAttributeOptions setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    SetAttributeOptions that = (SetAttributeOptions) o;
+    return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mPermission, that.mPermission)
+        && Objects.equal(mRecursive, that.mRecursive);
+    }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mPermission, mRecursive);
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("mPinned", mPinned)
+        .add("ttl", mTtl)
+        .add("mPersisted", mPersisted)
+        .add("mOwner", mOwner)
+        .add("mGroup", mGroup)
+        .add("mPermission", mPermission)
+        .add("mRecursive", mRecursive)
+        .add("mOperationTimeMs", mOperationTimeMs)
+        .toString();
   }
 }

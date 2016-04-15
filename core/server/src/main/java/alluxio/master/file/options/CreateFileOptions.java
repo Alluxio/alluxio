@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.thrift.CreateFileTOptions;
 
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -94,11 +96,35 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return this;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
+      return false;
+    }
+    CreateFileOptions that = (CreateFileOptions) o;
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mTtl, that.mTtl);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl);
+  }
+
   /**
    * @return the name : value pairs for all the fields
    */
   @Override
   public String toString() {
-    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl).toString();
+    return toStringHelper()
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("ttl", mTtl)
+        .toString();
   }
 }

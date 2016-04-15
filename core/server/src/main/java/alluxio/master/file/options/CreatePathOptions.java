@@ -146,9 +146,34 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreatePathOptions)) {
+      return false;
+    }
+    CreatePathOptions<?> that = (CreatePathOptions<?>) o;
+    return Objects.equal(mMountPoint, that.mMountPoint)
+        && Objects.equal(mPermissionStatus, that.mPermissionStatus)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mMetadataLoad, that.mMetadataLoad);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mMountPoint, mPermissionStatus, mPersisted, mRecursive, mMetadataLoad);
+  }
+
   protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("mountPoint", mMountPoint)
-        .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
-        .add("recursive", mRecursive).add("permissionStatus", mPermissionStatus);
+    return Objects.toStringHelper(this)
+        .add("mountPoint", mMountPoint)
+        .add("operationTimeMs", mOperationTimeMs)
+        .add("permissionStatus", mPermissionStatus)
+        .add("persisted", mPersisted)
+        .add("recursive", mRecursive)
+        .add("metadataLoad", mMetadataLoad);
   }
 }

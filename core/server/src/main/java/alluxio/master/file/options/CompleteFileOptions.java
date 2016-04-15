@@ -13,6 +13,8 @@ package alluxio.master.file.options;
 
 import alluxio.thrift.CompleteFileTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -75,5 +77,34 @@ public final class CompleteFileOptions {
   public CompleteFileOptions setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CompleteFileOptions)) {
+      return false;
+    }
+    CompleteFileOptions that = (CompleteFileOptions) o;
+    return Objects.equal(mUfsLength, that.mUfsLength)
+        && Objects.equal(mOperationTimeMs, that.mOperationTimeMs);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mUfsLength, mOperationTimeMs);
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("mUfsLength", mUfsLength)
+        .add("mOperationTimeMs", mOperationTimeMs)
+        .toString();
   }
 }
