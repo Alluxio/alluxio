@@ -36,7 +36,7 @@ Tag: "my"
 # Otherwise, all the /disk* will be used as Alluxio's HDD Tiered Storage.
 #
 # Example:
-# 1. Instance Extra Storage(If the Storage colume specified in instance type matrix
+# 1. Instance Extra Storage(If the Storage column specified in instance type matrix
 #    http://aws.amazon.com/ec2/instance-types/ is not "EBS Only")
 # 2. EBS Storage
 Block_Device_Mapping: []
