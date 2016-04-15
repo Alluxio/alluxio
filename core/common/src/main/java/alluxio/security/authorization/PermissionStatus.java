@@ -29,6 +29,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PermissionStatus {
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FileSystemPermission FILE_UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
   private final String mUserName;
   private final String mGroupName;
   private final FileSystemPermission mPermission;
@@ -90,6 +94,18 @@ public final class PermissionStatus {
    */
   public PermissionStatus applyUMask(FileSystemPermission umask) {
     FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
+    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+  }
+
+  public PermissionStatus applyFileUMask(Configuration conf) {
+    FileSystemPermission newFileSystemPermission =
+        mPermission.applyUMask(FileSystemPermission.getUMask(conf)).applyUMask(FILE_UMASK);
+    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+  }
+
+  public PermissionStatus applyDirectoryUMask(Configuration conf) {
+    FileSystemPermission newFileSystemPermission =
+        mPermission.applyUMask(FileSystemPermission.getUMask(conf));
     return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
   }
 

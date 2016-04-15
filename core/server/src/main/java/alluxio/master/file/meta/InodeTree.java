@@ -343,7 +343,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
           new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(pathComponents[k])
               .setParentId(currentInodeDirectory.getId()).setPersistenceState(
               options.isPersisted() ? PersistenceState.PERSISTED : PersistenceState.NOT_PERSISTED)
-              .setPermissionStatus(options.getPermissionStatus());
+              .setPermissionStatus(options.getPermissionStatus()
+                  .applyDirectoryUMask(MasterContext.getConf()));
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -377,7 +378,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
         lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
             .setParentId(currentInodeDirectory.getId())
-            .setPermissionStatus(directoryOptions.getPermissionStatus())
+            .setPermissionStatus(directoryOptions.getPermissionStatus()
+                .applyDirectoryUMask(MasterContext.getConf()))
             .setMountPoint(directoryOptions.isMountPoint());
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
@@ -391,7 +393,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
                 fileOptions.isPersisted() ? PersistenceState.PERSISTED :
                     PersistenceState.NOT_PERSISTED)
             .setPermissionStatus(fileOptions.getPermissionStatus()
-                .applyUMask(InodeFile.INODE_FILE_UMASK));
+                .applyFileUMask(MasterContext.getConf()));
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());

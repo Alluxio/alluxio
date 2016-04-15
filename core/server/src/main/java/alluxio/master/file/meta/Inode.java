@@ -11,7 +11,6 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.master.MasterContext;
 import alluxio.master.journal.JournalEntryRepresentable;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;

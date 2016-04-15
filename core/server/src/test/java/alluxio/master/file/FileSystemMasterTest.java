@@ -37,7 +37,6 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
-import alluxio.util.SecurityUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -393,7 +392,6 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void permissionTest() throws Exception {
-    Assert.assertFalse(SecurityUtils.isSecurityEnabled(new Configuration()));
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
     Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
