@@ -285,12 +285,19 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public void readFully(long position, byte[] buffer) throws IOException {
-    read(position, buffer, 0, buffer.length);
+    readFully(position, buffer, 0, buffer.length);
   }
 
   @Override
   public void readFully(long position, byte[] buffer, int offset, int length) throws IOException {
-    read(position, buffer, offset, length);
+    int nread = 0;
+    while (nread < length) {
+      int ret = read(position + nread, buffer, offset + nread, length - nread);
+      if (ret == -1) {
+        return;
+      }
+      nread += ret;
+    }
   }
 
   /**
