@@ -31,6 +31,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.Arrays;
 
@@ -207,14 +208,34 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);
-    mInMemInputStream.readFully(-1, buf);
+    try {
+      mInMemInputStream.readFully(-1, buf);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
-    mUfsInputStream.readFully(-1, buf);
+    try {
+      mUfsInputStream.readFully(-1, buf);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
 
-    mInMemInputStream.readFully(FILE_LEN, buf);
+    try {
+      mInMemInputStream.readFully(FILE_LEN, buf);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
-    mUfsInputStream.readFully(FILE_LEN, buf);
+    try {
+      mUfsInputStream.readFully(FILE_LEN, buf);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
   }
 
@@ -245,14 +266,34 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertEquals(0, mUfsInputStream.getPos());
 
     Arrays.fill(buf, (byte) 0);
-    mInMemInputStream.readFully(-1, buf, 0, FILE_LEN);
+    try {
+      mInMemInputStream.readFully(-1, buf, 0, FILE_LEN);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
-    mUfsInputStream.readFully(-1, buf, 0, FILE_LEN);
+    try {
+      mUfsInputStream.readFully(-1, buf, 0, FILE_LEN);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
 
-    mInMemInputStream.readFully(FILE_LEN, buf, 0, FILE_LEN);
+    try {
+      mInMemInputStream.readFully(FILE_LEN, buf, 0, FILE_LEN);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
-    mUfsInputStream.readFully(FILE_LEN, buf, 0, FILE_LEN);
+    try {
+      mUfsInputStream.readFully(FILE_LEN, buf, 0, FILE_LEN);
+      Assert.fail("readFully() is expected to fail");
+    } catch (EOFException e) {
+      // this is expected
+    }
     BufferUtils.equalConstantByteArray((byte) 0, FILE_LEN, buf);
   }
 
