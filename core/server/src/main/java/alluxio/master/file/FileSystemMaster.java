@@ -897,7 +897,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * the path.
    *
    * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given path
    * @throws FileDoesNotExistException if the file does not exist or path is a directory
    * @throws InvalidPathException if the path of the given file is invalid
    * @throws AccessControlException if permission checking fails
@@ -915,8 +915,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @param file the inode to get the info for
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    * @throws InvalidPathException if the path of the given file is invalid
    */
   @GuardedBy("mInodeTree")
