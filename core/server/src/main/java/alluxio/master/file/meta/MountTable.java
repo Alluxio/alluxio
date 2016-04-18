@@ -162,7 +162,8 @@ public final class MountTable {
     if (mountPoint != null) {
       AlluxioURI ufsPath = mMountTable.get(mountPoint).getUfsUri();
       AlluxioURI resolvedUri = new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
-          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
+          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())),
+          ufsPath.getQueryMap());
       UnderFileSystem ufs = UnderFileSystem.get(resolvedUri.toString(), MasterContext.getConf());
       return new Resolution(resolvedUri, ufs);
     }

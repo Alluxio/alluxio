@@ -27,6 +27,7 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
+import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -404,6 +405,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
     mWorker = new AlluxioWorker();
+    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
 
     Runnable runWorker = new Runnable() {
       @Override
