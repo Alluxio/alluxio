@@ -30,12 +30,15 @@ public class MassiveThread extends PerfThread {
   private Random mRand;
 
   private int mBasicFilesNum;
+  private int mBlockSize;
   private int mBufferSize;
   private long mFileLength;
   private PerfFS mFileSystem;
   private long mLimitTimeMs;
+  private String mReadType;
   private boolean mShuffle;
   private String mWorkDir;
+  private String mWriteType;
 
   private double mBasicWriteThroughput; // in MB/s
   private double mReadThroughput; // in MB/s
@@ -96,7 +99,8 @@ public class MassiveThread extends PerfThread {
     for (int b = 0; b < mBasicFilesNum; b ++) {
       try {
         String fileName = mTaskId + "-" + mId + "-" + b;
-        Operators.writeSingleFile(mFileSystem, dataDir + "/" + fileName, mFileLength, mBufferSize);
+        Operators.writeSingleFile(mFileSystem, dataDir + "/" + fileName, mFileLength,
+            mBlockSize, mBufferSize, mWriteType);
         basicBytes += mFileLength;
       } catch (IOException e) {
         LOG.error("Failed to write basic file", e);
@@ -120,7 +124,7 @@ public class MassiveThread extends PerfThread {
         try {
           List<String> candidates = mFileSystem.listFullPath(dataDir);
           String readFilePath = ListGenerator.generateRandomReadFiles(1, candidates).get(0);
-          readBytes += Operators.readSingleFile(mFileSystem, readFilePath, mBufferSize);
+          readBytes += Operators.readSingleFile(mFileSystem, readFilePath, mBufferSize, mReadType);
         } catch (IOException e) {
           LOG.error("Failed to read file", e);
           mSuccess = false;
@@ -130,7 +134,7 @@ public class MassiveThread extends PerfThread {
         try {
           String writeFileName = mTaskId + "-" + mId + "--" + index;
           Operators.writeSingleFile(mFileSystem, tmpDir + "/" + writeFileName, mFileLength,
-              mBufferSize);
+              mBlockSize, mBufferSize, mWriteType);
           writeBytes += mFileLength;
           mFileSystem.rename(tmpDir + "/" + writeFileName, dataDir + "/" + writeFileName);
         } catch (IOException e) {
@@ -153,11 +157,14 @@ public class MassiveThread extends PerfThread {
   @Override
   public boolean setupThread(TaskConfiguration taskConf) {
     mRand = new Random(System.currentTimeMillis() + mTaskId + mId);
+    mBlockSize = taskConf.getIntProperty("block.size.bytes");
     mBufferSize = taskConf.getIntProperty("buffer.size.bytes");
     mFileLength = taskConf.getLongProperty("file.length.bytes");
     mLimitTimeMs = taskConf.getLongProperty("time.seconds") * 1000;
+    mReadType = taskConf.getProperty("read.type");
     mShuffle = taskConf.getBooleanProperty("shuffle.mode");
     mWorkDir = taskConf.getProperty("work.dir");
+    mWriteType = taskConf.getProperty("write.type");
     mBasicFilesNum = taskConf.getIntProperty("basic.files.per.thread");
     try {
       mFileSystem = PerfConstants.getFileSystem();

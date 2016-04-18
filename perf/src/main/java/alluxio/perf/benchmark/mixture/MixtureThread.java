@@ -30,12 +30,15 @@ public class MixtureThread extends PerfThread {
   private Random mRand;
 
   private int mBasicFilesNum;
+  private int mBlockSize;
   private int mBufferSize;
   private long mFileLength;
   private PerfFS mFileSystem;
   private int mReadFilesNum;
+  private String mReadType;
   private String mWorkDir;
   private int mWriteFilesNum;
+  private String mWriteType;
 
   private double mBasicWriteThroughput; // in MB/s
   private double mReadThroughput; // in MB/s
@@ -88,7 +91,8 @@ public class MixtureThread extends PerfThread {
     for (int b = 0; b < mBasicFilesNum; b ++) {
       try {
         String fileName = mId + "-" + b;
-        Operators.writeSingleFile(mFileSystem, dataDir + "/" + fileName, mFileLength, mBufferSize);
+        Operators.writeSingleFile(mFileSystem, dataDir + "/" + fileName, mFileLength,
+            mBlockSize, mBufferSize, mWriteType);
         basicBytes += mFileLength;
       } catch (IOException e) {
         LOG.error("Failed to write basic file", e);
@@ -112,7 +116,7 @@ public class MixtureThread extends PerfThread {
         try {
           List<String> candidates = mFileSystem.listFullPath(dataDir);
           String readFilePath = ListGenerator.generateRandomReadFiles(1, candidates).get(0);
-          readBytes += Operators.readSingleFile(mFileSystem, readFilePath, mBufferSize);
+          readBytes += Operators.readSingleFile(mFileSystem, readFilePath, mBufferSize, mReadType);
         } catch (IOException e) {
           LOG.error("Failed to read file", e);
           mSuccess = false;
@@ -123,7 +127,7 @@ public class MixtureThread extends PerfThread {
         try {
           String writeFileName = mId + "--" + index;
           Operators.writeSingleFile(mFileSystem, tmpDir + "/" + writeFileName, mFileLength,
-              mBufferSize);
+              mBlockSize, mBufferSize, mWriteType);
           writeBytes += mFileLength;
           mFileSystem.rename(tmpDir + "/" + writeFileName, dataDir + "/" + writeFileName);
         } catch (IOException e) {
@@ -147,11 +151,14 @@ public class MixtureThread extends PerfThread {
   public boolean setupThread(TaskConfiguration taskConf) {
     mRand = new Random(System.currentTimeMillis() + mTaskId + mId);
     mBasicFilesNum = taskConf.getIntProperty("basic.files.per.thread");
+    mBlockSize = taskConf.getIntProperty("block.size.bytes");
     mBufferSize = taskConf.getIntProperty("buffer.size.bytes");
     mFileLength = taskConf.getLongProperty("file.length.bytes");
     mReadFilesNum = taskConf.getIntProperty("read.files.per.thread");
+    mReadType = taskConf.getProperty("read.type");
     mWorkDir = taskConf.getProperty("work.dir");
     mWriteFilesNum = taskConf.getIntProperty("write.files.per.thread");
+    mWriteType = taskConf.getProperty("write.type");
     try {
       mFileSystem = PerfConstants.getFileSystem();
       initSyncBarrier();

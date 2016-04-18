@@ -26,14 +26,17 @@ import alluxio.perf.benchmark.Operators;
 import alluxio.perf.fs.PerfFS;
 
 public class IterateThread extends PerfThread {
+  protected int mBlockSize;
   protected int mBufferSize;
   protected long mFileLength;
   protected PerfFS mFileSystem;
   protected int mIterations;
   protected int mReadFilesNum;
+  protected String mReadType;
   protected boolean mShuffle;
   protected String mWorkDir;
   protected int mWriteFilesNum;
+  protected String mWriteType;
 
   protected double mReadThroughput; // in MB/s
   protected boolean mSuccess;
@@ -91,7 +94,7 @@ public class IterateThread extends PerfThread {
         try {
           String fileName = mTaskId + "-" + mId + "-" + w;
           Operators.writeSingleFile(mFileSystem, dataDir + "/" + fileName, mFileLength,
-              mBufferSize);
+              mBlockSize, mBufferSize, mWriteType);
           writeBytes += mFileLength;
         } catch (IOException e) {
           LOG.error("Failed to write file", e);
@@ -111,7 +114,7 @@ public class IterateThread extends PerfThread {
         List<String> candidates = mFileSystem.listFullPath(dataDir);
         List<String> readList = ListGenerator.generateRandomReadFiles(mReadFilesNum, candidates);
         for (String fileName : readList) {
-          readBytes += Operators.readSingleFile(mFileSystem, fileName, mBufferSize);
+          readBytes += Operators.readSingleFile(mFileSystem, fileName, mBufferSize, mReadType);
         }
       } catch (Exception e) {
         LOG.error("Failed to read file", e);
@@ -127,13 +130,16 @@ public class IterateThread extends PerfThread {
 
   @Override
   public boolean setupThread(TaskConfiguration taskConf) {
+    mBlockSize = taskConf.getIntProperty("block.size.bytes");
     mBufferSize = taskConf.getIntProperty("buffer.size.bytes");
     mFileLength = taskConf.getLongProperty("file.length.bytes");
     mIterations = taskConf.getIntProperty("iterations");
     mReadFilesNum = taskConf.getIntProperty("read.files.per.thread");
+    mReadType = taskConf.getProperty("read.type");
     mShuffle = taskConf.getBooleanProperty("shuffle.mode");
     mWorkDir = taskConf.getProperty("work.dir");
     mWriteFilesNum = taskConf.getIntProperty("write.files.per.thread");
+    mWriteType = taskConf.getProperty("write.type");
     try {
       mFileSystem = PerfConstants.getFileSystem();
       initSyncBarrier();
