@@ -160,7 +160,8 @@ public final class MountTable {
     if (mountPoint != null) {
       AlluxioURI ufsPath = mMountTable.get(mountPoint).getUfsUri();
       return new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
-          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
+          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())),
+          ufsPath.getQueryMap());
     }
     return uri;
   }
