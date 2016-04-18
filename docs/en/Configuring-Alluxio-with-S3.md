@@ -42,6 +42,18 @@ Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced wit
 [AWS keys](https://aws.amazon.com/developers/access-keys), or other environment variables that
 contain your credentials.
 
+The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host
+name of its requests. You can optionally configure this behavior in the `ALLUXIO_JAVA_OPTS` section
+of the `conf/alluxio-env.sh` file by adding:
+
+{% include Configuring-Alluxio-with-S3/jets3t.md %}
+
+With `<DISABLE_DNS>` set to `false` (the default), a request directed at the bucket named "mybucket"
+will be sent to the host name "mybucket.s3.amazonaws.com". If you set `<DISABLE_DNS>` to `true`,
+JetS3t will specify bucket names in the request path of the HTTP message rather than the Host header,
+for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the system will default
+to `false`. See http://www.jets3t.org/toolkit/configuration.html for further details.
+
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
@@ -91,15 +103,21 @@ The `jets3t` version `0.9.0` works for Hadoop version `2.3.0`. The `jets3t` vers
 work for older versions of Hadoop. To find the exact `jets3t` version for your Hadoop version,
 please refer to [MvnRepository](http://mvnrepository.com/).
 
-## Use non-amazon service provider
+## Using a non-Amazon service provider
 
-If you have a service provider other than "s3.amazonaws.com", modify the `ALLUXIO_JAVA_OPTS` section of `conf/alluxio-env.sh` to include:
+To use an S3 service provider other than "s3.amazonaws.com", modify the `ALLUXIO_JAVA_OPTS` section
+of `conf/alluxio-env.sh` to include:
 
 {% include Configuring-Alluxio-with-S3/non-amazon.md %}
 
-For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Set `<USE_HTTPS>` to `true` or `false`, then set the appropriate port number; without those values the system will default to 80 for HTTP and 443 for HTTPS. You can remove the unused port entry. 
+For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. This does not
+need to be set if you are using `s3.amazonaws.com`.
 
-The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host name of its requests when `<DISABLE_DNS>` is set to `false`. For example, a request directed at the bucket named "mybucket" will be sent to the host name "mybucket.s3.amazonaws.com". If you set `<DISABLE_DNS>` to `true`, JetS3t will specify bucket names in the request path of the HTTP message instead of the Host header, for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the system will default to `false`. See http://www.jets3t.org/toolkit/configuration.html for further details.
+Set `<USE_HTTPS>` to `true` or `false`. If set to `true` (using HTTPS), also set <HTTPS_PORT>, and
+remove the `alluxio.underfs.s3.endpoint.http.port` parameter. If you set `<USE_HTTPS>` to `false`
+(using HTTP) also set `<HTTP_PORT>`, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
+If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>`
+defaults to port 443.
 
 ## Configuring Distributed Applications
 
