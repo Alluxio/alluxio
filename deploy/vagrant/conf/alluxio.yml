@@ -4,6 +4,9 @@
 # {Github | Local | Release}
 Type: Local
 
+# If the version is less than 1.1.0, ie. 1.0.1. This should be false for 1.1.0-SNAPSHOT. {true|false}
+Version_LessThan_1.1.0: false
+
 # github repo and version(can be branch, commit hash)
 Github:
   Repo: https://github.com/alluxio/alluxio
