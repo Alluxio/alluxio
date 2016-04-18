@@ -48,8 +48,8 @@ of the `conf/alluxio-env.sh` file by adding:
 
 {% include Configuring-Alluxio-with-S3/jets3t.md %}
 
-With `<DISABLE_DNS>` set to `false` (the default), a request directed at the bucket named "mybucket"
-will be sent to the host name "mybucket.s3.amazonaws.com". If you set `<DISABLE_DNS>` to `true`,
+With `<DISABLE_DNS>` replaced with `false` (the default), a request directed at the bucket named "mybucket"
+will be sent to the host name "mybucket.s3.amazonaws.com". With `<DISABLE_DNS>` replaced with `true`,
 JetS3t will specify bucket names in the request path of the HTTP message rather than the Host header,
 for example: "http://s3.amazonaws.com/mybucket". Without this parameter set, the system will default
 to `false`. See http://www.jets3t.org/toolkit/configuration.html for further details.
@@ -110,14 +110,14 @@ of `conf/alluxio-env.sh` to include:
 
 {% include Configuring-Alluxio-with-S3/non-amazon.md %}
 
-For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. This does not
-need to be set if you are using `s3.amazonaws.com`.
+For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Only use this
+parameter if you are using a provider other than `s3.amazonaws.com`.
 
-Set `<USE_HTTPS>` to `true` or `false`. If set to `true` (using HTTPS), also set <HTTPS_PORT>, and
-remove the `alluxio.underfs.s3.endpoint.http.port` parameter. If you set `<USE_HTTPS>` to `false`
-(using HTTP) also set `<HTTP_PORT>`, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
-If the HTTP or HTTPS port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>`
-defaults to port 443.
+Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace <HTTPS_PORT>, with
+the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port` parameter. If
+you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<HTTP_PORT>` with the HTTP port for
+the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter. If the HTTP or HTTPS
+port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>` defaults to port 443.
 
 ## Configuring Distributed Applications
 
