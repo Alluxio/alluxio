@@ -17,8 +17,10 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -243,7 +245,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatPermission(short, boolean)} method.
    */
   @Test
-  public void convertPermissionTest() {
+  public void formatPermissionTest() {
     Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatPermission((short) 0666, false));
     Assert.assertEquals("drw-rw-rw-", FormatUtils.formatPermission((short) 0666, true));
     Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatPermission((short) 0777, false));
@@ -254,5 +256,21 @@ public class FormatUtilsTest {
     Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatPermission((short) 0555, true));
     Assert.assertEquals("-rwxr-xr--", FormatUtils.formatPermission((short) 0754, false));
     Assert.assertEquals("drwxr-xr--", FormatUtils.formatPermission((short) 0754, true));
+  }
+
+  /**
+   * Tests the {@link FormatUtils#encodeJson(String)} method.
+   */
+  @Test
+  public void encodeJsonTest() {
+    Set<String> escapedChars = new HashSet<>();
+    escapedChars.add("\"");
+    escapedChars.add("/");
+    escapedChars.add("\\");
+    for (char i = 32; i < 128; i++) {
+      String s = String.valueOf(i);
+      Assert.assertEquals("\"" + (escapedChars.contains(s) ? "\\" : "") + s + "\"",
+          FormatUtils.encodeJson(s));
+    }
   }
 }
