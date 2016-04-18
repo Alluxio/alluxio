@@ -155,6 +155,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       masterClient.free(path, options);
+      LOG.info("Freed file " + path.getPath());
     } finally {
       mContext.releaseMasterClient(masterClient);
     }
