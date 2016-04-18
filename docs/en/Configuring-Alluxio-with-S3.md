@@ -113,7 +113,7 @@ of `conf/alluxio-env.sh` to include:
 For these parameters, replace `<S3_ENDPOINT>` with the host name of your S3 service. Only use this
 parameter if you are using a provider other than `s3.amazonaws.com`.
 
-Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace <HTTPS_PORT>, with
+Replace `<USE_HTTPS>` with `true` or `false`. If `true` (using HTTPS), also replace `<HTTPS_PORT>`, with
 the HTTPS port for the provider and remove the `alluxio.underfs.s3.endpoint.http.port` parameter. If
 you replace `<USE_HTTPS>` with `false` (using HTTP) also replace `<HTTP_PORT>` with the HTTP port for
 the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter. If the HTTP or HTTPS
