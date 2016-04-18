@@ -65,6 +65,7 @@ class AlluxioVersion
     @type = @yml['Type']
     @repo = ''
     @version = ''
+    @v_lt_1_1 = @yml['Version_LessThan_1.1.0']
     case @type
     when "Local"
       puts 'using local alluxio dir'
