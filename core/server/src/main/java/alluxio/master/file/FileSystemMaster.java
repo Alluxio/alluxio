@@ -1701,9 +1701,15 @@ public final class FileSystemMaster extends AbstractMaster {
     // existing mount is a prefix of this mount.
     mMountTable.add(alluxioPath, ufsPath, options);
 
-    // Configure the ufs properties, and update the mount options with the configured properties.
-    ufs.configureProperties();
-    options.setProperties(ufs.getProperties());
+    try {
+      // Configure the ufs properties, and update the mount options with the configured properties.
+      ufs.configureProperties();
+      options.setProperties(ufs.getProperties());
+    } catch (IOException e) {
+      // remove the mount point if the UFS failed to configure properties.
+      mMountTable.delete(alluxioPath);
+      throw e;
+    }
   }
 
   /**
