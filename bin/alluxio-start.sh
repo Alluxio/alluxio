@@ -52,8 +52,7 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
-      if [[ $? -ne 0 || -z ${ALLUXIO_RAM_FOLDER} ]]; then
+      if [[ $(mount | grep -c ${ALLUXIO_RAM_FOLDER}) != 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X."
