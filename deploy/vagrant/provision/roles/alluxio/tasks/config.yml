@@ -6,7 +6,7 @@
 
 - name: set ALLUXIO_MASTER_ADDRESS in alluxio-env.sh
   script: set_master_address.sh
-  when: !alluxio_version_lessthan_1_1
+  when: not alluxio_version_lessthan_1_1
 
 - name: set ALLUXIO_MASTER_ADDRESS in alluxio-env.sh for releases older than 1.1.0
   script: set_master_address_old.sh
