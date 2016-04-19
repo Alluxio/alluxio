@@ -251,19 +251,6 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Whether there is an object with the specified field value in the set.
-   *
-   * @param index the field index
-   * @param value the field value
-   * @return true if there is one such object, otherwise false
-   */
-  public boolean contains(FieldIndex<T> index, Object value) {
-    synchronized (mLock) {
-      return getByFieldInternal(index, value) != null;
-    }
-  }
-
-  /**
    * Gets a subset of objects with the specified field value. If there is no object with the
    * specified field value, a newly created empty set is returned. Otherwise, the returned set is
    * backed up by an internal set, so changes in internal set will be reflected in returned set and
