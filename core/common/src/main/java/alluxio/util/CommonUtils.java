@@ -24,9 +24,12 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 import java.util.StringTokenizer;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -235,6 +238,14 @@ public final class CommonUtils {
         GroupMappingService.Factory.getUserToGroupsMappingService(conf);
     List<String> groups = groupMappingService.getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
+  }
+
+  /**
+   * @param <T> class type of elements in the set
+   * @return a set backed by a {@link java.util.concurrent.ConcurrentHashMap}
+   */
+  public static <T> Set<T> newConcurrentHashSet() {
+    return Collections.newSetFromMap(new ConcurrentHashMap<T, Boolean>());
   }
 
   private CommonUtils() {} // prevent instantiation

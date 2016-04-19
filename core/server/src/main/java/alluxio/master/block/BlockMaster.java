@@ -493,24 +493,23 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
     synchronized (mWorkers) {
-      if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
+      MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+      if (workerInfo != null) {
         // This worker address is already mapped to a worker id.
-        long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerNetAddress).getId();
+        long oldWorkerId = workerInfo.getId();
         LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
         return oldWorkerId;
       }
 
-      if (mLostWorkers.contains(mAddressIndex, workerNetAddress)) {
-        // this is one of the lost workers
-        final MasterWorkerInfo lostWorkerInfo =
-            mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
-        final long lostWorkerId = lostWorkerInfo.getId();
+      workerInfo = mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+      if (workerInfo != null) {
+        final long lostWorkerId = workerInfo.getId();
         LOG.warn("A lost worker {} has requested its old id {}.", workerNetAddress, lostWorkerId);
 
         // Update the timestamp of the worker before it is considered an active worker.
-        lostWorkerInfo.updateLastUpdatedTimeMs();
-        mWorkers.add(lostWorkerInfo);
-        mLostWorkers.remove(lostWorkerInfo);
+        workerInfo.updateLastUpdatedTimeMs();
+        mWorkers.add(workerInfo);
+        mLostWorkers.remove(workerInfo);
         return lostWorkerId;
       }
 
@@ -539,10 +538,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
-        if (!mWorkers.contains(mIdIndex, workerId)) {
+        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+        if (workerInfo == null) {
           throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
         }
-        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         workerInfo.updateLastUpdatedTimeMs();
 
         // Gather all blocks on this worker.
@@ -575,12 +574,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
     synchronized (mBlocks) {
       synchronized (mWorkers) {
-        if (!mWorkers.contains(mIdIndex, workerId)) {
+        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+        if (workerInfo == null) {
           LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
           return new Command(CommandType.Register, new ArrayList<Long>());
         }
-
-        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
         processWorkerRemovedBlocks(workerInfo, removedBlockIds);
         processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
 

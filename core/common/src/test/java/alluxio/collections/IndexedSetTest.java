@@ -74,21 +74,6 @@ public class IndexedSetTest {
   }
 
   /**
-   * Tests the {@link IndexedSet#contains(IndexedSet.FieldIndex, Object)} method.
-   */
-  @Test
-  public void containsTest() {
-    for (int i = 0; i < 3; i++) {
-      Assert.assertTrue(mSet.contains(mIntIndex, i));
-    }
-    Assert.assertFalse(mSet.contains(mIntIndex, 4));
-    for (long l = 0; l < 3; l++) {
-      Assert.assertTrue(mSet.contains(mLongIndex, l));
-    }
-    Assert.assertFalse(mSet.contains(mLongIndex, 4L));
-  }
-
-  /**
    * Tests the {@link IndexedSet#getByField(IndexedSet.FieldIndex, Object)} method.
    */
   @Test
