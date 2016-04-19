@@ -181,7 +181,8 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Gets the block size in bytes. There is no concept of a block in S3 and the maximum size of
-   * one file is 5 TB. This method defaults to the default user block size in Alluxio.
+   * one put is 5 GB, and the max size of a multi-part upload is 5 TB. This method defaults to the
+   * default user block size in Alluxio.
    *
    * @param path the file name
    * @return the default Alluxio user block size

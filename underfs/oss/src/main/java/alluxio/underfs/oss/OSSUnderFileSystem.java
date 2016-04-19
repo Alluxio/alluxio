@@ -157,7 +157,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Gets the block size in bytes. There is no concept of a block in OSS and the maximum size of
-   * one file is 5 GB. This method defaults to the default user block size in Alluxio.
+   * one put is 5 GB and the maximum size of a multipart upload is 48.8 TB. This method defaults to
+   * the default user block size in Alluxio.
    *
    * @param path the file name
    * @return the default Alluxio user block size
