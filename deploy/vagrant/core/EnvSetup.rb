@@ -100,6 +100,10 @@ class AlluxioVersion
   def masters
     return @masters
   end
+
+  def v_lt_1_1
+    return @v_lt_1_1
+  end
 end
 
 # parse mesos_version.yml
