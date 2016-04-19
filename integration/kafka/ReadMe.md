@@ -1,13 +1,17 @@
 ##Kafka Alluxio Connect
 Kafka Alluxio Connector implements exporting kafka's specific topic data to alluxio filesystem.User can define data format stored in alluxio file,such as JsonFormat.
 ##Perquisites
+
 - confluent-2.0.1
 - alluxio-1.0.1
+
 ##Configuration
 ###Alluxio Connector Configuration 
 ####Example
+
 Here is the content of `etc/kafka-connect-alluxio/alluxio-connect.properties`
     
+
 	name=alluxio-sink
 	connector.class=alluxio.kafka.connect.AlluxioSinkConnector
     tasks.max=1
@@ -17,6 +21,7 @@ Here is the content of `etc/kafka-connect-alluxio/alluxio-connect.properties`
     rotation.num=3
     rotation.time.interval=-1
     alluxio.format=alluxio.kafka.connect.format.JsonFormat
+
 
 User can configure connector class in this property file,the `topics` specify the topics we want export data from kafka. `alluxio.url` is the alluxio address where we export data to. `topics.dir ` is the top level directory in alluxio filesystem where the kafka data is stored.`rotation.num` specify the kafka record number writen in alluxio file before file closes.`rotation.time.interval` is similar to `rotation.num`, alluxio file will be closed if the time interval between up-to-date write and last rotatime time is beyond `rotation.time.interval`. ` alluxio.format` specify the serialized data fomat stored in alluxio file.
 ###Connector Worker Configuration
@@ -99,6 +104,8 @@ To start distributed worker,create a worker configuration as standalone mode,and
 
 In distributed mode, You can use the REST API to manage the connectors running in the cluster.You can read [Connectors Configuration](http://http://docs.confluent.io/2.0.1/connect/userguide.html#getting-started "") for more details.Here is an example.
 
+
   `curl -X POST -H "Content-Type: application/json" --data '{"name": "alluxio-sink", "config": {"connector.class":"alluxio.kafka.connect.AlluxioSinkConnector", "tasks.max":"1", "topics":"test_alluxio","alluxio.url":"alluxio://localhost:19998","topics.dir":"topics","rotation.num":"3","alluxio.format":"alluxio.kafka.connect.format.JsonFormat" }}' http://localhost:8083/connectors`
 
- After post a connector to workers, you can send data to specific topic as standalone mode.
+ 
+After post a connector to workers, you can send data to specific topic as standalone mode.
