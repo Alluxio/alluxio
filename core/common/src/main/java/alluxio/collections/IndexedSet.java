@@ -97,7 +97,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public class IndexedSet<T> implements Iterable<T> {
   /** All objects in the set. */
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(1024, 0.75f, 32);
-  /** Map from field index to an index of field related object in the internal lists. */
+  /**
+   * Map from {@link FieldIndex} to the index. An index is a map from index value to set of
+   * objects with that index value.
+   */
   private final Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> mIndexMap;
 
   /**
@@ -173,7 +176,7 @@ public class IndexedSet<T> implements Iterable<T> {
         // Get the index for this field
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
-        if (objSet == null) {
+        while (objSet == null) {
           index.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
           objSet = index.get(fieldValue);
         }
@@ -304,12 +307,7 @@ public class IndexedSet<T> implements Iterable<T> {
   }
 
   /**
-   * Helper method that removes an object from the two level-indices structure.
-   * Precondition: {@code object} was in {@link #mObjects} and was just successfully removed from
-   * it before calling this method.
-   *
-   * Refactored for being called from both {@link #remove(Object)} and {@link alluxio.collections
-   * .IndexedSet.IndexedSetIterator#remove()}
+   * Helper method that removes an object from the indices.
    *
    * @param object the object to be removed
    */
@@ -320,12 +318,7 @@ public class IndexedSet<T> implements Iterable<T> {
       ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
       ConcurrentHashSet<T> objSet = index.get(fieldValue);
       if (objSet != null) {
-        if (!objSet.remove(object)) {
-          //runtime exception rather than returning false,
-          //since it would mean that the IndexedSet is in an inconsistent state --> BUG
-          throw new IllegalStateException("Fail to remove object " + object.toString()
-              + "from IndexedSet.");
-        }
+        objSet.remove(object);
       }
     }
   }
