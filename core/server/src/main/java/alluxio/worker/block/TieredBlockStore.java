@@ -363,26 +363,6 @@ public final class TieredBlockStore implements BlockStore {
             e.getMessage());
       }
     }
-
-    // A session may create multiple temporary directories for temp blocks, in different StorageTier
-    // and StorageDir. Go through all the storage directories and delete the session folders which
-    // should be empty
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        String sessionFolderPath = PathUtils.concatPath(dir.getDirPath(), sessionId);
-        try {
-          if (new File(sessionFolderPath).exists()) {
-            FileUtils.delete(sessionFolderPath);
-          }
-        } catch (IOException e) {
-          // This error means we could not delete the directory but should not affect the
-          // correctness of the method since the data has already been deleted. It is not
-          // necessary to throw an exception here.
-          LOG.error("Failed to clean up session: {} with directory: {}", sessionId,
-              sessionFolderPath);
-        }
-      }
-    }
   }
 
   @Override
