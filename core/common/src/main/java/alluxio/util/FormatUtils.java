@@ -211,7 +211,7 @@ public final class FormatUtils {
    * @return the JSON-encoded version of the input string
    */
   public static String encodeJson(String input) {
-    return "\"" + StringEscapeUtils.escapeJson(input) + "\"";
+    return "\"" + StringEscapeUtils.escapeJava(input) + "\"";
   }
 
   private FormatUtils() {} // prevent instantiation
