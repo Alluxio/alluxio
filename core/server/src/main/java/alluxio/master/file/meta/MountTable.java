@@ -160,11 +160,12 @@ public final class MountTable {
     LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
-      AlluxioURI ufsPath = mMountTable.get(mountPoint).getUfsUri();
-      AlluxioURI resolvedUri = new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
-          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())),
-          ufsPath.getQueryMap());
-      UnderFileSystem ufs = UnderFileSystem.get(resolvedUri.toString(), MasterContext.getConf());
+      MountInfo info = mMountTable.get(mountPoint);
+      AlluxioURI ufsUri = info.getUfsUri();
+      // TODO(gpang): this ufs should probably be cached.
+      UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), MasterContext.getConf());
+      ufs.setProperties(info.getOptions().getProperties());
+      AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
       return new Resolution(resolvedUri, ufs);
     }
     return new Resolution(uri, null);

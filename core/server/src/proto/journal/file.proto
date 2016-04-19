@@ -4,11 +4,19 @@ package alluxio.proto.journal;
 
 // Journal entry messages for the file master.
 
-// next available id: 4
+// A pair of strings, useful for maps.
+// next available id: 3
+message StringPairEntry {
+  optional string key = 1;
+  optional string value = 2;
+}
+
+// next available id: 5
 message AddMountPointEntry {
   optional string alluxio_path = 1;
   optional string ufs_path = 2;
   optional bool readOnly = 3;
+  repeated StringPairEntry properties = 4;
 }
 
 // next available id: 2
