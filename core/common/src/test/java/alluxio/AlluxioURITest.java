@@ -445,6 +445,8 @@ public class AlluxioURITest {
     Assert.assertEquals("/b", new AlluxioURI("alluxio://localhost:80/a/../b").getPath());
     Assert.assertEquals("/b", new AlluxioURI("alluxio://localhost:80/a/c/../../b").getPath());
     Assert.assertEquals("/a/b", new AlluxioURI("alluxio://localhost:80/a/./b").getPath());
+    Assert.assertEquals("/a/b", new AlluxioURI("/a/b").getPath());
+    Assert.assertEquals("/a/b", new AlluxioURI("file:///a/b").getPath());
   }
 
   /**

@@ -11,6 +11,7 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -71,12 +72,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param containerName the name of the container
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(String containerName,
-      Configuration configuration) {
-    super(configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
+    super(uri, configuration);
+    String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
     config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
