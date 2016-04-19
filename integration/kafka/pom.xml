@@ -1,0 +1,81 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.alluxio</groupId>
+        <artifactId>alluxio-integration</artifactId>
+        <version>1.1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>alluxio-integration-kafka-connect</artifactId>
+    <name>Alluxio Integration - Kafka</name>
+    <description>Kafka connector to link Kafka with Alluxio file system</description>
+
+    <properties>
+        <!-- These need to be defined here as well as in the parent pom so that mvn can run
+             properly from sub-project directories -->
+        <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+        <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+        <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+        <kafka.version>0.9.0.1</kafka.version>
+        <confluent.version>2.0.1</confluent.version>
+        <confluent.maven.repo>http://packages.confluent.io/maven/</confluent.maven.repo>
+    </properties>
+
+    <repositories>
+        <repository>
+            <id>confluent</id>
+            <name>Confluent</name>
+            <url>${confluent.maven.repo}</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-api</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>connect-json</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.alluxio</groupId>
+            <artifactId>alluxio-core-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-connect-avro-converter</artifactId>
+            <version>${confluent.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.3</version>
+                <configuration>
+                    <skipAssembly>false</skipAssembly>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
