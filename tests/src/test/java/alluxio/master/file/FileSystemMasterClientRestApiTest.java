@@ -30,6 +30,7 @@ import alluxio.wire.FileInfoTest;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,6 +49,7 @@ import java.util.Random;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
 public class FileSystemMasterClientRestApiTest {
   private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
   private FileSystemMaster mFileSystemMaster;
