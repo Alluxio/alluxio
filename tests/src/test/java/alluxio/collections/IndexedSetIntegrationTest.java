@@ -19,8 +19,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -98,6 +100,16 @@ public class IndexedSetIntegrationTest {
     }
   }
 
+  private class ConcurrentClear extends ConcurrentTask {
+    @Override
+    public void run() {
+      while (!mStopThreads.get()) {
+        mIndexedSet.clear();
+        mCount++;
+      }
+    }
+  }
+
   private final class TestInfo {
     private long mId;
     private int mSize;
@@ -144,8 +156,43 @@ public class IndexedSetIntegrationTest {
     mThreadPool.shutdownNow();
   }
 
+  /**
+   * Verifies the {@link #mIndexedSet} for internal consistency.
+   */
+  private void verifySet() {
+    Iterator<TestInfo> it = mIndexedSet.iterator();
+    Set<Long> ids = new HashSet<>();
+    Set<Integer> sizes = new HashSet<>();
+
+    // Verify the size.
+    int expectedCount = 0;
+    while (it.hasNext()) {
+      TestInfo info = it.next();
+      ids.add(info.getId());
+      sizes.add(info.getSize());
+      expectedCount++;
+    }
+    Assert.assertEquals(expectedCount, mIndexedSet.size());
+
+    // Verify the size according to the id index.
+    int count = 0;
+    for (Long id : ids) {
+      Set<TestInfo> elements = mIndexedSet.getByField(mIdIndex, id);
+      count += elements.size();
+    }
+    Assert.assertEquals(expectedCount, count);
+
+    // Verify the size according to the size index.
+    count = 0;
+    for (Integer size : sizes) {
+      Set<TestInfo> elements = mIndexedSet.getByField(mSizeIndex, size);
+      count += elements.size();
+    }
+    Assert.assertEquals(expectedCount, count);
+  }
+
   @Test
-  public void concurrentTest() throws Exception {
+  public void basicConcurrentTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
     List<ConcurrentTask> addTasks = new ArrayList<>();
     List<ConcurrentTask> removeTasks = new ArrayList<>();
@@ -182,10 +229,11 @@ public class IndexedSetIntegrationTest {
     }
 
     Assert.assertEquals(mIndexedSet.size(), added - removed);
+    verifySet();
   }
 
   @Test
-  public void concurrentRemoveByIteratorTest() throws Exception {
+  public void concurrentTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
     List<ConcurrentTask> addTasks = new ArrayList<>();
     List<ConcurrentTask> removeTasks = new ArrayList<>();
@@ -193,9 +241,19 @@ public class IndexedSetIntegrationTest {
     addTasks.add(new ConcurrentAdd());
     addTasks.add(new ConcurrentAdd());
     addTasks.add(new ConcurrentAdd());
+    addTasks.add(new ConcurrentAdd());
+    addTasks.add(new ConcurrentAdd());
+    addTasks.add(new ConcurrentAdd());
+    addTasks.add(new ConcurrentAdd());
+    addTasks.add(new ConcurrentAdd());
+    removeTasks.add(new ConcurrentRemove());
+    removeTasks.add(new ConcurrentRemove());
+    removeTasks.add(new ConcurrentRemoveByField());
+    removeTasks.add(new ConcurrentRemoveByField());
     removeTasks.add(new ConcurrentRemoveByIterator());
     removeTasks.add(new ConcurrentRemoveByIterator());
-    removeTasks.add(new ConcurrentRemoveByIterator());
+    removeTasks.add(new ConcurrentClear());
+    removeTasks.add(new ConcurrentClear());
     for (ConcurrentTask task : addTasks) {
       futures.add(mThreadPool.submit(task));
     }
@@ -208,7 +266,6 @@ public class IndexedSetIntegrationTest {
     for (Future<?> future : futures) {
       future.get();
     }
-    // Since iterator remove does not tell if it was successful, verifying the counts is not
-    // possible.
+    verifySet();
   }
 }
