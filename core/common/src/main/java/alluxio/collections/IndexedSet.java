@@ -11,18 +11,18 @@
 
 package alluxio.collections;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -97,14 +97,19 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class IndexedSet<T> implements Iterable<T> {
-  /** All objects in the set. */
-  private final Set<T> mObjects = new HashSet<T>();
+  /**
+   * All objects in the set.
+   *
+   * When an object is added, it is first added to mObjects and then added to the indices;
+   * when an object is removed, it is first removed from the indices and finally removed from
+   * mObjects. This order is necessary so that if an object can be added to mObjects, it is sure
+   * that it does not exist in indices.
+   */
+  private final Set<T> mObjects = CommonUtils.newConcurrentHashSet();
   /** Map from field index to an index of field related object in the internal lists. */
   private final Map<FieldIndex<T>, Integer> mIndexMap;
   /** List of maps from value of a specific field to set of objects with the field value. */
   private final List<Map<Object, Set<T>>> mSetIndexedByFieldValue;
-  /** Final object for synchronization. */
-  private final Object mLock = new Object();
 
   /**
    * An interface representing an index for this {@link IndexedSet}, each index for this set must
@@ -131,15 +136,15 @@ public class IndexedSet<T> implements Iterable<T> {
    * @param otherFields other fields to index the set
    */
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
-    mIndexMap = new HashMap<FieldIndex<T>, Integer>(otherFields.length + 1);
+    mIndexMap = new HashMap<>(otherFields.length + 1);
     mIndexMap.put(field, 0);
     for (int i = 1; i <= otherFields.length; i++) {
       mIndexMap.put(otherFields[i - 1], i);
     }
 
-    mSetIndexedByFieldValue = new ArrayList<Map<Object, Set<T>>>(mIndexMap.size());
+    mSetIndexedByFieldValue = new ArrayList<>(mIndexMap.size());
     for (int i = 0; i < mIndexMap.size(); i++) {
-      mSetIndexedByFieldValue.add(new HashMap<Object, Set<T>>());
+      mSetIndexedByFieldValue.add(new ConcurrentHashMap<Object, Set<T>>());
     }
   }
 
@@ -147,12 +152,12 @@ public class IndexedSet<T> implements Iterable<T> {
    * Removes all the entries in this set.
    */
   public void clear() {
-    synchronized (mLock) {
-      mObjects.clear();
-      for (Map<Object, Set<T>> mapping : mSetIndexedByFieldValue) {
-        mapping.clear();
-      }
+    for (Map<Object, Set<T>> mapping : mSetIndexedByFieldValue) {
+      mapping.clear();
     }
+    // mObjects should be cleared after indices because of the constraint described in the
+    // documentation on mObjects.
+    mObjects.clear();
   }
 
   /**
@@ -160,15 +165,15 @@ public class IndexedSet<T> implements Iterable<T> {
    * {@code (o == null ? o2 == null : o.equals(o2))}. If this set already contains the object, the
    * call leaves the set unchanged.
    *
-   * @param objToAdd the object to add
+   * @param objToAdd the object to add, it should not be synchronized on before calling this method
    * @return true if the object is successfully added to all indexes, otherwise false
    */
   public boolean add(T objToAdd) {
     Preconditions.checkNotNull(objToAdd);
-    synchronized (mLock) {
+    synchronized (objToAdd) {
       boolean success = mObjects.add(objToAdd);
-      // iterate over the first level index (filedid to map)
       if (success) {
+        // iterate over the first level index (fieldIndex to map)
         for (Map.Entry<FieldIndex<T>, Integer> index : mIndexMap.entrySet()) {
           // get the second level map
           Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
@@ -179,18 +184,20 @@ public class IndexedSet<T> implements Iterable<T> {
             if (!success) {
               // this call can never return false because:
               //   a. the second-level sets in the indices are all
-              //      {@link kava.util.HashSet} instances of unbounded space
+              //      {@link java.util.Set} instances of unbounded space
               //   b. We have already successfully added objToAdd on mObjects,
-              //      meaning that it cannot be already in any of the sets.
-              //      (mObjects is exactly the set-union of all the other second-level sets)
+              //      meaning that it cannot be already in any of the sets because of the order of
+              //      adding and removing an object from mObjects and from indices, described in
+              //      the documentation of mObjects.
               throw new IllegalStateException("Indexed Set is in an illegal state");
             }
           } else {
-            fieldValueToSet.put(fieldValue, Sets.newHashSet(Collections.singleton(objToAdd)));
+            Set<T> newSet = CommonUtils.newConcurrentHashSet();
+            newSet.add(objToAdd);
+            fieldValueToSet.put(fieldValue, newSet);
           }
         }
       }
-
       return success;
     }
   }
@@ -219,7 +226,7 @@ public class IndexedSet<T> implements Iterable<T> {
     private final Iterator<T> mSetIterator;
     private T mLast;
 
-    public IndexedSetIterator() {
+    IndexedSetIterator() {
       mSetIterator = mObjects.iterator();
       mLast = null;
     }
@@ -239,13 +246,14 @@ public class IndexedSet<T> implements Iterable<T> {
     @Override
     public void remove() {
       if (mLast != null) {
-        synchronized (mLock) {
-          mSetIterator.remove();
-          removeFromIndices(mLast);
-          mLast = null;
-        }
+        removeFromIndices(mLast);
+        // the object should be removed from the iterator of mObjects after being removed from the
+        // indices because of the constraint described in the documentation on mObjects.
+        mSetIterator.remove();
+        mLast = null;
       } else {
-        throw new IllegalStateException("Next was never called before");
+        throw new IllegalStateException("next() was not called before calling remove() or remove()"
+            + " is called consequently");
       }
     }
   }
@@ -261,10 +269,8 @@ public class IndexedSet<T> implements Iterable<T> {
    * @return the set of objects or an empty set if no such object exists
    */
   public Set<T> getByField(FieldIndex<T> index, Object value) {
-    synchronized (mLock) {
-      Set<T> set = getByFieldInternal(index, value);
-      return set == null ? new HashSet<T>() : set;
-    }
+    Set<T> set = getByFieldInternal(index, value);
+    return set == null ? new HashSet<T>() : set;
   }
 
   /**
@@ -275,35 +281,32 @@ public class IndexedSet<T> implements Iterable<T> {
    * @return the object or null if there is no such object
    */
   public T getFirstByField(FieldIndex<T> index, Object value) {
-    synchronized (mLock) {
-      Set<T> all = getByFieldInternal(index, value);
-      return all == null ? null : all.iterator().next();
-    }
+    Set<T> all = getByFieldInternal(index, value);
+    return all == null ? null : all.iterator().next();
   }
 
   /**
    * Removes an object from the set.
    *
-   * @param object the object to remove
+   * @param object the object to remove, it should not be synchronized on before calling this method
    * @return true if the object is in the set and removed successfully, otherwise false
    */
   public boolean remove(T object) {
-    synchronized (mLock) {
-      boolean success = mObjects.remove(object);
-      if (success) {
-        removeFromIndices(object);
-      }
-      return success;
+    synchronized (object) {
+      removeFromIndices(object);
+      // the object should be removed from mObjects after being removed from the indices because of
+      // the constraint described in the documentation on mObjects.
+      return mObjects.remove(object);
     }
   }
 
   /**
-   * Helper method that removes an object from the two level-indices structure.
-   * Precondition: {@code object} was in {@link #mObjects} and was just successfully removed from
-   * it before calling this method.
+   * Helper method that removes an object from the two level-indices structure at its best-effort,
+   * if the object has been removed from indices before calling this method, it is not considered an
+   * error.
    *
-   * Refactored for being called from both {@link #remove(Object)} and {@link alluxio.collections
-   * .IndexedSet.IndexedSetIterator#remove()}
+   * Refactored for being called from both {@link #remove(Object)} and
+   * {@link IndexedSetIterator#remove()}.
    *
    * @param object the object to be removed
    */
@@ -313,12 +316,7 @@ public class IndexedSet<T> implements Iterable<T> {
       Map<Object, Set<T>> fieldValueToSet = mSetIndexedByFieldValue.get(index.getValue());
       Set<T> set = fieldValueToSet.get(fieldValue);
       if (set != null) {
-        if (!set.remove(object)) {
-          //runtime exception rather than returning false,
-          //since it would mean that the IndexedSet is in an inconsistent state --> BUG
-          throw new IllegalStateException("Fail to remove object " + object.toString()
-              + "from IndexedSet.");
-        }
+        set.remove(object);
         if (set.isEmpty()) {
           fieldValueToSet.remove(fieldValue);
         }
@@ -335,28 +333,22 @@ public class IndexedSet<T> implements Iterable<T> {
    *         objects are removed, return false
    */
   public boolean removeByField(FieldIndex<T> index, Object value) {
-    synchronized (mLock) {
-      Set<T> toRemove = getByFieldInternal(index, value);
-      if (toRemove == null) {
-        return false;
-      }
-      // Copy the set so that no ConcurrentModificationException happens
-      toRemove = ImmutableSet.copyOf(toRemove);
-      boolean success = true;
-      for (T o : toRemove) {
-        success = success && remove(o);
-      }
-      return success;
+    Set<T> toRemove = getByFieldInternal(index, value);
+    if (toRemove == null) {
+      return false;
     }
+    boolean success = true;
+    for (T o : toRemove) {
+      success = success && remove(o);
+    }
+    return success;
   }
 
   /**
    * @return the number of objects in this indexed set (O(1) time)
    */
   public int size() {
-    synchronized (mLock) {
-      return mObjects.size();
-    }
+    return mObjects.size();
   }
 
   /**
