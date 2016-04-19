@@ -11,6 +11,7 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -73,12 +74,13 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
-   * @param bucketName the name of the bucket
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
-    super(conf);
+  public GCSUnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
+    super(uri, conf);
+    String bucketName = uri.getHost();
     Preconditions.checkArgument(conf.containsKey(Constants.GCS_ACCESS_KEY),
         "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
     Preconditions.checkArgument(conf.containsKey(Constants.GCS_SECRET_KEY),
