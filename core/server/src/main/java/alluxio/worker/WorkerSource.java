@@ -18,6 +18,8 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 
+import java.util.List;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -240,7 +242,11 @@ public class WorkerSource implements Source {
     mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return blockWorker.getStoreMeta().getNumberOfBlocks();
+        int numberOfBlocks = 0;
+        for (List<Long> blocks : blockWorker.getBlockStore().getBlockList().values()) {
+          numberOfBlocks += blocks.size();
+        }
+        return numberOfBlocks;
       }
     });
     mGaugesRegistered = true;
