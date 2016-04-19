@@ -41,7 +41,7 @@ COMMAND=$1
 shift
 
 function bootstrapConf {
-  local usage = "Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
+  local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
   if [[ $# -lt 1 ]]; then
     echo ${usage}
     exit 1
