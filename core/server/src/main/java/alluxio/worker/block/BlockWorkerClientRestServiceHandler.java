@@ -289,7 +289,7 @@ public final class BlockWorkerClientRestServiceHandler {
   @POST
   @Path(REQUEST_BLOCK_LOCATION)
   @Produces(MediaType.APPLICATION_JSON)
-  @ReturnType("java.lang.Long")
+  @ReturnType("java.lang.String")
   public Response requestBlockLocation(@QueryParam("sessionId") Long sessionId,
       @QueryParam("blockId") Long blockId, @QueryParam("initialBytes") Long initialBytes) {
     try {
