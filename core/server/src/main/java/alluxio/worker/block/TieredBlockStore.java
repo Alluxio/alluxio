@@ -408,6 +408,21 @@ public final class TieredBlockStore implements BlockStore {
     }
   }
 
+  @Override
+  public Map<String, List<Long>> getBlockList() {
+    Map<String, List<Long>> blockIdsOnTiers = new HashMap<String, List<Long>>();
+    mMetadataReadLock.lock();
+    for (StorageTier tier : mMetaManager.getTiers()) {
+      for (StorageDir dir : tier.getStorageDirs()) {
+        List<Long> blockIds = new ArrayList<Long>();
+        blockIds.addAll(dir.getBlockIds());
+        blockIdsOnTiers.put(tier.getTierAlias(), blockIds);
+      }
+    }
+    mMetadataReadLock.unlock();
+    return blockIdsOnTiers;
+  }
+
   /**
    * Checks if a block id is available for a new temp block. This method must be enclosed by
    * {@link #mMetadataLock}.

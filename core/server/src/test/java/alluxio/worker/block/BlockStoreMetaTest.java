@@ -74,24 +74,6 @@ public class BlockStoreMetaTest {
   }
 
   /**
-   * Tests the {@link BlockStoreMeta#getBlockList()} method.
-   */
-  @Test
-  public void getBlockListTest() {
-    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
-    for (StorageTier tier : mMetadataManager.getTiers()) {
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
-      for (StorageDir dir : tier.getStorageDirs()) {
-        blockIdsOnTier.addAll(dir.getBlockIds());
-      }
-      tierAliasToBlockIds.put(tier.getTierAlias(), blockIdsOnTier);
-    }
-    Map<String, List<Long>> actual = mBlockStoreMeta.getBlockList();
-    Assert.assertEquals(TieredBlockStoreTestUtils.TIER_ALIAS.length, actual.keySet().size());
-    Assert.assertEquals(tierAliasToBlockIds, actual);
-  }
-
-  /**
    * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
@@ -124,14 +106,6 @@ public class BlockStoreMetaTest {
   public void getCapacityBytesOnTiersTest() {
     Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
-  }
-
-  /**
-   * Tests the {@link BlockStoreMeta#getNumberOfBlocks()} method.
-   */
-  @Test
-  public void getNumberOfBlocksTest() {
-    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMeta.getNumberOfBlocks());
   }
 
   /**

@@ -22,13 +22,15 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
  * A blob store interface to represent the local storage managing and serving all the blocks in the
  * local storage.
  */
-interface BlockStore {
+public interface BlockStore {
 
   /**
    * Locks an existing block and guards subsequent reads on this block.
@@ -273,6 +275,11 @@ interface BlockStore {
    * @return store meta data
    */
   BlockStoreMeta getBlockStoreMeta();
+
+  /**
+   * @return Mapping from storage tier alias to blocks.
+   */
+  Map<String, List<Long>> getBlockList();
 
   /**
    * Checks if the storage has a given block.

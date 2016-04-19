@@ -41,9 +41,6 @@ public final class BlockStoreMeta {
   /** Mapping from storage tier alias to used bytes. */
   private final Map<String, Long> mUsedBytesOnTiers = new HashMap<String, Long>();
 
-  /** Mapping from storage tier alias to capacity bytes. */
-  private final Map<String, List<Long>> mBlockIdsOnTiers = new HashMap<String, List<Long>>();
-
   /** Mapping from storage dir tier and path to total capacity. */
   private final Map<Pair<String, String>, Long> mCapacityBytesOnDirs =
       new HashMap<Pair<String, String>, Long>();
@@ -68,23 +65,13 @@ public final class BlockStoreMeta {
           tier.getTierAlias(),
           (usedBytes == null ? 0L : usedBytes)
               + (tier.getCapacityBytes() - tier.getAvailableBytes()));
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
       for (StorageDir dir : tier.getStorageDirs()) {
-        blockIdsOnTier.addAll(dir.getBlockIds());
         Pair<String, String> dirKey =
             new Pair<String, String>(tier.getTierAlias(), dir.getDirPath());
         mCapacityBytesOnDirs.put(dirKey, dir.getCapacityBytes());
         mUsedBytesOnDirs.put(dirKey, dir.getCapacityBytes() - dir.getAvailableBytes());
       }
-      mBlockIdsOnTiers.put(tier.getTierAlias(), blockIdsOnTier);
     }
-  }
-
-  /**
-   * @return A mapping from storage tier alias to blocks
-   */
-  public Map<String, List<Long>> getBlockList() {
-    return mBlockIdsOnTiers;
   }
 
   /**
@@ -110,17 +97,6 @@ public final class BlockStoreMeta {
    */
   public Map<Pair<String, String>, Long> getCapacityBytesOnDirs() {
     return mCapacityBytesOnDirs;
-  }
-
-  /**
-   * @return the number of blocks
-   */
-  public int getNumberOfBlocks() {
-    int numberOfBlocks = 0;
-    for (List<Long> blockIds : mBlockIdsOnTiers.values()) {
-      numberOfBlocks += blockIds.size();
-    }
-    return numberOfBlocks;
   }
 
   /**
