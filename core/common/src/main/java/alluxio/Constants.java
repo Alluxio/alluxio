@@ -243,6 +243,8 @@ public final class Constants {
   public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+  public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.tmp.folder";
+  public static final String WORKER_DATA_TMP_SUBDIR_MAX =  "alluxio.worker.data.tmp.subdir.max";
   public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       "alluxio.worker.block.heartbeat.timeout.ms";
   public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
