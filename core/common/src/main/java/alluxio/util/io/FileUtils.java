@@ -14,9 +14,7 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.InvalidPathException;
-import alluxio.util.ShellUtils;
 
-// import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,7 +139,13 @@ public final class FileUtils {
     }
   }
 
-  public static void deleteFileRecursively(String path) throws IOException {
+  /**
+   * Delete a path recursively.
+   *
+   * @param path pathname to be deleted.
+   * @throws IOException when fails to delete.
+   */
+  public static void deletePathRecursively(String path) throws IOException {
     Path root = Paths.get(path);
     Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
       @Override
@@ -219,6 +223,5 @@ public final class FileUtils {
     return new File(path).exists();
   }
 
-  private FileUtils() {
-  } // prevent instantiation
+  private FileUtils() {} // prevent instantiation
 }

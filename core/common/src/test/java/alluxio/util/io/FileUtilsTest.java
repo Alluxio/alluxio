@@ -146,7 +146,7 @@ public class FileUtilsTest {
   }
 
   @Test
-  public void deleteFileRecursivelyTest() throws IOException {
+  public void deletePathRecursivelyTest() throws IOException {
     File tmpDir = mTestFolder.newFolder("dir");
     File tmpDir1 = mTestFolder.newFolder("dir", "dir1");
     File tmpDir2 = mTestFolder.newFolder("dir", "dir2");
@@ -156,7 +156,7 @@ public class FileUtilsTest {
     File tmpFile3 = mTestFolder.newFile("dir/file3");
 
     // Delete all of these.
-    FileUtils.deleteFileRecursively(tmpDir.getAbsolutePath());
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
 
     Assert.assertFalse(tmpDir.exists());
     Assert.assertFalse(tmpDir1.exists());

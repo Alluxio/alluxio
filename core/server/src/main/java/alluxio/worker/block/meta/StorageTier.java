@@ -85,7 +85,7 @@ public final class StorageTier {
       // Delete tmp directory.
       String tmpDirPath = PathUtils.concatPath(dirPaths[i], tmpDir);
       try {
-        FileUtils.deleteFileRecursively(tmpDirPath);
+        FileUtils.deletePathRecursively(tmpDirPath);
       } catch (IOException e) {
         LOG.error("Failed to clean up temporary directory: {}.", tmpDirPath);
       }
