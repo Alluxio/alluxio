@@ -254,7 +254,7 @@ public class BlockLockManagerTest {
    * and then unlocks its block 50 times. After this, it takes a final lock on its block before
    * returning. At the end of the test, the internal state of the lock manager is validated.
    */
-  @Test(timeout = 20000)
+  @Test(timeout = 10000)
   public void stressTest() throws Throwable {
     final int numBlocks = 2;
     final int threadsPerBlock = 100;
