@@ -64,6 +64,11 @@ public final class PermissionStatus {
     this(userName, groupName, new FileSystemPermission(permission));
   }
 
+  /**
+   * Constructs an instance of {@link PermissionStatus} cloned from the given permission.
+   *
+   * @param ps the give permission status
+   */
   public PermissionStatus(PermissionStatus ps) {
     this(ps.getUserName(), ps.getGroupName(), new FileSystemPermission(ps.getPermission()));
   }
@@ -131,18 +136,19 @@ public final class PermissionStatus {
    * @return the {@link PermissionStatus} for a file or a directory
    * @throws java.io.IOException when getting login user fails
    */
-  public static PermissionStatus getDefault(Configuration conf) throws IOException {
+  public PermissionStatus setUserFromThriftClient(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication, every action is permitted
-      return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
+      // no authentication, no user to set
+      return this;
     }
     // get the username through the authentication mechanism
     User user = AuthenticatedClientUser.get(conf);
     if (user == null) {
       throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
     }
-    return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
-        user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
+    mUserName = user.getName();
+    mGroupName = CommonUtils.getPrimaryGroupName(conf, user.getName());
+    return this;
   }
 
   /**
@@ -152,16 +158,26 @@ public final class PermissionStatus {
    * @return the {@link PermissionStatus} for a file or a directory
    * @throws java.io.IOException when getting login user fails
    */
-  public static PermissionStatus fromLoginUser(Configuration conf) throws IOException {
+  public PermissionStatus setUserFromLoginModule(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication, every action is permitted
-      return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
+      // no authentication, no user to set
+      return this;
     }
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
-    return new PermissionStatus(loginUserName,
-        CommonUtils.getPrimaryGroupName(conf, loginUserName), FileSystemPermission.getDefault()
-            .applyUMask(conf));
+    mUserName = loginUserName;
+    mGroupName = CommonUtils.getPrimaryGroupName(conf, loginUserName);
+    return this;
+  }
+
+  /**
+   * Creates the {@link PermissionStatus} for a file or a directory.
+   *
+   * @return the {@link PermissionStatus} for a file or a directory
+   */
+  public static PermissionStatus defaults() {
+    // no authentication, every action is permitted
+    return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
   }
 
   @Override

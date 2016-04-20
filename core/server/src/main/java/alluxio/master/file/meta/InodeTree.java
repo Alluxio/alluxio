@@ -337,15 +337,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
       modifiedInodes.add(currentInodeDirectory);
     }
 
-    PermissionStatus ps = new PermissionStatus(options.getPermissionStatus())
-        .applyDirectoryUMask(MasterContext.getConf());
     // Fill in the directories that were missing.
+    CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
+        .setMountPoint(false)
+        .setPersisted(options.isPersisted())
+        .setPermissionStatus(options.getPermissionStatus());
     for (int k = pathIndex; k < parentPath.length; k++) {
-      Inode<?> dir =
-          new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(pathComponents[k])
-              .setParentId(currentInodeDirectory.getId()).setPersistenceState(
-              options.isPersisted() ? PersistenceState.PERSISTED : PersistenceState.NOT_PERSISTED)
-              .setPermissionStatus(ps);
+      InodeDirectory dir =
+          InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+              currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -354,7 +354,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
       createdInodes.add(dir);
       mInodes.add(dir);
-      currentInodeDirectory = (InodeDirectory) dir;
+      currentInodeDirectory = dir;
     }
 
     // Create the final path component. First we need to make sure that there isn't already a file
@@ -377,26 +377,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       if (options instanceof CreateDirectoryOptions) {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
-        ps = new PermissionStatus(directoryOptions.getPermissionStatus())
-            .applyDirectoryUMask(MasterContext.getConf());
-        lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
-            .setParentId(currentInodeDirectory.getId())
-            .setPermissionStatus(ps)
-            .setMountPoint(directoryOptions.isMountPoint());
+        lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+            currentInodeDirectory.getId(), name, directoryOptions);
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
       }
       if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
-        ps = new PermissionStatus(fileOptions.getPermissionStatus())
-            .applyFileUMask(MasterContext.getConf());
-        lastInode = new InodeFile(mContainerIdGenerator.getNewContainerId())
-            .setBlockSizeBytes(fileOptions.getBlockSizeBytes()).setTtl(fileOptions.getTtl())
-            .setName(name).setParentId(currentInodeDirectory.getId()).setPersistenceState(
-                fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-                    PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(ps);
+        lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
+            currentInodeDirectory.getId(), name, fileOptions);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
