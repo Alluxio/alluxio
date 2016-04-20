@@ -65,20 +65,32 @@ class AlluxioVersion
     @type = @yml['Type']
     @repo = ''
     @version = ''
-    @v_lt_1_1 = @yml['Version_LessThan_1.1.0']
+    major, minor = nil
     case @type
     when "Local"
       puts 'using local alluxio dir'
     when "Github"
       @repo = @yml['Github']['Repo']
       @version = @yml['Github']['Version']
+      if @version.start_with?("branch-")
+        major, minor = @version.sub("branch-", "").split(".")
+      end
       puts "using github #{@repo}, version #{@version}"
     when "Release"
       @version = @yml['Release']['Version']
+      major, minor = @version.split(".")
       puts "using alluxio version #{@version}"
     else
       puts "Unknown VersionType"
       exit(1)
+    end
+
+    # Determine if the version is less than 1.1, only for release and github release branch types
+    major = Integer(major) rescue nil
+    minor = Integer(minor) rescue nil
+    @v_lt_1_1 = false
+    if not major.nil? and not minor.nil?
+      @v_lt_1_1 = ((major < 1) or (major == 1 and minor < 1))
     end
 
     @mem = @yml['WorkerMemory']
