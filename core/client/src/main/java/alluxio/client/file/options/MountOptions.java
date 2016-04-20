@@ -16,6 +16,10 @@ import alluxio.thrift.MountTOptions;
 
 import com.google.common.base.Objects;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -25,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MountOptions {
   private boolean mReadOnly;
+  private Map<String, String> mProperties;
 
   /**
    * @return the default {@link MountOptions}
@@ -38,6 +43,7 @@ public final class MountOptions {
    */
   private MountOptions() {
     mReadOnly = false;
+    mProperties = new HashMap<>();
   }
 
   /**
@@ -61,11 +67,28 @@ public final class MountOptions {
   }
 
   /**
+   * @return the properties map
+   */
+  public Map<String, String> getProperties() {
+    return Collections.unmodifiableMap(mProperties);
+  }
+
+  /**
+   * @param properties the properties map to use
+   * @return the updated options object
+   */
+  public MountOptions setProperties(Map<String, String> properties) {
+    mProperties = properties;
+    return this;
+  }
+
+  /**
    * @return the name : value pairs for all the fields
    */
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("readonly", mReadOnly).toString();
+    return Objects.toStringHelper(this).add("readonly", mReadOnly).add("properties", mProperties)
+        .toString();
   }
 
   /**
@@ -74,6 +97,9 @@ public final class MountOptions {
   public MountTOptions toThrift() {
     MountTOptions options = new MountTOptions();
     options.setReadOnly(mReadOnly);
+    if (mProperties != null && !mProperties.isEmpty()) {
+      options.setProperties(mProperties);
+    }
     return options;
   }
 }

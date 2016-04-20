@@ -11,20 +11,24 @@
 
 package alluxio;
 
+import alluxio.util.URIUtils;
+
 import org.apache.commons.lang.StringUtils;
 
 import java.io.Serializable;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * It uses a hierarchical URI internally. URI requires that String is escaped, {@link AlluxioURI}
- * does not.
+ * This class represents a URI in the Alluxio system. This {@link AlluxioURI} can represent
+ * resources in the Alluxio namespace, as well as UFS namespaces.
  *
- * Does not support fragment or query in the URI.
+ * It uses a {@link URI} internally. URI requires that String is escaped, {@link AlluxioURI} does
+ * not.
+ *
+ * Does not support fragment in the URI.
  */
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
@@ -35,7 +39,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
 
   public static final AlluxioURI EMPTY_URI = new AlluxioURI("");
 
-  // a hierarchical uri
+  /** A {@link URI} is used to hold the URI components. */
   private final URI mUri;
 
   /**
@@ -45,41 +49,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param pathStr path to construct the {@link AlluxioURI} from
    */
   public AlluxioURI(String pathStr) {
-    if (pathStr == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
-
-    // add a slash in front of paths with Windows drive letters
-    if (hasWindowsDrive(pathStr, false)) {
-      pathStr = "/" + pathStr;
-    }
-
-    // parse uri components
-    String scheme = null;
-    String authority = null;
-
-    int start = 0;
-
-    // parse uri scheme, if any
-    int colon = pathStr.indexOf(':');
-    int slash = pathStr.indexOf('/');
-    if ((colon != -1) && ((slash == -1) || (colon < slash))) { // has a scheme
-      scheme = pathStr.substring(0, colon);
-      start = colon + 1;
-    }
-
-    // parse uri authority, if any
-    if (pathStr.startsWith("//", start) && (pathStr.length() - start > 2)) { // has authority
-      int nextSlash = pathStr.indexOf('/', start + 2);
-      int authEnd = nextSlash > 0 ? nextSlash : pathStr.length();
-      authority = pathStr.substring(start + 2, authEnd);
-      start = authEnd;
-    }
-
-    // uri path is the rest of the string -- query & fragment not supported
-    String path = pathStr.substring(start, pathStr.length());
-
-    mUri = createURI(scheme, authority, path);
+    mUri = URI.Factory.create(pathStr);
   }
 
   /**
@@ -90,10 +60,19 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
    */
   public AlluxioURI(String scheme, String authority, String path) {
-    if (path == null) {
-      throw new IllegalArgumentException("Can not create a uri with a null path.");
-    }
-    mUri = createURI(scheme, authority, path);
+    mUri = URI.Factory.create(scheme, authority, path, null);
+  }
+
+  /**
+   * Constructs an {@link AlluxioURI} from components.
+   *
+   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
+   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @param queryMap the (nullable) map of key/value pairs for the query component of the URI
+   */
+  public AlluxioURI(String scheme, String authority, String path, Map<String, String> queryMap) {
+    mUri = URI.Factory.create(scheme, authority, path, URIUtils.generateQueryString(queryMap));
   }
 
   /**
@@ -103,41 +82,24 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param child the child
    */
   public AlluxioURI(AlluxioURI parent, AlluxioURI child) {
-    // Add a slash to parent's path so resolution is compatible with URI's
-    URI parentUri = parent.mUri;
-    String parentPath = parentUri.getPath();
-    if (!parentPath.endsWith(SEPARATOR) && parentPath.length() > 0) {
-      parentPath += SEPARATOR;
-    }
-    try {
-      parentUri = new URI(parentUri.getScheme(), parentUri.getAuthority(), parentPath, null, null);
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
-    URI resolved = parentUri.resolve(child.mUri);
-    mUri = createURI(resolved.getScheme(), resolved.getAuthority(), resolved.getPath());
+    mUri = URI.Factory.create(parent.mUri, child.mUri);
+  }
+
+  /**
+   * Constructs an {@link AlluxioURI} from components.
+   *
+   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
+   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
+   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
+   * @param query the query component of the URI
+   */
+  private AlluxioURI(String scheme, String authority, String path, String query) {
+    mUri = URI.Factory.create(scheme, authority, path, query);
   }
 
   @Override
   public int compareTo(AlluxioURI other) {
     return mUri.compareTo(other.mUri);
-  }
-
-  /**
-   * Creates the internal URI. Called by all constructors.
-   *
-   * @param scheme the scheme of the path. e.g. alluxio, hdfs, s3, file, null, etc
-   * @param authority the authority of the path. e.g. localhost:19998, 203.1.2.5:8080
-   * @param path the path component of the URI. e.g. /abc/c.txt, /a b/c/c.txt
-   * @throws IllegalArgumentException when an illegal argument is encountered
-   */
-  private URI createURI(String scheme, String authority, String path)
-      throws IllegalArgumentException {
-    try {
-      return new URI(scheme, authority, normalizePath(path), null, null).normalize();
-    } catch (URISyntaxException e) {
-      throw new IllegalArgumentException(e);
-    }
   }
 
   @Override
@@ -279,7 +241,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
       int end = hasWindowsDrive(path, true) ? 3 : 0;
       parent = path.substring(0, lastSlash == end ? end + 1 : lastSlash);
     }
-    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent);
+    return new AlluxioURI(mUri.getScheme(), mUri.getAuthority(), parent, mUri.getQuery());
   }
 
   /**
@@ -298,6 +260,15 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    */
   public int getPort() {
     return mUri.getPort();
+  }
+
+  /**
+   * Gets the map of query parameters.
+   *
+   * @return the map of query parameters
+   */
+  public Map<String, String> getQueryMap() {
+    return URIUtils.parseQueryString(mUri.getQuery());
   }
 
   /**
@@ -396,7 +367,8 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @return the new {@link AlluxioURI}
    */
   public AlluxioURI join(String suffix) {
-    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix);
+    return new AlluxioURI(getScheme(), getAuthority(), getPath() + AlluxioURI.SEPARATOR + suffix,
+        mUri.getQuery());
   }
 
   /**
@@ -416,7 +388,7 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
    * @param path the path to normalize
    * @return the normalized path
    */
-  private String normalizePath(String path) {
+  public static String normalizePath(String path) {
     while (path.contains("\\")) {
       path = path.replace("\\", "/");
     }
@@ -458,6 +430,10 @@ public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
         path = path.substring(1); // remove slash before drive
       }
       sb.append(path);
+    }
+    if (mUri.getQuery() != null) {
+      sb.append("?");
+      sb.append(mUri.getQuery());
     }
     return sb.toString();
   }

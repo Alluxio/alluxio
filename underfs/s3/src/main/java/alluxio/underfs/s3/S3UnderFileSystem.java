@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -77,12 +78,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
-   * @param bucketName the name of the bucket
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
-    super(conf);
+  public S3UnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
+    super(uri, conf);
+    String bucketName = uri.getHost();
     Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
         "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
     Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
@@ -180,16 +182,17 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in S3, however the maximum allowed
-   * size of one file is currently 5 TB.
+   * Gets the block size in bytes. There is no concept of a block in S3 and the maximum size of
+   * one put is 5 GB, and the max size of a multi-part upload is 5 TB. This method defaults to the
+   * default user block size in Alluxio.
    *
    * @param path the file name
-   * @return 5 TB in bytes
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.TB * 5;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
