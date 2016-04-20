@@ -143,7 +143,6 @@ public final class FileUtils {
 
   public static void deleteFileRecursively(String path) throws IOException {
     Path root = Paths.get(path);
-    // TODO(peis): Address this name confict when we switch to nio for all.
     Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
       @Override
       public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
