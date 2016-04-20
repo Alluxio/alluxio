@@ -15,7 +15,9 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
@@ -281,6 +283,31 @@ public final class InodeFile extends Inode<InodeFile> {
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTtl(entry.getTtl())
+            .setPermissionStatus(permissionStatus);
+    return inode;
+  }
+
+  /**
+   * Creates an {@link InodeFile}.
+   *
+   * @param id id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param fileOptions options to create this file
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile create(long id, long parentId, String name,
+      CreateFileOptions fileOptions) {
+    PermissionStatus permissionStatus = new PermissionStatus(fileOptions.getPermissionStatus())
+        .applyFileUMask(MasterContext.getConf());
+    InodeFile inode =
+        new InodeFile(id)
+            .setParentId(parentId)
+            .setName(name)
+            .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+            .setTtl(fileOptions.getTtl())
+            .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+                PersistenceState.NOT_PERSISTED)
             .setPermissionStatus(permissionStatus);
     return inode;
   }
