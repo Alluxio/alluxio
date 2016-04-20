@@ -166,7 +166,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private List<Long> getSortedFileIds() {
     Set<Long> fileIds = new HashSet<Long>();
-    for (List<Long> blockIds : mBlockWorker.getBlockStore().getBlockList().values()) {
+    for (List<Long> blockIds : mBlockWorker.getBlockStore().getBlockIdsOnTiers().values()) {
       for (long blockId : blockIds) {
         long fileId =
             BlockId.createBlockId(BlockId.getContainerId(blockId), BlockId.getMaxSequenceNumber());

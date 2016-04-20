@@ -243,7 +243,7 @@ public class WorkerSource implements Source {
       @Override
       public Integer getValue() {
         int numberOfBlocks = 0;
-        for (List<Long> blocks : blockWorker.getBlockStore().getBlockList().values()) {
+        for (List<Long> blocks : blockWorker.getBlockStore().getBlockIdsOnTiers().values()) {
           numberOfBlocks += blocks.size();
         }
         return numberOfBlocks;

@@ -279,7 +279,7 @@ public interface BlockStore {
   /**
    * @return Mapping from storage tier alias to blocks.
    */
-  Map<String, List<Long>> getBlockList();
+  Map<String, List<Long>> getBlockIdsOnTiers();
 
   /**
    * Checks if the storage has a given block.
