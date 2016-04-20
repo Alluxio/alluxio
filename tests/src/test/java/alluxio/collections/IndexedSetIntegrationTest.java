@@ -235,27 +235,19 @@ public class IndexedSetIntegrationTest {
   @Test
   public void concurrentTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
-    List<ConcurrentTask> addTasks = new ArrayList<>();
-    List<ConcurrentTask> removeTasks = new ArrayList<>();
 
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    removeTasks.add(new ConcurrentRemove());
-    removeTasks.add(new ConcurrentRemove());
-    removeTasks.add(new ConcurrentRemoveByField());
-    removeTasks.add(new ConcurrentRemoveByField());
-    removeTasks.add(new ConcurrentRemoveByIterator());
-    removeTasks.add(new ConcurrentRemoveByIterator());
-    for (ConcurrentTask task : addTasks) {
-      futures.add(mThreadPool.submit(task));
-    }
-    for (ConcurrentTask task : removeTasks) {
-      futures.add(mThreadPool.submit(task));
-    }
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    futures.add(mThreadPool.submit(new ConcurrentRemove()));
+    futures.add(mThreadPool.submit(new ConcurrentRemove()));
+    futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
+    futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
+    futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
+    futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
 
     CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
