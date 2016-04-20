@@ -13,11 +13,11 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
-import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -65,9 +65,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME))
-        .build();
+    return RestUtils.createResponse(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
@@ -78,7 +76,7 @@ public final class LineageMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return Response.ok(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).build();
+    return RestUtils.createResponse(Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
@@ -109,10 +107,11 @@ public final class LineageMasterClientRestServiceHandler {
     }
     CommandLineJob job = new CommandLineJob(command, new JobConf(outputFile));
     try {
-      return Response.ok(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job)).build();
+      return RestUtils
+          .createResponse(mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job));
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -129,10 +128,10 @@ public final class LineageMasterClientRestServiceHandler {
       @QueryParam("cascade") boolean cascade) {
     try {
       Preconditions.checkNotNull(lineageId, "required 'lineageId' parameter is missing");
-      return Response.ok(mLineageMaster.deleteLineage(lineageId, cascade)).build();
+      return RestUtils.createResponse(mLineageMaster.deleteLineage(lineageId, cascade));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -145,10 +144,10 @@ public final class LineageMasterClientRestServiceHandler {
   @ReturnType("java.util.List<alluxio.wire.LineageInfo>")
   public Response getLineageInfoList() {
     try {
-      return Response.ok(mLineageMaster.getLineageInfoList()).build();
+      return RestUtils.createResponse(mLineageMaster.getLineageInfoList());
     } catch (AlluxioException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -168,10 +167,10 @@ public final class LineageMasterClientRestServiceHandler {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       Preconditions.checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
       Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
-      return Response.ok(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl)).build();
+      return RestUtils.createResponse(mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -187,10 +186,10 @@ public final class LineageMasterClientRestServiceHandler {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mLineageMaster.reportLostFile(path);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 }
