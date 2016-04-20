@@ -141,6 +141,8 @@ public class IndexedSet<T> implements Iterable<T> {
   /**
    * Removes all the entries in this set.
    */
+  // TODO(gpang): clear() does not play well with other concurrent operations. Currently, it is
+  // ok, since the only use of clear() is a context without concurrent access.
   public void clear() {
     // Clear the indexes first, so objects cannot be found via index.
     for (Map<Object, ConcurrentHashSet<T>> mapping : mIndexMap.values()) {
@@ -177,6 +179,7 @@ public class IndexedSet<T> implements Iterable<T> {
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
         while (objSet == null) {
+          // TODO(gpang): without clear(), this while-clause can be an if-clause.
           index.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
           objSet = index.get(fieldValue);
         }
