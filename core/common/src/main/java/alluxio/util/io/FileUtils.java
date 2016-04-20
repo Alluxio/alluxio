@@ -80,8 +80,8 @@ public final class FileUtils {
     try {
       // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
       // assume that the host supports the chmod command.
-      // TODO(peis): This is very slow. Consider removing this.
       if (dir.startsWith(AlluxioURI.SEPARATOR)) {
+        // TODO(peis): This is very slow. Consider removing this.
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
