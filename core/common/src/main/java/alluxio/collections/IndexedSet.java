@@ -131,8 +131,8 @@ public class IndexedSet<T> implements Iterable<T> {
     Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMap =
         new HashMap<>(otherFields.length + 1);
     indexMap.put(field, new ConcurrentHashMap<Object, ConcurrentHashSet<T>>());
-    for (int i = 1; i <= otherFields.length; i++) {
-      indexMap.put(otherFields[i - 1], new ConcurrentHashMap<Object, ConcurrentHashSet<T>>());
+    for (FieldIndex<T> fieldIndex : otherFields) {
+      indexMap.put(fieldIndex, new ConcurrentHashMap<Object, ConcurrentHashSet<T>>());
     }
     // read only, so it is thread safe and allows concurrent access.
     mIndexMap = Collections.unmodifiableMap(indexMap);
@@ -158,7 +158,7 @@ public class IndexedSet<T> implements Iterable<T> {
    * call leaves the set unchanged.
    *
    * @param object the object to add
-   * @return true if the object is successfully added to all indexes, otherwise false
+   * @return true if this set did not already contain the specified element
    */
   public boolean add(T object) {
     Preconditions.checkNotNull(object);
@@ -166,13 +166,12 @@ public class IndexedSet<T> implements Iterable<T> {
     synchronized (object) {
       if (!mObjects.addIfAbsent(object)) {
         // This object is already added, possibly by another concurrent thread.
-        return true;
+        return false;
       }
 
       // Update the indexes.
       for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo :
-          mIndexMap
-          .entrySet()) {
+          mIndexMap.entrySet()) {
         // For this field, retrieve the value to index
         Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         // Get the index for this field
