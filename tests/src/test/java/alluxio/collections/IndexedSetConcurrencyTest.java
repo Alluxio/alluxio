@@ -246,7 +246,7 @@ public class IndexedSetConcurrencyTest {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
-    for (int i = 3 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+    for (int i = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
       // Try to balance adds and removes
       futures.add(mThreadPool.submit(new ConcurrentAdd()));
     }
@@ -258,6 +258,9 @@ public class IndexedSetConcurrencyTest {
     }
     for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
       futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentClear()));
     }
 
     CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
