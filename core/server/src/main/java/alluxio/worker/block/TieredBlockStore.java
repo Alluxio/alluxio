@@ -389,17 +389,21 @@ public final class TieredBlockStore implements BlockStore {
   }
 
   @Override
-  public Map<String, List<Long>> getBlockList() {
+  public Map<String, List<Long>> getBlockIdsOnTiers() {
     Map<String, List<Long>> blockIdsOnTiers = new HashMap<String, List<Long>>();
     mMetadataReadLock.lock();
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        List<Long> blockIds = new ArrayList<Long>();
-        blockIds.addAll(dir.getBlockIds());
-        blockIdsOnTiers.put(tier.getTierAlias(), blockIds);
+    try {
+      for (StorageTier tier : mMetaManager.getTiers()) {
+        for (StorageDir dir : tier.getStorageDirs()) {
+          List<Long> blockIds = blockIdsOnTiers.containsKey(tier.getTierAlias()) ?
+              blockIdsOnTiers.get(tier.getTierAlias()) : new ArrayList<Long>();
+          blockIds.addAll(dir.getBlockIds());
+          blockIdsOnTiers.put(tier.getTierAlias(), blockIds);
+        }
       }
+    } finally {
+      mMetadataReadLock.unlock();
     }
-    mMetadataReadLock.unlock();
     return blockIdsOnTiers;
   }
 

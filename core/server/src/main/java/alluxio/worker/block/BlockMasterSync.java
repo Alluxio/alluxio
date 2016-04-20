@@ -114,7 +114,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockStore.getBlockList());
+          storeMeta.getUsedBytesOnTiers(), blockStore.getBlockIdsOnTiers());
     } catch (IOException e) {
       LOG.error("Failed to register with master.", e);
       throw e;
