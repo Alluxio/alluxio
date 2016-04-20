@@ -22,6 +22,11 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -132,6 +137,28 @@ public final class FileUtils {
     }
   }
 
+  public static void deleteFileRecursively(String path) throws IOException {
+    Path root = Paths.get(path);
+    // TODO(peis): Address this name confict when we switch to nio for all.
+    java.nio.file.Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        java.nio.file.Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+        if (e == null) {
+          java.nio.file.Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        } else {
+          throw e;
+        }
+      }
+    });
+  }
+
   /**
    * Creates the storage directory path, including any necessary but nonexistent parent directories.
    * If the directory already exists, do nothing.
@@ -189,5 +216,6 @@ public final class FileUtils {
     return new File(path).exists();
   }
 
-  private FileUtils() {} // prevent instantiation
+  private FileUtils() {
+  } // prevent instantiation
 }

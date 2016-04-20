@@ -145,6 +145,27 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFolder.exists());
   }
 
+  @Test
+  public void deleteFileRecursivelyTest() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpDir1 = mTestFolder.newFolder("dir", "dir1");
+    File tmpDir2 = mTestFolder.newFolder("dir", "dir2");
+
+    File tmpFile1 = mTestFolder.newFile("dir/dir1/file1");
+    File tmpFile2 = mTestFolder.newFile("dir/dir1/file2");
+    File tmpFile3 = mTestFolder.newFile("dir/file3");
+
+    // Delete all of these.
+    FileUtils.deleteFileRecursively(tmpDir.getAbsolutePath());
+
+    Assert.assertFalse(tmpDir.exists());
+    Assert.assertFalse(tmpDir1.exists());
+    Assert.assertFalse(tmpDir2.exists());
+    Assert.assertFalse(tmpFile1.exists());
+    Assert.assertFalse(tmpFile2.exists());
+    Assert.assertFalse(tmpFile3.exists());
+  }
+
   /**
    * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
    * non-existent file.
