@@ -95,7 +95,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class IndexedSet<T> implements Iterable<T> {
-  /** All objects in the set. */
+  /** All objects in the set. This set is required to guarantee uniqueness of objects. */
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(1024, 0.75f, 32);
   /**
    * Map from {@link FieldIndex} to the index. An index is a map from index value to set of
