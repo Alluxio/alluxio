@@ -22,6 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A concurrent hash set. This is backed by a {@link ConcurrentHashMap}, and {@link Set} operations
  * are translated to {@link ConcurrentHashMap} operations.
+ *
  * @param <T> the type of the set objects
  */
 @ThreadSafe
