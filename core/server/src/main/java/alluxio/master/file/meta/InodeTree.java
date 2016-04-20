@@ -337,14 +337,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
       modifiedInodes.add(currentInodeDirectory);
     }
 
+    PermissionStatus ps = new PermissionStatus(options.getPermissionStatus())
+        .applyDirectoryUMask(MasterContext.getConf());
     // Fill in the directories that were missing.
     for (int k = pathIndex; k < parentPath.length; k++) {
       Inode<?> dir =
           new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(pathComponents[k])
               .setParentId(currentInodeDirectory.getId()).setPersistenceState(
               options.isPersisted() ? PersistenceState.PERSISTED : PersistenceState.NOT_PERSISTED)
-              .setPermissionStatus(options.getPermissionStatus()
-                  .applyDirectoryUMask(MasterContext.getConf()));
+              .setPermissionStatus(ps);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -376,10 +377,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       if (options instanceof CreateDirectoryOptions) {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
+        ps = new PermissionStatus(directoryOptions.getPermissionStatus())
+            .applyDirectoryUMask(MasterContext.getConf());
         lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
             .setParentId(currentInodeDirectory.getId())
-            .setPermissionStatus(directoryOptions.getPermissionStatus()
-                .applyDirectoryUMask(MasterContext.getConf()))
+            .setPermissionStatus(ps)
             .setMountPoint(directoryOptions.isMountPoint());
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
@@ -387,13 +389,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
       if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
+        ps = new PermissionStatus(fileOptions.getPermissionStatus())
+            .applyFileUMask(MasterContext.getConf());
         lastInode = new InodeFile(mContainerIdGenerator.getNewContainerId())
             .setBlockSizeBytes(fileOptions.getBlockSizeBytes()).setTtl(fileOptions.getTtl())
             .setName(name).setParentId(currentInodeDirectory.getId()).setPersistenceState(
                 fileOptions.isPersisted() ? PersistenceState.PERSISTED :
                     PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(fileOptions.getPermissionStatus()
-                .applyFileUMask(MasterContext.getConf()));
+            .setPermissionStatus(ps);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
