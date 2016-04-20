@@ -26,16 +26,21 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Test concurrent behavior of {@link IndexedSet}.
  */
-public class IndexedSetIntegrationTest {
+public class IndexedSetConcurrencyTest {
   /** The maximum value for the size value for the test object. */
   private static final int MAX_SIZE = 30;
   /** The duration for each test. */
   private static final int TEST_CASE_DURATION_MS = 5000;
+  /** The minimum number of threads for each task type. */
+  private static final int MIN_TASKS = 3;
+  /** The maximum number of threads for each task type. */
+  private static final int MAX_TASKS = 6;
 
   private IndexedSet<TestInfo> mIndexedSet;
   private ExecutorService mThreadPool;
@@ -65,8 +70,8 @@ public class IndexedSetIntegrationTest {
     @Override
     public void run() {
       while (!mStopThreads.get()) {
-        TestInfo info = mIndexedSet.getFirstByField(mSizeIndex,
-            java.util.concurrent.ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+        TestInfo info = mIndexedSet
+            .getFirstByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
         if (info != null) {
           if (mIndexedSet.remove(info)) {
             mCount++;
@@ -80,8 +85,8 @@ public class IndexedSetIntegrationTest {
     @Override
     public void run() {
       while (!mStopThreads.get()) {
-        mCount += mIndexedSet.removeByField(mSizeIndex,
-            java.util.concurrent.ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+        mCount +=
+            mIndexedSet.removeByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
       }
     }
   }
@@ -115,8 +120,8 @@ public class IndexedSetIntegrationTest {
     private int mSize;
 
     private TestInfo() {
-      mId = java.util.concurrent.ThreadLocalRandom.current().nextLong();
-      mSize = java.util.concurrent.ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
+      mId = ThreadLocalRandom.current().nextLong();
+      mSize = ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
     }
 
     public long getId() {
@@ -197,14 +202,18 @@ public class IndexedSetIntegrationTest {
     List<ConcurrentTask> addTasks = new ArrayList<>();
     List<ConcurrentTask> removeTasks = new ArrayList<>();
 
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    removeTasks.add(new ConcurrentRemove());
-    removeTasks.add(new ConcurrentRemove());
-    removeTasks.add(new ConcurrentRemoveByField());
-    removeTasks.add(new ConcurrentRemoveByField());
+    // Add random number of each task type.
+    for (int i = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      // Try to balance adds and removes
+      addTasks.add(new ConcurrentAdd());
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      removeTasks.add(new ConcurrentRemove());
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      removeTasks.add(new ConcurrentRemoveByField());
+    }
+
     for (ConcurrentTask task : addTasks) {
       futures.add(mThreadPool.submit(task));
     }
@@ -236,18 +245,20 @@ public class IndexedSetIntegrationTest {
   public void concurrentTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentAdd()));
-    futures.add(mThreadPool.submit(new ConcurrentRemove()));
-    futures.add(mThreadPool.submit(new ConcurrentRemove()));
-    futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
-    futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
-    futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
-    futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
+    // Add random number of each task type.
+    for (int i = 3 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      // Try to balance adds and removes
+      futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemove()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
+    }
 
     CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
     mStopThreads.set(true);
