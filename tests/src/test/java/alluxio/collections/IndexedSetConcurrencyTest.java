@@ -48,70 +48,73 @@ public class IndexedSetConcurrencyTest {
   private AtomicBoolean mStopThreads;
 
   private abstract class ConcurrentTask implements Runnable {
-    protected long mCount = 0;
+    private long mCount = 0;
 
     public long getCount() {
       return mCount;
+    }
+
+    /**
+     * Runs a single task.
+     *
+     * @return number of items added or deleted
+     */
+    abstract long runSingleTask();
+
+    @Override
+    public void run() {
+      while (!mStopThreads.get()) {
+        mCount += runSingleTask();
+      }
     }
   }
 
   private class ConcurrentAdd extends ConcurrentTask {
     @Override
-    public void run() {
-      while (!mStopThreads.get()) {
-        if (mIndexedSet.add(new TestInfo())) {
-          mCount++;
-        }
-      }
+    public long runSingleTask() {
+      return mIndexedSet.add(new TestInfo()) ? 1 : 0;
     }
   }
 
   private class ConcurrentRemove extends ConcurrentTask {
     @Override
-    public void run() {
-      while (!mStopThreads.get()) {
-        TestInfo info = mIndexedSet
-            .getFirstByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
-        if (info != null) {
-          if (mIndexedSet.remove(info)) {
-            mCount++;
-          }
-        }
+    public long runSingleTask() {
+      TestInfo info =
+          mIndexedSet.getFirstByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+      if (info != null) {
+        return mIndexedSet.remove(info) ? 1 : 0;
       }
+      return 0;
     }
   }
 
   private class ConcurrentRemoveByField extends ConcurrentTask {
     @Override
-    public void run() {
-      while (!mStopThreads.get()) {
-        mCount +=
-            mIndexedSet.removeByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
-      }
+    public long runSingleTask() {
+      return mIndexedSet
+          .removeByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
     }
   }
 
   private class ConcurrentRemoveByIterator extends ConcurrentTask {
     @Override
-    public void run() {
-      while (!mStopThreads.get()) {
-        Iterator<TestInfo> it = mIndexedSet.iterator();
-        while (it.hasNext()) {
-          it.next();
-          it.remove();
-          mCount++;
-        }
+    public long runSingleTask() {
+      long removed = 0;
+      Iterator<TestInfo> it = mIndexedSet.iterator();
+      while (it.hasNext()) {
+        it.next();
+        it.remove();
+        removed++;
       }
+      return removed;
     }
   }
 
   private class ConcurrentClear extends ConcurrentTask {
     @Override
-    public void run() {
-      while (!mStopThreads.get()) {
-        mIndexedSet.clear();
-        mCount++;
-      }
+    public long runSingleTask() {
+      mIndexedSet.clear();
+      return 1;
     }
   }
 
@@ -197,7 +200,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void basicConcurrentTest() throws Exception {
+  public void basicConcurrentUpdateTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
     List<ConcurrentTask> addTasks = new ArrayList<>();
     List<ConcurrentTask> removeTasks = new ArrayList<>();
@@ -242,7 +245,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   @Test
-  public void concurrentTest() throws Exception {
+  public void concurrentUpdateTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
