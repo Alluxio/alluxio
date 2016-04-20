@@ -20,10 +20,10 @@ alluxio.worker.data.bind.host:
   <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.data.folder:
   A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.
-alluxio.worker.data.tmp.folder:
-  A relative path in alluxio.worker.data.folder used to store all the temporary data.
+alluxio.worker.data.folder.tmp:
+  A relative path in alluxio.worker.data.folder used to store the temporary data for non-committed files.
 alluxio.worker.data.tmp.subdir.max:
-  The maximum number of sub-diretories allowed to be created in alluxio.worker.data.tmp.folder.
+  The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.
 alluxio.worker.data.port:
   The port Alluxio's worker's data server runs on.
 alluxio.worker.data.server.class:
