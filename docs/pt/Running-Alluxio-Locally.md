@@ -17,7 +17,7 @@ Baixe a distribuição do binário do Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 Antes de executar os `scripts` de inicialização, as variáveis de ambientes devem estar especificadas
 em `conf/alluxio-env.sh`, este arquivo pode ser copiado a partir do arquivo modelo:
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 Para executar em modo `standalone`, confirme que:
 
@@ -29,12 +29,12 @@ no `file system` local (exemplo, `export ALLUXIO_UNDERFS_ADDRESS=/tmp`).
 Posteriormente, você pode formatar e iniciar o `Alluxio FileSystem`. *Nota: Como o Alluxio precisa configurar
 o [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), inicializar um
 sistema local necessita que o usuário informe a senha do `root` para usuários Linux. Para contornar esta
-necessidade, você pode adicionar a chave pública `ssh` para o servidor local dentro de 
+necessidade, você pode adicionar a chave pública `ssh` para o servidor local dentro de
 `~/.ssh/authorized_keys`.*
 
 {% include Running-Alluxio-Locally/Alluxio-format-start.md %}
 
-Para verificar que o Alluxio está em execução, você pode acessar 
+Para verificar que o Alluxio está em execução, você pode acessar
 **[http://localhost:19999](http://localhost:19999)**, ou analisar os registros dentro da pasta `logs`.
 Você também pode executar um teste:
 
@@ -44,8 +44,8 @@ Na primeira execução do teste, você irá visualizar algo semelhante ao expost
 
 {% include Running-Alluxio-Locally/first-sample-output.md %}
 
-Você pode acessar novamente a interface de usuário `web` do Alluxio em 
-**[http://localhost:19999](http://localhost:19999)**. Clique em `Browse File System` na barra de 
+Você pode acessar novamente a interface de usuário `web` do Alluxio em
+**[http://localhost:19999](http://localhost:19999)**. Clique em `Browse File System` na barra de
 navegação e você deverá ver que os arquivos escritos no Alluxio efetuados pelo teste acima.
 
 Para executar um teste de verificação mais completo:
