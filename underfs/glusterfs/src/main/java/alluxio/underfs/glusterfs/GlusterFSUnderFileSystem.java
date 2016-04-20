@@ -11,6 +11,7 @@
 
 package alluxio.underfs.glusterfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -36,12 +37,12 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   /**
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop or GlusterFS
    */
-  public GlusterFSUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
-    super(fsDefaultName, configuration, conf);
+  public GlusterFSUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
+    super(uri, configuration, conf);
   }
 
   @Override

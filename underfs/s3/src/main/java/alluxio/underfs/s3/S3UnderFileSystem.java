@@ -11,6 +11,7 @@
 
 package alluxio.underfs.s3;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -77,12 +78,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
-   * @param bucketName the name of the bucket
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
-    super(conf);
+  public S3UnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
+    super(uri, conf);
+    String bucketName = uri.getHost();
     Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
         "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
     Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
