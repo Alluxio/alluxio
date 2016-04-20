@@ -38,6 +38,20 @@ public abstract class AbstractShellCommand implements ShellCommand {
             .hasArg(false)
             .desc("recursive")
             .build();
+  protected static final Option READONLY_OPTION =
+      Option.builder("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("readonly")
+          .build();
+  // TODO(gpang): Investigate property=value style of cmdline options. They didn't seem to
+  // support spaces in values.
+  protected static final Option PROPERTY_FILE_OPTION =
+      Option.builder("P")
+          .required(false)
+          .numberOfArgs(1)
+          .desc("properties file name")
+          .build();
 
   protected AbstractShellCommand(Configuration conf, FileSystem fs) {
     mConfiguration = conf;

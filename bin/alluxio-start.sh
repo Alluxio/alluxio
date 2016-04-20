@@ -52,7 +52,8 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      if ! mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null; then
+      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
+      if [[ $? -ne 0 || -z ${ALLUXIO_RAM_FOLDER} ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X."
@@ -164,7 +165,7 @@ restart_worker() {
      .type="WORKER_ACCESS_LOGGER" \
      -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
-     alluxio.worker.AluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+     alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 
