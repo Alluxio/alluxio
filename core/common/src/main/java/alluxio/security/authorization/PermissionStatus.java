@@ -130,7 +130,8 @@ public final class PermissionStatus {
   }
 
   /**
-   * Creates the {@link PermissionStatus} for a file or a directory.
+   * Sets the user inferred from thrift transport for this {@link PermissionStatus}. If
+   * authentication is NOSASL, this a no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link PermissionStatus} for a file or a directory
@@ -152,7 +153,8 @@ public final class PermissionStatus {
   }
 
   /**
-   * Creates the {@link PermissionStatus} for a file or a directory.
+   * Creates the {@link PermissionStatus} for a file or a directory. If
+   * authentication is NOSASL, this a no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link PermissionStatus} for a file or a directory
@@ -171,7 +173,8 @@ public final class PermissionStatus {
   }
 
   /**
-   * Creates the {@link PermissionStatus} for a file or a directory.
+   * Creates the default {@link PermissionStatus} for a file or a directory. Both user and group are
+   * empty and the filesystem permission is 0777 by default.
    *
    * @return the {@link PermissionStatus} for a file or a directory
    */
