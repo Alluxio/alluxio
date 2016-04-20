@@ -12,11 +12,11 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
-import alluxio.util.FormatUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerContext;
@@ -78,7 +78,7 @@ public final class BlockWorkerClientRestServiceHandler {
   @ReturnType("java.lang.String")
   public Response getServiceName() {
     // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME)).build();
+    return RestUtils.createResponse(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME);
   }
 
   /**
@@ -90,7 +90,7 @@ public final class BlockWorkerClientRestServiceHandler {
   @Produces(MediaType.APPLICATION_JSON)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return Response.ok(Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION).build();
+    return RestUtils.createResponse(Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION);
   }
 
   /**
@@ -106,10 +106,10 @@ public final class BlockWorkerClientRestServiceHandler {
     try {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       mBlockWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -125,10 +125,10 @@ public final class BlockWorkerClientRestServiceHandler {
   public Response asyncCheckpoint(@QueryParam("fileId") Long fileId) {
     try {
       Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
-      return Response.ok(false).build();
+      return RestUtils.createResponse(false);
     } catch (NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -148,10 +148,10 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.commitBlock(sessionId, blockId);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -171,10 +171,10 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.abortBlock(sessionId, blockId);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -194,12 +194,11 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       long lockId = mBlockWorker.lockBlock(sessionId, blockId);
-      return Response.ok(
-          new LockBlockResult().setLockId(lockId).setBlockPath(
-              mBlockWorker.readBlock(sessionId, blockId, lockId))).build();
+      return RestUtils.createResponse(new LockBlockResult().setLockId(lockId)
+          .setBlockPath(mBlockWorker.readBlock(sessionId, blockId, lockId)));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -217,10 +216,10 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       mBlockWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId,
           mStorageTierAssoc.getAlias(0));
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -262,12 +261,12 @@ public final class BlockWorkerClientRestServiceHandler {
         ByteBuffer buffer = reader.read(offset, readLength);
         mBlockWorker.accessBlock(sessionId, blockId);
         if (buffer.hasArray()) {
-          return Response.ok(buffer.array()).build();
+          return RestUtils.createResponse(buffer.array());
         }
         // We need to copy the bytes because the buffer byte array cannot be accessed directly.
         byte[] bytes = new byte[(int) readLength];
         buffer.get(bytes);
-        return Response.ok(bytes).build();
+        return RestUtils.createResponse(bytes);
       } finally {
         if (reader != null) {
           reader.close();
@@ -275,7 +274,7 @@ public final class BlockWorkerClientRestServiceHandler {
       }
     } catch (AlluxioException | IOException | IllegalStateException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -296,12 +295,11 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       Preconditions.checkNotNull(initialBytes, "required 'initialBytes' parameter is missing");
-      // Need to encode the string as JSON because Jackson will not do it automatically.
-      return Response.ok(FormatUtils.encodeJson(mBlockWorker
-          .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes))).build();
+      return RestUtils.createResponse(mBlockWorker
+          .createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes));
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -323,10 +321,10 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       Preconditions.checkNotNull(requestBytes, "required 'requestBytes' parameter is missing");
       mBlockWorker.requestSpace(sessionId, blockId, requestBytes);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -346,10 +344,10 @@ public final class BlockWorkerClientRestServiceHandler {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
       Preconditions.checkNotNull(sessionId, "required 'sessionId' parameter is missing");
       mBlockWorker.unlockBlock(sessionId, blockId);
-      return Response.ok().build();
+      return RestUtils.createResponse();
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 
@@ -392,7 +390,7 @@ public final class BlockWorkerClientRestServiceHandler {
         }
         writer = mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
         writer.append(buffer);
-        return Response.ok().build();
+        return RestUtils.createResponse();
       } finally {
         if (writer != null) {
           writer.close();
@@ -400,7 +398,7 @@ public final class BlockWorkerClientRestServiceHandler {
       }
     } catch (AlluxioException | IOException | IllegalStateException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 }

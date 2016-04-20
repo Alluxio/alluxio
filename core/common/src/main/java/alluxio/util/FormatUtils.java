@@ -14,8 +14,6 @@ package alluxio.util;
 import alluxio.Constants;
 import alluxio.security.authorization.FileSystemPermission;
 
-import org.apache.commons.lang3.StringEscapeUtils;
-
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
 import java.util.Locale;
@@ -202,16 +200,6 @@ public final class FormatUtils {
     }
     permissionStr.append(new FileSystemPermission(permission).toString());
     return permissionStr.toString();
-  }
-
-  /**
-   * Encodes the given string as a JSON object.
-   *
-   * @param input the string to encode
-   * @return the JSON-encoded version of the input string
-   */
-  public static String encodeJson(String input) {
-    return "\"" + StringEscapeUtils.escapeJava(input) + "\"";
   }
 
   private FormatUtils() {} // prevent instantiation
