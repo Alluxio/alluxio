@@ -12,9 +12,9 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
-import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -53,8 +53,7 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_NAME)
   @ReturnType("java.lang.String")
   public Response getServiceName() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME)).build();
+    return RestUtils.createResponse(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME);
   }
 
   /**
@@ -65,7 +64,7 @@ public final class BlockMasterClientRestServiceHandler {
   @Path(SERVICE_VERSION)
   @ReturnType("java.lang.Long")
   public Response getServiceVersion() {
-    return Response.ok(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).build();
+    return RestUtils.createResponse(Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
   }
 
   /**
@@ -79,10 +78,10 @@ public final class BlockMasterClientRestServiceHandler {
   public Response getBlockInfo(@QueryParam("blockId") Long blockId) {
     try {
       Preconditions.checkNotNull(blockId, "required 'blockId' parameter is missing");
-      return Response.ok(mBlockMaster.getBlockInfo(blockId)).build();
+      return RestUtils.createResponse(mBlockMaster.getBlockInfo(blockId));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
-      return Response.serverError().entity(e.getMessage()).build();
+      return RestUtils.createErrorResponse(e.getMessage());
     }
   }
 }

@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * Utilities for handling rpc calls.
+ * Utilities for handling RPC calls.
  */
 public final class RpcUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -99,4 +99,6 @@ public final class RpcUtils {
      */
     T call() throws AlluxioException, IOException;
   }
+
+  private RpcUtils() {} // prevent instantiation
 }
