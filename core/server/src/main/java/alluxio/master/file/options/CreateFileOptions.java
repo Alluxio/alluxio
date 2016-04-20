@@ -45,13 +45,13 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    * @throws IOException if an I/O error occurs
    */
   public static CreateFileOptions fromTOptions(CreateFileTOptions tOptions) throws IOException {
-    CreateFileOptions options = new CreateFileOptions();
-    options.setBlockSizeBytes(tOptions.getBlockSizeBytes());
-    options.setPersisted(tOptions.isPersisted());
-    options.setRecursive(tOptions.isRecursive());
-    options.setTtl(tOptions.getTtl());
-    options.setPermissionStatus(
-        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
+    CreateFileOptions options = new CreateFileOptions()
+        .setBlockSizeBytes(tOptions.getBlockSizeBytes())
+        .setPersisted(tOptions.isPersisted())
+        .setRecursive(tOptions.isRecursive())
+        .setTtl(tOptions.getTtl())
+        .setPermissionStatus(
+            PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
     return options;
   }
 
