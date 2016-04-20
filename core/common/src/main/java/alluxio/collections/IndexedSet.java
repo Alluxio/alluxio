@@ -96,6 +96,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class IndexedSet<T> implements Iterable<T> {
   /** All objects in the set. This set is required to guarantee uniqueness of objects. */
+  // TODO(gpang): remove this set, and just use the indexes.
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>();
   /**
    * Map from {@link FieldIndex} to the index. An index is a map from index value to set of
@@ -140,6 +141,8 @@ public class IndexedSet<T> implements Iterable<T> {
 
   /**
    * Removes all the entries in this set.
+   *
+   * This is an expensive operation, and concurrent adds are permitted.
    */
   public void clear() {
     for (T obj : mObjects) {
