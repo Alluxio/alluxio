@@ -157,14 +157,14 @@ public class IndexedSet<T> implements Iterable<T> {
    * {@code (o == null ? o2 == null : o.equals(o2))}. If this set already contains the object, the
    * call leaves the set unchanged.
    *
-   * @param objToAdd the object to add
+   * @param object the object to add
    * @return true if the object is successfully added to all indexes, otherwise false
    */
-  public boolean add(T objToAdd) {
-    Preconditions.checkNotNull(objToAdd);
+  public boolean add(T object) {
+    Preconditions.checkNotNull(object);
 
-    synchronized (objToAdd) {
-      if (!mObjects.addIfAbsent(objToAdd)) {
+    synchronized (object) {
+      if (!mObjects.addIfAbsent(object)) {
         // This object is already added, possibly by another concurrent thread.
         return true;
       }
@@ -174,7 +174,7 @@ public class IndexedSet<T> implements Iterable<T> {
           mIndexMap
           .entrySet()) {
         // For this field, retrieve the value to index
-        Object fieldValue = fieldInfo.getKey().getFieldValue(objToAdd);
+        Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         // Get the index for this field
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
@@ -183,11 +183,11 @@ public class IndexedSet<T> implements Iterable<T> {
           index.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
           objSet = index.get(fieldValue);
         }
-        if (!objSet.addIfAbsent(objToAdd)) {
+        if (!objSet.addIfAbsent(object)) {
           // this call can never return false because:
           //   a. the second-level sets in the indices are all
           //      {@link java.util.Set} instances of unbounded space
-          //   b. We have already successfully added objToAdd on mObjects,
+          //   b. We have already successfully added object on mObjects,
           //      meaning that it cannot be already in any of the sets.
           //      (mObjects is exactly the set-union of all the other second-level sets)
           throw new IllegalStateException("Indexed Set is in an illegal state");
@@ -219,11 +219,11 @@ public class IndexedSet<T> implements Iterable<T> {
    */
   private class IndexedSetIterator implements Iterator<T> {
     private final Iterator<T> mSetIterator;
-    private T mLast;
+    private T mObject;
 
     public IndexedSetIterator() {
       mSetIterator = mObjects.iterator();
-      mLast = null;
+      mObject = null;
     }
 
     @Override
@@ -234,15 +234,15 @@ public class IndexedSet<T> implements Iterable<T> {
     @Override
     public T next() {
       final T next = mSetIterator.next();
-      mLast = next;
+      mObject = next;
       return next;
     }
 
     @Override
     public void remove() {
-      if (mLast != null) {
-        IndexedSet.this.remove(mLast);
-        mLast = null;
+      if (mObject != null) {
+        IndexedSet.this.remove(mObject);
+        mObject = null;
       } else {
         throw new IllegalStateException("next() was not called before remove()");
       }
