@@ -22,20 +22,20 @@ import alluxio.util.SecurityUtils;
 
 import java.io.IOException;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The permission status for a file or directory.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class PermissionStatus {
   /** This default umask is used to calculate file permission from directory permission. */
   private static final FileSystemPermission FILE_UMASK =
       new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
 
-  private final String mUserName;
-  private final String mGroupName;
-  private final FileSystemPermission mPermission;
+  private String mUserName;
+  private String mGroupName;
+  private FileSystemPermission mPermission;
 
   /**
    * Constructs an instance of {@link PermissionStatus}.
@@ -62,6 +62,10 @@ public final class PermissionStatus {
    */
   public PermissionStatus(String userName, String groupName, short permission) {
     this(userName, groupName, new FileSystemPermission(permission));
+  }
+
+  public PermissionStatus(PermissionStatus ps) {
+    this(ps.getUserName(), ps.getGroupName(), new FileSystemPermission(ps.getPermission()));
   }
 
   /**
@@ -92,32 +96,32 @@ public final class PermissionStatus {
    * @return a new {@link PermissionStatus}
    */
   public PermissionStatus applyUMask(FileSystemPermission umask) {
-    FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
-    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+    mPermission = mPermission.applyUMask(umask);
+    return this;
   }
 
   /**
-   * Applies default umask to new created files.
+   * Applies default umask to newly created files.
    *
    * @param conf the runtime configuration of Alluxio
    * @return a new {@link PermissionStatus}
    */
   public PermissionStatus applyFileUMask(Configuration conf) {
-    FileSystemPermission newFileSystemPermission =
+    mPermission =
         mPermission.applyUMask(FileSystemPermission.getUMask(conf)).applyUMask(FILE_UMASK);
-    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+    return this;
   }
 
   /**
-   * Applies default umask to new created directories.
+   * Applies default umask to newly created directories.
    *
    * @param conf the runtime configuration of Alluxio
    * @return a new {@link PermissionStatus}
    */
   public PermissionStatus applyDirectoryUMask(Configuration conf) {
-    FileSystemPermission newFileSystemPermission =
+    mPermission =
         mPermission.applyUMask(FileSystemPermission.getUMask(conf));
-    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+    return this;
   }
 
   /**
