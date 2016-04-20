@@ -52,12 +52,12 @@ public class FileUtilsTest {
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "000");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
     Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
     // File deletion should fail, because we don't have write permissions
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "r--r--r--");
     Assert.assertTrue(tempFile.canRead());
     Assert.assertFalse(tempFile.canWrite());
     Assert.assertFalse(tempFile.canExecute());
@@ -79,7 +79,7 @@ public class FileUtilsTest {
     // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.fail("changing permissions of a non-existent file should have failed");
   }
 
@@ -92,9 +92,9 @@ public class FileUtilsTest {
   public void changeLocalDirPermissionTests() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "r--r--r--");
     Assert.assertFalse(tempFile.delete());
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "rwxr--r--");
     Assert.assertTrue(tempFile.delete());
   }
 

@@ -65,7 +65,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, "777");
+      setPermission(path, "rwxrwxrwx");
     } catch (IOException e) {
       stream.close();
       throw e;
@@ -187,13 +187,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     File file = new File(path);
     if (!createParent) {
       if (file.mkdir()) {
-        setPermission(file.getPath(), "777");
+        setPermission(file.getPath(), "rwxrwxrwx");
         FileUtils.setLocalDirStickyBit(file.getPath());
         return true;
       }
       return false;
     }
-    // create parent directories one by one and set their permissions to 777
+    // Create parent directories one by one and set their permissions to rwxrwxrwx.
     Stack<File> dirsToMake = new Stack<File>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
@@ -204,7 +204,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     while (!dirsToMake.empty()) {
       File dirToMake = dirsToMake.pop();
       if (dirToMake.mkdir()) {
-        setPermission(dirToMake.getAbsolutePath(), "777");
+        setPermission(dirToMake.getAbsolutePath(), "rwxrwxrwx");
         FileUtils.setLocalDirStickyBit(file.getPath());
       } else {
         return false;
