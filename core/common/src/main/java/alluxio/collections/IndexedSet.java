@@ -178,8 +178,7 @@ public class IndexedSet<T> implements Iterable<T> {
         // Get the index for this field
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
-        while (objSet == null) {
-          // TODO(gpang): without clear(), this while-clause can be an if-clause.
+        if (objSet == null) {
           index.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
           objSet = index.get(fieldValue);
         }

@@ -244,16 +244,12 @@ public class IndexedSetIntegrationTest {
     addTasks.add(new ConcurrentAdd());
     addTasks.add(new ConcurrentAdd());
     addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
-    addTasks.add(new ConcurrentAdd());
     removeTasks.add(new ConcurrentRemove());
     removeTasks.add(new ConcurrentRemove());
     removeTasks.add(new ConcurrentRemoveByField());
     removeTasks.add(new ConcurrentRemoveByField());
     removeTasks.add(new ConcurrentRemoveByIterator());
     removeTasks.add(new ConcurrentRemoveByIterator());
-    removeTasks.add(new ConcurrentClear());
-    removeTasks.add(new ConcurrentClear());
     for (ConcurrentTask task : addTasks) {
       futures.add(mThreadPool.submit(task));
     }
