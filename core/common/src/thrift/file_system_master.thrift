@@ -22,6 +22,7 @@ struct CreateFileTOptions {
 
 struct MountTOptions {
   1: optional bool readOnly
+  2: optional map<string, string> properties
 }
 
 struct FileInfo {
