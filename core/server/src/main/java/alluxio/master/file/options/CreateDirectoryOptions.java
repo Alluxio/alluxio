@@ -45,12 +45,12 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    */
   public static CreateDirectoryOptions fromTOptions(CreateDirectoryTOptions tOptions)
       throws IOException {
-    CreateDirectoryOptions options = new CreateDirectoryOptions();
-    options.setAllowExists(tOptions.isAllowExists());
-    options.setPersisted(tOptions.isPersisted());
-    options.setRecursive(tOptions.isRecursive());
-    options.setPermissionStatus(
-        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
+    CreateDirectoryOptions options = new CreateDirectoryOptions()
+        .setAllowExists(tOptions.isAllowExists())
+        .setPersisted(tOptions.isPersisted())
+        .setRecursive(tOptions.isRecursive())
+        .setPermissionStatus(
+            PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
     return options;
   }
 
