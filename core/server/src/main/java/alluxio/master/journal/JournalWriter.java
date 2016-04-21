@@ -361,7 +361,7 @@ public final class JournalWriter {
         // {@link FSDataOutputStream#sync} to actually flush data to HDFS.
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
-      boolean overSize = mDataOutputStream.size() > mMaxLogSize;
+      boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
       if (overSize || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.S3
           || mUfs.getUnderFSType() == UnderFileSystem.UnderFSType.OSS) {
         // (1) The log file is oversize, needs to be rotated. Or
