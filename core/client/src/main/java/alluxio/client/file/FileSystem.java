@@ -21,6 +21,7 @@ import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.ExistsOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.ListBlocksOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -34,6 +35,7 @@ import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+import alluxio.wire.FileBlockInfo;
 
 import java.io.IOException;
 import java.util.List;
@@ -207,6 +209,36 @@ public interface FileSystem {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   URIStatus getStatus(AlluxioURI path, GetStatusOptions options)
+      throws FileDoesNotExistException, IOException, AlluxioException;
+
+  /**
+   * Convenience method for {@link #listBlocks(AlluxioURI, ListBlocksOptions)} with default
+   * options.
+   *
+   * @param path the path to list information about
+   * @return a list of {@link FileBlockInfo}s containing information about the blocks of the
+   *         given file
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   */
+  List<FileBlockInfo> listBlocks(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException;
+
+  /**
+   * Returns the {@link FileBlockInfo} for all blocks of the file identified by the given path.
+   *
+   * @param path the path to list blocks for
+   * @param options options to associate with this operation
+   * @return a list of {@link FileBlockInfo}s containing information about the blocks of the
+   *         given file
+   * @throws IOException if a non-Alluxio exception occurs
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the given path does not exist
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   */
+  List<FileBlockInfo> listBlocks(AlluxioURI path, ListBlocksOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
