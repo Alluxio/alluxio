@@ -18,6 +18,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
+import alluxio.client.file.options.ListBlocksOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -25,6 +26,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
@@ -211,8 +213,22 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)}
-   * method.
+   * Tests for the {@link BaseFileSystem#listBlocks(AlluxioURI, ListBlocksOptions)} method.
+   *
+   * @throws Exception when listing the status fails
+   */
+  @Test
+  public void listBlocksTest() throws Exception {
+    AlluxioURI file = new AlluxioURI("/file");
+    List<FileBlockInfo> infos = Lists.newArrayList(new FileBlockInfo());
+    Mockito.when(mFileSystemMasterClient.listBlocks(file)).thenReturn(infos);
+    ListBlocksOptions options = ListBlocksOptions.defaults();
+    Assert.assertSame(infos, mFileSystem.listBlocks(file, options));
+    Mockito.verify(mFileSystemMasterClient).listBlocks(file);
+  }
+
+  /**
+   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
    *
    * @throws Exception when listing the status fails
    */

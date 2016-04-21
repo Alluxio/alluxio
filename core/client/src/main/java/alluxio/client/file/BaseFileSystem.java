@@ -195,7 +195,7 @@ public class BaseFileSystem implements FileSystem {
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
-      return masterClient.getFileBlockInfoList(path);
+      return masterClient.listBlocks(path);
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {

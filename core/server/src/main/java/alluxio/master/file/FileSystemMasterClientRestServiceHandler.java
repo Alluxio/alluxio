@@ -190,24 +190,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the list of file block descriptors for a file
-   * @param path the file path
-   * @return the response object
-   */
-  @GET
-  @Path(GET_FILE_BLOCK_INFO_LIST)
-  @ReturnType("java.util.List<alluxio.wire.FileBlockInfo>")
-  public Response getFileBlockInfoList(@QueryParam("path") String path) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path)));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
    * @summary get a new block id for a file
    * @param path the file path
    * @return the response object
@@ -288,6 +270,24 @@ public final class FileSystemMasterClientRestServiceHandler {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       mFileSystemMaster.free(new AlluxioURI(path), recursive);
       return RestUtils.createResponse();
+    } catch (AlluxioException | NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return RestUtils.createErrorResponse(e.getMessage());
+    }
+  }
+
+  /**
+   * @summary get the list of file block descriptors for a file
+   * @param path the file path
+   * @return the response object
+   */
+  @GET
+  @Path(GET_FILE_BLOCK_INFO_LIST)
+  @ReturnType("java.util.List<alluxio.wire.FileBlockInfo>")
+  public Response listBlocks(@QueryParam("path") String path) {
+    try {
+      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+      return RestUtils.createResponse(mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path)));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
