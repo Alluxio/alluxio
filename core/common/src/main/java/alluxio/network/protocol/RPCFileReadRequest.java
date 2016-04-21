@@ -31,7 +31,7 @@ public final class RPCFileReadRequest extends RPCRequest {
   /**
    * Constructs a new RPC request to read a file from an under file system from an Alluxio worker.
    *
-   * @param tempUfsFileId the worker specific id of the file to read
+   * @param tempUfsFileId the worker specific id of the ufs file to read
    * @param offset the file offset to begin reading at
    * @param length the number of bytes to read
    */
