@@ -85,6 +85,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -277,7 +278,7 @@ public final class FileSystemMaster extends AbstractMaster {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
         scheduleAsyncPersistenceInternal(getPath(fileId));
       } catch (AlluxioException e) {
-        throw new RuntimeException(e);
+        LOG.error(e.getMessage());
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
@@ -2009,6 +2010,13 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setPermission((short) entry.getPermission());
     }
     setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options);
+  }
+
+  /**
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  public List<WorkerInfo> getWorkerInfoList() {
+    return mBlockMaster.getWorkerInfoList();
   }
 
   /**
