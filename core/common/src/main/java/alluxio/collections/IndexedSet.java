@@ -30,6 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * must be comparable. The field value must not be changed after an object is added to the set,
  * otherwise, behavior for all operations is not specified.
  *
+ * If concurrent adds or removes for objects which are equivalent, but not the same exact object,
+ * the behavior is undefined. Therefore, do not add or remove "clones" objects in the
+ * {@link IndexedSet}.
+ *
  * <p>
  * Example usage:
  *
@@ -161,6 +165,8 @@ public class IndexedSet<T> implements Iterable<T> {
   public boolean add(T object) {
     Preconditions.checkNotNull(object);
 
+    // Locking this object protects against removing the exact object, but does not protect against
+    // removing a distinct, but equivalent object.
     synchronized (object) {
       if (!mObjects.addIfAbsent(object)) {
         // This object is already added, possibly by another concurrent thread.
@@ -260,16 +266,16 @@ public class IndexedSet<T> implements Iterable<T> {
   /**
    * Gets a subset of objects with the specified field value. If there is no object with the
    * specified field value, a newly created empty set is returned. Otherwise, the returned set is
-   * backed up by an internal set, so changes in internal set will be reflected in returned set and
-   * vice-versa.
+   * backed up by an internal set, so changes in internal set will be reflected in returned set.
    *
    * @param index the field index
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
+  // TODO(gpang): Remove this method, if it is not being used.
   public Set<T> getByField(FieldIndex<T> index, Object value) {
     Set<T> set = getByFieldInternal(index, value);
-    return set == null ? new HashSet<T>() : set;
+    return set == null ? new HashSet<T>() : Collections.unmodifiableSet(set);
   }
 
   /**
@@ -295,6 +301,9 @@ public class IndexedSet<T> implements Iterable<T> {
    * @return true if the object is in the set and removed successfully, otherwise false
    */
   public boolean remove(T object) {
+    // Locking this object protects against removing the exact object that might be in the
+    // process of being added, but does not protect against removing a distinct, but equivalent
+    // object.
     synchronized (object) {
       if (mObjects.contains(object)) {
         removeFromIndices(object);
