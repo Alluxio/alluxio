@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.collections.IndexedSet;
+import alluxio.master.MasterContext;
+import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
@@ -54,7 +56,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    *
    * @param id the id to use
    */
-  public InodeDirectory(long id) {
+  private InodeDirectory(long id) {
     super(id);
     mDirectory = true;
     mMountPoint = false;
@@ -209,6 +211,27 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
             .setMountPoint(entry.getMountPoint());
+    return inode;
+  }
+
+  /**
+   * Creates an {@link InodeDirectory}.
+   *
+   * @param id id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param directoryOptions options to create this directory
+   * @return the {@link InodeDirectory} representation
+   */
+  public static InodeDirectory create(long id, long parentId, String name,
+      CreateDirectoryOptions directoryOptions) {
+    PermissionStatus permissionStatus = new PermissionStatus(directoryOptions.getPermissionStatus())
+        .applyDirectoryUMask(MasterContext.getConf());
+    InodeDirectory inode = new InodeDirectory(id)
+        .setParentId(parentId)
+        .setName(name)
+        .setPermissionStatus(permissionStatus)
+        .setMountPoint(directoryOptions.isMountPoint());
     return inode;
   }
 

@@ -11,12 +11,9 @@
 
 package alluxio.master.file.options;
 
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 
 import com.google.common.base.Objects;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,10 +31,10 @@ public abstract class CreatePathOptions<T> {
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 
-  protected CreatePathOptions() throws IOException {
+  protected CreatePathOptions() {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
+    mPermissionStatus = PermissionStatus.defaults();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
