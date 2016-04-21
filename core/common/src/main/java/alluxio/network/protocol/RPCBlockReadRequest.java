@@ -91,7 +91,7 @@ public final class RPCBlockReadRequest extends RPCRequest {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
-        .add("lenght", mLength).add("lockId", mLockId).add("sessionId", mSessionId).toString();
+        .add("length", mLength).add("lockId", mLockId).add("sessionId", mSessionId).toString();
   }
 
   /**
