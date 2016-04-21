@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.annotation.PublicApi;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -25,7 +23,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The file block descriptor.
  */
-@PublicApi
 @NotThreadSafe
 public final class FileBlockInfo {
   private BlockInfo mBlockInfo = new BlockInfo();
@@ -45,7 +42,7 @@ public final class FileBlockInfo {
   protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
     mOffset = fileBlockInfo.getOffset();
-    mUfsLocations = new ArrayList<WorkerNetAddress>();
+    mUfsLocations = new ArrayList<>();
     for (alluxio.thrift.WorkerNetAddress ufsLocation : fileBlockInfo.getUfsLocations()) {
       mUfsLocations.add(new WorkerNetAddress(ufsLocation));
     }
@@ -105,8 +102,7 @@ public final class FileBlockInfo {
    * @return thrift representation of the file block descriptor
    */
   protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations =
-        new ArrayList<alluxio.thrift.WorkerNetAddress>();
+    List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();
     for (WorkerNetAddress ufsLocation : mUfsLocations) {
       ufsLocations.add(ufsLocation.toThrift());
     }

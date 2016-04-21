@@ -11,8 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.annotation.PublicApi;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -21,7 +19,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The location of a block.
  */
-@PublicApi
 @NotThreadSafe
 public final class BlockLocation {
   private long mWorkerId;
