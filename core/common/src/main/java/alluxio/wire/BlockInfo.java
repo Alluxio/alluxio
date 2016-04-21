@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -23,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The block descriptor.
  */
+@PublicApi
 @NotThreadSafe
 public final class BlockInfo {
   private long mBlockId;
