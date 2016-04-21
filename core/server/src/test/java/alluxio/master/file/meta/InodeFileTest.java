@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.MasterContext;
 
 import com.google.common.collect.Lists;
 import org.junit.Assert;
@@ -148,8 +149,9 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void permissionStatusTest() {
     InodeFile inode1 = createInodeFile(1);
-    Assert.assertEquals(AbstractInodeTest.TEST_USER_NAME, inode1.getUserName());
-    Assert.assertEquals(AbstractInodeTest.TEST_GROUP_NAME, inode1.getGroupName());
-    Assert.assertEquals(sPermissionStatus.getPermission().toShort(), inode1.getPermission());
+    Assert.assertEquals(TEST_USER_NAME, inode1.getUserName());
+    Assert.assertEquals(TEST_GROUP_NAME, inode1.getGroupName());
+    Assert.assertEquals(TEST_PERMISSION_STATUS.applyFileUMask(MasterContext.getConf())
+        .getPermission().toShort(), inode1.getPermission());
   }
 }

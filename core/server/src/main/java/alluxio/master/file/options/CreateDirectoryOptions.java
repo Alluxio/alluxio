@@ -28,33 +28,30 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
 
   /**
    * @return the default {@link CreateDirectoryOptions}
-   * @throws IOException if I/O error occurs
    */
-  public static CreateDirectoryOptions defaults() throws IOException {
+  public static CreateDirectoryOptions defaults() {
     return new CreateDirectoryOptions();
   }
 
   /**
-   * Creates a new instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
+   * Constructs an instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
    * The option of permission status is constructed with the username obtained from thrift
    * transport.
    *
-   * @param tOptions the {@link CreateDirectoryTOptions} to use
-   * @return the {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}
-   * @throws IOException if an I/O error occurs
+   * @param options the {@link CreateDirectoryTOptions} to use
+   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public static CreateDirectoryOptions fromTOptions(CreateDirectoryTOptions tOptions)
+  public CreateDirectoryOptions(CreateDirectoryTOptions options)
       throws IOException {
-    CreateDirectoryOptions options = new CreateDirectoryOptions()
-        .setAllowExists(tOptions.isAllowExists())
-        .setPersisted(tOptions.isPersisted())
-        .setRecursive(tOptions.isRecursive())
-        .setPermissionStatus(
-            PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
-    return options;
+    super();
+    mAllowExists = options.isAllowExists();
+    mPersisted = options.isPersisted();
+    mRecursive = options.isRecursive();
+    mPermissionStatus =
+        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
   }
 
-  private CreateDirectoryOptions() throws IOException {
+  private CreateDirectoryOptions() {
     super();
     mAllowExists = false;
   }

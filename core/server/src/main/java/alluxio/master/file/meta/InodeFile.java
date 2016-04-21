@@ -49,7 +49,7 @@ public final class InodeFile extends Inode<InodeFile> {
    *
    * @param id the block container id to use
    */
-  public InodeFile(long id) {
+  private InodeFile(long id) {
     super(0);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = id;
