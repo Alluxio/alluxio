@@ -269,6 +269,13 @@ public final class AlluxioWorker {
   }
 
   /**
+   * @return the file system worker
+   */
+  public FileSystemWorker getFileSystemWorker() {
+    return mFileSystemWorker;
+  }
+
+  /**
    * @return this worker's rpc address
    */
   public InetSocketAddress getWorkerAddress() {
