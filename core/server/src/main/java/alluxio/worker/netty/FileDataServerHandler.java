@@ -18,9 +18,6 @@ import alluxio.worker.file.FileSystemWorker;
  * This class handles filesystem data server requests.
  */
 public class FileDataServerHandler {
-  /** Filesystem worker which handles file level operations for the worker. */
-  private final FileSystemWorker mWorker;
-
   /**
    * Constructs a file data server handler for serving any ufs read/write requests.
    *
@@ -28,6 +25,6 @@ public class FileDataServerHandler {
    * @param conf the configuration to use
    */
   public FileDataServerHandler(FileSystemWorker worker, Configuration conf) {
-    mWorker = worker;
+
   }
 }
