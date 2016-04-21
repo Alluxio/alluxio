@@ -390,7 +390,7 @@ public final class TieredBlockStore implements BlockStore {
 
   @Override
   public Map<String, List<Long>> getBlockIdsOnTiers() {
-    Map<String, List<Long>> blockIdsOnTiers = new HashMap<String, List<Long>>();
+    Map<String, List<Long>> blockIdsOnTiers = new HashMap<>();
     mMetadataReadLock.lock();
     try {
       for (StorageTier tier : mMetaManager.getTiers()) {
