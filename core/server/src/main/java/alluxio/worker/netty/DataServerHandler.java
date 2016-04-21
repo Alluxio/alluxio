@@ -41,9 +41,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Handler for any block store requests */
+  /** Handler for any block store requests. */
   private final BlockDataServerHandler mBlockHandler;
-  /** Handler for any file system requests */
+  /** Handler for any file system requests. */
   private final FileDataServerHandler mFileHandler;
 
   /**
