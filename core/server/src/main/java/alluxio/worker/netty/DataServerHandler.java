@@ -71,6 +71,10 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         assert msg instanceof RPCBlockWriteRequest;
         mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
+      case RPC_FILE_READ_REQUEST:
+        break;
+      case RPC_FILE_WRITE_REQUEST:
+        break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
         ctx.writeAndFlush(resp);
