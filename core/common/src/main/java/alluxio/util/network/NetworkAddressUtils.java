@@ -455,7 +455,7 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
-      return new AlluxioURI(path.getScheme(), authority, path.getPath());
+      return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
     }
     return path;
   }
