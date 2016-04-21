@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.master.MasterContext;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.CreateDirectoryTOptions;
 
 import java.io.IOException;
@@ -26,26 +28,30 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
 
   /**
    * @return the default {@link CreateDirectoryOptions}
-   * @throws IOException if I/O error occurs
    */
-  public static CreateDirectoryOptions defaults() throws IOException {
+  public static CreateDirectoryOptions defaults() {
     return new CreateDirectoryOptions();
   }
 
   /**
-   * Creates a new instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
+   * Constructs an instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
+   * The option of permission status is constructed with the username obtained from thrift
+   * transport.
    *
    * @param options the {@link CreateDirectoryTOptions} to use
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public CreateDirectoryOptions(CreateDirectoryTOptions options) throws IOException {
+  public CreateDirectoryOptions(CreateDirectoryTOptions options)
+      throws IOException {
     super();
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
+    mPermissionStatus =
+        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
   }
 
-  private CreateDirectoryOptions() throws IOException {
+  private CreateDirectoryOptions() {
     super();
     mAllowExists = false;
   }

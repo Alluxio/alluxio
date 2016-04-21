@@ -388,6 +388,16 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests the permission bits are 0755 for directories and 0644 for files by default.
+   */
+  @Test
+  public void permissionTest() throws Exception {
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+  }
+
+  /**
    * Tests that a file is fully written to memory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails

@@ -190,6 +190,16 @@ public final class FileSystemPermission {
   }
 
   /**
+   * Gets the full permission for NOSASL authentication mode.
+   *
+   * @return the none {@link FileSystemPermission}
+   */
+  public static FileSystemPermission getFullFsPermission() {
+    return new FileSystemPermission(FileSystemAction.ALL, FileSystemAction.ALL,
+        FileSystemAction.ALL);
+  }
+
+  /**
    * Gets the file/directory creation umask.
    *
    * @param conf the runtime configuration of Alluxio

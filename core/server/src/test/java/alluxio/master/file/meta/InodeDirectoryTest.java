@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Sets;
@@ -64,13 +64,10 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
-    InodeDirectory inode1 = new InodeDirectory(1).setName("test1").setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault());
-    InodeDirectory inode2 = new InodeDirectory(1).setName("test2").setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault());
-    InodeDirectory inode3 = new InodeDirectory(3).setName("test3").setParentId(0)
-        .setPermissionStatus(PermissionStatus.getDirDefault());
+  public void equalsTest() throws Exception {
+    InodeDirectory inode1 = InodeDirectory.create(1, 0, "test1", CreateDirectoryOptions.defaults());
+    InodeDirectory inode2 = InodeDirectory.create(1, 0, "test2", CreateDirectoryOptions.defaults());
+    InodeDirectory inode3 = InodeDirectory.create(3, 0, "test3", CreateDirectoryOptions.defaults());
     Assert.assertTrue(inode1.equals(inode2));
     Assert.assertTrue(inode1.equals(inode1));
     Assert.assertFalse(inode1.equals(inode3));
