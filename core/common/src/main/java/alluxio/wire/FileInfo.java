@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The file descriptor.
  */
 @NotThreadSafe
-// TODO(jiri): Consolidate with URIStatus
+// TODO(jiri): Consolidate with URIStatus.
 public final class FileInfo {
   private long mFileId;
   private String mName = "";
