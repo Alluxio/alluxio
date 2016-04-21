@@ -9,22 +9,22 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNw] WHAT [MOPT] [-f]
-Where WHAT is one of:
-  all MOPT\t\tStart master and all workers.
-  local [MOPT] \t\t\tStart a master and worker locally. SudoMount is assumed if MOPT is missing.
+USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
+Where ACTION is one of:
+  all [MOPT]\t\tStart master and all workers.
+  local [MOPT] \t\t\tStart a master and worker locally.
   master\t\tStart the master on this node.
   safe\t\t\tScript will run continuously and start the master if it's not running.
-  worker MOPT\t\tStart a worker on this node.
-  workers MOPT\t\tStart workers on worker nodes.
+  worker [MOPT]\t\tStart a worker on this node.
+  workers [MOPT]\t\tStart workers on worker nodes.
   restart_worker\tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
-
 MOPT is one of:
   Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
   SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
   NoMount\t\tDo not mount the configured RamFS. Notice: Use NoMount (Linux only) to use tmpFS
   to avoid sudo requirement.
+  SudoMount is assumed if MOPT is missing.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
 
@@ -52,15 +52,18 @@ check_mount_mode() {
     Mount);;
     SudoMount);;
     NoMount)
-      if ! mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null; then
-        if [[ $( uname -s) == Darwin ]]; then
+      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
+      if [[ $? -ne 0 || -z ${ALLUXIO_RAM_FOLDER} ]]; then
+        if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
-          echo "ERROR: NoMount is not supported in Mac OS X."
+          echo "ERROR: NoMount is not supported on Mac OS X."
           echo -e "${USAGE}"
           exit 1
         else
           echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
           export ALLUXIO_RAM_FOLDER="/dev/shm"
+          # Set env again since some env variables depend on ALLUXIO_RAM_FOLDER.
+          get_env
         fi
       fi
       if [[ "${ALLUXIO_RAM_FOLDER}" =~ ^"/dev/shm"\/{0,1}$ ]]; then
@@ -162,7 +165,7 @@ restart_worker() {
      .type="WORKER_ACCESS_LOGGER" \
      -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
-     alluxio.worker.AluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
+     alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
 }
 
@@ -179,112 +182,113 @@ run_safe() {
   done
 }
 
-while getopts "hNw" o; do
-  case "${o}" in
-    h)
-      echo -e "${USAGE}"
-      exit 0
-      ;;
-    N)
-      killonstart="no"
-      ;;
-    w)
-      wait="true"
-      ;;
-    *)
-      echo -e "${USAGE}"
-      exit 1
-      ;;
-  esac
-done
+main() {
+  # get environment
+  get_env
 
-shift $((OPTIND-1))
+  # ensure log/data dirs
+  ensure_dirs
 
-WHAT=$1
-if [[ -z "${WHAT}" ]]; then
-  echo "Error: no WHAT specified"
-  echo -e "${USAGE}"
-  exit 1
-fi
-shift
+  while getopts "hNw" o; do
+    case "${o}" in
+      h)
+        echo -e "${USAGE}"
+        exit 0
+        ;;
+      N)
+        killonstart="no"
+        ;;
+      w)
+        wait="true"
+        ;;
+      *)
+        echo -e "${USAGE}"
+        exit 1
+        ;;
+    esac
+  done
 
-MOPT=$1
-# Set MOPT.
-case "${WHAT}" in
-  all|worker|workers)
-    check_mount_mode ${MOPT}
-    shift
-    ;;
-  local)
-    if [[ -z ${MOPT} || ${MOPT} == "-f" ]]; then
-      MOPT="SudoMount"
-    else
-      shift
-    fi
-    check_mount_mode ${MOPT}
-    ;;
-  *)
-    MOPT=""
-    ;;
-esac
+  shift $((${OPTIND} - 1))
 
-FORMAT=$1
-if [ ! -z ${FORMAT} ] && [ ${FORMAT} != "-f" ]; then
-  echo -e "${USAGE}"
-  exit 1
-fi
-
-# get environment
-get_env
-
-# ensure log/data dirs
-ensure_dirs
-
-case "${WHAT}" in
-  all)
-    if [[ "${killonstart}" != "no" ]]; then
-      stop ${BIN}
-    fi
-    start_master ${FORMAT}
-    sleep 2
-
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT}
-    ;;
-  local)
-    if [[ "${killonstart}" != "no" ]]; then
-      stop ${BIN}
-      sleep 1
-    fi
-    start_master ${FORMAT}
-    sleep 2
-    start_worker ${MOPT}
-    ;;
-  master)
-    start_master ${FORMAT}
-    ;;
-  worker)
-    start_worker ${MOPT}
-    ;;
-  safe)
-    run_safe
-    ;;
-  workers)
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh worker ${MOPT} \
-     ${ALLUXIO_MASTER_ADDRESS}
-    ;;
-  restart_worker)
-    restart_worker
-    ;;
-  restart_workers)
-    ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio-start.sh restart_worker
-    ;;
-  *)
-    echo "Error: Invalid WHAT: ${WHAT}"
+  ACTION=$1
+  if [[ -z "${ACTION}" ]]; then
+    echo "Error: no ACTION specified"
     echo -e "${USAGE}"
     exit 1
-esac
-sleep 2
+  fi
+  shift
 
-if [[ "${wait}" ]]; then
-  wait
-fi
+  MOPT=$1
+  # Set MOPT.
+  case "${ACTION}" in
+    all|worker|workers|local)
+      if [[ -z "${MOPT}" || "${MOPT}" == "-f" ]]; then
+        MOPT="SudoMount"
+      else
+        shift
+      fi
+      check_mount_mode "${MOPT}"
+      ;;
+    *)
+      MOPT=""
+      ;;
+  esac
+
+  FORMAT=$1
+  if [[ ! -z "${FORMAT}" && "${FORMAT}" != "-f" ]]; then
+    echo -e "${USAGE}"
+    exit 1
+  fi
+
+  case "${ACTION}" in
+    all)
+      if [[ "${killonstart}" != "no" ]]; then
+        stop ${BIN}
+      fi
+      start_master "${FORMAT}"
+      sleep 2
+
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}"
+      ;;
+    local)
+      if [[ "${killonstart}" != "no" ]]; then
+        stop ${BIN}
+        sleep 1
+      fi
+      start_master "${FORMAT}"
+      sleep 2
+      start_worker "${MOPT}"
+      ;;
+    master)
+      start_master "${FORMAT}"
+      ;;
+    worker)
+      start_worker "${MOPT}"
+      ;;
+    safe)
+      run_safe
+      ;;
+    workers)
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
+       "${ALLUXIO_MASTER_ADDRESS}"
+      ;;
+    restart_worker)
+      restart_worker
+      ;;
+    restart_workers)
+      ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" restart_worker
+      ;;
+    *)
+    echo "Error: Invalid ACTION: ${ACTION}"
+    echo -e "${USAGE}"
+    exit 1
+  esac
+  sleep 2
+
+  if [[ "${wait}" ]]; then
+    wait
+  fi
+}
+
+main "$@"
+

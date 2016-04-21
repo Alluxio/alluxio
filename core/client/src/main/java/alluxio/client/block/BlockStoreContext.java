@@ -73,8 +73,8 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
-   * manner.
+   * Initializes {@link #mLocalBlockWorkerClientPoolMap}. This method is supposed be called in a
+   * lazy manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
