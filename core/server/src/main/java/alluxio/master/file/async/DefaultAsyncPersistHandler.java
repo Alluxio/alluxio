@@ -63,8 +63,6 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   @Override
   public synchronized void scheduleAsyncPersistence(AlluxioURI path)
       throws AlluxioException {
-
-
     // find the worker
     long workerId = getWorkerStoringFile(path);
 
