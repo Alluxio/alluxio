@@ -41,7 +41,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Handler for any block store requests */
   private final BlockDataServerHandler mBlockHandler;
+  /** Handler for any file system requests */
+  private final FileDataServerHandler mFileHandler;
 
   /**
    * Creates a new instance of {@link DataServerHandler}.
@@ -53,6 +56,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     Preconditions.checkNotNull(worker);
     Preconditions.checkNotNull(configuration);
     mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
+    mFileHandler = new FileDataServerHandler(worker.getFileSystemWorker(), configuration);
   }
 
   @Override
