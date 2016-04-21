@@ -100,6 +100,13 @@ public final class RPCFileWriteResponse extends RPCResponse {
         .add("length", mLength).add("status", mStatus).toString();
   }
 
+  @Override
+  public void validate() {
+    Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
+    Preconditions.checkState(mLength >= 0 || mLength == -1,
+        "Length cannot be negative (except for -1): %s", mLength);
+  }
+
   /**
    * @return the worker specific ufs file id
    */
