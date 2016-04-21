@@ -112,6 +112,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the list of file blocks information for the given file.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   list<common.FileBlockInfo> getFileBlockInfoList( /** the path of the file */ 1: string path)
     throws (1: exception.AlluxioTException e)
@@ -140,6 +142,12 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   string getUfsAddress()
+
+  /**
+   * Returns the list of file blocks information for the given file.
+   */
+  list<common.FileBlockInfo> listBlocks( /** the path of the file */ 1: string path)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * If the path points to a file, the method returns a singleton with its file information.

@@ -239,7 +239,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
-    List<FileBlockInfo> blocks = getFileBlocks(path);
+    List<FileBlockInfo> blocks = listBlocks(path);
 
     List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
     for (int k = 0; k < blocks.size(); k++) {
@@ -554,10 +554,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
+  private List<FileBlockInfo> listBlocks(AlluxioURI path) throws IOException {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.getFileBlockInfoList(path);
+      return master.listBlocks(path);
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {

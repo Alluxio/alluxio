@@ -180,7 +180,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(final AlluxioURI path)
+  public synchronized List<FileBlockInfo> listBlocks(final AlluxioURI path)
       throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
       @Override

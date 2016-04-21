@@ -113,7 +113,14 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0, use
+   * {@link #listBlocks(String)} instead
+   */
   @Override
+  @Deprecated
   public List<FileBlockInfo> getFileBlockInfoList(final String path) throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<List<FileBlockInfo>>() {
       @Override
@@ -167,6 +174,21 @@ public final class FileSystemMasterClientServiceHandler implements
   @Deprecated
   public String getUfsAddress() {
     return mFileSystemMaster.getUfsAddress();
+  }
+
+  @Override
+  public List<FileBlockInfo> listBlocks(final String path) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<List<FileBlockInfo>>() {
+      @Override
+      public List<FileBlockInfo> call() throws AlluxioException {
+        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        for (alluxio.wire.FileBlockInfo fileBlockInfo :
+            mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))) {
+          result.add(ThriftUtils.toThrift(fileBlockInfo));
+        }
+        return result;
+      }
+    });
   }
 
   @Override
