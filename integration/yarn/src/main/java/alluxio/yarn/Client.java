@@ -24,6 +24,13 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
@@ -41,9 +48,11 @@ import org.apache.hadoop.yarn.client.api.YarnClientApplication;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
+import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
@@ -77,6 +86,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Client {
+  private static final Log LOG = LogFactory.getLog(Client.class);
+
   /** Yarn client to talk to resource manager. */
   private YarnClient mYarnClient;
   /** Yarn configuration. */
@@ -224,8 +235,6 @@ public final class Client {
    * alpha API.
    */
   private void submitApplication() throws YarnException, IOException {
-    // TODO(binfan): setup credential
-
     // Initialize a YarnClient
     mYarnClient = YarnClient.createYarnClient();
     mYarnClient.init(mYarnConf);
@@ -279,7 +288,7 @@ public final class Client {
             mNumWorkers, hosts.size(), mMaxWorkersPerHost, hosts));
   }
 
-  private void setupContainerLaunchContext() throws IOException {
+  private void setupContainerLaunchContext() throws IOException, YarnException {
     Map<String, String> applicationMasterArgs = ImmutableMap.<String, String>of(
         "-num_workers", Integer.toString(mNumWorkers),
         "-master_address", mMasterAddress,
@@ -305,9 +314,39 @@ public final class Client {
     Map<String, String> appMasterEnv = new HashMap<String, String>();
     setupAppMasterEnv(appMasterEnv);
     mAmContainer.setEnvironment(appMasterEnv);
+
+    // Set up security tokens for launching our ApplicationMaster container.
+    if (UserGroupInformation.isSecurityEnabled()) {
+      Credentials credentials = new Credentials();
+      String tokenRenewer = mYarnConf.get(YarnConfiguration.RM_PRINCIPAL);
+      if (tokenRenewer == null || tokenRenewer.length() == 0) {
+        throw new IOException(
+                "Can't get Master Kerberos principal for the RM to use as renewer");
+      }
+      org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(mYarnConf);
+      // getting tokens for the default file-system.
+      final Token<?>[] tokens = fs.addDelegationTokens(tokenRenewer, credentials);
+      if (tokens != null) {
+        for (Token<?> token : tokens) {
+          LOG.info("Got dt for " + fs.getUri() + "; " + token);
+        }
+      }
+      // getting yarn resource manager token
+      org.apache.hadoop.conf.Configuration config = mYarnClient.getConfig();
+      Token<TokenIdentifier> token = ConverterUtils.convertFromYarn(
+              mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
+              YarnUtils.getRMAddress(config));
+      LOG.info("Added RM delegation token: " + token);
+      credentials.addToken(token.getService(), token);
+
+      DataOutputBuffer dob = new DataOutputBuffer();
+      credentials.writeTokenStorageToStream(dob);
+      ByteBuffer buffer = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+      mAmContainer.setTokens(buffer);
+    }
   }
 
-  private void setupAppMasterEnv(Map<String, String> appMasterEnv) {
+  private void setupAppMasterEnv(Map<String, String> appMasterEnv) throws IOException {
     String classpath = ApplicationConstants.Environment.CLASSPATH.name();
     for (String path : mYarnConf.getStrings(YarnConfiguration.YARN_APPLICATION_CLASSPATH,
         YarnConfiguration.DEFAULT_YARN_APPLICATION_CLASSPATH)) {
@@ -318,6 +357,10 @@ public final class Client {
         ApplicationConstants.CLASS_PATH_SEPARATOR);
 
     appMasterEnv.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
+
+    if (UserGroupInformation.isSecurityEnabled()) {
+      appMasterEnv.put("ALLUXIO_USER", UserGroupInformation.getCurrentUser().getShortUserName());
+    }
   }
 
   /**

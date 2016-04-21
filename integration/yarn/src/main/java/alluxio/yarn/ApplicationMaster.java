@@ -25,6 +25,10 @@ import com.google.common.collect.Multiset;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
+import org.apache.hadoop.io.DataOutputBuffer;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.ContainerExitStatus;
@@ -41,14 +45,18 @@ import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
+import org.apache.hadoop.yarn.security.AMRMTokenIdentifier;
 import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.security.PrivilegedExceptionAction;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -125,6 +133,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
 
+  private ByteBuffer mAllTokens;
+
   /**
    * Convenience constructor which uses the default Alluxio configuration.
    *
@@ -175,17 +185,33 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     try {
       LOG.info("Starting Application Master with args {}", Arrays.toString(args));
+      final CommandLine cliParser = new GnuParser().parse(options, args);
 
-      CommandLine cliParser = new GnuParser().parse(options, args);
-      int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-      String masterAddress = cliParser.getOptionValue("master_address");
-      String resourcePath = cliParser.getOptionValue("resource_path");
+      YarnConfiguration conf = new YarnConfiguration();
+      String user = System.getenv("ALLUXIO_USER");
+      UserGroupInformation.setConfiguration(conf);
+      LOG.info("Username: " + user);
+      UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
+      for (Token token : UserGroupInformation.getCurrentUser().getTokens()) {
+        ugi.addToken(token);
+      }
+      LOG.info("UserGroupInformation: " + ugi);
+      ugi.doAs(new PrivilegedExceptionAction<Void>() {
+        @Override
+        public Void run() throws Exception {
+          int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
+          String masterAddress = cliParser.getOptionValue("master_address");
+          String resourcePath = cliParser.getOptionValue("resource_path");
 
-      ApplicationMaster applicationMaster =
-          new ApplicationMaster(numWorkers, masterAddress, resourcePath);
-      applicationMaster.start();
-      applicationMaster.requestContainers();
-      applicationMaster.stop();
+          ApplicationMaster applicationMaster =
+                  new ApplicationMaster(numWorkers, masterAddress, resourcePath);
+          applicationMaster.start();
+          applicationMaster.requestContainers();
+          applicationMaster.stop();
+          return null;
+        }
+      });
+
     } catch (Exception e) {
       LOG.error("Error running Application Master ", e);
       System.exit(1);
@@ -238,6 +264,21 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @throws YarnException if registering the application master fails due to an internal Yarn error
    */
   public void start() throws IOException, YarnException {
+    if (UserGroupInformation.isSecurityEnabled()) {
+      Credentials credentials =
+              UserGroupInformation.getCurrentUser().getCredentials();
+      DataOutputBuffer dob = new DataOutputBuffer();
+      credentials.writeTokenStorageToStream(dob);
+      // Now remove the AM -> RM token so that containers cannot access it.
+      Iterator<Token<?>> iter = credentials.getAllTokens().iterator();
+      while (iter.hasNext()) {
+        Token<?> token = iter.next();
+        if (token.getKind().equals(AMRMTokenIdentifier.KIND_NAME)) {
+          iter.remove();
+        }
+      }
+      mAllTokens = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+    }
     // create a client to talk to NodeManager
     mNMClient = NMClient.createNMClient();
     mNMClient.init(mYarnConf);
@@ -409,7 +450,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       ctx.setCommands(Lists.newArrayList(command));
       ctx.setLocalResources(setupLocalResources(mResourcePath));
       ctx.setEnvironment(setupMasterEnvironment());
-
+      if (UserGroupInformation.isSecurityEnabled()) {
+        ctx.setTokens(mAllTokens.duplicate());
+      }
       LOG.info("Launching container {} for Alluxio master on {} with master command: {}",
           container.getId(), container.getNodeHttpAddress(), command);
       mNMClient.startContainer(container, ctx);
@@ -430,6 +473,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     ctx.setCommands(Lists.newArrayList(command));
     ctx.setLocalResources(setupLocalResources(mResourcePath));
     ctx.setEnvironment(setupWorkerEnvironment(mMasterContainerNetAddress, mRamdiskMemInMB));
+    if (UserGroupInformation.isSecurityEnabled()) {
+      ctx.setTokens(mAllTokens.duplicate());
+    }
 
     for (Container container : containers) {
       synchronized (mWorkerHosts) {
@@ -478,6 +524,13 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     env.put("ALLUXIO_MASTER_ADDRESS", masterContainerNetAddress);
     env.put("ALLUXIO_WORKER_MEMORY_SIZE",
         FormatUtils.getSizeFromBytes((long) ramdiskMemInMB * Constants.MB));
+    if (UserGroupInformation.isSecurityEnabled()) {
+      try {
+        env.put("ALLUXIO_USER", UserGroupInformation.getCurrentUser().getShortUserName());
+      } catch (IOException e) {
+        LOG.error("Get user name failed", e);
+      }
+    }
     return env;
   }
 
@@ -486,6 +539,14 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     Map<String, String> env = new HashMap<String, String>();
     env.put("CLASSPATH", ENV_CLASSPATH);
     env.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
+    env.put("ALLUXIO_RAM_FOLDER", ApplicationConstants.Environment.LOCAL_DIRS.$());
+    if (UserGroupInformation.isSecurityEnabled()) {
+      try {
+        env.put("ALLUXIO_USER", UserGroupInformation.getCurrentUser().getShortUserName());
+      } catch (IOException e) {
+        LOG.error("Get user name failed", e);
+      }
+    }
     return env;
   }
 }

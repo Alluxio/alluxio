@@ -13,6 +13,12 @@
       <directoryMode>0755</directoryMode>
     </fileSet>
     <fileSet>
+      <directory>${basedir}/../integration/bin</directory>
+      <outputDirectory>/integration/bin</outputDirectory>
+      <fileMode>0755</fileMode>
+      <directoryMode>0755</directoryMode>
+    </fileSet>
+    <fileSet>
       <directory>${basedir}/../conf</directory>
       <outputDirectory>/conf</outputDirectory>
     </fileSet>

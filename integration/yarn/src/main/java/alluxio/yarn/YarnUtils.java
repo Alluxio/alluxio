@@ -13,6 +13,7 @@ package alluxio.yarn;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -29,6 +30,7 @@ import org.apache.hadoop.yarn.util.ConverterUtils;
 import org.apache.hadoop.yarn.util.Records;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,6 +147,18 @@ public final class YarnUtils {
     commandBuilder.addArg("1>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stdout");
     commandBuilder.addArg("2>" + ApplicationConstants.LOG_DIR_EXPANSION_VAR + "/stderr");
     return commandBuilder.toString();
+  }
+
+  /**
+   * Get yarn resource manager ip address.
+   *
+   * @param config yarn configuration
+   * @return the ip address of yarn resource manager
+   */
+  public static InetSocketAddress getRMAddress(Configuration config) {
+    return config.getSocketAddr(YarnConfiguration.RM_ADDRESS,
+            YarnConfiguration.DEFAULT_RM_ADDRESS,
+            YarnConfiguration.DEFAULT_RM_PORT);
   }
 
   private YarnUtils() {} // this utils class should not be instantiated
