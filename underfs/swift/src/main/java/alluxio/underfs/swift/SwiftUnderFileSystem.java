@@ -11,6 +11,7 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -71,12 +72,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param containerName the name of the container
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(String containerName,
-      Configuration configuration) {
-    super(configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
+    super(uri, configuration);
+    String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
     config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
@@ -191,16 +192,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in Swift, however the maximum
-   * allowed size of one file is currently 4 GB.
+   * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
+   * one file is 4 GB. This method defaults to the default user block size in Alluxio.
    *
-   * @param path to the object
-   * @return 4 GB in bytes
+   * @param path the path to the object
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.GB * 4;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
