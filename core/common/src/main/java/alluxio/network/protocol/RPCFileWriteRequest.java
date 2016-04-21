@@ -15,6 +15,7 @@ import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
 import com.google.common.primitives.Longs;
 import io.netty.buffer.ByteBuf;
 
@@ -98,6 +99,12 @@ public final class RPCFileWriteRequest extends RPCRequest {
   public String toString() {
     return Objects.toStringHelper(this).add("tempUfsFileId", mTempUfsFileId).add("offset", mOffset)
         .add("length", mLength).toString();
+  }
+
+  @Override
+  public void validate() {
+    Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
+    Preconditions.checkState(mLength >= 0, "Length cannot be negative: %s", mLength);
   }
 
   /**
