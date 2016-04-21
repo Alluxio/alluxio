@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
@@ -53,8 +52,7 @@ public class FileSystemUtilsIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    Configuration conf = sLocalAlluxioClusterResource.get().getMasterConf();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
+    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @Test

@@ -51,7 +51,7 @@ public class CreateDirectoryOptionsTest {
     boolean allowExists = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
-    PermissionStatus permissionStatus = PermissionStatus.getDirDefault();
+    PermissionStatus permissionStatus = PermissionStatus.defaults();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 

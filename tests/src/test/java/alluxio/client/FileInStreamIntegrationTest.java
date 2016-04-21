@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
@@ -47,7 +46,6 @@ public class FileInStreamIntegrationTest {
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
   private static FileSystem sFileSystem = null;
-  private static Configuration sConfiguration;
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteAlluxio;
   private static CreateFileOptions sWriteUnderStore;
@@ -62,10 +60,9 @@ public class FileInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sConfiguration = sLocalAlluxioClusterResource.get().getMasterConf();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(sConfiguration);
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache(sConfiguration);
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough(sConfiguration);
+    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
+    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
