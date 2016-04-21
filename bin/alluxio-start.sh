@@ -62,7 +62,7 @@ is_ram_folder_mounted() {
   for fs in ${mounted_fs}; do
     if [[ "${ALLUXIO_RAM_FOLDER}" = "${fs}" || \
      "${ALLUXIO_RAM_FOLDER}" =~ ^"${fs}"\/.* ]]; then
-      return
+      return 0
     fi
   done
 
