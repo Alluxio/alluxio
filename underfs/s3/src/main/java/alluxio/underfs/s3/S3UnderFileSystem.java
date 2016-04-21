@@ -83,7 +83,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @throws ServiceException when a connection to S3 could not be created
    */
   public S3UnderFileSystem(AlluxioURI uri, Configuration conf, AWSCredentials awsCredentials)
-          throws ServiceException {
+      throws ServiceException {
     super(uri, conf);
     String bucketName = uri.getHost();
     mBucketName = bucketName;
