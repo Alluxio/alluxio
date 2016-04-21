@@ -93,14 +93,26 @@ public class RPCFileWriteRequestTest {
    */
   @Test
   public void encodeDecodeDataTest() {
-    long len = 10;
-    DataBuffer buffer = new DataByteBuffer(ByteBuffer.allocate((int) len), len);
-    RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, len, buffer);
+    int length = 10;
+    DataBuffer buffer = new DataByteBuffer(ByteBuffer.allocate(length), length);
+    RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, length, buffer);
     req.encode(mBuffer);
     mBuffer.writeBytes(buffer.getReadOnlyByteBuffer());
     RPCFileWriteRequest req2 = RPCFileWriteRequest.decode(mBuffer);
-    assertValid(TEMP_UFS_FILE_ID, OFFSET, len, req);
-    assertValid(TEMP_UFS_FILE_ID, OFFSET, len, req2);
+    assertValid(TEMP_UFS_FILE_ID, OFFSET, length, req);
+    assertValid(TEMP_UFS_FILE_ID, OFFSET, length, req2);
+  }
+
+  /**
+   * Tests the {@link RPCFileWriteRequest#getPayloadDataBuffer()} method.
+   */
+  @Test
+  public void getPayloadDataBufferTest() {
+    int length = 10;
+    DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
+    RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, payload);
+    assertValid(req);
+    Assert.assertEquals(payload, req.getPayloadDataBuffer());
   }
 
   /**
