@@ -44,8 +44,8 @@ public abstract class AbstractBlockMeta {
     final int subDirMax = WorkerContext.getConf().getInt(Constants.WORKER_DATA_TMP_SUBDIR_MAX);
     Preconditions.checkState(subDirMax > 0);
 
-    return PathUtils
-        .concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax, sessionId + ":" + blockId);
+    return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
+        String.format("%016x%016x", sessionId, blockId));
   }
 
   /**
