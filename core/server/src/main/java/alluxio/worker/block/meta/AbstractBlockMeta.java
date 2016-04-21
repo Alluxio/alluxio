@@ -28,11 +28,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AbstractBlockMeta {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
-   * subdir of its {@link StorageDir}, the subdir is the same as the creator's sessionId, and the
-   * block file is the same as its blockId. e.g. sessionId 2 creates a temp Block 100 in
+   * subdir of its {@link StorageDir}, the subdir is tmpFolder/sessionId % maxSubdirMax.
+   * tmpFolder is {@link Constants#WORKER_DATA_TMP_SUBDIR_MAX}.
+   * maxSubdirMax is {@link Constants#WORKER_DATA_TMP_SUBDIR_MAX}.
+   * The block file name is "sessionId-blockId". e.g. sessionId 2 creates a temp Block 100 in
    * {@link StorageDir} "/mnt/mem/0", this temp block has path:
    * <p>
-   * /mnt/mem/0/2/100
+   * /mnt/mem/0/.tmp_blocks/2/2-100
    *
    * @param dir the parent directory
    * @param sessionId the session id
@@ -45,7 +47,7 @@ public abstract class AbstractBlockMeta {
     Preconditions.checkState(subDirMax > 0);
 
     return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
-        String.format("%016x%016x", sessionId, blockId));
+        String.format("%x-%x", sessionId, blockId));
   }
 
   /**
