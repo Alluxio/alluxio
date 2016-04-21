@@ -349,11 +349,8 @@ public final class JournalWriter {
 
     @Override
     public synchronized void flush() throws IOException {
-      if (mIsClosed) {
-        return;
-      }
-      if (mDataOutputStream.size() == 0) {
-        // Nothing was written, so nothing to flush.
+      if (mIsClosed || mDataOutputStream.size() == 0) {
+        // There is nothing to flush.
         return;
       }
       mDataOutputStream.flush();
