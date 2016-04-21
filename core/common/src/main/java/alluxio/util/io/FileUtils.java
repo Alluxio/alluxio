@@ -140,10 +140,10 @@ public final class FileUtils {
   }
 
   /**
-   * Delete a path recursively.
+   * Deletes a path recursively.
    *
-   * @param path pathname to be deleted.
-   * @throws IOException when fails to delete.
+   * @param path pathname to be deleted
+   * @throws IOException when fails to delete
    */
   public static void deletePathRecursively(String path) throws IOException {
     Path root = Paths.get(path);

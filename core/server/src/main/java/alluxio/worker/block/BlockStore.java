@@ -277,7 +277,7 @@ public interface BlockStore {
   BlockStoreMeta getBlockStoreMeta();
 
   /**
-   * @return Mapping from storage tier alias to blocks.
+   * @return mapping from storage tier alias to blocks
    */
   Map<String, List<Long>> getBlockIdsOnTiers();
 
