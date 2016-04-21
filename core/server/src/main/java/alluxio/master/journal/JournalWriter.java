@@ -352,6 +352,10 @@ public final class JournalWriter {
       if (mIsClosed) {
         return;
       }
+      if (mDataOutputStream.size() == 0) {
+        // Nothing was written, so nothing to flush.
+        return;
+      }
       mDataOutputStream.flush();
       if (mRawOutputStream instanceof FSDataOutputStream) {
         // The output stream directly created by {@link UnderFileSystem} may be
