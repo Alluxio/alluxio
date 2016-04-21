@@ -176,6 +176,8 @@ public abstract class RPCMessage implements EncodedMessage {
         return RPCBlockWriteResponse.decode(in);
       case RPC_FILE_READ_REQUEST:
         return RPCFileReadRequest.decode(in);
+      case RPC_FILE_READ_RESPONSE:
+        return RPCFileReadResponse.decode(in);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
