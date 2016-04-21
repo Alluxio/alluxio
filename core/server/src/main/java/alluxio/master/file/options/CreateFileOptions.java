@@ -30,32 +30,29 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
 
   /**
    * @return the default {@link CreateFileOptions}
-   * @throws IOException if I/O error occurs
    */
-  public static CreateFileOptions defaults() throws IOException {
+  public static CreateFileOptions defaults() {
     return new CreateFileOptions();
   }
 
   /**
-   * Creates a new instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
+   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
    * option of permission status is constructed with the username obtained from thrift transport.
    *
-   * @param tOptions the {@link CreateFileTOptions} to use
-   * @return the {@link CreateFileOptions} from {@link CreateFileTOptions}
-   * @throws IOException if an I/O error occurs
+   * @param options the {@link CreateFileTOptions} to use
+   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public static CreateFileOptions fromTOptions(CreateFileTOptions tOptions) throws IOException {
-    CreateFileOptions options = new CreateFileOptions()
-        .setBlockSizeBytes(tOptions.getBlockSizeBytes())
-        .setPersisted(tOptions.isPersisted())
-        .setRecursive(tOptions.isRecursive())
-        .setTtl(tOptions.getTtl())
-        .setPermissionStatus(
-            PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf()));
-    return options;
+  public CreateFileOptions(CreateFileTOptions options) throws IOException {
+    super();
+    mBlockSizeBytes = options.getBlockSizeBytes();
+    mPersisted = options.isPersisted();
+    mRecursive = options.isRecursive();
+    mTtl = options.getTtl();
+    mPermissionStatus =
+        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
   }
 
-  private CreateFileOptions() throws IOException {
+  private CreateFileOptions() {
     super();
     mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;

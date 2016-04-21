@@ -84,7 +84,7 @@ public final class FileSystemMasterClientServiceHandler implements
       @Override
       public Void call() throws AlluxioException, IOException {
         mFileSystemMaster.createDirectory(new AlluxioURI(path),
-            CreateDirectoryOptions.fromTOptions(options));
+            new CreateDirectoryOptions(options));
         return null;
       }
     });
@@ -96,7 +96,7 @@ public final class FileSystemMasterClientServiceHandler implements
     RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
       @Override
       public Void call() throws AlluxioException, IOException {
-        mFileSystemMaster.createFile(new AlluxioURI(path), CreateFileOptions.fromTOptions(options));
+        mFileSystemMaster.createFile(new AlluxioURI(path), new CreateFileOptions(options));
         return null;
       }
     });

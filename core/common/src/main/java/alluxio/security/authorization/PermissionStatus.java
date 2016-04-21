@@ -95,10 +95,10 @@ public final class PermissionStatus {
   }
 
   /**
-   * Applies umask.
+   * Applies umask and updates the permission bits.
    *
    * @param umask the umask to apply
-   * @return a new {@link PermissionStatus}
+   * @return this {@link PermissionStatus} after umask applied
    */
   public PermissionStatus applyUMask(FileSystemPermission umask) {
     mPermission = mPermission.applyUMask(umask);
@@ -106,10 +106,10 @@ public final class PermissionStatus {
   }
 
   /**
-   * Applies default umask to newly created files.
+   * Applies default umask of newly created files and updates the permission bits.
    *
    * @param conf the runtime configuration of Alluxio
-   * @return a new {@link PermissionStatus}
+   * @return this {@link PermissionStatus} after umask applied
    */
   public PermissionStatus applyFileUMask(Configuration conf) {
     mPermission =
@@ -118,24 +118,24 @@ public final class PermissionStatus {
   }
 
   /**
-   * Applies default umask to newly created directories.
+   * Applies default umask of newly created directories and updates the permission bits.
    *
    * @param conf the runtime configuration of Alluxio
-   * @return a new {@link PermissionStatus}
+   * @return this {@link PermissionStatus} after umask applied
    */
   public PermissionStatus applyDirectoryUMask(Configuration conf) {
-    mPermission =
-        mPermission.applyUMask(FileSystemPermission.getUMask(conf));
+    mPermission = mPermission.applyUMask(FileSystemPermission.getUMask(conf));
     return this;
   }
 
   /**
-   * Sets the user inferred from thrift transport for this {@link PermissionStatus}. If
-   * authentication is NOSASL, this a no-op.
+   * Sets the user based on the thrift transport and updates the group to the primary group of the
+   * user. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link PermissionStatus} for a file or a directory
-   * @throws java.io.IOException when getting login user fails
+   * @throws IOException when getting login user fails
    */
   public PermissionStatus setUserFromThriftClient(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
@@ -153,12 +153,13 @@ public final class PermissionStatus {
   }
 
   /**
-   * Creates the {@link PermissionStatus} for a file or a directory. If
-   * authentication is NOSASL, this a no-op.
+   * Sets the user based on the login module and updates the group to the primary group of the user.
+   * If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link PermissionStatus} for a file or a directory
-   * @throws java.io.IOException when getting login user fails
+   * @throws IOException when getting login user fails
    */
   public PermissionStatus setUserFromLoginModule(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {

@@ -63,7 +63,7 @@ public final class PermissionStatusTest {
    * Tests the {@link PermissionStatus#defaults()} method.
    */
   @Test
-  public void getDefaultTest() throws Exception {
+  public void defaultsTest() throws Exception {
     Configuration conf = new Configuration();
 
     // no authentication
@@ -95,7 +95,7 @@ public final class PermissionStatusTest {
   }
 
   /**
-   * Tests the {@link PermissionStatus#setUserFromThriftClient(Configuration)} method.
+   * Tests the {@link PermissionStatus#setUserFromLoginModule(Configuration)} method.
    */
   @Test
   public void setUserFromLoginModuleTest() throws Exception {

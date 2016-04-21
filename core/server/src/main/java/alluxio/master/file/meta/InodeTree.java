@@ -123,8 +123,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
-      mRoot = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(ROOT_INODE_NAME)
-          .setPermissionStatus(rootPermissionStatus).setParentId(NO_PARENT);
+      mRoot = InodeDirectory
+          .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
+              CreateDirectoryOptions.defaults().setPermissionStatus(rootPermissionStatus));
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
