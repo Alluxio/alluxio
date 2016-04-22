@@ -49,7 +49,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param worker the block worker handle
+   * @param worker the Alluxio worker handle
    * @param configuration Alluxio configuration
    */
   public DataServerHandler(final AlluxioWorker worker, Configuration configuration) {
