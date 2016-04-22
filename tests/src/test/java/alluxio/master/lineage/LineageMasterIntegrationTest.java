@@ -135,12 +135,15 @@ public final class LineageMasterIntegrationTest {
       HeartbeatScheduler.schedule(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING, 5,
           TimeUnit.SECONDS));
+      status = getFileSystemMasterClient().getStatus(uri);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
           TimeUnit.SECONDS));
-
-      status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
+      CommonUtils.sleepMs(500);
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
+          TimeUnit.SECONDS));
 
       IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, uri);
 
