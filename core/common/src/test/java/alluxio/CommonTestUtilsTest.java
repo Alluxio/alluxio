@@ -28,7 +28,7 @@ import java.util.Objects;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(CommonTestUtilsTest.HardToInstantiateClass.class)
 public final class CommonTestUtilsTest {
-  private static final class HardToInstantiateClass {
+  public static final class HardToInstantiateClass {
     private HardToInstantiateClass(Object o) {}
   }
 
