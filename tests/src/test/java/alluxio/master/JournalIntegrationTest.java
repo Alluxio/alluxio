@@ -29,6 +29,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
@@ -108,6 +109,34 @@ public class JournalIntegrationTest {
     Assert.assertEquals(status.getBlockSizeBytes(), fsMasterInfo.getBlockSizeBytes());
     Assert.assertEquals(status.getLength(), fsMasterInfo.getLength());
     fsMaster.stop();
+  }
+
+  /**
+   * Tests flushing the journal multiple times, without writing any data.
+   */
+  @Test
+  public void multipleFlushTest() throws Exception {
+    // Set the max log size to 0 to force a flush to write a new file.
+    String existingMax = mMasterConfiguration.get(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    mMasterConfiguration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
+    try {
+      String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
+      ReadWriteJournal journal = new ReadWriteJournal(
+          PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
+      JournalWriter writer = journal.getNewWriter();
+      writer.getCheckpointOutputStream(0).close();
+      // Flush multiple times, without writing to the log.
+      writer.getEntryOutputStream().flush();
+      writer.getEntryOutputStream().flush();
+      writer.getEntryOutputStream().flush();
+      String[] paths = UnderFileSystem.get(journalFolder, mMasterConfiguration)
+          .list(journal.getCompletedDirectory());
+      // Make sure no new empty files were created.
+      Assert.assertTrue(paths == null || paths.length == 0);
+    } finally {
+      // Reset the max log size.
+      mMasterConfiguration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
+    }
   }
 
   /**
