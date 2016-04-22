@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -19,10 +20,15 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link OpenFileOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ReadType.class)
 public class OpenFileOptionsTest {
   private final ReadType mDefaultReadType =
       ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
@@ -59,5 +65,10 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(options.getAlluxioStorageType(),
         inStreamOptions.getAlluxioStorageType());
     Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(OpenFileOptions.class);
   }
 }
