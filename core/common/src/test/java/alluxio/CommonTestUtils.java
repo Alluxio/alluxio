@@ -32,16 +32,15 @@ import java.util.Set;
  */
 public final class CommonTestUtils {
   private static final Map<Class<?>, List<?>> PRIMITIVE_VALUES =
-      ImmutableMap.<Class<?>, List<?>> builder()
+      ImmutableMap.<Class<?>, List<?>>builder()
       .put(boolean.class, Lists.newArrayList(true, false))
       .put(char.class, Lists.newArrayList('a', 'b'))
       .put(byte.class, Lists.newArrayList((byte) 10, (byte) 11))
-      .put(short.class,  Lists.newArrayList((short) 20, (short) 21))
+      .put(short.class, Lists.newArrayList((short) 20, (short) 21))
       .put(int.class, Lists.newArrayList((int) 30, (int) 31))
       .put(long.class, Lists.newArrayList((long) 40, (long) 41))
       .put(float.class, Lists.newArrayList((float) 50, (float) 51))
-      .put(double.class, Lists.newArrayList((double) 60, (double) 61))
-      .build();
+      .put(double.class, Lists.newArrayList((double) 60, (double) 61)).build();
 
   /**
    * Traverses a chain of potentially private fields using {@link Whitebox}.
@@ -83,8 +82,7 @@ public final class CommonTestUtils {
   /**
    * Uses reflection to test the equals and hashCode methods for the given simple java object.
    *
-   * It is required that all fields of the given class are primitive types and that the class has
-   * a no-arg constructor.
+   * It is required that the given class has a no-arg constructor.
    *
    * Note: To use this method to test a class which contains a final class as a field, you must
    * prepare the final class for testing. See the top of {@link CommonTestUtilsTest} for an example.
@@ -132,10 +130,10 @@ public final class CommonTestUtils {
   }
 
   private static List<Field> getAllFields(Class<?> type) {
-      List<Field> fields = new ArrayList<>();
-      for (Class<?> c = type; c != null; c = c.getSuperclass()) {
-          fields.addAll(Arrays.asList(c.getDeclaredFields()));
-      }
-      return fields;
+    List<Field> fields = new ArrayList<>();
+    for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+      fields.addAll(Arrays.asList(c.getDeclaredFields()));
+    }
+    return fields;
   }
 }
