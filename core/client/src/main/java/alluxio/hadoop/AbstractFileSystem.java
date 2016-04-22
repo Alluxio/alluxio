@@ -33,10 +33,9 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -241,28 +240,26 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     List<FileBlockInfo> blocks = listBlocks(path);
 
-    List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
+    List<BlockLocation> blockLocations = new ArrayList<>();
     for (int k = 0; k < blocks.size(); k++) {
       FileBlockInfo info = blocks.get(k);
       long offset = info.getOffset();
       long end = offset + info.getBlockInfo().getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
-        ArrayList<String> names = new ArrayList<String>();
-        ArrayList<String> hosts = new ArrayList<String>();
-        List<WorkerNetAddress> addrs = Lists.newArrayList();
-        // add the existing in-memory block locations first
+        ArrayList<String> names = new ArrayList<>();
+        ArrayList<String> hosts = new ArrayList<>();
+        // add the existing in-memory block locations
         for (alluxio.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
-          addrs.add(location.getWorkerAddress());
+          String host = location.getWorkerAddress().getHost();
+          int port = location.getWorkerAddress().getDataPort();
+          names.add(host + ":" + port);
+          hosts.add(host);
         }
-        // then add under file system location
-        addrs.addAll(info.getUfsLocations());
-        for (WorkerNetAddress addr : addrs) {
-          // Name format is "hostname:data transfer port"
-          String name = addr.getHost() + ":" + addr.getDataPort();
-          LOG.debug("getFileBlockLocations : adding name : {}", name);
-          names.add(name);
-          hosts.add(addr.getHost());
+        // add under file system locations
+        for (String location : info.getUfsLocations()) {
+          names.add(location);
+          hosts.add(HostAndPort.fromString(location).getHostText());
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
             CommonUtils.toStringArray(hosts), offset, info.getBlockInfo().getLength()));

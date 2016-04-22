@@ -85,7 +85,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -948,7 +947,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<WorkerNetAddress>());
+    fileBlockInfo.setUfsLocations(new ArrayList<String>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
@@ -980,8 +979,7 @@ public final class FileSystemMaster extends AbstractMaster {
             continue;
           }
           // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.getUfsLocations().add(
-              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
+          fileBlockInfo.getUfsLocations().add(resolvedHost + ":" + resolvedPort);
         }
       }
     }
