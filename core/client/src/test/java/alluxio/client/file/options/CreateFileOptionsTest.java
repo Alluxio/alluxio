@@ -21,17 +21,12 @@ import alluxio.thrift.CreateFileTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link CreateFileOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(WriteType.class)
 public class CreateFileOptionsTest {
   private final long mDefaultBlockSizeBytes = ClientContext.getConf().getBytes(
       Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);

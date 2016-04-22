@@ -24,17 +24,12 @@ import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(WriteType.class)
 public class OutStreamOptionsTest {
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.

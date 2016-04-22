@@ -14,23 +14,17 @@ package alluxio.client.file.options;
 import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link CreateDirectoryOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(UnderStorageType.class)
 public class CreateDirectoryOptionsTest {
   private final WriteType mDefaultWriteType =
       ClientContext.getConf().getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
