@@ -232,7 +232,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
             WorkerNetAddress address = location.getWorkerAddress();
-            locations.add(address.getHost() + ":" + address.getRpcPort());
+            locations.add(address.getHost() + ":" + address.getDataPort());
           }
           // add underFS locations
           locations.addAll(blockInfo.getUfsLocations());
