@@ -15,7 +15,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.testing.EqualsTester;
-import org.junit.Assert;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
@@ -84,8 +83,9 @@ public final class CommonTestUtils {
    *
    * It is required that the given class has a no-arg constructor.
    *
-   * Note: To use this method to test a class which contains a final class as a field, you must
-   * prepare the final class for testing. See the top of {@link CommonTestUtilsTest} for an example.
+   * Note: To use this method to test a class which contains a final non-enum class as a field, the
+   * class must either have a no-arg constructor, or you must prepare the final class for testing.
+   * See the top of {@link CommonTestUtilsTest} for an example.
    *
    * @param clazz the class to test the equals and hashCode methods for
    * @param excludedFields names of fields which should not impact equality
@@ -133,15 +133,30 @@ public final class CommonTestUtils {
    * @return at least two values assignable to the given type
    */
   private static List<?> getValuesForFieldType(Class<?> type) throws Exception {
-    List<?> values = PRIMITIVE_VALUES.get(type);
-    if (values == null) {
-      List<Object> list = new ArrayList<Object>();
-      list.add(null);
-      list.add(PowerMockito.mock(type));
-      return list;
+    if (type.isEnum()) {
+      List<?> enumValues = Lists.newArrayList(type.getEnumConstants());
+      enumValues.add(null);
+      return enumValues;
     }
-    Assert.assertNotNull("Couldn't get values for type " + type, values);
-    return values;
+    List<?> primitiveValues = PRIMITIVE_VALUES.get(type);
+    if (primitiveValues != null) {
+      return primitiveValues;
+    }
+    List<Object> classValues = Lists.newArrayList();
+    classValues.add(null);
+    try {
+      classValues.add(PowerMockito.mock(type));
+    } catch (Exception e) {
+      try {
+        Constructor<?> constructor = type.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        classValues.add(constructor.newInstance());
+      } catch (ReflectiveOperationException e1) {
+        throw new RuntimeException(
+            "Couldn't create an instance of " + type.getName() + ". Please use @PrepareForTest.");
+      }
+    }
+    return classValues;
   }
 
   /**

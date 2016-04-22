@@ -29,6 +29,7 @@ import java.util.Random;
  * Unit tests for {@link CreateDirectoryOptions}.
  */
 @RunWith(PowerMockRunner.class)
+// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
 @PrepareForTest(PermissionStatus.class)
 public class CreateDirectoryOptionsTest {
   /**

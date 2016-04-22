@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.underfs.UnderFileSystem.SpaceType;
+
 import junit.framework.AssertionFailedError;
 import org.junit.Assert;
 import org.junit.Test;
@@ -24,8 +26,11 @@ import java.util.Objects;
  * Unit tests for {@link CommonTestUtils}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(CommonTestUtils.class)
+@PrepareForTest(CommonTestUtilsTest.HardToInstantiateClass.class)
 public final class CommonTestUtilsTest {
+  private static final class HardToInstantiateClass {
+    private HardToInstantiateClass(Object o) {}
+  }
 
   private static class Basic {
     private String mField;
@@ -69,8 +74,10 @@ public final class CommonTestUtilsTest {
   private static class ManyFields {
     private String mField1;
     private boolean mField2;
-    // Use CommonTestUtils as an example of a final class.
-    private CommonTestUtils mField3;
+    // Use HardToInstantiateClass as an example of a final class without a no-arg constructor.
+    private HardToInstantiateClass mField3;
+    // Example of an enum.
+    private SpaceType mField4;
 
     @Override
     public boolean equals(Object o) {
@@ -80,12 +87,13 @@ public final class CommonTestUtilsTest {
       ManyFields that = (ManyFields) o;
       return Objects.equals(mField1, that.mField1)
           && Objects.equals(mField2, that.mField2)
-          && Objects.equals(mField3, that.mField3);
+          && Objects.equals(mField3, that.mField3)
+          && Objects.equals(mField4, that.mField4);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(mField1, mField2, mField3);
+      return Objects.hash(mField1, mField2, mField3, mField4);
     }
   }
 

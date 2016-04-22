@@ -20,15 +20,10 @@ import alluxio.client.file.policy.RoundRobinPolicy;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link OpenFileOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ReadType.class)
 public class OpenFileOptionsTest {
   private final ReadType mDefaultReadType =
       ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);

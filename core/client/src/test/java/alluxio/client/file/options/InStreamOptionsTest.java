@@ -22,15 +22,10 @@ import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link InStreamOptions} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(ReadType.class)
 public class InStreamOptionsTest {
   /**
    * Tests that building an {@link InStreamOptions} with the defaults works.
