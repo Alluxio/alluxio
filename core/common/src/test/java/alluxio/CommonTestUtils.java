@@ -94,6 +94,7 @@ public final class CommonTestUtils {
     Set<String> excludedFieldsSet = Sets.newHashSet(Arrays.asList(excludedFields));
     EqualsTester equalsTester = new EqualsTester();
     equalsTester.addEqualityGroup(createBaseObject(clazz), createBaseObject(clazz));
+    // For each non-excluded field, create an object of the class with only that field changed.
     for (Field field : getAllFields(clazz)) {
       if (excludedFieldsSet.contains(field.getName())) {
         continue;
@@ -106,6 +107,11 @@ public final class CommonTestUtils {
     equalsTester.testEquals();
   }
 
+  /**
+   * @param clazz a class
+   * @return an object of the given class with fields set according to the first values returned by
+   *         {@link #getValuesForFieldType(Class)}
+   */
   private static <T> T createBaseObject(Class<T> clazz) throws Exception {
     Constructor<T> constructor = clazz.getDeclaredConstructor();
     constructor.setAccessible(true);
@@ -117,6 +123,15 @@ public final class CommonTestUtils {
     return instance;
   }
 
+  /**
+   * Returns a list of at least two values of the given type.
+   *
+   * This is done for primitive types by looking them up in a map of preset values. For other types,
+   * the first value used is {@code null} and the second value is a mock created by Powermock.
+   *
+   * @param type the type to return values for
+   * @return at least two values assignable to the given type
+   */
   private static List<?> getValuesForFieldType(Class<?> type) throws Exception {
     List<?> values = PRIMITIVE_VALUES.get(type);
     if (values == null) {
@@ -129,6 +144,10 @@ public final class CommonTestUtils {
     return values;
   }
 
+  /**
+   * @param type the type to get the field for
+   * @return all fields of an object of the given type
+   */
   private static List<Field> getAllFields(Class<?> type) {
     List<Field> fields = new ArrayList<>();
     for (Class<?> c = type; c != null; c = c.getSuperclass()) {
