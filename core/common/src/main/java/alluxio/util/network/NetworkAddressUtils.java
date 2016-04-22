@@ -14,6 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.LeaderInquireClient;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -579,6 +580,27 @@ public final class NetworkAddressUtils {
       int port = netAddress.getDataPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Get master address from zookeeper for the fault tolerant Alluxio masters.
+   *
+   * @param conf the Alluxio Configuration
+   * @return InetSocketAddress
+   */
+  public static InetSocketAddress getMasterAddressFormZK(Configuration conf) {
+    Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
+    LeaderInquireClient leaderInquireClient =
+            LeaderInquireClient.getClient(conf.get(Constants.ZOOKEEPER_ADDRESS),
+                    conf.get(Constants.ZOOKEEPER_LEADER_PATH), conf);
+    try {
+      String temp = leaderInquireClient.getMasterAddress();
+      return NetworkAddressUtils.parseInetSocketAddress(temp);
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }
