@@ -238,31 +238,29 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
 
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
-    List<FileBlockInfo> blocks = listBlocks(path);
-
+    List<FileBlockInfo> blocks = getFileBlocks(path);
     List<BlockLocation> blockLocations = new ArrayList<>();
-    for (int k = 0; k < blocks.size(); k++) {
-      FileBlockInfo info = blocks.get(k);
-      long offset = info.getOffset();
-      long end = offset + info.getBlockInfo().getLength();
+    for (FileBlockInfo fileBlockInfo : blocks) {
+      long offset = fileBlockInfo.getOffset();
+      long end = offset + fileBlockInfo.getBlockInfo().getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<String> hosts = new ArrayList<>();
         // add the existing in-memory block locations
-        for (alluxio.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
+        for (alluxio.wire.BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
           String host = location.getWorkerAddress().getHost();
           int port = location.getWorkerAddress().getDataPort();
           names.add(host + ":" + port);
           hosts.add(host);
         }
         // add under file system locations
-        for (String location : info.getUfsLocations()) {
+        for (String location : fileBlockInfo.getUfsLocations()) {
           names.add(location);
           hosts.add(HostAndPort.fromString(location).getHostText());
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
-            CommonUtils.toStringArray(hosts), offset, info.getBlockInfo().getLength()));
+            CommonUtils.toStringArray(hosts), offset, fileBlockInfo.getBlockInfo().getLength()));
       }
     }
 
@@ -551,10 +549,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     }
   }
 
-  private List<FileBlockInfo> listBlocks(AlluxioURI path) throws IOException {
+  private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.listBlocks(path);
+      return master.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {

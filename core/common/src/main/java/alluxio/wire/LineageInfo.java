@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -22,6 +24,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The lineage descriptor.
  */
+@PublicApi
 @NotThreadSafe
 public final class LineageInfo {
   private long mId;

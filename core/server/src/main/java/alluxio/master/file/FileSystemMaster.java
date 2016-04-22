@@ -399,6 +399,14 @@ public final class FileSystemMaster extends AbstractMaster {
   private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    if (inode instanceof InodeFile) {
+      InodeFile inodeFile = (InodeFile) inode;
+      try {
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodeFile));
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+    }
     AlluxioURI path = mInodeTree.getPath(inode);
     MountTable.Resolution resolution;
     try {
@@ -967,19 +975,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       if (locs != null) {
         for (String loc : locs) {
-          String resolvedHost = loc;
-          int resolvedPort = -1;
-          try {
-            String[] ipport = loc.split(":");
-            if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-              resolvedPort = Integer.parseInt(ipport[1]);
-            }
-          } catch (NumberFormatException e) {
-            continue;
-          }
-          // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.getUfsLocations().add(resolvedHost + ":" + resolvedPort);
+          fileBlockInfo.getUfsLocations().add(loc);
         }
       }
     }

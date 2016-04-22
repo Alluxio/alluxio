@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -19,6 +21,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The lineage command-line job descriptor.
  */
+@PublicApi
 @NotThreadSafe
 // TODO(jiri): Consolidate with alluxio.job.CommandLineJob.
 public final class CommandLineJobInfo {
