@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
@@ -73,5 +74,10 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(CreateFileOptions.class, "mOperationTimeMs");
   }
 }

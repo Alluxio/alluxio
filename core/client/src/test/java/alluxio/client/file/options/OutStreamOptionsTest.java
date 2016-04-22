@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -23,12 +24,17 @@ import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(WriteType.class)
 public class OutStreamOptionsTest {
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
@@ -73,5 +79,10 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(OutStreamOptions.class);
   }
 }

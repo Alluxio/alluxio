@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
@@ -83,5 +84,10 @@ public class MountOptionsTest {
 
     options = MountOptions.defaults().setReadOnly(false);
     Assert.assertFalse(options.isReadOnly());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(MountOptions.class, "mOperationTimeMs");
   }
 }

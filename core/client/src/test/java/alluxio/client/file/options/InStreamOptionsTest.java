@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -21,10 +22,15 @@ import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link InStreamOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(ReadType.class)
 public class InStreamOptionsTest {
   /**
    * Tests that building an {@link InStreamOptions} with the defaults works.
@@ -65,5 +71,10 @@ public class InStreamOptionsTest {
     } finally {
       ClientTestUtils.resetClientContext();
     }
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(InStreamOptions.class);
   }
 }
