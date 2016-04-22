@@ -15,6 +15,8 @@ import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.CreateDirectoryTOptions;
 
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -79,11 +81,30 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateDirectoryOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
+      return false;
+    }
+    CreateDirectoryOptions that = (CreateDirectoryOptions) o;
+    return Objects.equal(mAllowExists, that.mAllowExists);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + Objects.hashCode(mAllowExists);
+  }
+
   @Override
   public String toString() {
-    return toStringHelper().add("allowExists", mAllowExists).toString();
+    return toStringHelper()
+        .add("allowExists", mAllowExists)
+        .toString();
   }
 }

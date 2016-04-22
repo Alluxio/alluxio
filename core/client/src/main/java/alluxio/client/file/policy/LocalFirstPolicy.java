@@ -16,6 +16,8 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -54,5 +56,29 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof LocalFirstPolicy)) {
+      return false;
+    }
+    LocalFirstPolicy that = (LocalFirstPolicy) o;
+    return Objects.equal(mLocalHostName, that.mLocalHostName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mLocalHostName);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("localHostName", mLocalHostName)
+        .toString();
   }
 }
