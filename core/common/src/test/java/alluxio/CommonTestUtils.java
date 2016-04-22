@@ -34,21 +34,13 @@ public final class CommonTestUtils {
   private static final Map<Class<?>, List<?>> PRIMITIVE_VALUES =
       ImmutableMap.<Class<?>, List<?>> builder()
       .put(boolean.class, Lists.newArrayList(true, false))
-      .put(Boolean.class, Lists.newArrayList(true, false))
       .put(char.class, Lists.newArrayList('a', 'b'))
-      .put(Character.class, Lists.newArrayList('a', 'b'))
       .put(byte.class, Lists.newArrayList((byte) 10, (byte) 11))
-      .put(Byte.class, Lists.newArrayList((byte) 10, (byte) 11))
       .put(short.class,  Lists.newArrayList((short) 20, (short) 21))
-      .put(Short.class,  Lists.newArrayList((short) 20, (short) 21))
       .put(int.class, Lists.newArrayList((int) 30, (int) 31))
-      .put(Integer.class, Lists.newArrayList((int) 30, (int) 31))
       .put(long.class, Lists.newArrayList((long) 40, (long) 41))
-      .put(Long.class, Lists.newArrayList((long) 40, (long) 41))
       .put(float.class, Lists.newArrayList((float) 50, (float) 51))
-      .put(Float.class, Lists.newArrayList((float) 50, (float) 51))
       .put(double.class, Lists.newArrayList((double) 60, (double) 61))
-      .put(Double.class, Lists.newArrayList((double) 60, (double) 61))
       .build();
 
   /**
@@ -94,6 +86,9 @@ public final class CommonTestUtils {
    * It is required that all fields of the given class are primitive types and that the class has
    * a no-arg constructor.
    *
+   * Note: To use this method to test a class which contains a final class as a field, you must
+   * prepare the final class for testing. See the top of {@link CommonTestUtilsTest} for an example.
+   *
    * @param clazz the class to test the equals and hashCode methods for
    * @param excludedFields names of fields which should not impact equality
    */
@@ -101,7 +96,7 @@ public final class CommonTestUtils {
     Set<String> excludedFieldsSet = Sets.newHashSet(Arrays.asList(excludedFields));
     EqualsTester equalsTester = new EqualsTester();
     equalsTester.addEqualityGroup(createBaseObject(clazz), createBaseObject(clazz));
-    for (Field field : clazz.getDeclaredFields()) {
+    for (Field field : getAllFields(clazz)) {
       if (excludedFieldsSet.contains(field.getName())) {
         continue;
       }
@@ -117,7 +112,7 @@ public final class CommonTestUtils {
     Constructor<T> constructor = clazz.getDeclaredConstructor();
     constructor.setAccessible(true);
     T instance = constructor.newInstance();
-    for (Field field : clazz.getDeclaredFields()) {
+    for (Field field : getAllFields(clazz)) {
       field.setAccessible(true);
       field.set(instance, getValuesForFieldType(field.getType()).get(0));
     }
@@ -134,5 +129,13 @@ public final class CommonTestUtils {
     }
     Assert.assertNotNull("Couldn't get values for type " + type, values);
     return values;
+  }
+
+  private static List<Field> getAllFields(Class<?> type) {
+      List<Field> fields = new ArrayList<>();
+      for (Class<?> c = type; c != null; c = c.getSuperclass()) {
+          fields.addAll(Arrays.asList(c.getDeclaredFields()));
+      }
+      return fields;
   }
 }
