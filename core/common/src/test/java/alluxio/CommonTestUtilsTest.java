@@ -69,6 +69,7 @@ public final class CommonTestUtilsTest {
   private static class ManyFields {
     private String mField1;
     private boolean mField2;
+    // Use CommonTestUtils as an example of a final class.
     private CommonTestUtils mField3;
 
     @Override
@@ -133,7 +134,7 @@ public final class CommonTestUtilsTest {
   }
 
   @Test
-  public void badHashCodeTest() throws Exception {
+  public void testEqualsTest() throws Exception {
     CommonTestUtils.testEquals(Basic.class);
     CommonTestUtils.testEquals(ManyFields.class);
 
