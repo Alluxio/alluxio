@@ -175,27 +175,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param path the URI of the file
-   * @return the list of file block information for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  public synchronized List<FileBlockInfo> listBlocks(final AlluxioURI path)
-      throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
-      @Override
-      public List<FileBlockInfo> call() throws AlluxioTException, TException {
-        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
-        for (alluxio.thrift.FileBlockInfo fileBlockInfo :
-            mClient.getFileBlockInfoList(path.getPath())) {
-          result.add(ThriftUtils.fromThrift(fileBlockInfo));
-        }
-        return result;
-      }
-    });
-  }
-
-  /**
    * @param path the file path
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
@@ -242,6 +221,27 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public Long call() throws AlluxioTException, TException {
         return mClient.getNewBlockIdForFile(path.getPath());
+      }
+    });
+  }
+
+  /**
+   * @param path the URI of the file
+   * @return the list of file block information for the given file id
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an Alluxio error occurs
+   */
+  public synchronized List<FileBlockInfo> listBlocks(final AlluxioURI path)
+      throws IOException, AlluxioException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
+      @Override
+      public List<FileBlockInfo> call() throws AlluxioTException, TException {
+        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        for (alluxio.thrift.FileBlockInfo fileBlockInfo :
+            mClient.getFileBlockInfoList(path.getPath())) {
+          result.add(ThriftUtils.fromThrift(fileBlockInfo));
+        }
+        return result;
       }
     });
   }

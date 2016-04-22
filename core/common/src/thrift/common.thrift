@@ -26,7 +26,7 @@ struct BlockLocation {
 struct FileBlockInfo {
   1: BlockInfo blockInfo
   2: i64 offset
-  3: list<WorkerNetAddress> ufsLocations
+  3: list<string> ufsLocations
 }
 
 enum CommandType {

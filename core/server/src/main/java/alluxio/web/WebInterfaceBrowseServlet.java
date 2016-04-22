@@ -228,14 +228,15 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
                   .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
-          List<WorkerNetAddress> addrs = Lists.newArrayList();
+          List<String> locations = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
-            addrs.add(location.getWorkerAddress());
+            WorkerNetAddress address = location.getWorkerAddress();
+            locations.add(address.getHost() + ":" + address.getRpcPort());
           }
           // add underFS locations
-          addrs.addAll(blockInfo.getUfsLocations());
-          toAdd.setFileLocations(addrs);
+          locations.addAll(blockInfo.getUfsLocations());
+          toAdd.setFileLocations(locations);
         }
       } catch (FileDoesNotExistException e) {
         request.setAttribute("FileDoesNotExistException",
