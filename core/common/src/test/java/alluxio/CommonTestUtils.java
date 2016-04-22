@@ -11,6 +11,9 @@
 
 package alluxio;
 
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
 import org.powermock.reflect.Whitebox;
 
 /**
@@ -53,5 +56,30 @@ public final class CommonTestUtils {
     @SuppressWarnings("unchecked")
     T finalObject = (T) current;
     return finalObject;
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs.
+   *
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitFor(Function<Void, Boolean> condition, int timeoutMs) {
+    long start = System.currentTimeMillis();
+    while (!condition.apply(null)) {
+      if (System.currentTimeMillis() - start > timeoutMs) {
+        throw new RuntimeException("Timed out waiting for condition " + condition);
+      }
+      CommonUtils.sleepMs(20);
+    }
+  }
+
+  /**
+   * Waits for the condition to be satisfied using the default timeout.
+   *
+   * @param condition the condition to wait on
+   */
+  public static void waitFor(Function<Void, Boolean> condition) {
+    waitFor(condition, 5 * Constants.SECOND_MS);
   }
 }

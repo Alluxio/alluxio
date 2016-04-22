@@ -62,7 +62,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
         TimeUnit.SECONDS));
 
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, status.getFileId());
+    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
 
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
