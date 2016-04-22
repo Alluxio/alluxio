@@ -11,11 +11,10 @@
 
 package alluxio;
 
-import alluxio.util.CommonUtils;
-import alluxio.worker.PrivateAccess;
-import alluxio.worker.file.FileDataManager;
-import alluxio.worker.file.FileSystemWorker;
-import alluxio.worker.file.FileSystemWorkerPrivateAccess;
+import alluxio.client.file.FileSystemMasterClient;
+
+import com.google.common.base.Function;
+import com.google.common.base.Throwables;
 
 import java.util.Random;
 
@@ -25,16 +24,15 @@ import java.util.Random;
 public final class IntegrationTestUtils {
 
   /**
-   * Convenience method for calling
-   * {@link #waitForPersist(LocalAlluxioClusterResource, long, long)} with a timeout of 5
-   * seconds.
+   * Convenience method for calling {@link #waitForPersist(LocalAlluxioClusterResource, long, long)}
+   * with a timeout of 5 seconds.
    *
    * @param localAlluxioClusterResource the cluster for the worker that will persist the file
    * @param fileId the file id to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
-                                    long fileId) {
-    waitForPersist(localAlluxioClusterResource, fileId, 5 * Constants.SECOND_MS);
+      AlluxioURI uri) {
+    waitForPersist(localAlluxioClusterResource, uri, 10 * Constants.SECOND_MS);
   }
 
   /**
@@ -44,17 +42,25 @@ public final class IntegrationTestUtils {
    * @param fileId the file id to wait to be persisted
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
-  public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
-                                    long fileId, int timeoutMs) {
-    long start = System.currentTimeMillis();
-    FileSystemWorker worker = PrivateAccess
-        .getFileSystemWorker(localAlluxioClusterResource.get().getWorker());
-    FileDataManager fileDataManager = FileSystemWorkerPrivateAccess.getFileDataManager(worker);
-    while (!fileDataManager.isFilePersisted(fileId)) {
-      if (System.currentTimeMillis() - start > timeoutMs) {
-        throw new RuntimeException("Timed out waiting for " + fileId + " to be persisted");
-      }
-      CommonUtils.sleepMs(20);
+  public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
+      final AlluxioURI uri, int timeoutMs) {
+
+    final FileSystemMasterClient client =
+        new FileSystemMasterClient(localAlluxioClusterResource.get().getMaster().getAddress(),
+            localAlluxioClusterResource.getTestConf());
+    try {
+      CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+        @Override
+        public Boolean apply(Void input) {
+          try {
+            return client.getStatus(uri).isPersisted();
+          } catch (Exception e) {
+            throw Throwables.propagate(e);
+          }
+        }
+      }, timeoutMs);
+    } finally {
+      client.close();
     }
   }
 

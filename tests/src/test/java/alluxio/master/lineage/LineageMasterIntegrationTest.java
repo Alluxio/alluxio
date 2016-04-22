@@ -57,7 +57,6 @@ import java.util.concurrent.TimeUnit;
 public final class LineageMasterIntegrationTest {
   private static final int BLOCK_SIZE_BYTES = 128;
   private static final long WORKER_CAPACITY_BYTES = Constants.GB;
-  private static final int QUOTA_UNIT_BYTES = 128;
   private static final int BUFFER_BYTES = 100;
 
   @ClassRule
@@ -143,7 +142,7 @@ public final class LineageMasterIntegrationTest {
       status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
 
-      IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, status.getFileId());
+      IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, uri);
 
       // worker notifies the master
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
