@@ -45,6 +45,25 @@ contain your credentials.
 After these changes, Alluxio should be configured to work with S3 as its under storage system, and
 you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
+## Using EC2 Instance Profiles and IAM Roles for S3 Access
+If you don't specify `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` , it is assumed that you 
+run Alluxio in an EC2 with an IAM Role which has full access to given S3 Bucket
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "s3:*",
+      "Resource": [
+        "arn:aws:s3:::EXAMPLE-BUCKET-NAME",
+        "arn:aws:s3:::EXAMPLE-BUCKET-NAME/*"
+      ]
+    }
+  ]
+}
+```
+
 ## Accessing S3 through a proxy
 
 To communicate with S3 through a proxy, modify the `ALLUXIO_JAVA_OPTS` section of
