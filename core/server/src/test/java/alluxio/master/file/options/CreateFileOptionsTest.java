@@ -19,12 +19,17 @@ import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Unit tests for {@link CreateFileOptions}.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(PermissionStatus.class)
 public class CreateFileOptionsTest {
   /**
    * Tests the {@link CreateFileOptions#defaults()} method.
