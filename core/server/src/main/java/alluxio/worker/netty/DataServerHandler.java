@@ -19,7 +19,7 @@ import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.AlluxioWorker;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandler;
@@ -41,18 +41,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Handler for any block store requests. */
   private final BlockDataServerHandler mBlockHandler;
+  /** Handler for any file system requests. */
+  private final FileDataServerHandler mFileHandler;
 
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param blockWorker the block worker handle
+   * @param worker the Alluxio worker handle
    * @param configuration Alluxio configuration
    */
-  public DataServerHandler(final BlockWorker blockWorker, Configuration configuration) {
-    Preconditions.checkNotNull(blockWorker);
+  public DataServerHandler(final AlluxioWorker worker, Configuration configuration) {
+    Preconditions.checkNotNull(worker);
     Preconditions.checkNotNull(configuration);
-    mBlockHandler = new BlockDataServerHandler(blockWorker, configuration);
+    mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
+    mFileHandler = new FileDataServerHandler(worker.getFileSystemWorker(), configuration);
   }
 
   @Override
@@ -66,6 +70,10 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       case RPC_BLOCK_WRITE_REQUEST:
         assert msg instanceof RPCBlockWriteRequest;
         mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
+        break;
+      case RPC_FILE_READ_REQUEST:
+        break;
+      case RPC_FILE_WRITE_REQUEST:
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
