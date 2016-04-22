@@ -187,9 +187,10 @@ public final class AlluxioWorker {
       mThriftServer = createThriftServer();
 
       // Setup Data server
-      mDataServer = DataServer.Factory.create(
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration),
-          mBlockWorker, mConfiguration);
+      mDataServer =
+          DataServer.Factory.create(
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration), this,
+              mConfiguration);
       // Reset data server port
       mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
@@ -265,6 +266,13 @@ public final class AlluxioWorker {
    */
   public BlockWorker getBlockWorker() {
     return mBlockWorker;
+  }
+
+  /**
+   * @return the file system worker
+   */
+  public FileSystemWorker getFileSystemWorker() {
+    return mFileSystemWorker;
   }
 
   /**

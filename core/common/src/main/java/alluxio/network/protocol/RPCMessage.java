@@ -36,7 +36,11 @@ public abstract class RPCMessage implements EncodedMessage {
     RPC_BLOCK_READ_REQUEST(1),
     RPC_BLOCK_READ_RESPONSE(2),
     RPC_BLOCK_WRITE_REQUEST(3),
-    RPC_BLOCK_WRITE_RESPONSE(4);
+    RPC_BLOCK_WRITE_RESPONSE(4),
+    RPC_FILE_READ_REQUEST(5),
+    RPC_FILE_READ_RESPONSE(6),
+    RPC_FILE_WRITE_REQUEST(7),
+    RPC_FILE_WRITE_RESPONSE(8);
 
     private final int mId;
 
@@ -88,6 +92,14 @@ public abstract class RPCMessage implements EncodedMessage {
         case 3:
           return RPC_BLOCK_WRITE_REQUEST;
         case 4:
+          return RPC_BLOCK_WRITE_RESPONSE;
+        case 5:
+          return RPC_FILE_READ_REQUEST;
+        case 6:
+          return RPC_FILE_READ_RESPONSE;
+        case 7:
+          return RPC_FILE_WRITE_REQUEST;
+        case 8:
           return RPC_BLOCK_WRITE_RESPONSE;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
@@ -162,6 +174,14 @@ public abstract class RPCMessage implements EncodedMessage {
         return RPCBlockWriteRequest.decode(in);
       case RPC_BLOCK_WRITE_RESPONSE:
         return RPCBlockWriteResponse.decode(in);
+      case RPC_FILE_READ_REQUEST:
+        return RPCFileReadRequest.decode(in);
+      case RPC_FILE_READ_RESPONSE:
+        return RPCFileReadResponse.decode(in);
+      case RPC_FILE_WRITE_REQUEST:
+        return RPCFileWriteRequest.decode(in);
+      case RPC_FILE_WRITE_RESPONSE:
+        return RPCFileWriteResponse.decode(in);
       default:
         throw new IllegalArgumentException("Unknown RPCMessage type. type: " + type);
     }
