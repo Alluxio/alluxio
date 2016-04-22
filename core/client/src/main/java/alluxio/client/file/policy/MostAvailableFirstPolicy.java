@@ -14,6 +14,7 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import java.util.List;
@@ -40,5 +41,26 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
       }
     }
     return result;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MostAvailableFirstPolicy)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).toString();
   }
 }

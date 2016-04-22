@@ -389,6 +389,7 @@ public final class Constants {
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
   public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
   public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
