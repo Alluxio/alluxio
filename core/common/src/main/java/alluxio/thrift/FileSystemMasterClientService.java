@@ -85,7 +85,7 @@ public class FileSystemMasterClientService {
      * 
      * @param path the path of the file
      */
-    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public List<FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Returns the status of the file or directory.
@@ -114,13 +114,6 @@ public class FileSystemMasterClientService {
      * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
      */
     public String getUfsAddress() throws org.apache.thrift.TException;
-
-    /**
-     * Returns the list of file blocks information for the given file.
-     * 
-     * @param path the path of the file
-     */
-    public List<alluxio.thrift.FileBlockInfo> listBlocks(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * If the path points to a file, the method returns a singleton with its file information.
@@ -217,8 +210,6 @@ public class FileSystemMasterClientService {
     public void getNewBlockIdForFile(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
-
-    public void listBlocks(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void listStatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -360,7 +351,7 @@ public class FileSystemMasterClientService {
       return;
     }
 
-    public List<alluxio.thrift.FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public List<FileBlockInfo> getFileBlockInfoList(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       send_getFileBlockInfoList(path);
       return recv_getFileBlockInfoList();
@@ -373,7 +364,7 @@ public class FileSystemMasterClientService {
       sendBase("getFileBlockInfoList", args);
     }
 
-    public List<alluxio.thrift.FileBlockInfo> recv_getFileBlockInfoList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public List<FileBlockInfo> recv_getFileBlockInfoList() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
       getFileBlockInfoList_result result = new getFileBlockInfoList_result();
       receiveBase(result, "getFileBlockInfoList");
@@ -484,32 +475,6 @@ public class FileSystemMasterClientService {
         return result.success;
       }
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
-    }
-
-    public List<alluxio.thrift.FileBlockInfo> listBlocks(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
-    {
-      send_listBlocks(path);
-      return recv_listBlocks();
-    }
-
-    public void send_listBlocks(String path) throws org.apache.thrift.TException
-    {
-      listBlocks_args args = new listBlocks_args();
-      args.setPath(path);
-      sendBase("listBlocks", args);
-    }
-
-    public List<alluxio.thrift.FileBlockInfo> recv_listBlocks() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
-    {
-      listBlocks_result result = new listBlocks_result();
-      receiveBase(result, "listBlocks");
-      if (result.isSetSuccess()) {
-        return result.success;
-      }
-      if (result.e != null) {
-        throw result.e;
-      }
-      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listBlocks failed: unknown result");
     }
 
     public List<FileInfo> listStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
@@ -900,7 +865,7 @@ public class FileSystemMasterClientService {
         prot.writeMessageEnd();
       }
 
-      public List<alluxio.thrift.FileBlockInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
+      public List<FileBlockInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
@@ -1032,38 +997,6 @@ public class FileSystemMasterClientService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_getUfsAddress();
-      }
-    }
-
-    public void listBlocks(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
-      checkReady();
-      listBlocks_call method_call = new listBlocks_call(path, resultHandler, this, ___protocolFactory, ___transport);
-      this.___currentMethod = method_call;
-      ___manager.call(method_call);
-    }
-
-    public static class listBlocks_call extends org.apache.thrift.async.TAsyncMethodCall {
-      private String path;
-      public listBlocks_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
-        super(client, protocolFactory, transport, resultHandler, false);
-        this.path = path;
-      }
-
-      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
-        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("listBlocks", org.apache.thrift.protocol.TMessageType.CALL, 0));
-        listBlocks_args args = new listBlocks_args();
-        args.setPath(path);
-        args.write(prot);
-        prot.writeMessageEnd();
-      }
-
-      public List<alluxio.thrift.FileBlockInfo> getResult() throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException {
-        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
-          throw new IllegalStateException("Method call not finished!");
-        }
-        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
-        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        return (new Client(prot)).recv_listBlocks();
       }
     }
 
@@ -1363,7 +1296,6 @@ public class FileSystemMasterClientService {
       processMap.put("getStatusInternal", new getStatusInternal());
       processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
-      processMap.put("listBlocks", new listBlocks());
       processMap.put("listStatus", new listStatus());
       processMap.put("loadMetadata", new loadMetadata());
       processMap.put("mount", new mount());
@@ -1592,30 +1524,6 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public static class listBlocks<I extends Iface> extends org.apache.thrift.ProcessFunction<I, listBlocks_args> {
-      public listBlocks() {
-        super("listBlocks");
-      }
-
-      public listBlocks_args getEmptyArgsInstance() {
-        return new listBlocks_args();
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public listBlocks_result getResult(I iface, listBlocks_args args) throws org.apache.thrift.TException {
-        listBlocks_result result = new listBlocks_result();
-        try {
-          result.success = iface.listBlocks(args.path);
-        } catch (alluxio.thrift.AlluxioTException e) {
-          result.e = e;
-        }
-        return result;
-      }
-    }
-
     public static class listStatus<I extends Iface> extends org.apache.thrift.ProcessFunction<I, listStatus_args> {
       public listStatus() {
         super("listStatus");
@@ -1839,7 +1747,6 @@ public class FileSystemMasterClientService {
       processMap.put("getStatusInternal", new getStatusInternal());
       processMap.put("getNewBlockIdForFile", new getNewBlockIdForFile());
       processMap.put("getUfsAddress", new getUfsAddress());
-      processMap.put("listBlocks", new listBlocks());
       processMap.put("listStatus", new listStatus());
       processMap.put("loadMetadata", new loadMetadata());
       processMap.put("mount", new mount());
@@ -2085,7 +1992,7 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public static class getFileBlockInfoList<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileBlockInfoList_args, List<alluxio.thrift.FileBlockInfo>> {
+    public static class getFileBlockInfoList<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, getFileBlockInfoList_args, List<FileBlockInfo>> {
       public getFileBlockInfoList() {
         super("getFileBlockInfoList");
       }
@@ -2094,10 +2001,10 @@ public class FileSystemMasterClientService {
         return new getFileBlockInfoList_args();
       }
 
-      public AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<List<FileBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>>() { 
-          public void onComplete(List<alluxio.thrift.FileBlockInfo> o) {
+        return new AsyncMethodCallback<List<FileBlockInfo>>() { 
+          public void onComplete(List<FileBlockInfo> o) {
             getFileBlockInfoList_result result = new getFileBlockInfoList_result();
             result.success = o;
             try {
@@ -2137,7 +2044,7 @@ public class FileSystemMasterClientService {
         return false;
       }
 
-      public void start(I iface, getFileBlockInfoList_args args, org.apache.thrift.async.AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>> resultHandler) throws TException {
+      public void start(I iface, getFileBlockInfoList_args args, org.apache.thrift.async.AsyncMethodCallback<List<FileBlockInfo>> resultHandler) throws TException {
         iface.getFileBlockInfoList(args.path,resultHandler);
       }
     }
@@ -2362,63 +2269,6 @@ public class FileSystemMasterClientService {
 
       public void start(I iface, getUfsAddress_args args, org.apache.thrift.async.AsyncMethodCallback<String> resultHandler) throws TException {
         iface.getUfsAddress(resultHandler);
-      }
-    }
-
-    public static class listBlocks<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, listBlocks_args, List<alluxio.thrift.FileBlockInfo>> {
-      public listBlocks() {
-        super("listBlocks");
-      }
-
-      public listBlocks_args getEmptyArgsInstance() {
-        return new listBlocks_args();
-      }
-
-      public AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
-        final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>>() { 
-          public void onComplete(List<alluxio.thrift.FileBlockInfo> o) {
-            listBlocks_result result = new listBlocks_result();
-            result.success = o;
-            try {
-              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
-              return;
-            } catch (Exception e) {
-              LOGGER.error("Exception writing to internal frame buffer", e);
-            }
-            fb.close();
-          }
-          public void onError(Exception e) {
-            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
-            org.apache.thrift.TBase msg;
-            listBlocks_result result = new listBlocks_result();
-            if (e instanceof alluxio.thrift.AlluxioTException) {
-                        result.e = (alluxio.thrift.AlluxioTException) e;
-                        result.setEIsSet(true);
-                        msg = result;
-            }
-             else 
-            {
-              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
-              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
-            }
-            try {
-              fcall.sendResponse(fb,msg,msgType,seqid);
-              return;
-            } catch (Exception ex) {
-              LOGGER.error("Exception writing to internal frame buffer", ex);
-            }
-            fb.close();
-          }
-        };
-      }
-
-      protected boolean isOneway() {
-        return false;
-      }
-
-      public void start(I iface, listBlocks_args args, org.apache.thrift.async.AsyncMethodCallback<List<alluxio.thrift.FileBlockInfo>> resultHandler) throws TException {
-        iface.listBlocks(args.path,resultHandler);
       }
     }
 
@@ -6892,7 +6742,7 @@ public class FileSystemMasterClientService {
       schemes.put(TupleScheme.class, new getFileBlockInfoList_resultTupleSchemeFactory());
     }
 
-    private List<alluxio.thrift.FileBlockInfo> success; // required
+    private List<FileBlockInfo> success; // required
     private alluxio.thrift.AlluxioTException e; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
@@ -6962,7 +6812,7 @@ public class FileSystemMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.FileBlockInfo.class))));
+              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, FileBlockInfo.class))));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
@@ -6973,7 +6823,7 @@ public class FileSystemMasterClientService {
     }
 
     public getFileBlockInfoList_result(
-      List<alluxio.thrift.FileBlockInfo> success,
+      List<FileBlockInfo> success,
       alluxio.thrift.AlluxioTException e)
     {
       this();
@@ -6986,9 +6836,9 @@ public class FileSystemMasterClientService {
      */
     public getFileBlockInfoList_result(getFileBlockInfoList_result other) {
       if (other.isSetSuccess()) {
-        List<alluxio.thrift.FileBlockInfo> __this__success = new ArrayList<alluxio.thrift.FileBlockInfo>(other.success.size());
-        for (alluxio.thrift.FileBlockInfo other_element : other.success) {
-          __this__success.add(new alluxio.thrift.FileBlockInfo(other_element));
+        List<FileBlockInfo> __this__success = new ArrayList<FileBlockInfo>(other.success.size());
+        for (FileBlockInfo other_element : other.success) {
+          __this__success.add(new FileBlockInfo(other_element));
         }
         this.success = __this__success;
       }
@@ -7011,22 +6861,22 @@ public class FileSystemMasterClientService {
       return (this.success == null) ? 0 : this.success.size();
     }
 
-    public java.util.Iterator<alluxio.thrift.FileBlockInfo> getSuccessIterator() {
+    public java.util.Iterator<FileBlockInfo> getSuccessIterator() {
       return (this.success == null) ? null : this.success.iterator();
     }
 
-    public void addToSuccess(alluxio.thrift.FileBlockInfo elem) {
+    public void addToSuccess(FileBlockInfo elem) {
       if (this.success == null) {
-        this.success = new ArrayList<alluxio.thrift.FileBlockInfo>();
+        this.success = new ArrayList<FileBlockInfo>();
       }
       this.success.add(elem);
     }
 
-    public List<alluxio.thrift.FileBlockInfo> getSuccess() {
+    public List<FileBlockInfo> getSuccess() {
       return this.success;
     }
 
-    public getFileBlockInfoList_result setSuccess(List<alluxio.thrift.FileBlockInfo> success) {
+    public getFileBlockInfoList_result setSuccess(List<FileBlockInfo> success) {
       this.success = success;
       return this;
     }
@@ -7076,7 +6926,7 @@ public class FileSystemMasterClientService {
         if (value == null) {
           unsetSuccess();
         } else {
-          setSuccess((List<alluxio.thrift.FileBlockInfo>)value);
+          setSuccess((List<FileBlockInfo>)value);
         }
         break;
 
@@ -7278,14 +7128,14 @@ public class FileSystemMasterClientService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list34 = iprot.readListBegin();
-                  struct.success = new ArrayList<alluxio.thrift.FileBlockInfo>(_list34.size);
-                  alluxio.thrift.FileBlockInfo _elem35;
-                  for (int _i36 = 0; _i36 < _list34.size; ++_i36)
+                  org.apache.thrift.protocol.TList _list50 = iprot.readListBegin();
+                  struct.success = new ArrayList<FileBlockInfo>(_list50.size);
+                  FileBlockInfo _elem51;
+                  for (int _i52 = 0; _i52 < _list50.size; ++_i52)
                   {
-                    _elem35 = new alluxio.thrift.FileBlockInfo();
-                    _elem35.read(iprot);
-                    struct.success.add(_elem35);
+                    _elem51 = new FileBlockInfo();
+                    _elem51.read(iprot);
+                    struct.success.add(_elem51);
                   }
                   iprot.readListEnd();
                 }
@@ -7322,9 +7172,9 @@ public class FileSystemMasterClientService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (alluxio.thrift.FileBlockInfo _iter37 : struct.success)
+            for (FileBlockInfo _iter53 : struct.success)
             {
-              _iter37.write(oprot);
+              _iter53.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -7363,9 +7213,9 @@ public class FileSystemMasterClientService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (alluxio.thrift.FileBlockInfo _iter38 : struct.success)
+            for (FileBlockInfo _iter54 : struct.success)
             {
-              _iter38.write(oprot);
+              _iter54.write(oprot);
             }
           }
         }
@@ -7380,14 +7230,14 @@ public class FileSystemMasterClientService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list39 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<alluxio.thrift.FileBlockInfo>(_list39.size);
-            alluxio.thrift.FileBlockInfo _elem40;
-            for (int _i41 = 0; _i41 < _list39.size; ++_i41)
+            org.apache.thrift.protocol.TList _list55 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<FileBlockInfo>(_list55.size);
+            FileBlockInfo _elem56;
+            for (int _i57 = 0; _i57 < _list55.size; ++_i57)
             {
-              _elem40 = new alluxio.thrift.FileBlockInfo();
-              _elem40.read(iprot);
-              struct.success.add(_elem40);
+              _elem56 = new FileBlockInfo();
+              _elem56.read(iprot);
+              struct.success.add(_elem56);
             }
           }
           struct.setSuccessIsSet(true);
@@ -10533,898 +10383,6 @@ public class FileSystemMasterClientService {
 
   }
 
-  public static class listBlocks_args implements org.apache.thrift.TBase<listBlocks_args, listBlocks_args._Fields>, java.io.Serializable, Cloneable, Comparable<listBlocks_args>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listBlocks_args");
-
-    private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new listBlocks_argsStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new listBlocks_argsTupleSchemeFactory());
-    }
-
-    private String path; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      /**
-       * the path of the file
-       */
-      PATH((short)1, "path");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 1: // PATH
-            return PATH;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listBlocks_args.class, metaDataMap);
-    }
-
-    public listBlocks_args() {
-    }
-
-    public listBlocks_args(
-      String path)
-    {
-      this();
-      this.path = path;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public listBlocks_args(listBlocks_args other) {
-      if (other.isSetPath()) {
-        this.path = other.path;
-      }
-    }
-
-    public listBlocks_args deepCopy() {
-      return new listBlocks_args(this);
-    }
-
-    @Override
-    public void clear() {
-      this.path = null;
-    }
-
-    /**
-     * the path of the file
-     */
-    public String getPath() {
-      return this.path;
-    }
-
-    /**
-     * the path of the file
-     */
-    public listBlocks_args setPath(String path) {
-      this.path = path;
-      return this;
-    }
-
-    public void unsetPath() {
-      this.path = null;
-    }
-
-    /** Returns true if field path is set (has been assigned a value) and false otherwise */
-    public boolean isSetPath() {
-      return this.path != null;
-    }
-
-    public void setPathIsSet(boolean value) {
-      if (!value) {
-        this.path = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case PATH:
-        if (value == null) {
-          unsetPath();
-        } else {
-          setPath((String)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case PATH:
-        return getPath();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case PATH:
-        return isSetPath();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof listBlocks_args)
-        return this.equals((listBlocks_args)that);
-      return false;
-    }
-
-    public boolean equals(listBlocks_args that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_path = true && this.isSetPath();
-      boolean that_present_path = true && that.isSetPath();
-      if (this_present_path || that_present_path) {
-        if (!(this_present_path && that_present_path))
-          return false;
-        if (!this.path.equals(that.path))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      boolean present_path = true && (isSetPath());
-      list.add(present_path);
-      if (present_path)
-        list.add(path);
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(listBlocks_args other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetPath()).compareTo(other.isSetPath());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetPath()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-    }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("listBlocks_args(");
-      boolean first = true;
-
-      sb.append("path:");
-      if (this.path == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.path);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class listBlocks_argsStandardSchemeFactory implements SchemeFactory {
-      public listBlocks_argsStandardScheme getScheme() {
-        return new listBlocks_argsStandardScheme();
-      }
-    }
-
-    private static class listBlocks_argsStandardScheme extends StandardScheme<listBlocks_args> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, listBlocks_args struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 1: // PATH
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
-                struct.path = iprot.readString();
-                struct.setPathIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, listBlocks_args struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.path != null) {
-          oprot.writeFieldBegin(PATH_FIELD_DESC);
-          oprot.writeString(struct.path);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class listBlocks_argsTupleSchemeFactory implements SchemeFactory {
-      public listBlocks_argsTupleScheme getScheme() {
-        return new listBlocks_argsTupleScheme();
-      }
-    }
-
-    private static class listBlocks_argsTupleScheme extends TupleScheme<listBlocks_args> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, listBlocks_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetPath()) {
-          optionals.set(0);
-        }
-        oprot.writeBitSet(optionals, 1);
-        if (struct.isSetPath()) {
-          oprot.writeString(struct.path);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, listBlocks_args struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
-        if (incoming.get(0)) {
-          struct.path = iprot.readString();
-          struct.setPathIsSet(true);
-        }
-      }
-    }
-
-  }
-
-  public static class listBlocks_result implements org.apache.thrift.TBase<listBlocks_result, listBlocks_result._Fields>, java.io.Serializable, Cloneable, Comparable<listBlocks_result>   {
-    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listBlocks_result");
-
-    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.LIST, (short)0);
-    private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
-
-    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
-    static {
-      schemes.put(StandardScheme.class, new listBlocks_resultStandardSchemeFactory());
-      schemes.put(TupleScheme.class, new listBlocks_resultTupleSchemeFactory());
-    }
-
-    private List<alluxio.thrift.FileBlockInfo> success; // required
-    private alluxio.thrift.AlluxioTException e; // required
-
-    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
-    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
-      SUCCESS((short)0, "success"),
-      E((short)1, "e");
-
-      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
-
-      static {
-        for (_Fields field : EnumSet.allOf(_Fields.class)) {
-          byName.put(field.getFieldName(), field);
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, or null if its not found.
-       */
-      public static _Fields findByThriftId(int fieldId) {
-        switch(fieldId) {
-          case 0: // SUCCESS
-            return SUCCESS;
-          case 1: // E
-            return E;
-          default:
-            return null;
-        }
-      }
-
-      /**
-       * Find the _Fields constant that matches fieldId, throwing an exception
-       * if it is not found.
-       */
-      public static _Fields findByThriftIdOrThrow(int fieldId) {
-        _Fields fields = findByThriftId(fieldId);
-        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
-        return fields;
-      }
-
-      /**
-       * Find the _Fields constant that matches name, or null if its not found.
-       */
-      public static _Fields findByName(String name) {
-        return byName.get(name);
-      }
-
-      private final short _thriftId;
-      private final String _fieldName;
-
-      _Fields(short thriftId, String fieldName) {
-        _thriftId = thriftId;
-        _fieldName = fieldName;
-      }
-
-      public short getThriftFieldId() {
-        return _thriftId;
-      }
-
-      public String getFieldName() {
-        return _fieldName;
-      }
-    }
-
-    // isset id assignments
-    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
-    static {
-      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
-              new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, alluxio.thrift.FileBlockInfo.class))));
-      tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
-      metaDataMap = Collections.unmodifiableMap(tmpMap);
-      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listBlocks_result.class, metaDataMap);
-    }
-
-    public listBlocks_result() {
-    }
-
-    public listBlocks_result(
-      List<alluxio.thrift.FileBlockInfo> success,
-      alluxio.thrift.AlluxioTException e)
-    {
-      this();
-      this.success = success;
-      this.e = e;
-    }
-
-    /**
-     * Performs a deep copy on <i>other</i>.
-     */
-    public listBlocks_result(listBlocks_result other) {
-      if (other.isSetSuccess()) {
-        List<alluxio.thrift.FileBlockInfo> __this__success = new ArrayList<alluxio.thrift.FileBlockInfo>(other.success.size());
-        for (alluxio.thrift.FileBlockInfo other_element : other.success) {
-          __this__success.add(new alluxio.thrift.FileBlockInfo(other_element));
-        }
-        this.success = __this__success;
-      }
-      if (other.isSetE()) {
-        this.e = new alluxio.thrift.AlluxioTException(other.e);
-      }
-    }
-
-    public listBlocks_result deepCopy() {
-      return new listBlocks_result(this);
-    }
-
-    @Override
-    public void clear() {
-      this.success = null;
-      this.e = null;
-    }
-
-    public int getSuccessSize() {
-      return (this.success == null) ? 0 : this.success.size();
-    }
-
-    public java.util.Iterator<alluxio.thrift.FileBlockInfo> getSuccessIterator() {
-      return (this.success == null) ? null : this.success.iterator();
-    }
-
-    public void addToSuccess(alluxio.thrift.FileBlockInfo elem) {
-      if (this.success == null) {
-        this.success = new ArrayList<alluxio.thrift.FileBlockInfo>();
-      }
-      this.success.add(elem);
-    }
-
-    public List<alluxio.thrift.FileBlockInfo> getSuccess() {
-      return this.success;
-    }
-
-    public listBlocks_result setSuccess(List<alluxio.thrift.FileBlockInfo> success) {
-      this.success = success;
-      return this;
-    }
-
-    public void unsetSuccess() {
-      this.success = null;
-    }
-
-    /** Returns true if field success is set (has been assigned a value) and false otherwise */
-    public boolean isSetSuccess() {
-      return this.success != null;
-    }
-
-    public void setSuccessIsSet(boolean value) {
-      if (!value) {
-        this.success = null;
-      }
-    }
-
-    public alluxio.thrift.AlluxioTException getE() {
-      return this.e;
-    }
-
-    public listBlocks_result setE(alluxio.thrift.AlluxioTException e) {
-      this.e = e;
-      return this;
-    }
-
-    public void unsetE() {
-      this.e = null;
-    }
-
-    /** Returns true if field e is set (has been assigned a value) and false otherwise */
-    public boolean isSetE() {
-      return this.e != null;
-    }
-
-    public void setEIsSet(boolean value) {
-      if (!value) {
-        this.e = null;
-      }
-    }
-
-    public void setFieldValue(_Fields field, Object value) {
-      switch (field) {
-      case SUCCESS:
-        if (value == null) {
-          unsetSuccess();
-        } else {
-          setSuccess((List<alluxio.thrift.FileBlockInfo>)value);
-        }
-        break;
-
-      case E:
-        if (value == null) {
-          unsetE();
-        } else {
-          setE((alluxio.thrift.AlluxioTException)value);
-        }
-        break;
-
-      }
-    }
-
-    public Object getFieldValue(_Fields field) {
-      switch (field) {
-      case SUCCESS:
-        return getSuccess();
-
-      case E:
-        return getE();
-
-      }
-      throw new IllegalStateException();
-    }
-
-    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
-    public boolean isSet(_Fields field) {
-      if (field == null) {
-        throw new IllegalArgumentException();
-      }
-
-      switch (field) {
-      case SUCCESS:
-        return isSetSuccess();
-      case E:
-        return isSetE();
-      }
-      throw new IllegalStateException();
-    }
-
-    @Override
-    public boolean equals(Object that) {
-      if (that == null)
-        return false;
-      if (that instanceof listBlocks_result)
-        return this.equals((listBlocks_result)that);
-      return false;
-    }
-
-    public boolean equals(listBlocks_result that) {
-      if (that == null)
-        return false;
-
-      boolean this_present_success = true && this.isSetSuccess();
-      boolean that_present_success = true && that.isSetSuccess();
-      if (this_present_success || that_present_success) {
-        if (!(this_present_success && that_present_success))
-          return false;
-        if (!this.success.equals(that.success))
-          return false;
-      }
-
-      boolean this_present_e = true && this.isSetE();
-      boolean that_present_e = true && that.isSetE();
-      if (this_present_e || that_present_e) {
-        if (!(this_present_e && that_present_e))
-          return false;
-        if (!this.e.equals(that.e))
-          return false;
-      }
-
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      List<Object> list = new ArrayList<Object>();
-
-      boolean present_success = true && (isSetSuccess());
-      list.add(present_success);
-      if (present_success)
-        list.add(success);
-
-      boolean present_e = true && (isSetE());
-      list.add(present_e);
-      if (present_e)
-        list.add(e);
-
-      return list.hashCode();
-    }
-
-    @Override
-    public int compareTo(listBlocks_result other) {
-      if (!getClass().equals(other.getClass())) {
-        return getClass().getName().compareTo(other.getClass().getName());
-      }
-
-      int lastComparison = 0;
-
-      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetSuccess()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
-      if (lastComparison != 0) {
-        return lastComparison;
-      }
-      if (isSetE()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.e, other.e);
-        if (lastComparison != 0) {
-          return lastComparison;
-        }
-      }
-      return 0;
-    }
-
-    public _Fields fieldForId(int fieldId) {
-      return _Fields.findByThriftId(fieldId);
-    }
-
-    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
-      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
-    }
-
-    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
-      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
-      }
-
-    @Override
-    public String toString() {
-      StringBuilder sb = new StringBuilder("listBlocks_result(");
-      boolean first = true;
-
-      sb.append("success:");
-      if (this.success == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.success);
-      }
-      first = false;
-      if (!first) sb.append(", ");
-      sb.append("e:");
-      if (this.e == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.e);
-      }
-      first = false;
-      sb.append(")");
-      return sb.toString();
-    }
-
-    public void validate() throws org.apache.thrift.TException {
-      // check for required fields
-      // check for sub-struct validity
-    }
-
-    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
-      try {
-        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
-      try {
-        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
-      } catch (org.apache.thrift.TException te) {
-        throw new java.io.IOException(te);
-      }
-    }
-
-    private static class listBlocks_resultStandardSchemeFactory implements SchemeFactory {
-      public listBlocks_resultStandardScheme getScheme() {
-        return new listBlocks_resultStandardScheme();
-      }
-    }
-
-    private static class listBlocks_resultStandardScheme extends StandardScheme<listBlocks_result> {
-
-      public void read(org.apache.thrift.protocol.TProtocol iprot, listBlocks_result struct) throws org.apache.thrift.TException {
-        org.apache.thrift.protocol.TField schemeField;
-        iprot.readStructBegin();
-        while (true)
-        {
-          schemeField = iprot.readFieldBegin();
-          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
-            break;
-          }
-          switch (schemeField.id) {
-            case 0: // SUCCESS
-              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
-                {
-                  org.apache.thrift.protocol.TList _list42 = iprot.readListBegin();
-                  struct.success = new ArrayList<alluxio.thrift.FileBlockInfo>(_list42.size);
-                  alluxio.thrift.FileBlockInfo _elem43;
-                  for (int _i44 = 0; _i44 < _list42.size; ++_i44)
-                  {
-                    _elem43 = new alluxio.thrift.FileBlockInfo();
-                    _elem43.read(iprot);
-                    struct.success.add(_elem43);
-                  }
-                  iprot.readListEnd();
-                }
-                struct.setSuccessIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            case 1: // E
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.e = new alluxio.thrift.AlluxioTException();
-                struct.e.read(iprot);
-                struct.setEIsSet(true);
-              } else { 
-                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-              }
-              break;
-            default:
-              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
-          }
-          iprot.readFieldEnd();
-        }
-        iprot.readStructEnd();
-
-        // check for required fields of primitive type, which can't be checked in the validate method
-        struct.validate();
-      }
-
-      public void write(org.apache.thrift.protocol.TProtocol oprot, listBlocks_result struct) throws org.apache.thrift.TException {
-        struct.validate();
-
-        oprot.writeStructBegin(STRUCT_DESC);
-        if (struct.success != null) {
-          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
-          {
-            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (alluxio.thrift.FileBlockInfo _iter45 : struct.success)
-            {
-              _iter45.write(oprot);
-            }
-            oprot.writeListEnd();
-          }
-          oprot.writeFieldEnd();
-        }
-        if (struct.e != null) {
-          oprot.writeFieldBegin(E_FIELD_DESC);
-          struct.e.write(oprot);
-          oprot.writeFieldEnd();
-        }
-        oprot.writeFieldStop();
-        oprot.writeStructEnd();
-      }
-
-    }
-
-    private static class listBlocks_resultTupleSchemeFactory implements SchemeFactory {
-      public listBlocks_resultTupleScheme getScheme() {
-        return new listBlocks_resultTupleScheme();
-      }
-    }
-
-    private static class listBlocks_resultTupleScheme extends TupleScheme<listBlocks_result> {
-
-      @Override
-      public void write(org.apache.thrift.protocol.TProtocol prot, listBlocks_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol oprot = (TTupleProtocol) prot;
-        BitSet optionals = new BitSet();
-        if (struct.isSetSuccess()) {
-          optionals.set(0);
-        }
-        if (struct.isSetE()) {
-          optionals.set(1);
-        }
-        oprot.writeBitSet(optionals, 2);
-        if (struct.isSetSuccess()) {
-          {
-            oprot.writeI32(struct.success.size());
-            for (alluxio.thrift.FileBlockInfo _iter46 : struct.success)
-            {
-              _iter46.write(oprot);
-            }
-          }
-        }
-        if (struct.isSetE()) {
-          struct.e.write(oprot);
-        }
-      }
-
-      @Override
-      public void read(org.apache.thrift.protocol.TProtocol prot, listBlocks_result struct) throws org.apache.thrift.TException {
-        TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
-        if (incoming.get(0)) {
-          {
-            org.apache.thrift.protocol.TList _list47 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<alluxio.thrift.FileBlockInfo>(_list47.size);
-            alluxio.thrift.FileBlockInfo _elem48;
-            for (int _i49 = 0; _i49 < _list47.size; ++_i49)
-            {
-              _elem48 = new alluxio.thrift.FileBlockInfo();
-              _elem48.read(iprot);
-              struct.success.add(_elem48);
-            }
-          }
-          struct.setSuccessIsSet(true);
-        }
-        if (incoming.get(1)) {
-          struct.e = new alluxio.thrift.AlluxioTException();
-          struct.e.read(iprot);
-          struct.setEIsSet(true);
-        }
-      }
-    }
-
-  }
-
   public static class listStatus_args implements org.apache.thrift.TBase<listStatus_args, listStatus_args._Fields>, java.io.Serializable, Cloneable, Comparable<listStatus_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listStatus_args");
 
@@ -12193,14 +11151,14 @@ public class FileSystemMasterClientService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list50 = iprot.readListBegin();
-                  struct.success = new ArrayList<FileInfo>(_list50.size);
-                  FileInfo _elem51;
-                  for (int _i52 = 0; _i52 < _list50.size; ++_i52)
+                  org.apache.thrift.protocol.TList _list58 = iprot.readListBegin();
+                  struct.success = new ArrayList<FileInfo>(_list58.size);
+                  FileInfo _elem59;
+                  for (int _i60 = 0; _i60 < _list58.size; ++_i60)
                   {
-                    _elem51 = new FileInfo();
-                    _elem51.read(iprot);
-                    struct.success.add(_elem51);
+                    _elem59 = new FileInfo();
+                    _elem59.read(iprot);
+                    struct.success.add(_elem59);
                   }
                   iprot.readListEnd();
                 }
@@ -12237,9 +11195,9 @@ public class FileSystemMasterClientService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (FileInfo _iter53 : struct.success)
+            for (FileInfo _iter61 : struct.success)
             {
-              _iter53.write(oprot);
+              _iter61.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -12278,9 +11236,9 @@ public class FileSystemMasterClientService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (FileInfo _iter54 : struct.success)
+            for (FileInfo _iter62 : struct.success)
             {
-              _iter54.write(oprot);
+              _iter62.write(oprot);
             }
           }
         }
@@ -12295,14 +11253,14 @@ public class FileSystemMasterClientService {
         BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list55 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
-            struct.success = new ArrayList<FileInfo>(_list55.size);
-            FileInfo _elem56;
-            for (int _i57 = 0; _i57 < _list55.size; ++_i57)
+            org.apache.thrift.protocol.TList _list63 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, iprot.readI32());
+            struct.success = new ArrayList<FileInfo>(_list63.size);
+            FileInfo _elem64;
+            for (int _i65 = 0; _i65 < _list63.size; ++_i65)
             {
-              _elem56 = new FileInfo();
-              _elem56.read(iprot);
-              struct.success.add(_elem56);
+              _elem64 = new FileInfo();
+              _elem64.read(iprot);
+              struct.success.add(_elem64);
             }
           }
           struct.setSuccessIsSet(true);

@@ -19,16 +19,6 @@ struct BlockLocation {
   3: string tierAlias
 }
 
-/**
-* Contains the information of a block in a file. In addition to the BlockInfo, it includes the
-* offset in the file, and the under file system locations of the block replicas.
-*/
-struct FileBlockInfo {
-  1: BlockInfo blockInfo
-  2: i64 offset
-  3: list<string> ufsLocations
-}
-
 enum CommandType {
   Unknown = 0,
   Nothing = 1,

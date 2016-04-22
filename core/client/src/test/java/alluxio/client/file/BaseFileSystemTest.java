@@ -18,7 +18,6 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.client.file.options.GetStatusOptions;
-import alluxio.client.file.options.ListBlocksOptions;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
@@ -26,10 +25,8 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.RenameOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,8 +37,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
-
-import java.util.List;
 
 /**
 * Unit test for functionality in {@link BaseFileSystem}.
@@ -210,36 +205,6 @@ public final class BaseFileSystemTest {
     } catch (Exception e) {
       Assert.assertSame(EXCEPTION, e);
     }
-  }
-
-  /**
-   * Tests for the {@link BaseFileSystem#listBlocks(AlluxioURI, ListBlocksOptions)} method.
-   *
-   * @throws Exception when listing the status fails
-   */
-  @Test
-  public void listBlocksTest() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    List<FileBlockInfo> infos = Lists.newArrayList(new FileBlockInfo());
-    Mockito.when(mFileSystemMasterClient.listBlocks(file)).thenReturn(infos);
-    ListBlocksOptions options = ListBlocksOptions.defaults();
-    Assert.assertSame(infos, mFileSystem.listBlocks(file, options));
-    Mockito.verify(mFileSystemMasterClient).listBlocks(file);
-  }
-
-  /**
-   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
-   *
-   * @throws Exception when listing the status fails
-   */
-  @Test
-  public void listStatusTest() throws Exception {
-    AlluxioURI file = new AlluxioURI("/file");
-    List<URIStatus> infos = Lists.newArrayList(new URIStatus(new FileInfo()));
-    Mockito.when(mFileSystemMasterClient.listStatus(file)).thenReturn(infos);
-    ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
-    Assert.assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).listStatus(file);
   }
 
   /**

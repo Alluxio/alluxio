@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,6 +47,7 @@ public final class FileInfo {
   private int mPermission;
   private String mPersistenceState = "";
   private boolean mMountPoint;
+  private List<FileBlockInfo> mFileBlockInfos = Lists.newArrayList();
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -79,6 +81,10 @@ public final class FileInfo {
     mPermission = fileInfo.getPermission();
     mPersistenceState = fileInfo.getPersistenceState();
     mMountPoint = fileInfo.isMountPoint();
+    mFileBlockInfos = new ArrayList<>();
+    for (alluxio.thrift.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
+      mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
+    }
   }
 
   /**
@@ -226,6 +232,13 @@ public final class FileInfo {
    */
   public boolean isMountPoint() {
     return mMountPoint;
+  }
+
+  /**
+   * @return the file persistence state
+   */
+  public List<FileBlockInfo> getFileBlockInfos() {
+    return mFileBlockInfos;
   }
 
   /**
@@ -425,13 +438,26 @@ public final class FileInfo {
   }
 
   /**
+   * @param fileBlockInfos the file block descriptors to use
+   * @return the file descriptor
+   */
+  public FileInfo setFileBlockInfos(List<FileBlockInfo> fileBlockInfos) {
+    mFileBlockInfos = fileBlockInfos;
+    return this;
+  }
+
+  /**
    * @return thrift representation of the file descriptor
    */
   protected alluxio.thrift.FileInfo toThrift() {
+    List<alluxio.thrift.FileBlockInfo> fileBlockInfos = new ArrayList<>();
+    for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
+      fileBlockInfos.add(fileBlockInfo.toThrift());
+    }
     return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState, mMountPoint);
+        mPersistenceState, mMountPoint, fileBlockInfos);
   }
 
   @Override
@@ -452,7 +478,7 @@ public final class FileInfo {
         && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mUserName
         .equals(that.mUserName) && mGroupName.equals(that.mGroupName)
         && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState)
-        && mMountPoint == that.mMountPoint;
+        && mMountPoint == that.mMountPoint && mFileBlockInfos.equals(that.mFileBlockInfos);
   }
 
   @Override
@@ -460,7 +486,7 @@ public final class FileInfo {
     return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState, mMountPoint);
+        mPersistenceState, mMountPoint, mFileBlockInfos);
   }
 
   @Override
@@ -473,6 +499,7 @@ public final class FileInfo {
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
         .add("userName", mUserName).add("groupName", mGroupName).add("permission", mPermission)
-        .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint).toString();
+        .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
+        .add("fileBlockInfos", mFileBlockInfos).toString();
   }
 }
