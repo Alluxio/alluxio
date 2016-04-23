@@ -11,6 +11,8 @@
 
 package alluxio.worker.file;
 
+import static org.junit.Assert.assertEquals;
+
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.Sessions;
@@ -20,11 +22,15 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
+import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.FakeRateLimiter;
+import com.google.common.util.concurrent.RateLimiter;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,7 +51,7 @@ import java.util.Set;
  * Tests {@link FileDataManager}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockWorker.class, BufferUtils.class})
+@PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class})
 public final class FileDataManagerTest {
 
   /**
@@ -123,6 +129,77 @@ public final class FileDataManagerTest {
     manager.clearPersistedFiles(poppedList);
     persistedFiles = (Set<Long>) Whitebox.getInternalState(manager, "mPersistedFiles");
     Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
+  }
+
+  @Test
+  public void persistFileRateLimitingTest() throws Exception {
+    long fileId = 1;
+    List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
+
+    // mock block worker
+    BlockWorker blockWorker = Mockito.mock(BlockWorker.class);
+    FileInfo fileInfo = new FileInfo();
+    fileInfo.setPath("test");
+    Mockito.when(blockWorker.getFileInfo(fileId)).thenReturn(fileInfo);
+    BlockReader reader = Mockito.mock(BlockReader.class);
+    for (long blockId : blockIds) {
+      Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
+          .thenReturn(blockId);
+      Mockito
+          .when(blockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+          .thenReturn(reader);
+      BlockMeta mockedBlockMeta = PowerMockito.mock(BlockMeta.class);
+      Mockito.when(mockedBlockMeta.getBlockSize()).thenReturn(100L);
+      Mockito
+          .when(blockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+          .thenReturn(mockedBlockMeta);
+    }
+
+    Configuration conf = WorkerContext.getConf();
+    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
+    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
+
+    FileDataManager manager = new FileDataManager(blockWorker);
+
+    // mock ufs
+    UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
+    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
+    Whitebox.setInternalState(manager, "mUfs", ufs);
+
+    // Setup a fake rate limiter.
+    final FakeRateLimiter fakeRateLimiter = new FakeRateLimiter(
+        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    Whitebox.setInternalState(manager, "sPersistenceRateLimiter", new ThreadLocal<RateLimiter>() {
+      @Override
+      protected RateLimiter initialValue() {
+        return fakeRateLimiter.getGuavaRateLimiter();
+      }
+    });
+
+    OutputStream outputStream = Mockito.mock(OutputStream.class);
+
+    // mock BufferUtils
+    PowerMockito.mockStatic(BufferUtils.class);
+
+    String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
+    Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+
+    manager.lockBlocks(fileId, blockIds);
+    manager.persistFile(fileId, blockIds);
+
+    List<String> expectedEvents = Lists.newArrayList("R0.00", "R1.00", "R1.00");
+    assertEquals(expectedEvents, fakeRateLimiter.readEventsAndClear());
+
+    // Simulate waiting for 1 second.
+    fakeRateLimiter.sleepMillis(1000);
+
+    manager.lockBlocks(fileId, blockIds);
+    manager.persistFile(fileId, blockIds);
+
+    // The first write will go through immediately without throttling.
+    expectedEvents = Lists.newArrayList("U1.00", "R0.00", "R1.00", "R1.00");
+    assertEquals(expectedEvents, fakeRateLimiter.readEventsAndClear());
   }
 
   /**
