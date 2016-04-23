@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FakeRateLimiter;
 import com.google.common.util.concurrent.RateLimiter;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,6 +54,14 @@ import java.util.Set;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class})
 public final class FileDataManagerTest {
+
+  /**
+   * Resets the worker context.
+   */
+  @After
+  public void after() throws IOException {
+    WorkerContext.reset();
+  }
 
   /**
    * Tests that a file gets persisted.
