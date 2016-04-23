@@ -47,7 +47,11 @@ O projeto é um camada de armazenamento do `Berkeley Data Analytics Stack`
 [Lista de Email de Usuário](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
 [Distribuído Por](Powered-By-Alluxio.html)
 
-# Funcionalidades Atuais
+<style>
+#current-features + ul li {height:210px;}
+</style>
+# Funcionalidades Atuais {#current-features}
+<!--for using the CSS，when tranlasting English title to Portuguese, must specify the id for Portuguese which is identical as the generated id in CSS for English title-->
 
 * **[Flexible File API](File-System-API.html)** A `API` nativa do Alluxio é similar a classe 
 ``java.io.File``, provendo interfaces de `InputStream` e `OutputStream` interfaces, assim como 

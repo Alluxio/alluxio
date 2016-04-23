@@ -205,6 +205,8 @@ public final class Constants {
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "alluxio.master.journal.log.size.bytes.max";
 
+  public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
+      "alluxio.master.file.async.persist.handler";
   public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
   public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
   public static final String MASTER_RPC_PORT = "alluxio.master.port";
@@ -385,6 +387,7 @@ public final class Constants {
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
   public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
   public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";

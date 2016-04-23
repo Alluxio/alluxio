@@ -34,9 +34,22 @@ public final class UnmountOptions {
     // No options currently
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof UnmountOptions)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
   @Override
   public String toString() {
     return Objects.toStringHelper(this).toString();
