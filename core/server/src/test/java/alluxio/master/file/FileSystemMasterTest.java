@@ -388,6 +388,16 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests the permission bits are 0755 for directories and 0644 for files by default.
+   */
+  @Test
+  public void permissionTest() throws Exception {
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+  }
+
+  /**
    * Tests that a file is fully written to memory.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
@@ -395,7 +405,7 @@ public final class FileSystemMasterTest {
   @Test
   public void isFullyInMemoryTest() throws Exception {
     // add nested file
-    long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
+    mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     // add in-memory block
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId, Constants.KB);
@@ -565,25 +575,6 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(blockId,
         (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
                 .getBlockIds().get(0));
-  }
-
-  /**
-   * Tests the persistence of file with block on multiple workers.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
-   */
-  @Test
-  public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {
-    long fileId = mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
-    long blockId1 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "MEM", blockId1, Constants.KB);
-    long blockId2 = mFileSystemMaster.getNewBlockIdForFile(ROOT_FILE_URI);
-    mBlockMaster.commitBlock(mWorkerId2, Constants.KB, "MEM", blockId2, Constants.KB);
-    CompleteFileOptions options = CompleteFileOptions.defaults().setUfsLength(2 * Constants.KB);
-    mFileSystemMaster.completeFile(ROOT_FILE_URI, options);
-
-    long workerId = mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
-    Assert.assertEquals(IdUtils.INVALID_WORKER_ID, workerId);
   }
 
   /**

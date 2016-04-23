@@ -7,6 +7,10 @@
   script: remove_s3_exclusion.sh
   when: ufs == "s3"
 
+- name: remove dependency exclusion of alluxio-underfs-gcs
+  script: remove_gcs_exclusion.sh
+  when: ufs == "gcs"
+
 - copy: >
     src=roles/ufs_{{ ufs }}/files/compile_spark.sh
     dest=/tmp/compile_spark.sh

@@ -17,6 +17,9 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.worker.WorkerContext;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -27,6 +30,11 @@ import org.junit.runner.RunWith;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Unit tests for {@link BlockLockManager}.
@@ -57,6 +65,11 @@ public class BlockLockManagerTest {
     BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
     PowerMockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
     mLockManager = new BlockLockManager();
+  }
+
+  @After
+  public void after() throws Exception {
+    WorkerContext.reset();
   }
 
   /**
@@ -232,6 +245,75 @@ public class BlockLockManagerTest {
     thread.join(200);
     // Locking should not take 200ms unless there is a hang.
     Assert.assertTrue(thread.isAlive());
+  }
+
+  /**
+   * Tests that taking and releasing many block locks concurrently won't cause a failure.
+   *
+   * This is done by creating 200 threads, 100 for each of 2 different block ids. Each thread locks
+   * and then unlocks its block 50 times. After this, it takes a final lock on its block before
+   * returning. At the end of the test, the internal state of the lock manager is validated.
+   */
+  @Test(timeout = 10000)
+  public void stressTest() throws Throwable {
+    final int numBlocks = 2;
+    final int threadsPerBlock = 100;
+    final int lockUnlocksPerThread = 50;
+    setMaxLocks(numBlocks);
+    final BlockLockManager manager = new BlockLockManager();
+    final List<Thread> threads = Lists.newArrayList();
+    final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
+    // If there are exceptions, we will store them here.
+    final AtomicReference<List<Throwable>> failedThreadThrowables =
+        new AtomicReference<List<Throwable>>(Lists.<Throwable>newArrayList());
+    Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
+      public void uncaughtException(Thread th, Throwable ex) {
+        failedThreadThrowables.get().add(ex);
+      }
+    };
+    for (int blockId = 0; blockId < numBlocks; blockId++) {
+      final int finalBlockId = blockId;
+      for (int i = 0; i < threadsPerBlock; i++) {
+        Thread t = new Thread(new Runnable() {
+          @Override
+          public void run() {
+            try {
+              barrier.await();
+            } catch (Exception e) {
+              throw Throwables.propagate(e);
+            }
+            // Lock and unlock the block lockUnlocksPerThread times.
+            for (int j = 0; j < lockUnlocksPerThread; j++) {
+              long lockId = manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
+              try {
+                manager.unlockBlock(lockId);
+              } catch (BlockDoesNotExistException e) {
+                throw Throwables.propagate(e);
+              }
+            }
+            // Lock the block one last time.
+            manager.lockBlock(TEST_SESSION_ID, finalBlockId, BlockLockType.READ);
+          }
+        });
+        t.setUncaughtExceptionHandler(exceptionHandler);
+        threads.add(t);
+      }
+    }
+    Collections.shuffle(threads);
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    if (!failedThreadThrowables.get().isEmpty()) {
+      StringBuilder sb = new StringBuilder("Failed with the following errors:\n");
+      for (Throwable failedThreadThrowable : failedThreadThrowables.get()) {
+        sb.append(Throwables.getStackTraceAsString(failedThreadThrowable));
+      }
+      Assert.fail(sb.toString());
+    }
+    manager.validate();
   }
 
   private void setMaxLocks(int maxLocks) {

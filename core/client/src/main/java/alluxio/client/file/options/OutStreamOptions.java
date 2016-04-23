@@ -140,12 +140,33 @@ public final class OutStreamOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OutStreamOptions)) {
+      return false;
+    }
+    OutStreamOptions that = (OutStreamOptions) o;
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mWriteType, that.mWriteType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mBlockSizeBytes, mTtl, mLocationPolicy, mWriteType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("ttl", mTtl)
+        .add("locationPolicy", mLocationPolicy)
+        .add("writeType", mWriteType)
+        .toString();
   }
 }
