@@ -53,13 +53,13 @@ public class FakeRateLimiter {
    * R0.6 means a delay of 0.6 seconds caused by the (R)ateLimiter
    * U1.0 means the (U)ser caused the ticker to sleep for a second.
    */
-  static class FakeSleepingTicker extends SleepingTicker {
-    long instant = 0L;
-    final List<String> events = Lists.newArrayList();
+  private static class FakeSleepingTicker extends SleepingTicker {
+    private long mInstant = 0L;
+    private final List<String> mEvents = Lists.newArrayList();
 
     @Override
     public long read() {
-      return instant;
+      return mInstant;
     }
 
     void sleepMillis(int millis) {
@@ -67,8 +67,8 @@ public class FakeRateLimiter {
     }
 
     void sleepMicros(String caption, long micros) {
-      instant += MICROSECONDS.toNanos(micros);
-      events.add(caption + String.format(Locale.ROOT, "%3.2f", (micros / 1000000.0)));
+      mInstant += MICROSECONDS.toNanos(micros);
+      mEvents.add(caption + String.format(Locale.ROOT, "%3.2f", (micros / 1000000.0)));
     }
 
     @Override
@@ -78,15 +78,15 @@ public class FakeRateLimiter {
 
     List<String> readEventsAndClear() {
       try {
-        return new ArrayList<String>(events);
+        return new ArrayList<String>(mEvents);
       } finally {
-        events.clear();
+        mEvents.clear();
       }
     }
 
     @Override
     public String toString() {
-      return events.toString();
+      return mEvents.toString();
     }
   }
 }
