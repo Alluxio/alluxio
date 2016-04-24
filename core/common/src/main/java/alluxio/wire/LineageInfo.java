@@ -24,8 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The lineage descriptor.
  */
-@NotThreadSafe
 @PublicApi
+@NotThreadSafe
 public final class LineageInfo {
   private long mId;
   private List<String> mInputFiles = Lists.newArrayList();

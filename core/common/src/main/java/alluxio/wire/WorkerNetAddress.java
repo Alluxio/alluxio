@@ -11,18 +11,15 @@
 
 package alluxio.wire;
 
-import alluxio.annotation.PublicApi;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The network address of a worker.
  */
-@PublicApi
-@ThreadSafe
+@NotThreadSafe
 public final class WorkerNetAddress {
   private String mHost = "";
   private int mRpcPort;

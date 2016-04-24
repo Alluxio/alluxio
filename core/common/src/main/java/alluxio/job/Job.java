@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Preconditions;
 
 import java.io.Serializable;
@@ -20,6 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A Job that can run at Alluxio.
  */
+@PublicApi
 @SuppressWarnings("serial")
 @ThreadSafe
 public abstract class Job implements Serializable {
