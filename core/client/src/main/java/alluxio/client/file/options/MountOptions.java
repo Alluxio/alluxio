@@ -85,9 +85,30 @@ public final class MountOptions {
   /**
    * @return the name : value pairs for all the fields
    */
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mProperties, that.mProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mReadOnly, mProperties);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("readonly", mReadOnly).add("properties", mProperties)
+    return Objects.toStringHelper(this)
+        .add("readonly", mReadOnly)
+        .add("properties", mProperties)
         .toString();
   }
 

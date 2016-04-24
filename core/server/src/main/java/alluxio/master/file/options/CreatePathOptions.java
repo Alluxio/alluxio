@@ -11,12 +11,9 @@
 
 package alluxio.master.file.options;
 
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 
 import com.google.common.base.Objects;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -34,10 +31,10 @@ public abstract class CreatePathOptions<T> {
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 
-  protected CreatePathOptions() throws IOException {
+  protected CreatePathOptions() {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
+    mPermissionStatus = PermissionStatus.defaults();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
@@ -146,9 +143,34 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreatePathOptions)) {
+      return false;
+    }
+    CreatePathOptions<?> that = (CreatePathOptions<?>) o;
+    return Objects.equal(mMountPoint, that.mMountPoint)
+        && Objects.equal(mPermissionStatus, that.mPermissionStatus)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mMetadataLoad, that.mMetadataLoad);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mMountPoint, mPermissionStatus, mPersisted, mRecursive, mMetadataLoad);
+  }
+
   protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("mountPoint", mMountPoint)
-        .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
-        .add("recursive", mRecursive).add("permissionStatus", mPermissionStatus);
+    return Objects.toStringHelper(this)
+        .add("mountPoint", mMountPoint)
+        .add("operationTimeMs", mOperationTimeMs)
+        .add("permissionStatus", mPermissionStatus)
+        .add("persisted", mPersisted)
+        .add("recursive", mRecursive)
+        .add("metadataLoad", mMetadataLoad);
   }
 }
