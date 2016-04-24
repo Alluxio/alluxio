@@ -67,6 +67,7 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
@@ -84,7 +85,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -295,7 +295,9 @@ public final class FileSystemMaster extends AbstractMaster {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
+      mInodeTree.initializeRoot(PermissionStatus.defaults()
+          .applyDirectoryUMask(MasterContext.getConf())
+          .setUserFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -399,16 +401,25 @@ public final class FileSystemMaster extends AbstractMaster {
   private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    if (inode instanceof InodeFile) {
+      InodeFile inodeFile = (InodeFile) inode;
+      try {
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodeFile));
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+    }
     AlluxioURI path = mInodeTree.getPath(inode);
-    AlluxioURI resolvedPath;
+    MountTable.Resolution resolution;
     try {
-      resolvedPath = mMountTable.resolve(path);
+      resolution = mMountTable.resolve(path);
     } catch (InvalidPathException e) {
       throw new FileDoesNotExistException(e.getMessage(), e);
     }
+    AlluxioURI resolvedUri = resolution.getUri();
     // Only set the UFS path if the path is nested under a mount point.
-    if (!path.equals(resolvedPath)) {
-      fileInfo.setUfsPath(resolvedPath.toString());
+    if (!path.equals(resolvedUri)) {
+      fileInfo.setUfsPath(resolvedUri.toString());
     }
     MasterContext.getMasterSource().incFileInfosGot(1);
     return fileInfo;
@@ -864,12 +875,13 @@ public final class FileSystemMaster extends AbstractMaster {
             unmountInternal(alluxioUriToDel);
           } else {
             // Delete the file in the under file system.
-            String ufsPath = mMountTable.resolve(alluxioUriToDel).toString();
-            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-            if (!ufs.exists(ufsPath)) {
-              LOG.warn("File does not exist the underfs: {}", ufsPath);
-            } else if (!ufs.delete(ufsPath, true)) {
-              LOG.error("Failed to delete {}", ufsPath);
+            MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
+            String ufsUri = resolution.getUri().toString();
+            UnderFileSystem ufs = resolution.getUfs();
+            if (!ufs.exists(ufsUri)) {
+              LOG.warn("File does not exist the underfs: {}", ufsUri);
+            } else if (!ufs.delete(ufsUri, true)) {
+              LOG.error("Failed to delete {}", ufsUri);
               return false;
             }
           }
@@ -897,7 +909,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * the path.
    *
    * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given path
    * @throws FileDoesNotExistException if the file does not exist or path is a directory
    * @throws InvalidPathException if the path of the given file is invalid
    * @throws AccessControlException if permission checking fails
@@ -915,8 +927,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @param file the inode to get the info for
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    * @throws InvalidPathException if the path of the given file is invalid
    */
   @GuardedBy("mInodeTree")
@@ -945,7 +957,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<WorkerNetAddress>());
+    fileBlockInfo.setUfsLocations(new ArrayList<String>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
@@ -954,30 +966,18 @@ public final class FileSystemMaster extends AbstractMaster {
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      String ufsPath = mMountTable.resolve(mInodeTree.getPath(file)).toString();
-      UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+      MountTable.Resolution resolution = mMountTable.resolve(mInodeTree.getPath(file));
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
       List<String> locs;
       try {
-        locs = ufs.getFileLocations(ufsPath, fileBlockInfo.getOffset());
+        locs = ufs.getFileLocations(ufsUri, fileBlockInfo.getOffset());
       } catch (IOException e) {
         return fileBlockInfo;
       }
       if (locs != null) {
         for (String loc : locs) {
-          String resolvedHost = loc;
-          int resolvedPort = -1;
-          try {
-            String[] ipport = loc.split(":");
-            if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-              resolvedPort = Integer.parseInt(ipport[1]);
-            }
-          } catch (NumberFormatException e) {
-            continue;
-          }
-          // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.getUfsLocations().add(
-              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
+          fileBlockInfo.getUfsLocations().add(loc);
         }
       }
     }
@@ -1267,16 +1267,18 @@ public final class FileSystemMaster extends AbstractMaster {
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
     if (!replayed && fileInfo.isPersisted()) {
-      String ufsSrcPath = mMountTable.resolve(srcPath).toString();
-      String ufsDstPath = mMountTable.resolve(dstPath).toString();
-      UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
-      String parentPath = new AlluxioURI(ufsDstPath).getParent().toString();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
+      MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+
+      String ufsSrcUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+      String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
+      if (!ufs.exists(parentUri) && !ufs.mkdirs(parentUri, true)) {
+        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
       }
-      if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
+      if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstPath));
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcUri, ufsDstUri));
       }
     }
 
@@ -1509,20 +1511,21 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
       AccessControlException {
-    AlluxioURI ufsPath;
+    MountTable.Resolution resolution;
     synchronized (mInodeTree) {
       // Permission checking is not performed in this method, but in the methods invoked.
-      ufsPath = mMountTable.resolve(path);
+      resolution = mMountTable.resolve(path);
     }
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsPath.getPath())) {
+      if (!ufs.exists(ufsUri.toString())) {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
-      if (ufs.isFile(ufsPath.getPath())) {
-        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
-        long ufsLength = ufs.getFileSize(ufsPath.toString());
+      if (ufs.isFile(ufsUri.toString())) {
+        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
+        long ufsLength = ufs.getFileSize(ufsUri.toString());
         // Metadata loaded from UFS has no TTL set.
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
@@ -1625,9 +1628,21 @@ public final class FileSystemMaster extends AbstractMaster {
         }
         // Exception will be propagated from loadDirectoryMetadata
       }
+
+      // For proto, build a list of String pairs representing the properties map.
+      Map<String, String> properties = options.getProperties();
+      List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
+      for (Map.Entry<String, String> entry : properties.entrySet()) {
+        protoProperties.add(StringPairEntry.newBuilder()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build());
+      }
+
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly()).build();
+              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+              .addAllProperties(protoProperties).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1649,8 +1664,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Updates the mount table with the specified mount point. The mount options may be updated during
+   * this method.
+   *
    * @param alluxioPath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
+   * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
@@ -1660,10 +1679,11 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
-    if (!ufs.exists(ufsPath.getPath())) {
+    ufs.setProperties(options.getProperties());
+    if (!ufs.exists(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
     }
-    if (ufs.isFile(ufsPath.getPath())) {
+    if (ufs.isFile(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
     }
     // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
@@ -1676,6 +1696,16 @@ public final class FileSystemMaster extends AbstractMaster {
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
     mMountTable.add(alluxioPath, ufsPath, options);
+
+    try {
+      // Configure the ufs properties, and update the mount options with the configured properties.
+      ufs.configureProperties();
+      options.setProperties(ufs.getProperties());
+    } catch (IOException e) {
+      // remove the mount point if the UFS failed to configure properties.
+      mMountTable.delete(alluxioPath);
+      throw e;
+    }
   }
 
   /**

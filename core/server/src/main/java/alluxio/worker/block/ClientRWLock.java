@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientRWLock implements ReadWriteLock {
   // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers. */
-  private static final int MAX_AVAILABLE = 100;
+  private static final int MAX_AVAILABLE = 1000;
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
   /** Reference count. */
@@ -46,6 +46,13 @@ public final class ClientRWLock implements ReadWriteLock {
   }
 
   /**
+   * @return the reference count
+   */
+  public int getReferenceCount() {
+    return mReferences.get();
+  }
+
+  /**
    * Increments the reference count.
    */
   public void addReference() {
@@ -57,7 +64,7 @@ public final class ClientRWLock implements ReadWriteLock {
    *
    * @return the new reference count
    */
-  public Integer dropReference() {
+  public int dropReference() {
     return mReferences.decrementAndGet();
   }
 
