@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
@@ -112,5 +113,10 @@ public class MountOptionsTest {
     options = MountOptions.defaults().setProperties(properties);
     Assert.assertEquals(properties.size(), options.getProperties().size());
     Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(MountOptions.class, "mOperationTimeMs");
   }
 }
