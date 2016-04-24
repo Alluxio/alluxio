@@ -235,7 +235,7 @@ public final class FileInfo {
   }
 
   /**
-   * @return the file persistence state
+   * @return the list of file block descriptors
    */
   public List<FileBlockInfo> getFileBlockInfos() {
     return mFileBlockInfos;

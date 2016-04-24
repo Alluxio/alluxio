@@ -194,6 +194,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param path the file path
    * @return the response object
    * @deprecated since version 1.1 and will be removed in version 2.0
+   * @see {@link #getStatus(String)}
    */
   @Deprecated
   @GET
