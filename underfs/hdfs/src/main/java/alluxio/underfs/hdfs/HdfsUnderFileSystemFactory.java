@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -47,7 +48,8 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
     Path rootPath = getRoot(new Path(path));
     synchronized (mHdfsUfsCache) {
       if (!mHdfsUfsCache.containsKey(rootPath)) {
-        mHdfsUfsCache.put(rootPath, new HdfsUnderFileSystem(path, configuration, conf));
+        mHdfsUfsCache
+            .put(rootPath, new HdfsUnderFileSystem(new AlluxioURI(path), configuration, conf));
       }
       return mHdfsUfsCache.get(rootPath);
     }

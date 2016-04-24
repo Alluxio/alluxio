@@ -33,10 +33,9 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.CommonUtils;
 import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -240,32 +239,28 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     AlluxioURI path = new AlluxioURI(HadoopUtils.getPathWithoutScheme(file.getPath()));
     List<FileBlockInfo> blocks = getFileBlocks(path);
-
-    List<BlockLocation> blockLocations = new ArrayList<BlockLocation>();
-    for (int k = 0; k < blocks.size(); k++) {
-      FileBlockInfo info = blocks.get(k);
-      long offset = info.getOffset();
-      long end = offset + info.getBlockInfo().getLength();
+    List<BlockLocation> blockLocations = new ArrayList<>();
+    for (FileBlockInfo fileBlockInfo : blocks) {
+      long offset = fileBlockInfo.getOffset();
+      long end = offset + fileBlockInfo.getBlockInfo().getLength();
       // Check if there is any overlapping between [start, start+len] and [offset, end]
       if (end >= start && offset <= start + len) {
-        ArrayList<String> names = new ArrayList<String>();
-        ArrayList<String> hosts = new ArrayList<String>();
-        List<WorkerNetAddress> addrs = Lists.newArrayList();
-        // add the existing in-memory block locations first
-        for (alluxio.wire.BlockLocation location : info.getBlockInfo().getLocations()) {
-          addrs.add(location.getWorkerAddress());
+        ArrayList<String> names = new ArrayList<>();
+        ArrayList<String> hosts = new ArrayList<>();
+        // add the existing in-memory block locations
+        for (alluxio.wire.BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
+          HostAndPort address = HostAndPort.fromParts(location.getWorkerAddress().getHost(),
+              location.getWorkerAddress().getDataPort());
+          names.add(address.toString());
+          hosts.add(address.getHostText());
         }
-        // then add under file system location
-        addrs.addAll(info.getUfsLocations());
-        for (WorkerNetAddress addr : addrs) {
-          // Name format is "hostname:data transfer port"
-          String name = addr.getHost() + ":" + addr.getDataPort();
-          LOG.debug("getFileBlockLocations : adding name : {}", name);
-          names.add(name);
-          hosts.add(addr.getHost());
+        // add under file system locations
+        for (String location : fileBlockInfo.getUfsLocations()) {
+          names.add(location);
+          hosts.add(HostAndPort.fromString(location).getHostText());
         }
         blockLocations.add(new BlockLocation(CommonUtils.toStringArray(names),
-            CommonUtils.toStringArray(hosts), offset, info.getBlockInfo().getLength()));
+            CommonUtils.toStringArray(hosts), offset, fileBlockInfo.getBlockInfo().getLength()));
       }
     }
 
@@ -557,7 +552,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   private List<FileBlockInfo> getFileBlocks(AlluxioURI path) throws IOException {
     FileSystemMasterClient master = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return master.getFileBlockInfoList(path);
+      return master.getStatus(path).getFileBlockInfos();
     } catch (AlluxioException e) {
       throw new IOException(e);
     } finally {

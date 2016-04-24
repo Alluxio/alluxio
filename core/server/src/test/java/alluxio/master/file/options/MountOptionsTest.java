@@ -18,10 +18,18 @@ import alluxio.thrift.MountTOptions;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * Unit tests for {@link MountOptions}.
  */
 public class MountOptionsTest {
+  public static final String PROPERTY_KEY = "A";
+  public static final String PROPERTY_VALUE = "B";
+
   /**
    * Tests the {@link MountOptions#defaults()} method.
    */
@@ -29,6 +37,7 @@ public class MountOptionsTest {
   public void defaultsTest() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertTrue(options.getProperties().isEmpty());
   }
 
   /**
@@ -47,10 +56,15 @@ public class MountOptionsTest {
     Assert.assertFalse(options.isReadOnly());
 
     // Set thrift options
+    Map<String, String> properties = new HashMap<>();
+    properties.put(PROPERTY_KEY, PROPERTY_VALUE);
     thriftOptions = new MountTOptions();
     thriftOptions.setReadOnly(true);
+    thriftOptions.setProperties(properties);
     options = new MountOptions(thriftOptions);
     Assert.assertTrue(options.isReadOnly());
+    Assert.assertEquals(properties.size(), options.getProperties().size());
+    Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
   }
 
   /**
@@ -69,9 +83,18 @@ public class MountOptionsTest {
     Assert.assertFalse(options.isReadOnly());
 
     // Set proto options
-    protoOptions = File.AddMountPointEntry.newBuilder().setReadOnly(true).build();
+    List<File.StringPairEntry> protoProperties = new ArrayList<>();
+    protoProperties.add(File.StringPairEntry.newBuilder()
+        .setKey(PROPERTY_KEY)
+        .setValue(PROPERTY_VALUE)
+        .build());
+    protoOptions =
+        File.AddMountPointEntry.newBuilder().setReadOnly(true).addAllProperties(protoProperties)
+            .build();
     options = new MountOptions(protoOptions);
     Assert.assertTrue(options.isReadOnly());
+    Assert.assertEquals(protoProperties.size(), options.getProperties().size());
+    Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
   }
 
   /**
@@ -84,6 +107,12 @@ public class MountOptionsTest {
 
     options = MountOptions.defaults().setReadOnly(false);
     Assert.assertFalse(options.isReadOnly());
+
+    Map<String, String> properties = new HashMap<>();
+    properties.put(PROPERTY_KEY, PROPERTY_VALUE);
+    options = MountOptions.defaults().setProperties(properties);
+    Assert.assertEquals(properties.size(), options.getProperties().size());
+    Assert.assertEquals(PROPERTY_VALUE, options.getProperties().get(PROPERTY_KEY));
   }
 
   @Test

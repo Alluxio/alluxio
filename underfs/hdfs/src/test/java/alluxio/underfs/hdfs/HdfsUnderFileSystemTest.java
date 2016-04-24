@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem.UnderFSType;
@@ -28,7 +29,8 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem("file:///", new Configuration(), null);
+    mMockHdfsUnderFileSystem =
+        new HdfsUnderFileSystem(new AlluxioURI("file:///"), new Configuration(), null);
   }
 
   /**

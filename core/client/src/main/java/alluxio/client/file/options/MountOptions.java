@@ -16,6 +16,10 @@ import alluxio.thrift.MountTOptions;
 
 import com.google.common.base.Objects;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -25,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MountOptions {
   private boolean mReadOnly;
+  private Map<String, String> mProperties;
 
   /**
    * @return the default {@link MountOptions}
@@ -38,6 +43,7 @@ public final class MountOptions {
    */
   private MountOptions() {
     mReadOnly = false;
+    mProperties = new HashMap<>();
   }
 
   /**
@@ -60,6 +66,26 @@ public final class MountOptions {
     return this;
   }
 
+  /**
+   * @return the properties map
+   */
+  public Map<String, String> getProperties() {
+    return Collections.unmodifiableMap(mProperties);
+  }
+
+  /**
+   * @param properties the properties map to use
+   * @return the updated options object
+   */
+  public MountOptions setProperties(Map<String, String> properties) {
+    mProperties = properties;
+    return this;
+  }
+
+  /**
+   * @return the name : value pairs for all the fields
+   */
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -69,18 +95,20 @@ public final class MountOptions {
       return false;
     }
     MountOptions that = (MountOptions) o;
-    return Objects.equal(mReadOnly, that.mReadOnly);
+    return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mProperties, that.mProperties);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly);
+    return Objects.hashCode(mReadOnly, mProperties);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
         .add("readonly", mReadOnly)
+        .add("properties", mProperties)
         .toString();
   }
 
@@ -90,6 +118,9 @@ public final class MountOptions {
   public MountTOptions toThrift() {
     MountTOptions options = new MountTOptions();
     options.setReadOnly(mReadOnly);
+    if (mProperties != null && !mProperties.isEmpty()) {
+      options.setProperties(mProperties);
+    }
     return options;
   }
 }

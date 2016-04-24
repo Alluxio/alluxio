@@ -102,7 +102,7 @@ public final class RPCBlockWriteRequest extends RPCRequest {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("blockId", mBlockId).add("offset", mOffset)
-        .add("lenght", mLength).add("sessionId", mSessionId).toString();
+        .add("length", mLength).add("sessionId", mSessionId).toString();
   }
 
   /**
