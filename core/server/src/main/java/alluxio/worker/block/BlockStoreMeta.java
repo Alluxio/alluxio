@@ -43,7 +43,7 @@ public final class BlockStoreMeta {
   /** Mapping from storage tier alias to used bytes. */
   private final Map<String, Long> mUsedBytesOnTiers = new HashMap<String, Long>();
 
-  /** Mapping from storage tier alias to capacity bytes. */
+  /** Mapping from storage tier alias to stored block ids. */
   private final Map<String, List<Long>> mBlockIdsOnTiers = new HashMap<String, List<Long>>();
 
   /** Mapping from storage dir tier and path to total capacity. */

@@ -22,16 +22,20 @@ import alluxio.util.SecurityUtils;
 
 import java.io.IOException;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The permission status for a file or directory.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class PermissionStatus {
-  private final String mUserName;
-  private final String mGroupName;
-  private final FileSystemPermission mPermission;
+  /** This default umask is used to calculate file permission from directory permission. */
+  private static final FileSystemPermission FILE_UMASK =
+      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
+
+  private String mUserName;
+  private String mGroupName;
+  private FileSystemPermission mPermission;
 
   /**
    * Constructs an instance of {@link PermissionStatus}.
@@ -61,6 +65,15 @@ public final class PermissionStatus {
   }
 
   /**
+   * Constructs an instance of {@link PermissionStatus} cloned from the given permission.
+   *
+   * @param ps the give permission status
+   */
+  public PermissionStatus(PermissionStatus ps) {
+    this(ps.getUserName(), ps.getGroupName(), new FileSystemPermission(ps.getPermission()));
+  }
+
+  /**
    * @return the user name
    */
   public String getUserName() {
@@ -82,61 +95,93 @@ public final class PermissionStatus {
   }
 
   /**
-   * Applies umask.
+   * Applies umask and updates the permission bits.
    *
    * @param umask the umask to apply
-   * @return a new {@link PermissionStatus}
-   * @see FileSystemPermission#applyUMask(FileSystemPermission)
+   * @return this {@link PermissionStatus} after umask applied
    */
   public PermissionStatus applyUMask(FileSystemPermission umask) {
-    FileSystemPermission newFileSystemPermission = mPermission.applyUMask(umask);
-    return new PermissionStatus(mUserName, mGroupName, newFileSystemPermission);
+    mPermission = mPermission.applyUMask(umask);
+    return this;
   }
 
   /**
-   * Gets the Directory default {@link PermissionStatus}. Currently the default dir permission is
-   * 0777.
-   *
-   * @return the default {@link PermissionStatus} for directories
-   */
-  public static PermissionStatus getDirDefault() {
-    return new PermissionStatus("", "", new FileSystemPermission(Constants
-        .DEFAULT_FS_FULL_PERMISSION));
-  }
-
-  // TODO(binfan): remove remote parameter by making two different get methods
-  /**
-   * Creates the {@link PermissionStatus} for a file or a directory.
+   * Applies default umask of newly created files and updates the permission bits.
    *
    * @param conf the runtime configuration of Alluxio
-   * @param remote true if the request is for creating permission from client side, the
-   *               username binding into inode will be gotten from {@code AuthenticatedClientUser
-   *               .get().getName()}.
-   *               If the remote is false, the username binding into inode will be gotten from
-   *               {@link alluxio.security.LoginUser}.
-   * @return the {@link PermissionStatus} for a file or a directory
-   * @throws java.io.IOException when getting login user fails
+   * @return this {@link PermissionStatus} after umask applied
    */
-  public static PermissionStatus get(Configuration conf, boolean remote) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication
-      return new PermissionStatus("", "", FileSystemPermission.getNoneFsPermission());
-    }
-    if (remote) {
-      // get the username through the authentication mechanism
-      User user = AuthenticatedClientUser.get(conf);
-      if (user == null) {
-        throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
-      }
-      return new PermissionStatus(user.getName(), CommonUtils.getPrimaryGroupName(conf,
-          user.getName()), FileSystemPermission.getDefault().applyUMask(conf));
-    }
+  public PermissionStatus applyFileUMask(Configuration conf) {
+    mPermission =
+        mPermission.applyUMask(FileSystemPermission.getUMask(conf)).applyUMask(FILE_UMASK);
+    return this;
+  }
 
+  /**
+   * Applies default umask of newly created directories and updates the permission bits.
+   *
+   * @param conf the runtime configuration of Alluxio
+   * @return this {@link PermissionStatus} after umask applied
+   */
+  public PermissionStatus applyDirectoryUMask(Configuration conf) {
+    mPermission = mPermission.applyUMask(FileSystemPermission.getUMask(conf));
+    return this;
+  }
+
+  /**
+   * Sets the user based on the thrift transport and updates the group to the primary group of the
+   * user. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * no-op.
+   *
+   * @param conf the runtime configuration of Alluxio
+   * @return the {@link PermissionStatus} for a file or a directory
+   * @throws IOException when getting login user fails
+   */
+  public PermissionStatus setUserFromThriftClient(Configuration conf) throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+      // no authentication, no user to set
+      return this;
+    }
+    // get the username through the authentication mechanism
+    User user = AuthenticatedClientUser.get(conf);
+    if (user == null) {
+      throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
+    }
+    mUserName = user.getName();
+    mGroupName = CommonUtils.getPrimaryGroupName(conf, user.getName());
+    return this;
+  }
+
+  /**
+   * Sets the user based on the login module and updates the group to the primary group of the user.
+   * If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * no-op.
+   *
+   * @param conf the runtime configuration of Alluxio
+   * @return the {@link PermissionStatus} for a file or a directory
+   * @throws IOException when getting login user fails
+   */
+  public PermissionStatus setUserFromLoginModule(Configuration conf) throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+      // no authentication, no user to set
+      return this;
+    }
     // get the username through the login module
     String loginUserName = LoginUser.get(conf).getName();
-    return new PermissionStatus(loginUserName,
-        CommonUtils.getPrimaryGroupName(conf, loginUserName), FileSystemPermission.getDefault()
-            .applyUMask(conf));
+    mUserName = loginUserName;
+    mGroupName = CommonUtils.getPrimaryGroupName(conf, loginUserName);
+    return this;
+  }
+
+  /**
+   * Creates the default {@link PermissionStatus} for a file or a directory. Both user and group are
+   * empty and the filesystem permission is 0777 by default.
+   *
+   * @return the {@link PermissionStatus} for a file or a directory
+   */
+  public static PermissionStatus defaults() {
+    // no authentication, every action is permitted
+    return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
   }
 
   @Override

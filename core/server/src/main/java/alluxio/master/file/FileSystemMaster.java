@@ -295,7 +295,9 @@ public final class FileSystemMaster extends AbstractMaster {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
+      mInodeTree.initializeRoot(PermissionStatus.defaults()
+          .applyDirectoryUMask(MasterContext.getConf())
+          .setUserFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),

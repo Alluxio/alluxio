@@ -14,7 +14,6 @@ package alluxio.worker;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
-import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Throwables;
 
@@ -37,17 +36,17 @@ public interface DataServer extends Closeable {
      * Factory for {@link DataServer}.
      *
      * @param dataAddress the address of the data server
-     * @param blockWorker block worker handle
+     * @param worker the Alluxio worker handle
      * @param conf Alluxio configuration
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final BlockWorker blockWorker, Configuration conf) {
+        final AlluxioWorker worker, final Configuration conf) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, BlockWorker.class, Configuration.class },
-            new Object[] { dataAddress, blockWorker, conf });
+            new Class[] { InetSocketAddress.class, AlluxioWorker.class, Configuration.class },
+            new Object[] { dataAddress, worker, conf });
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
