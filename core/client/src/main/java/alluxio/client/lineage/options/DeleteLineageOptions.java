@@ -13,6 +13,8 @@ package alluxio.client.lineage.options;
 
 import alluxio.annotation.PublicApi;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -52,5 +54,10 @@ public final class DeleteLineageOptions {
   public DeleteLineageOptions setCascade(boolean cascade) {
     mCascade = cascade;
     return this;
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this).add("cascade", mCascade).toString();
   }
 }

@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.annotation.PublicApi;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
@@ -195,6 +196,13 @@ public class URIStatus {
    */
   public boolean isMountPoint() {
     return mInfo.isMountPoint();
+  }
+
+  /**
+   * @return the list of file block descriptors
+   */
+  public List<FileBlockInfo> getFileBlockInfos() {
+    return mInfo.getFileBlockInfos();
   }
 
   @Override
