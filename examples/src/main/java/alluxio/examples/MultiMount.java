@@ -29,7 +29,7 @@ import org.apache.commons.io.IOUtils;
  * fs.s3.awsSecretAccessKey VM properties to a valid AWS access key ID and aws secret access key
  * respectively in order to access the S3 bucket the data is read from.
  */
-public class MultiMount {
+public final class MultiMount {
 
   /**
    * Entry point for the {@link MultiMount} program.
