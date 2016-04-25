@@ -54,6 +54,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
     if (!mUseZookeeper) {
       return super.getAddress();
     }
-    return NetworkAddressUtils.getMasterAddressFormZK(mConfiguration);
+    return NetworkAddressUtils.getMasterAddressFromZK(mConfiguration);
   }
 }
