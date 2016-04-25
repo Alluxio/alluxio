@@ -396,8 +396,24 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
     mMetadataReadLock.lock();
-    BlockStoreMeta storeMeta = mMetaManager.getBlockStoreMeta();
-    mMetadataReadLock.unlock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMeta();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
+    return storeMeta;
+  }
+
+  @Override
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    mMetadataReadLock.lock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMetaFull();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
     return storeMeta;
   }
 

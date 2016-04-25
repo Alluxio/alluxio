@@ -269,10 +269,19 @@ interface BlockStore {
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be
    * consistent with the snapshot after this method is called.
+   * This function should be cheap since it is called for every block.
    *
    * @return store meta data
    */
   BlockStoreMeta getBlockStoreMeta();
+
+  /**
+   * Similar as {@link BlockStoreMeta#getBlockStoreMeta} except that this includes more information
+   * about the block store (e.g. blockId list). This is an expensive operation.
+   *
+   * @return full store meta data
+   */
+  BlockStoreMeta getBlockStoreMetaFull();
 
   /**
    * Checks if the storage has a given block.
