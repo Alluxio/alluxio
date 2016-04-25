@@ -51,13 +51,17 @@ public class MultiMount {
       // Create the S3 and HDFS mount points.
       fileSystem.mount(new AlluxioURI("/mnt/s3"), new AlluxioURI("s3n://alluxio-demo/"));
       fileSystem.mount(new AlluxioURI("/mnt/hdfs"), new AlluxioURI("hdfs://localhost:9000/"));
-      AlluxioURI inputUri = new AlluxioURI("/mnt/s3/hello.txt");
-      AlluxioURI outputUri = new AlluxioURI("/mnt/hdfs/hello.txt");
-      FileInStream is = fileSystem.openFile(inputUri);
+      AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
+      AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
+      // Make sure the output does not exist.
+      if (fileSystem.exists(outputPath)) {
+        fileSystem.delete(outputPath);
+      }
+      FileInStream is = fileSystem.openFile(inputPath);
       // Make sure that results are persisted to HDFS.
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
-      FileOutStream os = fileSystem.createFile(outputUri, options);
+      FileOutStream os = fileSystem.createFile(outputPath, options);
       // Copy the data.
       IOUtils.copy(is, os);
       is.close();
