@@ -30,6 +30,12 @@ import org.apache.commons.io.IOUtils;
  * respectively in order to access the S3 bucket the data is read from.
  */
 public class MultiMount {
+
+  /**
+   * Entry point for the {@link MultiMount} program.
+   *
+   * @param args command-line arguments
+   */
   public static void main(String []args) {
     FileSystem fileSystem = FileSystem.Factory.get();
     try {
