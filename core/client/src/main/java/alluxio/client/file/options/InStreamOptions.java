@@ -32,6 +32,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class InStreamOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
+  /** Include incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
+  private boolean mCacheIncompleteBlock;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -51,6 +53,8 @@ public final class InStreamOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
+    mCacheIncompleteBlock =
+      ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_INCOMPLETE_BLOCK);
   }
 
   /**
@@ -85,6 +89,15 @@ public final class InStreamOptions {
    */
   public InStreamOptions setReadType(ReadType readType) {
     mReadType = readType;
+    return this;
+  }
+
+  public boolean shouldCacheIncompleteBlock() {
+    return mCacheIncompleteBlock;
+  }
+
+  public InStreamOptions enableCacheIncompleteBlock() {
+    mCacheIncompleteBlock = true;
     return this;
   }
 
