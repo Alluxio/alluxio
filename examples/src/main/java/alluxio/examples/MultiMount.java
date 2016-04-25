@@ -37,46 +37,108 @@ public final class MultiMount {
    * @param args command-line arguments
    */
   public static void main(String []args) {
+    AlluxioURI mntPath = new AlluxioURI("/mnt");
+    AlluxioURI s3Mount = new AlluxioURI("/mnt/s3");
+    AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
+    AlluxioURI s3Path = new AlluxioURI("s3n://alluxio-demo/");
+    AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
+    AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
+    AlluxioURI hdfsPath = new AlluxioURI("hdfs://localhost:9000/");
     FileSystem fileSystem = FileSystem.Factory.get();
+
     try {
-      AlluxioURI mntPath = new AlluxioURI("/mnt");
-      AlluxioURI s3Path = new AlluxioURI("/mnt/s3");
-      AlluxioURI hdfsPath = new AlluxioURI("/mnt/hdfs");
-      // Make sure that the directory under which mount points are created exists.
+      // Make sure mount directory exists.
       if (!fileSystem.exists(mntPath)) {
+        System.out.print("creating " + mntPath + " ... ");
         fileSystem.createDirectory(mntPath);
+        System.out.println("done");
       }
-      // Make sure that the S3 mount point does not exist.
-      if (fileSystem.exists(s3Path)) {
-        fileSystem.unmount(s3Path);
+
+      // Make sure the S3 mount point does not exist.
+      if (fileSystem.exists(s3Mount)) {
+        System.out.print("unmounting " + s3Mount + " ... ");
+        fileSystem.unmount(s3Mount);
+        System.out.println("done");
       }
-      // Make sure that the HDFS mount point does not exist.
-      if (fileSystem.exists(hdfsPath)) {
-        fileSystem.unmount(hdfsPath);
+
+      // Make sure the HDFS mount point does not exist.
+      if (fileSystem.exists(hdfsMount)) {
+        System.out.print("unmounting " + hdfsMount + " ... ");
+        fileSystem.unmount(hdfsMount);
+        System.out.println("done");
       }
-      // Create the S3 and HDFS mount points.
-      fileSystem.mount(new AlluxioURI("/mnt/s3"), new AlluxioURI("s3n://alluxio-demo/"));
-      fileSystem.mount(new AlluxioURI("/mnt/hdfs"), new AlluxioURI("hdfs://localhost:9000/"));
-      AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
-      AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
-      // Make sure the output does not exist.
+
+      // Mount S3.
+      System.out.print("mounting " + s3Path + " to " + s3Mount + " ... ");
+      fileSystem.mount(s3Mount, s3Path);
+      System.out.println("done");
+
+      // Mount HDFS.
+      System.out.print("mounting " + hdfsPath + " to " + hdfsMount + " ... ");
+      fileSystem.mount(hdfsMount, hdfsPath);
+      System.out.println("done");
+
+      // Make sure output file does not exist.
       if (fileSystem.exists(outputPath)) {
+        System.out.print("deleting " + outputPath + " ... ");
         fileSystem.delete(outputPath);
+        System.out.println("done");
       }
+
+      // Open the input stream.
+      System.out.print("opening " + inputPath + " ... ");
       FileInStream is = fileSystem.openFile(inputPath);
-      // Make sure that results are persisted to HDFS.
+      System.out.println("done");
+
+      // Open the output stream, setting the write type to make sure result is persisted.
+      System.out.print("opening " + outputPath + " ... ");
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
       FileOutStream os = fileSystem.createFile(outputPath, options);
-      // Copy the data.
+      System.out.println("done");
+
+      // Copy the data
+      System.out.print("transferring data from " + inputPath + " to " + outputPath + " ... ");
       IOUtils.copy(is, os);
+      System.out.println("done");
+
+      // Close the input stream.
+
+      System.out.print("closing " + inputPath + " ... ");
       is.close();
+      System.out.println("done");
+
+      // Close the output stream.
+      System.out.print("closing " + outputPath + " ... ");
       os.close();
-      // Finally, remove the mount points.
-      fileSystem.unmount(new AlluxioURI("/mnt/s3"));
-      fileSystem.unmount(new AlluxioURI("/mnt/hdfs"));
+      System.out.println("done");
     } catch (Exception e) {
+      System.out.println("fail");
       e.printStackTrace();
+    } finally {
+      // Make sure the S3 mount point is removed.
+      try {
+        if (fileSystem.exists(s3Mount)) {
+          System.out.print("unmounting " + s3Mount + " ... ");
+          fileSystem.unmount(s3Mount);
+          System.out.println("done");
+        }
+      } catch (Exception e) {
+        System.out.println("fail");
+        e.printStackTrace();
+      }
+
+      // Make sure the HDFS mount point is removed.
+      try {
+        if (fileSystem.exists(hdfsMount)) {
+          System.out.print("unmounting " + hdfsMount + " ... ");
+          fileSystem.unmount(hdfsMount);
+          System.out.println("done");
+        }
+      } catch (Exception e) {
+        System.out.println("fail");
+        e.printStackTrace();
+      }
     }
   }
 }
