@@ -585,12 +585,13 @@ public final class NetworkAddressUtils {
   }
 
   /**
-   * Get master address from zookeeper for the fault tolerant Alluxio masters.
+   * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
+   * The zookeeper path is specified by the config: {@link Constants.ZOOKEEPER_LEADER_PATH}.
    *
-   * @param conf the Alluxio Configuration
-   * @return InetSocketAddress
+   * @param conf the Alluxio configuration
+   * @return InetSocketAddress the active master address retrieved from zookeeper
    */
-  public static InetSocketAddress getMasterAddressFormZK(Configuration conf) {
+  public static InetSocketAddress getMasterAddressFromZK(Configuration conf) {
     Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_ADDRESS));
     Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
