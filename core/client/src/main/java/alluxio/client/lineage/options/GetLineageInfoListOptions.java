@@ -35,6 +35,22 @@ public final class GetLineageInfoListOptions {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof GetLineageInfoListOptions)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
+  @Override
   public String toString() {
     return Objects.toStringHelper(this).toString();
   }
