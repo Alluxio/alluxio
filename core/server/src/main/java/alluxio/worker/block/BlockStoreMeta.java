@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.collections.Pair;
-import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
@@ -57,7 +56,7 @@ public final class BlockStoreMeta {
    * Factory method to return a BlockStoreMeta instance without blockIds.
    *
    * @param manager the BlockMetadataManager
-   * @return BlockStoreMeta instance.
+   * @return BlockStoreMeta instance
    */
   public static BlockStoreMeta getBlockStoreMeta(BlockMetadataManager manager) {
     return new BlockStoreMeta(manager, false);
@@ -74,7 +73,7 @@ public final class BlockStoreMeta {
   }
 
   /**
-   * Note: only available in {@link BlockStoreMeta#getBlockStoreMetaFull}
+   * Note: This is only available in {@link BlockStoreMeta#getBlockStoreMetaFull}.
    *
    * @return A mapping from storage tier alias to blocks
    */
@@ -110,7 +109,7 @@ public final class BlockStoreMeta {
   }
 
   /**
-   * Note: only available in {@link BlockStoreMeta#getBlockStoreMetaFull}
+   * Note: This is only available in {@link BlockStoreMeta#getBlockStoreMetaFull}.
    *
    * @return the number of blocks
    */
@@ -149,7 +148,7 @@ public final class BlockStoreMeta {
     return mUsedBytesOnDirs;
   }
 
-   /**
+  /**
    * Creates a new instance of {@link BlockStoreMeta}.
    *
    * @param manager a block metadata manager handle
@@ -159,9 +158,11 @@ public final class BlockStoreMeta {
     for (StorageTier tier : manager.getTiers()) {
       Long capacityBytes = mCapacityBytesOnTiers.get(tier.getTierAlias());
       Long usedBytes = mUsedBytesOnTiers.get(tier.getTierAlias());
-      mCapacityBytesOnTiers.put(tier.getTierAlias(), (capacityBytes == null ? 0L : capacityBytes) + tier.getCapacityBytes());
+      mCapacityBytesOnTiers.put(tier.getTierAlias(),
+          (capacityBytes == null ? 0L : capacityBytes) + tier.getCapacityBytes());
       mUsedBytesOnTiers.put(tier.getTierAlias(),
-          (usedBytes == null ? 0L : usedBytes) + (tier.getCapacityBytes() - tier.getAvailableBytes()));
+          (usedBytes == null ? 0L : usedBytes) + (tier.getCapacityBytes() - tier
+              .getAvailableBytes()));
       for (StorageDir dir : tier.getStorageDirs()) {
         Pair<String, String> dirKey =
             new Pair<String, String>(tier.getTierAlias(), dir.getDirPath());
