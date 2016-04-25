@@ -18,7 +18,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method option for creating lineage.
+ * Method options for creating a lineage.
  */
 @PublicApi
 @NotThreadSafe
@@ -32,6 +32,22 @@ public final class CreateLineageOptions {
 
   private CreateLineageOptions() {
     // No options currently
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateLineageOptions)) {
+      return false;
+    }
+    return true;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
   }
 
   @Override

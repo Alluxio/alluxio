@@ -57,7 +57,26 @@ public final class DeleteLineageOptions {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof DeleteLineageOptions)) {
+      return false;
+    }
+    DeleteLineageOptions that = (DeleteLineageOptions) o;
+    return Objects.equal(mCascade, that.mCascade);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mCascade);
+  }
+
+  @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("cascade", mCascade).toString();
+    return Objects.toStringHelper(this)
+        .add("cascade", mCascade)
+        .toString();
   }
 }
