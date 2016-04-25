@@ -153,7 +153,7 @@ public final class BlockStoreMeta {
    *
    * @param manager a block metadata manager handle
    */
-  private BlockStoreMeta(BlockMetadataManager manager, boolean should_include_blockids) {
+  private BlockStoreMeta(BlockMetadataManager manager, boolean shouldIncludeBlockIds) {
     Preconditions.checkNotNull(manager);
     for (StorageTier tier : manager.getTiers()) {
       Long capacityBytes = mCapacityBytesOnTiers.get(tier.getTierAlias());
@@ -171,7 +171,7 @@ public final class BlockStoreMeta {
       }
     }
 
-    if (should_include_blockids) {
+    if (shouldIncludeBlockIds) {
       mBlockIdsOnTiers = new HashMap<>();
       for (StorageTier tier : manager.getTiers()) {
         for (StorageDir dir : tier.getStorageDirs()) {
