@@ -80,6 +80,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected boolean mClosed;
   /** Whether or not the current block should be cached. */
   protected boolean mShouldCacheCurrentBlock;
+  /** Include incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
+  private boolean mShouldCacheIncompleteBlock;
   /** Current position of the stream. */
   protected long mPos;
   /** Current {@link BlockInStream} backing this stream. */
@@ -116,6 +118,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mContext = FileSystemContext.INSTANCE;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+    mShouldCacheIncompleteBlock = options.shouldCacheIncompleteBlock();
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCacheCurrentBlock) {
