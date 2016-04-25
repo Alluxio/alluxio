@@ -107,7 +107,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
