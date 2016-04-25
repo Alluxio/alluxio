@@ -302,7 +302,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
-   *
    */
   @Test
   public void hasBlockMetaTest() {
