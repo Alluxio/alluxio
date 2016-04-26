@@ -117,9 +117,9 @@ public final class InStreamOptions {
       return false;
     }
     InStreamOptions that = (InStreamOptions) o;
-    return Objects.equal(mLocationPolicy, that.mLocationPolicy) &&
-        Objects.equal(mReadType, that.mReadType) &&
-        Objects.equal(mCacheIncompleteBlock, that.mCacheIncompleteBlock);
+    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mReadType, that.mReadType)
+        && Objects.equal(mCacheIncompleteBlock, that.mCacheIncompleteBlock);
   }
 
   @Override
