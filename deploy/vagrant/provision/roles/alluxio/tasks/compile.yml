@@ -12,7 +12,7 @@
   shell: bash /tmp/compile_alluxio.sh
   environment:
     HADOOP_VERSION: "{{ hadoop_version }}"
-  async: 1200
+  async: 1800
   poll: 60
 
 # vim :set filetype=ansible.yaml:

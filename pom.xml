@@ -184,7 +184,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.0</version>
+        <version>3.4</version>
       </dependency>
       <dependency>
         <groupId>org.apache.mesos</groupId>
@@ -347,7 +347,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.14</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc=</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true -Djava.security.krb5.realm= -Djava.security.krb5.kdc= -XX:MaxPermSize=512M</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
@@ -665,11 +665,21 @@
     </profile>
 
     <!--
+        build profile for Apache Spark.
         Empty spark profile to avoid missing profile complaints. Client
         submodules do more interesting things with this profile.
     -->
     <profile>
       <id>spark</id>
+    </profile>
+
+    <!--
+        build profile for Apache Flink.
+        Empty flinkprofile to avoid missing profile complaints. Client
+        submodules do more interesting things with this profile.
+    -->
+    <profile>
+      <id>flink</id>
     </profile>
 
     <profile>

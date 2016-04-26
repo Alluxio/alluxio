@@ -6,6 +6,11 @@
 
 - name: set ALLUXIO_MASTER_ADDRESS in alluxio-env.sh
   script: set_master_address.sh
+  when: not alluxio_version_lessthan_1_1
+
+- name: set ALLUXIO_MASTER_ADDRESS in alluxio-env.sh for releases older than 1.1.0
+  script: set_master_address_old.sh
+  when: alluxio_version_lessthan_1_1
 
 - name: set ufs related info in alluxio-env.sh
   script: roles/ufs_{{ ufs }}/files/config_alluxio.sh
@@ -13,6 +18,12 @@
     S3_BUCKET: "{{ s3_bucket }}"
     S3_ID: "{{ s3_id }}"
     S3_KEY: "{{ s3_key }}"
+    GCS_BUCKET: "{{ gcs_bucket }}"
+    GCS_ID: "{{ gcs_id }}"
+    GCS_KEY: "{{ gcs_key }}"
+
+- name: Source the bashrc file
+  shell: source ~/.bashrc
 
 - name: set usezookeeper and zookeeper address if number of masters is larger than 1
   script: zookeeper.sh

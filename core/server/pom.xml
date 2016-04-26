@@ -130,9 +130,24 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-local</artifactId>
       <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
 

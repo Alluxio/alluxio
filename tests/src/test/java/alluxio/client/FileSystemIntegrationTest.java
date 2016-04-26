@@ -55,8 +55,7 @@ public class FileSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration conf = mLocalAlluxioClusterResource.get().getMasterConf();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(conf);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @Test
@@ -132,7 +131,7 @@ public class FileSystemIntegrationTest {
       mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
       try {
         mFileSystem.createDirectory(new AlluxioURI(uniqPath + k), options);
-        Assert.fail("mkdir should throw FileAlreadyExistsException");
+        Assert.fail("createDirectory should throw FileAlreadyExistsException");
       } catch (FileAlreadyExistsException e) {
         Assert.assertEquals(e.getMessage(),
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uniqPath + k));

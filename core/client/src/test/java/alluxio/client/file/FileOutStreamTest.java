@@ -71,7 +71,6 @@ public class FileOutStreamTest {
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
   private UnderFileSystem mUnderFileSystem;
-  private BlockWorkerClient mBlockWorkerClient;
 
   private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
@@ -93,10 +92,8 @@ public class FileOutStreamTest {
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));

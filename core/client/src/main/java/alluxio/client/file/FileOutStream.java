@@ -118,7 +118,6 @@ public class FileOutStream extends AbstractOutStream {
       mPreviousBlockOutStreams.add(mCurrentBlockOutStream);
     }
 
-    Boolean canComplete = false;
     CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
       String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
@@ -144,7 +143,6 @@ public class FileOutStream extends AbstractOutStream {
           throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
         }
         options.setUfsLength(ufs.getFileSize(mUfsPath));
-        canComplete = true;
       }
     }
 
@@ -158,14 +156,14 @@ public class FileOutStream extends AbstractOutStream {
           for (BufferedBlockOutStream bos : mPreviousBlockOutStreams) {
             bos.close();
           }
-          canComplete = true;
         }
       } catch (IOException e) {
         handleCacheWriteException(e);
       }
     }
 
-    if (canComplete) {
+    // Complete the file if it's ready to be completed.
+    if (!mCanceled && (mUnderStorageType.isSyncPersist() || mAlluxioStorageType.isStore())) {
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(mUri, options);

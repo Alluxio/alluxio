@@ -11,10 +11,12 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.swift.http.SwiftDirectClient;
+import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
@@ -70,23 +72,32 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param containerName the name of the container
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(String containerName,
-      Configuration configuration) {
-    super(configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
+    super(uri, configuration);
+    String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-    config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+      // tempauth requires authentication header to be of the form tenant:user.
+      // JOSS however generates header of the form user:tenant.
+      // To resolve this, we switch user with tenant
+      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -190,16 +201,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in Swift, however the maximum
-   * allowed size of one file is currently 4 GB.
+   * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
+   * one file is 4 GB. This method defaults to the default user block size in Alluxio.
    *
-   * @param path to the object
-   * @return 4 GB in bytes
+   * @param path the path to the object
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.GB * 4;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -247,7 +258,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return listInternal(path, false);
   }
 
@@ -361,7 +372,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private String[] listInternal(String path, boolean recursive) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      path = path.endsWith(PATH_SEPARATOR) ? path : path + PATH_SEPARATOR;
+      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       Directory directory = new Directory(path, '/');
       Container c = mAccount.getContainer(mContainerName);

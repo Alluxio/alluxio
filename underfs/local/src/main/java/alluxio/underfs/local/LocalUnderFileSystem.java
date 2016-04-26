@@ -11,6 +11,7 @@
 
 package alluxio.underfs.local;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -47,10 +48,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    */
-  public LocalUnderFileSystem(Configuration conf) {
-    super(conf);
+  public LocalUnderFileSystem(AlluxioURI uri, Configuration conf) {
+    super(uri, conf);
   }
 
   @Override
@@ -63,6 +65,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
       setPermission(path, "777");
@@ -75,11 +78,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
+    path = stripPath(path);
     return create(path, (short) 1, blockSizeByte);
   }
 
   @Override
   public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
+    path = stripPath(path);
     if (replication != 1) {
       throw new IOException("UnderFileSystemSingleLocal does not provide more than one"
           + " replication factor");
@@ -89,6 +94,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     boolean success = true;
     if (recursive && file.isDirectory()) {
@@ -103,17 +109,19 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.exists();
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Constants.GB * 2L;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -135,18 +143,21 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.length();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.lastModified();
   }
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     switch (type) {
       case SPACE_TOTAL:
@@ -162,12 +173,14 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.isFile();
   }
 
   @Override
   public String[] list(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
@@ -184,6 +197,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     if (!createParent) {
       if (file.mkdir()) {
@@ -215,11 +229,14 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
+    path = stripPath(path);
     return new FileInputStream(path);
   }
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
+    src = stripPath(src);
+    dst = stripPath(dst);
     File file = new File(src);
     return file.renameTo(new File(dst));
   }
@@ -229,6 +246,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {
+    path = stripPath(path);
     FileUtils.changeLocalFilePermission(path, posixPerm);
   }
 
@@ -240,5 +258,13 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public void connectFromWorker(Configuration conf, String hostname) throws IOException {
     // No-op
+  }
+
+  /**
+   * @param path the path to strip the scheme from
+   * @return the path, with the optional scheme stripped away
+   */
+  private String stripPath(String path) {
+    return new AlluxioURI(path).getPath();
   }
 }

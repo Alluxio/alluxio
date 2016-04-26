@@ -12,6 +12,9 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.RpcUtils.RpcCallable;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -65,12 +68,14 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws AlluxioTException if an Alluxio error occurs
    */
   @Override
-  public void accessBlock(long blockId) throws AlluxioTException {
-    try {
-      mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void accessBlock(final long blockId) throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mWorker.accessBlock(Sessions.ACCESS_BLOCK_SESSION_ID, blockId);
+        return null;
+      }
+    });
   }
 
   // TODO(calvin): Make this supported again.
@@ -90,14 +95,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public void cacheBlock(long sessionId, long blockId) throws AlluxioTException, ThriftIOException {
-    try {
-      mWorker.commitBlock(sessionId, blockId);
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public void cacheBlock(final long sessionId, final long blockId)
+      throws AlluxioTException, ThriftIOException {
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mWorker.commitBlock(sessionId, blockId);
+        return null;
+      }
+    });
   }
 
   /**
@@ -110,15 +116,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public void cancelBlock(long sessionId, long blockId)
+  public void cancelBlock(final long sessionId, final long blockId)
       throws AlluxioTException, ThriftIOException {
-    try {
-      mWorker.abortBlock(sessionId, blockId);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    RpcUtils.call(new RpcCallableThrowsIOException<Void>() {
+      @Override
+      public Void call() throws AlluxioException, IOException {
+        mWorker.abortBlock(sessionId, blockId);
+        return null;
+      }
+    });
   }
 
   /**
@@ -130,13 +136,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws AlluxioTException if an Alluxio error occurs
    */
   @Override
-  public LockBlockResult lockBlock(long blockId, long sessionId) throws AlluxioTException {
-    try {
-      long lockId = mWorker.lockBlock(sessionId, blockId);
-      return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public LockBlockResult lockBlock(final long blockId, final long sessionId)
+      throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<LockBlockResult>() {
+      @Override
+      public LockBlockResult call() throws AlluxioException {
+        long lockId = mWorker.lockBlock(sessionId, blockId);
+        return new LockBlockResult(lockId, mWorker.readBlock(sessionId, blockId, lockId));
+      }
+    });
   }
 
   /**
@@ -151,16 +159,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   // TODO(calvin): This may be better as void.
   @Override
-  public boolean promoteBlock(long blockId) throws AlluxioTException, ThriftIOException {
-    try {
-      // TODO(calvin): Make the top level configurable.
-      mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
-      return true;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public boolean promoteBlock(final long blockId) throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException, IOException {
+        // TODO(calvin): Make the top level configurable.
+        mWorker.moveBlock(Sessions.MIGRATE_DATA_SESSION_ID, blockId, mStorageTierAssoc.getAlias(0));
+        return true;
+      }
+    });
   }
 
   /**
@@ -178,16 +185,15 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public String requestBlockLocation(long sessionId, long blockId, long initialBytes)
-      throws AlluxioTException, ThriftIOException {
-    try {
-      // NOTE: right now, we ask allocator to allocate new blocks in top tier
-      return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+  public String requestBlockLocation(final long sessionId, final long blockId,
+      final long initialBytes) throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<String>() {
+      @Override
+      public String call() throws AlluxioException, IOException {
+        // NOTE: right now, we ask allocator to allocate new blocks in top tier
+        return mWorker.createBlock(sessionId, blockId, mStorageTierAssoc.getAlias(0), initialBytes);
+      }
+    });
   }
 
   /**
@@ -220,14 +226,16 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * found or failed to delete the block
    * @throws AlluxioTException if an Alluxio error occurs
    */
+  // TODO(andrew): This should return void
   @Override
-  public boolean unlockBlock(long blockId, long sessionId) throws AlluxioTException {
-    try {
-      mWorker.unlockBlock(sessionId, blockId);
-      return true;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public boolean unlockBlock(final long blockId, final long sessionId) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException {
+        mWorker.unlockBlock(sessionId, blockId);
+        return true;
+      }
+    });
   }
 
   /**

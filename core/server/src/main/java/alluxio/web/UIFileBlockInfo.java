@@ -13,10 +13,10 @@ package alluxio.web;
 
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
+import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -75,8 +75,8 @@ public final class UIFileBlockInfo {
       locations.add(location.getWorkerAddress().getHost());
     }
     // add underFS locations
-    for (WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
-      locations.add(address.getHost());
+    for (String location : fileBlockInfo.getUfsLocations()) {
+      locations.add(HostAndPort.fromString(location).getHostText());
     }
     mLocations.addAll(locations);
   }

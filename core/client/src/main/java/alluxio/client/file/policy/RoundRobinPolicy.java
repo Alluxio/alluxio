@@ -14,6 +14,8 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -74,5 +76,33 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RoundRobinPolicy)) {
+      return false;
+    }
+    RoundRobinPolicy that = (RoundRobinPolicy) o;
+    return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
+        && Objects.equal(mIndex, that.mIndex)
+        && Objects.equal(mInitialized, that.mInitialized);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("workerInfoList", mWorkerInfoList)
+        .add("index", mIndex)
+        .add("initialized", mInitialized)
+        .toString();
   }
 }

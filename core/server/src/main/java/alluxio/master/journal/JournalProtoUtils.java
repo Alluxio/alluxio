@@ -67,6 +67,18 @@ public final class JournalProtoUtils {
         return entry.getRename();
       case SET_ATTRIBUTE:
         return entry.getSetAttribute();
+      case CREATE_STORE:
+        return entry.getCreateStore();
+      case COMPLETE_PARTITION:
+        return entry.getCompletePartition();
+      case COMPLETE_STORE:
+        return entry.getCompleteStore();
+      case DELETE_STORE:
+        return entry.getDeleteStore();
+      case RENAME_STORE:
+        return entry.getRenameStore();
+      case MERGE_STORE:
+        return entry.getMergeStore();
       case ENTRY_NOT_SET:
         // This could mean that the field was never set, or it was set with a different version of
         // this message. Given the history of the JournalEntry protobuf message, the keys of the

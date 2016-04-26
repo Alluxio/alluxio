@@ -13,6 +13,9 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.RpcUtils.RpcCallable;
+import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
@@ -58,64 +61,69 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   public long createLineage(List<String> inputFiles, List<String> outputFiles,
       CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
     // deserialization
-    List<AlluxioURI> inputFilesUri = Lists.newArrayList();
+    final List<AlluxioURI> inputFilesUri = Lists.newArrayList();
     for (String inputFile : inputFiles) {
       inputFilesUri.add(new AlluxioURI(inputFile));
     }
-    List<AlluxioURI> outputFilesUri = Lists.newArrayList();
+    final List<AlluxioURI> outputFilesUri = Lists.newArrayList();
     for (String outputFile : outputFiles) {
       outputFilesUri.add(new AlluxioURI(outputFile));
     }
 
-    CommandLineJob job =
+    final CommandLineJob job =
         new CommandLineJob(jobInfo.getCommand(), new JobConf(jobInfo.getConf().getOutputFile()));
-    try {
-      return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    } catch (IOException e) {
-      throw new ThriftIOException(e.getMessage());
-    }
+    return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
+      @Override
+      public Long call() throws AlluxioException, IOException {
+        return mLineageMaster.createLineage(inputFilesUri, outputFilesUri, job);
+      }
+    });
   }
 
   @Override
-  public boolean deleteLineage(long lineageId, boolean cascade) throws AlluxioTException {
-    try {
-      return mLineageMaster.deleteLineage(lineageId, cascade);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
-  }
-
-  @Override
-  public long reinitializeFile(String path, long blockSizeBytes, long ttl)
+  public boolean deleteLineage(final long lineageId, final boolean cascade)
       throws AlluxioTException {
-    try {
-      return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+    return RpcUtils.call(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException {
+        return mLineageMaster.deleteLineage(lineageId, cascade);
+      }
+    });
   }
 
   @Override
-  public void reportLostFile(String path) throws AlluxioTException, ThriftIOException {
-    try {
-      mLineageMaster.reportLostFile(path);
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public long reinitializeFile(final String path, final long blockSizeBytes, final long ttl)
+      throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<Long>() {
+      @Override
+      public Long call() throws AlluxioException {
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+      }
+    });
+  }
+
+  @Override
+  public void reportLostFile(final String path) throws AlluxioTException {
+    RpcUtils.call(new RpcCallable<Void>() {
+      @Override
+      public Void call() throws AlluxioException {
+        mLineageMaster.reportLostFile(path);
+        return null;
+      }
+    });
   }
 
   @Override
   public List<LineageInfo> getLineageInfoList() throws AlluxioTException {
-    try {
-      List<LineageInfo> result = new ArrayList<LineageInfo>();
-      for (alluxio.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
-        result.add(ThriftUtils.toThrift(lineageInfo));
+    return RpcUtils.call(new RpcCallable<List<LineageInfo>>() {
+      @Override
+      public List<LineageInfo> call() throws AlluxioException {
+        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        for (alluxio.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
+          result.add(ThriftUtils.toThrift(lineageInfo));
+        }
+        return result;
       }
-      return result;
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+    });
   }
 }

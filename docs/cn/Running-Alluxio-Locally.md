@@ -16,7 +16,7 @@ priority: 1
 
 执行Alluxio运行脚本前，在`conf/alluxio-env.sh`中指定必要的环境变量，可以从自带的模板文件中拷贝：
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 在独立模式下运行，确保：
 
@@ -27,7 +27,7 @@ priority: 1
 接着，格式化Alluxio文件系统并启动。*注意：因为Alluxio需要创建
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt)，启动
 Alluxio会要求用户输入root密码。如果不想重复输入root密码，将主机的公开ssh key添加
-到`~/.ssh/authorized_keys`.*
+到`~/.ssh/authorized_keys`。访问[该指南](http://www.linuxproblem.org/art_9.html)获取更多信息。*
 
 {% include Running-Alluxio-Locally/Alluxio-format-start.md %}
 

@@ -11,6 +11,8 @@
 
 package alluxio.job;
 
+import alluxio.annotation.PublicApi;
+
 import java.io.Serializable;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -18,6 +20,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A job configuration.
  */
+@PublicApi
 @ThreadSafe
 public class JobConf implements Serializable {
   private static final long serialVersionUID = 1258775437399802121L;

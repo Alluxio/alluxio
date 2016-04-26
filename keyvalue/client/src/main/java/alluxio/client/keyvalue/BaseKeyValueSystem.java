@@ -55,6 +55,12 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   }
 
   @Override
+  public void renameStore(AlluxioURI oldUri, AlluxioURI newUri)
+      throws IOException, AlluxioException {
+    mMasterClient.renameStore(oldUri, newUri);
+  }
+
+  @Override
   public void mergeStore(AlluxioURI fromUri, AlluxioURI toUri)
       throws IOException, AlluxioException {
     mMasterClient.mergeStore(fromUri, toUri);

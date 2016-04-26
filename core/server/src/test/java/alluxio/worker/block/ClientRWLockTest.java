@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
  */
 public final class ClientRWLockTest {
 
+  private ClientRWLock mClientRWLock;
   private Lock mReadLock;
   private Lock mWriteLock;
 
@@ -30,8 +31,9 @@ public final class ClientRWLockTest {
    */
   @Before
   public void before() {
-    mReadLock = new ClientRWLock().readLock();
-    mWriteLock = new ClientRWLock().writeLock();
+    mClientRWLock = new ClientRWLock();
+    mReadLock = mClientRWLock.readLock();
+    mWriteLock = mClientRWLock.writeLock();
   }
 
   /**
@@ -67,5 +69,23 @@ public final class ClientRWLockTest {
   public void lockInterruptiblyTest() throws Exception {
     mReadLock.lockInterruptibly();
     Assert.assertTrue(true);
+  }
+
+  /**
+   * Tests reference counting.
+   */
+  @Test
+  public void referenceCountingTest() throws Exception {
+    Assert.assertEquals(0, mClientRWLock.getReferenceCount());
+    mClientRWLock.addReference();
+    mClientRWLock.addReference();
+    Assert.assertEquals(2, mClientRWLock.getReferenceCount());
+    Assert.assertEquals(1, mClientRWLock.dropReference());
+    for (int i = 0; i < 10; i++) {
+      mClientRWLock.addReference();
+    }
+    Assert.assertEquals(11, mClientRWLock.getReferenceCount());
+    Assert.assertEquals(10, mClientRWLock.dropReference());
+    Assert.assertEquals(10, mClientRWLock.getReferenceCount());
   }
 }
