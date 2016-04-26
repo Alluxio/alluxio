@@ -91,6 +91,14 @@
       <artifactId>annotations</artifactId>
     </dependency>
 
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Other projects' test-jars -->
     <dependency>
       <groupId>org.alluxio</groupId>

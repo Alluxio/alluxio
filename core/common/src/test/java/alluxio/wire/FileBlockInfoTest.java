@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.util.CommonUtils;
+
 import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
@@ -50,10 +52,10 @@ public class FileBlockInfoTest {
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     long offset = random.nextLong();
-    List<WorkerNetAddress> ufsLocations = Lists.newArrayList();
+    List<String> ufsLocations = Lists.newArrayList();
     long numUfsLocations = random.nextInt(10);
     for (int i = 0; i < numUfsLocations; i++) {
-      ufsLocations.add(WorkerNetAddressTest.createRandom());
+      ufsLocations.add(CommonUtils.randomString(random.nextInt(10)));
     }
 
     result.setBlockInfo(blockInfo);
