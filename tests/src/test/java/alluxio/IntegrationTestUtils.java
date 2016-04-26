@@ -28,7 +28,7 @@ public final class IntegrationTestUtils {
    * with a timeout of 5 seconds.
    *
    * @param localAlluxioClusterResource the cluster for the worker that will persist the file
-   * @param fileId the file id to wait to be persisted
+   * @param uri the file uri to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
       AlluxioURI uri) {
