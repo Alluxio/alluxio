@@ -44,16 +44,16 @@ public final class InStreamOptions {
 
   private InStreamOptions() {
     mReadType =
-      ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
       mLocationPolicy = CommonUtils.createNewClassInstance(
-        ClientContext.getConf().<FileWriteLocationPolicy>getClass(
-          Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+          ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mCacheIncompleteBlock =
-      ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_INCOMPLETE_BLOCK);
+        ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_INCOMPLETE_BLOCK);
   }
 
   /**
@@ -91,10 +91,18 @@ public final class InStreamOptions {
     return this;
   }
 
+  /**
+   * @return true if incomplete block caching is enabled
+   */
   public boolean shouldCacheIncompleteBlock() {
     return mCacheIncompleteBlock;
   }
 
+  /**
+   * Enable incomplete block caching.
+   *
+   * @return the updated options object
+   */
   public InStreamOptions enableCacheIncompleteBlock() {
     mCacheIncompleteBlock = true;
     return this;
@@ -110,7 +118,7 @@ public final class InStreamOptions {
     }
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mLocationPolicy, that.mLocationPolicy) && Objects
-      .equal(mReadType, that.mReadType);
+        .equal(mReadType, that.mReadType);
   }
 
   @Override
@@ -121,6 +129,6 @@ public final class InStreamOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
-      .add("readType", mReadType).toString();
+        .add("readType", mReadType).toString();
   }
 }
