@@ -107,14 +107,12 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStore blockStore = mBlockWorker.getBlockStore();
-    BlockStoreMeta storeMeta = blockStore.getBlockStoreMeta();
-
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
-          storeMeta.getUsedBytesOnTiers(), blockStore.getBlockIdsOnTiers());
+          storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
     } catch (IOException e) {
       LOG.error("Failed to register with master.", e);
       throw e;

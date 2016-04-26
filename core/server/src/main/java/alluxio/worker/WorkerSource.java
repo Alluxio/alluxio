@@ -242,11 +242,7 @@ public class WorkerSource implements Source {
     mMetricRegistry.register(MetricRegistry.name("BlocksCached"), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        int numberOfBlocks = 0;
-        for (List<Long> blocks : blockWorker.getBlockStore().getBlockIdsOnTiers().values()) {
-          numberOfBlocks += blocks.size();
-        }
-        return numberOfBlocks;
+        return blockWorker.getStoreMetaFull().getNumberOfBlocks();
       }
     });
     mGaugesRegistered = true;
