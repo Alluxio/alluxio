@@ -28,8 +28,8 @@ public abstract class AbstractBlockMeta {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
    * subdir of its {@link StorageDir}, the subdir is tmpFolder/sessionId % maxSubdirMax.
-   * tmpFolder is {@link Constants#WORKER_DATA_TMP_FOLDER}.
-   * maxSubdirMax is {@link Constants#WORKER_DATA_TMP_SUBDIR_MAX}.
+   * tmpFolder is a property of {@link Constants#WORKER_DATA_TMP_FOLDER}.
+   * maxSubdirMax is a property of {@link Constants#WORKER_DATA_TMP_SUBDIR_MAX}.
    * The block file name is "sessionId-blockId". e.g. sessionId 2 creates a temp Block 100 in
    * {@link StorageDir} "/mnt/mem/0", this temp block has path:
    * <p>
