@@ -204,7 +204,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
           String resourcePath = cliParser.getOptionValue("resource_path");
 
           ApplicationMaster applicationMaster =
-                  new ApplicationMaster(numWorkers, masterAddress, resourcePath);
+              new ApplicationMaster(numWorkers, masterAddress, resourcePath);
           applicationMaster.start();
           applicationMaster.requestContainers();
           applicationMaster.stop();
@@ -266,7 +266,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   public void start() throws IOException, YarnException {
     if (UserGroupInformation.isSecurityEnabled()) {
       Credentials credentials =
-              UserGroupInformation.getCurrentUser().getCredentials();
+          UserGroupInformation.getCurrentUser().getCredentials();
       DataOutputBuffer dob = new DataOutputBuffer();
       credentials.writeTokenStorageToStream(dob);
       // Now remove the AM -> RM token so that containers cannot access it.

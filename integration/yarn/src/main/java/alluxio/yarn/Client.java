@@ -320,8 +320,7 @@ public final class Client {
       Credentials credentials = new Credentials();
       String tokenRenewer = mYarnConf.get(YarnConfiguration.RM_PRINCIPAL);
       if (tokenRenewer == null || tokenRenewer.length() == 0) {
-        throw new IOException(
-                "Can't get Master Kerberos principal for the RM to use as renewer");
+        throw new IOException("Can't get Master Kerberos principal for the RM to use as renewer");
       }
       org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(mYarnConf);
       // getting tokens for the default file-system.
@@ -334,8 +333,8 @@ public final class Client {
       // getting yarn resource manager token
       org.apache.hadoop.conf.Configuration config = mYarnClient.getConfig();
       Token<TokenIdentifier> token = ConverterUtils.convertFromYarn(
-              mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
-              YarnUtils.getRMAddress(config));
+          mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
+          YarnUtils.getRMAddress(config));
       LOG.info("Added RM delegation token: " + token);
       credentials.addToken(token.getService(), token);
 

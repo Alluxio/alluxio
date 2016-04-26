@@ -157,8 +157,7 @@ public final class YarnUtils {
    */
   public static InetSocketAddress getRMAddress(Configuration config) {
     return config.getSocketAddr(YarnConfiguration.RM_ADDRESS,
-            YarnConfiguration.DEFAULT_RM_ADDRESS,
-            YarnConfiguration.DEFAULT_RM_PORT);
+        YarnConfiguration.DEFAULT_RM_ADDRESS, YarnConfiguration.DEFAULT_RM_PORT);
   }
 
   private YarnUtils() {} // this utils class should not be instantiated
