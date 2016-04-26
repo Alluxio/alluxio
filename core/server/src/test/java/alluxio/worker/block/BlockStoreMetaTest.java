@@ -41,6 +41,7 @@ public class BlockStoreMetaTest {
 
   private BlockMetadataManager mMetadataManager;
   private BlockStoreMeta mBlockStoreMeta;
+  private BlockStoreMeta mBlockStoreMetaFull;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -62,7 +63,8 @@ public class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
+    mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
   }
 
   /**
@@ -71,6 +73,24 @@ public class BlockStoreMetaTest {
   @After
   public void after() {
     WorkerContext.reset();
+  }
+
+  /**
+   * Tests the {@link BlockStoreMeta#getBlockList()} method.
+   */
+  @Test
+  public void getBlockListTest() {
+    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
+    for (StorageTier tier : mMetadataManager.getTiers()) {
+      List<Long> blockIdsOnTier = new ArrayList<Long>();
+      for (StorageDir dir : tier.getStorageDirs()) {
+        blockIdsOnTier.addAll(dir.getBlockIds());
+      }
+      tierAliasToBlockIds.put(tier.getTierAlias(), blockIdsOnTier);
+    }
+    Map<String, List<Long>> actual = mBlockStoreMetaFull.getBlockList();
+    Assert.assertEquals(TieredBlockStoreTestUtils.TIER_ALIAS.length, actual.keySet().size());
+    Assert.assertEquals(tierAliasToBlockIds, actual);
   }
 
   /**
@@ -106,6 +126,14 @@ public class BlockStoreMetaTest {
   public void getCapacityBytesOnTiersTest() {
     Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
+  }
+
+  /**
+   * Tests the {@link BlockStoreMeta#getNumberOfBlocks()} method.
+   */
+  @Test
+  public void getNumberOfBlocksTest() {
+    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMetaFull.getNumberOfBlocks());
   }
 
   /**
