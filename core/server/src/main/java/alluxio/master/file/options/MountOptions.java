@@ -14,6 +14,8 @@ package alluxio.master.file.options;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
+import com.google.common.base.Objects;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,5 +110,31 @@ public final class MountOptions {
     mProperties.clear();
     mProperties.putAll(properties);
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mProperties, that.mProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mReadOnly, mProperties);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("readOnly", mReadOnly)
+        .add("properties", mProperties)
+        .toString();
   }
 }

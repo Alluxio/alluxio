@@ -238,13 +238,11 @@ public final class PermissionCheckTest {
 
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    long fileId;
-    if (recursive) {
-      fileId = mFileSystemMaster
-          .createFile(new AlluxioURI(path), CreateFileOptions.defaults().setRecursive(true));
-    } else {
-      fileId = mFileSystemMaster.createFile(new AlluxioURI(path), CreateFileOptions.defaults());
-    }
+    CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
+        .setPermissionStatus(PermissionStatus.defaults()
+            .setUserFromThriftClient(MasterContext.getConf()));
+
+    long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     String[] pathComponents = path.split("/");
@@ -295,13 +293,10 @@ public final class PermissionCheckTest {
   private void verifyCreateDirectory(TestUser user, String path, boolean recursive)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    if (recursive) {
-      mFileSystemMaster
-          .createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults()
-              .setRecursive(true));
-    } else {
-      mFileSystemMaster.createDirectory(new AlluxioURI(path), CreateDirectoryOptions.defaults());
-    }
+    CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
+        .setPermissionStatus(PermissionStatus.defaults()
+            .setUserFromThriftClient(MasterContext.getConf()));
+    mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
     FileInfo fileInfo =
         mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));

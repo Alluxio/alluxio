@@ -12,6 +12,7 @@
 package alluxio.job;
 
 import alluxio.Constants;
+import alluxio.annotation.PublicApi;
 import alluxio.wire.CommandLineJobInfo;
 import alluxio.wire.JobConfInfo;
 
@@ -33,6 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * A job that wraps a programmed run by command line. This job's caller should ensure the execution
  * environment are identical on master and at the client side.
  */
+@PublicApi
 @ThreadSafe
 public class CommandLineJob extends Job {
   private static final long serialVersionUID = 1655996721855899996L;
