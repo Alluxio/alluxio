@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.worker.AlluxioWorker;
 import alluxio.worker.DataServer;
 import alluxio.worker.WorkerContext;
 
@@ -78,7 +79,7 @@ public class SpaceReserverTest {
     PowerMockito.mockStatic(DataServer.Factory.class);
     PowerMockito
         .when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
-            Mockito.<BlockWorker>any(), Mockito.<Configuration>any()))
+            Mockito.<AlluxioWorker>any(), Mockito.<Configuration>any()))
         .thenReturn(Mockito.mock(DataServer.class));
 
     BlockWorker blockWorker = new BlockWorker();

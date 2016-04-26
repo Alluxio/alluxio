@@ -96,12 +96,29 @@ public final class OpenFileOptions {
     return InStreamOptions.defaults().setReadType(mReadType).setLocationPolicy(mLocationPolicy);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof OpenFileOptions)) {
+      return false;
+    }
+    OpenFileOptions that = (OpenFileOptions) o;
+    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mReadType, that.mReadType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mLocationPolicy, mReadType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
-        .add("readType", mReadType).toString();
+    return Objects.toStringHelper(this)
+        .add("locationPolicy", mLocationPolicy)
+        .add("readType", mReadType)
+        .toString();
   }
 }

@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.PublicApi;
 import alluxio.util.URIUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * Does not support fragment in the URI.
  */
+@PublicApi
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private static final long serialVersionUID = -1207227692436086387L;

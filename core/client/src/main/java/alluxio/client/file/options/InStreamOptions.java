@@ -88,12 +88,29 @@ public final class InStreamOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof InStreamOptions)) {
+      return false;
+    }
+    InStreamOptions that = (InStreamOptions) o;
+    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mReadType, that.mReadType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mLocationPolicy, mReadType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("readType", mReadType)
-        .add("locationPolicy", mLocationPolicy).toString();
+    return Objects.toStringHelper(this)
+        .add("locationPolicy", mLocationPolicy)
+        .add("readType", mReadType)
+        .toString();
   }
 }
