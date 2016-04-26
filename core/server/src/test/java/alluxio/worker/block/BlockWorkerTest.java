@@ -212,7 +212,9 @@ public class BlockWorkerTest {
     when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
+    assertEquals(
+        PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+            String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
@@ -234,7 +236,8 @@ public class BlockWorkerTest {
     when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
+    assertEquals(PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+        String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
