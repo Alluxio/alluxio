@@ -145,6 +145,12 @@ public class FileUtilsTest {
     Assert.assertFalse(tempFolder.exists());
   }
 
+  /**
+   * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
+   * directories.
+   *
+   * @throws IOException thrown if a non-Alluxio related exception occurs.
+   */
   @Test
   public void deletePathRecursivelyTest() throws IOException {
     File tmpDir = mTestFolder.newFolder("dir");
