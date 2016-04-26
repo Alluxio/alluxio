@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -33,9 +32,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +40,6 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -361,26 +357,6 @@ public final class TieredBlockStore implements BlockStore {
       } catch (Exception e) {
         LOG.error("Failed to cleanup tempBlock {} due to {}", tempBlockMeta.getBlockId(),
             e.getMessage());
-      }
-    }
-
-    // A session may create multiple temporary directories for temp blocks, in different StorageTier
-    // and StorageDir. Go through all the storage directories and delete the session folders which
-    // should be empty
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        String sessionFolderPath = PathUtils.concatPath(dir.getDirPath(), sessionId);
-        try {
-          if (new File(sessionFolderPath).exists()) {
-            FileUtils.delete(sessionFolderPath);
-          }
-        } catch (IOException e) {
-          // This error means we could not delete the directory but should not affect the
-          // correctness of the method since the data has already been deleted. It is not
-          // necessary to throw an exception here.
-          LOG.error("Failed to clean up session: {} with directory: {}", sessionId,
-              sessionFolderPath);
-        }
       }
     }
   }
