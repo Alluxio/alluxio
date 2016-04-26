@@ -44,12 +44,11 @@ public final class InStreamOptions {
 
   private InStreamOptions() {
     mReadType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+      ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-                  .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[]{}, new Object[]{});
+      mLocationPolicy = CommonUtils.createNewClassInstance(
+        ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+          Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
@@ -110,8 +109,8 @@ public final class InStreamOptions {
       return false;
     }
     InStreamOptions that = (InStreamOptions) o;
-    return Objects.equal(mLocationPolicy, that.mLocationPolicy)
-        && Objects.equal(mReadType, that.mReadType);
+    return Objects.equal(mLocationPolicy, that.mLocationPolicy) && Objects
+      .equal(mReadType, that.mReadType);
   }
 
   @Override
@@ -121,9 +120,7 @@ public final class InStreamOptions {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
-        .add("locationPolicy", mLocationPolicy)
-        .add("readType", mReadType)
-        .toString();
+    return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
+      .add("readType", mReadType).toString();
   }
 }
