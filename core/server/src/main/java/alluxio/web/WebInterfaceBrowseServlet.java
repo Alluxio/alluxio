@@ -77,6 +77,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
    * @throws InvalidPathException if an invalid path is encountered
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
@@ -227,14 +228,15 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
                   .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
-          List<WorkerNetAddress> addrs = Lists.newArrayList();
+          List<String> locations = Lists.newArrayList();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
-            addrs.add(location.getWorkerAddress());
+            WorkerNetAddress address = location.getWorkerAddress();
+            locations.add(address.getHost() + ":" + address.getDataPort());
           }
           // add underFS locations
-          addrs.addAll(blockInfo.getUfsLocations());
-          toAdd.setFileLocations(addrs);
+          locations.addAll(blockInfo.getUfsLocations());
+          toAdd.setFileLocations(locations);
         }
       } catch (FileDoesNotExistException e) {
         request.setAttribute("FileDoesNotExistException",
@@ -245,6 +247,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         request.setAttribute("InvalidPathException",
             "Error: invalid path " + e.getMessage());
         getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+      } catch (AccessControlException e) {
+        request.setAttribute("AccessControlException",
+            "Error: File " + currentPath + " cannot be accessed " + e.getMessage());
+        getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
+        return;
       }
       fileInfos.add(toAdd);
     }

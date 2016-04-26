@@ -41,30 +41,82 @@ COMMAND=$1
 shift
 
 function bootstrapConf {
-  if [[ $# -ne 1 ]]; then
-    echo "Usage: $0 bootstrap-conf ALLUXIO_MASTER_HOSTNAME"
+  local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
+  if [[ $# -lt 1 ]]; then
+    echo ${usage}
     exit 1
   fi
+  local ufs=${2:-local}
 
-  ALLUXIO_CONF_DIR=${BIN}/../conf
-  if [[ ! -e "${ALLUXIO_CONF_DIR}/alluxio-env.sh" ]]; then
-    if [[ `uname -a` == Darwin* ]]; then
-      # osx sed wants an argument to -i, use .bootstrap.bk
-      ALLUXIO_SED="sed -i .bootstrap.bk"
-      TOTAL_MEM=`sysctl hw.memsize | cut -d ' ' -f2`
-      TOTAL_MEM=$[TOTAL_MEM / 1024]
-      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    else
-      ALLUXIO_SED="sed -i"
-      TOTAL_MEM=`awk '/MemTotal/{print $2}' /proc/meminfo`
-      TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    fi
-
-    # Create a default config that can be overridden later
-    cp ${ALLUXIO_CONF_DIR}/alluxio-env.sh.template ${ALLUXIO_CONF_DIR}/alluxio-env.sh
-    ${ALLUXIO_SED} "s/ALLUXIO_MASTER_ADDRESS=localhost/ALLUXIO_MASTER_ADDRESS=$1/" ${ALLUXIO_CONF_DIR}/alluxio-env.sh
-    ${ALLUXIO_SED} "s/ALLUXIO_WORKER_MEMORY_SIZE=1GB/ALLUXIO_WORKER_MEMORY_SIZE=${TOTAL_MEM}KB/" ${ALLUXIO_CONF_DIR}/alluxio-env.sh
+  ALLUXIO_CONF_DIR="${BIN}/../conf"
+  local dst="${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+  if [[ -e ${dst} ]]; then
+    echo "${dst} already exists"
+    return
   fi
+
+  if [[ $(uname -s) == Darwin ]]; then
+    # osx sed wants an argument to -i, use .bootstrap.bk
+    ALLUXIO_SED="sed -i .bootstrap.bk"
+    TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
+    TOTAL_MEM=$[TOTAL_MEM / 1024]
+    TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+  else
+    ALLUXIO_SED="sed -i"
+    TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
+    TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+  fi
+
+  # Create a default config that can be overridden later
+  cp "${ALLUXIO_CONF_DIR}/alluxio-env.sh.template" ${dst}
+
+  # Set the master hostname
+  ${ALLUXIO_SED} "s/XXX_MASTER_ADDRESS_XXX/$1/" ${dst}
+
+  # Set the worker memory size
+  ${ALLUXIO_SED} "s/XXX_MEMORY_SIZE_XXX/${TOTAL_MEM}KB/" ${dst}
+
+  # Set under storage specific configuration
+  case ${ufs} in
+    local)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/\$\{ALLUXIO_HOME\}\/underFSStorage/" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    hdfs)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/hdfs:\/\/localhost:9000\/alluxio/" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    s3)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/s3n:\/\/bucket\/directory/" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    gcs)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/gs:\/\/bucket\/directory/" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    glusterfs)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/glusterfs:\/\/\//" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
+      export ALLUXIO_UNDERFS_GLUSTER_VOLUMES=\$\{ALLUXIO_UNDERFS_GLUSTER_VOLUMES:-alluxio_vol\}\\
+      " ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
+      export ALLUXIO_UNDERFS_GLUSTER_MOUNTS=\${ALLUXIO_UNDERFS_GLUSTER_MOUNTS:-\/vol\}\\
+      " ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
+      export ALLUXIO_UNDERFS_GLUSTER_MR_DIR=\${ALLUXIO_UNDERFS_GLUSTER_MR_DIR:-glusterfs:\/\/\/mapred\/system\}\\
+      " ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    swift)
+      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/swift:\/\/swift-container/" ${dst}
+      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      ;;
+    *)
+      rm ${dst}
+      echo ${usage}
+      exit 1
+      ;;
+  esac
 }
 
 # bootstrap creates alluxio-env.sh
@@ -221,7 +273,7 @@ case ${COMMAND} in
         # if ufs is local filesystem and already exists
         exit 0
       else
-        declare -a schemes=(hdfs s3 s3n glusterfs swift oss)
+        declare -a schemes=(hdfs s3 s3n glusterfs swift oss gcs)
         for scheme in ${schemes[@]}; do
           if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
             # if ufs is not local filesystem, don't format

@@ -11,9 +11,12 @@ run your MapReduce programs with files stored on Alluxio.
 
 # Initial Setup
 
-The prerequisite for this part is that you have [Java](Java-Setup.html). We also assume that you have 
-set up Alluxio and Hadoop in accordance to these guides [Local Mode](Running-Alluxio-Locally.html) or
-[Cluster Mode](Running-Alluxio-on-a-Cluster.html)
+The prerequisite for this part is that you have [Java](Java-Setup.html). We also assume that you
+have set up Alluxio and Hadoop in accordance to these guides
+[Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
+In order to run some simple map-reduce examples, we also recommend you download the
+[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1),
+or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 # Compiling the Alluxio Client
 
@@ -24,7 +27,7 @@ directory:
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop.md %}
 
 The version `<YOUR_HADOOP_VERSION>` supports many different distributions of Hadoop. For example,
-`mvn install -Dhadoop.version=2.7.1` would compile Alluxio for the Apache Hadoop version 2.7.1.
+`mvn install -Dhadoop.version=2.7.1 -DskipTests` would compile Alluxio for the Apache Hadoop version 2.7.1.
 Please visit the
 [Building Alluxio Master Branch](Building-Alluxio-Master-Branch.html#distro-support) page for more
 information about support for other distributions.
@@ -67,7 +70,7 @@ Another way to distribute the client jar is to manually distribute it to all the
 Below are instructions for the 2 main alternatives:
 
 1.**Using the -libjars command line option.**
-You can run a job by using the `-libjars` command line option when using `hadoop jar ...`, 
+You can run a job by using the `-libjars` command line option when using `hadoop jar ...`,
 specifying
 `/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar`
 as the argument. This will place the jar in the Hadoop DistributedCache, making it available to all
@@ -81,7 +84,7 @@ For installing Alluxio on each node, you must place the client jar
 (located in the `/<PATH_TO_ALLUXIO>/core/client/target/` directory), in the `$HADOOP_HOME/lib`
 (may be `$HADOOP_HOME/share/hadoop/common/lib` for different versions of Hadoop) directory of every
 MapReduce node, and then restart all of the TaskTrackers. One caveat of this approach is that the
-jars must be installed again for each update to a new release. On the other hand, when the jar is 
+jars must be installed again for each update to a new release. On the other hand, when the jar is
 already on every node, then the `-libjars` command line option is not needed.
 
 # Running Hadoop wordcount with Alluxio Locally
@@ -118,6 +121,3 @@ After this job completes, the result of the wordcount will be in the `/wordcount
 in Alluxio. You can see the resulting files by running:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/cat-result.md %}
-
-You can also see the file in the under storage system HDFS name node web UI. The local HDFS cluster
-web UI can be found at [localhost:50070](http://localhost:50070/).

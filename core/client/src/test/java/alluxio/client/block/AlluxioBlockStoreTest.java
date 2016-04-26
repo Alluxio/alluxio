@@ -92,7 +92,7 @@ public final class AlluxioBlockStoreTest {
 
     // Mock block store should return our mock clients
     sBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
-    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.anyString()))
+    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
         .thenReturn(sBlockWorkerClient);
     sMasterClient = PowerMockito.mock(BlockMasterClient.class);
     Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(

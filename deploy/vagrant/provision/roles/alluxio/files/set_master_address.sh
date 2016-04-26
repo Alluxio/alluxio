@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# create alluxio env
-/bin/cp /alluxio/conf/alluxio-env.sh.template /alluxio/conf/alluxio-env.sh
+# delete any existing alluxio-env.sh
+rm -f /alluxio/conf/alluxio-env.sh
 
-sed -i "s/^export ALLUXIO_MASTER_ADDRESS=.*/export ALLUXIO_MASTER_ADDRESS=$(tail -n1 /alluxio/conf/workers)/g" /alluxio/conf/alluxio-env.sh
+# create alluxio-env.sh
+/alluxio/bin/alluxio bootstrap-conf $(tail -n1 /alluxio/conf/workers)

@@ -12,6 +12,8 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
+import alluxio.RpcUtils;
+import alluxio.RpcUtils.RpcCallable;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockInfo;
@@ -68,11 +70,12 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
   }
 
   @Override
-  public BlockInfo getBlockInfo(long blockId) throws AlluxioTException {
-    try {
-      return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
-    } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
-    }
+  public BlockInfo getBlockInfo(final long blockId) throws AlluxioTException {
+    return RpcUtils.call(new RpcCallable<BlockInfo>() {
+      @Override
+      public BlockInfo call() throws AlluxioException {
+        return ThriftUtils.toThrift(mBlockMaster.getBlockInfo(blockId));
+      }
+    });
   }
 }

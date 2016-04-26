@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -28,9 +29,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientRWLock implements ReadWriteLock {
   // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers. */
-  private static final int MAX_AVAILABLE = 100;
+  private static final int MAX_AVAILABLE = 1000;
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
+  /** Reference count. */
+  private AtomicInteger mReferences = new AtomicInteger();
 
   @Override
   public Lock readLock() {
@@ -40,6 +43,29 @@ public final class ClientRWLock implements ReadWriteLock {
   @Override
   public Lock writeLock() {
     return new SessionLock(MAX_AVAILABLE);
+  }
+
+  /**
+   * @return the reference count
+   */
+  public int getReferenceCount() {
+    return mReferences.get();
+  }
+
+  /**
+   * Increments the reference count.
+   */
+  public void addReference() {
+    mReferences.incrementAndGet();
+  }
+
+  /**
+   * Decrements the reference count.
+   *
+   * @return the new reference count
+   */
+  public int dropReference() {
+    return mReferences.decrementAndGet();
   }
 
   private final class SessionLock implements Lock {

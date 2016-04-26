@@ -70,6 +70,9 @@ public final class Constants {
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
   public static final String HEADER_SWIFT = "swift://";
+  // Google Cloud Storage header convention is "gs://".
+  // See https://cloud.google.com/storage/docs/cloud-console
+  public static final String HEADER_GCS = "gs://";
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -155,7 +158,6 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "alluxio.zookeeper.leader.inquiry.retry";
-  public static final String THRIFT_FRAME_SIZE_BYTES_MAX = "alluxio.thrift.frame.size.bytes.max";
   public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
   public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "alluxio.keyvalue.partition.size.bytes.max";
@@ -203,6 +205,8 @@ public final class Constants {
   public static final String MASTER_JOURNAL_LOG_SIZE_BYTES_MAX =
       "alluxio.master.journal.log.size.bytes.max";
 
+  public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
+      "alluxio.master.file.async.persist.handler";
   public static final String MASTER_HOSTNAME = "alluxio.master.hostname";
   public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
   public static final String MASTER_RPC_PORT = "alluxio.master.port";
@@ -377,9 +381,13 @@ public final class Constants {
   public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
   public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
 
+  public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
+  public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
+
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
   public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
   public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";

@@ -26,8 +26,6 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -37,6 +35,8 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -187,9 +187,10 @@ public final class AlluxioWorker {
       mThriftServer = createThriftServer();
 
       // Setup Data server
-      mDataServer = DataServer.Factory.create(
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration),
-          mBlockWorker, mConfiguration);
+      mDataServer =
+          DataServer.Factory.create(
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration), this,
+              mConfiguration);
       // Reset data server port
       mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
@@ -201,6 +202,20 @@ public final class AlluxioWorker {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
     }
+  }
+
+  /**
+   * @return the start time of the worker in milliseconds
+   */
+  public long getStartTimeMs() {
+    return mStartTimeMs;
+  }
+
+  /**
+   * @return the uptime of the worker in milliseconds
+   */
+  public long getUptimeMs() {
+    return System.currentTimeMillis() - mStartTimeMs;
   }
 
   /**
@@ -251,6 +266,13 @@ public final class AlluxioWorker {
    */
   public BlockWorker getBlockWorker() {
     return mBlockWorker;
+  }
+
+  /**
+   * @return this worker's rpc address
+   */
+  public InetSocketAddress getWorkerAddress() {
+    return mWorkerAddress;
   }
 
   /**
@@ -325,15 +347,15 @@ public final class AlluxioWorker {
     mBlockWorker.start();
     mFileSystemWorker.start();
     // start additional workers
-    for (Worker master : mAdditionalWorkers) {
-      master.start();
+    for (Worker worker : mAdditionalWorkers) {
+      worker.start();
     }
   }
 
   private void stopWorkers() throws Exception {
     // stop additional workers
-    for (Worker master : mAdditionalWorkers) {
-      master.stop();
+    for (Worker worker : mAdditionalWorkers) {
+      worker.stop();
     }
     mFileSystemWorker.stop();
     mBlockWorker.stop();

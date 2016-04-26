@@ -8,8 +8,8 @@
 # - ALLUXIO_MASTER_ADDRESS, to bind the master to a different IP address or hostname
 # - ALLUXIO_UNDERFS_ADDRESS, to set the under filesystem address.
 # - ALLUXIO_WORKER_MEMORY_SIZE, to set how much memory to use (e.g. 1000mb, 2gb) per worker
-# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data
-
+# - ALLUXIO_RAM_FOLDER, to set where worker stores in memory data. Consider setting it to
+#   /dev/shm if tmpFS is used.
 
 # Support for Multihomed Networks.
 # You can specify a hostname to bind each of services. If a wildcard
@@ -54,36 +54,28 @@
 
 if [[ $(uname -s) == Darwin ]]; then
   # Assuming Mac OS X
-  export JAVA_HOME=${JAVA_HOME:-$(/usr/libexec/java_home)}
-  export ALLUXIO_RAM_FOLDER=/Volumes/ramdisk
-  export ALLUXIO_JAVA_OPTS="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
+  export JAVA_HOME=${JAVA_HOME:-"$(/usr/libexec/java_home)"}
+  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-"/Volumes/ramdisk"}
+  export ALLUXIO_JAVA_OPTS+="-Djava.security.krb5.realm= -Djava.security.krb5.kdc="
 else
   # Assuming Linux
-  if [[ -z "$JAVA_HOME" ]]; then
-    if [[ -d /usr/lib/jvm/java-7-oracle ]]; then
-      export JAVA_HOME=/usr/lib/jvm/java-7-oracle
-    else
-      # openjdk will set this
-      if [[ -d /usr/lib/jvm/jre-1.7.0 ]]; then
-        export JAVA_HOME=/usr/lib/jvm/jre-1.7.0
-      fi
+  if [[ -d /usr/lib/jvm/java-7-oracle ]]; then
+    export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/java-7-oracle"}
+  else
+    # openjdk will set this
+    if [[ -d /usr/lib/jvm/jre-1.7.0 ]]; then
+      export JAVA_HOME=${JAVA_HOME:-"/usr/lib/jvm/jre-1.7.0"}
     fi
   fi
-  if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
-    export ALLUXIO_RAM_FOLDER="/mnt/ramdisk"
-  fi
+  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-"/mnt/ramdisk"}
 fi
 
-if [[ -z "${JAVA_HOME}" ]]; then
-  export JAVA_HOME="$(dirname $(which java))/.."
-fi
+export JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 
 export JAVA="${JAVA_HOME}/bin/java"
-export ALLUXIO_MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS:-localhost}
-export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-${ALLUXIO_HOME}/underFSStorage}
-#export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-hdfs://localhost:9000}
-export ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-1GB}
-
+export ALLUXIO_MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS:-XXX_MASTER_ADDRESS_XXX}
+export ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-XXX_UNDER_STORAGE_XXX}
+export ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-XXX_MEMORY_SIZE_XXX}
 export ALLUXIO_SSH_FOREGROUND=${ALLUXIO_SSH_FOREGROUND:-"yes"}
 export ALLUXIO_WORKER_SLEEP=${ALLUXIO_WORKER_SLEEP:-"0.02"}
 
@@ -93,6 +85,8 @@ export ALLUXIO_WORKER_SLEEP=${ALLUXIO_WORKER_SLEEP:-"0.02"}
 
 # Where log files are stored. $ALLUXIO_HOME/logs by default.
 #export ALLUXIO_LOGS_DIR=${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}
+
+XXX_ADDITIONAL_SETTINGS_XXX
 
 CONF_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

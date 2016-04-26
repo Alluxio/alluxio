@@ -5,7 +5,7 @@ kramdown:
   syntax_highlighter: rouge
 
 # These allow the documentation to be updated with new releases of Alluxio.
-ALLUXIO_RELEASED_VERSION: 1.0.0
+ALLUXIO_RELEASED_VERSION: 1.0.1
 ALLUXIO_MASTER_VERSION_SHORT: 1.1.0-SNAPSHOT
 
 # These attach the pages of different languages with different 'lang' attributes
@@ -47,11 +47,11 @@ categories:
   Frameworks:
     en: Frameworks
     cn: 计算框架
-    pt: Estruturas
+    pt: Frameworks
   Under Store:
     en: Under Store
     cn: 底层存储系统
-    pt: Armazenamento Inferior
+    pt: Under Store
   Resources:
     en: Resources
     cn: 开发者资源

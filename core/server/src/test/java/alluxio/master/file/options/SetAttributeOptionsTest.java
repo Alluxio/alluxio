@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +23,7 @@ import java.util.Random;
  */
 public class SetAttributeOptionsTest {
   /**
-   * Tests the {@link CreateDirectoryOptions#defaults()} method.
+   * Tests the {@link SetAttributeOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() {
@@ -50,5 +52,10 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(pinned, options.getPinned());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(persisted, options.getPersisted());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(SetAttributeOptions.class, "mOperationTimeMs");
   }
 }

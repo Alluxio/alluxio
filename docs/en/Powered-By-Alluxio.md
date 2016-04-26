@@ -10,8 +10,9 @@ users. If your organization is using Alluxio, please feel free to
 or let us know by email (project.alluxio@gmail.com) or
 [survey](http://alluxio.org/resources/survey-users/).
 
-* [Adatao](http://adatao.com/)
 * [Alibaba](http://www.alibaba.com/)
+* [Alluxio](http://www.alluxio.com/)
+* [Arimo](http://arimo.com/)
 * [Atigeo](http://atigeo.com/)
 * [Baidu](http://www.baidu.com/)
 * [Barclays](http://www.barclays.co.uk/)
@@ -19,7 +20,6 @@ or let us know by email (project.alluxio@gmail.com) or
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
 * [Neusoft](http://www.neusoft.com/)
-* [Alluxio](http://www.alluxio.com/)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 
