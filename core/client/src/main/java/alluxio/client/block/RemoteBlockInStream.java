@@ -79,9 +79,9 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       return;
     }
 
-    // TODO(calvin): Perhaps verify that something was read from this stream
-    mMetrics.incBlocksReadRemote(1);
-
+    if (mBlockIsRead) {
+      mMetrics.incBlocksReadRemote(1);
+    }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (ConnectionFailedException e) {
