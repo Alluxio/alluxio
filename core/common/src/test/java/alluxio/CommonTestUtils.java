@@ -73,13 +73,4 @@ public final class CommonTestUtils {
       CommonUtils.sleepMs(20);
     }
   }
-
-  /**
-   * Waits for 5 seconds for the condition to be satisfied.
-   *
-   * @param condition the condition to wait on
-   */
-  public static void waitFor(Function<Void, Boolean> condition) {
-    waitFor(condition, 5 * Constants.SECOND_MS);
-  }
 }
