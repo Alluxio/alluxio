@@ -376,8 +376,24 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
     mMetadataReadLock.lock();
-    BlockStoreMeta storeMeta = mMetaManager.getBlockStoreMeta();
-    mMetadataReadLock.unlock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMeta();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
+    return storeMeta;
+  }
+
+  @Override
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    mMetadataReadLock.lock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMetaFull();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
     return storeMeta;
   }
 
@@ -386,25 +402,6 @@ public final class TieredBlockStore implements BlockStore {
     synchronized (mBlockStoreEventListeners) {
       mBlockStoreEventListeners.add(listener);
     }
-  }
-
-  @Override
-  public Map<String, List<Long>> getBlockIdsOnTiers() {
-    Map<String, List<Long>> blockIdsOnTiers = new HashMap<>();
-    mMetadataReadLock.lock();
-    try {
-      for (StorageTier tier : mMetaManager.getTiers()) {
-        for (StorageDir dir : tier.getStorageDirs()) {
-          List<Long> blockIds = blockIdsOnTiers.containsKey(tier.getTierAlias()) ?
-              blockIdsOnTiers.get(tier.getTierAlias()) : new ArrayList<Long>();
-          blockIds.addAll(dir.getBlockIds());
-          blockIdsOnTiers.put(tier.getTierAlias(), blockIds);
-        }
-      }
-    } finally {
-      mMetadataReadLock.unlock();
-    }
-    return blockIdsOnTiers;
   }
 
   /**
