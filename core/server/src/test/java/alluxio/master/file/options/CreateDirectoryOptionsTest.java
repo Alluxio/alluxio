@@ -11,6 +11,7 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
@@ -18,12 +19,18 @@ import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Unit tests for {@link CreateDirectoryOptions}.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
+@PrepareForTest(PermissionStatus.class)
 public class CreateDirectoryOptionsTest {
   /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
@@ -69,5 +76,10 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(permissionStatus, options.getPermissionStatus());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(CreateDirectoryOptions.class, "mOperationTimeMs");
   }
 }

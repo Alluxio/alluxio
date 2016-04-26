@@ -42,6 +42,5 @@ public interface FileWriteLocationPolicy {
    * @param blockSizeBytes the size of the block in bytes
    * @return the address of the worker to write to
    */
-  public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
-      long blockSizeBytes);
+  WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList, long blockSizeBytes);
 }

@@ -85,7 +85,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -402,6 +401,14 @@ public final class FileSystemMaster extends AbstractMaster {
   private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    if (inode instanceof InodeFile) {
+      InodeFile inodeFile = (InodeFile) inode;
+      try {
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodeFile));
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+    }
     AlluxioURI path = mInodeTree.getPath(inode);
     MountTable.Resolution resolution;
     try {
@@ -950,7 +957,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<WorkerNetAddress>());
+    fileBlockInfo.setUfsLocations(new ArrayList<String>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
@@ -970,20 +977,7 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       if (locs != null) {
         for (String loc : locs) {
-          String resolvedHost = loc;
-          int resolvedPort = -1;
-          try {
-            String[] ipport = loc.split(":");
-            if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-              resolvedPort = Integer.parseInt(ipport[1]);
-            }
-          } catch (NumberFormatException e) {
-            continue;
-          }
-          // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.getUfsLocations().add(
-              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
+          fileBlockInfo.getUfsLocations().add(loc);
         }
       }
     }

@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -73,5 +74,10 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(OutStreamOptions.class);
   }
 }
