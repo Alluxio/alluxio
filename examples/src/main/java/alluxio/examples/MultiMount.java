@@ -23,11 +23,6 @@ import org.apache.commons.io.IOUtils;
 /**
  * Example program that demonstrates Alluxio's ability to read and write data across different
  * types of storage systems. In particular, this example reads data from S3 and writes data to HDFS.
- *
- * NOTE: To run this example, you must replace the "hdfs://localhost:9000/" URL with a
- * URL of a valid HDFS cluster. Also, you need to set the fs.s3n.awsAccessKeyId and
- * fs.s3.awsSecretAccessKey VM properties to a valid AWS access key ID and aws secret access key
- * respectively in order to access the S3 bucket the data is read from.
  */
 public final class MultiMount {
 
@@ -37,13 +32,20 @@ public final class MultiMount {
    * @param args command-line arguments
    */
   public static void main(String []args) {
+    if (args.length != 1) {
+      System.err.println("Usage: java -cp <CLASSPATH> -Dfs.s3n.awsAccessKeyId=<ACCESS_KEY_ID>"
+          + " -Dfs.s3.awsSecretAccessKey=<SECRET_ACCESS_KEY> alluxio.examples.MultiMount"
+          + " <HDFS_URL>");
+      System.exit(-1);
+    }
+
     AlluxioURI mntPath = new AlluxioURI("/mnt");
     AlluxioURI s3Mount = new AlluxioURI("/mnt/s3");
     AlluxioURI inputPath = new AlluxioURI("/mnt/s3/hello.txt");
     AlluxioURI s3Path = new AlluxioURI("s3n://alluxio-demo/");
     AlluxioURI hdfsMount = new AlluxioURI("/mnt/hdfs");
     AlluxioURI outputPath = new AlluxioURI("/mnt/hdfs/hello.txt");
-    AlluxioURI hdfsPath = new AlluxioURI("hdfs://localhost:9000/");
+    AlluxioURI hdfsPath = new AlluxioURI(args[0]);
     FileSystem fileSystem = FileSystem.Factory.get();
 
     try {
@@ -103,7 +105,6 @@ public final class MultiMount {
       System.out.println("done");
 
       // Close the input stream.
-
       System.out.print("closing " + inputPath + " ... ");
       is.close();
       System.out.println("done");
