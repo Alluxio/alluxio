@@ -14,14 +14,19 @@ package alluxio.util.io;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.InvalidPathException;
-import alluxio.util.ShellUtils;
 
-import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermissions;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -29,6 +34,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * Provides utility methods for working with files and directories.
  *
  * By convention, methods take file path strings as parameters.
+ *
+ * TODO(peis): Move everything to nio.
  */
 @ThreadSafe
 public final class FileUtils {
@@ -38,22 +45,21 @@ public final class FileUtils {
    * Changes local file's permission.
    *
    * @param filePath that will change permission
-   * @param perms the permission, e.g. "775"
+   * @param perms the permission, e.g. "rwxr--r--"
    * @throws IOException when fails to change permission
    */
   public static void changeLocalFilePermission(String filePath, String perms) throws IOException {
-    // TODO(cc): Switch to java's Files.setPosixFilePermissions() when Java 6 support is dropped.
-    ShellUtils.execCommand(ShellUtils.getSetPermissionCommand(perms, filePath));
+    Files.setPosixFilePermissions(Paths.get(filePath), PosixFilePermissions.fromString(perms));
   }
 
   /**
-   * Changes local file's permission to be 777.
+   * Changes local file's permission to be "rwxrwxrwx".
    *
    * @param filePath that will change permission
-   * @throws IOException when fails to change file's permission to 777
+   * @throws IOException when fails to change file's permission to "rwxrwxrwx"
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
-    changeLocalFilePermission(filePath, "777");
+    changeLocalFilePermission(filePath, "rwxrwxrwx");
   }
 
   /**
@@ -75,6 +81,7 @@ public final class FileUtils {
       // Support for sticky bit is platform specific. Check if the path starts with "/" and if so,
       // assume that the host supports the chmod command.
       if (dir.startsWith(AlluxioURI.SEPARATOR)) {
+        // TODO(peis): This is very slow. Consider removing this.
         Runtime.getRuntime().exec("chmod +t " + dir);
       }
     } catch (IOException e) {
@@ -113,7 +120,7 @@ public final class FileUtils {
    * @throws IOException when fails to move
    */
   public static void move(String srcPath, String dstPath) throws IOException {
-    Files.move(new File(srcPath), new File(dstPath));
+    com.google.common.io.Files.move(new File(srcPath), new File(dstPath));
   }
 
   /**
@@ -130,6 +137,33 @@ public final class FileUtils {
     if (!file.delete()) {
       throw new IOException("Failed to delete " + path);
     }
+  }
+
+  /**
+   * Deletes a path recursively.
+   *
+   * @param path pathname to be deleted
+   * @throws IOException when fails to delete
+   */
+  public static void deletePathRecursively(String path) throws IOException {
+    Path root = Paths.get(path);
+    Files.walkFileTree(root, new SimpleFileVisitor<Path>() {
+      @Override
+      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+        Files.delete(file);
+        return FileVisitResult.CONTINUE;
+      }
+
+      @Override
+      public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
+        if (e == null) {
+          Files.delete(dir);
+          return FileVisitResult.CONTINUE;
+        } else {
+          throw e;
+        }
+      }
+    });
   }
 
   /**
@@ -163,7 +197,7 @@ public final class FileUtils {
    */
   public static void createFile(String filePath) throws IOException {
     File file = new File(filePath);
-    Files.createParentDirs(file);
+    com.google.common.io.Files.createParentDirs(file);
     if (!file.createNewFile()) {
       throw new IOException("File already exists " + filePath);
     }
