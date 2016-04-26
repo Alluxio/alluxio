@@ -34,10 +34,6 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Unit tests for {@link TieredBlockStore}.
@@ -47,7 +43,6 @@ public final class TieredBlockStoreTest {
   private static final long SESSION_ID2 = 3;
   private static final long BLOCK_ID1 = 1000;
   private static final long BLOCK_ID2 = 1001;
-  private static final long BLOCK_ID3 = 1009;
   private static final long TEMP_BLOCK_ID = 1003;
   private static final long BLOCK_SIZE = 512;
   private static final String FIRST_TIER_ALIAS = TieredBlockStoreTestUtils.TIER_ALIAS[0];
@@ -195,28 +190,6 @@ public final class TieredBlockStoreTest {
     Assert.assertFalse(
         FileUtils.exists(TempBlockMeta.tempPath(mTestDir1, SESSION_ID1, TEMP_BLOCK_ID)));
     Assert.assertTrue(FileUtils.exists(TempBlockMeta.commitPath(mTestDir1, TEMP_BLOCK_ID)));
-  }
-
-  @Test
-  public void getBlockIdsOnTiersTest() throws Exception {
-    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
-        mEvictor);
-    TieredBlockStoreTestUtils.cache(SESSION_ID2, BLOCK_ID2, BLOCK_SIZE, mTestDir3, mMetaManager,
-        mEvictor);
-    TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID3, BLOCK_SIZE, mTestDir1, mMetaManager,
-        mEvictor);
-
-    Map<String, List<Long>> actual = mBlockStore.getBlockIdsOnTiers();
-    Map<String, List<Long>> expected = new HashMap<>();
-    List<Long> tier0 = new ArrayList<>();
-    tier0.add(BLOCK_ID1);
-    tier0.add(BLOCK_ID3);
-    expected.put(TieredBlockStoreTestUtils.TIER_ALIAS[0], tier0);
-    List<Long> tier1 = new ArrayList<>();
-    tier1.add(BLOCK_ID2);
-    expected.put(TieredBlockStoreTestUtils.TIER_ALIAS[1], tier1);
-
-    Assert.assertEquals(expected, actual);
   }
 
   /**
