@@ -13,7 +13,6 @@ package alluxio.worker.block.meta;
 
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.Worker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 

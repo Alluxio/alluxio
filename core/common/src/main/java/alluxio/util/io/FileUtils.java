@@ -56,7 +56,7 @@ public final class FileUtils {
    * Changes local file's permission to be "rwxrwxrwx".
    *
    * @param filePath that will change permission
-   * @throws IOException when fails to change file's permission to "rwxrwxrwx".
+   * @throws IOException when fails to change file's permission to "rwxrwxrwx"
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
