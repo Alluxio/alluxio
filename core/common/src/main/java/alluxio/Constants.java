@@ -357,7 +357,7 @@ public final class Constants {
   public static final String USER_FILE_WRITE_LOCATION_POLICY =
       "alluxio.user.file.write.location.policy.class";
   public static final String USER_FILE_CACHE_INCOMPLETE_BLOCK =
-    "alluxio.user.file.cache.incomplete.block";
+      "alluxio.user.file.cache.incomplete.block";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
