@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -96,7 +97,9 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
         LOG.error("No worker is available");
         return IdUtils.INVALID_WORKER_ID;
       }
-      return workerInfoList.get(0).getId();
+      // randomly pick a worker
+      int index = new Random().nextInt(workerInfoList.size());
+      return workerInfoList.get(index).getId();
     }
 
     Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
