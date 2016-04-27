@@ -327,7 +327,7 @@ public final class FileDataManager {
   /**
    * Gets the {@link RateLimiter} in a thread-safe manner.
    *
-   * @return the per-worker rate limiter.
+   * @return the per-worker rate limiter
    */
   private synchronized RateLimiter getRateLimiter() {
     if (mPersistenceRateLimiter == null) {
