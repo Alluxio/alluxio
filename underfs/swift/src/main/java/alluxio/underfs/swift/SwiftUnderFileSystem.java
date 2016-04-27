@@ -132,6 +132,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     if (newPath.endsWith("_SUCCESS")) {
+      // when path/_SUCCESS is created, there is need to create path as
+      // an empty object. This is required by Spark in case Spark
+      // accesses path directly, bypassing Alluxio
       String plainName = newPath.substring(0, newPath.indexOf("_SUCCESS"));
       LOG.debug("Plain name: {}", plainName);
       SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
@@ -192,6 +195,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
     if (newPath.endsWith("_temporary")) {
+      // To get better performance Swift driver does not
+      // creates _temporary folder
+      // This optimization should be hidden from Spark, therefore
+      // exists _teporary will return true
       return true;
     }
     return isObjectExists(newPath);
