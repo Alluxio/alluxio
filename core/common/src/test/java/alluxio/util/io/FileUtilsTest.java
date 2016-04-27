@@ -149,7 +149,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
    * directories.
    *
-   * @throws IOException thrown if a non-Alluxio related exception occurs.
+   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deletePathRecursivelyTest() throws IOException {
