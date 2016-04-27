@@ -274,7 +274,8 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
-        scheduleAsyncPersistenceInternal(getPath(fileId));
+        scheduleAsyncPersistenceInternal(fileId);
+        mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
         throw new RuntimeException(e);
       }
@@ -1878,8 +1879,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
     synchronized (mInodeTree) {
-      scheduleAsyncPersistenceInternal(path);
       long fileId = mInodeTree.getInodeByPath(path).getId();
+      scheduleAsyncPersistenceInternal(fileId);
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
           AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
@@ -1887,16 +1888,16 @@ public final class FileSystemMaster extends AbstractMaster {
           JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
       flushJournal();
     }
+    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**
-   * @param path the path to schedule asynchronous persistence for
+   * @param fileId the id of the file to schedule asynchronous persistence for
    * @throws AlluxioException if scheduling fails
    */
-  private void scheduleAsyncPersistenceInternal(AlluxioURI path) throws AlluxioException {
-    Inode<?> inode = mInodeTree.getInodeByPath(path);
+  private void scheduleAsyncPersistenceInternal(long fileId) throws AlluxioException {
+    Inode<?> inode = mInodeTree.getInodeById(fileId);
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**
