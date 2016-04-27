@@ -30,7 +30,6 @@ import alluxio.worker.block.meta.BlockMeta;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MockRateLimiter;
-import com.google.common.util.concurrent.RateLimiter;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
@@ -182,12 +181,8 @@ public final class FileDataManagerTest {
     // Setup a mock rate limiter.
     final MockRateLimiter mockRateLimiter = new MockRateLimiter(
         WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
-    Whitebox.setInternalState(manager, "sPersistenceRateLimiter", new ThreadLocal<RateLimiter>() {
-      @Override
-      protected RateLimiter initialValue() {
-        return mockRateLimiter.getGuavaRateLimiter();
-      }
-    });
+    Whitebox.setInternalState(
+        manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
