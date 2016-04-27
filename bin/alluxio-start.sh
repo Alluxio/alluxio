@@ -162,7 +162,6 @@ restart_worker() {
      -Dalluxio.logs \
      .dir=${ALLUXIO_LOGS_DIR} \
      -Dalluxio.logger.type="WORKER_LOGGER" \
-     .type="WORKER_ACCESS_LOGGER" \
      -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
      alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
@@ -291,4 +290,3 @@ main() {
 }
 
 main "$@"
-
