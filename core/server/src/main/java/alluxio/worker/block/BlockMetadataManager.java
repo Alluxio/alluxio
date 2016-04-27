@@ -217,7 +217,16 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return new BlockStoreMeta(this);
+    return BlockStoreMeta.getBlockStoreMeta(this);
+  }
+
+  /**
+   * Gets a full summary of block store meta data. This is an expensive operation.
+   *
+   * @return the full metadata of this block store
+   */
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    return BlockStoreMeta.getBlockStoreMetaFull(this);
   }
 
   /**
