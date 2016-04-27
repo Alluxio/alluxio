@@ -27,11 +27,11 @@ import java.util.Locale;
  * be in the same package to be able to extend it. Later version of Guava makes it public, so this
  * can be moved to a package belongs to alluxio when updating to a newer version of Guava.
  */
-public class FakeRateLimiter {
+public final class MockRateLimiter {
   private final RateLimiter mRateLimiter;
   private final FakeSleepingTicker mTicker;
 
-  public FakeRateLimiter(double permitsPerSecond) {
+  public MockRateLimiter(double permitsPerSecond) {
     mTicker = new FakeSleepingTicker();
     mRateLimiter = RateLimiter.create(mTicker, permitsPerSecond);
   }
@@ -62,21 +62,21 @@ public class FakeRateLimiter {
       return mInstant;
     }
 
-    void sleepMillis(int millis) {
+    private void sleepMillis(int millis) {
       sleepMicros("U", MILLISECONDS.toMicros(millis));
     }
 
-    void sleepMicros(String caption, long micros) {
+    private void sleepMicros(String caption, long micros) {
       mInstant += MICROSECONDS.toNanos(micros);
       mEvents.add(caption + String.format(Locale.ROOT, "%3.2f", (micros / 1000000.0)));
     }
 
     @Override
-    protected void sleepMicrosUninterruptibly(long micros) {
+    public void sleepMicrosUninterruptibly(long micros) {
       sleepMicros("R", micros);
     }
 
-    List<String> readEventsAndClear() {
+    private List<String> readEventsAndClear() {
       try {
         return new ArrayList<String>(mEvents);
       } finally {

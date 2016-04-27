@@ -29,7 +29,7 @@ import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import com.google.common.util.concurrent.FakeRateLimiter;
+import com.google.common.util.concurrent.MockRateLimiter;
 import com.google.common.util.concurrent.RateLimiter;
 import org.junit.After;
 import org.junit.Assert;
@@ -140,6 +140,9 @@ public final class FileDataManagerTest {
     Assert.assertEquals(Sets.newHashSet(2L), persistedFiles);
   }
 
+  /**
+   * Tests the rate limiting functionality for asynchronous persistence.
+   */
   @Test
   public void persistFileRateLimitingTest() throws Exception {
     long fileId = 1;
@@ -176,13 +179,13 @@ public final class FileDataManagerTest {
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
 
-    // Setup a fake rate limiter.
-    final FakeRateLimiter fakeRateLimiter = new FakeRateLimiter(
+    // Setup a mock rate limiter.
+    final MockRateLimiter mockRateLimiter = new MockRateLimiter(
         WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(manager, "sPersistenceRateLimiter", new ThreadLocal<RateLimiter>() {
       @Override
       protected RateLimiter initialValue() {
-        return fakeRateLimiter.getGuavaRateLimiter();
+        return mockRateLimiter.getGuavaRateLimiter();
       }
     });
 
@@ -198,17 +201,17 @@ public final class FileDataManagerTest {
     manager.persistFile(fileId, blockIds);
 
     List<String> expectedEvents = Lists.newArrayList("R0.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, fakeRateLimiter.readEventsAndClear());
+    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
 
     // Simulate waiting for 1 second.
-    fakeRateLimiter.sleepMillis(1000);
+    mockRateLimiter.sleepMillis(1000);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
 
     // The first write will go through immediately without throttling.
     expectedEvents = Lists.newArrayList("U1.00", "R0.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, fakeRateLimiter.readEventsAndClear());
+    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
   }
 
   /**
