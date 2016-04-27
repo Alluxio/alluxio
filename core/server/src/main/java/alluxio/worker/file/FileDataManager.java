@@ -72,14 +72,8 @@ public final class FileDataManager {
   private final Configuration mConfiguration;
   private final Object mLock = new Object();
 
-  /** Provides a per thread rate limiter to throttle async persistence. */
-  private static ThreadLocal<RateLimiter> sPersistenceRateLimiter = new ThreadLocal<RateLimiter>() {
-      @Override
-      protected RateLimiter initialValue() {
-        return RateLimiter.create(
-            WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
-      }
-  };
+  /** A per worker rate limiter to throttle async persistence. */
+  private RateLimiter mPersistenceRateLimiter;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -241,7 +235,7 @@ public final class FileDataManager {
         if (mConfiguration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
           BlockMeta blockMeta =
               mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-          sPersistenceRateLimiter.get().acquire((int) blockMeta.getBlockSize());
+          getRateLimiter().acquire((int) blockMeta.getBlockSize());
         }
 
         // obtain block reader
@@ -330,4 +324,16 @@ public final class FileDataManager {
     }
   }
 
+  /**
+   * Gets the {@link RateLimiter} in a thread-safe manner.
+   *
+   * @return the per-worker rate limiter.
+   */
+  private synchronized RateLimiter getRateLimiter() {
+    if (mPersistenceRateLimiter == null) {
+      mPersistenceRateLimiter = RateLimiter.create(
+          WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    }
+    return mPersistenceRateLimiter;
+  }
 }
