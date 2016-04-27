@@ -35,21 +35,8 @@ priority: 0
 ## 使用EC2实例配置文件和IAM角色访问S3
 
 如果你不设置指明`<AWS_ACCESS_KEY_ID>`和`<AWS_SECRET_ACCESS_KEY>`，那么系统假定你在CE2中以一个IAM角色运行Alluxio，并且该IAM角色拥有给定S3 bucket的完整访问权限。
-```json
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": [
-        "arn:aws:s3:::EXAMPLE-BUCKET-NAME",
-        "arn:aws:s3:::EXAMPLE-BUCKET-NAME/*"
-      ]
-    }
-  ]
-}
-```
+
+{% include Configuring-Alluxio-with-S3/s3-access.md %}
 
 ## 通过代理访问S3
 
