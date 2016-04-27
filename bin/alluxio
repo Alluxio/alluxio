@@ -178,15 +178,10 @@ function runClass {
     exit
   fi
 
-  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
-    MASTER_ADDRESS=localhost
-  fi
-
   local class="$1"
   shift
 
-  ${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.master.hostname=${MASTER_ADDRESS} ${ALLUXIO_JAVA_OPTS} ${class} $@
+  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} $@
   RET=$?
 
   # If test process received a signal abort early
@@ -200,14 +195,6 @@ function runClass {
 
 function runJournalCrashTest {
   runClass alluxio.examples.JournalCrashTest $@
-}
-
-function readJournal {
-  local class="alluxio.master.journal.JournalTool"
-
-  ${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.master.hostname=${MASTER_ADDRESS} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${class} $@
-  RET=$?
-  return ${RET}
 }
 
 function runKVTest {
@@ -359,8 +346,7 @@ case ${COMMAND} in
   exit $?
 ;;
 "readJournal")
-  readJournal $@
-  exit $?
+  CLASS="alluxio.master.journal.JournalTool"
 ;;
 "killAll")
   killAll $@
@@ -403,4 +389,4 @@ case ${COMMAND} in
 ;;
 esac
 
-${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
