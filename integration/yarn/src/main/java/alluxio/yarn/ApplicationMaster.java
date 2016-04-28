@@ -188,34 +188,46 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       final CommandLine cliParser = new GnuParser().parse(options, args);
 
       YarnConfiguration conf = new YarnConfiguration();
-      String user = System.getenv("ALLUXIO_USER");
       UserGroupInformation.setConfiguration(conf);
-      LOG.info("Username: " + user);
-      UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
-      for (Token token : UserGroupInformation.getCurrentUser().getTokens()) {
-        ugi.addToken(token);
-      }
-      LOG.info("UserGroupInformation: " + ugi);
-      ugi.doAs(new PrivilegedExceptionAction<Void>() {
-        @Override
-        public Void run() throws Exception {
-          int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
-          String masterAddress = cliParser.getOptionValue("master_address");
-          String resourcePath = cliParser.getOptionValue("resource_path");
-
-          ApplicationMaster applicationMaster =
-              new ApplicationMaster(numWorkers, masterAddress, resourcePath);
-          applicationMaster.start();
-          applicationMaster.requestContainers();
-          applicationMaster.stop();
-          return null;
+      if (UserGroupInformation.isSecurityEnabled()) {
+        String user = System.getenv("ALLUXIO_USER");
+        UserGroupInformation ugi = UserGroupInformation.createRemoteUser(user);
+        for (Token token : UserGroupInformation.getCurrentUser().getTokens()) {
+          ugi.addToken(token);
         }
-      });
-
+        LOG.info("UserGroupInformation: " + ugi);
+        ugi.doAs(new PrivilegedExceptionAction<Void>() {
+          @Override
+          public Void run() throws Exception {
+            runApplicationMaster(cliParser);
+            return null;
+          }
+        });
+      } else {
+        runApplicationMaster(cliParser);
+      }
     } catch (Exception e) {
       LOG.error("Error running Application Master ", e);
       System.exit(1);
     }
+  }
+
+  /**
+   * Run the application master
+   *
+   * @param cliParser client arguments parser
+   * @throws Exception
+   */
+  private static void runApplicationMaster(final CommandLine cliParser) throws Exception {
+    int numWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
+    String masterAddress = cliParser.getOptionValue("master_address");
+    String resourcePath = cliParser.getOptionValue("resource_path");
+
+    ApplicationMaster applicationMaster =
+        new ApplicationMaster(numWorkers, masterAddress, resourcePath);
+    applicationMaster.start();
+    applicationMaster.requestContainers();
+    applicationMaster.stop();
   }
 
   @Override
