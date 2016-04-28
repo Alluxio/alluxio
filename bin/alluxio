@@ -49,7 +49,7 @@ function bootstrapConf {
   local ufs=${2:-local}
 
   ALLUXIO_CONF_DIR="${BIN}/../conf"
-  local dst="${ALLUXIO_CONF_DIR}/alluxio-env.sh"
+  local dst="${ALLUXIO_CONF_DIR}/alluxio-site.properties"
   if [[ -e ${dst} ]]; then
     echo "${dst} already exists"
     return
@@ -57,66 +57,50 @@ function bootstrapConf {
 
   if [[ $(uname -s) == Darwin ]]; then
     # Assuming Mac OS X
-    # osx sed wants an argument to -i, use .bootstrap.bk
-    ALLUXIO_SED="sed -i .bootstrap.bk"
     TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
     TOTAL_MEM=$[TOTAL_MEM / 1024]
     TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    RAMDISK_FOLDER="\/Volumes\/ramdisk"
+    RAMDISK_FOLDER="/Volumes/ramdisk"
   else
     # Assuming Linux
-    ALLUXIO_SED="sed -i"
     TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
     TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
-    RAMDISK_FOLDER="\/mnt\/ramdisk"
+    RAMDISK_FOLDER="/mnt/ramdisk"
   fi
 
-  # Create a default config that can be overridden later
-  cp "${ALLUXIO_CONF_DIR}/alluxio-env.sh.template" ${dst}
+  echo "# This file is initially created by $0" >> ${dst}
+  echo "# Users can override, delete or add more configuration options." >> ${dst}
+  echo "# A complete list of supported options can be found at http://alluxio.org/documentation/" >> ${dst}
+  echo "" >> ${dst}
 
   # Set the master hostname
-  ${ALLUXIO_SED} "s/XXX_MASTER_ADDRESS_XXX/$1/" ${dst}
+  echo "alluxio.master.address=$1" >> ${dst}
 
   # Set the worker memory size
-  ${ALLUXIO_SED} "s/XXX_MEMORY_SIZE_XXX/${TOTAL_MEM}KB/" ${dst}
+  echo "alluxio.worker.memory.size=${TOTAL_MEM}KB" >> ${dst}
 
   # Set the ramdisk folder
-  ${ALLUXIO_SED} "s/XXX_RAM_FOLDER_XXX/${RAMDISK_FOLDER}/" ${dst}
+  echo "alluxio.worker.tieredstore.level0.dirs.path=${RAMDISK_FOLDER}" >> ${dst}
 
   # Set under storage specific configuration
   case ${ufs} in
     local)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/\$\{ALLUXIO_HOME\}\/underFSStorage/" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=${ALLUXIO_HOME}/underFSStorage/" >> ${dst}
       ;;
     hdfs)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/hdfs:\/\/localhost:9000\/alluxio/" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=hdfs://localhost:9000/alluxio/" >> ${dst}
       ;;
     s3)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/s3n:\/\/bucket\/directory/" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=s3n://bucket/directory/" >> ${dst}
       ;;
     gcs)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/gs:\/\/bucket\/directory/" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=gs://bucket/directory/" >> ${dst}
       ;;
     glusterfs)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/glusterfs:\/\/\//" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
-      export ALLUXIO_UNDERFS_GLUSTER_VOLUMES=\$\{ALLUXIO_UNDERFS_GLUSTER_VOLUMES:-alluxio_vol\}\\
-      " ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
-      export ALLUXIO_UNDERFS_GLUSTER_MOUNTS=\${ALLUXIO_UNDERFS_GLUSTER_MOUNTS:-\/vol\}\\
-      " ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/a \\
-      export ALLUXIO_UNDERFS_GLUSTER_MR_DIR=\${ALLUXIO_UNDERFS_GLUSTER_MR_DIR:-glusterfs:\/\/\/mapred\/system\}\\
-      " ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=/gluster_vol/" >> ${dst}
       ;;
     swift)
-      ${ALLUXIO_SED} "s/XXX_UNDER_STORAGE_XXX/swift:\/\/swift-container/" ${dst}
-      ${ALLUXIO_SED} "/XXX_ADDITIONAL_SETTINGS_XXX/d" ${dst}
+      echo "alluxio.underfs.address=swift://swift-container/" >> ${dst}
       ;;
     *)
       rm ${dst}
