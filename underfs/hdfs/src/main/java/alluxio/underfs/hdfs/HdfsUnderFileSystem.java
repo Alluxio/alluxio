@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.retry.CountingRetry;
@@ -57,20 +58,20 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop
    */
-  public HdfsUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
-    super(configuration);
-    mUfsPrefix = fsDefaultName;
+  public HdfsUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
+    super(uri, configuration);
+    mUfsPrefix = uri.toString();
     org.apache.hadoop.conf.Configuration tConf;
     if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
       tConf = (org.apache.hadoop.conf.Configuration) conf;
     } else {
       tConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(fsDefaultName, configuration, tConf);
+    prepareConfiguration(mUfsPrefix, configuration, tConf);
     tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 

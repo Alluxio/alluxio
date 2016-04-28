@@ -243,7 +243,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatPermission(short, boolean)} method.
    */
   @Test
-  public void convertPermissionTest() {
+  public void formatPermissionTest() {
     Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatPermission((short) 0666, false));
     Assert.assertEquals("drw-rw-rw-", FormatUtils.formatPermission((short) 0666, true));
     Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatPermission((short) 0777, false));

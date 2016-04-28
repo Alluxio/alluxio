@@ -108,12 +108,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public int size() throws IOException, AlluxioException {
     int totalSize = 0;
-    // TODO(cc): Put size into PartitionInfo.
     for (PartitionInfo partition : mPartitions) {
-      KeyValuePartitionReader partitionReader =
-          KeyValuePartitionReader.Factory.create(partition.getBlockId());
-      totalSize += partitionReader.size();
-      partitionReader.close();
+      totalSize += partition.getKeyCount();
     }
     return totalSize;
   }

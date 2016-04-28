@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -33,6 +34,7 @@ import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.async.AsyncPersistHandler;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
@@ -65,6 +67,7 @@ import alluxio.proto.journal.File.PersistDirectoryEntry;
 import alluxio.proto.journal.File.ReinitializeFileEntry;
 import alluxio.proto.journal.File.RenameEntry;
 import alluxio.proto.journal.File.SetAttributeEntry;
+import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.FileSystemAction;
 import alluxio.security.authorization.PermissionStatus;
@@ -82,7 +85,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -145,6 +147,9 @@ public final class FileSystemMaster extends AbstractMaster {
   /** List of paths to always keep in memory. */
   private final PrefixList mWhitelist;
 
+  /** The handler for async persistence. */
+  private final AsyncPersistHandler mAsyncPersistHandler;
+
   /**
    * The service that checks for inode files with ttl set. We store it here so that it can be
    * accessed from tests.
@@ -185,6 +190,8 @@ public final class FileSystemMaster extends AbstractMaster {
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
     mWorkerToAsyncPersistFiles = Maps.newHashMap();
+    mAsyncPersistHandler =
+        AsyncPersistHandler.Factory.create(MasterContext.getConf(), new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
   }
 
@@ -268,7 +275,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
         scheduleAsyncPersistenceInternal(getPath(fileId));
-      } catch (FileDoesNotExistException | InvalidPathException e) {
+      } catch (AlluxioException e) {
         throw new RuntimeException(e);
       }
     } else {
@@ -288,7 +295,9 @@ public final class FileSystemMaster extends AbstractMaster {
       // Only initialize root when isLeader because when initializing root, BlockMaster needs to
       // write journal entry, if it is not leader, BlockMaster won't have a writable journal.
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
-      mInodeTree.initializeRoot(PermissionStatus.get(MasterContext.getConf(), false));
+      mInodeTree.initializeRoot(PermissionStatus.defaults()
+          .applyDirectoryUMask(MasterContext.getConf())
+          .setUserFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -389,19 +398,28 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    */
   @GuardedBy("mInodeTree")
-  private FileInfo getFileInfoInternal(Inode inode) throws FileDoesNotExistException {
+  private FileInfo getFileInfoInternal(Inode<?> inode) throws FileDoesNotExistException {
     FileInfo fileInfo = inode.generateClientFileInfo(mInodeTree.getPath(inode).toString());
     fileInfo.setInMemoryPercentage(getInMemoryPercentage(inode));
+    if (inode instanceof InodeFile) {
+      InodeFile inodeFile = (InodeFile) inode;
+      try {
+        fileInfo.setFileBlockInfos(getFileBlockInfoListInternal(inodeFile));
+      } catch (InvalidPathException e) {
+        throw new FileDoesNotExistException(e.getMessage(), e);
+      }
+    }
     AlluxioURI path = mInodeTree.getPath(inode);
-    AlluxioURI resolvedPath;
+    MountTable.Resolution resolution;
     try {
-      resolvedPath = mMountTable.resolve(path);
+      resolution = mMountTable.resolve(path);
     } catch (InvalidPathException e) {
       throw new FileDoesNotExistException(e.getMessage(), e);
     }
+    AlluxioURI resolvedUri = resolution.getUri();
     // Only set the UFS path if the path is nested under a mount point.
-    if (!path.equals(resolvedPath)) {
-      fileInfo.setUfsPath(resolvedPath.toString());
+    if (!path.equals(resolvedUri)) {
+      fileInfo.setUfsPath(resolvedUri.toString());
     }
     MasterContext.getMasterSource().incFileInfosGot(1);
     return fileInfo;
@@ -857,12 +875,13 @@ public final class FileSystemMaster extends AbstractMaster {
             unmountInternal(alluxioUriToDel);
           } else {
             // Delete the file in the under file system.
-            String ufsPath = mMountTable.resolve(alluxioUriToDel).toString();
-            UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
-            if (!ufs.exists(ufsPath)) {
-              LOG.warn("File does not exist the underfs: {}", ufsPath);
-            } else if (!ufs.delete(ufsPath, true)) {
-              LOG.error("Failed to delete {}", ufsPath);
+            MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
+            String ufsUri = resolution.getUri().toString();
+            UnderFileSystem ufs = resolution.getUfs();
+            if (!ufs.exists(ufsUri)) {
+              LOG.warn("File does not exist the underfs: {}", ufsUri);
+            } else if (!ufs.delete(ufsUri, true)) {
+              LOG.error("Failed to delete {}", ufsUri);
               return false;
             }
           }
@@ -890,7 +909,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * the path.
    *
    * @param path the path to get the info for
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given path
    * @throws FileDoesNotExistException if the file does not exist or path is a directory
    * @throws InvalidPathException if the path of the given file is invalid
    * @throws AccessControlException if permission checking fails
@@ -908,10 +927,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Implementation of {@link #getFileBlockInfoList}.
-   *
-   * @param file The inode for the file to get block info list
-   * @return a list of {@link FileBlockInfo} for all the blocks of the given file
+   * @param file the inode to get the info for
+   * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    * @throws InvalidPathException if the path of the given file is invalid
    */
   @GuardedBy("mInodeTree")
@@ -940,7 +957,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws InvalidPathException {
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
-    fileBlockInfo.setUfsLocations(new ArrayList<WorkerNetAddress>());
+    fileBlockInfo.setUfsLocations(new ArrayList<String>());
 
     // The sequence number part of the block id is the block index.
     long offset = file.getBlockSizeBytes() * BlockId.getSequenceNumber(blockInfo.getBlockId());
@@ -949,30 +966,18 @@ public final class FileSystemMaster extends AbstractMaster {
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      String ufsPath = mMountTable.resolve(mInodeTree.getPath(file)).toString();
-      UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+      MountTable.Resolution resolution = mMountTable.resolve(mInodeTree.getPath(file));
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
       List<String> locs;
       try {
-        locs = ufs.getFileLocations(ufsPath, fileBlockInfo.getOffset());
+        locs = ufs.getFileLocations(ufsUri, fileBlockInfo.getOffset());
       } catch (IOException e) {
         return fileBlockInfo;
       }
       if (locs != null) {
         for (String loc : locs) {
-          String resolvedHost = loc;
-          int resolvedPort = -1;
-          try {
-            String[] ipport = loc.split(":");
-            if (ipport.length == 2) {
-              resolvedHost = ipport[0];
-              resolvedPort = Integer.parseInt(ipport[1]);
-            }
-          } catch (NumberFormatException e) {
-            continue;
-          }
-          // The resolved port is the data transfer port not the rpc port
-          fileBlockInfo.getUfsLocations().add(
-              new WorkerNetAddress().setHost(resolvedHost).setDataPort(resolvedPort));
+          fileBlockInfo.getUfsLocations().add(loc);
         }
       }
     }
@@ -1262,16 +1267,18 @@ public final class FileSystemMaster extends AbstractMaster {
     // If the source file is persisted, rename it in the UFS.
     FileInfo fileInfo = getFileInfoInternal(srcInode);
     if (!replayed && fileInfo.isPersisted()) {
-      String ufsSrcPath = mMountTable.resolve(srcPath).toString();
-      String ufsDstPath = mMountTable.resolve(dstPath).toString();
-      UnderFileSystem ufs = UnderFileSystem.get(ufsSrcPath, MasterContext.getConf());
-      String parentPath = new AlluxioURI(ufsDstPath).getParent().toString();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentPath));
+      MountTable.Resolution resolution = mMountTable.resolve(srcPath);
+
+      String ufsSrcUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
+      String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
+      if (!ufs.exists(parentUri) && !ufs.mkdirs(parentUri, true)) {
+        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
       }
-      if (!ufs.rename(ufsSrcPath, ufsDstPath)) {
+      if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
-            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcPath, ufsDstPath));
+            ExceptionMessage.FAILED_UFS_RENAME.getMessage(ufsSrcUri, ufsDstUri));
       }
     }
 
@@ -1371,7 +1378,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return true if the file was freed
    */
   @GuardedBy("mInodeTree")
-  private boolean freeInternal(Inode inode, boolean recursive) {
+  private boolean freeInternal(Inode<?> inode, boolean recursive) {
     if (inode.isDirectory() && !recursive && ((InodeDirectory) inode).getNumberOfChildren() > 0) {
       // inode is nonempty, and we don't want to free a nonempty directory unless recursive is
       // true
@@ -1504,20 +1511,21 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
       AccessControlException {
-    AlluxioURI ufsPath;
+    MountTable.Resolution resolution;
     synchronized (mInodeTree) {
       // Permission checking is not performed in this method, but in the methods invoked.
-      ufsPath = mMountTable.resolve(path);
+      resolution = mMountTable.resolve(path);
     }
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
     try {
-      if (!ufs.exists(ufsPath.getPath())) {
+      if (!ufs.exists(ufsUri.toString())) {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
-      if (ufs.isFile(ufsPath.getPath())) {
-        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsPath.toString());
-        long ufsLength = ufs.getFileSize(ufsPath.toString());
+      if (ufs.isFile(ufsUri.toString())) {
+        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
+        long ufsLength = ufs.getFileSize(ufsUri.toString());
         // Metadata loaded from UFS has no TTL set.
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
@@ -1620,9 +1628,21 @@ public final class FileSystemMaster extends AbstractMaster {
         }
         // Exception will be propagated from loadDirectoryMetadata
       }
+
+      // For proto, build a list of String pairs representing the properties map.
+      Map<String, String> properties = options.getProperties();
+      List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
+      for (Map.Entry<String, String> entry : properties.entrySet()) {
+        protoProperties.add(StringPairEntry.newBuilder()
+            .setKey(entry.getKey())
+            .setValue(entry.getValue())
+            .build());
+      }
+
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly()).build();
+              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+              .addAllProperties(protoProperties).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);
@@ -1644,8 +1664,12 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Updates the mount table with the specified mount point. The mount options may be updated during
+   * this method.
+   *
    * @param alluxioPath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
+   * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
@@ -1655,10 +1679,11 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
-    if (!ufs.exists(ufsPath.getPath())) {
+    ufs.setProperties(options.getProperties());
+    if (!ufs.exists(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
     }
-    if (ufs.isFile(ufsPath.getPath())) {
+    if (ufs.isFile(ufsPath.toString())) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
     }
     // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
@@ -1671,6 +1696,16 @@ public final class FileSystemMaster extends AbstractMaster {
     // This should check that we are not mounting a prefix of an existing mount, and that no
     // existing mount is a prefix of this mount.
     mMountTable.add(alluxioPath, ufsPath, options);
+
+    try {
+      // Configure the ufs properties, and update the mount options with the configured properties.
+      ufs.configureProperties();
+      options.setProperties(ufs.getProperties());
+    } catch (IOException e) {
+      // remove the mount point if the UFS failed to configure properties.
+      mMountTable.delete(alluxioPath);
+      throw e;
+    }
   }
 
   /**
@@ -1839,14 +1874,11 @@ public final class FileSystemMaster extends AbstractMaster {
    * Schedules a file for async persistence.
    *
    * @param path the id of the file for persistence
-   * @return the id of the worker that persistence is scheduled on
-   * @throws FileDoesNotExistException when the file does not exist
-   * @throws InvalidPathException if the given path is invalid
+   * @throws AlluxioException if scheduling fails
    */
-  public long scheduleAsyncPersistence(AlluxioURI path)
-      throws FileDoesNotExistException, InvalidPathException {
+  public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
     synchronized (mInodeTree) {
-      long workerId = scheduleAsyncPersistenceInternal(path);
+      scheduleAsyncPersistenceInternal(path);
       long fileId = mInodeTree.getInodeByPath(path).getId();
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
@@ -1854,127 +1886,17 @@ public final class FileSystemMaster extends AbstractMaster {
       writeJournalEntry(
           JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
       flushJournal();
-      return workerId;
     }
   }
 
   /**
    * @param path the path to schedule asynchronous persistence for
-   * @return the id of the worker that will perform the operation
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if an invalid path is encountered
+   * @throws AlluxioException if scheduling fails
    */
-  @GuardedBy("mInodeTree")
-  private long scheduleAsyncPersistenceInternal(AlluxioURI path) throws
-      FileDoesNotExistException, InvalidPathException {
-    // find the worker
-    long workerId = getWorkerStoringFile(path);
-
-    if (workerId == IdUtils.INVALID_WORKER_ID) {
-      LOG.warn("No worker found to schedule async persistence for file {}", path);
-      // no worker found, do nothing
-      return workerId;
-    }
-
-    // update the state
+  private void scheduleAsyncPersistenceInternal(AlluxioURI path) throws AlluxioException {
     Inode<?> inode = mInodeTree.getInodeByPath(path);
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    long fileId = inode.getId();
-
-    if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-      mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
-    }
-    mWorkerToAsyncPersistFiles.get(workerId).add(fileId);
-
-    return workerId;
-  }
-
-  /**
-   * Gets a worker where the given file is stored.
-   *
-   * @param path the path to the file
-   * @return the id of the storing worker
-   * @throws FileDoesNotExistException when the file does not exist on any worker
-   */
-  // TODO(calvin): Propagate the exceptions in certain cases
-  @GuardedBy("mInodeTree")
-  private long getWorkerStoringFile(AlluxioURI path) throws FileDoesNotExistException {
-    Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
-    List<FileBlockInfo> blockInfoList;
-    try {
-      InodeFile inode = mInodeTree.getInodeFileByPath(path);
-      blockInfoList = getFileBlockInfoListInternal(inode);
-
-      for (FileBlockInfo fileBlockInfo : blockInfoList) {
-        for (BlockLocation blockLocation : fileBlockInfo.getBlockInfo().getLocations()) {
-          if (workerBlockCounts.containsKey(blockLocation.getWorkerId())) {
-            workerBlockCounts.put(blockLocation.getWorkerId(),
-                workerBlockCounts.get(blockLocation.getWorkerId()) + 1);
-          } else {
-            workerBlockCounts.put(blockLocation.getWorkerId(), 1);
-          }
-
-          // TODO(yupeng) remove the requirement that all the blocks of a file must be stored on the
-          // same worker, for now it returns the first worker that has all the blocks
-          if (workerBlockCounts.get(blockLocation.getWorkerId()) == blockInfoList.size()) {
-            return blockLocation.getWorkerId();
-          }
-        }
-      }
-    } catch (FileDoesNotExistException e) {
-      LOG.error("The file {} to persist does not exist", path);
-      return IdUtils.INVALID_WORKER_ID;
-    } catch (InvalidPathException e) {
-      LOG.error("The file {} to persist is invalid", path);
-      return IdUtils.INVALID_WORKER_ID;
-    }
-
-    if (workerBlockCounts.size() == 0) {
-      LOG.error("The file " + path + " does not exist on any worker");
-      return IdUtils.INVALID_WORKER_ID;
-    }
-
-    LOG.error("Not all the blocks of file {} stored on the same worker", path);
-    return IdUtils.INVALID_WORKER_ID;
-  }
-
-  /**
-   * Polls the files to send to the given worker for persistence. It also removes files from the
-   * worker entry in {@link #mWorkerToAsyncPersistFiles}.
-   *
-   * @param workerId the worker id
-   * @return the list of files
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the path is invalid
-   */
-  private List<PersistFile> pollFilesToCheckpoint(long workerId)
-      throws FileDoesNotExistException, InvalidPathException {
-    List<PersistFile> filesToPersist = Lists.newArrayList();
-    List<Long> fileIdsToPersist = Lists.newArrayList();
-
-    synchronized (mInodeTree) {
-      if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-        return filesToPersist;
-      }
-
-      Set<Long> scheduledFiles = mWorkerToAsyncPersistFiles.get(workerId);
-      for (long fileId : scheduledFiles) {
-        InodeFile inode = (InodeFile) mInodeTree.getInodeById(fileId);
-        if (inode.isCompleted()) {
-          fileIdsToPersist.add(fileId);
-          List<Long> blockIds = Lists.newArrayList();
-          for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal(inode)) {
-            blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
-          }
-
-          filesToPersist.add(new PersistFile(fileId, blockIds));
-          // update the inode file persistence state
-          inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-        }
-      }
-      mWorkerToAsyncPersistFiles.get(workerId).removeAll(fileIdsToPersist);
-    }
-    return filesToPersist;
+    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**
@@ -1989,20 +1911,20 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the file path corresponding to the file id is invalid
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
+  public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     for (long fileId : persistedFiles) {
       // Permission checking for each file is performed inside setAttribute
       setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
     }
 
-    // get the files for the given worker to checkpoint
-    List<PersistFile> filesToCheckpoint = pollFilesToCheckpoint(workerId);
-    if (!filesToCheckpoint.isEmpty()) {
-      LOG.debug("Sent files {} to worker {} to persist", filesToCheckpoint, workerId);
+    // get the files for the given worker to persist
+    List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+    if (!filesToPersist.isEmpty()) {
+      LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
     FileSystemCommandOptions options = new FileSystemCommandOptions();
-    options.setPersistOptions(new PersistCommandOptions(filesToCheckpoint));
+    options.setPersistOptions(new PersistCommandOptions(filesToPersist));
     return new FileSystemCommand(CommandType.Persist, options);
   }
 

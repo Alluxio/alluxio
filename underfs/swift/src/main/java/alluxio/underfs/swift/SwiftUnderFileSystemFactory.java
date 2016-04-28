@@ -39,9 +39,8 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
     Preconditions.checkNotNull(configuration);
 
     if (addAndCheckSwiftCredentials(configuration)) {
-      AlluxioURI uri = new AlluxioURI(path);
       try {
-        return new SwiftUnderFileSystem(uri.getHost(), configuration);
+        return new SwiftUnderFileSystem(new AlluxioURI(path), configuration);
       } catch (Exception e) {
         LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -96,8 +95,17 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
             && configuration.get(authMethodKeyConf) == null)) {
       configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
     }
+    String passwordKeyConf = Constants.SWIFT_PASSWORD_KEY;
+    if (System.getProperty(passwordKeyConf) != null
+        || (configuration.containsKey(passwordKeyConf)
+            && configuration.get(passwordKeyConf) == null)) {
+      configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
+    }
 
-    return configuration.get(tenantApiKeyConf) != null
+    return ((configuration.containsKey(tenantApiKeyConf)
+        && configuration.get(tenantApiKeyConf) != null)
+        || (configuration.containsKey(passwordKeyConf)
+        && configuration.get(passwordKeyConf) != null))
         && configuration.get(tenantKeyConf) != null
         && configuration.get(tenantAuthURLKeyConf) != null
         && configuration.get(tenantUserConf) != null;

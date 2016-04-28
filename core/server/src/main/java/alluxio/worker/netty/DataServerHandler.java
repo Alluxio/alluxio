@@ -19,7 +19,7 @@ import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.AlluxioWorker;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandler;
@@ -46,13 +46,13 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param blockWorker the block worker handle
+   * @param worker the block worker handle
    * @param configuration Alluxio configuration
    */
-  public DataServerHandler(final BlockWorker blockWorker, Configuration configuration) {
-    Preconditions.checkNotNull(blockWorker);
+  public DataServerHandler(final AlluxioWorker worker, Configuration configuration) {
+    Preconditions.checkNotNull(worker);
     Preconditions.checkNotNull(configuration);
-    mBlockHandler = new BlockDataServerHandler(blockWorker, configuration);
+    mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
   }
 
   @Override

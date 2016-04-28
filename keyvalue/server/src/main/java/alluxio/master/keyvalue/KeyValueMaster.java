@@ -182,7 +182,7 @@ public final class KeyValueMaster extends AbstractMaster {
   private void completePartitionFromEntry(CompletePartitionEntry entry)
       throws FileDoesNotExistException {
     PartitionInfo info = new PartitionInfo(entry.getKeyStartBytes().asReadOnlyByteBuffer(),
-        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId());
+        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId(), entry.getKeyCount());
     completePartitionInternal(entry.getStoreId(), info);
   }
 
@@ -429,7 +429,8 @@ public final class KeyValueMaster extends AbstractMaster {
     CompletePartitionEntry completePartition =
         CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
             .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
-            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit())).build();
+            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
+            .setKeyCount(info.getKeyCount()).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }
 

@@ -250,13 +250,39 @@ public final class SetAttributeOptions {
     return options;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    SetAttributeOptions that = (SetAttributeOptions) o;
+    return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mPermission, that.mPermission)
+        && Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mPermission, mRecursive);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("pinned", mPinned).add("ttl", mTtl)
-        .add("persisted", mPersisted).add("owner", mOwner).add("group", mGroup)
-        .add("permission", mPermission).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("pinned", mPinned)
+        .add("ttl", mTtl)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("permission", mPermission)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

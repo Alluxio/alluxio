@@ -16,7 +16,7 @@ priority: 2
 
 {% include Running-Alluxio-on-a-Cluster/sync-info.md %}
 
-同步在`alluxio/conf/workers` 文件中指定的所有文件和文件夹。
+同步所有文件和文件夹到`alluxio/conf/workers` 文件中指定的主机里。
 
 现在可以启动Alluxio：
 
