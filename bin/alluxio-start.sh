@@ -9,21 +9,22 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-fhNw] ACTION [MOPT]
 Where ACTION is one of:
-  all [MOPT]\t\tStart master and all workers.
-  local [MOPT] \t\t\tStart a master and worker locally.
-  master\t\tStart the master on this node.
-  safe\t\t\tScript will run continuously and start the master if it's not running.
-  worker [MOPT]\t\tStart a worker on this node.
-  workers [MOPT]\t\tStart workers on worker nodes.
-  restart_worker\tRestart a failed worker on this node.
+  all [MOPT]     \tStart master and all workers.
+  local [MOPT]   \tStart a master and worker locally.
+  master         \tStart the master on this node.
+  safe           \tScript will run continuously and start the master if it's not running.
+  worker [MOPT]  \tStart a worker on this node.
+  workers [MOPT] \tStart workers on worker nodes.
+  restart_worker \tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
-MOPT is one of:
-  Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
-  SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
-  NoMount\t\tDo not mount the configured RamFS. Notice: Use NoMount (Linux only) to use tmpFS
-  to avoid sudo requirement.
+MOPT (Mount Option) is one of:
+  Mount    \t\tMount the configured RamFS. Notice: this will format the existing RamFS.
+  SudoMount\t\tMount the configured RamFS using sudo.
+           \t\tNotice: this will format the existing RamFS.
+  NoMount  \t\tDo not mount the configured RamFS.
+           \t\tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
   SudoMount is assumed if MOPT is missing.
 
 -f  format Journal, UnderFS Data and Workers Folder on master

@@ -24,20 +24,12 @@ if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   VERSION=1.1.0-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "$this"))
   ALLUXIO_CONF_DIR="${ALLUXIO_HOME}/conf"
+  ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/../.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
-
-if [[ $(uname -s) == Darwin ]]; then
-  # Assuming Mac OS X
-  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-"/Volumes/ramdisk"}
-else
-  # Assuming Linux
-  export ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-"/mnt/ramdisk"}
-fi
-
 
 # Make sure alluxio-env.sh exists
 if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]]; then

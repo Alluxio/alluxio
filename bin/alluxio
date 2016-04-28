@@ -56,15 +56,19 @@ function bootstrapConf {
   fi
 
   if [[ $(uname -s) == Darwin ]]; then
+    # Assuming Mac OS X
     # osx sed wants an argument to -i, use .bootstrap.bk
     ALLUXIO_SED="sed -i .bootstrap.bk"
     TOTAL_MEM=$(sysctl hw.memsize | cut -d ' ' -f2)
     TOTAL_MEM=$[TOTAL_MEM / 1024]
     TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    RAMDISK_FOLDER="\/Volumes\/ramdisk"
   else
+    # Assuming Linux
     ALLUXIO_SED="sed -i"
     TOTAL_MEM=$(awk '/MemTotal/{print $2}' /proc/meminfo)
     TOTAL_MEM=$[TOTAL_MEM * 2 / 3]
+    RAMDISK_FOLDER="\/mnt\/ramdisk"
   fi
 
   # Create a default config that can be overridden later
@@ -75,6 +79,9 @@ function bootstrapConf {
 
   # Set the worker memory size
   ${ALLUXIO_SED} "s/XXX_MEMORY_SIZE_XXX/${TOTAL_MEM}KB/" ${dst}
+
+  # Set the ramdisk folder
+  ${ALLUXIO_SED} "s/XXX_RAM_FOLDER_XXX/${RAMDISK_FOLDER}/" ${dst}
 
   # Set under storage specific configuration
   case ${ufs} in
@@ -155,7 +162,7 @@ function runTest {
       ;;
   esac
   ${LAUNCHER} ${BIN}/alluxio fs rm -R ${file}
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${MASTER_ADDRESS}:19998 ${file} $2 $3
+  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${ALLUXIO_MASTER_ADDRESS}:19998 ${file} $2 $3
 
   # If test process received a signal abort early
   # Exit Codes for signals terminating a JVM are 128 + signal
