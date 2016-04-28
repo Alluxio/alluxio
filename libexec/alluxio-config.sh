@@ -52,16 +52,17 @@ if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
 fi
 
-if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.quota=${ALLUXIO_WORKER_MEMORY_SIZE}"
-fi
-
 if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}"
 fi
 
 if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.underfs.address=${ALLUXIO_UNDERFS_ADDRESS}"
+fi
+
+# TODO(binfan): check why this env is used twice.
+if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.quota=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
 
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZES}" ]]; then
@@ -75,15 +76,15 @@ ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm="
 ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.kdc="
 
 # Master specific parameters based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_MASTER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_MASTER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_MASTER_JAVA_OPTS+=" -Dalluxio.logger.type=MASTER_LOGGER"
 
 # Worker specific parameters that will be shared to all workers based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_WORKER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_WORKER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_WORKER_JAVA_OPTS+=" -Dalluxio.logger.type=WORKER_LOGGER"
 
 # Client specific parameters based on ALLUXIO_JAVA_OPTS.
-ALLUXIO_USER_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
 
 # A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
