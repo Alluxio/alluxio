@@ -100,6 +100,7 @@ public class ApplicationMasterTest {
           .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
           .put("ALLUXIO_MASTER_ADDRESS", "masterAddress")
           .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
+          .put("ALLUXIO_RAM_FOLDER", ApplicationConstants.Environment.LOCAL_DIRS.$())
           .build();
   private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
       ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_WORKER_ENVIRONMENT,
@@ -109,6 +110,7 @@ public class ApplicationMasterTest {
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
           .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+          .put("ALLUXIO_RAM_FOLDER", ApplicationConstants.Environment.LOCAL_DIRS.$())
           .build();
   private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
       ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,
