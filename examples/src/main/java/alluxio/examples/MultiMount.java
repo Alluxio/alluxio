@@ -23,6 +23,14 @@ import org.apache.commons.io.IOUtils;
 /**
  * Example program that demonstrates Alluxio's ability to read and write data across different
  * types of storage systems. In particular, this example reads data from S3 and writes data to HDFS.
+ *
+ * NOTE: This example assumes the existence of an Alluxio cluster configured for S3 access (see
+ * http://alluxio.org/documentation/en/Configuring-Alluxio-with-S3.html for details) and an
+ * existence of an HDFS cluster. The example should be executed using:
+ *
+ * ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>
+ *
+ * which reads the Alluxio configuration from alluxio-env.sh and the HDFS URL from command-line.
  */
 public final class MultiMount {
 
@@ -33,9 +41,7 @@ public final class MultiMount {
    */
   public static void main(String []args) {
     if (args.length != 1) {
-      System.err.println("Usage: java -cp <CLASSPATH> -Dfs.s3n.awsAccessKeyId=<ACCESS_KEY_ID>"
-          + " -Dfs.s3.awsSecretAccessKey=<SECRET_ACCESS_KEY> alluxio.examples.MultiMount"
-          + " <HDFS_URL>");
+      System.err.println("Usage: ./bin/alluxio runClass alluxio.examples.MultiMount <HDFS_URL>");
       System.exit(-1);
     }
 
