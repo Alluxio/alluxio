@@ -137,11 +137,6 @@ function runTest {
     exit 1
   fi
 
-  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
-    MASTER_ADDRESS=localhost
-  fi
-
   local file="/default_tests_files"
   local class=""
   case "$1" in
@@ -277,10 +272,6 @@ case ${COMMAND} in
   elif [[ $# -gt 1 ]]; then
     echo "${Usage} $0 format [-s]"
     exit 2
-  fi
-
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
-    ALLUXIO_MASTER_ADDRESS=localhost
   fi
 
   ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
