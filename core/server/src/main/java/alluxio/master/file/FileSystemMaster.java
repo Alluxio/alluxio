@@ -89,8 +89,6 @@ import alluxio.wire.FileInfo;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -101,6 +99,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -189,7 +188,7 @@ public final class FileSystemMaster extends AbstractMaster {
     Configuration conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
-    mWorkerToAsyncPersistFiles = Maps.newHashMap();
+    mWorkerToAsyncPersistFiles = new HashMap<>();
     mAsyncPersistHandler =
         AsyncPersistHandler.Factory.create(MasterContext.getConf(), new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
@@ -1450,7 +1449,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return all the files lost on the workers
    */
   public List<Long> getLostFiles() {
-    Set<Long> lostFiles = Sets.newHashSet();
+    Set<Long> lostFiles = new HashSet<>();
     for (long blockId : mBlockMaster.getLostBlocks()) {
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
