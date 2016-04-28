@@ -179,7 +179,7 @@ public final class FileDataManagerTest {
     Whitebox.setInternalState(manager, "mUfs", ufs);
 
     // Setup a mock rate limiter.
-    final MockRateLimiter mockRateLimiter = new MockRateLimiter(
+    MockRateLimiter mockRateLimiter = new MockRateLimiter(
         WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(
         manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
@@ -206,6 +206,24 @@ public final class FileDataManagerTest {
 
     // The first write will go through immediately without throttling.
     expectedEvents = Lists.newArrayList("U1.00", "R0.00", "R1.00", "R1.00");
+    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
+
+    // Repeat persistence without sleeping.
+    mockRateLimiter = new MockRateLimiter(
+        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    Whitebox.setInternalState(
+        manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
+
+    manager.lockBlocks(fileId, blockIds);
+    manager.persistFile(fileId, blockIds);
+
+    expectedEvents = Lists.newArrayList("R0.00", "R1.00", "R1.00");
+    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
+
+    manager.lockBlocks(fileId, blockIds);
+    manager.persistFile(fileId, blockIds);
+
+    expectedEvents = Lists.newArrayList("R1.00", "R1.00", "R1.00");
     assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
   }
 
