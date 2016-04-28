@@ -11,6 +11,8 @@
 
 package alluxio.client.lineage.options;
 
+import alluxio.CommonTestUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -25,5 +27,10 @@ public class GetLineageInfoListOptionsTest {
   public void defaultsTest() {
     Assert.assertNotNull("The default options should not be null",
         GetLineageInfoListOptions.defaults());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(GetLineageInfoListOptions.class);
   }
 }

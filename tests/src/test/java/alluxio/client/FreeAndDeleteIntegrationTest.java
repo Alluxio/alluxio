@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
@@ -33,6 +32,7 @@ import alluxio.worker.block.BlockWorker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -43,6 +43,7 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public final class FreeAndDeleteIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
@@ -67,8 +68,7 @@ public final class FreeAndDeleteIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @Test

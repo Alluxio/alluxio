@@ -15,10 +15,11 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
@@ -35,10 +36,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
-  /** This default umask is used to calculate file permission from directory permission. */
-  private static final FileSystemPermission UMASK =
-      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
-
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
@@ -52,7 +49,7 @@ public final class InodeFile extends Inode<InodeFile> {
    *
    * @param id the block container id to use
    */
-  public InodeFile(long id) {
+  private InodeFile(long id) {
     super(0);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = id;
@@ -222,12 +219,6 @@ public final class InodeFile extends Inode<InodeFile> {
     return getThis();
   }
 
-  @Override
-  public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
-    Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
-  }
-
   /**
    * @param ttl the TTL to use, in milliseconds
    * @return the updated object
@@ -292,6 +283,31 @@ public final class InodeFile extends Inode<InodeFile> {
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTtl(entry.getTtl())
+            .setPermissionStatus(permissionStatus);
+    return inode;
+  }
+
+  /**
+   * Creates an {@link InodeFile}.
+   *
+   * @param id id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param fileOptions options to create this file
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile create(long id, long parentId, String name,
+      CreateFileOptions fileOptions) {
+    PermissionStatus permissionStatus = new PermissionStatus(fileOptions.getPermissionStatus())
+        .applyFileUMask(MasterContext.getConf());
+    InodeFile inode =
+        new InodeFile(id)
+            .setParentId(parentId)
+            .setName(name)
+            .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+            .setTtl(fileOptions.getTtl())
+            .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+                PersistenceState.NOT_PERSISTED)
             .setPermissionStatus(permissionStatus);
     return inode;
   }

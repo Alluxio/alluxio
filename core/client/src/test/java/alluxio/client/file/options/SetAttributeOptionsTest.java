@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.thrift.SetAttributeTOptions;
 
 import org.junit.Assert;
@@ -97,5 +98,10 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(pinned, thriftOptions.isPinned());
     Assert.assertTrue(thriftOptions.isSetTtl());
     Assert.assertEquals(ttl, thriftOptions.getTtl());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(SetAttributeOptions.class);
   }
 }

@@ -51,6 +51,11 @@
       <artifactId>alluxio-core-server</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.powermock</groupId>
+      <artifactId>powermock-reflect</artifactId>
+      <version>${powermock.version}</version>
+    </dependency>
 
     <!-- Other projects' test-jars -->
     <dependency>

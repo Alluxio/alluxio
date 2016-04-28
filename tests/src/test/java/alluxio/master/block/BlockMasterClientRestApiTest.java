@@ -11,15 +11,15 @@
 
 package alluxio.master.block;
 
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
 import alluxio.rest.TestCaseFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
 import com.google.common.collect.Maps;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,20 +37,22 @@ import java.util.Map;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
-@Ignore
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
 public class BlockMasterClientRestApiTest {
   private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
-  private static BlockMaster sBlockMaster;
+  private BlockMaster mBlockMaster;
 
   @Rule
   private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
-  @BeforeClass
-  public static void beforeClass() {
-    sBlockMaster = PowerMockito.mock(BlockMaster.class);
-    AlluxioMaster alluxioMaster = PowerMockito.mock(AlluxioMaster.class);
-    Mockito.doReturn(sBlockMaster).when(alluxioMaster).getBlockMaster();
-    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", alluxioMaster);
+  @Before
+  public void before() throws Exception {
+    AlluxioMaster alluxioMaster = mResource.get().getMaster().getInternalMaster();
+    mBlockMaster = PowerMockito.mock(BlockMaster.class);
+    // Replace the block master created by LocalAlluxioClusterResource with a mock.
+    BlockMaster blockMaster = Whitebox.getInternalState(alluxioMaster, "mBlockMaster");
+    blockMaster.stop();
+    Whitebox.setInternalState(alluxioMaster, "mBlockMaster", mBlockMaster);
   }
 
   private String getEndpoint(String suffix) {
@@ -77,12 +79,12 @@ public class BlockMasterClientRestApiTest {
     params.put("blockId", "1");
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
-    Mockito.doReturn(blockInfo).when(sBlockMaster).getBlockInfo(Mockito.anyLong());
+    Mockito.doReturn(blockInfo).when(mBlockMaster).getBlockInfo(Mockito.anyLong());
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params,
             "GET", blockInfo, mResource).run();
 
-    Mockito.verify(sBlockMaster).getBlockInfo(Mockito.anyLong());
+    Mockito.verify(mBlockMaster).getBlockInfo(Mockito.anyLong());
   }
 }

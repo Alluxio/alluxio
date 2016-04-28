@@ -395,12 +395,22 @@ public final class BlockWorker extends AbstractWorker {
 
   /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
-   * the total capacity and used capacity of each tier.
+   * the total capacity and used capacity of each tier. This function is cheap.
    *
    * @return the block store metadata
    */
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
+  }
+
+  /**
+   * Similar as {@link BlockWorker#getStoreMeta} except that this also contains full blockId
+   * list. This function is expensive.
+   *
+   * @return the full block store metadata
+   */
+  public BlockStoreMeta getStoreMetaFull() {
+    return mBlockStore.getBlockStoreMetaFull();
   }
 
   /**

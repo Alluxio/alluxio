@@ -25,7 +25,7 @@ Alluxio文件系统中对一个持久化的对象进行重命名或者删除操�
 另外，Alluxio能够搜索到底层文件系统中并非通过Alluxio创建的对象。例如，底层文件系统中包含一个`Data`文件夹，
 其中包含`Reports`和`Sales`两个文件，它们都不是通过Alluxio创建的，当它们第一次被访问时（例如用户请求打开文
 件），Alluxio会自动加载这些对象的元数据。然而在该过程中Alluxio不会加载具体文件数据，若要将其加载到Alluxio，
-可以在第一次读取数据时将`AlluxioStorageType`设置成`STORE`，或者通过Alluxio Shell中的`load`命令进行加载。
+可以用`FileInStream`读数据，或者通过Alluxio Shell中的`load`命令进行加载。
 
 ## 统一命名空间
 

@@ -14,10 +14,10 @@ Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-Before executing Alluxio run scripts, requisite environment variables must be specified in
-`conf/alluxio-env.sh`, which can be copied from the included template file:
+Before executing Alluxio run scripts, the Alluxio environment configuration `conf/alluxio-env.sh`
+needs to be created. The default configuration can be bootstrapped using:
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 To run in standalone mode, make sure that:
 
