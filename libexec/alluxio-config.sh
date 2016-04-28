@@ -31,14 +31,16 @@ fi
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/../.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
-# Make sure alluxio-env.sh exists
-if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]]; then
-  echo "Cannot find alluxio-env.sh in ${ALLUXIO_CONF_DIR}."
-  echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
-  exit 1
-fi
+[ -f ${ALLUXIO_CONF_DIR}/alluxio-env.sh ] && . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 
-. $ALLUXIO_CONF_DIR/alluxio-env.sh
+if [[ -z "${ALLUXIO_MASTER_ADDRESS}" ]]; then
+  # Make sure alluxio-site.properties exists
+  if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-site.properties ]]; then
+    echo "Cannot find alluxio-site.properties in ${ALLUXIO_CONF_DIR}."
+    echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
+    exit 1
+  fi
+fi
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
@@ -58,11 +60,6 @@ fi
 
 if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.underfs.address=${ALLUXIO_UNDERFS_ADDRESS}"
-fi
-
-# TODO(binfan): check why this env is used twice.
-if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.quota=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
 
 if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZES}" ]]; then

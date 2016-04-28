@@ -13,6 +13,7 @@
 .metadata/
 .project
 .settings/
+/conf/alluxio-env.sh
 /data/
 /deploy/vagrant/.request_ids
 /deploy/vagrant/.vagrant/
