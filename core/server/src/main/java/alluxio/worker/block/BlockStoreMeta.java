@@ -16,7 +16,6 @@ import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -114,7 +113,7 @@ public final class BlockStoreMeta {
    * @return a mapping from tier aliases to directory paths in that tier
    */
   public Map<String, List<String>> getDirectoryPathsOnTiers() {
-    Map<String, List<String>> pathsOnTiers = Maps.newHashMap();
+    Map<String, List<String>> pathsOnTiers = new HashMap<>();
     for (Pair<String, String> tierPath : mCapacityBytesOnDirs.keySet()) {
       String tier = tierPath.getFirst();
       if (pathsOnTiers.get(tier) == null) {
