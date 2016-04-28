@@ -1,39 +1,44 @@
 #!/usr/bin/env bash
 
-# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
-# (the “License”). You may not use this work except in compliance with the License, which is
-# available at www.apache.org/licenses/LICENSE-2.0
-#
-# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-# either express or implied, as more fully set forth in the License.
-#
-# See the NOTICE file distributed with this work for information regarding copyright ownership.
+# This file is sourced when launching Alluxio daemon or using Alluxio shell
+# commands. It provides one way to configure a few Alluxio configuration options
+# by setting the following environment variables. Note that, settings in this
+# file will not affect the jobs (e.g., Spark job or MapReduce job) that are
+# using Alluxio client as a library. Alternatively, you can edit
+# alluxio.properties file, where you can set all configuration options supported
+# by Alluxio
+# (http://alluxio.org/documentation/master/en/Configuration-Settings.html), and
+# it is respected by both the jobs and Alluxio daemon (or shell).
 
-# This file contains the environment variables required to run Alluxio. Copy it as alluxio-env.sh and
-# edit that to configure Alluxio for your site. At a minimum,
-# the following variables should be set:
-
-# Where the Alluxio deployment is installed
+# The directory where Alluxio deployment is installed
 # ALLUXIO_HOME
 
-# Where log files are stored. $ALLUXIO_HOME/logs by default.
+# The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 
-# Address of the master
+# Address of the master.
 # ALLUXIO_MASTER_ADDRESS
 
-# Where worker stores in memory data. Consider setting it to /dev/shm if tmpFS is used.
+# The directory where a worker stores in-memory data. (Default: /mnt/ramdisk).
+# E.g. On linux,  /mnt/ramdisk for ramdisk, /dev/shm for tmpFS; on MacOS, /Volumes/ramdisk for ramdisk
 # ALLUXIO_RAM_FOLDER
 
-# Address of the under filesystem address.
+# Address of the under filesystem address. (Default: ${ALLUXIO_HOME}/underFSStorage)
+# E.g. "/my/local/path" to use local fs, "hdfs://localhost:9000/alluxio" to use a local hdfs
 # ALLUXIO_UNDERFS_ADDRESS
 
-# How much memory to use (e.g. 1000mb, 2gb) per worker
+# How much memory to use per worker
+# E.g. "1000mb", "2gb"
 # ALLUXIO_WORKER_MEMORY_SIZE
 
-ALLUXIO_MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS:-XXX_MASTER_ADDRESS_XXX}
-ALLUXIO_UNDERFS_ADDRESS=${ALLUXIO_UNDERFS_ADDRESS:-XXX_UNDER_STORAGE_XXX}
-ALLUXIO_WORKER_MEMORY_SIZE=${ALLUXIO_WORKER_MEMORY_SIZE:-XXX_MEMORY_SIZE_XXX}
-ALLUXIO_RAM_FOLDER=${ALLUXIO_RAM_FOLDER:-XXX_RAM_FOLDER_XXX}
+# Config properties set for Alluxio master daemon. (Default: "")
+# E.g. "-Dalluxio.master.port=39999"
+# ALLUXIO_MASTER_JAVA_OPTS
 
-XXX_ADDITIONAL_SETTINGS_XXX
+# Config properties set for Alluxio worker daemon. (Default: "")
+# E.g. "-Dalluxio.worker.port=49999"
+# ALLUXIO_WORKER_JAVA_OPTS
+
+# Config properties set for Alluxio shell. (Default: "")
+# E.g. "-Dalluxio.user.file.writetype.default=THROUGH"
+# ALLUXIO_USER_JAVA_OPTS
