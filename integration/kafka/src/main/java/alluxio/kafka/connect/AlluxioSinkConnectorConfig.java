@@ -11,6 +11,8 @@
 
 package alluxio.kafka.connect;
 
+import alluxio.kafka.connect.format.JsonFormat;
+
 import org.apache.kafka.common.config.AbstractConfig;
 import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.common.config.ConfigDef.Type;
@@ -23,28 +25,20 @@ import java.util.Map;
 public class AlluxioSinkConnectorConfig extends AbstractConfig {
 
   public static final String ALLUXIO_URL = "alluxio.url";
-
   public static final String TOPICS_DIR = "topics.dir";
-
   public static final String ROTATION_RECORD_NUM = "rotation.num";
-
   public static final String ROTATION_TIME_INTERVAL = "rotation.time.interval";
-
   public static final String ALLUXIO_FORMAT = "alluxio.format";
-
+  public static final int OFFSET_LENGTH = 10;
+  public static final String ALLUXIO_CONNECTOR_VERSION = "1.1.0";
   private static final String ALLUXIO_URL_DOC =
       "alluxio url address, eg. alluxio://localhost:19998";
-
   private static final String TOPICS_DIR_DOC = "The top level directory name in alluxio";
-
   private static final String ROTATION_RECORD_NUM_DOC =
       "The record number of alluxio file rotation";
-
   private static final String ROTATION_TIME_INTERVAL_DOC =
       "The time interval of alluxio file rotation";
-
   private static final String ALLUXIO_FORMAT_DOC = "The converter format from kafka to alluxio";
-
   static ConfigDef sConfig = new ConfigDef()
       .define(ALLUXIO_URL, Type.STRING, "alluxio://localhost:19998", ConfigDef.Importance.HIGH,
           ALLUXIO_URL_DOC)
@@ -53,7 +47,7 @@ public class AlluxioSinkConnectorConfig extends AbstractConfig {
           ROTATION_RECORD_NUM_DOC)
       .define(ROTATION_TIME_INTERVAL, Type.LONG, "-1", ConfigDef.Importance.LOW,
           ROTATION_TIME_INTERVAL_DOC)
-      .define(ALLUXIO_FORMAT, Type.STRING, "alluxio.connect.format.JsonFormat",
+      .define(ALLUXIO_FORMAT, Type.STRING, JsonFormat.class.getName(),
           ConfigDef.Importance.HIGH, ALLUXIO_FORMAT_DOC);
 
   /**

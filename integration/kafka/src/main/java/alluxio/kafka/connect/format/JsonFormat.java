@@ -28,21 +28,20 @@ import java.util.Map;
 public class JsonFormat implements AlluxioFormat {
 
   private static final Logger LOG = LoggerFactory.getLogger(JsonFormat.class);
-
-  private String mExtension = ".json";
-
-  private JsonConverter mJsonConverter = new JsonConverter();
+  private final String mExtension = ".json";
+  private final JsonConverter mJsonConverter = new JsonConverter();
 
   /**
    * JsonFormat Constructor, schema is disabled by default.
    */
   public JsonFormat() {
-    Map<String, Object> configure = new HashMap<String, Object>();
+    Map<String, Object> configure = new HashMap<>();
     configure.put("schemas.enable", false);
     mJsonConverter.configure(configure, false);
   }
 
-  @Override public void writeRecord(FileOutStream fileStream, SinkRecord record)
+  @Override
+  public void writeRecord(FileOutStream fileStream, SinkRecord record)
       throws IOException {
     if (record.value() != null) {
       LOG.info(record.value().toString());
@@ -55,7 +54,8 @@ public class JsonFormat implements AlluxioFormat {
     fileStream.write(serializedResult);
   }
 
-  @Override public String getExtension() {
+  @Override
+  public String getExtension() {
     return mExtension;
   }
 }

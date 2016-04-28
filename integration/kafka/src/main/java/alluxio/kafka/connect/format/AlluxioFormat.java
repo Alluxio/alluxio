@@ -23,18 +23,18 @@ import java.io.IOException;
 public interface AlluxioFormat {
 
   /**
-   * Get File extension name.
+   * Gets File extension name.
    *
    * @return File extension name
    */
-  public String getExtension();
+  String getExtension();
 
   /**
-   * Write record to Alluxio file out stream.
+   * Writes record to Alluxio file out stream.
    *
    * @param fileStream FileOutStream
    * @param record SinkRecord
    * @throws IOException if write error occurs
    */
-  public void writeRecord(FileOutStream fileStream, SinkRecord record) throws IOException;
+  void writeRecord(FileOutStream fileStream, SinkRecord record) throws IOException;
 }

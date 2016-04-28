@@ -22,25 +22,29 @@ import java.util.Map;
 /**
  * This class is a Kafka Connect Connector implementation that exports data from Kafka to Alluxio.
  */
-public class AlluxioSinkConnector extends Connector {
+public final class AlluxioSinkConnector extends Connector {
 
   private Map<String, String> mConfigProperties;
 
-  @Override public String version() {
-    return AlluxioSinkTaskConstants.VERSION;
+  @Override
+  public String version() {
+    return AlluxioSinkConnectorConfig.ALLUXIO_CONNECTOR_VERSION;
   }
 
-  @Override public void start(Map<String, String> map) {
+  @Override
+  public void start(Map<String, String> map) {
     mConfigProperties = map;
   }
 
-  @Override public Class<? extends Task> taskClass() {
+  @Override
+  public Class<? extends Task> taskClass() {
     return AlluxioSinkTask.class;
   }
 
-  @Override public List<Map<String, String>> taskConfigs(int maxTasks) {
-    List<Map<String, String>> taskConfigs = new ArrayList<Map<String, String>>();
-    Map<String, String> taskProps = new HashMap<String, String>();
+  @Override
+  public List<Map<String, String>> taskConfigs(int maxTasks) {
+    List<Map<String, String>> taskConfigs = new ArrayList<>();
+    Map<String, String> taskProps = new HashMap<>();
     taskProps.putAll(mConfigProperties);
     for (int i = 0; i < maxTasks; i++) {
       taskConfigs.add(taskProps);
@@ -48,7 +52,7 @@ public class AlluxioSinkConnector extends Connector {
     return taskConfigs;
   }
 
-  @Override public void stop() {
-
+  @Override
+  public void stop() {
   }
 }

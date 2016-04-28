@@ -37,36 +37,21 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class AlluxioTopicPartitionWriter {
 
   private static final Logger LOG = LoggerFactory.getLogger(AlluxioSinkTask.class);
-
   private TopicPartition mTopicPartition;
-
   private long mOffset;
-
   private FileOutStream mFileOutStream;
-
   private FileSystem mFs;
-
   private long mRecordNum;
-
   private String mFileTempPath;
-
   private String mTopicPartitionPath;
-
   private String mTmpTopicPartitionPath;
-
   private AlluxioSinkConnectorConfig mConfig;
-
   private SinkTaskContext mContext;
-
   private AlluxioFormat mFormat;
-
   private long mLastRotationTime;
-
   private long mRotationRecordNum;
-
   private long mRotationTimeInterval;
-
-  private Queue<SinkRecord> mRecordQueue = new LinkedBlockingQueue<SinkRecord>();
+  private Queue<SinkRecord> mRecordQueue = new LinkedBlockingQueue<>();
 
   /**
    * AlluxioTopicPartitionWriter Constructor.
@@ -138,7 +123,6 @@ public class AlluxioTopicPartitionWriter {
     }
 
     //Remove unClosedFiles from tmpTopicParitionDirPath
-    //TODO(GuangHui): Recover by WAL mechanism
     List<URIStatus> lstUnClosedUriStatus = mFs.listStatus(tmpTopicParitionDirPath);
     for (URIStatus unClosedUriStatus : lstUnClosedUriStatus) {
       LOG.info("Delete unComplete file" + unClosedUriStatus.getPath());
@@ -161,7 +145,7 @@ public class AlluxioTopicPartitionWriter {
   }
 
   /**
-   * Write record to buffer.
+   * Writes record to buffer.
    *
    * @param record SinkRecord
    */
@@ -170,7 +154,7 @@ public class AlluxioTopicPartitionWriter {
   }
 
   /**
-   * Write buffer record to alluxio file.
+   * Writes buffer record to alluxio file.
    *
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws IOException               if a non-Alluxio exception occurs
@@ -179,12 +163,11 @@ public class AlluxioTopicPartitionWriter {
   public void writeRecord() throws FileDoesNotExistException, IOException, AlluxioException {
     long now = System.currentTimeMillis();
     while (!mRecordQueue.isEmpty()) {
-      SinkRecord record = mRecordQueue.peek();
-
       if (mFileOutStream == null) {
         createTmpFile();
       }
 
+      SinkRecord record = mRecordQueue.peek();
       mFormat.writeRecord(mFileOutStream, record);
       mRecordNum++;
       mRecordQueue.poll();
@@ -192,7 +175,7 @@ public class AlluxioTopicPartitionWriter {
       if (isFileRotated(now)) {
         long beginOffset = mOffset + 1;
         long endOffset = mOffset + mRecordNum;
-        String strFormat = "%0" + Integer.toString(AlluxioSinkTaskConstants.OFFSET_LENGTH) + "d";
+        String strFormat = "%0" + Integer.toString(AlluxioSinkConnectorConfig.OFFSET_LENGTH) + "d";
         String strFileName =
             mTopicPartition.topic() + "+" + mTopicPartition.partition() + "+" + String
                 .format(strFormat, beginOffset) + "+" + String.format(strFormat, endOffset)
@@ -210,9 +193,9 @@ public class AlluxioTopicPartitionWriter {
   }
 
   /**
-   * Judge file should be rotated, if yes, close the temporary file.
+   * Judges file should be rotated, if yes, close the temporary file.
    *
-   * @param now
+   * @param now current time
    * @return isRotated
    */
   private boolean isFileRotated(long now) {
@@ -229,7 +212,7 @@ public class AlluxioTopicPartitionWriter {
   }
 
   /**
-   * Create temporary file for writing kafka record.
+   * Creates temporary file for writing kafka record.
    *
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    * @throws IOException      if a non-Alluxio exception occurs
@@ -238,5 +221,14 @@ public class AlluxioTopicPartitionWriter {
     UUID id = UUID.randomUUID();
     mFileTempPath = mTmpTopicPartitionPath + "/" + id.toString() + "_tmp" + mFormat.getExtension();
     mFileOutStream = mFs.createFile(new AlluxioURI(mFileTempPath));
+  }
+
+  /**
+   * Gets topic partition.
+   *
+   * @return topic partition
+   */
+  public TopicPartition getTopicPartition() {
+    return mTopicPartition;
   }
 }
