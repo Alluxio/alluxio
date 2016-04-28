@@ -275,6 +275,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
         scheduleAsyncPersistenceInternal(fileId);
+        // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
         mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
         throw new RuntimeException(e);
@@ -1888,6 +1889,7 @@ public final class FileSystemMaster extends AbstractMaster {
           JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
       flushJournal();
     }
+    // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
