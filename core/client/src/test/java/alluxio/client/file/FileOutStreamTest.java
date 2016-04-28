@@ -36,7 +36,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,6 +51,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -110,7 +110,7 @@ public class FileOutStreamTest {
         });
 
     // Set up out streams. When they are created, add them to outStreamMap
-    final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
+    final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
     Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
         Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
