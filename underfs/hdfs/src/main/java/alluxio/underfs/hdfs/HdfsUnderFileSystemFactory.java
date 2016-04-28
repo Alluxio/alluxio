@@ -17,10 +17,10 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -37,7 +37,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
    * normalized to root paths because only their schemes and authorities are needed to identify
    * which {@link FileSystem} they belong to.
    */
-  private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = Maps.newHashMap();
+  private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = new HashMap<>();
 
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object conf) {
