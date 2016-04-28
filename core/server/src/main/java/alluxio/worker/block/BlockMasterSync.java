@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -76,7 +77,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
-  /** Blocks being in removing process to whether it has finished. */
+  /** Map from a block Id to whether it has been removed successfully. */
+  @GuardedBy("itself")
   private final Map<Long, Boolean> mRemovingBlockIdToFinished;
 
   /**
@@ -223,15 +225,16 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   @NotThreadSafe
   private class BlockRemover implements Runnable {
-    private BlockWorker mBlockWorker;
-    private long mSessionId;
-    private long mBlockId;
-    private Map<Long, Boolean> mRemovingBlockIdToFinished;
+    private final BlockWorker mBlockWorker;
+    private final long mSessionId;
+    private final long mBlockId;
+    private final Map<Long, Boolean> mRemovingBlockIdToFinished;
 
     /**
      * Creates a new instance of {@link BlockRemover}.
      *
      * @param blockWorker block worker for data manager
+     * @param removingBlockIdToFinished map from block ID to whether it has been removed
      * @param sessionId the session id
      * @param blockId the block id
      */
@@ -262,6 +265,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       } finally {
         if (!success) {
           synchronized (mRemovingBlockIdToFinished) {
+            // The remove operation fails, so remove the block from the map in order to make it
+            // possible for another BlockRemover to remove it later.
             mRemovingBlockIdToFinished.remove(mBlockId);
           }
         }
