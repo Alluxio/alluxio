@@ -37,13 +37,16 @@ public interface AsyncPersistHandler {
 
   /**
    * Factory for {@link AsyncPersistHandler}.
-   *
-   * @param conf {@link Configuration} to determine the handler type
-   * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
-   * @return the generated {@link AsyncPersistHandler}
    */
   @ThreadSafe
   class Factory {
+    /**
+     * Creates a new instance of {@link AsyncPersistHandler}.
+     *
+     * @param conf {@link Configuration} to determine the handler type
+     * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
+     * @return the generated {@link AsyncPersistHandler}
+     */
     public static AsyncPersistHandler create(Configuration conf, FileSystemMasterView view) {
       try {
         return CommonUtils.createNewClassInstance(
