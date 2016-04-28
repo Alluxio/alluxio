@@ -20,19 +20,16 @@ Where ACTION is one of:
   restart_worker \tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
 MOPT (Mount Option) is one of:
-  Mount    \t\tMount the configured RamFS. Notice: this will format the existing RamFS.
-  SudoMount\t\tMount the configured RamFS using sudo.
-           \t\tNotice: this will format the existing RamFS.
-  NoMount  \t\tDo not mount the configured RamFS.
-           \t\tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
-  SudoMount is assumed if MOPT is missing.
+  Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
+  SudoMount\tMount the configured RamFS using sudo.
+           \tNotice: this will format the existing RamFS.
+  NoMount  \tDo not mount the configured RamFS.
+           \tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
+  SudoMount is assumed if MOPT is specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
-
 -N  do not try to kill prior running masters and/or workers in all or local
-
 -w  wait for processes to end before returning
-
 -h  display this help."
 
 ensure_dirs() {

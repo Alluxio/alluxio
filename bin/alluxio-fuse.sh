@@ -45,8 +45,8 @@ set_java_opt () {
     -Xmx1G
   "
 
-  ALLUXIO_FUSE_OPTS=${ALLUXIO_JAVA_OPTS}
-  ALLUXIO_FUSE_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
+  ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
 mount_fuse() {
@@ -56,7 +56,7 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
-  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS} \
+  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
     -o big_writes > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &

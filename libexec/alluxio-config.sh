@@ -22,7 +22,7 @@ this="$config_bin/$script"
 # their own alluxio-layout.sh file to set system installation locations.
 if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   VERSION=1.1.0-SNAPSHOT
-  ALLUXIO_HOME=$(dirname $(dirname "$this"))
+  ALLUXIO_HOME=$(dirname $(dirname "${this}"))
   ALLUXIO_CONF_DIR="${ALLUXIO_HOME}/conf"
   ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
@@ -33,8 +33,8 @@ JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
 # Make sure alluxio-env.sh exists
 if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-env.sh ]]; then
-  echo "Cannot find alluxio-env.sh in $ALLUXIO_CONF_DIR."
-  echo "Please create one manually or using '$ALLUXIO_HOME/bin/alluxio bootstrap-conf'."
+  echo "Cannot find alluxio-env.sh in ${ALLUXIO_CONF_DIR}."
+  echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
   exit 1
 fi
 
