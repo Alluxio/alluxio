@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -68,7 +68,7 @@ public class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands = Maps.newHashMap();
+  private final Map<String, ShellCommand> mCommands = new HashMap<>();
   private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
 
