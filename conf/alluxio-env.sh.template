@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
-# This file is sourced when launching Alluxio daemon or using Alluxio shell
-# commands. It provides one way to configure a few Alluxio configuration options
-# by setting the following environment variables. Note that, settings in this
-# file will not affect the jobs (e.g., Spark job or MapReduce job) that are
-# using Alluxio client as a library. Alternatively, you can edit
-# alluxio.properties file, where you can set all configuration options supported
-# by Alluxio
-# (http://alluxio.org/documentation/master/en/Configuration-Settings.html), and
-# it is respected by both the jobs and Alluxio daemon (or shell).
+# Copy it as alluxio-env.sh and edit that to configure Alluxio for your
+# site. This file is sourced to launch Alluxio servers or use Alluxio shell
+# commands.
+#
+# This file provides one way to configure Alluxio options by setting the
+# following listed environment variables. Note that, setting this file will not
+# affect jobs (e.g., Spark job or MapReduce job) that are using Alluxio client
+# as a library. Alternatively, you can edit alluxio-site.properties file, where
+# you can set all the configuration options supported by Alluxio
+# (http://alluxio.org/documentation/) which is respected by both external jobs
+# and Alluxio servers (or shell).
 
 # The directory where Alluxio deployment is installed
 # ALLUXIO_HOME
