@@ -48,6 +48,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -115,7 +116,7 @@ public final class LineageMasterIntegrationTest {
         TimeUnit.SECONDS));
 
     try {
-      lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
+      lineageMasterClient.createLineage(new ArrayList<String>(), Lists.newArrayList(OUT_FILE),
           mJob);
 
       CreateFileOptions options =

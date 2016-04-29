@@ -32,6 +32,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -64,7 +65,7 @@ public final class BlockMetadataManagerViewTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
-        Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
+        new HashSet<Long>(), new HashSet<Long>()));
   }
 
   /**
@@ -207,12 +208,12 @@ public final class BlockMetadataManagerViewTest {
 
     // Pin block by passing its inode to mMetaManagerView
     mMetaManagerView =
-        new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode), Sets.<Long>newHashSet());
+        new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode), new HashSet<Long>());
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, new HashSet<Long>(),
         Sets.<Long>newHashSet(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
