@@ -21,10 +21,10 @@ import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -68,13 +68,13 @@ public final class CreateLineageCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get();
     // TODO(yupeng) more validation
-    List<AlluxioURI> inputFiles = Lists.newArrayList();
+    List<AlluxioURI> inputFiles = new ArrayList<>();
     if (!args[0].equals("noInput")) {
       for (String path : args[0].split(",")) {
         inputFiles.add(new AlluxioURI(path));
       }
     }
-    List<AlluxioURI> outputFiles = Lists.newArrayList();
+    List<AlluxioURI> outputFiles = new ArrayList<>();
     for (String path : args[1].split(",")) {
       outputFiles.add(new AlluxioURI(path));
     }
