@@ -19,8 +19,6 @@ import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
@@ -220,7 +218,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    List<UIUsageOnTier> usageOnTiers = Lists.newArrayList();
+    List<UIUsageOnTier> usageOnTiers = new ArrayList<>();
     for (Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
       String tier = entry.getKey();
       long capacity = entry.getValue();
