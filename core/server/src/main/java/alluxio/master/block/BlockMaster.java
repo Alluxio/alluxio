@@ -572,29 +572,27 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   public void workerRegister(long workerId, List<String> storageTiers,
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
-    synchronized (mBlocks) {
-      synchronized (mWorkers) {
-        if (!mWorkers.contains(mIdIndex, workerId)) {
-          throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
-        }
-        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
-        workerInfo.updateLastUpdatedTimeMs();
-
-        // Gather all blocks on this worker.
-        HashSet<Long> blocks = new HashSet<Long>();
-        for (List<Long> blockIds : currentBlocksOnTiers.values()) {
-          blocks.addAll(blockIds);
-        }
-
-        // Detect any lost blocks on this worker.
-        Set<Long> removedBlocks = workerInfo.register(mGlobalStorageTierAssoc, storageTiers,
-            totalBytesOnTiers, usedBytesOnTiers, blocks);
-
-        processWorkerRemovedBlocks(workerInfo, removedBlocks);
-        processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
-        LOG.info("registerWorker(): {}", workerInfo);
-      }
+    MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+    if (workerInfo == null) {
+      throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
     }
+
+    // Gather all blocks on this worker.
+    HashSet<Long> blocks = new HashSet<>();
+    for (List<Long> blockIds : currentBlocksOnTiers.values()) {
+      blocks.addAll(blockIds);
+    }
+
+    synchronized (workerInfo) {
+      workerInfo.updateLastUpdatedTimeMs();
+      // Detect any lost blocks on this worker.
+      Set<Long> removedBlocks = workerInfo.register(mGlobalStorageTierAssoc, storageTiers,
+          totalBytesOnTiers, usedBytesOnTiers, blocks);
+      processWorkerRemovedBlocks(workerInfo, removedBlocks);
+      processWorkerAddedBlocks(workerInfo, currentBlocksOnTiers);
+    }
+
+    LOG.info("registerWorker(): {}", workerInfo);
   }
 
   /**
@@ -608,26 +606,24 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public Command workerHeartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
-    synchronized (mBlocks) {
-      synchronized (mWorkers) {
-        if (!mWorkers.contains(mIdIndex, workerId)) {
-          LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
-          return new Command(CommandType.Register, new ArrayList<Long>());
-        }
+    MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+    if (workerInfo == null) {
+      LOG.warn("Could not find worker id: {} for heartbeat.", workerId);
+      return new Command(CommandType.Register, new ArrayList<Long>());
+    }
 
-        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
-        processWorkerRemovedBlocks(workerInfo, removedBlockIds);
-        processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
+    synchronized (workerInfo) {
+      processWorkerRemovedBlocks(workerInfo, removedBlockIds);
+      processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
 
-        workerInfo.updateUsedBytes(usedBytesOnTiers);
-        workerInfo.updateLastUpdatedTimeMs();
+      workerInfo.updateUsedBytes(usedBytesOnTiers);
+      workerInfo.updateLastUpdatedTimeMs();
 
-        List<Long> toRemoveBlocks = workerInfo.getToRemoveBlocks();
-        if (toRemoveBlocks.isEmpty()) {
-          return new Command(CommandType.Nothing, new ArrayList<Long>());
-        }
-        return new Command(CommandType.Free, toRemoveBlocks);
+      List<Long> toRemoveBlocks = workerInfo.getToRemoveBlocks();
+      if (toRemoveBlocks.isEmpty()) {
+        return new Command(CommandType.Nothing, new ArrayList<Long>());
       }
+      return new Command(CommandType.Free, toRemoveBlocks);
     }
   }
 
@@ -653,11 +649,13 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         // Continue to remove the remaining blocks.
         continue;
       }
-      LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
-      workerInfo.removeBlock(masterBlockInfo.getBlockId());
-      masterBlockInfo.removeWorker(workerInfo.getId());
-      if (masterBlockInfo.getNumLocations() == 0) {
-        mLostBlocks.add(removedBlockId);
+      synchronized (masterBlockInfo) {
+        LOG.info("Block {} is removed on worker {}.", removedBlockId, workerInfo.getId());
+        workerInfo.removeBlock(masterBlockInfo.getBlockId());
+        masterBlockInfo.removeWorker(workerInfo.getId());
+        if (masterBlockInfo.getNumLocations() == 0) {
+          mLostBlocks.add(removedBlockId);
+        }
       }
     }
   }
@@ -687,9 +685,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       for (long blockId : entry.getValue()) {
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo != null) {
-          workerInfo.addBlock(blockId);
-          masterBlockInfo.addWorker(workerInfo.getId(), entry.getKey());
-          mLostBlocks.remove(blockId);
+          synchronized (masterBlockInfo) {
+            workerInfo.addBlock(blockId);
+            masterBlockInfo.addWorker(workerInfo.getId(), entry.getKey());
+            mLostBlocks.remove(blockId);
+          }
         } else {
           LOG.warn("Failed to register workerId: {} to blockId: {}", workerInfo.getId(), blockId);
         }
