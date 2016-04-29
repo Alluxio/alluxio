@@ -11,6 +11,8 @@
 
 package alluxio.master.file.options;
 
+import alluxio.CommonTestUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -44,5 +46,10 @@ public class CompleteFileOptionsTest {
 
     Assert.assertEquals(ufsLength, options.getUfsLength());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(CompleteFileOptions.class, "mOperationTimeMs");
   }
 }

@@ -113,7 +113,14 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   * @see {@link #getStatus(String)}
+   */
   @Override
+  @Deprecated
   public List<FileBlockInfo> getFileBlockInfoList(final String path) throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<List<FileBlockInfo>>() {
       @Override

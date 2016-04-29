@@ -18,7 +18,6 @@ import alluxio.rest.TestCaseFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -30,6 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -39,7 +39,7 @@ import java.util.Map;
 @PrepareForTest(BlockMaster.class)
 @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
 public class BlockMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
+  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private BlockMaster mBlockMaster;
 
   @Rule
@@ -75,7 +75,7 @@ public class BlockMasterClientRestApiTest {
 
   @Test
   public void getBlockInfoTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();

@@ -28,7 +28,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.mode_t;
@@ -45,6 +44,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +83,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mAlluxioMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
-    mOpenFiles = Maps.newHashMap();
+    mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()

@@ -20,6 +20,8 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.SecurityUtils;
 
+import com.google.common.base.Objects;
+
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -182,6 +184,25 @@ public final class PermissionStatus {
   public static PermissionStatus defaults() {
     // no authentication, every action is permitted
     return new PermissionStatus("", "", FileSystemPermission.getFullFsPermission());
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PermissionStatus)) {
+      return false;
+    }
+    PermissionStatus that = (PermissionStatus) o;
+    return Objects.equal(mUserName, that.mUserName)
+        && Objects.equal(mGroupName, that.mGroupName)
+        && Objects.equal(mPermission, that.mPermission);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mUserName, mGroupName, mPermission);
   }
 
   @Override

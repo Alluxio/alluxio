@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -206,7 +205,7 @@ public final class CommonUtils {
    */
   public static List<String> getUnixGroups(String user) throws IOException {
     String result = "";
-    List<String> groups = Lists.newArrayList();
+    List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {
