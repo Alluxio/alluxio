@@ -44,7 +44,7 @@ Confluent Connector and Worker configuration details can be seen [Kafka connecto
 	Note:schema-registry-start is opitional. If you need schema registry such as Avro schema registry, this command is essential.
 - Configure Alluxio connector run environment
   
-	Create `kafka-connect-alluxio` dir in confluent `share/java` dir, put `alluxio-integration-kafka-connect` jar into newly-created `kafka-connect-alluxio` dir, then create `kafka-connect-alluxio` dir in confluent `etc` dir, put alluxio connector property files(such as `alluxio-connect.properties` etc.) into the dir。
+	Create `kafka-connect-alluxio` dir in confluent `share/java` dir, put `alluxio-integration-kafka-connect` jar into newly-created `kafka-connect-alluxio` dir, then create `kafka-connect-alluxio` dir in confluent `etc` dir, put alluxio connector property files(such as `alluxio-connect.properties` etc.) into the dir.
 
 - Run Alluxio connector
   
