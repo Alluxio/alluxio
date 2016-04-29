@@ -40,8 +40,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -327,10 +325,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
-    List<Inode<?>> createdInodes = Lists.newArrayList();
-    List<Inode<?>> modifiedInodes = Lists.newArrayList();
+    List<Inode<?>> createdInodes = new ArrayList<>();
+    List<Inode<?>> modifiedInodes = new ArrayList<>();
     // Directory persistence will not happen until the end of this method.
-    List<Inode<?>> toPersistDirectories = Lists.newArrayList(traversalResult.getNonPersisted());
+    List<Inode<?>> toPersistDirectories = new ArrayList<>(traversalResult.getNonPersisted());
     if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
@@ -524,7 +522,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {
-    return Sets.newHashSet(mPinnedInodeFileIds);
+    return new HashSet<>(mPinnedInodeFileIds);
   }
 
   /**
@@ -634,8 +632,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
       throws InvalidPathException {
-    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
-    List<Inode<?>> inodes = Lists.newArrayList();
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
+    List<Inode<?>> inodes = new ArrayList<>();
 
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
