@@ -66,7 +66,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -76,20 +75,29 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // Block metadata management.
   /**
-   * Blocks on all workers, including active and lost blocks. This state must be journaled. Access
-   * must be synchronized on mBlocks. If both block and worker metadata must be locked, mBlocks must
-   * be locked first.
+   * Concurrency and locking in the BlockMaster
+   *
+   * The block master uses concurrent data structures, to allow non-conflicting concurrent access.
+   * This means each piece of metadata should be locked individually. There are two types of
+   * metadata in the {@link BlockMaster}; {@link MasterBlockInfo} and {@link MasterWorkerInfo}.
+   * Individual objects must be locked before modifying the object, or reading a modifiable field
+   * of an object. This will protect the internal integrity of the metadata object.
+   *
+   * Lock ordering must be preserved in order to prevent deadlock. If both a worker and block
+   * metadata must be locked at the same time, the worker metadata ({@link MasterWorkerInfo})
+   * must be locked before the block metadata ({@link MasterBlockInfo}).
+   *
+   * It should not be the case that multiple worker metadata must be locked at the same time, or
+   * multiple block metadata must be locked at the same time. Operations involving multiple
+   * workers or multiple blocks should be able to be performed independently.
    */
-  @GuardedBy("itself")
+
+  // Block metadata management.
+  /** Blocks on all workers, including active and lost blocks. This state must be journaled. */
   private final ConcurrentHashMap<Long, MasterBlockInfo>
       mBlocks = new ConcurrentHashMap<>(8192, 0.75f, 64);
-  /**
-   * Keeps track of block which are no longer in Alluxio storage. Access must be synchronized on
-   * mBlocks.
-   */
-  @GuardedBy("mBlocks")
+  /** Keeps track of block which are no longer in Alluxio storage. */
   private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>();
 
   /** This state must be journaled. */
@@ -120,21 +128,13 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   private StorageTierAssoc mGlobalStorageTierAssoc;
 
-  /**
-   * All worker information. Access must be synchronized on mWorkers. If both block and worker
-   * metadata must be locked, mBlocks must be locked first.
-   */
+  /** All worker information. */
   // This warning cannot be avoided when passing generics into varargs
-  @GuardedBy("itself")
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
-  /**
-   * Keeps track of workers which are no longer in communication with the master. Access must be
-   * synchronized on {@link #mWorkers}.
-   */
+  /** Keeps track of workers which are no longer in communication with the master. */
   // This warning cannot be avoided when passing generics into varargs
-  @GuardedBy("mWorkers")
   @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
@@ -627,7 +627,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
-   * NOTE: {@link #mBlocks} should already be locked before calling this method.
+   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
+   * method.
    *
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
@@ -660,7 +661,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * NOTE: {@link #mBlocks} should already be locked before calling this method.
+   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
+   * method.
    *
    * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
@@ -694,7 +696,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * NOTE: {@link #mWorkers} should already be locked before calling this method.
+   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
+   * method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
