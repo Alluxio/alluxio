@@ -395,8 +395,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             // metadata.
             BlockInfoEntry blockInfo =
                 BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
-            counter = appendJournalEntry(
-                JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+            counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           }
           // At this point, both the worker and the block metadata are locked.
 
@@ -426,21 +425,25 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param length the length of the block
    */
   public void commitBlockInUFS(long blockId, long length) {
-    LOG.debug("Commit block to ufs: {}", FormatUtils.parametersToString(blockId, length));
-    synchronized (mBlocks) {
-      MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
-      if (masterBlockInfo == null) {
-        // The block has not been committed previously, so add the metadata to commit the block.
-        masterBlockInfo = new MasterBlockInfo(blockId, length);
-        mBlocks.put(blockId, masterBlockInfo);
+    LOG.debug("Commit block in ufs. blockId: {}, length: {}", blockId, length);
+    if (mBlocks.get(blockId) != null) {
+      // Block metadata already exists, so do not need to create a new one.
+      return;
+    }
 
-        BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
-            .setBlockId(masterBlockInfo.getBlockId())
-            .setLength(masterBlockInfo.getLength())
-            .build();
-        writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
-        flushJournal();
+    // The block has not been committed previously, so add the metadata to commit the block.
+    MasterBlockInfo masterBlockInfo = new MasterBlockInfo(blockId, length);
+    long counter = -1;
+    synchronized (masterBlockInfo) {
+      if (mBlocks.putIfAbsent(blockId, masterBlockInfo) == null) {
+        // Successfully added the new block metadata. Append a journal entry for the new metadata.
+        BlockInfoEntry blockInfo =
+            BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+        counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
       }
+    }
+    if (counter != -1) {
+      waitForJournalFlush(counter);
     }
   }
 
