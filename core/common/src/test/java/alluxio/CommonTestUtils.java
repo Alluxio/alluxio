@@ -11,6 +11,9 @@
 
 package alluxio;
 
+import alluxio.util.CommonUtils;
+
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
@@ -36,7 +39,7 @@ public final class CommonTestUtils {
       .put(char.class, Lists.newArrayList('a', 'b'))
       .put(byte.class, Lists.newArrayList((byte) 10, (byte) 11))
       .put(short.class, Lists.newArrayList((short) 20, (short) 21))
-      .put(int.class, Lists.newArrayList((int) 30, (int) 31))
+      .put(int.class, Lists.newArrayList(30, 31))
       .put(long.class, Lists.newArrayList((long) 40, (long) 41))
       .put(float.class, Lists.newArrayList((float) 50, (float) 51))
       .put(double.class, Lists.newArrayList((double) 60, (double) 61)).build();
@@ -76,6 +79,22 @@ public final class CommonTestUtils {
     @SuppressWarnings("unchecked")
     T finalObject = (T) current;
     return finalObject;
+  }
+
+  /**
+   * Waits for a condition to be satisfied until a timeout occurs.
+   *
+   * @param condition the condition to wait on
+   * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
+   */
+  public static void waitFor(Function<Void, Boolean> condition, int timeoutMs) {
+    long start = System.currentTimeMillis();
+    while (!condition.apply(null)) {
+      if (System.currentTimeMillis() - start > timeoutMs) {
+        throw new RuntimeException("Timed out waiting for condition " + condition);
+      }
+      CommonUtils.sleepMs(20);
+    }
   }
 
   /**
