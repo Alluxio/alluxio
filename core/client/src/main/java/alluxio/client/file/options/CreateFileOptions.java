@@ -161,13 +161,36 @@ public final class CreateFileOptions {
         .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    CreateFileOptions that = (CreateFileOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mWriteType, that.mWriteType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("locationPolicy", mLocationPolicy)
+        .add("ttl", mTtl)
+        .add("writeType", mWriteType)
+        .toString();
   }
 
   /**

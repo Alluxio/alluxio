@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -65,5 +66,10 @@ public class InStreamOptionsTest {
     } finally {
       ClientTestUtils.resetClientContext();
     }
+  }
+
+  @Test
+  public void testEquals() throws Exception {
+    CommonTestUtils.testEquals(InStreamOptions.class);
   }
 }

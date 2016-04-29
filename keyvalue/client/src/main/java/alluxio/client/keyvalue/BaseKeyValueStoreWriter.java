@@ -184,7 +184,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     mWriter.close();
     List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
-    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
+    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId, mWriter.keyCount());
     mMasterClient.completePartition(mStoreUri, info);
     mPartitionIndex++;
   }

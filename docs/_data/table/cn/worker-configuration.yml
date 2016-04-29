@@ -16,6 +16,10 @@ alluxio.worker.data.bind.host:
   运行Alluxio worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.data.folder:
   每个存储目录中的一个相对路径，该路径被Alluxio worker用作层次化存储中存放数据的文件夹。
+alluxio.worker.data.folder.tmp:
+  相对于 alluxio.worker.data.folder 的路径, 用于存放临时数据.
+alluxio.worker.data.tmp.subdir.max:
+  在 alluxio.worker.data.folder.tmp 中可以创建的文件夹的最大数目.
 alluxio.worker.data.port:
   运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:

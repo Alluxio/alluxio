@@ -24,11 +24,11 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.examples.Utils;
 import alluxio.util.io.BufferUtils;
 
-import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
@@ -44,7 +44,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private final int mNumKeyValuePairs = 10;
 
   private AlluxioURI mStoreUri;
-  private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = Maps.newHashMap();
+  private Map<ByteBuffer, ByteBuffer> mKeyValuePairs = new HashMap<>();
 
   /**
    * @param storeUri URI of the key-value store to write to, should not exist before

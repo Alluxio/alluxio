@@ -37,21 +37,21 @@ defaults:
 # Instead, just add the group name of that language below
 categories:
   User Guide:
-    en: User Guide
+    en: User Guides
     cn: 用户指南
     pt: Guias do Usuário
   Features:
     en: Features
     cn: 特性
-    pt: Funcionalidades
+    pt: Features
   Frameworks:
     en: Frameworks
     cn: 计算框架
-    pt: Estruturas
+    pt: Frameworks
   Under Store:
-    en: Under Store
+    en: Under Stores
     cn: 底层存储系统
-    pt: Armazenamento Inferior
+    pt: Under Stores
   Resources:
     en: Resources
     cn: 开发者资源

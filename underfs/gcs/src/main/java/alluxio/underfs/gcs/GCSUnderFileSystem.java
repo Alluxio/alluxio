@@ -11,6 +11,7 @@
 
 package alluxio.underfs.gcs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -73,12 +74,13 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
-   * @param bucketName the name of the bucket
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(String bucketName, Configuration conf) throws ServiceException {
-    super(conf);
+  public GCSUnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
+    super(uri, conf);
+    String bucketName = uri.getHost();
     Preconditions.checkArgument(conf.containsKey(Constants.GCS_ACCESS_KEY),
         "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
     Preconditions.checkArgument(conf.containsKey(Constants.GCS_SECRET_KEY),
@@ -165,16 +167,16 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in GCS, however the maximum
-   * allowed size of one file is currently 5 TB.
+   * Gets the block size in bytes. There is no concept of a block in GCS and the maximum size of
+   * one file is 5 TB. This method defaults to the default user block size in Alluxio.
    *
    * @param path the file name
-   * @return 5 TB in bytes
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.TB * 5;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
