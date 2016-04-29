@@ -32,12 +32,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Metadata for an Alluxio worker.
+ * Metadata for an Alluxio worker. This class is not thread safe, so external locking is required.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class MasterWorkerInfo {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Worker's address. */
@@ -96,7 +96,7 @@ public final class MasterWorkerInfo {
    * @param blocks set of block ids on this worker
    * @return A Set of blocks removed (or lost) from this worker
    */
-  public synchronized Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
+  public Set<Long> register(final StorageTierAssoc globalStorageTierAssoc,
       final List<String> storageTierAliases, final Map<String, Long> totalBytesOnTiers,
       final Map<String, Long> usedBytesOnTiers, final Set<Long> blocks) {
     // If the storage aliases do not have strictly increasing ordinal value based on the total
@@ -156,7 +156,7 @@ public final class MasterWorkerInfo {
    *
    * @param blockId the id of the block to be added
    */
-  public synchronized void addBlock(long blockId) {
+  public void addBlock(long blockId) {
     mBlocks.add(blockId);
   }
 
@@ -165,7 +165,7 @@ public final class MasterWorkerInfo {
    *
    * @param blockId the id of the block to be removed
    */
-  public synchronized void removeBlock(long blockId) {
+  public void removeBlock(long blockId) {
     mBlocks.remove(blockId);
     mToRemoveBlocks.remove(blockId);
   }
@@ -173,7 +173,7 @@ public final class MasterWorkerInfo {
   /**
    * @return generated {@link WorkerInfo} for this worker
    */
-  public synchronized WorkerInfo generateClientWorkerInfo() {
+  public WorkerInfo generateClientWorkerInfo() {
     return new WorkerInfo()
         .setId(mId)
         .setAddress(mWorkerAddress)
@@ -186,98 +186,98 @@ public final class MasterWorkerInfo {
   /**
    * @return the worker's address
    */
-  public synchronized WorkerNetAddress getWorkerAddress() {
+  public WorkerNetAddress getWorkerAddress() {
     return mWorkerAddress;
   }
 
   /**
    * @return the available space of the worker in bytes
    */
-  public synchronized long getAvailableBytes() {
+  public long getAvailableBytes() {
     return mCapacityBytes - mUsedBytes;
   }
 
   /**
    * @return ids of all blocks the worker contains
    */
-  public synchronized Set<Long> getBlocks() {
+  public Set<Long> getBlocks() {
     return new HashSet<Long>(mBlocks);
   }
 
   /**
    * @return the capacity of the worker in bytes
    */
-  public synchronized long getCapacityBytes() {
+  public long getCapacityBytes() {
     return mCapacityBytes;
   }
 
   /**
    * @return the id of the worker
    */
-  public synchronized long getId() {
+  public long getId() {
     return mId;
   }
 
   /**
    * @return the last updated time of the worker in ms
    */
-  public synchronized long getLastUpdatedTimeMs() {
+  public long getLastUpdatedTimeMs() {
     return mLastUpdatedTimeMs;
   }
 
   /**
    * @return ids of blocks the worker should remove
    */
-  public synchronized List<Long> getToRemoveBlocks() {
+  public List<Long> getToRemoveBlocks() {
     return new ArrayList<Long>(mToRemoveBlocks);
   }
 
   /**
    * @return used space of the worker in bytes
    */
-  public synchronized long getUsedBytes() {
+  public long getUsedBytes() {
     return mUsedBytes;
   }
 
   /**
    * @return the storage tier mapping for the worker
    */
-  public synchronized StorageTierAssoc getStorageTierAssoc() {
+  public StorageTierAssoc getStorageTierAssoc() {
     return mStorageTierAssoc;
   }
 
   /**
    * @return the total bytes on each storage tier
    */
-  public synchronized Map<String, Long> getTotalBytesOnTiers() {
+  public Map<String, Long> getTotalBytesOnTiers() {
     return mTotalBytesOnTiers;
   }
 
   /**
    * @return the used bytes on each storage tier
    */
-  public synchronized Map<String, Long> getUsedBytesOnTiers() {
+  public Map<String, Long> getUsedBytesOnTiers() {
     return mUsedBytesOnTiers;
   }
 
   /**
    * @return the start time in milliseconds
    */
-  public synchronized long getStartTime() {
+  public long getStartTime() {
     return mStartTimeMs;
   }
 
   /**
    * @return whether the worker has been registered yet
    */
-  public synchronized boolean isRegistered() {
+  public boolean isRegistered() {
     return mIsRegistered;
   }
 
   /**
    * @return the free bytes on each storage tier
    */
-  public synchronized Map<String, Long> getFreeBytesOnTiers() {
+  public Map<String, Long> getFreeBytesOnTiers() {
     Map<String, Long> freeCapacityBytes = new HashMap<String, Long>();
     for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
       freeCapacityBytes.put(entry.getKey(),
@@ -287,7 +287,7 @@ public final class MasterWorkerInfo {
   }
 
   @Override
-  public synchronized String toString() {
+  public String toString() {
     return Objects.toStringHelper(this).add("id", mId).add("workerAddress", mWorkerAddress)
         .add("capacityBytes", mCapacityBytes).add("usedBytes", mUsedBytes)
         .add("lastUpdatedTimeMs", mLastUpdatedTimeMs).add("blocks", mBlocks).toString();
@@ -296,7 +296,7 @@ public final class MasterWorkerInfo {
   /**
    * Updates the last updated time of the worker in ms.
    */
-  public synchronized void updateLastUpdatedTimeMs() {
+  public void updateLastUpdatedTimeMs() {
     mLastUpdatedTimeMs = System.currentTimeMillis();
   }
 
@@ -306,7 +306,7 @@ public final class MasterWorkerInfo {
    * @param add true if to add, to remove otherwise
    * @param blockId the id of the block to be added or removed
    */
-  public synchronized void updateToRemovedBlock(boolean add, long blockId) {
+  public void updateToRemovedBlock(boolean add, long blockId) {
     if (add) {
       if (mBlocks.contains(blockId)) {
         mToRemoveBlocks.add(blockId);
@@ -321,7 +321,7 @@ public final class MasterWorkerInfo {
    *
    * @param usedBytesOnTiers used bytes on each storage tier
    */
-  public synchronized void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
+  public void updateUsedBytes(Map<String, Long> usedBytesOnTiers) {
     mUsedBytes = 0;
     mUsedBytesOnTiers = usedBytesOnTiers;
     for (long t : mUsedBytesOnTiers.values()) {
@@ -335,7 +335,7 @@ public final class MasterWorkerInfo {
    * @param tierAlias alias of storage tier
    * @param usedBytesOnTier used bytes on certain storage tier
    */
-  public synchronized void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
+  public void updateUsedBytes(String tierAlias, long usedBytesOnTier) {
     mUsedBytes += usedBytesOnTier - mUsedBytesOnTiers.get(tierAlias);
     mUsedBytesOnTiers.put(tierAlias, usedBytesOnTier);
   }
