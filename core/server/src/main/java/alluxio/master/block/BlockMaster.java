@@ -526,19 +526,19 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the worker id for this worker
    */
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    // TODO(gene): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
-    synchronized (mWorkers) {
-      if (mWorkers.contains(mAddressIndex, workerNetAddress)) {
-        // This worker address is already mapped to a worker id.
-        long oldWorkerId = mWorkers.getFirstByField(mAddressIndex, workerNetAddress).getId();
-        LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
-        return oldWorkerId;
-      }
+    // TODO(gpang): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
+    MasterWorkerInfo existingWorker = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+    if (existingWorker != null) {
+      // This worker address is already mapped to a worker id.
+      long oldWorkerId = existingWorker.getId();
+      LOG.warn("The worker {} already exists as id {}.", workerNetAddress, oldWorkerId);
+      return oldWorkerId;
+    }
 
-      if (mLostWorkers.contains(mAddressIndex, workerNetAddress)) {
-        // this is one of the lost workers
-        final MasterWorkerInfo lostWorkerInfo =
-            mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+    MasterWorkerInfo lostWorkerInfo = mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+    if (lostWorkerInfo != null) {
+      // this is one of the lost workers
+      synchronized (lostWorkerInfo) {
         final long lostWorkerId = lostWorkerInfo.getId();
         LOG.warn("A lost worker {} has requested its old id {}.", workerNetAddress, lostWorkerId);
 
@@ -548,14 +548,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         mLostWorkers.remove(lostWorkerInfo);
         return lostWorkerId;
       }
-
-      // Generate a new worker id.
-      long workerId = mNextWorkerId.getAndIncrement();
-      mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
-
-      LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
-      return workerId;
     }
+
+    // Generate a new worker id.
+    long workerId = mNextWorkerId.getAndIncrement();
+    mWorkers.add(new MasterWorkerInfo(workerId, workerNetAddress));
+
+    LOG.info("getWorkerId(): WorkerNetAddress: {} id: {}", workerNetAddress, workerId);
+    return workerId;
   }
 
   /**
