@@ -14,7 +14,6 @@ package com.google.common.util.concurrent;
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.RateLimiter.SleepingTicker;
 
 import java.util.ArrayList;
@@ -55,7 +54,7 @@ public final class MockRateLimiter {
    */
   private static class FakeSleepingTicker extends SleepingTicker {
     private long mInstant = 0L;
-    private final List<String> mEvents = Lists.newArrayList();
+    private final List<String> mEvents = new ArrayList<>();
 
     @Override
     public long read() {
