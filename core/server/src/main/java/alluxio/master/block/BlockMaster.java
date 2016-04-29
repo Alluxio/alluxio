@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -64,6 +65,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -84,14 +86,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * be locked first.
    */
   @GuardedBy("itself")
-  private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
-
+  private final ConcurrentHashMap<Long, MasterBlockInfo>
+      mBlocks = new ConcurrentHashMap<>(8192, 0.75f, 64);
   /**
    * Keeps track of block which are no longer in Alluxio storage. Access must be synchronized on
    * mBlocks.
    */
   @GuardedBy("mBlocks")
-  private final Set<Long> mLostBlocks = new HashSet<Long>();
+  private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>();
 
   /** This state must be journaled. */
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
