@@ -17,8 +17,8 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -34,7 +34,7 @@ public final class RoundRobinAllocator implements Allocator {
   private BlockMetadataManagerView mManagerView;
 
   // We need to remember the last dir index for every storage tier
-  private Map<String, Integer> mTierAliasToLastDirMap = Maps.newHashMap();
+  private Map<String, Integer> mTierAliasToLastDirMap = new HashMap<>();
 
   /**
    * Creates a new instance of {@link RoundRobinAllocator}.

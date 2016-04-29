@@ -14,6 +14,12 @@ package alluxio.master.file.options;
 import alluxio.proto.journal.File;
 import alluxio.thrift.MountTOptions;
 
+import com.google.common.base.Objects;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -22,6 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MountOptions {
   private boolean mReadOnly;
+  private Map<String, String> mProperties;
 
   /**
    * @return the default {@link CompleteFileOptions}
@@ -32,6 +39,7 @@ public final class MountOptions {
 
   private MountOptions() {
     mReadOnly = false;
+    mProperties = new HashMap<>();
   }
 
   /**
@@ -41,8 +49,13 @@ public final class MountOptions {
    */
   public MountOptions(MountTOptions options) {
     this();
-    if (options != null && options.isSetReadOnly()) {
-      mReadOnly = options.isReadOnly();
+    if (options != null) {
+      if (options.isSetReadOnly()) {
+        mReadOnly = options.isReadOnly();
+      }
+      if (options.isSetProperties()) {
+        mProperties.putAll(options.getProperties());
+      }
     }
   }
 
@@ -53,8 +66,13 @@ public final class MountOptions {
    */
   public MountOptions(File.AddMountPointEntry options) {
     this();
-    if (options != null && options.hasReadOnly()) {
-      mReadOnly = options.getReadOnly();
+    if (options != null) {
+      if (options.hasReadOnly()) {
+        mReadOnly = options.getReadOnly();
+      }
+      for (File.StringPairEntry entry : options.getPropertiesList()) {
+        mProperties.put(entry.getKey(), entry.getValue());
+      }
     }
   }
 
@@ -74,5 +92,49 @@ public final class MountOptions {
   public MountOptions setReadOnly(boolean readOnly) {
     mReadOnly = readOnly;
     return this;
+  }
+
+  /**
+   * @return the properties map
+   */
+  public Map<String, String> getProperties() {
+    return Collections.unmodifiableMap(mProperties);
+  }
+
+  /**
+   * @param properties the properties map to use. The existing map will be cleared first, and then
+   *                   entries of the input map will be added to the internal map.
+   * @return the updated options object
+   */
+  public MountOptions setProperties(Map<String, String> properties) {
+    mProperties.clear();
+    mProperties.putAll(properties);
+    return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountOptions)) {
+      return false;
+    }
+    MountOptions that = (MountOptions) o;
+    return Objects.equal(mReadOnly, that.mReadOnly)
+        && Objects.equal(mProperties, that.mProperties);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mReadOnly, mProperties);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("readOnly", mReadOnly)
+        .add("properties", mProperties)
+        .toString();
   }
 }

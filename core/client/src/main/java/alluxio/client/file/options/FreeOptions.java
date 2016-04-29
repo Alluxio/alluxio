@@ -56,11 +56,27 @@ public final class FreeOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof FreeOptions)) {
+      return false;
+    }
+    FreeOptions that = (FreeOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRecursive);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

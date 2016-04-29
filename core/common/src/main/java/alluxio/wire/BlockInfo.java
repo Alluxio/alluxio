@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -23,6 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The block descriptor.
  */
+@PublicApi
 @NotThreadSafe
 public final class BlockInfo {
   private long mBlockId;
@@ -42,7 +45,7 @@ public final class BlockInfo {
   protected BlockInfo(alluxio.thrift.BlockInfo blockInfo) {
     mBlockId = blockInfo.getBlockId();
     mLength = blockInfo.getLength();
-    mLocations = new ArrayList<BlockLocation>();
+    mLocations = new ArrayList<>();
     for (alluxio.thrift.BlockLocation location : blockInfo.getLocations()) {
       mLocations.add(new BlockLocation(location));
     }
@@ -101,7 +104,7 @@ public final class BlockInfo {
    * @return thrift representation of the block descriptor
    */
   protected alluxio.thrift.BlockInfo toThrift() {
-    List<alluxio.thrift.BlockLocation> locations = new ArrayList<alluxio.thrift.BlockLocation>();
+    List<alluxio.thrift.BlockLocation> locations = new ArrayList<>();
     for (BlockLocation location : mLocations) {
       locations.add(location.toThrift());
     }

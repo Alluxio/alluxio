@@ -156,5 +156,50 @@ public final class HadoopUtils {
     }
   }
 
+  /**
+   * Adds Swift keys to the given Hadoop Configuration object if the user has specified them using
+   * System properties, and they're not already set.
+   *
+   * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
+   * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
+   *
+   * TODO(hy): Remove duplication in the future.
+   *
+   * @param configuration Hadoop configuration
+   */
+
+  public static void addSwiftCredentials(Configuration configuration) {
+    String tenantApiKeyConf = Constants.SWIFT_API_KEY;
+    if (System.getProperty(tenantApiKeyConf) != null
+        && configuration.get(tenantApiKeyConf) == null) {
+      configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
+    }
+    String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
+    if (System.getProperty(tenantKeyConf) != null
+        && configuration.get(tenantKeyConf) == null) {
+      configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
+    }
+    String tenantUserConf = Constants.SWIFT_USER_KEY;
+    if (System.getProperty(tenantUserConf) != null
+        && configuration.get(tenantUserConf) == null) {
+      configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
+    }
+    String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
+    if (System.getProperty(tenantAuthURLKeyConf) != null
+        && configuration.get(tenantAuthURLKeyConf) == null) {
+      configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
+    }
+    String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
+    if (System.getProperty(authMethodKeyConf) != null
+        && configuration.get(authMethodKeyConf) == null) {
+      configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+    }
+    String passwordKeyConf = Constants.SWIFT_PASSWORD_KEY;
+    if (System.getProperty(passwordKeyConf) != null
+        && configuration.get(passwordKeyConf) == null) {
+      configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
+    }
+  }
+
   private HadoopUtils() {} // prevent instantiation
 }

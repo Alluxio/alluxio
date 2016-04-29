@@ -69,6 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               alluxio_dist:    alluxio_dist,
               alluxio_memory:  AlluxioV.memory,
               alluxio_version: alluxio_version,
+              alluxio_version_lessthan_1_1: AlluxioV.v_lt_1_1,
               alluxio_masters: AlluxioV.masters,
               alluxio_platform: alluxio_platform,
 
