@@ -696,7 +696,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
+   * NOTE: the specified {@link MasterBlockInfo} should already be locked before calling this
    * method.
    *
    * @param masterBlockInfo the {@link MasterBlockInfo}
