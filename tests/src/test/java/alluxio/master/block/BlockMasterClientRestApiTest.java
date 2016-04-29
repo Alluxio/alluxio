@@ -18,7 +18,6 @@ import alluxio.rest.TestCaseFactory;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -76,7 +75,7 @@ public class BlockMasterClientRestApiTest {
 
   @Test
   public void getBlockInfoTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
