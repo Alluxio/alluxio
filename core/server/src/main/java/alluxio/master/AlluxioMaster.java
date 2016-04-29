@@ -32,6 +32,7 @@ import alluxio.web.UIWebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -45,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -179,7 +181,7 @@ public class AlluxioMaster {
     if (sServiceNames != null) {
       return sServiceNames;
     }
-    sServiceNames = Lists.newArrayList();
+    sServiceNames = new ArrayList<>();
     sServiceNames.add(Constants.BLOCK_MASTER_NAME);
     sServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
     sServiceNames.add(Constants.LINEAGE_MASTER_NAME);
@@ -264,7 +266,7 @@ public class AlluxioMaster {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
 
-      mAdditionalMasters = Lists.newArrayList();
+      mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
