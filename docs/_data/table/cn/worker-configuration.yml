@@ -16,6 +16,10 @@ alluxio.worker.data.bind.host:
   运行Alluxio worker数据服务的主机名，参考<a href="#configure-multihomed-networks">多宿主网络</a>
 alluxio.worker.data.folder:
   每个存储目录中的一个相对路径，该路径被Alluxio worker用作层次化存储中存放数据的文件夹。
+alluxio.worker.data.folder.tmp:
+  相对于 alluxio.worker.data.folder 的路径, 用于存放临时数据.
+alluxio.worker.data.tmp.subdir.max:
+  在 alluxio.worker.data.folder.tmp 中可以创建的文件夹的最大数目.
 alluxio.worker.data.port:
   运行Alluxio worker数据服务的端口。
 alluxio.worker.data.server.class:
@@ -29,6 +33,10 @@ alluxio.worker.evictor.lrfu.step.factor:
   在[0, 1]之间的一个因子，用于控制LRFU策略行为：较小值使LRFU更接近于LFU，较大值更接近于LRU。
 alluxio.worker.file.persist.pool.size:
   在worker上用于异步存储ASYNC_THROUGH类型文件的线程池大小。每个线程会存储一个文件。
+alluxio.worker.file.persist.rate.limit.enabled:
+  是否在异步存储时启用限流功能。
+alluxio.worker.file.persist.rate.limit:
+  异步存储时每秒最大写入速度。
 alluxio.worker.filesystem.heartbeat.interval.ms:
   worker和文件系统master之间的心跳检测时间间隔（单位：毫秒）。
 alluxio.worker.hostname:
