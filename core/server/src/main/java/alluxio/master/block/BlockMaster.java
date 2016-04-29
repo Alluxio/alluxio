@@ -11,7 +11,6 @@
 
 package alluxio.master.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
@@ -40,7 +39,6 @@ import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -61,7 +59,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -701,9 +698,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the lost blocks in Alluxio Storage
    */
   public Set<Long> getLostBlocks() {
-    synchronized (mBlocks) {
-      return ImmutableSet.copyOf(mLostBlocks);
-    }
+    return ImmutableSet.copyOf(mLostBlocks);
   }
 
   /**
@@ -758,23 +753,17 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
-      LOG.debug("System status checking.");
-      Configuration conf = MasterContext.getConf();
-
-      int masterWorkerTimeoutMs = conf.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-      synchronized (mBlocks) {
-        synchronized (mWorkers) {
-          Iterator<MasterWorkerInfo> iter = mWorkers.iterator();
-          while (iter.hasNext()) {
-            MasterWorkerInfo worker = iter.next();
-            final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
-            if (lastUpdate > masterWorkerTimeoutMs) {
-              LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
-                  lastUpdate);
-              mLostWorkers.add(worker);
-              iter.remove();
-              processLostWorker(worker);
-            }
+      int masterWorkerTimeoutMs =
+          MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+      for (MasterWorkerInfo worker : mWorkers) {
+        synchronized (worker) {
+          final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
+          if (lastUpdate > masterWorkerTimeoutMs) {
+            LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
+                lastUpdate);
+            mLostWorkers.add(worker);
+            mWorkers.remove(worker);
+            processWorkerRemovedBlocks(worker, worker.getBlocks());
           }
         }
       }
