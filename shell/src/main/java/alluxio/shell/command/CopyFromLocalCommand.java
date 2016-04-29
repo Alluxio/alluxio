@@ -23,7 +23,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.shell.AlluxioShellUtils;
 
 import com.google.common.base.Joiner;
-import com.google.common.collect.Lists;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
 
@@ -32,6 +31,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -90,7 +90,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     try {
       boolean dstExistedBefore = mFileSystem.exists(dstPath);
       createDstDir(dstPath);
-      List<String> errorMessages = Lists.newArrayList();
+      List<String> errorMessages = new ArrayList<>();
       File[] fileList = srcDir.listFiles();
       int misFiles = 0;
       for (File srcFile : fileList) {
@@ -130,7 +130,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     try {
       boolean dstExistedBefore = mFileSystem.exists(dstPath);
       createDstDir(dstPath);
-      List<String> errorMessages = Lists.newArrayList();
+      List<String> errorMessages = new ArrayList<>();
       int misFiles = 0;
       for (File srcFile : srcFiles) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
@@ -245,7 +245,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         }
       } else {
         mFileSystem.createDirectory(dstPath);
-        List<String> errorMessages = Lists.newArrayList();
+        List<String> errorMessages = new ArrayList<>();
         File[] fileList = src.listFiles();
         int misFiles = 0;
         for (File srcFile : fileList) {
