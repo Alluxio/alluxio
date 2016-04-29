@@ -24,7 +24,6 @@ import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -103,7 +102,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * Resets the file inode.
    */
   public synchronized void reset() {
-    mBlocks = Lists.newArrayList();
+    mBlocks = new ArrayList<>();
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
@@ -187,7 +186,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the updated object
    */
   public synchronized InodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
+    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
     return getThis();
   }
 
