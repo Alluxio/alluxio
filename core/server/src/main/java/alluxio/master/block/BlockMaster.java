@@ -417,15 +417,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @throws BlockInfoException if the block info is not found
    */
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
-    synchronized (mBlocks) {
-      MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
-      if (masterBlockInfo == null) {
-        throw new BlockInfoException("Block info not found for " + blockId);
-      }
-      // Construct the block info object to return.
-      synchronized (mWorkers) {
-        return generateBlockInfo(masterBlockInfo);
-      }
+    MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+    if (masterBlockInfo == null) {
+      throw new BlockInfoException("Block info not found for " + blockId);
+    }
+    synchronized (masterBlockInfo) {
+      return generateBlockInfo(masterBlockInfo);
     }
   }
 
@@ -437,28 +434,26 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *         list is in the same order as the input list
    */
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
-    List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
-    synchronized (mBlocks) {
-      synchronized (mWorkers) {
-        for (long blockId : blockIds) {
-          MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
-          if (masterBlockInfo != null) {
-            // Construct the block info object to return.
-            ret.add(generateBlockInfo(masterBlockInfo));
-          }
-        }
-        return ret;
+    List<BlockInfo> ret = new ArrayList<>(blockIds.size());
+    for (long blockId : blockIds) {
+      MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
+      if (masterBlockInfo == null) {
+        continue;
+      }
+      synchronized (masterBlockInfo) {
+        ret.add(generateBlockInfo(masterBlockInfo));
       }
     }
+    return ret;
   }
 
   /**
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
-    Map<String, Long> ret = new HashMap<String, Long>();
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers) {
+    Map<String, Long> ret = new HashMap<>();
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
           Long total = ret.get(entry.getKey());
           ret.put(entry.getKey(), (total == null ? 0L : total) + entry.getValue());
@@ -472,9 +467,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
-    Map<String, Long> ret = new HashMap<String, Long>();
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers) {
+    Map<String, Long> ret = new HashMap<>();
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
           Long used = ret.get(entry.getKey());
           ret.put(entry.getKey(), (used == null ? 0L : used) + entry.getValue());
@@ -682,7 +677,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
-    List<BlockLocation> locations = new ArrayList<BlockLocation>();
+    List<BlockLocation> locations = new ArrayList<>();
     List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
     // Sort the block locations by their alias ordinal in the master storage tier mapping
     Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
@@ -696,6 +691,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       MasterWorkerInfo workerInfo =
           mWorkers.getFirstByField(mIdIndex, masterBlockLocation.getWorkerId());
       if (workerInfo != null) {
+        // worker metadata is intentionally not locked here because:
+        // - it would be an incorrect order (correct order is lock worker first, then block)
+        // - only uses getters of final variables
         locations.add(new BlockLocation().setWorkerId(masterBlockLocation.getWorkerId())
             .setWorkerAddress(workerInfo.getWorkerAddress())
             .setTierAlias(masterBlockLocation.getTierAlias()));
@@ -711,9 +709,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param blockIds the ids of the lost blocks
    */
   public void reportLostBlocks(List<Long> blockIds) {
-    synchronized (mBlocks) {
-      mLostBlocks.addAll(blockIds);
-    }
+    mLostBlocks.addAll(blockIds);
   }
 
   /**
