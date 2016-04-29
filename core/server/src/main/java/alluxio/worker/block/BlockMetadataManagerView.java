@@ -20,7 +20,6 @@ import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,7 +54,7 @@ public class BlockMetadataManagerView {
   private final Set<Long> mPinnedInodes = new HashSet<Long>();
 
   /** Indices of locks that are being used. */
-  private final Set<Long> mInUseBlocks = Sets.newHashSet();
+  private final Set<Long> mInUseBlocks = new HashSet<>();
 
   /** A map from tier alias to {@link StorageTierView}. */
   private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
