@@ -88,7 +88,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -1475,7 +1474,7 @@ public final class FileSystemMaster extends AbstractMaster {
         return;
       }
 
-      List<Long> blockIds = Lists.newArrayList();
+      List<Long> blockIds = new ArrayList<>();
       try {
         for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal((InodeFile) inode)) {
           blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());

@@ -15,8 +15,8 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -28,12 +28,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LineageInfo {
   private long mId;
-  private List<String> mInputFiles = Lists.newArrayList();
-  private List<String> mOutputFiles = Lists.newArrayList();
+  private List<String> mInputFiles = new ArrayList<>();
+  private List<String> mOutputFiles = new ArrayList<>();
   private CommandLineJobInfo mJob = new CommandLineJobInfo();
   private long mCreationTimeMs;
-  private List<Long> mParents = Lists.newArrayList();
-  private List<Long> mChildren = Lists.newArrayList();
+  private List<Long> mParents = new ArrayList<>();
+  private List<Long> mChildren = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link LineageInfo}.

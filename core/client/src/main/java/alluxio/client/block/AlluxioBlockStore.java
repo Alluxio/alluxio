@@ -23,11 +23,11 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -84,7 +84,7 @@ public final class AlluxioBlockStore {
    * @throws AlluxioException if network connection failed
    */
   public List<BlockWorkerInfo> getWorkerInfoList() throws IOException, AlluxioException {
-    List<BlockWorkerInfo> infoList = Lists.newArrayList();
+    List<BlockWorkerInfo> infoList = new ArrayList<>();
     try (CloseableResource<BlockMasterClient> masterClientResource =
         mContext.acquireMasterClientResource()) {
       for (WorkerInfo workerInfo : masterClientResource.get().getWorkerInfoList()) {
