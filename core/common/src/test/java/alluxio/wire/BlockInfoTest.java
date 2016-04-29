@@ -11,11 +11,11 @@
 
 package alluxio.wire;
 
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -49,7 +49,7 @@ public class BlockInfoTest {
 
     long blockId = random.nextLong();
     long length = random.nextLong();
-    List<BlockLocation> locations = Lists.newArrayList();
+    List<BlockLocation> locations = new ArrayList<>();
     long numLocations = random.nextInt(10);
     for (int i = 0; i < numLocations; i++) {
       locations.add(BlockLocationTest.createRandom());
