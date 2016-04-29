@@ -13,7 +13,6 @@ package alluxio.wire;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
@@ -81,7 +80,7 @@ public class FileInfoTest {
     boolean pinned = random.nextBoolean();
     boolean cacheable = random.nextBoolean();
     boolean persisted = random.nextBoolean();
-    List<Long> blockIds = Lists.newArrayList();
+    List<Long> blockIds = new ArrayList<>();
     long numBlockIds = random.nextInt(10);
     for (int i = 0; i < numBlockIds; i++) {
       blockIds.add(random.nextLong());

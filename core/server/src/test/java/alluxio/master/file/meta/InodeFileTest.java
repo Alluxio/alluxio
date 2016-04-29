@@ -18,10 +18,10 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.master.MasterContext;
 import alluxio.security.authorization.PermissionStatus;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -108,7 +108,7 @@ public final class InodeFileTest extends AbstractInodeTest {
   @Test
   public void getBlockIdByIndexTest() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
-    List<Long> blockIds = Lists.newArrayList();
+    List<Long> blockIds = new ArrayList<>();
     final int NUM_BLOCKS = 3;
     for (int i = 0; i < NUM_BLOCKS; i++) {
       blockIds.add(inodeFile.getNewBlockId());
