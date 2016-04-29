@@ -44,6 +44,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -142,7 +143,7 @@ public final class PermissionCheckerTest {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
 
     @Override
