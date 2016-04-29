@@ -237,22 +237,20 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the number of workers
    */
   public int getWorkerCount() {
-    synchronized (mWorkers) {
-      return mWorkers.size();
-    }
+    return mWorkers.size();
   }
 
   /**
    * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
    */
   public List<WorkerInfo> getWorkerInfoList() {
-    synchronized (mWorkers) {
-      List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
-      for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
+    List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
+    for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
+      synchronized (masterWorkerInfo) {
         workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
       }
-      return workerInfoList;
     }
+    return workerInfoList;
   }
 
   /**
@@ -260,8 +258,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public long getCapacityBytes() {
     long ret = 0;
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers) {
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
         ret += worker.getCapacityBytes();
       }
     }
@@ -280,8 +278,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public long getUsedBytes() {
     long ret = 0;
-    synchronized (mWorkers) {
-      for (MasterWorkerInfo worker : mWorkers) {
+    for (MasterWorkerInfo worker : mWorkers) {
+      synchronized (worker) {
         ret += worker.getUsedBytes();
       }
     }
@@ -294,13 +292,13 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return a set of worker info
    */
   public Set<WorkerInfo> getLostWorkersInfo() {
-    synchronized (mWorkers) {
-      Set<WorkerInfo> ret = new HashSet<WorkerInfo>(mLostWorkers.size());
-      for (MasterWorkerInfo worker : mLostWorkers) {
+    Set<WorkerInfo> ret = new HashSet<>(mLostWorkers.size());
+    for (MasterWorkerInfo worker : mLostWorkers) {
+      synchronized (worker) {
         ret.add(worker.generateClientWorkerInfo());
       }
-      return ret;
     }
+    return ret;
   }
 
   /**
