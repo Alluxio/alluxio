@@ -658,17 +658,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * Called by the heartbeat thread whenever a worker is lost.
-   *
-   * @param latest the latest {@link MasterWorkerInfo} available at the time of worker loss
-   */
-  // Synchronized on mBlocks by the caller
-  private void processLostWorker(MasterWorkerInfo latest) {
-    final Set<Long> lostBlocks = latest.getBlocks();
-    processWorkerRemovedBlocks(latest, lostBlocks);
-  }
-
-  /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
    * NOTE: {@link #mBlocks} should already be locked before calling this method.
