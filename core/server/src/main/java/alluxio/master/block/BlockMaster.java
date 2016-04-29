@@ -366,29 +366,56 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) {
-    LOG.debug("Commit block from worker: {}",
-        FormatUtils.parametersToString(workerId, usedBytesOnTier, blockId, length));
-    synchronized (mBlocks) {
-      synchronized (mWorkers) {
-        MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
-        workerInfo.addBlock(blockId);
-        workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
-        workerInfo.updateLastUpdatedTimeMs();
+    LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
+        workerId, usedBytesOnTier, blockId, length);
 
+    long counter = -1;
+
+    MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+    // Lock the worker metadata first.
+    synchronized (workerInfo) {
+      // Loop until block metadata is successfully locked.
+      for (;;) {
+        boolean mustInsert = false;
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo == null) {
+          // The block metadata doesn't exist yet.
           masterBlockInfo = new MasterBlockInfo(blockId, length);
-          mBlocks.put(blockId, masterBlockInfo);
-          BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
-              .setBlockId(masterBlockInfo.getBlockId())
-              .setLength(masterBlockInfo.getLength())
-              .build();
-          writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
-          flushJournal();
+          mustInsert = true;
         }
-        masterBlockInfo.addWorker(workerId, tierAlias);
-        mLostBlocks.remove(blockId);
+
+        // Lock the block metadata.
+        synchronized (masterBlockInfo) {
+          if (mustInsert) {
+            if (mBlocks.putIfAbsent(blockId, masterBlockInfo) != null) {
+              // Another thread already inserted the metadata for this block, so start loop over.
+              continue;
+            }
+            // Successfully added the new block metadata. Append a journal entry for the new
+            // metadata.
+            BlockInfoEntry blockInfo =
+                BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
+            counter = appendJournalEntry(
+                JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
+          }
+          // At this point, both the worker and the block metadata are locked.
+
+          // Update the block metadata with the new worker location.
+          masterBlockInfo.addWorker(workerId, tierAlias);
+          // This worker has this block, so it is no longer lost.
+          mLostBlocks.remove(blockId);
+
+          // Update the worker information for this new block.
+          workerInfo.addBlock(blockId);
+          workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
+          workerInfo.updateLastUpdatedTimeMs();
+        }
+        break;
       }
+    }
+
+    if (counter != -1) {
+      waitForJournalFlush(counter);
     }
   }
 
