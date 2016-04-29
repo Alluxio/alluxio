@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Constants;
+import alluxio.master.MasterContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -24,7 +25,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- *
+ * This enables async journal writing, as well as some batched journal flushing.
  */
 public final class AsyncJournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -33,6 +34,7 @@ public final class AsyncJournalWriter {
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   private final AtomicLong mCounter;
   private final AtomicLong mFlushCounter;
+  private final long mFlushBatchTime;
 
   /**
    * Use a {@link ReentrantLock} to guard the journal writing. Using the fairness policy seems to
@@ -50,6 +52,7 @@ public final class AsyncJournalWriter {
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
     mFlushCounter = new AtomicLong(0);
+    mFlushBatchTime = MasterContext.getConf().getLong(Constants.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**
@@ -78,6 +81,7 @@ public final class AsyncJournalWriter {
     // Using reentrant lock, since it seems to result in higher throughput than using 'synchronized'
     mFlushLock.lock();
     try {
+      long startTime = System.currentTimeMillis();
       long flushCounter = mFlushCounter.get();
       if (counter <= flushCounter) {
         return;
@@ -92,7 +96,12 @@ public final class AsyncJournalWriter {
           mJournalWriter.getEntryOutputStream().writeEntry(entry);
           flushCounter++;
 
-          // TODO(gpang): limit the amount of time for writing.
+          if (flushCounter >= counter) {
+            if ((System.currentTimeMillis() - startTime) >= mFlushBatchTime) {
+              // This thread has been writing to the journal for enough time.
+              break;
+            }
+          }
         }
       }
       mJournalWriter.getEntryOutputStream().flush();
