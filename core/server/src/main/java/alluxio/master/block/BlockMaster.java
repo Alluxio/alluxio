@@ -347,12 +347,16 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   @Override
   public long getNewContainerId() {
+    long counter = -1;
+    long containerId;
     synchronized (mBlockContainerIdGenerator) {
-      long containerId = mBlockContainerIdGenerator.getNewContainerId();
-      writeJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
-      flushJournal();
-      return containerId;
+      containerId = mBlockContainerIdGenerator.getNewContainerId();
+      counter = appendJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
     }
+    if (counter != -1) {
+      waitForJournalFlush(counter);
+    }
+    return containerId;
   }
 
   /**
