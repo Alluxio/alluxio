@@ -132,7 +132,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * {@link #launchAlluxioWorkerContainers(List)}.
    */
   private CountDownLatch mOutstandingWorkerContainerRequestsLatch = null;
-
+  /** Security tokens for HDFS.*/
   private ByteBuffer mAllTokens;
 
   /**
@@ -213,7 +213,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * Run the application master
+   * Run the application master.
    *
    * @param cliParser client arguments parser
    * @throws Exception
