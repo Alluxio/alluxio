@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -152,7 +153,7 @@ public final class AlluxioWorker {
       mBlockWorker = new BlockWorker();
       mFileSystemWorker = new FileSystemWorker(mBlockWorker);
 
-      mAdditionalWorkers = Lists.newArrayList();
+      mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
       // Discover and register the available factories
       // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
