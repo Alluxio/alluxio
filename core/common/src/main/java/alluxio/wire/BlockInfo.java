@@ -15,7 +15,6 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class BlockInfo {
   private long mBlockId;
   private long mLength;
-  private List<BlockLocation> mLocations = Lists.newArrayList();
+  private List<BlockLocation> mLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
