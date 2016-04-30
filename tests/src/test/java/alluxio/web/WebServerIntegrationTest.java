@@ -42,10 +42,10 @@ public class WebServerIntegrationTest {
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
       new ImmutableListMultimap.Builder<ServiceType, String>()
-          .putAll(ServiceType.MASTER_WEB, "/home", "/browse", "/configuration", "/workers",
-              "/memory", "/browseLogs", "/metricsui")
-          .putAll(ServiceType.WORKER_WEB, "/home", "/blockInfo", "/browseLogs", "/metricsui")
-          .build();
+      .putAll(ServiceType.MASTER_WEB, "/home", "/browse", "/configuration", "/workers",
+      "/memory", "/browseLogs", "/metricsui")
+      .putAll(ServiceType.WORKER_WEB, "/home", "/blockInfo", "/browseLogs", "/metricsui")
+      .build();
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =

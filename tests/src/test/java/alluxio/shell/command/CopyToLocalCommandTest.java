@@ -30,7 +30,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/", mLocalAlluxioCluster.getAlluxioHome()
-            + "/testDir");
+        + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -56,7 +56,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
 
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalAlluxioCluster.getAlluxioHome()
-            + "/testDir");
+        + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);
@@ -68,7 +68,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*", mLocalAlluxioCluster.getAlluxioHome()
-            + "/testDir");
+        + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foo/foobar1", 10);
     fileReadTest("/testDir/foo/foobar2", 20);
@@ -84,7 +84,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
 
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalAlluxioCluster.getAlluxioHome()
-            + "/testDir/testFile");
+        + "/testDir/testFile");
     Assert.assertEquals(-1, ret);
   }
 
@@ -93,7 +93,7 @@ public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", "/testWildCards/*/foo*", mLocalAlluxioCluster.getAlluxioHome()
-            + "/testDir");
+        + "/testDir");
     Assert.assertEquals(0, ret);
     fileReadTest("/testDir/foobar1", 10);
     fileReadTest("/testDir/foobar2", 20);

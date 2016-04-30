@@ -49,7 +49,7 @@ public abstract class AbstractAlluxioShellTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
+      Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;

@@ -103,9 +103,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
+      "alluxio.security.group.provider.IdentityUserGroupsMapping",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
   public void lsTest() throws IOException, AlluxioException {
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
@@ -159,9 +159,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsWildcard"})
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
+      "alluxio.security.group.provider.IdentityUserGroupsMapping",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsWildcard"})
   public void lsWildcardTest() throws IOException, AlluxioException {
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
@@ -209,9 +209,9 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
-          "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsr"})
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING,
+      "alluxio.security.group.provider.IdentityUserGroupsMapping",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsr"})
   public void lsrTest() throws IOException, AlluxioException {
     String testUser = "test_user_lsr";
     clearAndLogin(testUser);
