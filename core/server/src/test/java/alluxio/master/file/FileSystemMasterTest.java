@@ -43,8 +43,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -58,6 +56,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -147,13 +146,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
     mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("remote")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
   }
 
   /**
