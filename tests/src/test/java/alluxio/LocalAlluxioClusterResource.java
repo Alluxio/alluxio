@@ -92,7 +92,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param confParams specific alluxio configuration parameters, specified as a list of strings,
    */
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster, String... confParams) {
+      boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -109,12 +109,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster) {
+      boolean startCluster) {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     String... confParams) {
+      String... confParams) {
     this(workerCapacityBytes, userBlockSize, true, confParams);
   }
 

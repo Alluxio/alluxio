@@ -47,7 +47,7 @@ public final class IntegrationTestUtils {
 
     final FileSystemMasterClient client =
         new FileSystemMasterClient(localAlluxioClusterResource.get().getMaster().getAddress(),
-            localAlluxioClusterResource.getTestConf());
+        localAlluxioClusterResource.getTestConf());
     try {
       CommonTestUtils.waitFor(new Function<Void, Boolean>() {
         @Override

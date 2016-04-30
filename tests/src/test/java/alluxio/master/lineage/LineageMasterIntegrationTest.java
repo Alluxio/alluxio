@@ -119,7 +119,7 @@ public final class LineageMasterIntegrationTest {
 
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-              .setBlockSizeBytes(BLOCK_SIZE_BYTES);
+          .setBlockSizeBytes(BLOCK_SIZE_BYTES);
       LineageFileSystem fs = (LineageFileSystem) mLocalAlluxioClusterResource.get().getClient();
       FileOutStream outputStream = fs.createFile(new AlluxioURI(OUT_FILE), options);
       outputStream.write(1);

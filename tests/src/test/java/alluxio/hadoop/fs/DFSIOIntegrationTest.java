@@ -311,7 +311,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   @SuppressWarnings("deprecation")
   private void createControlFile(org.apache.hadoop.fs.FileSystem fs, long nrBytes, // in bytes
-                                 int nrFiles) throws IOException {
+      int nrFiles) throws IOException {
     LOG.info("creating control file: " + nrBytes + " bytes, " + nrFiles + " files");
 
     Path controlDir = getControlDir(mConfig);

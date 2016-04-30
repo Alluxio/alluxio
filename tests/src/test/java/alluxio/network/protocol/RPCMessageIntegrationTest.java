@@ -102,7 +102,7 @@ public class RPCMessageIntegrationTest {
 
     InetSocketAddress address =
         new InetSocketAddress(NetworkAddressUtils.getLocalHostName(100),
-            Constants.DEFAULT_MASTER_PORT);
+        Constants.DEFAULT_MASTER_PORT);
     ChannelFuture cf = bootstrap.bind(address).syncUninterruptibly();
     sLocalAddress = cf.channel().localAddress();
 
@@ -228,7 +228,7 @@ public class RPCMessageIntegrationTest {
     ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockReadResponse msg =
         new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
-            RPCResponse.Status.SUCCESS);
+        RPCResponse.Status.SUCCESS);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
@@ -245,8 +245,8 @@ public class RPCMessageIntegrationTest {
   public void RPCBlockReadResponseErrorTest() {
     RPCBlockReadResponse msg =
         RPCBlockReadResponse.createErrorResponse(
-            new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID),
-            RPCResponse.Status.FILE_DNE);
+        new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID),
+        RPCResponse.Status.FILE_DNE);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
@@ -258,7 +258,7 @@ public class RPCMessageIntegrationTest {
       FileChannel payload = inputStream.getChannel();
       RPCBlockReadResponse msg =
           new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
-              LENGTH), RPCResponse.Status.SUCCESS);
+          LENGTH), RPCResponse.Status.SUCCESS);
       RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
       assertValid(msg, decoded);
     } finally {
@@ -271,7 +271,7 @@ public class RPCMessageIntegrationTest {
     ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockWriteRequest msg =
         new RPCBlockWriteRequest(SESSION_ID, BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload,
-            LENGTH));
+        LENGTH));
     RPCBlockWriteRequest decoded = (RPCBlockWriteRequest) encodeThenDecode(msg);
     assertValid(msg, decoded);
   }
