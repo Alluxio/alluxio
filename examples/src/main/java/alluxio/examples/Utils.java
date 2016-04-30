@@ -129,7 +129,7 @@ public final class Utils {
    * @return either the value of the index of the arguments or the default value
    */
   public static AlluxioStorageType option(String[] args, int index,
-                                          AlluxioStorageType defaultValue) {
+      AlluxioStorageType defaultValue) {
     if (index < args.length && index >= 0) {
       try {
         return AlluxioStorageType.valueOf(args[index]);

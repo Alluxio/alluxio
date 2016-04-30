@@ -392,7 +392,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-              Joiner.on(',').join(newPaths));
+          Joiner.on(',').join(newPaths));
     }
     return testConf;
   }

@@ -52,7 +52,7 @@ public class BasicOperations implements Callable<Boolean> {
    * @param writeType the {@link WriteType}
    */
   public BasicOperations(AlluxioURI masterLocation, AlluxioURI filePath, ReadType readType,
-                         WriteType writeType) {
+      WriteType writeType) {
     mMasterLocation = masterLocation;
     mFilePath = filePath;
     mReadOptions = OpenFileOptions.defaults().setReadType(readType);

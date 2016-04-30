@@ -45,7 +45,7 @@ public class FileSystemIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
@@ -177,7 +177,7 @@ public class FileSystemIntegrationTest {
   private String createAlternateUfs() throws InvalidPathException, IOException {
     AlluxioURI parentURI =
         new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
-            .getParent();
+        .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot,
         mLocalAlluxioClusterResource.getTestConf());
