@@ -178,22 +178,22 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_DIR_URI),
         CreateDirectoryOptions.defaults()
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+        .setPermissionStatus(
+        new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
 
     // create "/testDir/file" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI),
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+        .setPermissionStatus(
+        new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
 
     // create "/testFile" for user2
     AuthenticatedClientUser.set(TEST_USER_2.getUser());
     inodeTree.createPath(new AlluxioURI(TEST_FILE_URI),
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+        .setPermissionStatus(
+        new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
   }
 
   /**
@@ -231,7 +231,7 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/file1",
-            "testDir")));
+        "testDir")));
 
     // create "/testDir/file1" for user2
     verifyCreateFile(TEST_USER_2, TEST_DIR_URI + "/file1", false);
@@ -241,7 +241,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
         .setPermissionStatus(PermissionStatus.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+        .setUserFromThriftClient(MasterContext.getConf()));
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
@@ -268,7 +268,7 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, "/dir1",
-            "/")));
+        "/")));
 
     // createDirectory "/dir1" for user1
     verifyCreateDirectory(TEST_USER_1, "/dir1", false);
@@ -285,7 +285,7 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/dir1",
-            "testDir")));
+        "testDir")));
 
     // createDirectory "/testDir/dir1" for user2
     verifyCreateDirectory(TEST_USER_2, TEST_DIR_URI + "/dir1", false);
@@ -296,7 +296,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
         .setPermissionStatus(PermissionStatus.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+        .setUserFromThriftClient(MasterContext.getConf()));
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
     FileInfo fileInfo =
@@ -351,7 +351,7 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
-            "testDir")));
+        "testDir")));
 
     // rename "/testDir/file" to "/file" for user2
     verifyRename(TEST_USER_2, TEST_DIR_FILE_URI, "/file");
@@ -371,7 +371,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     String fileOwner =
         mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(srcPath)))
-            .getUserName();
+        .getUserName();
 
     mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
 
@@ -440,7 +440,7 @@ public final class PermissionCheckTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
-            "testDir")));
+        "testDir")));
 
     // user 2 cannot delete "/testDir/file"
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
@@ -814,7 +814,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setPermission(permission)
-            .setRecursive(recursive);
+        .setRecursive(recursive);
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
     AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
@@ -835,8 +835,8 @@ public final class PermissionCheckTest {
       String inodeName) {
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=")
-            .append(action).append(", ").append("path=").append(path).append(": ")
-            .append("failed at ").append(inodeName);
+        .append(action).append(", ").append("path=").append(path).append(": ")
+        .append("failed at ").append(inodeName);
     return stringBuilder.toString();
   }
 }

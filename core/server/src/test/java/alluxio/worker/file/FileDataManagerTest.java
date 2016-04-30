@@ -253,7 +253,7 @@ public final class FileDataManagerTest {
     } catch (IOException e) {
       Assert.assertEquals(
           "failed to lock all blocks of file 1\n"
-              + "alluxio.exception.BlockDoesNotExistException: block 3 does not exist\n",
+          + "alluxio.exception.BlockDoesNotExistException: block 3 does not exist\n",
           e.getMessage());
       // verify the locks are all unlocked
       Mockito.verify(blockWorker).unlockBlock(1L);
