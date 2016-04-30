@@ -68,37 +68,37 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
     String tenantApiKeyConf = Constants.SWIFT_API_KEY;
     if (System.getProperty(tenantApiKeyConf) != null
         || (configuration.containsKey(tenantApiKeyConf)
-            && configuration.get(tenantApiKeyConf) == null)) {
+        && configuration.get(tenantApiKeyConf) == null)) {
       configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
     }
     String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
     if (System.getProperty(tenantKeyConf) != null
         || (configuration.containsKey(tenantKeyConf)
-            && configuration.get(tenantKeyConf) == null)) {
+        && configuration.get(tenantKeyConf) == null)) {
       configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
     }
     String tenantUserConf = Constants.SWIFT_USER_KEY;
     if (System.getProperty(tenantUserConf) != null
         || (configuration.containsKey(tenantUserConf)
-            && configuration.get(tenantUserConf) == null)) {
+        && configuration.get(tenantUserConf) == null)) {
       configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
     }
     String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
     if (System.getProperty(tenantAuthURLKeyConf) != null
         || (configuration.containsKey(tenantAuthURLKeyConf)
-            && configuration.get(tenantAuthURLKeyConf) == null)) {
+        && configuration.get(tenantAuthURLKeyConf) == null)) {
       configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
     }
     String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
     if (System.getProperty(authMethodKeyConf) != null
         || (configuration.containsKey(authMethodKeyConf)
-            && configuration.get(authMethodKeyConf) == null)) {
+        && configuration.get(authMethodKeyConf) == null)) {
       configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
     }
     String passwordKeyConf = Constants.SWIFT_PASSWORD_KEY;
     if (System.getProperty(passwordKeyConf) != null
         || (configuration.containsKey(passwordKeyConf)
-            && configuration.get(passwordKeyConf) == null)) {
+        && configuration.get(passwordKeyConf) == null)) {
       configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
 

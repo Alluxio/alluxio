@@ -85,7 +85,7 @@ public final class LoginUser {
       // under the authType name in LoginModuleConfiguration.
       LoginContext loginContext =
           new LoginContext(authType.getAuthName(), subject, callbackHandler,
-              new LoginModuleConfiguration());
+          new LoginModuleConfiguration());
       loginContext.login();
 
       Set<User> userSet = subject.getPrincipals(User.class);

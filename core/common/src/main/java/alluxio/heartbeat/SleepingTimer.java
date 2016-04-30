@@ -52,7 +52,7 @@ public final class SleepingTimer implements HeartbeatTimer {
       long executionTimeMs = System.currentTimeMillis() - mPreviousTickMs;
       if (executionTimeMs > mIntervalMs) {
         LOG.warn("{} last execution took {} ms. Longer than the interval {}",
-                mThreadName, executionTimeMs, mIntervalMs);
+            mThreadName, executionTimeMs, mIntervalMs);
       } else {
         Thread.sleep(mIntervalMs - executionTimeMs);
       }

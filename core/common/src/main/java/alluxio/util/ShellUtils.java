@@ -88,7 +88,7 @@ public final class ShellUtils {
 
     BufferedReader inReader =
         new BufferedReader(new InputStreamReader(mProcess.getInputStream(),
-            Charset.defaultCharset()));
+        Charset.defaultCharset()));
     final StringBuffer errMsg = new StringBuffer();
 
     // read input streams as this would free up the buffers

@@ -595,8 +595,8 @@ public final class NetworkAddressUtils {
     Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_ADDRESS));
     Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient =
-            LeaderInquireClient.getClient(conf.get(Constants.ZOOKEEPER_ADDRESS),
-                    conf.get(Constants.ZOOKEEPER_LEADER_PATH), conf);
+        LeaderInquireClient.getClient(conf.get(Constants.ZOOKEEPER_ADDRESS),
+        conf.get(Constants.ZOOKEEPER_LEADER_PATH), conf);
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);
