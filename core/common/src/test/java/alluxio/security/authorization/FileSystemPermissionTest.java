@@ -40,7 +40,7 @@ public final class FileSystemPermissionTest {
   public void toShortTest() {
     FileSystemPermission permission =
         new FileSystemPermission(FileSystemAction.ALL, FileSystemAction.READ_EXECUTE,
-            FileSystemAction.READ_EXECUTE);
+        FileSystemAction.READ_EXECUTE);
     Assert.assertEquals(0755, permission.toShort());
 
     permission = FileSystemPermission.getDefault();

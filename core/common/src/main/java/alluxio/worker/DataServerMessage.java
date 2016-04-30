@@ -359,7 +359,7 @@ public final class DataServerMessage {
         int receivedMessageType = mHeader.getInt();
         Preconditions.checkState(mMessageType.getId() == receivedMessageType,
             "Unexpected message type (" + receivedMessageType + ") received. expected: "
-                + mMessageType.getId());
+            + mMessageType.getId());
         mBlockId = mHeader.getLong();
         mOffset = mHeader.getLong();
         mLength = mHeader.getLong();

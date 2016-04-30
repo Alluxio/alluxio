@@ -147,7 +147,7 @@ public class CommonUtilsTest {
       try {
         Object o =
             CommonUtils.createNewClassInstance(testCase.mCls, testCase.mCtorClassArgs,
-                testCase.mCtorArgs);
+            testCase.mCtorArgs);
         Assert.assertEquals(o.toString(), testCase.mExpected);
       } catch (Exception e) {
         e.printStackTrace();

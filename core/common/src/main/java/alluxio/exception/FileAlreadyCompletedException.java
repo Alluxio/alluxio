@@ -58,7 +58,7 @@ public class FileAlreadyCompletedException extends AlluxioException {
    * @param params the parameters
    */
   public FileAlreadyCompletedException(ExceptionMessage message,
-                                       Throwable cause, Object... params) {
+      Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
   }
 }

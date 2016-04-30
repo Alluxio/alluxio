@@ -73,7 +73,7 @@ public class HeartbeatContextTest {
         Arrays.asList(String.format(testSleeping, "1"), String.format(testSleeping, "2")));
     timerMap.put(HeartbeatContext.SCHEDULED_TIMER_CLASS,
         Arrays.asList(String.format(testScheduled, "2"), String.format(testScheduled, "1"),
-            String.format(testScheduled, "3")));
+        String.format(testScheduled, "3")));
 
     for (Class<? extends HeartbeatTimer> timerClass : timerMap.keySet()) {
       for (String name : timerMap.get(timerClass)) {
