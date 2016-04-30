@@ -49,9 +49,10 @@ public class UnderStoreBlockInStreamTest {
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
-    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, file.getAbsolutePath());
-    mEOFBlockStream =
-        new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
+    mBlockStream =
+        new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
+    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        file.getAbsolutePath());
   }
 
   /**
