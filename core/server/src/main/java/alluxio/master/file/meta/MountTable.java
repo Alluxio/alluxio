@@ -82,7 +82,7 @@ public final class MountTable {
       } else if ((ufsUri.getScheme() == null || ufsUri.getScheme()
           .equals(mountedUfsUri.getScheme()))
           && (ufsUri.getAuthority() == null || ufsUri.getAuthority().equals(
-              mountedUfsUri.getAuthority()))) {
+          mountedUfsUri.getAuthority()))) {
         String ufsPath = ufsUri.getPath();
         String mountedUfsPath = mountedUfsUri.getPath();
         if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {

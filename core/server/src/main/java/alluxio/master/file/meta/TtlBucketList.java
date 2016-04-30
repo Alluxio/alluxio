@@ -57,7 +57,7 @@ public final class TtlBucketList {
     TtlBucket bucket = mBucketList.floor(new TtlBucket(ttlEndTimeMs));
     if (bucket == null || bucket.getTtlIntervalEndTimeMs() < ttlEndTimeMs
         || (bucket.getTtlIntervalEndTimeMs() == ttlEndTimeMs
-            && TtlBucket.getTtlIntervalMs() != 0)) {
+        && TtlBucket.getTtlIntervalMs() != 0)) {
       // 1. There is no bucket in the list, or
       // 2. All buckets' interval start time is larger than the file's life end time, or
       // 3. No bucket actually contains ttlEndTimeMs in its interval.

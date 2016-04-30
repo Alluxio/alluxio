@@ -199,11 +199,11 @@ public final class FileSystemMaster extends AbstractMaster {
     services.put(
         Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
         new FileSystemMasterClientService.Processor<>(
-            new FileSystemMasterClientServiceHandler(this)));
+        new FileSystemMasterClientServiceHandler(this)));
     services.put(
         Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
-            new FileSystemMasterWorkerServiceHandler(this)));
+        new FileSystemMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -1529,7 +1529,7 @@ public final class FileSystemMaster extends AbstractMaster {
         // Metadata loaded from UFS has no TTL set.
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
-                .setMetadataLoad(true).setPersisted(true);
+            .setMetadataLoad(true).setPersisted(true);
         long fileId = createFile(path, options);
         CompleteFileOptions completeOptions =
             CompleteFileOptions.defaults().setUfsLength(ufsLength);
@@ -1562,7 +1562,7 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
-            .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
+        .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
     InodeTree.CreatePathResult result = createDirectory(path, options);
     List<Inode<?>> inodes = null;
     if (result.getCreated().size() > 0) {
@@ -1641,8 +1641,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
       AddMountPointEntry addMountPoint =
           AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
-              .addAllProperties(protoProperties).build();
+          .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+          .addAllProperties(protoProperties).build();
       writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
       flushJournal();
       MasterContext.getMasterSource().incPathsMounted(1);

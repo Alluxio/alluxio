@@ -177,7 +177,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     services.put(
         Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
         new BlockMasterWorkerService.Processor<BlockMasterWorkerServiceHandler>(
-            new BlockMasterWorkerServiceHandler(this)));
+        new BlockMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -215,7 +215,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       BlockInfoEntry blockInfoEntry =
           BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
-              .setLength(blockInfo.getLength()).build();
+          .setLength(blockInfo.getLength()).build();
       outputStream.writeEntry(JournalEntry.newBuilder().setBlockInfo(blockInfoEntry).build());
     }
   }

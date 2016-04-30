@@ -327,8 +327,8 @@ public final class PermissionChecker {
     // message format: who, action, resource: failed at where
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=")
-            .append(action).append(", ").append("path=").append(path).append(": ")
-            .append("failed at ").append(inode.getName().equals("") ? "/" : inode.getName());
+        .append(action).append(", ").append("path=").append(path).append(": ")
+        .append("failed at ").append(inode.getName().equals("") ? "/" : inode.getName());
     return stringBuilder.toString();
   }
 }

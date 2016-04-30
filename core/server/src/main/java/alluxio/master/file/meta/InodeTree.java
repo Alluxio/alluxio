@@ -344,7 +344,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     for (int k = pathIndex; k < parentPath.length; k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
+          currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
