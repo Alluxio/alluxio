@@ -43,7 +43,7 @@ public interface Evictor {
      * @return the generated {@link Evictor}
      */
     public static Evictor create(Configuration conf, BlockMetadataManagerView view,
-                                 Allocator allocator) {
+        Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),

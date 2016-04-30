@@ -159,7 +159,7 @@ public class AlluxioShell implements Closeable {
       }
       // Handle command alias, and print out WARNING message for deprecated cmd.
       String deprecatedMsg = "WARNING: " + cmd + " is deprecated. Please use "
-                             + StringUtils.join(replacementCmd, " ") + " instead.";
+          + StringUtils.join(replacementCmd, " ") + " instead.";
       System.out.println(deprecatedMsg);
       LOG.warn(deprecatedMsg);
 

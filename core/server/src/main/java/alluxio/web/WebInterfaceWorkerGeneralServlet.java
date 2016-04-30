@@ -242,7 +242,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {
       storageDirs.add(new UIStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
           storeMeta.getCapacityBytesOnDirs().get(tierAndDirPath), storeMeta.getUsedBytesOnDirs()
-              .get(tierAndDirPath)));
+          .get(tierAndDirPath)));
     }
 
     request.setAttribute("storageDirs", storageDirs);

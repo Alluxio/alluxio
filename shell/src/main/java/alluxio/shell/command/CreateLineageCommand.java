@@ -58,7 +58,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
     boolean valid = args.length >= getNumOfArgs();
     if (!valid) {
       System.out.println(getCommandName() + " takes at least" + getNumOfArgs() + " arguments, "
-              + " not " + args.length + "\n");
+          + " not " + args.length + "\n");
     }
     return valid;
   }

@@ -49,8 +49,8 @@ public class BlockMasterClientTest {
 
     BlockMasterClient client =
         new BlockMasterClient(NetworkAddressUtils.getConnectAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
-            WorkerContext.getConf());
+        NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
+        WorkerContext.getConf());
 
     try {
       Whitebox.invokeMethod(client, "checkVersion", mock,

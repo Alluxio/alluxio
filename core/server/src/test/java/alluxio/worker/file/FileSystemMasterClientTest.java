@@ -50,8 +50,8 @@ public class FileSystemMasterClientTest {
 
     FileSystemMasterClient client =
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
-            WorkerContext.getConf());
+        NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
+        WorkerContext.getConf());
 
     try {
       Whitebox.invokeMethod(client, "checkVersion", mock,
