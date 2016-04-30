@@ -152,7 +152,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
       if (totalBytesOnTiers.containsKey(tierAlias) && totalBytesOnTiers.get(tierAlias) > 0) {
         StorageTierInfo info =
             new StorageTierInfo(tierAlias, totalBytesOnTiers.get(tierAlias),
-                usedBytesOnTiers.get(tierAlias));
+            usedBytesOnTiers.get(tierAlias));
         infos.add(info);
       }
     }
@@ -190,8 +190,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     request
         .setAttribute("freeCapacity",
-            FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
-                - mMaster.getBlockMaster().getUsedBytes()));
+        FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
+        - mMaster.getBlockMaster().getUsedBytes()));
 
     // TODO(jiri): Should we use MasterContext here instead?
     Configuration conf = new Configuration();

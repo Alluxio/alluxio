@@ -89,7 +89,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void downloadLogFile(File file, HttpServletRequest request,
-                               HttpServletResponse response) throws IOException {
+      HttpServletResponse response) throws IOException {
     long len = file.length();
     String fileName = file.getName();
     response.setContentType("application/octet-stream");

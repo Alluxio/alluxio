@@ -52,7 +52,7 @@ public final class URIUtils {
       for (Map.Entry<String, String> entry : queryMap.entrySet()) {
         pairs.add(
             URLEncoder.encode(entry.getKey(), "UTF-8") + QUERY_KEY_VALUE_SEPARATOR + URLEncoder
-                .encode(entry.getValue(), "UTF-8"));
+            .encode(entry.getValue(), "UTF-8"));
       }
     } catch (UnsupportedEncodingException e) {
       throw new RuntimeException(e);

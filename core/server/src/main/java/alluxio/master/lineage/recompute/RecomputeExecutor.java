@@ -45,7 +45,7 @@ public final class RecomputeExecutor implements HeartbeatExecutor {
   /** The thread pool to launch recompute jobs. */
   private final ExecutorService mRecomputeLauncherService =
       Executors.newFixedThreadPool(DEFAULT_RECOMPUTE_LAUNCHER_POOL_SIZE,
-          ThreadFactoryUtils.build("recompute-launcher-%d", true));
+      ThreadFactoryUtils.build("recompute-launcher-%d", true));
 
   /**
    * Creates a new instance of {@link RecomputeExecutor}.

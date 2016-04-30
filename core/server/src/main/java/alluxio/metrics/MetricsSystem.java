@@ -174,7 +174,7 @@ public class MetricsSystem {
         try {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
-                  .newInstance(entry.getValue(), mMetricRegistry);
+              .newInstance(entry.getValue(), mMetricRegistry);
           if (entry.getKey().equals("servlet")) {
             mMetricsServlet = (MetricsServlet) sink;
           } else {
