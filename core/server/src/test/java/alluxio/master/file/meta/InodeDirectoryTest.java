@@ -234,7 +234,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_GROUP_NAME, inode2.getGroupName());
     Assert.assertEquals(
         new PermissionStatus(TEST_PERMISSION_STATUS).applyDirectoryUMask(MasterContext.getConf())
-            .getPermission().toShort(), inode2.getPermission());
+        .getPermission().toShort(), inode2.getPermission());
   }
 
   /**

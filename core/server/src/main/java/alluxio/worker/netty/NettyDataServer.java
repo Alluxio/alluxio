@@ -80,7 +80,7 @@ public final class NettyDataServer implements DataServer {
   private ServerBootstrap createBootstrap() {
     final ServerBootstrap boot =
         createBootstrapOfType(mConf.getEnum(Constants.WORKER_NETWORK_NETTY_CHANNEL,
-            ChannelType.class));
+        ChannelType.class));
 
     // use pooled buffers
     boot.option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);

@@ -154,6 +154,6 @@ public final class InodeFileTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_GROUP_NAME, inode1.getGroupName());
     Assert.assertEquals(
         new PermissionStatus(TEST_PERMISSION_STATUS).applyFileUMask(MasterContext.getConf())
-            .getPermission().toShort(), inode1.getPermission());
+        .getPermission().toShort(), inode1.getPermission());
   }
 }

@@ -68,7 +68,7 @@ public class SpaceReserver implements Runnable {
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
           (long) (capOnTiers.get(tierAlias) * WorkerContext.getConf().getDouble(
-              tierReservedSpaceProp));
+          tierReservedSpaceProp));
       mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }

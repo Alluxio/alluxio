@@ -302,7 +302,7 @@ public final class FileSystemMasterTest {
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true)
-            .setTtl(Constants.HOUR_MS);
+        .setTtl(Constants.HOUR_MS);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
     // Since TTL is 1 hour, the file won't be deleted during last TTL check.
@@ -571,12 +571,12 @@ public final class FileSystemMasterTest {
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
     Assert.assertEquals(CommandType.Persist, command.getCommandType());
     Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().getPersistFiles()
-            .size());
+        .size());
     Assert.assertEquals(fileId,
         command.getCommandOptions().getPersistOptions().getPersistFiles().get(0).getFileId());
     Assert.assertEquals(blockId,
         (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
-                .getBlockIds().get(0));
+        .getBlockIds().get(0));
   }
 
   /**

@@ -254,7 +254,7 @@ public final class BlockWorkerClientRestServiceHandler {
         long fileLength = reader.getLength();
         Preconditions
             .checkArgument(offset <= fileLength, "offset %s is larger than file length %s", offset,
-                fileLength);
+            fileLength);
         Preconditions.checkArgument(length == -1 || offset + length <= fileLength,
             "offset %s plus length %s is larger than file length %s", offset, length, fileLength);
         long readLength = (length == -1) ? fileLength - offset : length;
