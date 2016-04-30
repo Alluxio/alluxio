@@ -56,7 +56,7 @@ public final class WebUtilsTest {
   public void convertToClockTimeWithOneMinute30Seconds() {
     String out =
         WebUtils.convertMsToClockTime(TimeUnit.MINUTES.toMillis(1)
-            + TimeUnit.SECONDS.toMillis(30));
+        + TimeUnit.SECONDS.toMillis(30));
     Assert.assertEquals("0 day(s), 0 hour(s), 1 minute(s), and 30 second(s)", out);
   }
 
@@ -77,7 +77,7 @@ public final class WebUtilsTest {
   public void convertToClockTimeWithOneHour10Minutes45Seconds() {
     String out =
         WebUtils.convertMsToClockTime(TimeUnit.HOURS.toMillis(1) + TimeUnit.MINUTES.toMillis(10)
-            + TimeUnit.SECONDS.toMillis(45));
+        + TimeUnit.SECONDS.toMillis(45));
     Assert.assertEquals("0 day(s), 1 hour(s), 10 minute(s), and 45 second(s)", out);
   }
 
@@ -98,7 +98,7 @@ public final class WebUtilsTest {
   public void convertToClockTimeWithOneDay4Hours10Minutes45Seconds() {
     long time =
         TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4) + TimeUnit.MINUTES.toMillis(10)
-            + TimeUnit.SECONDS.toMillis(45);
+        + TimeUnit.SECONDS.toMillis(45);
     String out = WebUtils.convertMsToClockTime(time);
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }
@@ -111,7 +111,7 @@ public final class WebUtilsTest {
   public void convertToClockTimeWithOneDay4Hours10Minutes45SecondsWithStopwatch() {
     long time =
         TimeUnit.DAYS.toMillis(1) + TimeUnit.HOURS.toMillis(4) + TimeUnit.MINUTES.toMillis(10)
-            + TimeUnit.SECONDS.toMillis(45);
+        + TimeUnit.SECONDS.toMillis(45);
     String out = WebUtils.convertMsToClockTime(time);
     Assert.assertEquals("1 day(s), 4 hour(s), 10 minute(s), and 45 second(s)", out);
   }

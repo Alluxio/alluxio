@@ -49,16 +49,16 @@ public class TieredStoreIntegrationTest {
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
-          HeartbeatContext.MASTER_TTL_CHECK,
-          HeartbeatContext.WORKER_BLOCK_SYNC,
-          HeartbeatContext.WORKER_PIN_LIST_SYNC);
+      HeartbeatContext.MASTER_TTL_CHECK,
+      HeartbeatContext.WORKER_BLOCK_SYNC,
+      HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before
   public final void before() throws Exception {
@@ -247,7 +247,7 @@ public class TieredStoreIntegrationTest {
 
     FileInStream is =
         mFileSystem.openFile(toPromote,
-            OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
+        OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE));
     byte[] buf = new byte[toPromoteLen];
     int len = is.read(buf);
     is.close();

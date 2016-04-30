@@ -96,7 +96,7 @@ public final class AlluxioFuse {
         .required(false)
         .longOpt("alluxio-root")
         .desc("Path within alluxio that will be used as the root of the FUSE mount "
-            + "(e.g., /users/foo; defaults to /)")
+        + "(e.g., /users/foo; defaults to /)")
         .build();
 
     final Option help = Option.builder("h")

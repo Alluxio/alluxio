@@ -62,7 +62,7 @@ public class BlockServiceHandlerIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
   private Configuration mMasterConfiguration;
@@ -146,7 +146,7 @@ public class BlockServiceHandlerIntegrationTest {
 
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(blockSize)
-            .setWriteType(WriteType.MUST_CACHE);
+        .setWriteType(WriteType.MUST_CACHE);
     FileOutStream out = mFileSystem.createFile(new AlluxioURI("/testFile"), options);
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
