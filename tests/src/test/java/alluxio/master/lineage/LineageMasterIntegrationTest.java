@@ -37,7 +37,6 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -49,6 +48,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -92,8 +92,9 @@ public final class LineageMasterIntegrationTest {
     LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
     try {
-      lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
-          mJob);
+      ArrayList<String> outFiles = new ArrayList<>();
+      Collections.addAll(outFiles, OUT_FILE);
+      lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
@@ -116,8 +117,9 @@ public final class LineageMasterIntegrationTest {
         TimeUnit.SECONDS));
 
     try {
-      lineageMasterClient.createLineage(new ArrayList<String>(), Lists.newArrayList(OUT_FILE),
-          mJob);
+      ArrayList<String> outFiles = new ArrayList<>();
+      Collections.addAll(outFiles, OUT_FILE);
+      lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
 
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
@@ -212,21 +214,23 @@ public final class LineageMasterIntegrationTest {
     // input file paths
     AlluxioURI input1 = new AlluxioURI("/inputFile1");
     AlluxioURI input2 = new AlluxioURI("/inputFile2");
-    List<AlluxioURI> inputFiles = Lists.newArrayList(input1, input2);
+    ArrayList<AlluxioURI> files = new ArrayList<>();
+    Collections.addAll(files, input1, input2);
     // output file paths
     AlluxioURI output = new AlluxioURI("/outputFile");
-    List<AlluxioURI> outputFiles = Lists.newArrayList(output);
+    ArrayList<AlluxioURI> files2 = new ArrayList<>();
+    Collections.addAll(files2, output);
     // command-line job
     JobConf conf = new JobConf("/tmp/recompute.log");
     CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
-    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
+    long lineageId = tl.createLineage(files, files2, job);
 
     // ------ code block from docs ------
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     tl.deleteLineage(lineageId);
 
     fs.delete(new AlluxioURI("/outputFile"));
-    lineageId = tl.createLineage(inputFiles, outputFiles, job);
+    lineageId = tl.createLineage(files, files2, job);
 
     // ------ code block from docs ------
     tl.deleteLineage(lineageId, options);
