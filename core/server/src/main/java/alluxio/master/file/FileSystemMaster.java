@@ -127,10 +127,6 @@ public final class FileSystemMaster extends AbstractMaster {
   @GuardedBy("mInodeTree")
   private final MountTable mMountTable;
 
-  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
-  @GuardedBy("mInodeTree")
-  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
-
   /** This maintains inodes with ttl set, for the for the ttl checker service to use. */
   @GuardedBy("mInodeTree")
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
@@ -187,7 +183,6 @@ public final class FileSystemMaster extends AbstractMaster {
     Configuration conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
-    mWorkerToAsyncPersistFiles = new HashMap<>();
     mAsyncPersistHandler =
         AsyncPersistHandler.Factory.create(MasterContext.getConf(), new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
@@ -393,6 +388,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
+   *
    * @param inode the inode to get the {@linke FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
@@ -1675,7 +1672,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O exception occurs
    */
   @GuardedBy("mInodeTree")
-  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  private void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1895,6 +1892,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param fileId the id of the file to schedule asynchronous persistence for
    * @throws AlluxioException if scheduling fails
    */
+  @GuardedBy("mInodeTree")
   private void scheduleAsyncPersistenceInternal(long fileId) throws AlluxioException {
     Inode<?> inode = mInodeTree.getInodeById(fileId);
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
