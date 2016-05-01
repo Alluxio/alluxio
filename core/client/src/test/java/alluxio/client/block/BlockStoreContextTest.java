@@ -19,7 +19,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,6 +29,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +58,7 @@ public final class BlockStoreContextTest {
    */
   @Test(timeout = 10000)
   public void acquireMasterLimitTest() throws Exception {
-    final List<CloseableResource<BlockMasterClient>> clients = Lists.newArrayList();
+    final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()
@@ -119,7 +119,7 @@ public final class BlockStoreContextTest {
     // initialized properly.
     Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
     BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
-    List<WorkerInfo> list = Lists.newArrayList();
+    List<WorkerInfo> list = new ArrayList<>();
     list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("localhost")));
     PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
     PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any(), Mockito.any())
@@ -135,7 +135,7 @@ public final class BlockStoreContextTest {
         Mockito.any(), Mockito.anyLong(), Mockito.anyBoolean(), Mockito.any())
         .thenReturn(workerClientMock);
 
-    final List<BlockWorkerClient> clients = Lists.newArrayList();
+    final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
     Configuration conf = Whitebox.getInternalState(ClientContext.class, "sConf");

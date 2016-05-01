@@ -15,8 +15,8 @@ import alluxio.annotation.PublicApi;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileBlockInfo {
   private BlockInfo mBlockInfo = new BlockInfo();
   private long mOffset;
-  private List<String> mUfsLocations = Lists.newArrayList();
+  private List<String> mUfsLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
