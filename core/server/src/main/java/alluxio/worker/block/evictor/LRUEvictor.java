@@ -18,8 +18,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTierView;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -69,7 +68,7 @@ public class LRUEvictor extends AbstractEvictor {
 
   @Override
   protected Iterator<Long> getBlockIterator() {
-    List<Long> blocks = Lists.newArrayList(mLRUCache.keySet());
+    List<Long> blocks = new ArrayList<>(mLRUCache.keySet());
     return blocks.iterator();
   }
 

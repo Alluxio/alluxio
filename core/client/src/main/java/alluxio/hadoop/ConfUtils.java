@@ -84,7 +84,15 @@ public final class ConfUtils {
       // TODO(gene): use a better way to enumerate every Alluxio configuration parameter
       if (propertyName.startsWith("alluxio.")
           || propertyName.equals(Constants.S3_ACCESS_KEY)
-          || propertyName.equals(Constants.S3_SECRET_KEY)) {
+          || propertyName.equals(Constants.S3_SECRET_KEY)
+          || propertyName.equals(Constants.SWIFT_API_KEY)
+          || propertyName.equals(Constants.SWIFT_AUTH_METHOD_KEY)
+          || propertyName.equals(Constants.SWIFT_AUTH_PORT_KEY)
+          || propertyName.equals(Constants.SWIFT_AUTH_URL_KEY)
+          || propertyName.equals(Constants.SWIFT_PASSWORD_KEY)
+          || propertyName.equals(Constants.SWIFT_TENANT_KEY)
+          || propertyName.equals(Constants.SWIFT_USE_PUBLIC_URI_KEY)
+          || propertyName.equals(Constants.SWIFT_USER_KEY)) {
         alluxioConfProperties.put(propertyName, entry.getValue());
       }
     }

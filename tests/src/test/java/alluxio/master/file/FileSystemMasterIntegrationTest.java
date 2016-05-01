@@ -33,8 +33,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -618,7 +616,7 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
+    mFsMaster.completeFileInternal(new ArrayList<Long>(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -672,8 +670,8 @@ public class FileSystemMasterIntegrationTest {
         ids.add(mFsMaster.createFile(dir.join("j" + j), options));
       }
     }
-    HashSet<Long> listedIds = Sets.newHashSet();
-    HashSet<Long> listedDirIds = Sets.newHashSet();
+    HashSet<Long> listedIds = new HashSet<>();
+    HashSet<Long> listedDirIds = new HashSet<>();
     List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
     for (FileInfo info : infoList) {
       long id = info.getFileId();

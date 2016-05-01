@@ -59,6 +59,8 @@ public final class Constants {
 
   public static final int BYTES_IN_INTEGER = 4;
 
+  public static final long UNKNOWN_SIZE = -1;
+
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
@@ -127,7 +129,6 @@ public final class Constants {
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
-  public static final String ACCESS_LOGGER_TYPE = "alluxio.access.logger.type";
   public static final String VERSION = "alluxio.version";
   public static final String WEB_RESOURCES = "alluxio.web.resources";
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
@@ -289,6 +290,10 @@ public final class Constants {
       "alluxio.worker.filesystem.heartbeat.interval.ms";
   public static final String WORKER_FILE_PERSIST_POOL_SIZE =
       "alluxio.worker.file.persist.pool.size";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
+      "alluxio.worker.file.persist.rate.limit.enabled";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
+      "alluxio.worker.file.persist.rate.limit";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "alluxio.worker.tieredstore.block.locks";

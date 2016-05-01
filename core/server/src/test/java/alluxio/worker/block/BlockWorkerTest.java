@@ -300,6 +300,20 @@ public class BlockWorkerTest {
   }
 
   /**
+   * Tests the {@link BlockWorker#getBlockMeta(long)} method.
+   *
+   * @throws Exception if the getVolatileBlockMeta check fails
+   */
+  @Test
+  public void getBlockMetaTest() throws Exception {
+    long sessionId = mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+    long lockId = mRandom.nextLong();
+    mBlockWorker.getBlockMeta(sessionId, blockId, lockId);
+    verify(mBlockStore).getBlockMeta(sessionId, blockId, lockId);
+  }
+
+  /**
    * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
    */
   @Test

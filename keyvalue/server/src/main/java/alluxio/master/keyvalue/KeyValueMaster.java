@@ -39,8 +39,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
@@ -48,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +86,8 @@ public final class KeyValueMaster extends AbstractMaster {
   public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
     mFileSystemMaster = fileSystemMaster;
-    mCompleteStoreToPartitions = Maps.newHashMap();
-    mIncompleteStoreToPartitions = Maps.newHashMap();
+    mCompleteStoreToPartitions = new HashMap<>();
+    mIncompleteStoreToPartitions = new HashMap<>();
   }
 
   @Override
@@ -280,7 +279,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throw new FileAlreadyExistsException(String
           .format("Failed to createStore: KeyValueStore (fileId=%d) is already created", fileId));
     }
-    mIncompleteStoreToPartitions.put(fileId, Lists.<PartitionInfo>newArrayList());
+    mIncompleteStoreToPartitions.put(fileId, new ArrayList<PartitionInfo>());
   }
 
   /**
@@ -415,7 +414,7 @@ public final class KeyValueMaster extends AbstractMaster {
     long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
     return partitions;
   }
