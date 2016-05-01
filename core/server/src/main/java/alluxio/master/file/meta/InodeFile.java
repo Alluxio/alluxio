@@ -228,24 +228,31 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is already completed or the length is
-   * negative.
+   * Completes the file. Cannot set the length if the file is already completed. However, an unknown
+   * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
+   * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
    *
-   * @param length The new length of the file, cannot be negative
+   * @param length The new length of the file, cannot be negative, but can be
+   *               {@link Constants#UNKNOWN_SIZE}
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
   public synchronized void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
-    if (mCompleted) {
+    if (mCompleted && mLength != Constants.UNKNOWN_SIZE) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
-    if (length < 0) {
+    if (length < 0 && length != Constants.UNKNOWN_SIZE) {
       throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
     }
     mCompleted = true;
     mLength = length;
     mBlocks.clear();
+    if (length == Constants.UNKNOWN_SIZE) {
+      // TODO(gpang): allow unknown files to be multiple blocks.
+      // If the length of the file is unknown, only allow 1 block to the file.
+      length = mBlockSizeBytes;
+    }
     while (length > 0) {
       long blockSize = Math.min(length, mBlockSizeBytes);
       getNewBlockId();

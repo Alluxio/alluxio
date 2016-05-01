@@ -202,8 +202,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
-      mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
-          blockInfoEntry.getLength()));
+      if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
+        // Update the existing block info.
+        MasterBlockInfo blockInfo = mBlocks.get(blockInfoEntry.getBlockId());
+        blockInfo.updateLength(blockInfoEntry.getLength());
+      } else {
+        mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
+            blockInfoEntry.getLength()));
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -369,10 +375,22 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
         workerInfo.updateLastUpdatedTimeMs();
 
+        boolean writeJournal = false;
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
+          writeJournal = true;
+        } else if (masterBlockInfo.getLength() != length
+            && masterBlockInfo.getLength() == Constants.UNKNOWN_SIZE) {
+          // The block size was previously unknown. Update the block size with the committed size.
+          masterBlockInfo.updateLength(length);
+          writeJournal = true;
+        }
+        masterBlockInfo.addWorker(workerId, tierAlias);
+        mLostBlocks.remove(blockId);
+
+        if (writeJournal) {
           BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
               .setBlockId(masterBlockInfo.getBlockId())
               .setLength(masterBlockInfo.getLength())
@@ -380,8 +398,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
-        masterBlockInfo.addWorker(workerId, tierAlias);
-        mLostBlocks.remove(blockId);
       }
     }
   }
