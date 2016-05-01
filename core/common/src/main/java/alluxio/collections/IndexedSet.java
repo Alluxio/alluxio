@@ -13,6 +13,7 @@ package alluxio.collections;
 
 import com.google.common.base.Preconditions;
 
+import java.util.AbstractSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,7 +99,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> the type of object
  */
 @ThreadSafe
-public class IndexedSet<T> implements Iterable<T> {
+public class IndexedSet<T> extends AbstractSet<T> {
   /** All objects in the set. This set is required to guarantee uniqueness of objects. */
   // TODO(gpang): remove this set, and just use the indexes.
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>();
@@ -132,6 +133,7 @@ public class IndexedSet<T> implements Iterable<T> {
    * @param field at least one field is needed to index the set of objects
    * @param otherFields other fields to index the set
    */
+  @SafeVarargs
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
     Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMap =
         new HashMap<>(otherFields.length + 1);
@@ -162,6 +164,7 @@ public class IndexedSet<T> implements Iterable<T> {
    * @param object the object to add
    * @return true if this set did not already contain the specified element
    */
+  @Override
   public boolean add(T object) {
     Preconditions.checkNotNull(object);
 
@@ -300,14 +303,19 @@ public class IndexedSet<T> implements Iterable<T> {
    * @param object the object to remove
    * @return true if the object is in the set and removed successfully, otherwise false
    */
-  public boolean remove(T object) {
+  @Override
+  public boolean remove(Object object) {
     // Locking this object protects against removing the exact object that might be in the
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {
       if (mObjects.contains(object)) {
-        removeFromIndices(object);
-        return mObjects.remove(object);
+        // This isn't technically typesafe. However, given that success is true, it's very unlikely
+        // that the object passed to remove is not of type <T>.
+        @SuppressWarnings("unchecked")
+        T tObj = (T) object;
+        removeFromIndices(tObj);
+        return mObjects.remove(tObj);
       } else {
         return false;
       }
@@ -355,6 +363,7 @@ public class IndexedSet<T> implements Iterable<T> {
   /**
    * @return the number of objects in this indexed set (O(1) time)
    */
+  @Override
   public int size() {
     return mObjects.size();
   }
