@@ -33,6 +33,8 @@ alluxio.user.file.writetype.default:
   Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio),
   `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
   UnderFS synchronously).
+alluxio.user.file.cache.incomplete.block:
+  A block is cached to Alluxio even if the block is not fully read when this flag is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
 alluxio.user.lineage.enabled:

@@ -259,14 +259,12 @@ public class FileInStreamTest {
   /**
    * Tests seek with incomplete block caching enabled. It seeks within a block forward
    * and backward, across blocks.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
-  public void testSeekWithCachingIncompleteBlocks() throws IOException {
+  public void seekWithCachingIncompleteBlocksTest() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
-            .enableCacheIncompleteBlock());
+            .setCacheIncompleteBlock());
     int seekAmount = (int) (BLOCK_LENGTH / 2);
     // Seek to the mid of block 0.
     mTestStream.seek(seekAmount);
@@ -286,7 +284,7 @@ public class FileInStreamTest {
         mCacheStreams.get(1).getWrittenData());
 
     // Seek forward within block 1 many times.
-    for (int i = 0; i <= seekAmount / 2; ++i) {
+    for (int i = 0; i <= seekAmount / 2; i++) {
       mTestStream.seek(seekAmount * 3 + i);
     }
     Assert.assertArrayEquals(
@@ -294,7 +292,7 @@ public class FileInStreamTest {
         mCacheStreams.get(1).getWrittenData());
 
     // Seek backward within block 1 many times.
-    for (int i = seekAmount / 2; i >= 0; --i) {
+    for (int i = seekAmount / 2; i >= 0; i--) {
       mTestStream.seek(seekAmount * 3 + i);
     }
     Assert.assertArrayEquals(
