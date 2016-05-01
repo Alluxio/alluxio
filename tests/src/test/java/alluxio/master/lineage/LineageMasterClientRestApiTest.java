@@ -21,7 +21,6 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.LineageInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,7 +41,6 @@ import java.util.Random;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
 public class LineageMasterClientRestApiTest {
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private LineageMaster mLineageMaster;
