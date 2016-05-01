@@ -54,4 +54,3 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     checkWrite(filePath, mWriteAsync.getUnderStorageType(), length, length);
   }
 }
-

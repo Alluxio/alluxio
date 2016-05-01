@@ -441,31 +441,31 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,
       @QueryParam("group") String group, @QueryParam("permission") Short permission,
       @QueryParam("recursive") Boolean recursive) {
-    SetAttributeOptions builder = SetAttributeOptions.defaults();
+    SetAttributeOptions options = SetAttributeOptions.defaults();
     Preconditions.checkNotNull(path, "required 'path' parameter is missing");
     if (pinned != null) {
-      builder.setPinned(pinned);
+      options.setPinned(pinned);
     }
     if (ttl != null) {
-      builder.setTtl(ttl);
+      options.setTtl(ttl);
     }
     if (persisted != null) {
-      builder.setPersisted(persisted);
+      options.setPersisted(persisted);
     }
     if (owner != null) {
-      builder.setOwner(owner);
+      options.setOwner(owner);
     }
     if (group != null) {
-      builder.setGroup(group);
+      options.setGroup(group);
     }
     if (permission != null) {
-      builder.setPermission(permission);
+      options.setPermission(permission);
     }
     if (recursive != null) {
-      builder.setRecursive(recursive);
+      options.setRecursive(recursive);
     }
     try {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), builder);
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
       return RestUtils.createResponse();
     } catch (AlluxioException | IllegalArgumentException | NullPointerException e) {
       LOG.warn(e.getMessage());

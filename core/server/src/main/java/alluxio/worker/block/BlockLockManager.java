@@ -74,7 +74,7 @@ public final class BlockLockManager {
   private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
 
   /**
-   * To guard access to the Maps maintained by this class.
+   * To guard access to the maps maintained by this class.
    */
   private final Object mSharedMapsLock = new Object();
 

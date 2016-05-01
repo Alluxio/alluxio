@@ -316,7 +316,7 @@ public final class MasterSourceTest {
   }
 
   /**
-   * Tests the {@code SetAttributeOps} counter when setting the state of a file.
+   * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */

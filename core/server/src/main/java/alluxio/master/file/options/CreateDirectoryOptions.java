@@ -43,8 +43,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
    * @param options the {@link CreateDirectoryTOptions} to use
    * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
-  public CreateDirectoryOptions(CreateDirectoryTOptions options)
-      throws IOException {
+  public CreateDirectoryOptions(CreateDirectoryTOptions options) throws IOException {
     super();
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
