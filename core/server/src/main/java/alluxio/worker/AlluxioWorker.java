@@ -198,7 +198,6 @@ public final class AlluxioWorker {
       mWorkerAddress =
           NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
               mConfiguration);
-
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);

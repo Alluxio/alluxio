@@ -47,6 +47,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -330,6 +331,13 @@ public class AlluxioMaster {
    */
   public BlockMaster getBlockMaster() {
     return mBlockMaster;
+  }
+
+  /**
+   * @return other additional {@link Master}s
+   */
+  public List<Master> getAdditionalMasters() {
+    return Collections.unmodifiableList(mAdditionalMasters);
   }
 
   /**

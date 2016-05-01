@@ -168,8 +168,7 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    Assert.assertTrue(
-        mFileSystemMaster.delete(NESTED_FILE_URI, false));
+    Assert.assertTrue(mFileSystemMaster.delete(NESTED_FILE_URI, false));
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
