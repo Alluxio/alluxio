@@ -388,8 +388,6 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * NOTE: {@link #mInodeTree} should already be locked before calling this method.
-   *
    * @param inode the inode to get the {@linke FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
