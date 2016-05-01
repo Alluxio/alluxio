@@ -158,6 +158,7 @@ public class CommonUtilsTest {
   static class TestClassA {
     public TestClassA() {}
 
+    @Override
     public String toString() {
       return "hello";
     }
@@ -170,6 +171,7 @@ public class CommonUtilsTest {
       mX = x;
     }
 
+    @Override
     public String toString() {
       return Integer.toString(mX);
     }
