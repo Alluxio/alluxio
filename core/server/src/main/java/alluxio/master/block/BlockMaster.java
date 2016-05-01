@@ -125,18 +125,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
    */
-  // This warning cannot be avoided when passing generics into varargs
   @GuardedBy("itself")
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on {@link #mWorkers}.
    */
-  // This warning cannot be avoided when passing generics into varargs
   @GuardedBy("mWorkers")
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
 
