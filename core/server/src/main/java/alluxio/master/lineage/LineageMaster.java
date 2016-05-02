@@ -53,7 +53,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
@@ -61,6 +60,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -190,7 +190,7 @@ public final class LineageMaster extends AbstractMaster {
   public synchronized long createLineage(List<AlluxioURI> inputFiles, List<AlluxioURI> outputFiles,
       Job job) throws InvalidPathException, FileAlreadyExistsException, BlockInfoException,
       IOException, AccessControlException, FileDoesNotExistException {
-    List<Long> inputAlluxioFiles = Lists.newArrayList();
+    List<Long> inputAlluxioFiles = new ArrayList<>();
     for (AlluxioURI inputFile : inputFiles) {
       long fileId;
       fileId = mFileSystemMaster.getFileId(inputFile);
@@ -201,7 +201,7 @@ public final class LineageMaster extends AbstractMaster {
       inputAlluxioFiles.add(fileId);
     }
     // create output files
-    List<Long> outputAlluxioFiles = Lists.newArrayList();
+    List<Long> outputAlluxioFiles = new ArrayList<>();
     for (AlluxioURI outputFile : outputFiles) {
       long fileId;
       // TODO(yupeng): delete the placeholder files if the creation fails.
@@ -289,13 +289,13 @@ public final class LineageMaster extends AbstractMaster {
     FileInfo fileInfo;
     try {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
+      if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
+        LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
+      }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(
           ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
-    }
-    if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
-      LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-      return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
     }
     return -1;
   }
@@ -307,27 +307,27 @@ public final class LineageMaster extends AbstractMaster {
    */
   public synchronized List<LineageInfo> getLineageInfoList()
       throws LineageDoesNotExistException, FileDoesNotExistException {
-    List<LineageInfo> lineages = Lists.newArrayList();
+    List<LineageInfo> lineages = new ArrayList<>();
 
     for (Lineage lineage : mLineageStore.getAllInTopologicalOrder()) {
       LineageInfo info = new LineageInfo();
-      List<Long> parents = Lists.newArrayList();
+      List<Long> parents = new ArrayList<>();
       for (Lineage parent : mLineageStore.getParents(lineage)) {
         parents.add(parent.getId());
       }
       info.setParents(parents);
-      List<Long> children = Lists.newArrayList();
+      List<Long> children = new ArrayList<>();
       for (Lineage child : mLineageStore.getChildren(lineage)) {
         children.add(child.getId());
       }
       info.setChildren(children);
       info.setId(lineage.getId());
-      List<String> inputFiles = Lists.newArrayList();
+      List<String> inputFiles = new ArrayList<>();
       for (long inputFileId : lineage.getInputFiles()) {
         inputFiles.add(mFileSystemMaster.getPath(inputFileId).toString());
       }
       info.setInputFiles(inputFiles);
-      List<String> outputFiles = Lists.newArrayList();
+      List<String> outputFiles = new ArrayList<>();
       for (long outputFileId : lineage.getOutputFiles()) {
         outputFiles.add(mFileSystemMaster.getPath(outputFileId).toString());
       }
@@ -344,7 +344,6 @@ public final class LineageMaster extends AbstractMaster {
    * Schedules persistence for the output files of the given checkpoint plan.
    *
    * @param plan the plan for checkpointing
-   * @throws FileDoesNotExistException when a file doesn't exist
    */
   public synchronized void scheduleCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
@@ -366,9 +365,10 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
-      AccessControlException {
+      AccessControlException, InvalidPathException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

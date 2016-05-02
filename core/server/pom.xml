@@ -205,9 +205,9 @@
           </execution>
         </executions>
         <configuration>
-          <!--- This following license only works for groupId org.alluxio and artifactId alluxio-core-server. -->
+          <!--- This following license only works for groupId org.alluxio and artifactId alluxio-core-server, it expires on 2018/04/24 -->
           <license>
-            UHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTctMDItMjV8dHJ1ZSNNQzBDRlFDUm1SMXpVb3dMOUkyNXZrcGtJOVlmOHY3M2tnSVVIa0NxSFgvdUlYZmd3SHdSa1hFYUFMRDQ3Q0E9
+            cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTgtMDQtMjh8dHJ1ZXwtMSNNQ3dDRkFFM0JGSnAwZ1FRNFFaNDd5SnlRd0x3ZGhmQUFoUU1ZMkJpWWVOamhOZndvQmU3UldMRVFzZnNGUT09
           </license>
           <restModel>
             <httpStatusCodes>

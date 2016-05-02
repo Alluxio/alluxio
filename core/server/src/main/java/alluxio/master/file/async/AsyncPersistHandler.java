@@ -22,7 +22,8 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -34,23 +35,29 @@ import javax.annotation.concurrent.ThreadSafe;
  * file.
  */
 public interface AsyncPersistHandler {
+  public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Factory for {@link AsyncPersistHandler}.
-   *
-   * @param conf {@link Configuration} to determine the handler type
-   * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
-   * @return the generated {@link AsyncPersistHandler}
    */
   @ThreadSafe
   class Factory {
+    /**
+     * Creates a new instance of {@link AsyncPersistHandler}.
+     *
+     * @param conf {@link Configuration} to determine the handler type
+     * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
+     * @return the generated {@link AsyncPersistHandler}
+     */
     public static AsyncPersistHandler create(Configuration conf, FileSystemMasterView view) {
       try {
         return CommonUtils.createNewClassInstance(
             conf.<AsyncPersistHandler>getClass(Constants.MASTER_FILE_ASYNC_PERSIST_HANDLER),
             new Class[] {FileSystemMasterView.class}, new Object[] {view});
       } catch (Exception e) {
-        throw Throwables.propagate(e);
+        LOG.error("Failed to instantiate the async handler of class "
+            + Constants.MASTER_FILE_ASYNC_PERSIST_HANDLER + ". Use the default handler instead");
+        return new DefaultAsyncPersistHandler(view);
       }
     }
   }

@@ -30,7 +30,6 @@ import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -46,6 +45,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -84,8 +84,8 @@ public class FileInStreamTest {
     Mockito.when(mContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
 
     // Set up BufferedBlockInStreams and caching streams
-    mCacheStreams = Lists.newArrayList();
-    List<Long> blockIds = Lists.newArrayList();
+    mCacheStreams = new ArrayList<>();
+    List<Long> blockIds = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
       mCacheStreams.add(new TestBufferedBlockOutStream(i, BLOCK_LENGTH));

@@ -35,6 +35,7 @@ public final class NoSaslTransportProvider implements TransportProvider {
 
   /**
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
+   *
    * @param conf Alluxio configuration
    */
   public NoSaslTransportProvider(Configuration conf) {

@@ -27,8 +27,6 @@ import alluxio.wire.FileBlockInfoTest;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -40,6 +38,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -49,9 +49,9 @@ import java.util.Random;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1888")
+@Ignore("ALLUXIO-1888")
 public class FileSystemMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
+  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private FileSystemMaster mFileSystemMaster;
 
   @Rule
@@ -88,7 +88,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void completeFileTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("ufsLength", "1");
 
@@ -102,7 +102,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void createDirectoryTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("persisted", "false");
     params.put("recursive", "false");
@@ -118,7 +118,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void createFileTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("persisted", "false");
     params.put("recursive", "false");
@@ -135,11 +135,11 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void getFileBlockInfoListTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     Random random = new Random();
-    List<FileBlockInfo> fileBlockInfos = Lists.newArrayList();
+    List<FileBlockInfo> fileBlockInfos = new ArrayList<>();
     int numFileBlockInfos = random.nextInt(10);
     for (int i = 0; i < numFileBlockInfos; i++) {
       fileBlockInfos.add(FileBlockInfoTest.createRandom());
@@ -156,7 +156,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     Random random = new Random();
@@ -173,7 +173,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void getStatusTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     FileInfo fileInfo = FileInfoTest.createRandom();
@@ -188,7 +188,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void getStatusInternalTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("fileId", "1");
 
     FileInfo fileInfo = FileInfoTest.createRandom();
@@ -215,7 +215,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void freeTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("recursive", "false");
 
@@ -228,11 +228,11 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void listStatusTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     Random random = new Random();
-    List<FileInfo> fileInfos = Lists.newArrayList();
+    List<FileInfo> fileInfos = new ArrayList<>();
     int numFileInfos = random.nextInt(10);
     for (int i = 0; i < numFileInfos; i++) {
       fileInfos.add(FileInfoTest.createRandom());
@@ -248,7 +248,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void loadMetadataTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("recursive", "false");
 
@@ -266,7 +266,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void mountTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("ufsPath", "test");
 
@@ -280,7 +280,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void removeTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("recursive", "false");
 
@@ -293,7 +293,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void renameTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("srcPath", "test");
     params.put("dstPath", "test");
 
@@ -306,7 +306,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void scheduleAsyncPersistTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     TestCaseFactory.newMasterTestCase(
@@ -318,7 +318,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void setAttributeTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("pinned", "false");
     params.put("ttl", "0");
@@ -338,7 +338,7 @@ public class FileSystemMasterClientRestApiTest {
 
   @Test
   public void unmountTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("path", "test");
 
     Random random = new Random();

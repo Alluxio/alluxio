@@ -13,7 +13,6 @@ package alluxio.wire;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +37,7 @@ public final class FileInfo {
   private boolean mPinned;
   private boolean mCacheable;
   private boolean mPersisted;
-  private List<Long> mBlockIds = Lists.newArrayList();
+  private List<Long> mBlockIds = new ArrayList<>();
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
@@ -47,7 +46,7 @@ public final class FileInfo {
   private int mPermission;
   private String mPersistenceState = "";
   private boolean mMountPoint;
-  private List<FileBlockInfo> mFileBlockInfos = Lists.newArrayList();
+  private List<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileInfo}.
