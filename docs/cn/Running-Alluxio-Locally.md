@@ -14,9 +14,9 @@ priority: 1
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-执行Alluxio运行脚本前，在`conf/alluxio-env.sh`中指定必要的环境变量，可以从自带的模板文件中拷贝：
+执行Alluxio运行脚本前，需要创建Alluxio环境配置`conf/alluxio-env.sh`。默认的配置可以通过下面方式自引导生成：
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 在独立模式下运行，确保：
 

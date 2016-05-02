@@ -26,13 +26,12 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utilities related to buffers, not only {@link ByteBuffer}.
  */
-@NotThreadSafe
-// TODO(jsimsa): Make this class thread-safe.
+@ThreadSafe
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Method sCleanerCleanMethod;
@@ -62,7 +61,7 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  public static void cleanDirectBuffer(ByteBuffer buffer) {
+  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer);
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
@@ -176,8 +175,30 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given byte array starts with an increasing sequence of bytes starting at zero of
-   * length equal to or greater than the given length.
+   * Checks if the given byte array starts with a constant sequence of bytes of the given value
+   * and length.
+   *
+   * @param value the value to check for
+   * @param len the target length of the sequence
+   * @param arr the byte array to check
+   * @return true if the byte array has a prefix of length {@code len} that is an increasing
+   *         sequence of bytes starting at zero
+   */
+  public static boolean equalConstantByteArray(byte value, int len, byte[] arr) {
+    if (arr == null || arr.length != len) {
+      return false;
+    }
+    for (int k = 0; k < len; k++) {
+      if (arr[k] != value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given byte array starts with an increasing sequence of bytes of the given
+   * length, starting from 0.
    *
    * @param len the target length of the sequence
    * @param arr the byte array to check
@@ -189,21 +210,21 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given byte array starts with an increasing sequence of bytes starting at the
-   * given value of length equal to or greater than the given length.
+   * Checks if the given byte array starts with an increasing sequence of bytes of the given
+   * length, starting from the given value.
    *
-   * @param start the starting value to use
+   * @param value the starting value to use
    * @param len the target length of the sequence
    * @param arr the byte array to check
    * @return true if the byte array has a prefix of length {@code len} that is an increasing
    *         sequence of bytes starting at {@code start}
    */
-  public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
+  public static boolean equalIncreasingByteArray(int value, int len, byte[] arr) {
     if (arr == null || arr.length != len) {
       return false;
     }
     for (int k = 0; k < len; k++) {
-      if (arr[k] != (byte) (start + k)) {
+      if (arr[k] != (byte) (value + k)) {
         return false;
       }
     }

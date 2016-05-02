@@ -29,14 +29,10 @@ import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.security.authentication.AuthType;
-import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -75,7 +71,6 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -88,7 +83,7 @@ public class FileSystemMasterIntegrationTest {
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-        Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
+        Assert.assertEquals("", fileInfo.getUserName());
         Assert.assertEquals(0644, (short) fileInfo.getPermission());
       } else {
         mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults());
@@ -96,7 +91,7 @@ public class FileSystemMasterIntegrationTest {
         long dirId = mFsMaster.getFileId(path);
         Assert.assertNotEquals(-1, dirId);
         FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
-        Assert.assertEquals(TEST_AUTHENTICATE_USER, dirInfo.getUserName());
+        Assert.assertEquals("", dirInfo.getUserName());
         Assert.assertEquals(0755, (short) dirInfo.getPermission());
       }
 
@@ -256,7 +251,6 @@ public class FileSystemMasterIntegrationTest {
 
     @Override
     public Void call() throws Exception {
-      AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
       exec(mDepth, mConcurrencyDepth, mInitPath);
       return null;
     }
@@ -316,14 +310,6 @@ public class FileSystemMasterIntegrationTest {
   private static final long TEST_CURRENT_TIME = 300;
   private static final long TTL_CHECKER_INTERVAL_MS = 1000;
 
-  /**
-   * The authenticate user is gotten from current thread local. If MasterInfo starts a concurrent
-   * thread to do operations, {@link AuthenticatedClientUser} will be null. So
-   * {@link AuthenticatedClientUser#set(String)} should be called in the {@link Callable#call()} to
-   * set this user for testing.
-   */
-  private static final String TEST_AUTHENTICATE_USER = "test-user";
-
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
@@ -334,7 +320,6 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
           Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
 
   @Rule
@@ -345,9 +330,6 @@ public class FileSystemMasterIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    // mock the authentication user
-    AuthenticatedClientUser.set(TEST_AUTHENTICATE_USER);
-
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
@@ -370,7 +352,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertTrue(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isPersisted());
     Assert.assertFalse(fileInfo.isPinned());
-    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
+    Assert.assertEquals("", fileInfo.getUserName());
     Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
 
@@ -387,7 +369,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPersisted());
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
+    Assert.assertEquals("", fileInfo.getUserName());
     Assert.assertEquals(0644, (short) fileInfo.getPermission());
   }
 
@@ -475,7 +457,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder());
-    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
+    Assert.assertEquals("", fileInfo.getUserName());
     Assert.assertEquals(0755, (short) fileInfo.getPermission());
   }
 
@@ -517,7 +499,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFile")));
     Assert.assertFalse(fileInfo.isFolder());
-    Assert.assertEquals(TEST_AUTHENTICATE_USER, fileInfo.getUserName());
+    Assert.assertEquals("", fileInfo.getUserName());
     Assert.assertEquals(0644, (short) fileInfo.getPermission());
   }
 
@@ -634,7 +616,7 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), fileId, 0, opTimeMs);
+    mFsMaster.completeFileInternal(new ArrayList<Long>(), fileId, 0, opTimeMs);
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -688,8 +670,8 @@ public class FileSystemMasterIntegrationTest {
         ids.add(mFsMaster.createFile(dir.join("j" + j), options));
       }
     }
-    HashSet<Long> listedIds = Sets.newHashSet();
-    HashSet<Long> listedDirIds = Sets.newHashSet();
+    HashSet<Long> listedIds = new HashSet<>();
+    HashSet<Long> listedDirIds = new HashSet<>();
     List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
     for (FileInfo info : infoList) {
       long id = info.getFileId();

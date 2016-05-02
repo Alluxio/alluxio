@@ -11,8 +11,8 @@
 
 package alluxio.worker.block;
 
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.rest.TestCase;
 import alluxio.rest.TestCaseFactory;
 import alluxio.util.CommonUtils;
@@ -22,10 +22,8 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
-import com.google.common.collect.Maps;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +35,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -48,20 +47,21 @@ import javax.ws.rs.core.Response;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
-@Ignore
 public class BlockWorkerClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
-  private static BlockWorker sBlockWorker;
+  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+  private BlockWorker mBlockWorker;
 
   @Rule
   private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
-  @BeforeClass
-  public static void beforeClass() {
-    sBlockWorker = PowerMockito.mock(BlockWorker.class);
-    AlluxioWorker alluxioWorker = PowerMockito.mock(AlluxioWorker.class);
-    Mockito.doReturn(sBlockWorker).when(alluxioWorker).getBlockWorker();
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", alluxioWorker);
+  @Before
+  public void before() throws Exception {
+    AlluxioWorker alluxioWorker = mResource.get().getWorker();
+    mBlockWorker = PowerMockito.mock(BlockWorker.class);
+    // Replace the block worker created by LocalAlluxioClusterResource with a mock.
+    BlockWorker blockWorker = Whitebox.getInternalState(alluxioWorker, "mBlockWorker");
+    blockWorker.stop();
+    Whitebox.setInternalState(alluxioWorker, "mBlockWorker", mBlockWorker);
   }
 
   private String getEndpoint(String suffix) {
@@ -84,19 +84,19 @@ public class BlockWorkerClientRestApiTest {
 
   @Test
   public void accessBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
     TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.ACCESS_BLOCK), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void asyncCheckpointTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("fileId", "1");
 
     TestCaseFactory
@@ -106,7 +106,7 @@ public class BlockWorkerClientRestApiTest {
 
   @Test
   public void cacheBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
@@ -114,12 +114,12 @@ public class BlockWorkerClientRestApiTest {
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.CACHE_BLOCK), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void cancelBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
@@ -127,45 +127,45 @@ public class BlockWorkerClientRestApiTest {
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.CANCEL_BLOCK), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void lockBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
     LockBlockResult lockBlockResult = LockBlockResultTest.createRandom();
-    Mockito.doReturn(lockBlockResult.getLockId()).when(sBlockWorker)
+    Mockito.doReturn(lockBlockResult.getLockId()).when(mBlockWorker)
         .lockBlock(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doReturn(lockBlockResult.getBlockPath()).when(sBlockWorker)
+    Mockito.doReturn(lockBlockResult.getBlockPath()).when(mBlockWorker)
         .readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
     TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.LOCK_BLOCK), params,
             "POST", lockBlockResult, mResource).run();
 
-    Mockito.verify(sBlockWorker).lockBlock(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.verify(sBlockWorker).readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).lockBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void promoteBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
     TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.PROMOTE_BLOCK), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker)
+    Mockito.verify(mBlockWorker)
         .moveBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString());
   }
 
   @Test
   public void readBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("lockId", "1");
@@ -179,7 +179,7 @@ public class BlockWorkerClientRestApiTest {
     BlockReader blockReader = PowerMockito.mock(BlockReader.class);
     Mockito.doReturn(byteBuffer).when(blockReader).read(Mockito.anyLong(), Mockito.anyLong());
     Mockito.doReturn((long) bytes.length).when(blockReader).getLength();
-    Mockito.doReturn(blockReader).when(sBlockWorker)
+    Mockito.doReturn(blockReader).when(mBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
     TestCase testCase = TestCaseFactory
@@ -193,33 +193,33 @@ public class BlockWorkerClientRestApiTest {
         Response.Status.OK.getStatusCode());
     Assert.assertEquals(new String(byteBuffer.array()), testCase.getResponse(connection));
 
-    Mockito.verify(sBlockWorker)
+    Mockito.verify(mBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void requestBlockLocationTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("initialBytes", "1");
 
     String blockLocation = CommonUtils.randomString(10);
-    Mockito.doReturn(blockLocation).when(sBlockWorker)
+    Mockito.doReturn(blockLocation).when(mBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
 
     TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION),
             params, "POST", blockLocation, mResource).run();
 
-    Mockito.verify(sBlockWorker)
+    Mockito.verify(mBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
 
   }
 
   @Test
   public void requestSpaceTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("requestBytes", "1");
@@ -228,13 +228,13 @@ public class BlockWorkerClientRestApiTest {
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_SPACE), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker)
+    Mockito.verify(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void unlockBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
@@ -242,13 +242,13 @@ public class BlockWorkerClientRestApiTest {
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.UNLOCK_BLOCK), params,
             "POST", null, mResource).run();
 
-    Mockito.verify(sBlockWorker).unlockBlock(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).unlockBlock(Mockito.anyLong(), Mockito.anyLong());
 
   }
 
   @Test
   public void writeBlockTest() throws Exception {
-    Map<String, String> params = Maps.newHashMap();
+    Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("offset", "0");
@@ -258,7 +258,7 @@ public class BlockWorkerClientRestApiTest {
     byte[] bytes = CommonUtils.randomBytes(random.nextInt(64));
 
     BlockWriter blockWriter = PowerMockito.mock(BlockWriter.class);
-    Mockito.doReturn(blockWriter).when(sBlockWorker)
+    Mockito.doReturn(blockWriter).when(mBlockWorker)
         .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
 
     TestCase testCase = TestCaseFactory
@@ -275,7 +275,7 @@ public class BlockWorkerClientRestApiTest {
         connection.getResponseCode());
     Assert.assertEquals("", testCase.getResponse(connection));
 
-    Mockito.verify(sBlockWorker).getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
+    Mockito.verify(mBlockWorker).getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
     Mockito.verify(blockWriter).append(ByteBuffer.wrap(bytes));
   }
 }

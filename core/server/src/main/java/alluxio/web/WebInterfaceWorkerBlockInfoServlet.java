@@ -28,7 +28,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
@@ -80,7 +79,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       // Display file block info
       try {
         UIFileInfo uiFileInfo = getUiFileInfo(fs, new AlluxioURI(filePath));
-        List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = Lists.newArrayList();
+        List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
         for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
           fileBlocksOnTier.add(
               new ImmutablePair<String, List<UIFileBlockInfo>>(e.getKey(), e.getValue()));
@@ -174,7 +173,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private List<Long> getSortedFileIds() {
     Set<Long> fileIds = new HashSet<Long>();
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
         long fileId =

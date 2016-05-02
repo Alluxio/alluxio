@@ -46,13 +46,13 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** A cache pool for ByteBufferKeyValuePartitionReader, map from blockId. */
-  private final ReaderCachePool mReaderPool;
+  private final ByteBufferKeyValuePartitionReaderPool mReaderPool;
 
   /**
    * @param blockWorker the {@link BlockWorker}
    */
   public KeyValueWorkerClientServiceHandler(BlockWorker blockWorker) {
-    mReaderPool = new ReaderCachePool(10, blockWorker);
+    mReaderPool = new ByteBufferKeyValuePartitionReaderPool(10, blockWorker);
   }
 
   @Override
@@ -106,6 +106,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
     } catch (InvalidWorkerStateException e) {
       // We shall never reach here
       LOG.error("Reaching invalid state to get a key", e);
+    } finally {
+      mReaderPool.releaseReader(blockId);
     }
     return null;
   }
@@ -135,6 +137,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         } catch (InvalidWorkerStateException e) {
           // We shall never reach here
           LOG.error("Reaching invalid state to get all keys", e);
+        } finally {
+          mReaderPool.releaseReader(blockId);
         }
         return Collections.emptyList();
       }
@@ -152,6 +156,8 @@ public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerC
         } catch (InvalidWorkerStateException e) {
           // We shall never reach here
           LOG.error("Reaching invalid state to get size", e);
+        } finally {
+          mReaderPool.releaseReader(blockId);
         }
         return 0;
       }

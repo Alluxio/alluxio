@@ -26,13 +26,13 @@ import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -106,7 +106,7 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void createFileFaultTest() throws Exception {
     int clients = 10;
-    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int k = 0; k < clients; k++) {
       faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
@@ -123,7 +123,7 @@ public class MasterFaultToleranceIntegrationTest {
   @Test
   public void deleteFileFaultTest() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
-    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);
@@ -178,7 +178,7 @@ public class MasterFaultToleranceIntegrationTest {
     int leaderIndex = mMultiMasterLocalAlluxioCluster.getLeaderIndex();
     Assert.assertNotEquals(-1, leaderIndex);
 
-    List<Pair<Long, AlluxioURI>> answer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int k = 0; k < 5; k++) {
       faultTestDataCreation(new AlluxioURI("/data" + k), answer);
     }
@@ -200,7 +200,7 @@ public class MasterFaultToleranceIntegrationTest {
   public void workerReRegisterTest() throws Exception {
     Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
 
-    List<Pair<Long, AlluxioURI>> emptyAnswer = Lists.newArrayList();
+    List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
       Assert.assertTrue(mMultiMasterLocalAlluxioCluster.killLeader());
       CommonUtils.sleepMs(Constants.SECOND_MS * 2);

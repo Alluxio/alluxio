@@ -40,8 +40,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -123,8 +121,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public void initializeRoot(PermissionStatus rootPermissionStatus) {
     if (mRoot == null) {
-      mRoot = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(ROOT_INODE_NAME)
-          .setPermissionStatus(rootPermissionStatus).setParentId(NO_PARENT);
+      mRoot = InodeDirectory
+          .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
+              CreateDirectoryOptions.defaults().setPermissionStatus(rootPermissionStatus));
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
@@ -326,10 +325,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
           + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
-    List<Inode<?>> createdInodes = Lists.newArrayList();
-    List<Inode<?>> modifiedInodes = Lists.newArrayList();
+    List<Inode<?>> createdInodes = new ArrayList<>();
+    List<Inode<?>> modifiedInodes = new ArrayList<>();
     // Directory persistence will not happen until the end of this method.
-    List<Inode<?>> toPersistDirectories = Lists.newArrayList(traversalResult.getNonPersisted());
+    List<Inode<?>> toPersistDirectories = new ArrayList<>(traversalResult.getNonPersisted());
     if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
       // (1) There are components in parent paths that need to be created. Or
       // (2) The last component of the path needs to be created.
@@ -338,12 +337,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     // Fill in the directories that were missing.
+    CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
+        .setMountPoint(false)
+        .setPersisted(options.isPersisted())
+        .setPermissionStatus(options.getPermissionStatus());
     for (int k = pathIndex; k < parentPath.length; k++) {
-      Inode<?> dir =
-          new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(pathComponents[k])
-              .setParentId(currentInodeDirectory.getId()).setPersistenceState(
-              options.isPersisted() ? PersistenceState.PERSISTED : PersistenceState.NOT_PERSISTED)
-              .setPermissionStatus(options.getPermissionStatus());
+      InodeDirectory dir =
+          InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+              currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
@@ -352,7 +353,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
       createdInodes.add(dir);
       mInodes.add(dir);
-      currentInodeDirectory = (InodeDirectory) dir;
+      currentInodeDirectory = dir;
     }
 
     // Create the final path component. First we need to make sure that there isn't already a file
@@ -375,22 +376,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       if (options instanceof CreateDirectoryOptions) {
         CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
-        lastInode = new InodeDirectory(mDirectoryIdGenerator.getNewDirectoryId()).setName(name)
-            .setParentId(currentInodeDirectory.getId())
-            .setPermissionStatus(directoryOptions.getPermissionStatus())
-            .setMountPoint(directoryOptions.isMountPoint());
+        lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+            currentInodeDirectory.getId(), name, directoryOptions);
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
       }
       if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
-        lastInode = new InodeFile(mContainerIdGenerator.getNewContainerId())
-            .setBlockSizeBytes(fileOptions.getBlockSizeBytes()).setTtl(fileOptions.getTtl())
-            .setName(name).setParentId(currentInodeDirectory.getId()).setPersistenceState(
-                fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-                    PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(fileOptions.getPermissionStatus());
+        lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
+            currentInodeDirectory.getId(), name, fileOptions);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
@@ -406,11 +401,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     if (toPersistDirectories.size() > 0) {
       Inode<?> lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
-      String ufsPath = mMountTable.resolve(getPath(lastToPersistInode)).toString();
-      UnderFileSystem ufs = UnderFileSystem.get(ufsPath, MasterContext.getConf());
+      MountTable.Resolution resolution = mMountTable.resolve(getPath(lastToPersistInode));
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
       // Persists only the last directory, recursively creating necessary parent directories. Even
       // if the directory already exists in the ufs, we mark it as persisted.
-      if (ufs.exists(ufsPath) || ufs.mkdirs(ufsPath, true)) {
+      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, true)) {
         for (Inode<?> inode : toPersistDirectories) {
           inode.setPersistenceState(PersistenceState.PERSISTED);
         }
@@ -526,7 +522,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {
-    return Sets.newHashSet(mPinnedInodeFileIds);
+    return new HashSet<>(mPinnedInodeFileIds);
   }
 
   /**
@@ -636,8 +632,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
       throws InvalidPathException {
-    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
-    List<Inode<?>> inodes = Lists.newArrayList();
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
+    List<Inode<?>> inodes = new ArrayList<>();
 
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");

@@ -59,6 +59,8 @@ public final class Constants {
 
   public static final int BYTES_IN_INTEGER = 4;
 
+  public static final long UNKNOWN_SIZE = -1;
+
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
 
@@ -127,7 +129,6 @@ public final class Constants {
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
-  public static final String ACCESS_LOGGER_TYPE = "alluxio.access.logger.type";
   public static final String VERSION = "alluxio.version";
   public static final String WEB_RESOURCES = "alluxio.web.resources";
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
@@ -248,6 +249,8 @@ public final class Constants {
   public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+  public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
+  public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
   public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       "alluxio.worker.block.heartbeat.timeout.ms";
   public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
@@ -287,6 +290,10 @@ public final class Constants {
       "alluxio.worker.filesystem.heartbeat.interval.ms";
   public static final String WORKER_FILE_PERSIST_POOL_SIZE =
       "alluxio.worker.file.persist.pool.size";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
+      "alluxio.worker.file.persist.rate.limit.enabled";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
+      "alluxio.worker.file.persist.rate.limit";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "alluxio.worker.tieredstore.block.locks";
@@ -387,6 +394,7 @@ public final class Constants {
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
   public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
   public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";

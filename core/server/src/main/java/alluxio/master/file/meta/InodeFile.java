@@ -15,15 +15,15 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
+import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
+import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,10 +35,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
-  /** This default umask is used to calculate file permission from directory permission. */
-  private static final FileSystemPermission UMASK =
-      new FileSystemPermission(Constants.FILE_DIR_PERMISSION_DIFF);
-
   private List<Long> mBlocks;
   private long mBlockContainerId;
   private long mBlockSizeBytes;
@@ -52,7 +48,7 @@ public final class InodeFile extends Inode<InodeFile> {
    *
    * @param id the block container id to use
    */
-  public InodeFile(long id) {
+  private InodeFile(long id) {
     super(0);
     mBlocks = new ArrayList<Long>(3);
     mBlockContainerId = id;
@@ -106,7 +102,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * Resets the file inode.
    */
   public synchronized void reset() {
-    mBlocks = Lists.newArrayList();
+    mBlocks = new ArrayList<>();
     mLength = 0;
     mCompleted = false;
     mCacheable = false;
@@ -190,7 +186,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the updated object
    */
   public synchronized InodeFile setBlockIds(List<Long> blockIds) {
-    mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
+    mBlocks = new ArrayList<>(Preconditions.checkNotNull(blockIds));
     return getThis();
   }
 
@@ -222,12 +218,6 @@ public final class InodeFile extends Inode<InodeFile> {
     return getThis();
   }
 
-  @Override
-  public InodeFile setPermissionStatus(PermissionStatus permissionStatus) {
-    Preconditions.checkNotNull(permissionStatus, "Permission status is not set");
-    return super.setPermissionStatus(permissionStatus.applyUMask(UMASK));
-  }
-
   /**
    * @param ttl the TTL to use, in milliseconds
    * @return the updated object
@@ -238,24 +228,31 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
-   * Completes the file. Cannot set the length if the file is already completed or the length is
-   * negative.
+   * Completes the file. Cannot set the length if the file is already completed. However, an unknown
+   * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
+   * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
    *
-   * @param length The new length of the file, cannot be negative
+   * @param length The new length of the file, cannot be negative, but can be
+   *               {@link Constants#UNKNOWN_SIZE}
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
   public synchronized void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
-    if (mCompleted) {
+    if (mCompleted && mLength != Constants.UNKNOWN_SIZE) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
     }
-    if (length < 0) {
+    if (length < 0 && length != Constants.UNKNOWN_SIZE) {
       throw new InvalidFileSizeException("File " + getName() + " cannot have negative length.");
     }
     mCompleted = true;
     mLength = length;
     mBlocks.clear();
+    if (length == Constants.UNKNOWN_SIZE) {
+      // TODO(gpang): allow unknown files to be multiple blocks.
+      // If the length of the file is unknown, only allow 1 block to the file.
+      length = mBlockSizeBytes;
+    }
     while (length > 0) {
       long blockSize = Math.min(length, mBlockSizeBytes);
       getNewBlockId();
@@ -292,6 +289,31 @@ public final class InodeFile extends Inode<InodeFile> {
             .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
             .setPinned(entry.getPinned())
             .setTtl(entry.getTtl())
+            .setPermissionStatus(permissionStatus);
+    return inode;
+  }
+
+  /**
+   * Creates an {@link InodeFile}.
+   *
+   * @param id id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param fileOptions options to create this file
+   * @return the {@link InodeFile} representation
+   */
+  public static InodeFile create(long id, long parentId, String name,
+      CreateFileOptions fileOptions) {
+    PermissionStatus permissionStatus = new PermissionStatus(fileOptions.getPermissionStatus())
+        .applyFileUMask(MasterContext.getConf());
+    InodeFile inode =
+        new InodeFile(id)
+            .setParentId(parentId)
+            .setName(name)
+            .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+            .setTtl(fileOptions.getTtl())
+            .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+                PersistenceState.NOT_PERSISTED)
             .setPermissionStatus(permissionStatus);
     return inode;
   }

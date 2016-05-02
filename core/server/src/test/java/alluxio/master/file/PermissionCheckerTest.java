@@ -44,6 +44,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -142,7 +143,7 @@ public final class PermissionCheckerTest {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
 
     @Override
@@ -179,9 +180,9 @@ public final class PermissionCheckerTest {
     sTree.initializeRoot(TEST_PERMISSION_STATUS_SUPER);
 
     // build file structure
-    sTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI), sNestedFileOptions);
-    sTree.createPath(new AlluxioURI(TEST_FILE_URI), sFileOptions);
-    sTree.createPath(new AlluxioURI(TEST_WEIRD_FILE_URI), sWeirdFileOptions);
+    createAndSetPermission(TEST_DIR_FILE_URI, sNestedFileOptions);
+    createAndSetPermission(TEST_FILE_URI, sFileOptions);
+    createAndSetPermission(TEST_WEIRD_FILE_URI, sWeirdFileOptions);
   }
 
   @AfterClass
@@ -192,6 +193,14 @@ public final class PermissionCheckerTest {
   @Before
   public void before() throws Exception {
     mPermissionChecker = new PermissionChecker(sTree);
+  }
+
+  // Helper function to create a path and set the permission to what specified in option.
+  private static void createAndSetPermission(String path, CreateFileOptions option)
+      throws Exception {
+    InodeTree.CreatePathResult result = sTree.createPath(new AlluxioURI(path), option);
+    result.getCreated().get(result.getCreated().size() - 1)
+        .setPermissionStatus(option.getPermissionStatus());
   }
 
   private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
