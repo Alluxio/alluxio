@@ -153,6 +153,13 @@ public final class Constants {
   public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
   public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
+  public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+  public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
+      "alluxio.underfs.s3.endpoint.http.port";
+  public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+      "alluxio.underfs.s3.endpoint.https.port";
+  public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
+      "alluxio.underfs.s3.disable.dns.buckets";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
