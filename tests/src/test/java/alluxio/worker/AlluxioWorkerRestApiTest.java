@@ -51,7 +51,7 @@ import java.util.TreeMap;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
-@Ignore
+@Ignore("ALLUXIO-1888")
 public final class AlluxioWorkerRestApiTest {
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static AlluxioWorker sWorker;
