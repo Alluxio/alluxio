@@ -27,7 +27,6 @@ import alluxio.thrift.ThriftIOException;
 import alluxio.wire.ThriftUtils;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -61,11 +60,11 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
   public long createLineage(List<String> inputFiles, List<String> outputFiles,
       CommandLineJobInfo jobInfo) throws AlluxioTException, ThriftIOException {
     // deserialization
-    final List<AlluxioURI> inputFilesUri = Lists.newArrayList();
+    final List<AlluxioURI> inputFilesUri = new ArrayList<>();
     for (String inputFile : inputFiles) {
       inputFilesUri.add(new AlluxioURI(inputFile));
     }
-    final List<AlluxioURI> outputFilesUri = Lists.newArrayList();
+    final List<AlluxioURI> outputFilesUri = new ArrayList<>();
     for (String outputFile : outputFiles) {
       outputFilesUri.add(new AlluxioURI(outputFile));
     }

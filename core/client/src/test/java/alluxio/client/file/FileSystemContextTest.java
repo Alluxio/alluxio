@@ -14,10 +14,10 @@ package alluxio.client.file;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +34,7 @@ public final class FileSystemContextTest {
    */
   @Test(timeout = 10000)
   public void acquireAtMaxLimitTest() throws Exception {
-    final List<FileSystemMasterClient> clients = Lists.newArrayList();
+    final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients
     for (int i = 0; i < ClientContext.getConf()

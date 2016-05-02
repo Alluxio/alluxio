@@ -45,6 +45,7 @@ import org.junit.rules.TemporaryFolder;
 import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -125,7 +126,7 @@ public final class PermissionCheckTest {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
 
     @Override
