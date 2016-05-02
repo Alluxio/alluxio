@@ -16,7 +16,7 @@ config_bin=$(cd "$config_bin"; pwd)
 this="$config_bin/$script"
 
 # Allow for a script which overrides the default settings for system integration folks.
-[ -f "$common_bin/alluxio-layout.sh" ] && . "$common_bin/alluxio-layout.sh"
+[[ -f "$common_bin/alluxio-layout.sh" ]] && . "$common_bin/alluxio-layout.sh"
 
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
@@ -31,16 +31,14 @@ fi
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/../.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
-[ -f ${ALLUXIO_CONF_DIR}/alluxio-env.sh ] && . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
-
-if [[ -z "${ALLUXIO_MASTER_ADDRESS}" ]]; then
-  # Make sure alluxio-site.properties exists
-  if [[ ! -e $ALLUXIO_CONF_DIR/alluxio-site.properties ]]; then
-    echo "Cannot find alluxio-site.properties in ${ALLUXIO_CONF_DIR}."
-    echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
-    exit 1
-  fi
+# Make sure alluxio-env.sh exists
+if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
+  echo "Cannot find alluxio-env.sh in ${ALLUXIO_CONF_DIR}."
+  echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
+  exit 1
 fi
+
+. "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
@@ -85,8 +83,8 @@ ALLUXIO_USER_JAVA_OPTS+=${ALLUXIO_JAVA_OPTS}
 ALLUXIO_USER_JAVA_OPTS+=" -Dalluxio.logger.type=USER_LOGGER"
 
 # A developer option to prepend Alluxio jars before ALLUXIO_CLASSPATH jars
-if [[ -n "$ALLUXIO_PREPEND_ALLUXIO_CLASSES" ]]; then
-  export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_JARS:$ALLUXIO_CLASSPATH"
+if [[ -n "${ALLUXIO_PREPEND_ALLUXIO_CLASSES}" ]]; then
+  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_JARS}:${ALLUXIO_CLASSPATH}"
 else
-  export CLASSPATH="$ALLUXIO_CONF_DIR/:$ALLUXIO_CLASSPATH:$ALLUXIO_JARS"
+  export CLASSPATH="${ALLUXIO_CONF_DIR}/:${ALLUXIO_CLASSPATH}:${ALLUXIO_JARS}"
 fi
