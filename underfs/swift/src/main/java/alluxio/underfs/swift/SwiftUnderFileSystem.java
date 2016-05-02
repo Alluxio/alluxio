@@ -433,6 +433,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return stripPrefixIfPresent(path, PATH_SEPARATOR);
+    }
     return stripPrefixIfPresent(path, mContainerPrefix);
   }
 

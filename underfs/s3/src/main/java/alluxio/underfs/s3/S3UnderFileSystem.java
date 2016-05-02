@@ -98,6 +98,20 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("s3service.https-only",
           Boolean.toString(conf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
+    if (conf.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
+      props.setProperty("s3service.s3-endpoint", conf.get(Constants.UNDERFS_S3_ENDPOINT));
+      if (conf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+        props.setProperty("s3service.s3-endpoint-https-port",
+            conf.get(Constants.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
+      } else {
+        props.setProperty("s3service.s3-endpoint-http-port",
+            conf.get(Constants.UNDERFS_S3_ENDPOINT_HTTP_PORT));
+      }
+    }
+    if (conf.containsKey(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+      props.setProperty("s3service.disable-dns-buckets",
+          conf.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+    }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
