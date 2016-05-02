@@ -6,11 +6,8 @@ export ALLUXIO_CONF_DIR="/etc/alluxio"
 export ALLUXIO_LOGS_DIR="/var/log/alluxio"
 export ALLUXIO_DATA_DIR="/var/run/alluxio"
 
-# generate via mvn dependency:build-classpath
-# export ALLUXIO_JAR=""
-
 if [[ -z "JAVA_HOME" ]]; then
   export JAVA="/usr/bin/java"
 else
-  export JAVA="$JAVA_HOME/bin/java"
+  export JAVA="${JAVA_HOME}/bin/java"
 fi
