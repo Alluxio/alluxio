@@ -640,6 +640,7 @@ public final class FileSystemMasterTest {
    *
    * @param ufsPath the ufs path of the temp dir needed to created
    * @return the AlluxioURI of the temp dir
+   * @throws IOException if {@link TemporaryFolder#newFolder(String...)} operation fails
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
