@@ -584,7 +584,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests mounting a prefix Ufs dir.
+   * Tests mounting a prefix UFS dir.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -600,7 +600,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Tests mounting a suffix Ufs dir.
+   * Tests mounting a suffix UFS dir.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
@@ -635,10 +635,10 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Create a temporary ufs folder. The ufsPath must be a relative path since it's a temporary dir
+   * Creates a temporary UFS folder. The ufsPath must be a relative path since it's a temporary dir
    * created by mTestFolder.
    *
-   * @param ufsPath the ufs path of the temp dir needed to created
+   * @param ufsPath the UFS path of the temp dir needed to created
    * @return the AlluxioURI of the temp dir
    * @throws IOException if {@link TemporaryFolder#newFolder(String...)} operation fails
    */
