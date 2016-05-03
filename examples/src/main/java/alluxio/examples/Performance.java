@@ -76,7 +76,7 @@ public class Performance {
   }
 
   /**
-   * Write log information.
+   * Writes log information.
    *
    * @param startTimeMs the start time in milliseconds
    * @param times the number of the iteration
