@@ -33,8 +33,9 @@ JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
 # Make sure alluxio-env.sh exists
 if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
-  echo "Cannot find alluxio-env.sh in ${ALLUXIO_CONF_DIR}."
-  echo "Please create one manually or using '${ALLUXIO_HOME}/bin/alluxio bootstrap-conf'."
+  echo "Cannot find ${ALLUXIO_CONF_DIR}/alluxio-env.sh. To proceed, you can"
+  echo "(1) create one based on the provided template file ${ALLUXIO_CONF_DIR}/alluxio-env.sh.template, or"
+  echo "(2) use a bootstraping tool by running: ${ALLUXIO_HOME}/bin/alluxio bootstrap-conf"
   exit 1
 fi
 
