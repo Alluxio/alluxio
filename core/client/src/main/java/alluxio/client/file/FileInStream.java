@@ -133,6 +133,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mClosed) {
       return;
     }
+    if (mShouldCacheCurrentBlock && mShouldCacheIncompleteBlock) {
+      readCurrentBlockTill(mFileLength);
+    }
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
     }
@@ -392,9 +395,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     if (shouldCloseCacheStream()) {
-      mCurrentCacheStream.close();
-    } else if (mShouldCacheCurrentBlock && mShouldCacheIncompleteBlock) {
-      readCurrentBlockTill(mFileLength);
       mCurrentCacheStream.close();
     } else {
       mCurrentCacheStream.cancel();
