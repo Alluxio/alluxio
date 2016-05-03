@@ -115,7 +115,7 @@ public final class LineageMasterIntegrationTest {
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       AlluxioURI uri = new AlluxioURI(infos.get(0).getOutputFiles().get(0));
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
-      Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
+      Assert.assertNotEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
       Assert.assertTrue(status.isCompleted());
 
       IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, uri);
