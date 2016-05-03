@@ -12,7 +12,7 @@
 # (http://alluxio.org/documentation/) which is respected by both external jobs
 # and Alluxio servers (or shell).
 
-# The directory where Alluxio deployment is installed. (Default: /var/lib/alluxio).
+# The directory where Alluxio deployment is installed. (Default: the parent directory of libexec/).
 # ALLUXIO_HOME
 
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
@@ -30,7 +30,7 @@
 # ALLUXIO_UNDERFS_ADDRESS
 
 # How much memory to use per worker. (Default: 128MB)
-# E.g. "1000MB", "2gb"
+# E.g. "1000MB", "2GB"
 # ALLUXIO_WORKER_MEMORY_SIZE
 
 # Config properties set for Alluxio master daemon. (Default: "")
