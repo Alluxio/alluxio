@@ -84,7 +84,7 @@ public final class BlockMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<WorkerInfo>>() {
       @Override
       public List<WorkerInfo> call() throws TException {
-        List<WorkerInfo> result = new ArrayList<WorkerInfo>();
+        List<WorkerInfo> result = new ArrayList<>();
         for (alluxio.thrift.WorkerInfo workerInfo : mClient.getWorkerInfoList()) {
           result.add(ThriftUtils.fromThrift(workerInfo));
         }
