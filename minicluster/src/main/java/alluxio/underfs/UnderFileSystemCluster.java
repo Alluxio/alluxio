@@ -98,7 +98,7 @@ public abstract class UnderFileSystemCluster {
       try {
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class,
-                Configuration.class).newInstance(baseDir, configuration);
+            Configuration.class).newInstance(baseDir, configuration);
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;

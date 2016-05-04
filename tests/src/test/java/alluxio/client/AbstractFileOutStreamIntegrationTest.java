@@ -50,8 +50,8 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+      Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
+      Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
   protected CreateFileOptions mWriteBoth;
   protected CreateFileOptions mWriteAlluxio;
@@ -83,7 +83,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * @throws IOException if an I/O exception occurs
    */
   protected void checkWrite(AlluxioURI filePath, UnderStorageType underStorageType, int fileLen,
-                            int increasingByteArrayLen) throws IOException, AlluxioException {
+      int increasingByteArrayLen) throws IOException, AlluxioException {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());
