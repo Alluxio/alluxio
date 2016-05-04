@@ -47,8 +47,7 @@ ALLUXIO_SHELL_JAVA_OPTS=""
 while getopts ":D:" opt; do
   case $opt in
   D)
-      ALLUXIO_SHELL_JAVA_OPTS+=" -D$OPTARG"
-    echo $OPTARG
+    ALLUXIO_SHELL_JAVA_OPTS+=" -D$OPTARG"
     ;;
   \?)
     echo "Invalid option: -$OPTARG"
@@ -58,7 +57,6 @@ while getopts ":D:" opt; do
   esac
 done
 shift $(expr $OPTIND - 1 )
-echo $ALLUXIO_SHELL_JAVA_OPTS
 
 
 function bootstrapConf {
@@ -424,4 +422,4 @@ case ${COMMAND} in
 ;;
 esac
 
-${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+${JAVA} -cp ${CLASSPATH} -Dalluxio.home=${ALLUXIO_HOME} -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS} -Dalluxio.logger.type=USER_LOGGER ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@

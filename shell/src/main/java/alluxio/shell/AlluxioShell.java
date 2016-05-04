@@ -41,12 +41,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Class for handling command line inputs.
  */
 @NotThreadSafe
-public class AlluxioShell implements Closeable {
+public final class AlluxioShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
-      .put("chgrpr", new String[] {"chgrp", "-R"})
-      .put("chmodr", new String[] {"chmod", "-R"})
-      .put("chownr", new String[] {"chown", "-R"})
       .put("lsr", new String[] {"ls", "-R"})
       .put("rmr", new String[] {"rm", "-R"})
       .build();
