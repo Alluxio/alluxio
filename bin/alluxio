@@ -8,8 +8,11 @@ fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
 function printUsage {
-  echo "Usage: alluxio COMMAND "
-  echo "where COMMAND is one of:"
+  echo "Usage: alluxio COMMAND [GENERIC_OPTIONS] [COMMAND_OPTIONS]"
+  echo "GENERIC_OPTIONS supports:"
+  echo -e "  -D<property=value>\tUse value for a given property"
+  echo
+  echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
@@ -39,6 +42,24 @@ fi
 
 COMMAND=$1
 shift
+
+ALLUXIO_SHELL_JAVA_OPTS=""
+while getopts ":D:" opt; do
+  case $opt in
+  D)
+      ALLUXIO_SHELL_JAVA_OPTS+=" -D$OPTARG"
+    echo $OPTARG
+    ;;
+  \?)
+    echo "Invalid option: -$OPTARG"
+    printUsage
+    exit 1
+    ;;
+  esac
+done
+shift $(expr $OPTIND - 1 )
+echo $ALLUXIO_SHELL_JAVA_OPTS
+
 
 function bootstrapConf {
   local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
