@@ -531,8 +531,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Seeks to a file position. Blocks are cached if they are fully read. This is only called by
-   * {@link FileInStream#seek}.
+   * Seeks to a file position. Blocks are cached even if they are not fully read. This is only
+   * called by {@link FileInStream#seek}.
    * Invariant: if the current block is to be cached, [0, mPos) should have been cached already.
    *
    * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
@@ -540,16 +540,27 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @throws IOException if the seek fails due to an error accessing the stream at the position
    */
   private void seekInternalWithCachingIncompleteBlock(long pos) throws IOException {
+    // Precompute this because mPos will be updated several times in this function.
     boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
+
     if (mShouldCacheCurrentBlock) {
-      // Cache the current block or read forward to pos.
+      // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
+      // block.
       readCurrentBlockTill(pos > mPos ? pos : mFileLength);
     }
-    if (mPos == pos) {
-      return;
-    }
+
+    // The logic below:
+    // If seeks within the current block, directly seeks to pos if we are not yet there.
+    // If seeks outside the current block, seek to the beginning of that block first, then
+    // cache the prefix (pos % mBlockSize) of that block.
 
     if (isInCurrentBlock) {
+      // We don't need to seek if we are at pos already. It won't work if you remove this early
+      // return because SeekBlockInStream closes the current cache stream.
+      if (mPos == pos) {
+        return;
+      }
+
       seekBlockInStream(pos);
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
@@ -560,10 +571,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Reads the current block till pos or the end of the current block if some conditions are met.
-   * No-op is pos <= mPos.
+   * Reads till the file offset (mPos) equals pos or the end of the current block (whichever is
+   * met first) if pos > mPos. Otherwise no-op.
    *
-   * @param pos at most read till pos
+   * @param pos file offset
    * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockTill(long pos) throws IOException {
