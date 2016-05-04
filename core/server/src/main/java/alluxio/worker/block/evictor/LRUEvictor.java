@@ -45,7 +45,7 @@ public class LRUEvictor extends AbstractEvictor {
    */
   protected Map<Long, Boolean> mLRUCache =
       Collections.synchronizedMap(new LinkedHashMap<Long, Boolean>(LINKED_HASH_MAP_INIT_CAPACITY,
-          LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
+      LINKED_HASH_MAP_INIT_LOAD_FACTOR, LINKED_HASH_MAP_ACCESS_ORDERED));
 
   /**
    * Creates a new instance of {@link LRUEvictor}.

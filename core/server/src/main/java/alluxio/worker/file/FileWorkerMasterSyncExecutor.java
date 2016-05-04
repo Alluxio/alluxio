@@ -102,7 +102,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     }
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
-            .getPersistFiles()) {
+        .getPersistFiles()) {
       long fileId = persistFile.getFileId();
       if (mFileDataManager.needPersistence(fileId)) {
         // lock all the blocks of the file to prevent eviction

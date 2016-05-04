@@ -178,7 +178,7 @@ public final class BlockStoreMeta {
           (capacityBytes == null ? 0L : capacityBytes) + tier.getCapacityBytes());
       mUsedBytesOnTiers.put(tier.getTierAlias(),
           (usedBytes == null ? 0L : usedBytes) + (tier.getCapacityBytes() - tier
-              .getAvailableBytes()));
+          .getAvailableBytes()));
       for (StorageDir dir : tier.getStorageDirs()) {
         Pair<String, String> dirKey =
             new Pair<String, String>(tier.getTierAlias(), dir.getDirPath());

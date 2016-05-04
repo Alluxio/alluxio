@@ -153,7 +153,7 @@ public final class BlockWorker extends AbstractWorker {
     services.put(
         Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
         new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+        getWorkerServiceHandler()));
     return services;
   }
 
@@ -191,12 +191,12 @@ public final class BlockWorker extends AbstractWorker {
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+        WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+        WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleanerThread);
