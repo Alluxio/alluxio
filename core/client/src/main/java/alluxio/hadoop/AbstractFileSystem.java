@@ -293,8 +293,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     FileStatus ret = new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
-            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + uri));
+        fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
+        fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + uri));
     return ret;
   }
 

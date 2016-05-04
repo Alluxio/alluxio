@@ -310,7 +310,7 @@ public class ConfigurationTest {
   public void variableUserFileBufferBytesOverFlowCheckTest() {
     Properties mProperties = new Properties();
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES ,
-            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+        String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
     new Configuration(mProperties);
   }
@@ -322,7 +322,7 @@ public class ConfigurationTest {
   public void variableUserFileBufferBytesOverFlowCheckTest1() {
     Map<String, String> properties = new LinkedHashMap<String, String>();
     properties.put(Constants.USER_FILE_BUFFER_BYTES ,
-            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+        String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
     new Configuration(properties);
   }
@@ -336,9 +336,9 @@ public class ConfigurationTest {
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
     mCustomPropsConfiguration = new Configuration(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
-            (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+        (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
     mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
     Assert.assertEquals(1073741824,
-            (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+        (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 }

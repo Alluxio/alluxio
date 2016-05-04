@@ -126,7 +126,7 @@ public class FileOutStreamTest {
         });
     BlockWorkerInfo workerInfo =
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
-            .setDataPort(2).setWebPort(3), Constants.GB, 0);
+        .setDataPort(2).setWebPort(3), Constants.GB, 0);
     Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 
@@ -147,7 +147,7 @@ public class FileOutStreamTest {
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH);
+        .setWriteType(WriteType.CACHE_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
@@ -272,7 +272,7 @@ public class FileOutStreamTest {
   public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE);
+        .setWriteType(WriteType.MUST_CACHE);
     mTestStream = createTestStream(FILE_NAME, options);
 
     BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
@@ -375,7 +375,7 @@ public class FileOutStreamTest {
   public void asyncWriteTest() throws Exception {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.ASYNC_THROUGH);
+        .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
     Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
@@ -396,7 +396,7 @@ public class FileOutStreamTest {
   public void locationPolicyTest() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE);
+        .setWriteType(WriteType.MUST_CACHE);
     mTestStream = createTestStream(FILE_NAME, options);
 
     // by default local first policy used
@@ -419,7 +419,7 @@ public class FileOutStreamTest {
   public void missingLocationPolicyTest() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
+        .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
     try {
       mTestStream = createTestStream(FILE_NAME, options);
       Assert.fail("missing location policy should fail");
@@ -468,7 +468,7 @@ public class FileOutStreamTest {
     long lastStreamBytes = len - filledStreams * BLOCK_LENGTH;
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) (filledStreams * BLOCK_LENGTH + start),
-            (int) lastStreamBytes),
+        (int) lastStreamBytes),
         mAlluxioOutStreamMap.get(filledStreams).getWrittenData());
 
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(start, len),

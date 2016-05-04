@@ -163,7 +163,7 @@ public abstract class AbstractClient implements Closeable {
     while (!mClosed) {
       mAddress = getAddress();
       LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
-              getServiceName(), mMode, mAddress);
+          getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));

@@ -573,7 +573,7 @@ public class AlluxioURITest {
 
     final String pathWithSpecialChar = "����,��b����$o����[| =B����";
     Assert.assertEquals(new AlluxioURI("/" + pathWithSpecialChar),
-            new AlluxioURI("/").join(pathWithSpecialChar));
+        new AlluxioURI("/").join(pathWithSpecialChar));
 
     final String pathWithSpecialCharAndColon = "����,��b����$o����[| =B��:��";
     Assert.assertEquals(new AlluxioURI("/" + pathWithSpecialCharAndColon),
