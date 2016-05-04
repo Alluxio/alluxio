@@ -42,7 +42,7 @@ public final class MasterUIWebServer extends UIWebServer {
   public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master,
       Configuration conf) {
     super(service, address, conf);
-    Preconditions.checkNotNull(master, "AlluxioMaster cannot be null");
+    Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
     mWebAppContext.addServlet(new ServletHolder(
