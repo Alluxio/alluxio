@@ -44,10 +44,10 @@ public class ClusterInitializationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(
-          LocalAlluxioClusterResource.DEFAULT_WORKER_CAPACITY_BYTES,
-          LocalAlluxioClusterResource.DEFAULT_USER_BLOCK_SIZE,
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+      LocalAlluxioClusterResource.DEFAULT_WORKER_CAPACITY_BYTES,
+      LocalAlluxioClusterResource.DEFAULT_USER_BLOCK_SIZE,
+      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
 
   /**
    * When a user starts a new cluster, an empty root dir is created and owned by the user.

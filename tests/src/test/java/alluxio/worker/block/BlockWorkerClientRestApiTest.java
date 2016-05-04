@@ -186,7 +186,7 @@ public class BlockWorkerClientRestApiTest {
 
     TestCase testCase = TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.READ_BLOCK), params,
-            "GET", byteBuffer, mResource);
+        "GET", byteBuffer, mResource);
 
     HttpURLConnection connection = (HttpURLConnection) testCase.createURL().openConnection();
     connection.setRequestMethod(testCase.getMethod());
@@ -265,7 +265,7 @@ public class BlockWorkerClientRestApiTest {
 
     TestCase testCase = TestCaseFactory
         .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.WRITE_BLOCK), params,
-            "POST", null, mResource);
+        "POST", null, mResource);
 
     HttpURLConnection connection = (HttpURLConnection) testCase.createURL().openConnection();
     connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);

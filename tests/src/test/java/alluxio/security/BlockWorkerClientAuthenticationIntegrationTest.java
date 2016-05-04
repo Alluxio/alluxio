@@ -73,9 +73,9 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
+      Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }

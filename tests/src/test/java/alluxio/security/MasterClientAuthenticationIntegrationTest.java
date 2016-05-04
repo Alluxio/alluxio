@@ -86,7 +86,7 @@ public final class MasterClientAuthenticationIntegrationTest {
 
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            ClientContext.getConf());
+        ClientContext.getConf());
     try {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
@@ -107,7 +107,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
         new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            mLocalAlluxioClusterResource.get().getMasterConf());
+        mLocalAlluxioClusterResource.get().getMasterConf());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());
@@ -126,7 +126,7 @@ public final class MasterClientAuthenticationIntegrationTest {
     // the alluxio cluster
     public static final String FULL_CLASS_NAME =
         "alluxio.security.MasterClientAuthenticationIntegrationTest$"
-            + "NameMatchAuthenticationProvider";
+        + "NameMatchAuthenticationProvider";
 
     @Override
     public void authenticate(String user, String password) throws AuthenticationException {
