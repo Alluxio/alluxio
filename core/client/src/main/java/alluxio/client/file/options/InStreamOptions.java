@@ -99,8 +99,9 @@ public final class InStreamOptions {
   }
 
   /**
-   * Enables incomplete block caching.
+   * Enables/Disables incomplete block caching.
    *
+   * @param cacheIncompleteBlock set to true if to enable incomplete block caching
    * @return the updated options object
    */
   public InStreamOptions setCacheIncompleteBlock(boolean cacheIncompleteBlock) {
