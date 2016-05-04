@@ -21,7 +21,6 @@ import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;

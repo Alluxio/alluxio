@@ -130,7 +130,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
-      List<UIFileInfo> uiFileInfos = new ArrayList<UIFileInfo>(subFileIds.size());
+      List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
       for (long fileId : subFileIds) {
         uiFileInfos.add(getUiFileInfo(fs, fileId));
       }
@@ -172,7 +172,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @return a sorted file id list
    */
   private List<Long> getSortedFileIds() {
-    Set<Long> fileIds = new HashSet<Long>();
+    Set<Long> fileIds = new HashSet<>();
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
@@ -181,7 +181,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         fileIds.add(fileId);
       }
     }
-    List<Long> sortedFileIds = new ArrayList<Long>(fileIds);
+    List<Long> sortedFileIds = new ArrayList<>(fileIds);
     Collections.sort(sortedFileIds);
     return sortedFileIds;
   }
