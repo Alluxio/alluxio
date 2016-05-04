@@ -43,8 +43,8 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
    */
   public BlockHeartbeatReporter() {
     mLock = new Object();
-    mRemovedBlocks = new ArrayList<Long>(100);
-    mAddedBlocks = new HashMap<String, List<Long>>(20);
+    mRemovedBlocks = new ArrayList<>(100);
+    mAddedBlocks = new HashMap<>(20);
   }
 
   /**
@@ -56,8 +56,8 @@ public final class BlockHeartbeatReporter extends AbstractBlockStoreEventListene
   public BlockHeartbeatReport generateReport() {
     synchronized (mLock) {
       // Copy added and removed blocks
-      Map<String, List<Long>> addedBlocks = new HashMap<String, List<Long>>(mAddedBlocks);
-      List<Long> removedBlocks = new ArrayList<Long>(mRemovedBlocks);
+      Map<String, List<Long>> addedBlocks = new HashMap<>(mAddedBlocks);
+      List<Long> removedBlocks = new ArrayList<>(mRemovedBlocks);
       // Clear added and removed blocks
       mAddedBlocks.clear();
       mRemovedBlocks.clear();
