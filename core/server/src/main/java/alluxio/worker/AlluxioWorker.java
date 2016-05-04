@@ -68,7 +68,7 @@ public final class AlluxioWorker {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} alluxio.worker.AlluxioWorker", Version.ALLUXIO_JAR);
+      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioWorker.class.getCanonicalName());
       System.exit(-1);
     }
 
