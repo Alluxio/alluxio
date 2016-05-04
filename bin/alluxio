@@ -58,7 +58,6 @@ while getopts ":D:" opt; do
 done
 shift $(expr $OPTIND - 1 )
 
-
 function bootstrapConf {
   local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
   if [[ $# -lt 1 ]]; then
