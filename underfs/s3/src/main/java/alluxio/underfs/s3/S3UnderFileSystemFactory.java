@@ -42,9 +42,9 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
 
     try {
       AWSCredentials creds = addAndCheckAWSCredentials(configuration)
-              ? new AWSCredentials(configuration.get(Constants.S3_ACCESS_KEY),
-                      configuration.get(Constants.S3_SECRET_KEY)) :
-              AWSEC2IAMSessionCredentials.loadFromEC2InstanceData(true);
+          ? new AWSCredentials(configuration.get(Constants.S3_ACCESS_KEY),
+          configuration.get(Constants.S3_SECRET_KEY)) :
+          AWSEC2IAMSessionCredentials.loadFromEC2InstanceData(true);
       return new S3UnderFileSystem(new AlluxioURI(path), configuration, creds);
     } catch (ServiceException e) {
       LOG.error("Failed to create S3UnderFileSystem.", e);

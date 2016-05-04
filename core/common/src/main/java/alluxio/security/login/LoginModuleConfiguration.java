@@ -39,7 +39,7 @@ public final class LoginModuleConfiguration extends Configuration {
   /** Login module that allows a user name provided by OS. */
   private static final AppConfigurationEntry OS_SPECIFIC_LOGIN =
       new AppConfigurationEntry(LoginModuleConfigurationUtils.OS_LOGIN_MODULE_NAME,
-          LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
+      LoginModuleControlFlag.REQUIRED, EMPTY_JAAS_OPTIONS);
 
   /** Login module that allows a user name provided by application to be specified. */
   private static final AppConfigurationEntry APP_LOGIN = new AppConfigurationEntry(

@@ -206,7 +206,7 @@ public final class TransportProviderTest {
     // when connecting, authentication happens. User's name:pwd pair matches and auth pass.
     TTransport client = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME,
-            ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
+        ExactlyMatchAuthenticationProvider.PASSWORD, mServerAddress);
     client.open();
     Assert.assertTrue(client.isOpen());
 
@@ -232,7 +232,7 @@ public final class TransportProviderTest {
     // User with wrong password can not pass auth, and throw exception.
     TTransport wrongClient = ((PlainSaslTransportProvider) mTransportProvider)
         .getClientTransport(ExactlyMatchAuthenticationProvider.USERNAME, "wrong-password",
-            mServerAddress);
+        mServerAddress);
     mThrown.expect(TTransportException.class);
     mThrown.expectMessage(
         "Peer indicated failure: Plain authentication failed: " + "User authentication fails");

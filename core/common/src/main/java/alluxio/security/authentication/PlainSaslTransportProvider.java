@@ -89,7 +89,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
         AuthenticationProvider.Factory.create(authType, mConfiguration);
     saslFactory
         .addServerDefinition(PlainSaslServerProvider.MECHANISM, null, null,
-            new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider));
+        new HashMap<String, String>(), new PlainSaslServerCallbackHandler(provider));
     return saslFactory;
   }
 }
