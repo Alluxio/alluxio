@@ -218,7 +218,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
+    List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
     for (FileInfo fileInfo : filesInfo) {
       UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {

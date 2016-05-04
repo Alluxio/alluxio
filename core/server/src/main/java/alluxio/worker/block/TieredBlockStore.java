@@ -90,11 +90,10 @@ public final class TieredBlockStore implements BlockStore {
   private final Allocator mAllocator;
   private final Evictor mEvictor;
 
-  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
-      new ArrayList<BlockStoreEventListener>();
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners = new ArrayList<>();
 
   /** A set of pinned inodes fetched from the master. */
-  private final Set<Long> mPinnedInodes = new HashSet<Long>();
+  private final Set<Long> mPinnedInodes = new HashSet<>();
 
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
