@@ -61,7 +61,7 @@ public final class KeyValueWorker extends AbstractWorker {
     services.put(
         Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
         new KeyValueWorkerClientService.Processor<KeyValueWorkerClientServiceHandler>(
-            mKeyValueServiceHandler));
+        mKeyValueServiceHandler));
     return services;
   }
 

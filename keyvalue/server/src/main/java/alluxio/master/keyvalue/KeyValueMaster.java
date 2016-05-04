@@ -95,7 +95,7 @@ public final class KeyValueMaster extends AbstractMaster {
     Map<String, TProcessor> services = new HashMap<String, TProcessor>();
     services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
         new KeyValueMasterClientService.Processor<KeyValueMasterClientServiceHandler>(
-            new KeyValueMasterClientServiceHandler(this)));
+        new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 
@@ -431,9 +431,9 @@ public final class KeyValueMaster extends AbstractMaster {
   private JournalEntry newCompletePartitionEntry(long fileId, PartitionInfo info) {
     CompletePartitionEntry completePartition =
         CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
-            .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
-            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
-            .setKeyCount(info.getKeyCount()).build();
+        .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
+        .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
+        .setKeyCount(info.getKeyCount()).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }
 
