@@ -553,7 +553,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // If seeks within the current block, directly seeks to pos if we are not yet there.
     // If seeks outside the current block, seek to the beginning of that block first, then
     // cache the prefix (pos % mBlockSize) of that block.
-
     if (isInCurrentBlock) {
       // We don't need to seek if we are at pos already. It won't work if you remove this early
       // return because SeekBlockInStream closes the current cache stream.
