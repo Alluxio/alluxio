@@ -305,7 +305,7 @@ public class DataServerIntegrationTest {
     try {
       DataServerMessage sendMsg =
           DataServerMessage.createBlockRequestMessage(block.getBlockId(), offset, length, lockId,
-              mBlockWorkerClient.getSessionId());
+          mBlockWorkerClient.getSessionId());
       socketChannel = SocketChannel
         .open(new InetSocketAddress(block.getLocations().get(0).getWorkerAddress().getHost(),
             block.getLocations().get(0).getWorkerAddress().getDataPort()));
@@ -315,7 +315,7 @@ public class DataServerIntegrationTest {
       }
       DataServerMessage recvMsg =
           DataServerMessage.createBlockResponseMessage(false, block.getBlockId(), offset, length,
-                  null);
+          null);
       while (!recvMsg.isMessageReady()) {
         int numRead = recvMsg.recv(socketChannel);
         if (numRead == -1) {

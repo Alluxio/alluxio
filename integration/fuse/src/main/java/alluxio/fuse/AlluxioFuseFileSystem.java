@@ -580,7 +580,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public int write(String path, Pointer buf, @size_t long size, @off_t long offset,
-                   FuseFileInfo fi) {
+      FuseFileInfo fi) {
     if (size > Integer.MAX_VALUE) {
       LOG.error("Cannot write more than Integer.MAX_VALUE");
       return ErrorCodes.EIO();
