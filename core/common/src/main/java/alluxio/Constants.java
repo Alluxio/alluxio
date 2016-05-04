@@ -112,12 +112,7 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
-   * Version 2 [0.5.0] Starts to use JSON. <br>
-   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
-   */
-  public static final int JOURNAL_VERSION = 3;
+  public static final String REST_API_PREFIX = "v1/api";
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
