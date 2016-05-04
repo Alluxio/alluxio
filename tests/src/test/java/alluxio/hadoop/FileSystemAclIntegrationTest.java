@@ -39,8 +39,8 @@ public final class FileSystemAclIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(100000000, BLOCK_SIZE,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+      Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
+      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
   private static void create(org.apache.hadoop.fs.FileSystem fs, Path path) throws IOException {

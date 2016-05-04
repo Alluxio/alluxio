@@ -92,7 +92,7 @@ public class LineageMasterClientRestApiTest {
     long result = random.nextLong();
     Mockito.doReturn(result).when(mLineageMaster)
         .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
-            Mockito.<Job>any());
+        Mockito.<Job>any());
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(LineageMasterClientRestServiceHandler.CREATE_LINEAGE),
@@ -100,7 +100,7 @@ public class LineageMasterClientRestApiTest {
 
     Mockito.verify(mLineageMaster)
         .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
-            Mockito.<Job>any());
+        Mockito.<Job>any());
   }
 
   @Test

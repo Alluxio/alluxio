@@ -241,7 +241,7 @@ public class FileSystemMasterIntegrationTest {
     private AlluxioURI mInitPath;
 
     ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
-                      AlluxioURI initPath) {
+        AlluxioURI initPath) {
       mDepth = depth;
       mConcurrencyDepth = concurrencyDepth;
       mRootPath = rootPath;
@@ -320,7 +320,7 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
+      Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

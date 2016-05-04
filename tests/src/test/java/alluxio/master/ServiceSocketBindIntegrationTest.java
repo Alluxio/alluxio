@@ -145,7 +145,7 @@ public class ServiceSocketBindIntegrationTest {
     bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
     Assert.assertThat(
         "Worker Data bind address " + bindHost + " is not wildcard address. Make sure the System"
-            + " property -Djava.net.preferIPv4Stack is set to true.",
+        + " property -Djava.net.preferIPv4Stack is set to true.",
         bindHost, CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
 
     // test Worker data service connectivity (application layer)
