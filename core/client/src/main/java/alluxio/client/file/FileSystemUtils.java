@@ -106,7 +106,7 @@ public final class FileSystemUtils {
         ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
-    long toSleep = 0;
+    long toSleep;
 
     while (!completed && (timeout <= 0 || timeleft > 0)) {
 
