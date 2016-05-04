@@ -71,7 +71,7 @@ public class AlluxioMaster {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} alluxio.master.AlluxioMaster", Version.ALLUXIO_JAR);
+      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioMaster.class.getCanonicalName());
       System.exit(-1);
     }
 
