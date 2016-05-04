@@ -78,7 +78,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
-      throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
+      throws IOException, AlluxioException {
     FileSystem fs = FileSystem.Factory.get();
     String fileData = null;
     URIStatus status = fs.getStatus(path);

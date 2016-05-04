@@ -82,7 +82,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
         for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
           fileBlocksOnTier.add(
-              new ImmutablePair<String, List<UIFileBlockInfo>>(e.getKey(), e.getValue()));
+              new ImmutablePair<>(e.getKey(), e.getValue()));
         }
         request.setAttribute("fileBlocksOnTier", fileBlocksOnTier);
         request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
