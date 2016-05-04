@@ -308,7 +308,6 @@ public class FileInStreamTest {
         mCacheStreams.get(1).getWrittenData());
   }
 
-
   /**
    * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block.
    */
