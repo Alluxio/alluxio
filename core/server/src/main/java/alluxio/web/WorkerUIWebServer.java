@@ -46,7 +46,7 @@ public final class WorkerUIWebServer extends UIWebServer {
       AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
       long startTimeMs, Configuration conf) {
     super(serviceType, webAddress, conf);
-    Preconditions.checkNotNull(blockWorker, "Block Worker cannot be null");
+    Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
