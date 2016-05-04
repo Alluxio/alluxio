@@ -120,7 +120,7 @@ public final class LineageMaster extends AbstractMaster {
     Map<String, TProcessor> services = new HashMap<String, TProcessor>();
     services.put(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
         new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
-            new LineageMasterClientServiceHandler(this)));
+        new LineageMasterClientServiceHandler(this)));
     return services;
   }
 

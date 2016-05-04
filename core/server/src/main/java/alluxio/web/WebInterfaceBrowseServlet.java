@@ -225,7 +225,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         if (!toAdd.getIsDirectory() && fileInfo.getLength() > 0) {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
-                  .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
+              .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
           List<String> locations = new ArrayList<>();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {

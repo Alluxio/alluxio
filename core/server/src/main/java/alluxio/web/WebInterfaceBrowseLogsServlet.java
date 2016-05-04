@@ -133,8 +133,8 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         for (File logFile : logFiles) {
           String logFileName = logFile.getName();
           fileInfos.add(new UIFileInfo(new UIFileInfo.LocalFileInfo(logFileName, logFileName,
-                  logFile.length(), UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
-                  logFile.lastModified(), logFile.isDirectory())));
+              logFile.length(), UIFileInfo.LocalFileInfo.EMPTY_CREATION_TIME,
+              logFile.lastModified(), logFile.isDirectory())));
         }
       }
       Collections.sort(fileInfos, UIFileInfo.PATH_STRING_COMPARE);
@@ -153,12 +153,12 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         request.setAttribute("fileInfos", sub);
       } catch (NumberFormatException e) {
         request.setAttribute("fatalError",
-                "Error: offset or limit parse error, " + e.getLocalizedMessage());
+            "Error: offset or limit parse error, " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       } catch (IndexOutOfBoundsException e) {
         request.setAttribute("fatalError",
-                "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
+            "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
         getServletContext().getRequestDispatcher(mBrowseJsp).forward(request, response);
         return;
       } catch (IllegalArgumentException e) {
@@ -208,7 +208,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       } catch (IOException e) {
         request.setAttribute("invalidPathError", "Error: File " + logFile + " is not available "
-                + e.getMessage());
+            + e.getMessage());
         getServletContext().getRequestDispatcher(mViewJsp).forward(request, response);
       }
     }

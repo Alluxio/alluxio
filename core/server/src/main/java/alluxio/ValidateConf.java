@@ -62,19 +62,19 @@ public final class ValidateConf {
     // "alluxio\.worker\.tieredstore\.level\d+\.alias".
     Pattern masterAliasPattern =
         Pattern.compile(Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT
-            .replace("%d", "\\d+").replace(".", "\\."));
+        .replace("%d", "\\d+").replace(".", "\\."));
     Pattern workerAliasPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
-            .replace(".", "\\."));
+        .replace(".", "\\."));
     Pattern dirsPathPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT
-            .replace("%d", "\\d+").replace(".", "\\."));
+        .replace("%d", "\\d+").replace(".", "\\."));
     Pattern dirsQuotaPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
-            "\\d+").replace(".", "\\."));
+        "\\d+").replace(".", "\\."));
     Pattern reservedRatioPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
-            "\\d+").replace(".", "\\."));
+        "\\d+").replace(".", "\\."));
     Configuration configuration = new Configuration();
     boolean valid = true;
     for (Entry<String, String> entry : configuration.toMap().entrySet()) {
