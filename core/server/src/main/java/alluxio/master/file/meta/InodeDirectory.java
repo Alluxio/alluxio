@@ -204,13 +204,13 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         entry.getGroupName(), (short) entry.getPermission());
     InodeDirectory inode =
         new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
-            .setName(entry.getName())
-            .setParentId(entry.getParentId())
-            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
-            .setPinned(entry.getPinned())
-            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-            .setPermissionStatus(permissionStatus)
-            .setMountPoint(entry.getMountPoint());
+        .setName(entry.getName())
+        .setParentId(entry.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+        .setPinned(entry.getPinned())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setPermissionStatus(permissionStatus)
+        .setMountPoint(entry.getMountPoint());
     return inode;
   }
 

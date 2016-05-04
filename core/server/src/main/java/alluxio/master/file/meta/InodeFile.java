@@ -278,18 +278,18 @@ public final class InodeFile extends Inode<InodeFile> {
         entry.getGroupName(), (short) entry.getPermission());
     InodeFile inode =
         new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
-            .setName(entry.getName())
-            .setBlockIds(entry.getBlocksList())
-            .setBlockSizeBytes(entry.getBlockSizeBytes())
-            .setCacheable(entry.getCacheable())
-            .setCompleted(entry.getCompleted())
-            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-            .setLength(entry.getLength())
-            .setParentId(entry.getParentId())
-            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
-            .setPinned(entry.getPinned())
-            .setTtl(entry.getTtl())
-            .setPermissionStatus(permissionStatus);
+        .setName(entry.getName())
+        .setBlockIds(entry.getBlocksList())
+        .setBlockSizeBytes(entry.getBlockSizeBytes())
+        .setCacheable(entry.getCacheable())
+        .setCompleted(entry.getCompleted())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLength(entry.getLength())
+        .setParentId(entry.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+        .setPinned(entry.getPinned())
+        .setTtl(entry.getTtl())
+        .setPermissionStatus(permissionStatus);
     return inode;
   }
 
@@ -308,13 +308,13 @@ public final class InodeFile extends Inode<InodeFile> {
         .applyFileUMask(MasterContext.getConf());
     InodeFile inode =
         new InodeFile(id)
-            .setParentId(parentId)
-            .setName(name)
-            .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
-            .setTtl(fileOptions.getTtl())
-            .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-                PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(permissionStatus);
+        .setParentId(parentId)
+        .setName(name)
+        .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+        .setTtl(fileOptions.getTtl())
+        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+        PersistenceState.NOT_PERSISTED)
+        .setPermissionStatus(permissionStatus);
     return inode;
   }
 

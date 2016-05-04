@@ -230,7 +230,7 @@ public class AlluxioMaster {
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + Constants.MASTER_WORKER_THREADS_MIN);
+        + Constants.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.

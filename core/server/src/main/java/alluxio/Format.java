@@ -83,7 +83,7 @@ public final class Format {
       // present under the folder.
       UnderFileSystemUtils.touch(
           PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
-              + System.currentTimeMillis()), configuration);
+          + System.currentTimeMillis()), configuration);
     } else if ("WORKER".equalsIgnoreCase(args[0])) {
       String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
       int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
