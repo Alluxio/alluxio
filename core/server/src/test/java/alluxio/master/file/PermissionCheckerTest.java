@@ -256,7 +256,7 @@ public final class PermissionCheckerTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
-            "file")));
+        "file")));
 
     // not the owner and in other group
     checkPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
@@ -267,7 +267,7 @@ public final class PermissionCheckerTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_3.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
-            "file")));
+        "file")));
 
     // not the owner but in same group
     checkPermission(TEST_USER_3, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
@@ -292,7 +292,7 @@ public final class PermissionCheckerTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
-            "testDir")));
+        "testDir")));
 
     checkParentOrAncestorPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_DIR_FILE_URI);
   }
@@ -307,7 +307,7 @@ public final class PermissionCheckerTest {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_NOT_EXIST_URI,
-            "testDir")));
+        "testDir")));
 
     checkParentOrAncestorPermission(TEST_USER_2, FileSystemAction.WRITE, TEST_NOT_EXIST_URI);
   }

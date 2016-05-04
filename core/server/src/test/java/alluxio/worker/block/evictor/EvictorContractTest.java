@@ -211,7 +211,7 @@ public final class EvictorContractTest extends EvictorTestBase {
     long requestBytes = dirs.get(dirs.size() - 1).getCapacityBytes();
     EvictionPlan plan =
         mEvictor.freeSpaceWithView(requestBytes,
-            BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
+        BlockStoreLocation.anyDirInTier(tier.getTierAlias()), mManagerView);
     EvictorTestUtils.assertEvictionPlanValid(requestBytes, plan, mMetaManager);
   }
 

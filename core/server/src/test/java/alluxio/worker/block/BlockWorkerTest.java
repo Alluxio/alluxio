@@ -210,7 +210,7 @@ public class BlockWorkerTest {
     when(storageDir.getDirPath()).thenReturn("/tmp");
     assertEquals(
         PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
-            String.format("%x-%x", sessionId, blockId)),
+        String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 

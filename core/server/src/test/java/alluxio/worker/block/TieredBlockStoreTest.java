@@ -118,7 +118,7 @@ public final class TieredBlockStoreTest {
     Assert.assertNotEquals(lockId1, lockId2);
     Assert.assertTrue(
         Sets.difference(mLockManager.getLockedBlocks(), Sets.newHashSet(BLOCK_ID1, BLOCK_ID2))
-            .isEmpty());
+        .isEmpty());
 
     mBlockStore.unlockBlock(lockId2);
     Assert.assertTrue(
