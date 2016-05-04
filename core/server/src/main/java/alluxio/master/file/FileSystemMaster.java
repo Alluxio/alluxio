@@ -191,12 +191,10 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
         new FileSystemMasterClientService.Processor<>(
             new FileSystemMasterClientServiceHandler(this)));
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
             new FileSystemMasterWorkerServiceHandler(this)));
     return services;
