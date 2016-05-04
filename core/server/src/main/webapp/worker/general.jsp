@@ -54,7 +54,8 @@
                 </tr>
                 <tr>
                   <th>Version:</th>
-                  <th><%= UIWorkerInfo.VERSION %></th>
+                  <!-- <th>${version}</th> -->
+                  <th><%= request.getAttribute("version") %></th>
                 </tr>
               </tbody>
             </table>

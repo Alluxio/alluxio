@@ -78,7 +78,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
-      throws IOException, AlluxioException {
+      throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
     FileSystem fs = FileSystem.Factory.get();
     String fileData = null;
     URIStatus status = fs.getStatus(path);
@@ -218,7 +218,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
+    List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
     for (FileInfo fileInfo : filesInfo) {
       UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
