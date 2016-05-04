@@ -22,6 +22,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -62,7 +63,7 @@ public final class WorkerUIWebServer extends UIWebServer {
         WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
 
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Arrays.asList(conf.get(Constants.WEB_RESOURCES)
-        + "/WEB-INF/worker.xml"));
+    mWebAppContext.setOverrideDescriptors(
+        Collections.singletonList(conf.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
   }
 }

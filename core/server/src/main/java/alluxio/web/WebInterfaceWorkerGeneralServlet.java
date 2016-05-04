@@ -95,8 +95,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Displays information about a worker in the UI.
    */
   public static class UIWorkerInfo {
-    public static final boolean DEBUG = WorkerContext.getConf().getBoolean(Constants.DEBUG);
-    public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
 
