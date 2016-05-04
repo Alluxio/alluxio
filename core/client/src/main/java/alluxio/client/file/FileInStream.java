@@ -549,7 +549,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       readCurrentBlockTill(pos > mPos ? pos : mFileLength);
     }
 
-    // The logic below:
     // If seeks within the current block, directly seeks to pos if we are not yet there.
     // If seeks outside the current block, seek to the beginning of that block first, then
     // cache the prefix (pos % mBlockSize) of that block.
