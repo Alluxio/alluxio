@@ -13,7 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ValidateConf;
+import alluxio.cli.ValidateConf;
 import alluxio.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;

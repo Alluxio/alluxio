@@ -391,7 +391,7 @@ case ${COMMAND} in
   CLASS=alluxio.Version
 ;;
 "validateConf")
-  CLASS=alluxio.ValidateConf
+  CLASS=alluxio.cli.ValidateConf
 ;;
 *)
   printUsage
