@@ -1,4 +1,4 @@
-<code_scheme name="AlluxioStyleCopy2">
+<code_scheme name="AlluxioStyle">
   <option name="FIELD_NAME_PREFIX" value="m" />
   <option name="STATIC_FIELD_NAME_PREFIX" value="s" />
   <option name="CLASS_COUNT_TO_USE_IMPORT_ON_DEMAND" value="99" />
@@ -67,3 +67,4 @@
     </indentOptions>
   </codeStyleSettings>
 </code_scheme>
+

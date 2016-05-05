@@ -1,23 +1,23 @@
 #!/bin/bash
 
-_CALLING_DIR="$(pwd)"
-_UNPACK_DIR="$_CALLING_DIR/unpacked"
+CALLING_DIR="$(pwd)"
+UNPACK_DIR="${CALLING_DIR}/unpacked"
 
-if [ $# -ne 1 ]; then
+if [[ $# -ne 1 ]]; then
     echo "Please call with the jar to unpack, e.g. ./update AlluxioCodeStyle.jar" 
     exit 1
 fi
 
-if [ ! -d "$_UNPACK_DIR" ]; then
-  mkdir "$_UNPACK_DIR"
+if [[ ! -d "${UNPACK_DIR}" ]]; then
+  mkdir "${UNPACK_DIR}"
 fi
 
 
-cd "$_UNPACK_DIR"
+cd "${UNPACK_DIR}"
 
-jar -xvf $_CALLING_DIR/$1
-cp -rf "$_UNPACK_DIR/codestyles" "$_CALLING_DIR"
-cp -rf "$_UNPACK_DIR/options" "$_CALLING_DIR"
-cd "$_CALLING_DIR"
-rm -rf $"_UNPACK_DIR"
+jar -xvf "${CALLING_DIR}/$1"
+cp -rf "${UNPACK_DIR}/codestyles" "${CALLING_DIR}"
+cp -rf "${UNPACK_DIR}/options" "${CALLING_DIR}"
+cd "${CALLING_DIR}"
+rm -rf "${UNPACK_DIR}"
 echo "Local files updated. Please run git commit and git push to push these updates to your Git repository."
