@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
@@ -18,6 +18,7 @@ import alluxio.cli.Version;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.examples.Utils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
@@ -234,7 +235,7 @@ public class JournalCrashTest {
    *
    * Usage:
    * {@code java -cp
-   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}
+   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.cli.JournalCrashTest}
    *
    * @param args no arguments
    */
@@ -349,7 +350,7 @@ public class JournalCrashTest {
     } else {
       ret = false;
       new HelpFormatter().printHelp("java -cp alluxio-" + Version.VERSION
-          + "-jar-with-dependencies.jar alluxio.examples.JournalCrashTest",
+          + "-jar-with-dependencies.jar alluxio.cli.JournalCrashTest",
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
           + "will launch total 6 clients connecting to the Master and the Master"
