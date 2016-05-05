@@ -47,7 +47,7 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
-# The eixt status is 0 if ALLUXIO_RAM_FOLDER is mounted as tmpfs or ramfs.
+# The exit status is 0 if ALLUXIO_RAM_FOLDER is mounted as tmpfs or ramfs.
 is_ram_folder_mounted() {
   if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
     return 1
