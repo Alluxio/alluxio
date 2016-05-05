@@ -135,7 +135,7 @@ Alluxio作业的状态和应用ID。
 
 # 测试Alluxio
 
-知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_ADDRESS`环境变量：
+知道Alluxio master容器的IP后，可以修改`conf/alluxio-env.sh`在每台EC2机器上建立`ALLUXIO_MASTER_HOSTNAME`环境变量：
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 
