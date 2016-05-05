@@ -12,19 +12,33 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.worker.file.FileSystemWorker;
+import io.netty.channel.ChannelHandlerContext;
 
 /**
  * This class handles filesystem data server requests.
  */
 public class FileDataServerHandler {
+  /** Filesystem worker which handles file level operations for the worker. */
+  private final FileSystemWorker mWorker;
+  /** The transfer type used by the data server. */
+  private final FileTransferType mTransferType;
+
   /**
    * Constructs a file data server handler for serving any ufs read/write requests.
    *
    * @param worker the file system worker
-   * @param conf the configuration to use
+   * @param configuration the configuration to use
    */
-  public FileDataServerHandler(FileSystemWorker worker, Configuration conf) {
+  public FileDataServerHandler(FileSystemWorker worker, Configuration configuration) {
+    mWorker = worker;
+    mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
+        FileTransferType.class);
+  }
+
+  public void handleFileReadRequest(ChannelHandlerContext ctx, RPCFileReadRequest req) {
 
   }
 }
