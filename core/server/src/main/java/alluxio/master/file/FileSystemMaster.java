@@ -270,6 +270,7 @@ public final class FileSystemMaster extends AbstractMaster {
         // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
         mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
+        // It's possible that rescheduling the async persist calls fails, because the blocks may no longer be in the memory
         LOG.error(e.getMessage());
       }
     } else {
