@@ -1,0 +1,4 @@
+#!/bin/bash
+_CALLING_DIR="$(pwd)"
+
+jar cf AlluxioCodeStyle.jar codestyles/AlluxioStyleCopy2.xml options/code.style.schemes.xml
