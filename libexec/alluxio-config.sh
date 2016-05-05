@@ -53,8 +53,8 @@ if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
 fi
 
-if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}"
+if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
 fi
 
 if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
