@@ -239,7 +239,7 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.writeTest(fs);
+    sBench.mapperWriteTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
@@ -249,7 +249,7 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.readTest(fs);
+    sBench.mapperReadTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
@@ -304,7 +304,7 @@ public class DFSIOIntegrationTest implements Tool {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
-    sBench.appendTest(fs);
+    sBench.mapperAppendTest(fs);
     long execTime = System.currentTimeMillis() - tStart;
     sBench.analyzeResult(fs, TestType.TEST_TYPE_APPEND, execTime);
   }
@@ -448,7 +448,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
-  private void writeTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperWriteTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path writeDir = getWriteDir(mConfig);
     fs.delete(getDataDir(mConfig), true);
     fs.delete(writeDir, true);
@@ -512,7 +512,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
-  private void appendTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperAppendTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path appendDir = getAppendDir(mConfig);
     fs.delete(appendDir, true);
     runIOTest(AppendMapper.class, appendDir);
@@ -555,7 +555,7 @@ public class DFSIOIntegrationTest implements Tool {
     }
   }
 
-  private void readTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
+  private void mapperReadTest(org.apache.hadoop.fs.FileSystem fs) throws IOException {
     Path readDir = getReadDir(mConfig);
     fs.delete(readDir, true);
     runIOTest(ReadMapper.class, readDir);
@@ -792,13 +792,13 @@ public class DFSIOIntegrationTest implements Tool {
     long tStart = System.currentTimeMillis();
     switch (testType) {
       case TEST_TYPE_WRITE:
-        writeTest(fs);
+        mapperWriteTest(fs);
         break;
       case TEST_TYPE_READ:
-        readTest(fs);
+        mapperReadTest(fs);
         break;
       case TEST_TYPE_APPEND:
-        appendTest(fs);
+        mapperAppendTest(fs);
         break;
       case TEST_TYPE_READ_RANDOM:
       case TEST_TYPE_READ_BACKWARD:
