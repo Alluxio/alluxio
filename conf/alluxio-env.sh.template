@@ -18,8 +18,8 @@
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 
-# Address of the master.
-# ALLUXIO_MASTER_ADDRESS
+# Hostname of the master.
+# ALLUXIO_MASTER_HOSTNAME
 
 # The directory where a worker stores in-memory data. (Default: /mnt/ramdisk).
 # E.g. On linux,  /mnt/ramdisk for ramdisk, /dev/shm for tmpFS; on MacOS, /Volumes/ramdisk for ramdisk
