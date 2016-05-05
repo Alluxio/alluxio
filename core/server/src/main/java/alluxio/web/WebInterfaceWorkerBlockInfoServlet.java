@@ -14,8 +14,6 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
@@ -199,13 +197,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    */
   private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
       throws FileDoesNotExistException, BlockDoesNotExistException, IOException, AlluxioException {
-    // TODO(calvin): Remove this dependency
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
-      return getUiFileInfo(fileSystem, new AlluxioURI(mBlockWorker.getFileInfo(fileId).getPath()));
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
-    }
+    return getUiFileInfo(fileSystem, new AlluxioURI(mBlockWorker.getFileInfo(fileId).getPath()));
   }
 
   /**
