@@ -117,7 +117,7 @@ public final class BufferUtils {
    * @return the new list of ByteBuffers
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
-    List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
+    List<ByteBuffer> ret = new ArrayList<>(source.size());
     for (ByteBuffer b : source) {
       ret.add(cloneByteBuffer(b));
     }
