@@ -69,7 +69,7 @@ public final class PathUtils {
   public static String concatPath(Object base, Object... paths) throws IllegalArgumentException {
     Preconditions.checkArgument(base != null, "Failed to concatPath: base is null");
     Preconditions.checkArgument(paths != null, "Failed to concatPath: a null set of paths");
-    List<String> trimmedPathList = new ArrayList<String>();
+    List<String> trimmedPathList = new ArrayList<>();
     String trimmedBase =
         CharMatcher.is(AlluxioURI.SEPARATOR.charAt(0)).trimTrailingFrom(base.toString().trim());
     trimmedPathList.add(trimmedBase);
