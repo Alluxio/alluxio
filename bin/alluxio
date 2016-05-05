@@ -296,12 +296,12 @@ case ${COMMAND} in
   ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
   echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_ADDRESS}"
-  CLASS=alluxio.Format
+  CLASS=alluxio.cli.Format
   PARAMETER=master
 ;;
 "formatWorker")
   echo "Formatting Alluxio Worker @ `hostname -f`"
-  CLASS=alluxio.Format
+  CLASS=alluxio.cli.Format
   PARAMETER=worker
 ;;
 "fs")

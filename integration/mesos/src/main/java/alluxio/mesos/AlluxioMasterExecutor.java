@@ -11,7 +11,7 @@
 
 package alluxio.mesos;
 
-import alluxio.Format;
+import alluxio.cli.Format;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystemRegistry;
 
