@@ -77,7 +77,7 @@ public class OutStreamOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(OutStreamOptions.class);
   }
 }
