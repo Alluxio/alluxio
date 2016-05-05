@@ -35,6 +35,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  *
  * TODO(gpang): This class should probably not implement BoundedStream, since remaining() does
  * not make sense for a file of unknown length. Investigate an alternative class hierarchy.
+ *
+ * TODO(peis): Change this so that it works well when incomplete block caching is enabled.
  */
 @PublicApi
 @NotThreadSafe
