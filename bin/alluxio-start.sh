@@ -76,7 +76,7 @@ check_mount_mode() {
     NoMount)
       is_ram_folder_mounted
       if [[ $? -ne 0 ]]; then
-        if [[ $(uname -s) = Darwin ]]; then
+        if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X."
           echo -e "${USAGE}"
