@@ -69,7 +69,7 @@ public class InStreamOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(InStreamOptions.class);
   }
 }

@@ -40,7 +40,7 @@ public final class DeleteLineageOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(DeleteLineageOptions.class);
   }
 }
