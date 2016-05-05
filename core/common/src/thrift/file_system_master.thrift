@@ -137,6 +137,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the status of the file or directory, only used internally by servers.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   FileInfo getStatusInternal( /** the id of the file or directory */ 1: i64 fileId)
     throws (1: exception.AlluxioTException e)
