@@ -125,7 +125,6 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      // TODO(jiri): Should we use MasterContext here instead?
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       is = alluxioClient.openFile(path, options);
       out = response.getOutputStream();

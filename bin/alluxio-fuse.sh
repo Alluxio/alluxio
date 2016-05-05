@@ -14,7 +14,6 @@ get_env () {
   ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-  ALLUXIO_MASTER_PORT=${ALLUXIO_MASTER_PORT:-19998}
   ALLUXIO_FUSE_JAR=${BIN}/../integration/fuse/target/alluxio-integration-fuse-${VERSION}-jar-with-dependencies.jar
   FUSE_MAX_WRITE=131072
 }
@@ -46,14 +45,8 @@ set_java_opt () {
     -Xmx1G
   "
 
-  ALLUXIO_FUSE_OPTS+="
-    -Dalluxio.logger.type=alluxio.fuse
-    -Dalluxio.master.port=${ALLUXIO_MASTER_PORT}
-    -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}
-    -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}
-    -Dalluxio.logger.type="FUSE_LOGGER"
-    -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties
-  "
+  ALLUXIO_FUSE_JAVA_OPTS=${ALLUXIO_JAVA_OPTS}
+  ALLUXIO_FUSE_JAVA_OPTS+=" -Dalluxio.logger.type=FUSE_LOGGER"
 }
 
 mount_fuse() {
@@ -63,7 +56,7 @@ mount_fuse() {
   fi
   echo "Starting alluxio-fuse on local host."
   local mount_point=$1
-  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_OPTS}\
+  (nohup ${JAVA} -cp ${ALLUXIO_FUSE_JAR} ${JAVA_OPTS} ${ALLUXIO_FUSE_JAVA_OPTS} \
     alluxio.fuse.AlluxioFuse \
     -m ${mount_point} \
     -o big_writes > ${ALLUXIO_LOGS_DIR}/fuse.out 2>&1) &
@@ -144,4 +137,3 @@ case $1 in
     exit 1
     ;;
 esac
-
