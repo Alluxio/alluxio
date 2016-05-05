@@ -202,8 +202,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     // TODO(calvin): Remove this dependency
     FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      return getUiFileInfo(fileSystem, new AlluxioURI(masterClient.getStatusInternal(fileId)
-          .getPath()));
+      return getUiFileInfo(fileSystem, new AlluxioURI(mBlockWorker.getFileInfo(fileId).getPath()));
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
     }
