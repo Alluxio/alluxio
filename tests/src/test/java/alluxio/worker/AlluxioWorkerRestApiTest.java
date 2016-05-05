@@ -13,7 +13,7 @@ package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;

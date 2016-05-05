@@ -388,7 +388,7 @@ case ${COMMAND} in
   exit 0
 ;;
 "version")
-  CLASS=alluxio.Version
+  CLASS=alluxio.cli.Version
 ;;
 "validateConf")
   CLASS=alluxio.cli.ValidateConf
