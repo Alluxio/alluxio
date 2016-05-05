@@ -279,7 +279,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * @param pos the position to check
-   * @return the block size in bytes for the gven pos, used for worker allocation
+   * @return the block size in bytes for the given pos, used for worker allocation
    */
   protected long getBlockSizeAllocation(long pos) {
     return getBlockSize(pos);
@@ -464,9 +464,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
           mCurrentCacheStream = createCacheStream(currentBlockId, getBlockSize(mPos), address);
-       } catch (IOException e) {
-         logCacheStreamIOException(e);
-         mShouldCacheCurrentBlock = false;
+        } catch (IOException e) {
+          logCacheStreamIOException(e);
+          mShouldCacheCurrentBlock = false;
         } catch (AlluxioException e) {
           LOG.warn(BLOCK_ID_NOT_CACHED, currentBlockId, e);
           mShouldCacheCurrentBlock = false;
@@ -512,7 +512,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       long blockStart = BlockId.getSequenceNumber(blockId) * mBlockSize;
       mCurrentBlockInStream =
           createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
-     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+      mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     }
   }
 
