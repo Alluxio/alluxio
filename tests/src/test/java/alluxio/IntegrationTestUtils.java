@@ -25,14 +25,14 @@ public final class IntegrationTestUtils {
 
   /**
    * Convenience method for calling {@link #waitForPersist(LocalAlluxioClusterResource, long, long)}
-   * with a timeout of 5 seconds.
+   * with a default timeout.
    *
    * @param localAlluxioClusterResource the cluster for the worker that will persist the file
    * @param uri the file uri to wait to be persisted
    */
   public static void waitForPersist(LocalAlluxioClusterResource localAlluxioClusterResource,
       AlluxioURI uri) {
-    waitForPersist(localAlluxioClusterResource, uri, 5 * Constants.SECOND_MS);
+    waitForPersist(localAlluxioClusterResource, uri, 15 * Constants.SECOND_MS);
   }
 
   /**

@@ -49,8 +49,8 @@ public final class WebInterfaceDependencyServlet extends HttpServlet {
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("filePath", request.getParameter("filePath"));
     request.setAttribute("error", "");
-    List<String> parentFileNames = new ArrayList<String>();
-    List<String> childrenFileNames = new ArrayList<String>();
+    List<String> parentFileNames = new ArrayList<>();
+    List<String> childrenFileNames = new ArrayList<>();
     Collections.sort(parentFileNames);
     Collections.sort(childrenFileNames);
     request.setAttribute("parentFileNames", parentFileNames);
