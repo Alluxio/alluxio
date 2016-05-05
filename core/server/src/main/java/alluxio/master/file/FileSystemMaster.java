@@ -89,9 +89,6 @@ import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -102,6 +99,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -129,10 +127,6 @@ public final class FileSystemMaster extends AbstractMaster {
   /** This manages the file system mount points. */
   @GuardedBy("mInodeTree")
   private final MountTable mMountTable;
-
-  /** Map from worker to the files to persist on that worker. Used by async persistence service. */
-  @GuardedBy("mInodeTree")
-  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
 
   /** This maintains inodes with ttl set, for the for the ttl checker service to use. */
   @GuardedBy("mInodeTree")
@@ -190,7 +184,6 @@ public final class FileSystemMaster extends AbstractMaster {
     Configuration conf = MasterContext.getConf();
     mWhitelist = new PrefixList(conf.getList(Constants.MASTER_WHITELIST, ","));
 
-    mWorkerToAsyncPersistFiles = Maps.newHashMap();
     mAsyncPersistHandler =
         AsyncPersistHandler.Factory.create(MasterContext.getConf(), new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
@@ -199,12 +192,10 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
         new FileSystemMasterClientService.Processor<>(
             new FileSystemMasterClientServiceHandler(this)));
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
             new FileSystemMasterWorkerServiceHandler(this)));
     return services;
@@ -275,7 +266,9 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof AsyncPersistRequestEntry) {
       try {
         long fileId = ((AsyncPersistRequestEntry) innerEntry).getFileId();
-        scheduleAsyncPersistenceInternal(getPath(fileId));
+        scheduleAsyncPersistenceInternal(fileId);
+        // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
+        mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
         LOG.error(e.getMessage());
       }
@@ -1449,7 +1442,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return all the files lost on the workers
    */
   public List<Long> getLostFiles() {
-    Set<Long> lostFiles = Sets.newHashSet();
+    Set<Long> lostFiles = new HashSet<>();
     for (long blockId : mBlockMaster.getLostBlocks()) {
       // the file id is the container id of the block id
       long containerId = BlockId.getContainerId(blockId);
@@ -1475,7 +1468,7 @@ public final class FileSystemMaster extends AbstractMaster {
         return;
       }
 
-      List<Long> blockIds = Lists.newArrayList();
+      List<Long> blockIds = new ArrayList<>();
       try {
         for (FileBlockInfo fileBlockInfo : getFileBlockInfoListInternal((InodeFile) inode)) {
           blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());
@@ -1676,7 +1669,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O exception occurs
    */
   @GuardedBy("mInodeTree")
-  void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+  private void mountInternal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     // Check that the ufsPath exists and is a directory
     UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
@@ -1879,8 +1872,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
     synchronized (mInodeTree) {
-      scheduleAsyncPersistenceInternal(path);
       long fileId = mInodeTree.getInodeByPath(path).getId();
+      scheduleAsyncPersistenceInternal(fileId);
       // write to journal
       AsyncPersistRequestEntry asyncPersistRequestEntry =
           AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
@@ -1888,16 +1881,18 @@ public final class FileSystemMaster extends AbstractMaster {
           JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
       flushJournal();
     }
+    // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
+    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**
-   * @param path the path to schedule asynchronous persistence for
+   * @param fileId the id of the file to schedule asynchronous persistence for
    * @throws AlluxioException if scheduling fails
    */
-  private void scheduleAsyncPersistenceInternal(AlluxioURI path) throws AlluxioException {
-    Inode<?> inode = mInodeTree.getInodeByPath(path);
+  @GuardedBy("mInodeTree")
+  private void scheduleAsyncPersistenceInternal(long fileId) throws AlluxioException {
+    Inode<?> inode = mInodeTree.getInodeById(fileId);
     inode.setPersistenceState(PersistenceState.IN_PROGRESS);
-    mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
   /**

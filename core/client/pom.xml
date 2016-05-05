@@ -48,6 +48,8 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+
+    <!-- Other Alluxio dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -82,6 +84,11 @@
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-underfs-gcs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+   <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-swift</artifactId>
       <version>${project.version}</version>
     </dependency>
 

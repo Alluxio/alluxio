@@ -38,7 +38,6 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,6 +47,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +114,7 @@ public final class MasterSourceTest {
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
 
     MasterContext.reset();
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
@@ -316,7 +316,7 @@ public final class MasterSourceTest {
   }
 
   /**
-   * Tests the {@code SetAttributeOps} counter when setting the state of a file.
+   * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */

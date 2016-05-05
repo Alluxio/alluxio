@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.UnderFileSystem;
@@ -30,10 +31,17 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderStoreBlockInStream extends BlockInStream {
   /** The start of this block. This is the absolute position within the UFS file. */
   private final long mInitPos;
-  /** The length of the block. */
-  private final long mLength;
+  /**
+   * The length of this current block. This may be {@link Constants#UNKNOWN_SIZE}, and may be
+   * updated to a valid length. See {@link #getLength()} for more length information.
+   */
+  private long mLength;
   /** The UFS path for this block. */
   private final String mUfsPath;
+  /**
+   * The block size of the file. See {@link #getLength()} for more length information.
+   */
+  private final long mFileBlockSize;
 
   /**
    * The current position for this block stream. This is the position within this block, and not
@@ -47,13 +55,16 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    * Creates a new under storage file input stream.
    *
    * @param initPos the initial position
-   * @param length the length
+   * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
+   * @param fileBlockSize the block size for the file
    * @param ufsPath the under file system path
    * @throws IOException if an I/O error occurs
    */
-  public UnderStoreBlockInStream(long initPos, long length, String ufsPath) throws IOException {
+  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath)
+      throws IOException {
     mInitPos = initPos;
     mLength = length;
+    mFileBlockSize = fileBlockSize;
     mUfsPath = ufsPath;
     setUnderStoreStream(0);
   }
@@ -69,7 +80,13 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return -1;
     }
     int data = mUnderStoreStream.read();
-    if (data != -1) {
+    if (data == -1) {
+      if (mLength == Constants.UNKNOWN_SIZE) {
+        // End of stream. Compute the length.
+        mLength = mPos;
+      }
+    } else {
+      // Read a valid byte, update the position.
       mPos++;
     }
     return data;
@@ -86,7 +103,13 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return -1;
     }
     int bytesRead = mUnderStoreStream.read(b, off, len);
-    if (bytesRead != -1) {
+    if (bytesRead == -1) {
+      if (mLength == Constants.UNKNOWN_SIZE) {
+        // End of stream. Compute the length.
+        mLength = mPos;
+      }
+    } else {
+      // Read valid data, update the position.
       mPos += bytesRead;
     }
     return bytesRead;
@@ -94,7 +117,7 @@ public final class UnderStoreBlockInStream extends BlockInStream {
 
   @Override
   public long remaining() {
-    return mLength - mPos;
+    return getLength() - mPos;
   }
 
   @Override
@@ -116,9 +139,9 @@ public final class UnderStoreBlockInStream extends BlockInStream {
       return 0;
     }
     // Cannot skip beyond boundary
-    long toSkip = Math.min(mLength - mPos, n);
+    long toSkip = Math.min(getLength() - mPos, n);
     long skipped = mUnderStoreStream.skip(toSkip);
-    if (toSkip != skipped) {
+    if (mLength != Constants.UNKNOWN_SIZE && toSkip != skipped) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
     }
     mPos += skipped;
@@ -143,10 +166,26 @@ public final class UnderStoreBlockInStream extends BlockInStream {
     UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
     mUnderStoreStream = ufs.open(mUfsPath);
     // The stream is at the beginning of the file, so skip to the correct absolute position.
-    if (mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
+    if ((mInitPos + pos) != 0 && mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
     // Set the current block position to the specified block position.
     mPos = pos;
+  }
+
+  /**
+   * Returns the length of the current UFS block. This method handles the situation when the UFS
+   * file has an unknown length. If the UFS file has an unknown length, the length returned will
+   * be the file block size. If the block is completely read, the length will be updated to the
+   * correct block size.
+   *
+   * @return the length of this current block
+   */
+  private long getLength() {
+    if (mLength != Constants.UNKNOWN_SIZE) {
+      return mLength;
+    }
+    // The length is unknown. Use the max block size until the computed length is known.
+    return mFileBlockSize;
   }
 }

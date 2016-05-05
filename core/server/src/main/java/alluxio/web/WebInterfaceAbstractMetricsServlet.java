@@ -58,6 +58,5 @@ public abstract class WebInterfaceAbstractMetricsServlet extends HttpServlet {
     for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
       request.setAttribute(entry.getKey(), entry.getValue().getCount());
     }
-
   }
 }
