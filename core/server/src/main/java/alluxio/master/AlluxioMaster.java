@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ValidateConf;
+import alluxio.cli.ValidateConf;
 import alluxio.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
