@@ -10,7 +10,7 @@
 
 CALLING_DIR="$(pwd)"
 UNPACK_DIR="${CALLING_DIR}/unpacked"
-XML_LICENSE="$(cat ${CALLING_DIR}/LICENSE)"
+XML_LICENSE="$(cat ${CALLING_DIR}/LICENSE.txt)"
 
 if [[ $# -ne 1 ]]; then
     echo "Please call with the jar to unpack, e.g. ./update AlluxioCodeStyle.jar" 
