@@ -29,7 +29,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
@@ -187,7 +186,7 @@ public class BlockMasterTest {
     MasterWorkerInfo workerInfo1 = mPrivateAccess.getWorkerById(worker1);
     MasterWorkerInfo workerInfo2 = mPrivateAccess.getWorkerById(worker2);
     List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
-    HashMap<String, List<Long>> noBlocksInTiers = Maps.newHashMap();
+    HashMap<String, List<Long>> noBlocksInTiers = new HashMap<>();
     mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 0L), noBlocksInTiers);
     mMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
@@ -396,7 +395,7 @@ public class BlockMasterTest {
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers)
           throws AlluxioException {
     master.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
   }
 
   /** Private access to {@link BlockMaster} internals. */

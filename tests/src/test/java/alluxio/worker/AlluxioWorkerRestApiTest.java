@@ -25,8 +25,6 @@ import alluxio.worker.block.BlockWorker;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -39,20 +37,23 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
-@Ignore
+@Ignore("ALLUXIO-1888")
 public final class AlluxioWorkerRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
+  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private static AlluxioWorker sWorker;
   private static BlockStoreMeta sStoreMeta;
 
@@ -119,7 +120,7 @@ public final class AlluxioWorkerRestApiTest {
 
     // Generate random metrics.
     Random random = new Random();
-    SortedMap<String, Long> metricsMap = Maps.newTreeMap();
+    SortedMap<String, Long> metricsMap = new TreeMap<>();
     metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
     metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
     String blocksCachedProperty = CommonUtils.argsToString(".",
@@ -128,7 +129,7 @@ public final class AlluxioWorkerRestApiTest {
     metricsMap.put(blocksCachedProperty, blocksCached.longValue());
 
     // Mock counters.
-    SortedMap<String, Counter> counters = Maps.newTreeMap();
+    SortedMap<String, Counter> counters = new TreeMap<>();
     for (Map.Entry<String, Long> entry : metricsMap.entrySet()) {
       Counter counter = new Counter();
       counter.inc(entry.getValue());
@@ -139,7 +140,7 @@ public final class AlluxioWorkerRestApiTest {
     // Mock gauges.
     Gauge<?> blocksCachedGauge = PowerMockito.mock(Gauge.class);
     Mockito.doReturn(blocksCached).when(blocksCachedGauge).getValue();
-    SortedMap<String, Gauge<?>> gauges = Maps.newTreeMap();
+    SortedMap<String, Gauge<?>> gauges = new TreeMap<>();
     gauges.put(blocksCachedProperty, blocksCachedGauge);
     Mockito.doReturn(gauges).when(metricRegistry).getGauges();
 
@@ -165,7 +166,7 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, Long> capacityBytesOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, Long> capacityBytesOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
       capacityBytesOnTiers.put(tierAssoc.getAlias(ordinal), random.nextLong());
     }
@@ -185,7 +186,7 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, Long> usedBytesOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, Long> usedBytesOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
       usedBytesOnTiers.put(tierAssoc.getAlias(ordinal), random.nextLong());
     }
@@ -204,9 +205,9 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, List<String>> pathsOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, List<String>> pathsOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
-      List<String> paths = Lists.newLinkedList();
+      List<String> paths = new LinkedList<>();
       paths.add(IntegrationTestUtils.randomString());
       pathsOnTiers.put(tierAssoc.getAlias(ordinal), paths);
     }

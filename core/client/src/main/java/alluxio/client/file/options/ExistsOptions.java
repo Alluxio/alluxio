@@ -36,13 +36,7 @@ public final class ExistsOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ExistsOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof ExistsOptions;
   }
 
   @Override

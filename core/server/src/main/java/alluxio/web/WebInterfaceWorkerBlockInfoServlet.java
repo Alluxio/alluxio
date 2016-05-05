@@ -28,7 +28,6 @@ import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 
 import java.io.IOException;
@@ -80,10 +79,10 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       // Display file block info
       try {
         UIFileInfo uiFileInfo = getUiFileInfo(fs, new AlluxioURI(filePath));
-        List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = Lists.newArrayList();
+        List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
         for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
           fileBlocksOnTier.add(
-              new ImmutablePair<String, List<UIFileBlockInfo>>(e.getKey(), e.getValue()));
+              new ImmutablePair<>(e.getKey(), e.getValue()));
         }
         request.setAttribute("fileBlocksOnTier", fileBlocksOnTier);
         request.setAttribute("blockSizeBytes", uiFileInfo.getBlockSizeBytes());
@@ -131,7 +130,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       int offset = Integer.parseInt(request.getParameter("offset"));
       int limit = Integer.parseInt(request.getParameter("limit"));
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
-      List<UIFileInfo> uiFileInfos = new ArrayList<UIFileInfo>(subFileIds.size());
+      List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
       for (long fileId : subFileIds) {
         uiFileInfos.add(getUiFileInfo(fs, fileId));
       }
@@ -173,8 +172,8 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
    * @return a sorted file id list
    */
   private List<Long> getSortedFileIds() {
-    Set<Long> fileIds = new HashSet<Long>();
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+    Set<Long> fileIds = new HashSet<>();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     for (List<Long> blockIds : storeMeta.getBlockList().values()) {
       for (long blockId : blockIds) {
         long fileId =
@@ -182,7 +181,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
         fileIds.add(fileId);
       }
     }
-    List<Long> sortedFileIds = new ArrayList<Long>(fileIds);
+    List<Long> sortedFileIds = new ArrayList<>(fileIds);
     Collections.sort(sortedFileIds);
     return sortedFileIds;
   }

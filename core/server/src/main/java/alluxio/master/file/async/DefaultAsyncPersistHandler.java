@@ -27,12 +27,12 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -57,7 +57,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
    * @param view a view of {@link FileSystemMaster}
    */
   public DefaultAsyncPersistHandler(FileSystemMasterView view) {
-    mWorkerToAsyncPersistFiles = Maps.newHashMap();
+    mWorkerToAsyncPersistFiles = new HashMap<>();
     mFileSystemMasterView = Preconditions.checkNotNull(view);
   }
 
@@ -73,7 +73,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
     }
 
     if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
-      mWorkerToAsyncPersistFiles.put(workerId, Sets.<Long>newHashSet());
+      mWorkerToAsyncPersistFiles.put(workerId, new HashSet<Long>());
     }
     mWorkerToAsyncPersistFiles.get(workerId).add(mFileSystemMasterView.getFileId(path));
   }
@@ -102,7 +102,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
       return workerInfoList.get(index).getId();
     }
 
-    Map<Long, Integer> workerBlockCounts = Maps.newHashMap();
+    Map<Long, Integer> workerBlockCounts = new HashMap<>();
     List<FileBlockInfo> blockInfoList;
     try {
       blockInfoList = mFileSystemMasterView.getFileBlockInfoList(path);
@@ -152,8 +152,8 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
   @Override
   public synchronized List<PersistFile> pollFilesToPersist(long workerId)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    List<PersistFile> filesToPersist = Lists.newArrayList();
-    List<Long> fileIdsToPersist = Lists.newArrayList();
+    List<PersistFile> filesToPersist = new ArrayList<>();
+    List<Long> fileIdsToPersist = new ArrayList<>();
 
     if (!mWorkerToAsyncPersistFiles.containsKey(workerId)) {
       return filesToPersist;
@@ -164,7 +164,7 @@ public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
       FileInfo fileInfo = mFileSystemMasterView.getFileInfo(fileId);
       if (fileInfo.isCompleted()) {
         fileIdsToPersist.add(fileId);
-        List<Long> blockIds = Lists.newArrayList();
+        List<Long> blockIds = new ArrayList<>();
         for (FileBlockInfo fileBlockInfo : mFileSystemMasterView
             .getFileBlockInfoList(mFileSystemMasterView.getPath(fileId))) {
           blockIds.add(fileBlockInfo.getBlockInfo().getBlockId());

@@ -71,4 +71,9 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * @return whether this writer is full to take any more key-value pairs
    */
   boolean canPut(byte[] key, byte[] value);
+
+  /**
+   * @return number of keys
+   */
+  int keyCount();
 }

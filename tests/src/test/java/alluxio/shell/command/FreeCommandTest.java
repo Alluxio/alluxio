@@ -24,6 +24,7 @@ import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -32,6 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests for free command.
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public class FreeCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =

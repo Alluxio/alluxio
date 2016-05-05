@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TransportProviderUtils {
 
   /**
-   * Creates a new Thrift socket what will connect to the given address.
+   * Creates a new Thrift socket that will connect to the given address.
    *
    * @param address The given address to connect
    * @param timeoutMs the timeout in milliseconds
@@ -36,6 +36,5 @@ public final class TransportProviderUtils {
     return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(), timeoutMs);
   }
 
-  private TransportProviderUtils() {
-  } // prevent instantiation
+  private TransportProviderUtils() {} // prevent instantiation
 }
