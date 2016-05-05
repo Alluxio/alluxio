@@ -224,7 +224,7 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.createControlFile(fs, DEFAULT_NR_BYTES, DEFAULT_NR_FILES);
 
     /** Check write here, as it is required for other tests */
-    testWrite();
+    writeTest();
   }
 
   @AfterClass
