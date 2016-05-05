@@ -207,10 +207,6 @@ function runClass {
   return ${RET}
 }
 
-function runJournalCrashTest {
-  runClass alluxio.examples.JournalCrashTest $@
-}
-
 function runKVTest {
   runClass alluxio.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
 }
@@ -352,8 +348,7 @@ case ${COMMAND} in
   exit ${failed}
 ;;
 "runJournalCrashTest")
-  runJournalCrashTest $@
-  exit $?
+  CLASS="alluxio.cli.JournalCrashTest"
 ;;
 "readJournal")
   CLASS="alluxio.master.journal.JournalTool"
