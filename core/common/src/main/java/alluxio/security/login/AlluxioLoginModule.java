@@ -129,7 +129,7 @@ public final class AlluxioLoginModule implements LoginModule {
       loader = ClassLoader.getSystemClassLoader();
     }
 
-    Class<? extends Principal> clazz = null;
+    Class<? extends Principal> clazz;
     try {
       // Declare a temp variable so that we can suppress warnings locally
       @SuppressWarnings("unchecked")
