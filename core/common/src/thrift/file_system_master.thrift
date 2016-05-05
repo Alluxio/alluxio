@@ -224,7 +224,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
 service FileSystemMasterWorkerService extends common.AlluxioService {
 
   /*
-   * Returns the file information.
+   * Returns the file information for a file or directory identified by the given file id.
    */
   FileInfo getFileInfo( /** the id of the file */ 1: i64 fileId)
     throws (1: exception.AlluxioTException e)
