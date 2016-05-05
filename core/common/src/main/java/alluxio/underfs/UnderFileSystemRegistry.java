@@ -72,7 +72,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemRegistry {
 
   private static final List<UnderFileSystemFactory> FACTORIES =
-      new CopyOnWriteArrayList<UnderFileSystemFactory>();
+    new CopyOnWriteArrayList<>();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
 
@@ -107,7 +107,7 @@ public final class UnderFileSystemRegistry {
       throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
@@ -162,7 +162,7 @@ public final class UnderFileSystemRegistry {
   public static List<UnderFileSystemFactory> findAll(String path, Configuration configuration) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path, configuration)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",
