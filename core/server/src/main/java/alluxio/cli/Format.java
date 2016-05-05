@@ -9,8 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.cli;
 
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.cli.Version;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
@@ -30,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String USAGE = String.format("java -cp %s alluxio.Format <MASTER/WORKER>",
+  private static final String USAGE = String.format("java -cp %s alluxio.cli.Format <MASTER/WORKER>",
       Version.ALLUXIO_JAR);
 
   private static boolean formatFolder(String name, String folder, Configuration configuration)
@@ -52,7 +54,7 @@ public final class Format {
   }
 
   /**
-   * Formats the Alluxio file system via {@code java -cp %s alluxio.Format <MASTER/WORKER>}.
+   * Formats the Alluxio file system via {@code java -cp %s alluxio.cli.Format <MASTER/WORKER>}.
    *
    * @param args either {@code MASTER} or {@code WORKER}
    * @throws IOException if a non-Alluxio related exception occurs

@@ -14,7 +14,7 @@ echo "Formatting Alluxio Master"
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="MASTER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  alluxio.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
+  alluxio.cli.Format master > "${YARN_LOG_DIR}"/master.out 2>&1
 
 echo "Starting Alluxio Master"
 
