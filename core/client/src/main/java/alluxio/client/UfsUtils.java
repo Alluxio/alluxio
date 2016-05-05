@@ -14,7 +14,7 @@ package alluxio.client;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AlluxioException;

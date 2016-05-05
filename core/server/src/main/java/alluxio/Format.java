@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.cli.Version;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;

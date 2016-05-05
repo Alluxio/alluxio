@@ -14,7 +14,7 @@ package alluxio.worker;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.cli.ValidateConf;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
