@@ -386,7 +386,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @param inode the inode to get the {@linke FileInfo} for
+   * @param inode the inode to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    */
