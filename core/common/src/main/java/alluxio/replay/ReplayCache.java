@@ -85,7 +85,7 @@ public final class ReplayCache<V> {
    * @return a cache with the specified maximum size and expiration time
    */
   public static <V> ReplayCache<V> newInstance(long maxSize, long expireMs) {
-    return new ReplayCache<V>(maxSize, expireMs);
+    return new ReplayCache<>(maxSize, expireMs);
   }
 
   /**
@@ -98,7 +98,7 @@ public final class ReplayCache<V> {
     // TODO(andrew) Make it possible for users to configure this cache via
     // CacheBuilder<Object, Object> from(String spec)
     mCache = CacheBuilder.newBuilder().maximumSize(maxSize)
-        .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).<String, V>build();
+        .expireAfterWrite(expireMs, TimeUnit.MILLISECONDS).build();
   }
 
   /**
