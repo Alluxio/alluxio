@@ -189,15 +189,15 @@ public abstract class UnderFileSystem {
           || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)
           || header.equals(Constants.HEADER_GCS)) {
         if (path.getPath().isEmpty()) {
-          return new Pair<String, String>(header + authority, AlluxioURI.SEPARATOR);
+          return new Pair<>(header + authority, AlluxioURI.SEPARATOR);
         } else {
-          return new Pair<String, String>(header + authority, path.getPath());
+          return new Pair<>(header + authority, path.getPath());
         }
       } else if (header.equals("file://")) {
-        return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
+        return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
       }
     } else if (path.isPathAbsolute()) {
-      return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
+      return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
     }
 
     return null;
