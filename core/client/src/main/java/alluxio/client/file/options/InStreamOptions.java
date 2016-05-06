@@ -94,7 +94,7 @@ public final class InStreamOptions {
   /**
    * @return true if incomplete block caching is enabled
    */
-  public boolean getCacheIncompleteBlock() {
+  public boolean isCacheIncompleteBlock() {
     return mCacheIncompleteBlock;
   }
 
