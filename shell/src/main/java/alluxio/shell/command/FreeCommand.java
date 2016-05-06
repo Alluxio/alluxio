@@ -63,6 +63,6 @@ public final class FreeCommand extends WithWildCardPathCommand {
 
   @Override
   public String getDescription() {
-    return "Frees the space of a file or directory(recursively) from Alluxio memory space.";
+    return "Frees the space occupied by a file or a directory in Alluxio.";
   }
 }

@@ -122,7 +122,8 @@ public class BasicOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicOperations(new AlluxioURI(args[0]), new AlluxioURI(args[1]),
-        ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
+    boolean result = Utils.runExample(new BasicOperations(new AlluxioURI(args[0]),
+        new AlluxioURI(args[1]), ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
+    System.exit(result ? 0 : 1);
   }
 }
