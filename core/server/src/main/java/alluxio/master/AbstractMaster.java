@@ -61,7 +61,7 @@ public abstract class AbstractMaster implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
-
+  /** The {@link AsyncJournalWriter} for async journal writes. */
   private AsyncJournalWriter mAsyncJournalWriter = null;
 
   /**
