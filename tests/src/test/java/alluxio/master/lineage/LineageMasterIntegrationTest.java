@@ -214,23 +214,23 @@ public final class LineageMasterIntegrationTest {
     // input file paths
     AlluxioURI input1 = new AlluxioURI("/inputFile1");
     AlluxioURI input2 = new AlluxioURI("/inputFile2");
-    ArrayList<AlluxioURI> files = new ArrayList<>();
-    Collections.addAll(files, input1, input2);
+    ArrayList<AlluxioURI> inputFiles = new ArrayList<>();
+    Collections.addAll(inputFiles, input1, input2);
     // output file paths
     AlluxioURI output = new AlluxioURI("/outputFile");
-    ArrayList<AlluxioURI> files2 = new ArrayList<>();
-    Collections.addAll(files2, output);
+    ArrayList<AlluxioURI> outputFiles = new ArrayList<>();
+    Collections.addAll(outputFiles, output);
     // command-line job
     JobConf conf = new JobConf("/tmp/recompute.log");
     CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
-    long lineageId = tl.createLineage(files, files2, job);
+    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
 
     // ------ code block from docs ------
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     tl.deleteLineage(lineageId);
 
     fs.delete(new AlluxioURI("/outputFile"));
-    lineageId = tl.createLineage(files, files2, job);
+    lineageId = tl.createLineage(inputFiles, outputFiles, job);
 
     // ------ code block from docs ------
     tl.deleteLineage(lineageId, options);
