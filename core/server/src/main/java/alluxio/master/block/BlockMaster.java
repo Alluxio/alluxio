@@ -27,6 +27,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
+import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
@@ -345,13 +346,13 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   @Override
   public long getNewContainerId() {
-    long counter = -1;
+    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     long containerId;
     synchronized (mBlockContainerIdGenerator) {
       containerId = mBlockContainerIdGenerator.getNewContainerId();
       counter = appendJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
     }
-    if (counter != -1) {
+    if (counter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
       waitForJournalFlush(counter);
     }
     return containerId;
@@ -371,7 +372,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
-    long counter = -1;
+    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
 
     MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
     // Lock the worker metadata first.
@@ -415,7 +416,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       }
     }
 
-    if (counter != -1) {
+    if (counter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
       waitForJournalFlush(counter);
     }
   }
@@ -435,7 +436,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
     // The block has not been committed previously, so add the metadata to commit the block.
     MasterBlockInfo masterBlockInfo = new MasterBlockInfo(blockId, length);
-    long counter = -1;
+    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     synchronized (masterBlockInfo) {
       if (mBlocks.putIfAbsent(blockId, masterBlockInfo) == null) {
         // Successfully added the new block metadata. Append a journal entry for the new metadata.
@@ -444,7 +445,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
       }
     }
-    if (counter != -1) {
+    if (counter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
       waitForJournalFlush(counter);
     }
   }
