@@ -41,6 +41,11 @@ fi
 
 . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 
+if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
+  echo "ALLUXIO_MASTER_ADDRESS is deprecated, please switch to ALLUXIO_MASTER_HOSTNAME."
+  ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_ADDRESS:-localhost}
+fi
+
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
