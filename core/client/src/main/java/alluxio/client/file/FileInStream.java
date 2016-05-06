@@ -336,8 +336,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void checkAndAdvanceBlockInStream() throws IOException {
     long currentBlockId = getCurrentBlockId();
-    if (mCurrentBlockInStream == null
-        || (mCurrentBlockInStream.remaining() == 0 && currentBlockId != mCurrentBlockId)) {
+    if (mCurrentBlockInStream == null || (mCurrentBlockInStream.remaining() == 0
+        && currentBlockId != mCurrentBlockId)) {
       closeCacheStream();
       updateBlockInStream(currentBlockId);
       mCurrentBlockId = currentBlockId;
@@ -424,7 +424,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // Reading next block entirely.
       if (mPos % mBlockSize == 0 && mShouldCacheCurrentBlock) {
         updateCacheStream();
-     } else {
+      } else {
         mShouldCacheCurrentBlock = false;
       }
     }
