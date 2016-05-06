@@ -456,7 +456,27 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         try {
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
               mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
-          mCurrentCacheStream = createCacheStream(currentBlockId, getBlockSize(mPos), address);
+          // Don't cache the block to somewhere that already has it.
+          // TODO(andrew): Filter the workers provided to the location policy to not include
+          // workers which already contain the block. See ALLUXIO-1816.
+          if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
+            WorkerNetAddress readAddress =
+                ((RemoteBlockInStream) mCurrentBlockInStream).getWorkerNetAddress();
+            // Try to avoid an RPC.
+            if (readAddress.equals(address)) {
+              mShouldCacheCurrentBlock = false;
+            } else {
+              BlockInfo blockInfo = mContext.getAlluxioBlockStore().getInfo(currentBlockId);
+              for (BlockLocation location : blockInfo.getLocations()) {
+                if (address.equals(location.getWorkerAddress())) {
+                  mShouldCacheCurrentBlock = false;
+                }
+              }
+            }
+          }
+          if (mShouldCacheCurrentBlock) {
+            mCurrentCacheStream = createCacheStream(currentBlockId, getBlockSize(mPos), address);
+          }
         } catch (IOException e) {
           logCacheStreamIOException(e);
           mShouldCacheCurrentBlock = false;
