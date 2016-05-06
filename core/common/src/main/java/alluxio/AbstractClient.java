@@ -278,9 +278,10 @@ public abstract class AbstractClient implements Closeable {
   }
 
   /**
-   * Tries to execute an RPC defined as a {@link RpcCallable}, if error
-   * happens in one execution, a reconnection will be tried through {@link #connect()} and the
-   * action will be re-executed.
+   * Tries to execute an RPC defined as a {@link RpcCallable}.
+   *
+   * If a non-Alluxio thrift exception occurs, a reconnection will be tried through
+   * {@link #connect()} and the action will be re-executed.
    *
    * @param rpc the RPC call to be executed
    * @param <V> type of return value of the RPC call
