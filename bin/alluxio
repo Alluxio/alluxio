@@ -10,7 +10,7 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_OPTIONS] [COMMAND_OPTIONS]"
   echo "GENERIC_OPTIONS supports:"
-  echo -e "  -D<property=value>\t Use value for a given Alluxio property"
+  echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
   echo
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master (if -s specified, only format if underfs is local and doesn't already exist)"
@@ -292,7 +292,7 @@ case ${COMMAND} in
   ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio formatWorker
 
   echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_ADDRESS}"
-  CLASS=alluxio.cli.Format
+  CLASS="alluxio.cli.Format"
   PARAMETER=master
 ;;
 "formatWorker")
@@ -301,10 +301,10 @@ case ${COMMAND} in
   PARAMETER=worker
 ;;
 "fs")
-  CLASS=alluxio.shell.AlluxioShell
+  CLASS="alluxio.shell.AlluxioShell"
 ;;
 "loadufs")
-  CLASS=alluxio.client.UfsUtils
+  CLASS="alluxio.client.UfsUtils"
 ;;
 "runClass")
   runClass $@
@@ -319,33 +319,7 @@ case ${COMMAND} in
   exit $?
 ;;
 "runTests")
-  declare -a writeTypes=(MUST_CACHE CACHE_THROUGH THROUGH ASYNC_THROUGH)
-  declare -a readTypes=(CACHE_PROMOTE CACHE NO_CACHE)
-
-  failed=0
-  for readType in ${readTypes[@]}; do
-    for writeType in ${writeTypes[@]}; do
-      for example in Basic BasicNonByteBuffer; do
-        echo ${LAUNCHER} ${BIN}/alluxio runTest ${example} ${readType} ${writeType}
-        ${LAUNCHER} ${BIN}/alluxio runTest ${example} ${readType} ${writeType}
-        st=$?
-
-        # If test process received a signal abort early
-        # Exit Codes for signals terminating a JVM are 128 + signal
-        if [[ ${st} -gt 128 ]]; then
-          # Received some kind of signal
-          echo "Test process was terminated due to signal"
-          exit ${st}
-        fi
-        failed=$(( $failed + $st ))
-      done
-    done
-  done
-
-  if [[ ${failed} -gt 0 ]]; then
-    echo "Number of failed tests: ${failed}" 1>&2
-  fi
-  exit ${failed}
+  CLASS="alluxio.cli.RunTests"
 ;;
 "runJournalCrashTest")
   CLASS="alluxio.cli.JournalCrashTest"
@@ -383,10 +357,10 @@ case ${COMMAND} in
   exit 0
 ;;
 "version")
-  CLASS=alluxio.cli.Version
+  CLASS="alluxio.cli.Version"
 ;;
 "validateConf")
-  CLASS=alluxio.cli.ValidateConf
+  CLASS="alluxio.cli.ValidateConf"
 ;;
 *)
   printUsage

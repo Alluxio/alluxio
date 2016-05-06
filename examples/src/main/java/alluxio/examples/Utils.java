@@ -191,8 +191,9 @@ public final class Utils {
    * Runs an example.
    *
    * @param example the example to run
+   * @return whether the example completes
    */
-  public static void runExample(final Callable<Boolean> example) {
+  public static boolean runExample(final Callable<Boolean> example) {
     boolean result;
     try {
       result = example.call();
@@ -201,6 +202,6 @@ public final class Utils {
       result = false;
     }
     Utils.printPassInfo(result);
-    System.exit(result ? 0 : 1);
+    return result;
   }
 }

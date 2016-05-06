@@ -101,6 +101,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    boolean result = Utils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    System.exit(result ? 0 : 1);
   }
 }

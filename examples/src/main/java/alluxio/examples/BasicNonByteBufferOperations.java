@@ -140,9 +140,10 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       usage();
     }
 
-    Utils.runExample(new BasicNonByteBufferOperations(new AlluxioURI(args[0]), new AlluxioURI(
-        args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
+    boolean result = Utils.runExample(new BasicNonByteBufferOperations(new AlluxioURI(args[0]),
+        new AlluxioURI(args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
         WriteType.CACHE_THROUGH), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
+    System.exit(result ? 0 : 1);
   }
 
   private static void usage() {

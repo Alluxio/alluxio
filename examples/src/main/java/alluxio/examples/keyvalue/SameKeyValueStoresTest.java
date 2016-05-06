@@ -104,6 +104,8 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]), new AlluxioURI(args[1])));
+    boolean result = Utils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]),
+        new AlluxioURI(args[1])));
+    System.exit(result ? 0 : 1);
   }
 }

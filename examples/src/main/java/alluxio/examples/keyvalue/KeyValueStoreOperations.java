@@ -132,6 +132,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    boolean result = Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    System.exit(result ? 0 : 1);
   }
 }
