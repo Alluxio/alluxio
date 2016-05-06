@@ -22,6 +22,7 @@ import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Throwables;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TMultiplexedProtocol;
@@ -297,6 +298,8 @@ public abstract class AbstractClient implements Closeable {
         return rpc.call();
       } catch (ThriftIOException e) {
         throw new IOException(e);
+      } catch (AlluxioTException e) {
+        throw Throwables.propagate(AlluxioException.from(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
