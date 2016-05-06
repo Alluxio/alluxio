@@ -55,9 +55,10 @@ public final class RunTests {
 
   private static void usage() {
     System.out.println("Usage:");
+    System.out.println("Run a set of predefined tests:");
     System.out.println(String
-        .format("runTest: java -cp %s %s <master address>", Version.ALLUXIO_JAR,
-            RunTests.class.getName()));
+        .format("java -cp %s %s <master address>", Version.ALLUXIO_JAR, RunTests.class.getName()));
+    System.out.println("Run a single test:");
     System.out.println(String
         .format("runTest: java -cp %s %s <master address> <%s> <%s> <%s>", Version.ALLUXIO_JAR,
             RunTests.class.getName(), OperationType.class.getSimpleName(),
@@ -65,12 +66,13 @@ public final class RunTests {
     System.out.println(String
         .format("\t Possible values for %s: %s", OperationType.class.getSimpleName(),
             OperationType.values()));
-    System.out.println(String
-        .format("\t Possible values for %s: %s", ReadType.class.getSimpleName(), READ_TYPES));
+    System.out.println(
+        String.format("\t Possible values for %s: %s", ReadType.class.getSimpleName(), READ_TYPES));
     System.out.println(String
         .format("\t Possible values for %s: %s", WriteType.class.getSimpleName(), WRITE_TYPES));
   }
 
+  /** Directory for the test generated files */
   public static final String TEST_PATH = "/default_tests_files";
 
   /**
@@ -117,7 +119,8 @@ public final class RunTests {
           failed += runTest(masterLocation, opType, readType, writeType);
         }
       }
-    } if (failed > 0) {
+    }
+    if (failed > 0) {
       System.out.println("Number of failed tests: " + failed);
     }
     return failed;
