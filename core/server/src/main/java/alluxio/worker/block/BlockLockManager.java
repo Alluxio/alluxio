@@ -67,11 +67,11 @@ public final class BlockLockManager {
 
   /** A map from a session id to all the locks hold by this session. */
   @GuardedBy("mSharedMapsLock")
-  private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<>();
 
   /** A map from a lock id to the lock record of it. */
   @GuardedBy("mSharedMapsLock")
-  private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
+  private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<>();
 
   /**
    * To guard access to the maps maintained by this class.
@@ -286,7 +286,7 @@ public final class BlockLockManager {
    */
   public Set<Long> getLockedBlocks() {
     synchronized (mSharedMapsLock) {
-      Set<Long> set = new HashSet<Long>();
+      Set<Long> set = new HashSet<>();
       for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
         set.add(lockRecord.getBlockId());
       }

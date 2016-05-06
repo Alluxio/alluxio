@@ -31,7 +31,7 @@ public final class CreateLineageOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(CreateLineageOptions.class);
   }
 }

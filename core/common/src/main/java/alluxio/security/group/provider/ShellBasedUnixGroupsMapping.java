@@ -37,7 +37,7 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
   public List<String> getGroups(String user) throws IOException {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
-    return new ArrayList<String>(new LinkedHashSet<String>(groups));
+    return new ArrayList<>(new LinkedHashSet<>(groups));
   }
 
   @Override

@@ -20,7 +20,7 @@ import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
 
 import java.net.InetSocketAddress;
-import java.util.Arrays;
+import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -63,7 +63,7 @@ public final class MasterUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
         master.getMasterMetricsSystem())), "/metricsui");
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Arrays.asList(conf.get(Constants.WEB_RESOURCES)
-        + "/WEB-INF/master.xml"));
+    mWebAppContext.setOverrideDescriptors(
+        Collections.singletonList(conf.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
   }
 }
