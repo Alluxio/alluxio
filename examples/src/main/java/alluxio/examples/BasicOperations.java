@@ -13,7 +13,6 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.cli.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -34,16 +33,20 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.concurrent.Callable;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Example to show the basic operations of Alluxio.
  */
+@ThreadSafe
 public class BasicOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final int NUMBERS = 20;
+
   private final AlluxioURI mMasterLocation;
   private final AlluxioURI mFilePath;
   private final OpenFileOptions mReadOptions;
   private final CreateFileOptions mWriteOptions;
-  private final int mNumbers = 20;
 
   /**
    * @param masterLocation the location of the master
@@ -72,9 +75,9 @@ public class BasicOperations implements Callable<Boolean> {
 
   private void writeFile(FileSystem fileSystem)
     throws IOException, AlluxioException {
-    ByteBuffer buf = ByteBuffer.allocate(mNumbers * 4);
+    ByteBuffer buf = ByteBuffer.allocate(NUMBERS * 4);
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < mNumbers; k++) {
+    for (int k = 0; k < NUMBERS; k++) {
       buf.putInt(k);
     }
     LOG.debug("Writing data...");
@@ -95,7 +98,7 @@ public class BasicOperations implements Callable<Boolean> {
     ByteBuffer buf = ByteBuffer.allocate((int) is.remaining());
     is.read(buf.array());
     buf.order(ByteOrder.nativeOrder());
-    for (int k = 0; k < mNumbers; k++) {
+    for (int k = 0; k < NUMBERS; k++) {
       pass = pass && (buf.getInt() == k);
     }
     is.close();

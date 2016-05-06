@@ -18,7 +18,7 @@ import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.examples.Utils;
+import alluxio.cli.CliUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -104,7 +104,7 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    boolean result = Utils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]),
+    boolean result = CliUtils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]),
         new AlluxioURI(args[1])));
     System.exit(result ? 0 : 1);
   }

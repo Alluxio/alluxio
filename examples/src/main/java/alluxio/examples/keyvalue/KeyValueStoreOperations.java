@@ -21,7 +21,7 @@ import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.examples.Utils;
+import alluxio.cli.CliUtils;
 import alluxio.util.io.BufferUtils;
 
 import org.slf4j.Logger;
@@ -132,7 +132,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    boolean result = Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    boolean result = CliUtils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
     System.exit(result ? 0 : 1);
   }
 }
