@@ -19,7 +19,7 @@ with the source code and be captured by revision control (currently git). This w
 automatically includes the version of the documentation that is relevant regardless of which version
 or release you have checked out or downloaded.
 
-In directories like `docs/en` or `docs/cn`, you will find text files with an ".md" suffix formatted
+In directories like `docs/en` or `docs/cn`, you will find text files with a `.md` suffix formatted
 using [Github flavor Markdown syntax]
 (https://help.github.com/articles/basic-writing-and-formatting-syntax/). You can read those text
 files directly if you want. Start with `index.md`.
@@ -49,7 +49,7 @@ This will create a directory called `_site` containing `index.html` as well as t
 HTML files compiled from markdown files.
 
 In addition to generating the site as HTML from the markdown files, jekyll can serve the site via
-a web server. To build and run a web server, use the command `jekyll serve` and then visit the site 
+a web server. To build and run a web server, use the command `jekyll serve` and then visit the site
 at [http://localhost:4000](http://localhost:4000).
 
 ## Multi-lauguage Support
