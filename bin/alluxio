@@ -8,9 +8,7 @@ fi
 BIN=$(cd "$( dirname "$0" )"; pwd)
 
 function printUsage {
-  echo "Usage: alluxio COMMAND [GENERIC_OPTIONS] [COMMAND_OPTIONS]"
-  echo "GENERIC_OPTIONS supports:"
-  echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
+  echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master (if -s specified, only format if underfs is local and doesn't already exist)"
@@ -32,6 +30,10 @@ function printUsage {
   echo -e "  protoGen      \t Generate all protocol buffer code."
   echo -e "  version       \t Print Alluxio version and exit."
   echo -e "  validateConf  \t Validate Alluxio conf and exit."
+  echo
+  echo "GENERIC_COMMAND_OPTIONS supports:"
+  echo -e "  -D<property=value>\t Use a value for a given Alluxio property"
+  echo
   echo "Commands print help when invoked without parameters."
 }
 
@@ -42,21 +44,6 @@ fi
 
 COMMAND=$1
 shift
-
-ALLUXIO_SHELL_JAVA_OPTS=""
-while getopts ":D:" opt; do
-  case ${opt} in
-  D)
-    ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
-    ;;
-  \?)
-    echo "Invalid option: -${OPTARG}"
-    printUsage
-    exit 1
-    ;;
-  esac
-done
-shift $((${OPTIND} - 1))
 
 function bootstrapConf {
   local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
@@ -148,69 +135,6 @@ DEFAULT_LIBEXEC_DIR="${BIN}"/../libexec
 ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-$DEFAULT_LIBEXEC_DIR}
 . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
-function runTest {
-  Usage="Usage: alluxio runTest <Basic|BasicNonByteBuffer> <CACHE_PROMOTE|CACHE|NO_CACHE> <MUST_CACHE|CACHE_THROUGH|THROUGH|ASYNC_THROUGH>"
-
-  if [[ $# -ne 3 ]]; then
-    echo ${Usage}
-    exit 1
-  fi
-
-  local file="/default_tests_files"
-  local class=""
-  case "$1" in
-    Basic)
-      file+="/BasicFile_$2_$3"
-      class="alluxio.examples.BasicOperations"
-      ;;
-    BasicNonByteBuffer)
-      file+="/BasicNonByteBuffer_$2_$3"
-      class="alluxio.examples.BasicNonByteBufferOperations"
-      ;;
-    *)
-      echo "Unknown test: $1 with type $2 $3" 1>&2
-      echo "${Usage}"
-      exit 1
-      ;;
-  esac
-  ${LAUNCHER} ${BIN}/alluxio fs rm -R ${file}
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} alluxio://${ALLUXIO_MASTER_ADDRESS}:19998 ${file} $2 $3
-
-  # If test process received a signal abort early
-  # Exit Codes for signals terminating a JVM are 128 + signal
-  RET=$?
-  if [[ ${RET} -gt 128 ]]; then
-    echo "Test process was terminated due to signal"
-    exit ${RET}
-  fi
-  return ${RET}
-}
-
-function runClass {
-  if [[ $# -lt 1 ]]; then
-    echo "runClass <class name> <main method parameters>"
-    exit
-  fi
-
-  local class="$1"
-  shift
-
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${class} $@
-  RET=$?
-
-  # If test process received a signal abort early
-  # Exit Codes for signals terminating a JVM are 128 + signal
-  if [[ ${RET} -gt 128 ]]; then
-    echo "Process was terminated due to signal"
-    exit ${RET}
-  fi
-  return ${RET}
-}
-
-function runKVTest {
-  runClass alluxio.examples.keyvalue.KeyValueStoreOperations /default_tests_files/KeyValueStoreOperations
-}
-
 function killAll {
   if [[ $# -ne 1 ]]; then
     echo "Usage: alluxio killAll <WORD>"
@@ -293,12 +217,12 @@ case ${COMMAND} in
 
   echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_ADDRESS}"
   CLASS="alluxio.cli.Format"
-  PARAMETER=master
+  PARAMETER="master"
 ;;
 "formatWorker")
   echo "Formatting Alluxio Worker @ `hostname -f`"
-  CLASS=alluxio.cli.Format
-  PARAMETER=worker
+  CLASS="alluxio.cli.Format"
+  PARAMETER="worker"
 ;;
 "fs")
   CLASS="alluxio.shell.AlluxioShell"
@@ -307,16 +231,16 @@ case ${COMMAND} in
   CLASS="alluxio.client.UfsUtils"
 ;;
 "runClass")
-  runClass $@
-  exit $?
+  CLASS=$1
+  shift
 ;;
 "runTest")
-  runTest $@
-  exit $?
+  CLASS="alluxio.cli.RunTests"
+  PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
 ;;
 "runKVTest")
-  runKVTest $@
-  exit $?
+  CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
+  PARAMETER="/default_tests_files/KeyValueStoreOperations"
 ;;
 "runTests")
   CLASS="alluxio.cli.RunTests"
@@ -369,4 +293,19 @@ case ${COMMAND} in
 ;;
 esac
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+ALLUXIO_SHELL_JAVA_OPTS=""
+while getopts ":D:" opt; do
+  case ${opt} in
+  D)
+    ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
+    ;;
+  \?)
+    echo "Invalid option: -${OPTARG}"
+    printUsage
+    exit 1
+    ;;
+  esac
+done
+shift $((${OPTIND} - 1))
+
+${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@

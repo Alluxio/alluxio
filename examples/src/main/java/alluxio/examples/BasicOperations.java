@@ -103,27 +103,4 @@ public class BasicOperations implements Callable<Boolean> {
     LOG.info(FormatUtils.formatTimeTakenMs(startTimeMs, "readFile file " + mFilePath));
     return pass;
   }
-
-  /**
-   * Runs the example.
-   *
-   * Usage:
-   * {@code java -cp <ALLUXIO-VERSION> BasicOperations
-   * <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
-   * <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH | ASYNC_THROUGH)>}
-   *
-   * @param args the arguments for this example
-   */
-  public static void main(String[] args) {
-    if (args.length != 4) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR + " " + BasicOperations.class.getName()
-          + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
-          + " | THROUGH | ASYNC_THROUGH)>");
-      System.exit(-1);
-    }
-
-    boolean result = Utils.runExample(new BasicOperations(new AlluxioURI(args[0]),
-        new AlluxioURI(args[1]), ReadType.valueOf(args[2]), WriteType.valueOf(args[3])));
-    System.exit(result ? 0 : 1);
-  }
 }
