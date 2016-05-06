@@ -25,7 +25,22 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class RunTests {
+  /**
+   * The operation types to test.
+   */
+  enum OperationType {
+    /**
+     * Basic operations.
+     */
+    BasicOperations,
+    /**
+     * Basic operations but not using ByteBuffer.
+     */
+    BasicNonByteBufferOperations,
+  }
+
   private static void usage() {
+    System.out.println("Usage:");
     System.out.println(
         "java -cp " + Version.ALLUXIO_JAR + " " + RunTests.class.getName() + " <master address>");
   }
@@ -41,28 +56,16 @@ public final class RunTests {
       System.exit(-1);
     }
     AlluxioURI masterLocation = new AlluxioURI(args[0]);
-    AlluxioURI filePath;
+
     int failed = 0;
-    boolean result;
     for (ReadType readType : ReadType.values()) {
       for (WriteType writeType : WriteType.values()) {
-        // Basic Operation
-        filePath = new AlluxioURI(
-            String.format("/default_tests_files/BasicFile_%s_%s", readType, writeType));
-        result =
-            Utils.runExample(new BasicOperations(masterLocation, filePath, readType, writeType));
-        if (result) {
-          failed++;
-        }
-
-        // Basic NonByteBuffer Operation
-        filePath = new AlluxioURI(
-            String.format("/default_tests_files/BasicNonByteBuffer_%s_%s", readType, writeType));
-        result = Utils.runExample(
-            new BasicNonByteBufferOperations(masterLocation, filePath, readType, writeType, true,
-                20));
-        if (result) {
-          failed++;
+        for (OperationType opType : OperationType.values()) {
+          System.out.println(
+              String.format("readType=%s, writeType=%s, opType=%s", readType, writeType, opType));
+          if (!runTest(masterLocation, readType, writeType, opType)) {
+            failed++;
+          }
         }
       }
     }
@@ -70,5 +73,20 @@ public final class RunTests {
       System.out.println("Number of failed tests: " + failed);
     }
     System.exit(failed);
+  }
+
+  private static boolean runTest(AlluxioURI masterLocation, ReadType readType, WriteType writeType,
+      OperationType opType) {
+    AlluxioURI filePath =
+        new AlluxioURI(String.format("/default_tests_files/%s_%s_%s", opType, readType, writeType));
+    boolean result;
+    if (opType == OperationType.BasicOperations) {
+      result = Utils.runExample(new BasicOperations(masterLocation, filePath, readType, writeType));
+    } else {
+      result = Utils.runExample(
+          new BasicNonByteBufferOperations(masterLocation, filePath, readType, writeType, true,
+              20));
+    }
+    return result;
   }
 }

@@ -320,6 +320,7 @@ case ${COMMAND} in
 ;;
 "runTests")
   CLASS="alluxio.cli.RunTests"
+  PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
 ;;
 "runJournalCrashTest")
   CLASS="alluxio.cli.JournalCrashTest"
