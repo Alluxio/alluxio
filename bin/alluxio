@@ -11,7 +11,7 @@ function printUsage {
   echo "Usage: alluxio COMMAND [GENERIC_COMMAND_OPTIONS] [COMMAND_ARGS]"
   echo
   echo "COMMAND is one of:"
-  echo -e "  format [-s]   \t Format Alluxio master (if -s specified, only format if underfs is local and doesn't already exist)"
+  echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
   echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line input for generic filesystem user client."
@@ -288,6 +288,7 @@ case ${COMMAND} in
   CLASS="alluxio.cli.ValidateConf"
 ;;
 *)
+  echo "Unsupported command ${COMMAND}"
   printUsage
   exit 1
 ;;
