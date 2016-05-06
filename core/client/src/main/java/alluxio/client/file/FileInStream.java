@@ -560,6 +560,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
 
       seekBlockInStream(pos);
+      // mPos == pos now.
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
       seekBlockInStream(pos / mBlockSize * mBlockSize);
