@@ -80,7 +80,7 @@ public class CreateDirectoryOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

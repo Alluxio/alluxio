@@ -35,7 +35,7 @@ public final class AuthenticatedClientUser {
   /**
    * A {@link ThreadLocal} variable to maintain the client user along with a specific thread.
    */
-  private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<User>();
+  private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<>();
 
   /**
    * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
