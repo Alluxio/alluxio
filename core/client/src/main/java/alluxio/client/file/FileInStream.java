@@ -118,7 +118,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mContext = FileSystemContext.INSTANCE;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
-    mShouldCacheIncompleteBlock = options.getCacheIncompleteBlock();
+    mShouldCacheIncompleteBlock = options.isCacheIncompleteBlock();
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCacheCurrentBlock) {
@@ -581,9 +581,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (len <= 0) {
       return;
     }
-    Preconditions.checkState(len <= Integer.MAX_VALUE);
 
-    byte[] buffer = new byte[(int) len];
-    read(buffer);
+    byte[] buffer = new byte[Math.min(Constants.MB, (int) len)];
+    do {
+      len -= read(buffer);
+    } while (len > 0);
   }
 }
