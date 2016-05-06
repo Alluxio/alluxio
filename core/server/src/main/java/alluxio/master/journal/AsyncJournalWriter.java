@@ -24,11 +24,15 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * This enables async journal writing, as well as some batched journal flushing.
  */
+@ThreadSafe
 public final class AsyncJournalWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
 
   private final JournalWriter mJournalWriter;
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
@@ -62,6 +66,25 @@ public final class AsyncJournalWriter {
    * @return a counter for the entry, for flushing
    */
   public long appendEntry(JournalEntry entry) {
+    // TODO(gpang): handle bounding the queue if it becomes too large.
+
+    /**
+     * Protocol for appending entries
+     *
+     * This protocol is lock free, to reduce the overhead in critical sections. It uses
+     * {@link AtomicLong} and {@link ConcurrentLinkedQueue} which are both lock-free.
+     *
+     * The invariant that must be satisfied is that the 'counter' that is returned must be
+     * greater than or equal to the actual counter of the entry in the queue.
+     *
+     * In order to guarantee the invariant, the {@link #mCounter} is incremented before adding the
+     * entry to the {@link #mQueue}. AFTER the counter is incremented, whenever the counter is
+     * read, it is guaranteed to be greater than or equal to the counter for the queue entries.
+     *
+     * Therefore, the {@link #mCounter} must be read AFTER the entry is added to the queue. The
+     * resulting read of the counter AFTER the entry is added is guaranteed to be greater than or
+     * equal to the counter for the entries in the queue.
+     */
     mCounter.incrementAndGet();
     mQueue.offer(entry);
     return mCounter.get();
@@ -84,13 +107,14 @@ public final class AsyncJournalWriter {
       long startTime = System.currentTimeMillis();
       long flushCounter = mFlushCounter.get();
       if (counter <= flushCounter) {
+        // The specified counter is already flushed, so just return.
         return;
       }
       while (counter > flushCounter) {
         for (;;) {
           JournalEntry entry = mQueue.poll();
           if (entry == null) {
-            // No more entries in the queue.
+            // No more entries in the queue. Break out of the infinite for-loop.
             break;
           }
           mJournalWriter.getEntryOutputStream().writeEntry(entry);
@@ -98,7 +122,8 @@ public final class AsyncJournalWriter {
 
           if (flushCounter >= counter) {
             if ((System.currentTimeMillis() - startTime) >= mFlushBatchTime) {
-              // This thread has been writing to the journal for enough time.
+              // This thread has been writing to the journal for enough time. Break out of the
+              // infinite for-loop.
               break;
             }
           }
