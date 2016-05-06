@@ -18,7 +18,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.examples.BasicNonByteBufferOperations;
 import alluxio.examples.BasicOperations;
-import alluxio.examples.Utils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -65,20 +64,21 @@ public final class RunTests {
             ReadType.class.getSimpleName(), WriteType.class.getSimpleName()));
     System.out.println(String
         .format("\t Possible values for %s: %s", OperationType.class.getSimpleName(),
-            OperationType.values()));
+            Arrays.toString(OperationType.values())));
     System.out.println(
         String.format("\t Possible values for %s: %s", ReadType.class.getSimpleName(), READ_TYPES));
     System.out.println(String
         .format("\t Possible values for %s: %s", WriteType.class.getSimpleName(), WRITE_TYPES));
   }
 
-  /** Directory for the test generated files */
+  /** Directory for the test generated files. */
   public static final String TEST_PATH = "/default_tests_files";
 
   /**
    * Console program that validates the configuration.
    *
    * @param args there are no arguments needed
+   * @throws Exception if error occurs during tests
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1 && args.length != 4) {
@@ -142,9 +142,10 @@ public final class RunTests {
 
     boolean result = true;
     if (opType == OperationType.Basic) {
-      result = Utils.runExample(new BasicOperations(masterLocation, filePath, readType, writeType));
+      result = CliUtils.runExample(new BasicOperations(masterLocation, filePath, readType,
+          writeType));
     } else if (opType == OperationType.BasicNonByteBuffer) {
-      result = Utils.runExample(
+      result = CliUtils.runExample(
           new BasicNonByteBufferOperations(masterLocation, filePath, readType, writeType, true,
               20));
     }

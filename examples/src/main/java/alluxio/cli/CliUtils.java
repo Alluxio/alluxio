@@ -9,13 +9,9 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.Constants;
-import alluxio.client.AlluxioStorageType;
-import alluxio.client.ReadType;
-import alluxio.client.UnderStorageType;
-import alluxio.client.WriteType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,10 +21,10 @@ import java.util.concurrent.Callable;
 /**
  * Utilities to run the examples.
  */
-public final class Utils {
+public final class CliUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private Utils() {}
+  private CliUtils() {}
 
   /**
    * Prints information of the test result.
@@ -57,7 +53,7 @@ public final class Utils {
       LOG.error("Exception running test: " + example, e);
       result = false;
     }
-    Utils.printPassInfo(result);
+    CliUtils.printPassInfo(result);
     return result;
   }
 }

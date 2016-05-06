@@ -14,11 +14,9 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.cli.Version;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.examples.Utils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
@@ -302,7 +300,7 @@ public class JournalCrashTest {
       } catch (Exception e) {
         LOG.error("Failed to check status", e);
       }
-      Utils.printPassInfo(checkSuccess);
+      CliUtils.printPassInfo(checkSuccess);
       ret &= checkSuccess;
     }
 
