@@ -19,7 +19,7 @@ with the source code and be captured by revision control (currently git). This w
 automatically includes the version of the documentation that is relevant regardless of which version
 or release you have checked out or downloaded.
 
-In directories like `docs/en` or `docs/cn`, you will find text files with a `.md` suffix formatted
+In directories like `docs/en` or `docs/cn` you will find text files with a `.md` suffix, formatted
 using [Github flavor Markdown syntax]
 (https://help.github.com/articles/basic-writing-and-formatting-syntax/). You can read those text
 files directly if you want. Start with `index.md`.
