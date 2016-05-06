@@ -22,12 +22,12 @@ import alluxio.examples.BasicOperations;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Driver to run Alluxio tests.
  */
-@NotThreadSafe
+@ThreadSafe
 public final class RunTests {
   /**
    * The operation types to test.
@@ -54,21 +54,21 @@ public final class RunTests {
 
   private static void usage() {
     System.out.println("Usage:");
-    System.out.println("Run a set of predefined tests:");
+    System.out.println("(1) To run a predefined set of read/write tests:");
     System.out.println(String
         .format("java -cp %s %s <master address>", Version.ALLUXIO_JAR, RunTests.class.getName()));
-    System.out.println("Run a single test:");
+    System.out.println("(2) To run a single test:");
     System.out.println(String
-        .format("runTest: java -cp %s %s <master address> <%s> <%s> <%s>", Version.ALLUXIO_JAR,
+        .format("java -cp %s %s <master address> <%s> <%s> <%s>", Version.ALLUXIO_JAR,
             RunTests.class.getName(), OperationType.class.getSimpleName(),
             ReadType.class.getSimpleName(), WriteType.class.getSimpleName()));
     System.out.println(String
-        .format("\t Possible values for %s: %s", OperationType.class.getSimpleName(),
+        .format("\t %s: one of %s", OperationType.class.getSimpleName(),
             Arrays.toString(OperationType.values())));
     System.out.println(
-        String.format("\t Possible values for %s: %s", ReadType.class.getSimpleName(), READ_TYPES));
+        String.format("\t %s: one of %s", ReadType.class.getSimpleName(), READ_TYPES));
     System.out.println(String
-        .format("\t Possible values for %s: %s", WriteType.class.getSimpleName(), WRITE_TYPES));
+        .format("\t %s: one of %s", WriteType.class.getSimpleName(), WRITE_TYPES));
   }
 
   /** Directory for the test generated files. */
