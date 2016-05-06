@@ -30,7 +30,7 @@ public class GetLineageInfoListOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(GetLineageInfoListOptions.class);
   }
 }

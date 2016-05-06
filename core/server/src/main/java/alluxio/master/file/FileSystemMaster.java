@@ -191,12 +191,10 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_CLIENT_SERVICE_NAME,
         new FileSystemMasterClientService.Processor<>(
             new FileSystemMasterClientServiceHandler(this)));
-    services.put(
-        Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
+    services.put(Constants.FILE_SYSTEM_MASTER_WORKER_SERVICE_NAME,
         new FileSystemMasterWorkerService.Processor<>(
             new FileSystemMasterWorkerServiceHandler(this)));
     return services;
@@ -388,7 +386,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @param inode the inode to get the {@linke FileInfo} for
+   * @param inode the inode to get the {@link FileInfo} for
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    */

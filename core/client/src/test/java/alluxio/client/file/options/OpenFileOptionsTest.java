@@ -63,7 +63,7 @@ public class OpenFileOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(OpenFileOptions.class);
   }
 }

@@ -149,11 +149,9 @@ public final class BlockWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerClientService.Processor<>(getWorkerServiceHandler()));
     return services;
   }
 

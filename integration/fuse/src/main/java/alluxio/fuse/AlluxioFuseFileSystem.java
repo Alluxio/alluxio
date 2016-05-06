@@ -166,7 +166,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int flush(String path, FuseFileInfo fi) {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -380,7 +380,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("read({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -488,7 +488,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int release(String path, FuseFileInfo fi) {
     LOG.trace("release({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
@@ -588,7 +588,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("write({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
