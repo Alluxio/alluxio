@@ -52,7 +52,6 @@ import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-
 /**
  * The class is responsible for managing all top level components of the Block Worker.
  *
