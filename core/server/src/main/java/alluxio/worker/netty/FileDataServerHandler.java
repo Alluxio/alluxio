@@ -14,8 +14,13 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.worker.file.FileSystemWorker;
 import io.netty.channel.ChannelHandlerContext;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 
 /**
  * This class handles filesystem data server requests.
@@ -38,7 +43,22 @@ public class FileDataServerHandler {
         FileTransferType.class);
   }
 
-  public void handleFileReadRequest(ChannelHandlerContext ctx, RPCFileReadRequest req) {
+  public void handleFileReadRequest(ChannelHandlerContext ctx, RPCFileReadRequest req)
+      throws IOException {
+    req.validate();
 
+    long ufsFileId = req.getTempUfsFileId();
+    long length = req.getLength();
+    long offset = req.getOffset();
+
+    InputStream in = mWorker.getInputStream(ufsFileId);
+
+  }
+
+  private DataBuffer getDatabuffer(RPCFileReadRequest req, InputStream in, long offset) {
+    switch (mTransferType) {
+      case MAPPED:
+        ByteBuffer data = in
+    }
   }
 }

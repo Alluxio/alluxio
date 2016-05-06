@@ -30,6 +30,7 @@ import com.google.common.base.Preconditions;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -125,6 +126,10 @@ public final class FileSystemWorker extends AbstractWorker {
   // TODO(calvin): Add a session id to clean up in case of disconnection
   public long createUfsFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
     return mUnderFileSystemManager.createFile(ufsUri);
+  }
+
+  public InputStream getInputStream(long tempUfsFileId) throws IOException {
+    return mUnderFileSystemManager.getInputStream(tempUfsFileId);
   }
 
   /**

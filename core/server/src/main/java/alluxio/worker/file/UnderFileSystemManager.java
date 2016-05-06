@@ -24,6 +24,7 @@ import alluxio.worker.WorkerContext;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -104,8 +105,10 @@ public final class UnderFileSystemManager {
 
   /** A random id generator for worker file ids. */
   private AtomicLong mIdGenerator;
-  /** Map of worker file ids to open under file system streams. */
-  private ConcurrentMap<Long, UnderFileSystemOutputStream> mStreams;
+  /** Map of worker file ids to open under file system input streams. */
+  private ConcurrentMap<Long, InputStream> mInputStreams;
+  /** Map of worker file ids to open under file system output streams. */
+  private ConcurrentMap<Long, UnderFileSystemOutputStream> mOutputStreams;
 
   /**
    * Creates a new under file system manager. Stream ids are unique to each under file system
@@ -113,7 +116,8 @@ public final class UnderFileSystemManager {
    */
   public UnderFileSystemManager() {
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
-    mStreams = new ConcurrentHashMap<>();
+    mInputStreams = new ConcurrentHashMap<>();
+    mOutputStreams = new ConcurrentHashMap<>();
   }
 
   /**
@@ -129,7 +133,7 @@ public final class UnderFileSystemManager {
     UnderFileSystemOutputStream stream =
         new UnderFileSystemOutputStream(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
-    mStreams.put(workerFileId, stream);
+    mOutputStreams.put(workerFileId, stream);
     return workerFileId;
   }
 
@@ -142,13 +146,24 @@ public final class UnderFileSystemManager {
    * @throws IOException if an error occurs when operating on the under file system
    */
   public void cancelFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    UnderFileSystemOutputStream stream = mStreams.remove(tempUfsFileId);
+    UnderFileSystemOutputStream stream = mOutputStreams.remove(tempUfsFileId);
     if (stream != null) {
       stream.cancel();
     } else {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
+  }
+
+  /**
+   * Closes an open input stream associated with the given temporary ufs file id. The temporary
+   * ufs file id will be invalid after this is called.
+   *
+   * @param tempUfsFileId the temporary ufs file id
+   * @throws IOException if an error occurs when operating on the under file system
+   */
+  public void closeFile(long tempUfsFileId) throws IOException {
+    mInputStreams.remove(tempUfsFileId).close();
   }
 
   /**
@@ -160,12 +175,44 @@ public final class UnderFileSystemManager {
    * @throws IOException if an error occurs when operating on the under file system
    */
   public void completeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    UnderFileSystemOutputStream stream = mStreams.remove(tempUfsFileId);
+    UnderFileSystemOutputStream stream = mOutputStreams.remove(tempUfsFileId);
     if (stream != null) {
       stream.complete();
     } else {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
+  }
+
+  /**
+   * @param tempUfsFileId the temporary ufs file id
+   * @return the input stream to read from this file
+   */
+  public InputStream getInputStream(long tempUfsFileId) {
+    return mInputStreams.get(tempUfsFileId);
+  }
+
+  /**
+   * @param tempUfsFileId the temporary ufs file id
+   * @return the output stream to write to this file
+   */
+  public OutputStream getOutputStream(long tempUfsFileId) {
+    return mOutputStreams.get(tempUfsFileId).getStream();
+  }
+
+  /**
+   * Opens a file from the under file system and associates it with a worker file id.
+   *
+   * @param ufsUri the path to create in the under file system
+   * @return the worker file id which should be used to reference the open stream
+   * @throws IOException if an error occurs when operating on the under file system
+   */
+  public long openFile(AlluxioURI ufsUri) throws IOException {
+    String uri = ufsUri.toString();
+    UnderFileSystem ufs = UnderFileSystem.get(uri, WorkerContext.getConf());
+    InputStream stream = ufs.open(uri);
+    long workerFileId = mIdGenerator.getAndIncrement();
+    mInputStreams.put(workerFileId, stream);
+    return workerFileId;
   }
 }
