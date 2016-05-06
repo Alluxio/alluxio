@@ -66,6 +66,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -661,12 +662,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Updates the worker and block metadata for blocks added to a worker.
    *
-   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
-   * method.
-   *
    * @param workerInfo The worker metadata object
    * @param addedBlockIds A mapping from storage tier alias to a list of block ids added
    */
+  @GuardedBy("workerInfo")
   private void processWorkerAddedBlocks(MasterWorkerInfo workerInfo,
       Map<String, List<Long>> addedBlockIds) {
     for (Map.Entry<String, List<Long>> entry : addedBlockIds.entrySet()) {
@@ -696,12 +695,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Creates a {@link BlockInfo} form a given {@link MasterBlockInfo}, by populating worker
    * locations.
    *
-   * NOTE: the specified {@link MasterBlockInfo} should already be locked before calling this
-   * method.
-   *
    * @param masterBlockInfo the {@link MasterBlockInfo}
    * @return a {@link BlockInfo} from a {@link MasterBlockInfo}. Populates worker locations
    */
+  @GuardedBy("masterBlockInfo")
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
     List<BlockLocation> locations = new ArrayList<>();
