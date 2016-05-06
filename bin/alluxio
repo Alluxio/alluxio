@@ -185,6 +185,7 @@ function copyDir {
 }
 
 PARAMETER=""
+ALLUXIO_SHELL_JAVA_OPTS=""
 
 case ${COMMAND} in
 "format")
@@ -237,17 +238,21 @@ case ${COMMAND} in
 "runTest")
   CLASS="alluxio.cli.RunTests"
   PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
 ;;
 "runKVTest")
   CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
   PARAMETER="/default_tests_files/KeyValueStoreOperations"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
 ;;
 "runTests")
   CLASS="alluxio.cli.RunTests"
   PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
 ;;
 "runJournalCrashTest")
   CLASS="alluxio.cli.JournalCrashTest"
+  ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
 ;;
 "readJournal")
   CLASS="alluxio.master.journal.JournalTool"
@@ -294,7 +299,6 @@ case ${COMMAND} in
 ;;
 esac
 
-ALLUXIO_SHELL_JAVA_OPTS=""
 while getopts ":D:" opt; do
   case ${opt} in
   D)
@@ -309,4 +313,4 @@ while getopts ":D:" opt; do
 done
 shift $((${OPTIND} - 1))
 
-${JAVA} -cp ${CLASSPATH} ${ALLUXIO_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
