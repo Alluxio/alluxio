@@ -36,13 +36,7 @@ public final class GetStatusOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof GetStatusOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof GetStatusOptions;
   }
 
   @Override

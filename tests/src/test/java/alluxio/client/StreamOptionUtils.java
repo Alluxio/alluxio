@@ -27,7 +27,6 @@ public final class StreamOptionUtils {
   /**
    * Gets CacheThrough {@link CreateFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsCacheThrough() {
@@ -37,7 +36,6 @@ public final class StreamOptionUtils {
   /**
    * Gets MustCache {@link CreateFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsMustCache() {
@@ -47,7 +45,6 @@ public final class StreamOptionUtils {
   /**
    * Gets Through {@link CreateFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsThrough() {
@@ -57,7 +54,6 @@ public final class StreamOptionUtils {
   /**
    * Gets WriteLocal {@link CreateFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsWriteLocal() {
@@ -68,7 +64,6 @@ public final class StreamOptionUtils {
   /**
    * Gets ReadCache {@link OpenFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsCache() {
@@ -78,7 +73,6 @@ public final class StreamOptionUtils {
   /**
    * Gets ReadNoCache {@link OpenFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsNoCache() {
@@ -88,7 +82,6 @@ public final class StreamOptionUtils {
   /**
    * Gets AsyncWrite {@link CreateFileOptions}.
    *
-   * @param conf the Alluxio config
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsAsync() {

@@ -61,7 +61,7 @@ if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.underfs.address=${ALLUXIO_UNDERFS_ADDRESS}"
 fi
 
-if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZES}" ]]; then
+if [[ -n "${ALLUXIO_WORKER_MEMORY_SIZE}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.memory.size=${ALLUXIO_WORKER_MEMORY_SIZE}"
 fi
 
