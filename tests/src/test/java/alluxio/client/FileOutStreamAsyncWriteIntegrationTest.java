@@ -56,28 +56,15 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
   @Test
   public void asyncWriteEmptyFileTest() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
-        TimeUnit.SECONDS));
-
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, mWriteAsync).close();
 
-    CommonUtils.sleepMs(1);
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);
-    Assert.assertEquals(PersistenceState.IN_PROGRESS.toString(), status.getPersistenceState());
+    Assert.assertNotEquals(PersistenceState.PERSISTED, status.getPersistenceState());
     Assert.assertTrue(status.isCompleted());
 
-    // execute the async persist, which needs two heartbeats
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
-        TimeUnit.SECONDS));
-
-    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, status.getFileId());
-
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC, 5,
-        TimeUnit.SECONDS));
+    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
 
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
