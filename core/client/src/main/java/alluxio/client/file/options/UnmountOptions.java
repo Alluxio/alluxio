@@ -36,13 +36,7 @@ public final class UnmountOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof UnmountOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof UnmountOptions;
   }
 
   @Override
