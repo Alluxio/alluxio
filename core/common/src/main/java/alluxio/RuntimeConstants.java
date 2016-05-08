@@ -11,22 +11,20 @@
 
 package alluxio;
 
-import javax.annotation.concurrent.ThreadSafe;
-
 /**
- * The version of the current build.
+ * System constants that are determined during runtime
  */
-@ThreadSafe
-public final class Version {
-
-  private Version() {} // prevent instantiation
-
-  /**
-   * Prints the version of the current build.
-   *
-   * @param args the arguments
-   */
-  public static void main(String[] args) {
-    System.out.println("Alluxio version: " + RuntimeConstants.VERSION);
+public final class RuntimeConstants {
+  static {
+    Configuration configuration = new Configuration();
+    VERSION = configuration.get(Constants.VERSION);
   }
+
+  /** The version of this Alluxio instance */
+  public static final String VERSION;
+
+  /** The relative path to the Alluxio target jar. */
+  public static final String ALLUXIO_JAR =
+      "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
+
 }

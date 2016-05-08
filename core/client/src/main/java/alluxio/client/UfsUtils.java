@@ -14,7 +14,7 @@ package alluxio.client;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AlluxioException;
@@ -127,7 +127,7 @@ public final class UfsUtils {
 
     try {
       loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), new PrefixList(exList, ";"),
-          new Configuration());
+          Configuration.Factory.createClientConf());
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();
@@ -141,7 +141,7 @@ public final class UfsUtils {
    * Prints an example usage of the command line.
    */
   public static void printUsage() {
-    String cmd = "java -cp " + Version.ALLUXIO_JAR + " alluxio.client.UfsUtils ";
+    String cmd = "java -cp " + RuntimeConstants.ALLUXIO_JAR + " alluxio.client.UfsUtils ";
 
     System.out.println("Usage: " + cmd + "<AlluxioUri> <UfsUri> "
         + "[<Optional ExcludePathPrefix, separated by ;>]");

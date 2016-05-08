@@ -13,7 +13,7 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -116,7 +116,7 @@ public class BasicOperations implements Callable<Boolean> {
    */
   public static void main(String[] args) {
     if (args.length != 4) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR + " " + BasicOperations.class.getName()
+      System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR + " " + BasicOperations.class.getName()
           + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
           + " | THROUGH | ASYNC_THROUGH)>");
       System.exit(-1);

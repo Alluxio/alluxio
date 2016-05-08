@@ -14,7 +14,7 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -348,7 +348,7 @@ public class JournalCrashTest {
       sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
     } else {
       ret = false;
-      new HelpFormatter().printHelp("java -cp alluxio-" + Version.VERSION
+      new HelpFormatter().printHelp("java -cp alluxio-" + RuntimeConstants.VERSION
           + "-jar-with-dependencies.jar alluxio.examples.JournalCrashTest",
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"

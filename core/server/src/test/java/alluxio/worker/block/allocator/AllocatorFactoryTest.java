@@ -97,7 +97,7 @@ public class AllocatorFactoryTest {
   public void createDefaultAllocatorTest() {
     // Create a new instance of Alluxio configuration with original properties to test the default
     // behavior of create.
-    Configuration conf = new Configuration();
+    Configuration conf = Configuration.Factory.createDefault();
     Allocator allocator = Allocator.Factory.create(conf, mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }

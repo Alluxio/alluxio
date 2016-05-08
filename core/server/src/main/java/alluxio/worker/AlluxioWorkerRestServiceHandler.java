@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.RestUtils;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
@@ -163,7 +163,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    return RestUtils.createResponse(Version.VERSION);
+    return RestUtils.createResponse(RuntimeConstants.VERSION);
   }
 
   /**
