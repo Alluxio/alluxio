@@ -22,14 +22,18 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Prints the file's last 1KB of contents to the console.
+ * Prints the file's last user specified number of bytes (by default, 1KB)
+ * of contents to the console.
  */
 @ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
@@ -56,15 +60,24 @@ public final class TailCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
+    int numOfBytes = -1;
+    boolean userSpecifiedBytes = cl.hasOption('C');
+    if (userSpecifiedBytes) {
+      numOfBytes = Integer.parseInt(cl.getOptionValue('C'));
+      Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
+      userSpecifiedBytes = true;
+    }
+
     if (!status.isFolder()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = null;
       try {
         is = mFileSystem.openFile(path, options);
-        byte[] buf = new byte[Constants.KB];
+        int size = userSpecifiedBytes ? numOfBytes : Constants.KB;
+        byte[] buf = new byte[size];
         long bytesToRead = 0L;
-        if (status.getLength() > Constants.KB) {
-          bytesToRead = Constants.KB;
+        if (status.getLength() > size) {
+          bytesToRead = size;
         } else {
           bytesToRead = status.getLength();
         }
@@ -85,11 +98,32 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "tail <path>";
+    return "tail -C <number of bytes> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Prints the file's last 1KB of contents to the console.";
+    return "Prints the file's last user specified number of bytes (by default, 1KB) of contents "
+        + "to the console.";
+  }
+
+  @Override
+  protected Options getOptions() {
+    Option bytesOption =
+        Option.builder("C")
+              .required(false)
+              .numberOfArgs(1)
+              .desc("user specified option")
+              .build();
+    return new Options().addOption(bytesOption);
+  }
+
+  @Override
+  public boolean validateArgs(String... args) {
+    boolean valid = args.length >= getNumOfArgs();
+    if (!valid) {
+      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
+    }
+    return valid;
   }
 }
