@@ -45,7 +45,7 @@ public final class ConfUtils {
   // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Properties confProperties = source.getInternalProperties();
+    Map<Object, Object> confProperties = source.toMap();
     try {
       DefaultStringifier.store(target, confProperties, Constants.CONF_SITE);
     } catch (IOException ex) {

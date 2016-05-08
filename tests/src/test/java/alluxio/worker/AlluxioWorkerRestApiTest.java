@@ -13,7 +13,7 @@ package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
@@ -156,7 +156,7 @@ public final class AlluxioWorkerRestApiTest {
   @Test
   public void getVersionTest() throws Exception {
     TestCaseFactory.newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
-        NO_PARAMS, "GET", Version.VERSION, mResource).run();
+        NO_PARAMS, "GET", RuntimeConstants.VERSION, mResource).run();
   }
 
   @Test

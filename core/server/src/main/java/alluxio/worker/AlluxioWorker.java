@@ -13,8 +13,8 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.ValidateConf;
-import alluxio.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
@@ -68,12 +68,12 @@ public final class AlluxioWorker {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioWorker.class.getCanonicalName());
+      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR, AlluxioWorker.class.getCanonicalName());
       System.exit(-1);
     }
 
     // validate the conf
-    if (!ValidateConf.validate()) {
+    if (!ValidateConf.validate(Configuration.Factory.createWorkerConf())) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
@@ -329,9 +329,9 @@ public final class AlluxioWorker {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} started @ {}", RuntimeConstants.VERSION, mWorkerAddress);
     mThriftServer.serve();
-    LOG.info("Alluxio worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} ended @ {}", RuntimeConstants.VERSION, mWorkerAddress);
   }
 
   /**

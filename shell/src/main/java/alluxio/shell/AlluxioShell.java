@@ -58,7 +58,7 @@ public class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    AlluxioShell shell = new AlluxioShell(new Configuration());
+    AlluxioShell shell = new AlluxioShell(Configuration.Factory.createClientConf());
     int ret;
     try {
       ret = shell.run(argv);

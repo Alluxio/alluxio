@@ -133,7 +133,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, new Configuration());
+    this(numWorkers, masterAddress, resourcePath, Configuration.Factory.createClientConf());
   }
 
   /**

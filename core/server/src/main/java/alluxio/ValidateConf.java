@@ -33,9 +33,10 @@ public final class ValidateConf {
   /**
    * Validates the configurations.
    *
+   * @param configuration Configuration to validate
    * @return true if the validation succeeds, false otherwise
    */
-  public static boolean validate() {
+  public static boolean validate(Configuration configuration) {
     Set<String> validProperties = new HashSet<String>();
     try {
       // Iterate over the array of Field objects in alluxio.Constants by reflection
@@ -75,7 +76,6 @@ public final class ValidateConf {
     Pattern reservedRatioPattern =
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
-    Configuration configuration = new Configuration();
     boolean valid = true;
     for (Entry<String, String> entry : configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
@@ -100,7 +100,7 @@ public final class ValidateConf {
    * @param args there are no arguments needed
    */
   public static void main(String[] args) {
-    if (!validate()) {
+    if (!validate(Configuration.Factory.createClientConf())) {
       System.exit(-1);
     }
     System.out.println("All configuration entries are valid.");

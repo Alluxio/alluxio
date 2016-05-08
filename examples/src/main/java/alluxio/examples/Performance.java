@@ -14,7 +14,7 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -594,7 +594,7 @@ public class Performance {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 9) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR
+      System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
           + " alluxio.examples.Performance "
           + "<MasterIp> <FileNamePrefix> <WriteBlockSizeInBytes> <BlocksPerFile> "
           + "<DebugMode:true/false> <Threads> <FilesPerThread> <TestCaseNumber> "

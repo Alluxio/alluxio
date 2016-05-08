@@ -30,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = String.format("java -cp %s alluxio.Format <MASTER/WORKER>",
-      Version.ALLUXIO_JAR);
+      RuntimeConstants.ALLUXIO_JAR);
 
   private static boolean formatFolder(String name, String folder, Configuration configuration)
       throws IOException {
@@ -62,10 +62,9 @@ public final class Format {
       System.exit(-1);
     }
 
-    Configuration configuration = new Configuration();
-
+    Configuration configuration;
     if ("MASTER".equalsIgnoreCase(args[0])) {
-
+      configuration = Configuration.Factory.createMasterConf();
       String masterJournal =
           configuration.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal, configuration)) {
@@ -85,6 +84,7 @@ public final class Format {
           PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
               + System.currentTimeMillis()), configuration);
     } else if ("WORKER".equalsIgnoreCase(args[0])) {
+      configuration = Configuration.Factory.createWorkerConf();
       String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
       int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level++) {

@@ -68,13 +68,13 @@ public class ConfigurationTest {
     sTestProperties.put("home.port", "8080");
     sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
 
+    // initialize
+    sDefaultConfiguration = Configuration.Factory.createDefault();
+
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
     System.setProperty(Constants.MASTER_RPC_PORT, "20001");
     System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
-
-    // initialize
-    sDefaultConfiguration = new Configuration(false);
   }
 
   /**

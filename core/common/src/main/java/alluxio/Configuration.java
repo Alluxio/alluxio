@@ -18,8 +18,8 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.SerializationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * <p>
@@ -61,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * values from any Java system properties set as well.
  *
  * <p>
- * The class only supports creation using {@link #Configuration(Properties)} to override default
+ * The class only supports creation using {@link #Configuration(Map)} to override default
  * values.
  */
 @NotThreadSafe
@@ -70,12 +71,12 @@ public final class Configuration {
   public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
-  /** Regex string to find ${key} for variable substitution. */
+  /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
+  /** Set of properties */
   private final Properties mProperties = new Properties();
 
   /**
@@ -83,19 +84,7 @@ public final class Configuration {
    *
    * @param props override {@link Properties}
    */
-  public Configuration(Map<String, String> props) {
-    if (props != null) {
-      mProperties.putAll(props);
-    }
-    checkUserFileBufferBytes();
-  }
-
-  /**
-   * Overrides default properties.
-   *
-   * @param props override {@link Properties}
-   */
-  public Configuration(Properties props) {
+  public Configuration(Map<?, ?> props) {
     if (props != null) {
       mProperties.putAll(props);
     }
@@ -104,11 +93,9 @@ public final class Configuration {
 
   /**
    * Default constructor.
-   *
-   * Most clients will call this constructor to allow default loading of properties to happen.
    */
   public Configuration() {
-    this(true);
+    this(Configuration.DEFAULT_PROPERTIES, SITE_PROPERTIES, true);
   }
 
   /**
@@ -117,7 +104,8 @@ public final class Configuration {
    *
    * @param includeSystemProperties whether to include the system properties
    */
-  Configuration(boolean includeSystemProperties) {
+  private Configuration(String defaultPropertiesFile, String sitePropertiesFile,
+      boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = new Properties();
 
@@ -133,7 +121,7 @@ public final class Configuration {
         String.valueOf(ChannelType.defaultType()));
 
     InputStream defaultInputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
+        Configuration.class.getClassLoader().getResourceAsStream(defaultPropertiesFile);
     if (defaultInputStream == null) {
       throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
               .getMessage());
@@ -146,13 +134,15 @@ public final class Configuration {
 
     // Load site specific properties file
     Properties siteProps = new Properties();
-    InputStream siteInputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(SITE_PROPERTIES);
-    if (siteInputStream != null) {
-      try {
-        siteProps.load(siteInputStream);
-      } catch (IOException e) {
-        LOG.warn("Unable to load site Alluxio configuration file.", e);
+    if (sitePropertiesFile != null) {
+      InputStream siteInputStream = Configuration.class.getClassLoader()
+          .getResourceAsStream(sitePropertiesFile);
+      if (siteInputStream != null) {
+        try {
+          siteProps.load(siteInputStream);
+        } catch (IOException e) {
+          LOG.warn("Unable to load site Alluxio configuration file.", e);
+        }
       }
     }
 
@@ -167,7 +157,7 @@ public final class Configuration {
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
 
-    // Update alluxio.master_address based on if Zookeeper is used or not.
+    // Update alluxio.master.address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
@@ -215,13 +205,6 @@ public final class Configuration {
   }
 
   /**
-   * @return the deep copy of the internal {@link Properties} of this {@link Configuration} instance
-   */
-  public Properties getInternalProperties() {
-    return SerializationUtils.clone(mProperties);
-  }
-
-  /**
    * Merge the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
@@ -230,7 +213,7 @@ public final class Configuration {
   public void merge(Configuration alternateConf) {
     if (alternateConf != null) {
       // merge the system properties
-      mProperties.putAll(alternateConf.getInternalProperties());
+      mProperties.putAll(alternateConf.toMap());
     }
   }
 
@@ -442,17 +425,10 @@ public final class Configuration {
   }
 
   /**
-   * Returns the properties as a Map.
-   *
-   * @return a Map from each property name to its property values
+   * @return a copy of the internal {@link Properties} of as an immutable map
    */
-  public Map<String, String> toMap() {
-    Map<String, String> copy = new HashMap<String, String>();
-    for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {
-      Object key = names.nextElement();
-      copy.put(key.toString(), mProperties.get(key).toString());
-    }
-    return copy;
+  public ImmutableMap<Object, Object> toMap() {
+    return ImmutableMap.copyOf(mProperties);
   }
 
   @Override
@@ -517,5 +493,46 @@ public final class Configuration {
     long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
     Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
+  }
+
+  /**
+   * Factory class to create configuration instances.
+   */
+  @ThreadSafe
+  public static final class Factory {
+    public static final String DEFAULT_PROPERTIES_FILE = "alluxio-default.properties";
+    public static final String MASTER_PROPERTIES_FILE = "alluxio-master.properties";
+    public static final String WORKER_PROPERTIES_FILE = "alluxio-worker.properties";
+    public static final String CLIENT_PROPERTIES_FILE = "alluxio-client.properties";
+
+
+    /**
+     * @return the default configuration without loading site properties
+     */
+    public static Configuration createDefault() {
+      return new Configuration(DEFAULT_PROPERTIES_FILE, null, true);
+    }
+
+    /**
+     * @return the configuration for master daemon
+     */
+    public static Configuration createMasterConf() {
+      return new Configuration(DEFAULT_PROPERTIES_FILE, MASTER_PROPERTIES_FILE, true);
+    }
+
+    /**
+     * @return the configuration for worker daemon
+     */
+    public static Configuration createWorkerConf() {
+      return new Configuration(DEFAULT_PROPERTIES_FILE, WORKER_PROPERTIES_FILE, true);
+    }
+
+    /**
+     * @return the configuration for client
+     */
+    public static Configuration createClientConf() {
+      return new Configuration(DEFAULT_PROPERTIES_FILE, CLIENT_PROPERTIES_FILE, true);
+    }
+
   }
 }

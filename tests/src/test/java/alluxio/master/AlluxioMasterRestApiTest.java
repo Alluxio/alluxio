@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.MasterStorageTierAssoc;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
 import alluxio.metrics.MetricsSystem;
@@ -167,13 +167,13 @@ public final class AlluxioMasterRestApiTest {
         CommonUtils.randomString(10));
 
     Configuration configuration = mockConfiguration();
-    Mockito.doReturn(properties).when(configuration).getInternalProperties();
+    Mockito.doReturn(properties).when(configuration).toMap();
 
     TestCaseFactory
         .newMasterTestCase(getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION),
             NO_PARAMS, "GET", propertyMap, mResource).run();
 
-    Mockito.verify(configuration).getInternalProperties();
+    Mockito.verify(configuration).toMap();
   }
 
   @Test
@@ -259,7 +259,7 @@ public final class AlluxioMasterRestApiTest {
   @Test
   public void getVersionTest() throws Exception {
     TestCaseFactory.newMasterTestCase(getEndpoint(AlluxioMasterRestServiceHandler.GET_VERSION),
-        NO_PARAMS, "GET", Version.VERSION, mResource).run();
+        NO_PARAMS, "GET", RuntimeConstants.VERSION, mResource).run();
   }
 
   private UnderFileSystem mockUfs() {

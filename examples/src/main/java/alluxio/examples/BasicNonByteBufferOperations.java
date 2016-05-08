@@ -13,7 +13,7 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -146,7 +146,7 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   }
 
   private static void usage() {
-    System.out.println("java -cp " + Version.ALLUXIO_JAR + " "
+    System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
         + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
         + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
         + " | THROUGH)> <delete file> <number of files>");
