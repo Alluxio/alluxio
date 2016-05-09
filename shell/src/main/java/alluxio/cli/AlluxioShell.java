@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.shell;
+package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.Constants;
