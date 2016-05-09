@@ -160,8 +160,7 @@ function copyDir {
   wait
 }
 
-function runJavaClass "$@" {
-  echo "$@"
+function runJavaClass {
   while getopts ":D:" opt; do
     case ${opt} in
     D)
@@ -263,7 +262,7 @@ function main {
     runJavaClass "$@"
   ;;
   "runTest")
-    CLASS="alluxio.cli.RunTests"
+    CLASS="alluxio.cli.TestRunner"
     PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
@@ -275,7 +274,7 @@ function main {
     runJavaClass "$@"
   ;;
   "runTests")
-    CLASS="alluxio.cli.RunTests"
+    CLASS="alluxio.cli.TestRunner"
     PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
@@ -290,10 +289,10 @@ function main {
     runJavaClass "$@"
   ;;
   "killAll")
-    killAll $@
+    killAll "$@"
   ;;
   "copyDir")
-    copyDir $@
+    copyDir "$@"
   ;;
   "thriftGen")
     declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
