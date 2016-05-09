@@ -14,13 +14,10 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.block.BlockId;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
@@ -73,12 +70,11 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
     request.setAttribute("fatalError", "");
-    FileSystem fs = FileSystem.Factory.get();
     String filePath = request.getParameter("path");
     if (!(filePath == null || filePath.isEmpty())) {
       // Display file block info
       try {
-        UIFileInfo uiFileInfo = getUiFileInfo(fs, new AlluxioURI(filePath));
+        UIFileInfo uiFileInfo = getUiFileInfo(new AlluxioURI(filePath));
         List<ImmutablePair<String, List<UIFileBlockInfo>>> fileBlocksOnTier = new ArrayList<>();
         for (Entry<String, List<UIFileBlockInfo>> e : uiFileInfo.getBlocksOnTier().entrySet()) {
           fileBlocksOnTier.add(
@@ -132,7 +128,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
       List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
       for (long fileId : subFileIds) {
-        uiFileInfos.add(getUiFileInfo(fs, fileId));
+        uiFileInfos.add(getUiFileInfo(fileId));
       }
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException e) {
@@ -189,48 +185,37 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
   /***
    * Gets the {@link UIFileInfo} object based on file id.
    *
-   * @param fileSystem the {@link FileSystem} client
    * @param fileId the file id of the file
    * @return the {@link UIFileInfo} object of the file
-   * @throws FileDoesNotExistException if the file does not exist
-   * @throws BlockDoesNotExistException if the block does not exist
    * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws AlluxioException if an Alluxio exception is thrown
    */
-  private UIFileInfo getUiFileInfo(FileSystem fileSystem, long fileId)
-      throws FileDoesNotExistException, BlockDoesNotExistException, IOException, AlluxioException {
-    // TODO(calvin): Remove this dependency
-    FileSystemMasterClient masterClient = FileSystemContext.INSTANCE.acquireMasterClient();
-    try {
-      return getUiFileInfo(fileSystem, new AlluxioURI(masterClient.getStatusInternal(fileId)
-          .getPath()));
-    } finally {
-      FileSystemContext.INSTANCE.releaseMasterClient(masterClient);
-    }
+  private UIFileInfo getUiFileInfo(long fileId) throws IOException, AlluxioException {
+    return getUiFileInfo(new URIStatus(mBlockWorker.getFileInfo(fileId)));
   }
 
   /**
-   * Gets the {@link UIFileInfo} object that represents the file id, or the file path if file id is
-   * -1.
+   * Gets the {@link UIFileInfo} object based on file path.
    *
-   * @param fileSystem the {@link FileSystem} client
-   * @param filePath the path of the file. valid iff fileId is -1
+   * @param filePath the path of the file
+   * @return the {@link UIFileInfo} object of the file
+   * @throws IOException if an I/O error occurs
+   * @throws AlluxioException if an Alluxio exception is thrown
+   */
+  private UIFileInfo getUiFileInfo(AlluxioURI filePath) throws IOException, AlluxioException {
+    return getUiFileInfo(FileSystem.Factory.get().getStatus(filePath));
+  }
+
+  /**
+   * Gets the {@link UIFileInfo} object based on URI status.
+   *
+   * @param status the URI status to use
    * @return the {@link UIFileInfo} object of the file
    * @throws BlockDoesNotExistException if the block does not exist
    * @throws FileDoesNotExistException if the file does not exist
-   * @throws InvalidPathException if the path is invalid
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
-  private UIFileInfo getUiFileInfo(FileSystem fileSystem, AlluxioURI filePath)
-      throws BlockDoesNotExistException, FileDoesNotExistException, InvalidPathException,
-      IOException, AlluxioException {
-    URIStatus status;
-    try {
-      status = fileSystem.getStatus(filePath);
-    } catch (AlluxioException e) {
-      throw new FileDoesNotExistException(filePath.toString());
-    }
+  private UIFileInfo getUiFileInfo(URIStatus status)
+      throws BlockDoesNotExistException, FileDoesNotExistException {
     UIFileInfo uiFileInfo = new UIFileInfo(status);
     boolean blockExistOnWorker = false;
     for (long blockId : status.getBlockIds()) {
@@ -245,7 +230,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       }
     }
     if (!blockExistOnWorker) {
-      throw new FileDoesNotExistException(filePath.toString());
+      throw new FileDoesNotExistException(status.getPath());
     }
     return uiFileInfo;
   }
