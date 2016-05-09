@@ -45,13 +45,7 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof MostAvailableFirstPolicy)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof MostAvailableFirstPolicy;
   }
 
   @Override
