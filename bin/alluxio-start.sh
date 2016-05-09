@@ -125,8 +125,8 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
+  MASTER_ADDRESS=${ALLUXIO_MASTER_HOSTNAME}
+  if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
     MASTER_ADDRESS=localhost
   fi
 
@@ -276,7 +276,7 @@ main() {
       ;;
     workers)
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
-       "${ALLUXIO_MASTER_ADDRESS}"
+       "${ALLUXIO_MASTER_HOSTNAME}"
       ;;
     restart_worker)
       restart_worker
