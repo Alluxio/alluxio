@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
@@ -48,7 +49,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -84,7 +84,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   @SuppressWarnings("unchecked")
   private final IndexedSet<Inode<?>> mInodes = new IndexedSet<Inode<?>>(mIdIndex);
   /** A set of inode ids representing pinned inode files. */
-  private final Set<Long> mPinnedInodeFileIds = new HashSet<Long>();
+  private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>();
 
   /**
    * Inode id management. Inode ids are essentially block ids.
