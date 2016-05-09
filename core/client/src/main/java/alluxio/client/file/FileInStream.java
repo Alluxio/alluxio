@@ -583,7 +583,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void readCurrentBlockToPos(long pos) throws IOException {
     long len = Math.min(pos - mPos,
-        mCurrentBlockInStream == null ? getBlockSize(mPos): mCurrentBlockInStream.remaining());
+        mCurrentBlockInStream == null ? getBlockSize(mPos) : mCurrentBlockInStream.remaining());
     if (len <= 0) {
       return;
     }
