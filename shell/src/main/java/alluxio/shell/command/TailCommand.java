@@ -32,8 +32,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Prints the file's last user specified number of bytes (by default, 1KB)
- * of contents to the console.
+ * Prints the file's last n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
@@ -60,12 +59,10 @@ public final class TailCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
-    int numOfBytes = -1;
-    boolean userSpecifiedBytes = cl.hasOption('C');
-    if (userSpecifiedBytes) {
-      numOfBytes = Integer.parseInt(cl.getOptionValue('C'));
+    int numOfBytes = Constants.KB;
+    if (cl.hasOption('c')) {
+      numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
-      userSpecifiedBytes = true;
     }
 
     if (!status.isFolder()) {
@@ -73,11 +70,10 @@ public final class TailCommand extends WithWildCardPathCommand {
       FileInStream is = null;
       try {
         is = mFileSystem.openFile(path, options);
-        int size = userSpecifiedBytes ? numOfBytes : Constants.KB;
-        byte[] buf = new byte[size];
+        byte[] buf = new byte[numOfBytes];
         long bytesToRead = 0L;
-        if (status.getLength() > size) {
-          bytesToRead = size;
+        if (status.getLength() > numOfBytes) {
+          bytesToRead = numOfBytes;
         } else {
           bytesToRead = status.getLength();
         }
@@ -98,19 +94,18 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "tail -C <number of bytes> <path>";
+    return "tail -c <number of bytes> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Prints the file's last user specified number of bytes (by default, 1KB) of contents "
-        + "to the console.";
+    return "Prints the file's last n bytes (by default, 1KB) to the console.";
   }
 
   @Override
   protected Options getOptions() {
     Option bytesOption =
-        Option.builder("C")
+        Option.builder("c")
               .required(false)
               .numberOfArgs(1)
               .desc("user specified option")
