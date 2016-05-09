@@ -629,12 +629,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Updates the worker and block metadata for blocks removed from a worker.
    *
-   * NOTE: the specified {@link MasterWorkerInfo} should already be locked before calling this
-   * method.
-   *
    * @param workerInfo The worker metadata object
    * @param removedBlockIds A list of block ids removed from the worker
    */
+  @GuardedBy("workerInfo")
   private void processWorkerRemovedBlocks(MasterWorkerInfo workerInfo,
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {
