@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.cli.UfsUtils;
+import alluxio.client.FileSystemTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.PrefixList;
 import alluxio.underfs.UnderFileSystem;

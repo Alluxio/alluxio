@@ -160,7 +160,27 @@ function copyDir {
   wait
 }
 
+function runJavaClass "$@" {
+  echo "$@"
+  while getopts ":D:" opt; do
+    case ${opt} in
+    D)
+      ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
+      ;;
+    \?)
+      echo "Invalid option: -${OPTARG}"
+      printUsage
+      exit 1
+      ;;
+    esac
+  done
+  shift $((${OPTIND} - 1))
+
+  echo  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
+}
+
 function main {
+
   LAUNCHER=
   # If debugging is enabled propagate that through to sub-shells
   if [[ $- == *x* ]]; then
@@ -221,51 +241,59 @@ function main {
     echo "Formatting Alluxio Master @ ${ALLUXIO_MASTER_ADDRESS}"
     CLASS="alluxio.cli.Format"
     PARAMETER="master"
+    runJavaClass "$@"
   ;;
   "formatWorker")
     echo "Formatting Alluxio Worker @ `hostname -f`"
     CLASS="alluxio.cli.Format"
     PARAMETER="worker"
+    runJavaClass "$@"
   ;;
   "fs")
-    CLASS="alluxio.shell.AlluxioShell"
+    CLASS="alluxio.cli.AlluxioShell"
+    runJavaClass "$@"
   ;;
   "loadufs")
-    CLASS="alluxio.client.UfsUtils"
+    CLASS="alluxio.cli.UfsUtils"
+    runJavaClass "$@"
   ;;
   "runClass")
     CLASS=$1
     shift
+    runJavaClass "$@"
   ;;
   "runTest")
     CLASS="alluxio.cli.RunTests"
     PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "runKVTest")
     CLASS="alluxio.examples.keyvalue.KeyValueStoreOperations"
     PARAMETER="/default_tests_files/KeyValueStoreOperations"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "runTests")
     CLASS="alluxio.cli.RunTests"
     PARAMETER="alluxio://${ALLUXIO_MASTER_ADDRESS}:19998"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "runJournalCrashTest")
     CLASS="alluxio.cli.JournalCrashTest"
     ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
+    runJavaClass "$@"
   ;;
   "readJournal")
     CLASS="alluxio.master.journal.JournalTool"
+    runJavaClass "$@"
   ;;
   "killAll")
     killAll $@
-    exit 0
   ;;
   "copyDir")
     copyDir $@
-    exit 0
   ;;
   "thriftGen")
     declare -a thriftSrcPaths=($(find "${BIN}/.." -name "*.thrift" -print0 | xargs -0 -n1 dirname | sort | uniq))
@@ -275,24 +303,23 @@ function main {
         thrift -I "${BIN}/../core/common/src/thrift" --gen java:private-members -out "${thriftSrcPath}/../main/java/." "${thriftSrcPath}/${srcFile}"
       done
     done
-    exit 0
   ;;
   "protoGen")
     rm -rf ${BIN}/../core/server/src/main/java/alluxio/proto
     for src_file in $(find ${BIN}/../core/server/src/proto -type f); do
       protoc --java_out=${BIN}/../core/server/src/main/java --proto_path=`dirname ${src_file}` ${src_file}
     done
-    exit 0
   ;;
   "clearCache")
     sync; echo 3 > /proc/sys/vm/drop_caches ;
-    exit 0
   ;;
   "version")
     CLASS="alluxio.cli.Version"
+    runJavaClass "$@"
   ;;
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
+    runJavaClass "$@"
   ;;
   *)
     echo "Unsupported command ${COMMAND}"
@@ -300,22 +327,6 @@ function main {
     exit 1
   ;;
   esac
-
-  while getopts ":D:" opt; do
-    case ${opt} in
-    D)
-      ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
-      ;;
-    \?)
-      echo "Invalid option: -${OPTARG}"
-      printUsage
-      exit 1
-      ;;
-    esac
-  done
-  shift $((${OPTIND} - 1))
-
-  ${JAVA} -cp ${CLASSPATH} ${ALLUXIO_USER_JAVA_OPTS} ${ALLUXIO_SHELL_JAVA_OPTS} ${CLASS} ${PARAMETER} $@
 }
 
 main "$@"
