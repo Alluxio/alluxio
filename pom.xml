@@ -347,7 +347,7 @@
           <artifactId>maven-surefire-plugin</artifactId>
           <version>2.14</version>
           <configuration>
-            <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M  -Xmx768M -XX:-UseGCOverheadLimit</argLine>
+            <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M -Xmx768M -XX:-UseGCOverheadLimit</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
