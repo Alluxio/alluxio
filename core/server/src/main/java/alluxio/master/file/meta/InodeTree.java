@@ -644,7 +644,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else if (pathComponents.length == 1) {
       if (pathComponents[0].equals("")) {
         inodes.add(mRoot);
-        return TraversalResult.createFoundResult(mRoot, nonPersistedInodes, inodes);
+        return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
       } else {
         throw new InvalidPathException("File name starts with " + pathComponents[0]);
       }
@@ -660,13 +660,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
         // The user might want to create the nonexistent directories, so return the traversal result
         // current inode with the last Inode taken, and the index of the first path component that
         // couldn't be found.
-        return TraversalResult.createNotFoundResult(current, i, nonPersistedInodes, inodes);
+        return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes);
       } else if (next.isFile()) {
         // The inode can't have any children. If this is the last path component, we're good.
         // Otherwise, we can't traverse further, so we clean up and throw an exception.
         if (i == pathComponents.length - 1) {
           inodes.add(next);
-          return TraversalResult.createFoundResult(next, nonPersistedInodes, inodes);
+          return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
         } else {
           throw new InvalidPathException(
               "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
@@ -680,7 +680,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         current = next;
       }
     }
-    return TraversalResult.createFoundResult(current, nonPersistedInodes, inodes);
+    return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
   }
 
   private static final class TraversalResult {
@@ -705,21 +705,20 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     private final List<Inode<?>> mInodes;
 
-    static TraversalResult createFoundResult(Inode<?> inode, List<Inode<?>> nonPersisted,
+    static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes) {
+      return new TraversalResult(true, -1, nonPersisted, inodes);
+    }
+
+    static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes) {
-      return new TraversalResult(true, -1, inode, nonPersisted, inodes);
+      return new TraversalResult(false, index, nonPersisted, inodes);
     }
 
-    static TraversalResult createNotFoundResult(Inode<?> inode, int index,
-        List<Inode<?>> nonPersisted, List<Inode<?>> inodes) {
-      return new TraversalResult(false, index, inode, nonPersisted, inodes);
-    }
-
-    private TraversalResult(boolean found, int index, Inode<?> inode, List<Inode<?>> nonPersisted,
+    private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
         List<Inode<?>> inodes) {
       mFound = found;
       mNonexistentIndex = index;
-      mInode = inode;
+      mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
     }
