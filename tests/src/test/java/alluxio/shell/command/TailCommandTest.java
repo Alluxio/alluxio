@@ -74,10 +74,10 @@ public class TailCommandTest extends AbstractAlluxioShellTest {
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
   }
 
-  @Test (timeout = 20000)
+  @Test
   public void tailFileWithUserSpecifiedBytes() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 2048);
-    mFsShell.run("tail", "-C", "2000", "/testFile");
+    mFsShell.run("tail", "-c", "2000", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(48, 2000);
     Assert.assertArrayEquals(expect, mOutput.toByteArray());
   }
