@@ -33,7 +33,7 @@ public final class InStreamOptions {
   private FileWriteLocationPolicy mLocationPolicy;
   private ReadType mReadType;
   /** Cache incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
-  private boolean mCacheIncompleteBlock;
+  private boolean mCachePartiallyReadBlock;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -52,8 +52,8 @@ public final class InStreamOptions {
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mCacheIncompleteBlock =
-        ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_INCOMPLETE_BLOCK);
+    mCachePartiallyReadBlock =
+        ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
   }
 
   /**
@@ -94,18 +94,18 @@ public final class InStreamOptions {
   /**
    * @return true if incomplete block caching is enabled
    */
-  public boolean isCacheIncompleteBlock() {
-    return mCacheIncompleteBlock;
+  public boolean isCachePartiallyReadBlock() {
+    return mCachePartiallyReadBlock;
   }
 
   /**
    * Enables/Disables incomplete block caching.
    *
-   * @param cacheIncompleteBlock set to true if to enable incomplete block caching
+   * @param cachePartiallyReadBlock set to true if to enable incomplete block caching
    * @return the updated options object
    */
-  public InStreamOptions setCacheIncompleteBlock(boolean cacheIncompleteBlock) {
-    mCacheIncompleteBlock = cacheIncompleteBlock;
+  public InStreamOptions setCachePartiallyReadBlock(boolean cachePartiallyReadBlock) {
+    mCachePartiallyReadBlock = cachePartiallyReadBlock;
     return this;
   }
 
@@ -120,17 +120,18 @@ public final class InStreamOptions {
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
-        && Objects.equal(mCacheIncompleteBlock, that.mCacheIncompleteBlock);
+        && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocationPolicy, mReadType, mCacheIncompleteBlock);
+    return Objects.hashCode(mLocationPolicy, mReadType, mCachePartiallyReadBlock);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
-        .add("readType", mReadType).add("cacheIncompleteBlock", mCacheIncompleteBlock).toString();
+        .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
+        .toString();
   }
 }

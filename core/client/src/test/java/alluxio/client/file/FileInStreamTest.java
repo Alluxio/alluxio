@@ -260,10 +260,10 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
    */
   @Test
-  public void longSeekBackwardCachingIncompleteBlocksTest() throws IOException {
+  public void longSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
-            .setCacheIncompleteBlock(true));
+            .setCachePartiallyReadBlock(true));
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH * 3 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -282,10 +282,10 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks backward within 1 block.
    */
   @Test
-  public void shortSeekBackwardCachingIncompleteBlocksTest() throws IOException {
+  public void shortSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
-            .setCacheIncompleteBlock(true));
+            .setCachePartiallyReadBlock(true));
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -312,10 +312,10 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block.
    */
   @Test
-  public void longSeekForwardCachingIncompleteBlocksTest() throws IOException {
+  public void longSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
-            .setCacheIncompleteBlock(true));
+            .setCachePartiallyReadBlock(true));
     int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
     int readAmount = (int) (BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
@@ -337,10 +337,10 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks forward within a block.
    */
   @Test
-  public void shortSeekForwardCachingIncompleteBlocksTest() throws IOException {
+  public void shortSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
-            .setCacheIncompleteBlock(true));
+            .setCachePartiallyReadBlock(true));
     int seekAmount = (int) (BLOCK_LENGTH / 4);
     int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
     byte[] buffer = new byte[readAmount];
