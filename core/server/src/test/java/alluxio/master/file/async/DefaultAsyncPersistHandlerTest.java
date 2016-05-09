@@ -12,7 +12,6 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.AlluxioException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
@@ -62,7 +61,7 @@ public class DefaultAsyncPersistHandlerTest {
     Mockito.when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
     Mockito.when(mFileSystemMaster.getPath(fileId)).thenReturn(path);
     Mockito.when(mFileSystemMaster.getFileInfo(fileId))
-        .thenReturn(new FileInfo().setCompleted(true));
+        .thenReturn(new FileInfo().setLength(1).setCompleted(true));
 
     handler.scheduleAsyncPersistence(path);
     List<PersistFile> persistFiles = handler.pollFilesToPersist(workerId);
@@ -87,14 +86,14 @@ public class DefaultAsyncPersistHandlerTest {
     BlockLocation location2 = new BlockLocation().setWorkerId(2);
     blockInfoList.add(new FileBlockInfo()
         .setBlockInfo(new BlockInfo().setLocations(Lists.newArrayList(location2))));
+    long fileId = 2;
+    Mockito.when(mFileSystemMaster.getFileId(path)).thenReturn(fileId);
+    Mockito.when(mFileSystemMaster.getFileInfo(fileId))
+        .thenReturn(new FileInfo().setLength(1).setCompleted(true));
     Mockito.when(mFileSystemMaster.getFileBlockInfoList(path)).thenReturn(blockInfoList);
 
-    try {
-      handler.scheduleAsyncPersistence(path);
-      Assert.fail("Cannot persist with file's blocks distributed on multiple workers");
-    } catch (AlluxioException e) {
-      Assert.assertEquals("No worker found to schedule async persistence for file /test",
-          e.getMessage());
-    }
+    // no persist scheduled on any worker
+    Assert.assertEquals(0, handler.pollFilesToPersist(1).size());
+    Assert.assertEquals(0, handler.pollFilesToPersist(2).size());
   }
 }
