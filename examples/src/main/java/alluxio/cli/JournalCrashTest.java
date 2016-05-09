@@ -165,8 +165,6 @@ public class JournalCrashTest {
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String USAGE = String.format("java -cp %s %s",
-      Version.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName());
 
   private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
@@ -238,7 +236,6 @@ public class JournalCrashTest {
   public static void main(String[] args) {
     // Parse the input args.
     if (!parseInputArgs(args)) {
-      System.out.println(USAGE);
       System.exit(EXIT_FAILED);
     }
 
@@ -346,8 +343,8 @@ public class JournalCrashTest {
       sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
     } else {
       ret = false;
-      new HelpFormatter().printHelp("java -cp alluxio-" + Version.VERSION
-          + "-jar-with-dependencies.jar alluxio.cli.JournalCrashTest",
+      new HelpFormatter().printHelp(String.format("java -cp %s %s",
+          Version.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName()),
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
           + "will launch total 6 clients connecting to the Master and the Master"
