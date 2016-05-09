@@ -559,6 +559,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         return;
       }
 
+      // Only seeking backwards or seeking forward without caching the current block can reach here.
       seekBlockInStream(pos);
       // mPos == pos now.
       mCurrentBlockInStream.seek(mPos % mBlockSize);
@@ -569,6 +570,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         readCurrentBlockToPos(pos);
       } else {
         seekBlockInStream(pos);
+        // mPos == pos now.
         mCurrentBlockInStream.seek(mPos % mBlockSize);
       }
     }
