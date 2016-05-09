@@ -41,6 +41,12 @@ fi
 
 . "${ALLUXIO_CONF_DIR}/alluxio-env.sh"
 
+if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
+  echo "ALLUXIO_MASTER_ADDRESS is deprecated since version 1.1 and will be remove in version 2.0."
+  echo "Please use \"ALLUXIO_MASTER_HOSTNAME\" instead."
+  ALLUXIO_MASTER_HOSTNAME=${ALLUXIO_MASTER_ADDRESS}
+fi
+
 if [[ -n "${ALLUXIO_HOME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.home=${ALLUXIO_HOME}"
 fi
@@ -53,8 +59,8 @@ if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
 fi
 
-if [[ -n "${ALLUXIO_MASTER_ADDRESS}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_ADDRESS}"
+if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
+  ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
 fi
 
 if [[ -n "${ALLUXIO_UNDERFS_ADDRESS}" ]]; then
