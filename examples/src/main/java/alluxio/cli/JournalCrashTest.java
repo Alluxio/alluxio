@@ -165,6 +165,8 @@ public class JournalCrashTest {
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final String USAGE = String.format("java -cp %s %s",
+      Version.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName());
 
   private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
@@ -231,15 +233,12 @@ public class JournalCrashTest {
   /**
    * Runs the crash test.
    *
-   * Usage:
-   * {@code java -cp
-   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.cli.JournalCrashTest}
-   *
    * @param args no arguments
    */
   public static void main(String[] args) {
     // Parse the input args.
     if (!parseInputArgs(args)) {
+      System.out.println(USAGE);
       System.exit(EXIT_FAILED);
     }
 

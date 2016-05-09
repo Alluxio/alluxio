@@ -55,20 +55,19 @@ public final class TestRunner {
   private static void usage() {
     System.out.println("Usage:");
     System.out.println("(1) To run a predefined set of read/write tests:");
-    System.out.println(String
-        .format("java -cp %s %s <master address>", Version.ALLUXIO_JAR, TestRunner.class.getName()));
+    System.out.println(String.format("java -cp %s %s <master address>", Version.ALLUXIO_JAR,
+        TestRunner.class.getCanonicalName()));
     System.out.println("(2) To run a single test:");
     System.out.println(String
         .format("java -cp %s %s <master address> <%s> <%s> <%s>", Version.ALLUXIO_JAR,
-            TestRunner.class.getName(), OperationType.class.getSimpleName(),
+            TestRunner.class.getCanonicalName(), OperationType.class.getSimpleName(),
             ReadType.class.getSimpleName(), WriteType.class.getSimpleName()));
-    System.out.println(String
-        .format("\t %s: one of %s", OperationType.class.getSimpleName(),
-            Arrays.toString(OperationType.values())));
-    System.out.println(
-        String.format("\t %s: one of %s", ReadType.class.getSimpleName(), READ_TYPES));
-    System.out.println(String
-        .format("\t %s: one of %s", WriteType.class.getSimpleName(), WRITE_TYPES));
+    System.out.println(String.format("\t <%s>: one of %s", OperationType.class.getSimpleName(),
+        Arrays.toString(OperationType.values())));
+    System.out
+        .println(String.format("\t <%s>: one of %s", ReadType.class.getSimpleName(), READ_TYPES));
+    System.out
+        .println(String.format("\t <%s>: one of %s", WriteType.class.getSimpleName(), WRITE_TYPES));
   }
 
   /** Directory for the test generated files. */
@@ -141,13 +140,18 @@ public final class TestRunner {
         new AlluxioURI(String.format("%s/%s_%s_%s", TEST_PATH, opType, readType, writeType));
 
     boolean result = true;
-    if (opType == OperationType.Basic) {
-      result = CliUtils.runExample(new BasicOperations(masterLocation, filePath, readType,
-          writeType));
-    } else if (opType == OperationType.BasicNonByteBuffer) {
-      result = CliUtils.runExample(
-          new BasicNonByteBufferOperations(masterLocation, filePath, readType, writeType, true,
-              20));
+    switch (opType) {
+      case Basic:
+        result =
+            CliUtils.runExample(new BasicOperations(masterLocation, filePath, readType, writeType));
+        break;
+      case BasicNonByteBuffer:
+        result = CliUtils.runExample(
+            new BasicNonByteBufferOperations(masterLocation, filePath, readType, writeType, true,
+                20));
+        break;
+      default:
+        System.out.println("Unrecognized operation type " + opType);
     }
     return result ? 0 : 1;
   }
