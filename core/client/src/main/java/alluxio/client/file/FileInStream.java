@@ -78,16 +78,20 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
-  /** Whether or not the current block should be cached. */
-  protected boolean mShouldCacheCurrentBlock;
+/** Current position of the stream. */
+  protected long mPos;
+  /** Current {@link BlockInStream} backing this stream. This should never be NULL. */
+  protected BlockInStream mCurrentBlockInStream;
+
   /** Include incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
   private final boolean mShouldCachePartiallyReadBlock;
- /** Current position of the stream. */
-  protected long mPos;
-  /** Current {@link BlockInStream} backing this stream. */
-  protected BlockInStream mCurrentBlockInStream;
-  /** Current {@link BufferedBlockOutStream} writing the data into Alluxio, this may be null. */
+  private final boolean mShouldCache;
+   /**
+   * Current {@link BufferedBlockOutStream} writing the data into Alluxio.
+    * This should always be set at the same time as mCurrentBlockInStream.
+   */
   protected BufferedBlockOutStream mCurrentCacheStream;
+
   /** Block id for the current instream, {@link #mCurrentBlockInStream}. */
   protected long mCurrentBlockId;
 
@@ -105,7 +109,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     return new FileInStream(status, options);
   }
 
-  /**
+ /**
    * Creates a new file input stream.
    *
    * @param status the file status
@@ -117,11 +121,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mFileLength = status.getLength();
     mContext = FileSystemContext.INSTANCE;
     mAlluxioStorageType = options.getAlluxioStorageType();
-    mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+    mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
-    if (mShouldCacheCurrentBlock) {
+    if (mShouldCache) {
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
@@ -129,6 +133,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   @Override
+  /** FIX */
   public void close() throws IOException {
     if (mClosed) {
       return;
