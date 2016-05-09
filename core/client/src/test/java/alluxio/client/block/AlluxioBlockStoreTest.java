@@ -93,7 +93,7 @@ public final class AlluxioBlockStoreTest {
         .thenReturn(sBlockWorkerClient);
     sMasterClient = PowerMockito.mock(BlockMasterClient.class);
     Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(
-      new DummyCloseableResource<>(sMasterClient));
+        new DummyCloseableResource<>(sMasterClient));
 
     // Inform the block store that it should use the mock context
     sBlockStore = AlluxioBlockStore.get();
