@@ -17,6 +17,9 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.base.Objects;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -39,6 +42,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private boolean mPinned;
   private String mUserName;
 
+  private ReentrantReadWriteLock mLock;
+  private Lock mReadLock;
+  private Lock mWriteLock;
+
   protected Inode(long id) {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
@@ -52,6 +59,9 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
     mUserName = "";
+    mLock = new ReentrantReadWriteLock();
+    mReadLock = mLock.readLock();
+    mWriteLock = mLock.writeLock();
   }
 
   /**
@@ -258,6 +268,22 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @return {@code this} so that the abstract class can use the fluent builder pattern
    */
   protected abstract T getThis();
+
+  public void lockRead() {
+    mReadLock.lock();
+  }
+
+  public void unlockRead() {
+    mReadLock.unlock();
+  }
+
+  public void lockWrite() {
+    mWriteLock.lock();
+  }
+
+  public void unlockWrite() {
+    mWriteLock.unlock();
+  }
 
   @Override
   public synchronized int hashCode() {
