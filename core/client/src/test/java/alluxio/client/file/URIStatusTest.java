@@ -37,7 +37,7 @@ public class URIStatusTest {
   /**
    * Tests getting and setting fields.
    */
-  @Test (timeout = 10000)
+  @Test
   public void fieldsTest() {
     FileInfo fileInfo = FileInfoTest.createRandom();
     URIStatus uriStatus = new URIStatus(fileInfo);
@@ -72,7 +72,7 @@ public class URIStatusTest {
     Assert.assertEquals(uriStatus.toString(), fileInfo.toString());
   }
 
-  @Test (timeout = 10000)
+  @Test
   public void testEquals() throws Exception {
     FileInfo fileInfo = FileInfoTest.createRandom();
     URIStatus uriStatus1 = new URIStatus(fileInfo);
