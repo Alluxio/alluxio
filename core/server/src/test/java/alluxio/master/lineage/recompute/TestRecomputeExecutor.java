@@ -23,6 +23,7 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +44,7 @@ public final class TestRecomputeExecutor {
     // mock planner
     RecomputePlanner planner = Mockito.mock(RecomputePlanner.class);
     Job job = Mockito.mock(Job.class);
-    Lineage lineage = new Lineage(1, Lists.<Long>newArrayList(), Lists.newArrayList(fileId), job);
+    Lineage lineage = new Lineage(1, new ArrayList<Long>(), Lists.newArrayList(fileId), job);
     Mockito.when(planner.plan()).thenReturn(new RecomputePlan(Lists.newArrayList(lineage)));
 
     // mock file system master

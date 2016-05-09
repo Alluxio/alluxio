@@ -36,13 +36,7 @@ public final class RenameOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof RenameOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof RenameOptions;
   }
 
   @Override

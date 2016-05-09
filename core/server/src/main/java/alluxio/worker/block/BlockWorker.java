@@ -290,9 +290,7 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException e) {
+    } catch (IOException | ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);

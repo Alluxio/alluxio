@@ -133,7 +133,7 @@ Alluxio提供了一种使用多宿主网络的方式。如果你有多个NIC，�
 
 有许多频繁用到的Alluxio配置项可以通过环境变量设置，可以通过Shell设置或者在`conf/alluxio-env.sh`文件中修改其默认值。
 
-* `$ALLUXIO_MASTER_ADDRESS`: Alluxio master地址，默认为localhost。
+* `$ALLUXIO_MASTER_HOSTNAME`: Alluxio master地址，默认为localhost。
 * `$ALLUXIO_UNDERFS_ADDRESS`: 底层文件系统地址，默认为`${ALLUXIO_HOME}/underFSStorage`，即本地文件系统。
 * `$ALLUXIO_JAVA_OPTS`: 针对Master和Workers的Java VM选项。
 * `$ALLUXIO_MASTER_JAVA_OPTS`: 针对Master配置的额外Java VM选项。

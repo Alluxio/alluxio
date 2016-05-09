@@ -130,7 +130,7 @@ public class UnderStoreBlockInStreamTest {
 
     // Read first 10 bytes
     Assert.assertEquals(size, inStream.read(readBytes));
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex, size, readBytes));
     remaining -= size;
     Assert.assertEquals(remaining, inStream.remaining());
 
@@ -150,7 +150,7 @@ public class UnderStoreBlockInStreamTest {
   /**
    * Tests the array read when completely reading the first block of the file.
    *
-   * @throws Exception when reading from the stream fails
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadTest() throws IOException {
@@ -160,7 +160,7 @@ public class UnderStoreBlockInStreamTest {
   /**
    * Tests the array read when completely reading the last block of the file.
    *
-   * @throws Exception when reading from the stream fails
+   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadEOFTest() throws IOException {
@@ -182,7 +182,7 @@ public class UnderStoreBlockInStreamTest {
     // Fully read the block.
     Assert.assertEquals(size, inStream.read(readBytes));
     Assert.assertEquals(0, inStream.remaining());
-    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex + 0, size, readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(startIndex, size, readBytes));
 
     // Next read should return -1, and not real data.
     Assert.assertEquals(-1, inStream.read(readBytes));
