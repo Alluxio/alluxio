@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * The default handler for async persistence that schedules the the persistence on the workers that
+ * The default handler for async persistence that schedules the persistence on the workers that
  * contains all the blocks of a given file, and the handler returns the scheduled request whenever
  * the corresponding worker polls.
  */
