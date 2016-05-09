@@ -234,8 +234,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(
-        pos < mFileLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, pos);
+    Preconditions.checkArgument(validPosition(pos), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
+        pos);
     if (!mShouldCachePartiallyReadBlock) {
       seekInternal(pos);
     } else {
