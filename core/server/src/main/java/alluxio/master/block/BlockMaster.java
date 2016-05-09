@@ -428,7 +428,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     synchronized (mBlocks) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
       if (masterBlockInfo == null) {
-        throw new BlockInfoException("Block info not found for " + blockId);
+        throw new BlockInfoException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
       }
       // Construct the block info object to return.
       synchronized (mWorkers) {
