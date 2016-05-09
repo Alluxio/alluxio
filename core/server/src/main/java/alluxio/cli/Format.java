@@ -27,7 +27,7 @@ import java.io.IOException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Format Alluxio file system.
+ * Formats Alluxio file system.
  */
 @ThreadSafe
 public final class Format {
@@ -54,7 +54,7 @@ public final class Format {
   }
 
   /**
-   * Formats the Alluxio file system via {@code java -cp %s alluxio.cli.Format <MASTER/WORKER>}.
+   * Formats the Alluxio file system.
    *
    * @param args either {@code MASTER} or {@code WORKER}
    * @throws IOException if a non-Alluxio related exception occurs

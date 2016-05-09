@@ -24,7 +24,7 @@ import java.util.concurrent.Callable;
 public final class CliUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private CliUtils() {}
+  private CliUtils() {} // prevent instantiation
 
   /**
    * Prints information of the test result.
