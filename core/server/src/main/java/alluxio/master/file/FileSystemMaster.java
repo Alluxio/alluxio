@@ -85,6 +85,7 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -269,7 +270,9 @@ public final class FileSystemMaster extends AbstractMaster {
         // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
         mAsyncPersistHandler.scheduleAsyncPersistence(getPath(fileId));
       } catch (AlluxioException e) {
-        throw new RuntimeException(e);
+        // It's possible that rescheduling the async persist calls fails, because the blocks may no
+        // longer be in the memory
+        LOG.error(e.getMessage());
       }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(innerEntry));
@@ -2000,6 +2003,13 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setPermission((short) entry.getPermission());
     }
     setAttributeInternal(entry.getId(), entry.getOpTimeMs(), options);
+  }
+
+  /**
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  public List<WorkerInfo> getWorkerInfoList() {
+    return mBlockMaster.getWorkerInfoList();
   }
 
   /**
