@@ -157,7 +157,9 @@ There are a few frequently used Alluxio configuration properties that can be set
 variables. One can either set these variables through shell or modify their default values specified
 in `conf/alluxio-env.sh`.
 
-* `$ALLUXIO_MASTER_HOSTNAME`: Alluxio master address, default to localhost.
+* `$ALLUXIO_MASTER_HOSTNAME`: Alluxio master hostname, default to localhost.
+* `$ALLUXIO_MASTER_ADDRESS`: Same as `ALLUXIO_MASTER_HOSTNAME`, deprecated since version 1.1 and
+will be remove in version 2.0.
 * `$ALLUXIO_UNDERFS_ADDRESS`: under storage system address, default to
 `${ALLUXIO_HOME}/underFSStorage` which is a local file system.
 * `$ALLUXIO_JAVA_OPTS`: Java VM options for both Master and Worker.
