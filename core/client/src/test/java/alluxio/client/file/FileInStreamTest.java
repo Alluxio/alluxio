@@ -108,7 +108,7 @@ public class FileInStreamTest {
               return mCacheStreams.get((int) i).isClosed() ? null : mCacheStreams.get((int) i);
             }
           });
-    }
+   }
     mInfo.setBlockIds(blockIds);
     mStatus = new URIStatus(mInfo);
 
@@ -373,6 +373,7 @@ public class FileInStreamTest {
           mCacheStreams.get(1).getWrittenData());
     }
   }
+
 
   /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and

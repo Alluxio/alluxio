@@ -248,8 +248,23 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return 0;
     }
 
+    /**
+     * TODO(peis): Figure this out with Calvin or whoever wrote this.
+     * The current implementation looks strange to me. I think it indents to skip n bytes for
+     * caching. I think it should either be implemented the same as seek or read.
+     */
+
+    /*
     long toSkip = Math.min(n, remaining());
     seekInternal(mPos + toSkip);
+    return toSkip;
+    */
+
+    long toSkip = Math.min(n, remaining());
+    closeOrCancelCacheStream();
+    mPos = mPos + toSkip;
+    updateStreams();
+    mCurrentBlockInStream.seek(mPos % mBlockSize);
     return toSkip;
   }
 
@@ -361,6 +376,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     closeOrCancelCacheStream();
   }
+
 
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
@@ -527,7 +543,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentCacheStream != null) {
       // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
       // block.
-      readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
+     readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
       // Early return if we are at pos already. This happens if we seek forward with caching
       // enabled for this block.
