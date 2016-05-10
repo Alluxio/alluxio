@@ -728,6 +728,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Lost worker periodic check.
    */
   private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostWorkerDetectionHeartbeatExecutor}.
+     */
+    public LostWorkerDetectionHeartbeatExecutor() {}
+
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");

@@ -35,7 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for convenience methods used by {@link AlluxioShell}.
  */
 @ThreadSafe
-public class AlluxioShellUtils {
+public final class AlluxioShellUtils {
+
+  private AlluxioShellUtils() {} // prevent instantiation
+
   /**
    * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
    * from a path, leaving only the local file path.
