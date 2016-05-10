@@ -433,17 +433,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param currentBlockId cached result of {@link #getCurrentBlockId()}
    * @return true if the block stream should be updated
    */
-  private boolean shouldUpdateStreams(long currentBlockId) {
+  protected boolean shouldUpdateStreams(long currentBlockId) {
     if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
       return true;
     }
-    /*
     if (mCurrentCacheStream != null) {
       Preconditions.checkState(mCurrentBlockInStream.remaining() == mCurrentCacheStream.remaining(),
           "BlockInStream and CacheStream is not sync-ed %d %d", mCurrentBlockInStream.remaining(),
           mCurrentCacheStream.remaining());
     }
-    */
     return mCurrentBlockInStream.remaining() == 0;
   }
 
