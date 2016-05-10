@@ -22,14 +22,17 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 
+import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
 
 import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Prints the file's last 1KB of contents to the console.
+ * Prints the file's last n bytes (by default, 1KB) to the console.
  */
 @ThreadSafe
 public final class TailCommand extends WithWildCardPathCommand {
@@ -56,15 +59,21 @@ public final class TailCommand extends WithWildCardPathCommand {
       throw new IOException(e.getMessage());
     }
 
+    int numOfBytes = Constants.KB;
+    if (cl.hasOption('c')) {
+      numOfBytes = Integer.parseInt(cl.getOptionValue('c'));
+      Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
+    }
+
     if (!status.isFolder()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = null;
       try {
         is = mFileSystem.openFile(path, options);
-        byte[] buf = new byte[Constants.KB];
+        byte[] buf = new byte[numOfBytes];
         long bytesToRead = 0L;
-        if (status.getLength() > Constants.KB) {
-          bytesToRead = Constants.KB;
+        if (status.getLength() > numOfBytes) {
+          bytesToRead = numOfBytes;
         } else {
           bytesToRead = status.getLength();
         }
@@ -85,11 +94,22 @@ public final class TailCommand extends WithWildCardPathCommand {
 
   @Override
   public String getUsage() {
-    return "tail <path>";
+    return "tail -c <number of bytes> <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Prints the file's last 1KB of contents to the console.";
+    return "Prints the file's last n bytes (by default, 1KB) to the console.";
+  }
+
+  @Override
+  protected Options getOptions() {
+    Option bytesOption =
+        Option.builder("c")
+              .required(false)
+              .numberOfArgs(1)
+              .desc("user specified option")
+              .build();
+    return new Options().addOption(bytesOption);
   }
 }
