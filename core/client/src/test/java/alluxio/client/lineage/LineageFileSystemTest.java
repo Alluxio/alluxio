@@ -54,7 +54,8 @@ public final class LineageFileSystemTest {
     mAlluxioLineageFileSystem = LineageFileSystem.get();
     Whitebox.setInternalState(mAlluxioLineageFileSystem, "mLineageContext", mLineageContext);
     FileSystemContext mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
+    FileSystemMasterClient mFileSystemMasterClient =
+        PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
     Whitebox.setInternalState(mAlluxioLineageFileSystem, "mContext", mFileSystemContext);
