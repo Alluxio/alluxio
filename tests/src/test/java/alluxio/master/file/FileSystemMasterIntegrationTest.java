@@ -517,7 +517,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
@@ -558,7 +558,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -586,7 +586,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectoryTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -595,14 +595,15 @@ public class FileSystemMasterIntegrationTest {
   public void deleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFile"), true));
+    mFsMaster.delete(new AlluxioURI("/testFile"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
   @Test
   public void deleteRootTest() throws Exception {
-    Assert.assertFalse(mFsMaster.delete(new AlluxioURI("/"), true));
-    Assert.assertFalse(mFsMaster.delete(new AlluxioURI("/"), false));
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
+    mFsMaster.delete(new AlluxioURI("/"), true);
   }
 
   @Test
@@ -631,18 +632,19 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
 
+  /**
+   * Tests that deleting a file from a folder updates the folder's last modification time.
+   */
   @Test
   public void lastModificationTimeDeleteTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
-    Assert.assertEquals(1, folderId);
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    long opTimeMs = TEST_CURRENT_TIME;
-    Assert.assertTrue(mFsMaster.deleteInternal(fileId, true, true, opTimeMs));
-    FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
-    Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    CommonUtils.sleepMs(2);
+    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), true);
+    long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
   }
 
   @Test
