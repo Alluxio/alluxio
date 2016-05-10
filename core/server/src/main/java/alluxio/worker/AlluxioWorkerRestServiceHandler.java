@@ -57,8 +57,7 @@ public final class AlluxioWorkerRestServiceHandler {
   private final AlluxioWorker mWorker = AlluxioWorker.get();
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
 
-  // prevent instantiation
-  private AlluxioWorkerRestServiceHandler() {}
+  private AlluxioWorkerRestServiceHandler() {} // prevent instantiation
 
   /**
    * @summary get the address of the worker

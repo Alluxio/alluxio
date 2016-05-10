@@ -43,8 +43,7 @@ public interface AsyncPersistHandler {
   @ThreadSafe
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * Creates a new instance of {@link AsyncPersistHandler}.

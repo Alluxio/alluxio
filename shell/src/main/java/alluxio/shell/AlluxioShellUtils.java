@@ -37,8 +37,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioShellUtils {
 
-  // prevent instantiation
-  private AlluxioShellUtils() {}
+  private AlluxioShellUtils() {} // prevent instantiation
 
   /**
    * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
