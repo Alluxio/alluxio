@@ -47,6 +47,8 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.ws.rs.HttpMethod;
+
 /**
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
@@ -91,7 +93,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(address).when(sWorker).getWorkerAddress();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS),
-        NO_PARAMS, "GET", address.toString()).run();
+        NO_PARAMS, HttpMethod.GET, address.toString()).run();
 
     Mockito.verify(sWorker).getWorkerAddress();
   }
@@ -103,7 +105,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(capacityBytes).when(sStoreMeta).getCapacityBytes();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
-        NO_PARAMS, "GET", capacityBytes).run();
+        NO_PARAMS, HttpMethod.GET, capacityBytes).run();
   }
 
   @Test
@@ -113,7 +115,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(usedBytes).when(sStoreMeta).getUsedBytes();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES),
-        NO_PARAMS, "GET", usedBytes).run();
+        NO_PARAMS, HttpMethod.GET, usedBytes).run();
   }
 
   @Test
@@ -151,7 +153,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(gauges).when(metricRegistry).getGauges();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_METRICS),
-        NO_PARAMS, "GET", metricsMap).run();
+        NO_PARAMS, HttpMethod.GET, metricsMap).run();
 
     Mockito.verify(metricRegistry).getCounters();
     Mockito.verify(metricRegistry).getGauges();
@@ -161,7 +163,7 @@ public final class AlluxioWorkerRestApiTest {
   @Test
   public void getVersionTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
-        NO_PARAMS, "GET", Version.VERSION).run();
+        NO_PARAMS, HttpMethod.GET, Version.VERSION).run();
   }
 
   @Test
@@ -178,8 +180,8 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(capacityBytesOnTiers).when(sStoreMeta).getCapacityBytesOnTiers();
 
     new TestCase(mHostname, mPort,
-        getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS, "GET",
-        capacityBytesOnTiers).run();
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, capacityBytesOnTiers).run();
 
     Mockito.verify(sStoreMeta).getCapacityBytesOnTiers();
   }
@@ -198,8 +200,8 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(usedBytesOnTiers).when(sStoreMeta).getUsedBytesOnTiers();
 
     new TestCase(mHostname, mPort,
-        getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS, "GET",
-        usedBytesOnTiers).run();
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, usedBytesOnTiers).run();
 
     Mockito.verify(sStoreMeta).getUsedBytesOnTiers();
   }
@@ -219,8 +221,8 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(pathsOnTiers).when(sStoreMeta).getDirectoryPathsOnTiers();
 
     new TestCase(mHostname, mPort,
-        getEndpoint(AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS, "GET",
-        pathsOnTiers).run();
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, pathsOnTiers).run();
 
     Mockito.verify(sStoreMeta).getDirectoryPathsOnTiers();
   }
@@ -232,7 +234,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(startTime).when(sWorker).getStartTimeMs();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS),
-        NO_PARAMS, "GET", startTime).run();
+        NO_PARAMS, HttpMethod.GET, startTime).run();
   }
 
   @Test
@@ -242,7 +244,7 @@ public final class AlluxioWorkerRestApiTest {
     Mockito.doReturn(uptime).when(sWorker).getUptimeMs();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS),
-        NO_PARAMS, "GET", uptime).run();
+        NO_PARAMS, HttpMethod.GET, uptime).run();
 
     Mockito.verify(sWorker).getUptimeMs();
   }

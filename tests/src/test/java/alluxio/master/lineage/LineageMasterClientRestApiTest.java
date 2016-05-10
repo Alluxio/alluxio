@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import javax.ws.rs.HttpMethod;
+
 /**
  * Test cases for {@link LineageMasterClientRestServiceHandler}.
  */
@@ -73,14 +75,14 @@ public class LineageMasterClientRestApiTest {
   @Test
   public void serviceNameTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_NAME),
-        NO_PARAMS, "GET", Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
+        NO_PARAMS, HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS, "GET",
-        Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).run();
+        getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS,
+        HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
@@ -98,8 +100,8 @@ public class LineageMasterClientRestApiTest {
             Mockito.<Job>any());
 
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.CREATE_LINEAGE), params, "POST", result)
-        .run();
+        getEndpoint(LineageMasterClientRestServiceHandler.CREATE_LINEAGE), params, HttpMethod.POST,
+        result).run();
 
     Mockito.verify(mLineageMaster)
         .createLineage(Mockito.<List<AlluxioURI>>any(), Mockito.<List<AlluxioURI>>any(),
@@ -118,8 +120,8 @@ public class LineageMasterClientRestApiTest {
         .deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
 
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.DELETE_LINEAGE), params, "POST", result)
-        .run();
+        getEndpoint(LineageMasterClientRestServiceHandler.DELETE_LINEAGE), params, HttpMethod.POST,
+        result).run();
 
     Mockito.verify(mLineageMaster).deleteLineage(Mockito.anyLong(), Mockito.anyBoolean());
   }
@@ -135,8 +137,8 @@ public class LineageMasterClientRestApiTest {
     Mockito.doReturn(lineageInfos).when(mLineageMaster).getLineageInfoList();
 
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST), NO_PARAMS, "GET",
-        lineageInfos).run();
+        getEndpoint(LineageMasterClientRestServiceHandler.GET_LINEAGE_INFO_LIST), NO_PARAMS,
+        HttpMethod.GET, lineageInfos).run();
 
     Mockito.verify(mLineageMaster).getLineageInfoList();
   }
@@ -154,8 +156,8 @@ public class LineageMasterClientRestApiTest {
         .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
 
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE), params, "POST",
-        result).run();
+        getEndpoint(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE), params,
+        HttpMethod.POST, result).run();
 
     Mockito.verify(mLineageMaster)
         .reinitializeFile(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
@@ -167,8 +169,8 @@ public class LineageMasterClientRestApiTest {
     params.put("path", "test");
 
     new TestCase(mHostname, mPort,
-        getEndpoint(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE), params, "POST", null)
-        .run();
+        getEndpoint(LineageMasterClientRestServiceHandler.REPORT_LOST_FILE), params,
+        HttpMethod.POST, null).run();
 
     Mockito.verify(mLineageMaster).reportLostFile(Mockito.anyString());
   }

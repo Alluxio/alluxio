@@ -28,7 +28,7 @@ import javax.ws.rs.core.Response;
 /**
  * Represents a REST API test case.
  */
-public class TestCase {
+public final class TestCase {
   private String mEndpoint;
   private Map<String, String> mParameters;
   private String mMethod;
