@@ -124,6 +124,8 @@ public final class UnknownLengthFileInStream extends FileInStream {
     return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
   }
 
+  // TODO(peis): I don't think this is necessary. Ask Gene to confirm.
+  /*
   @Override
   protected boolean shouldCloseCacheStream() {
     if (mCurrentCacheBytesWritten == mPos && mCurrentBlockInStream != null
@@ -134,6 +136,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
     }
     return super.shouldCloseCacheStream();
   }
+  */
 
   @Override
   protected void writeToCacheStream(byte[] buffer, int offset, int length) throws IOException {
