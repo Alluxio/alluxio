@@ -51,6 +51,10 @@ public interface FileSystem {
    * Factory for {@link FileSystem}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     public static FileSystem get() {
       if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
         return LineageFileSystem.get();

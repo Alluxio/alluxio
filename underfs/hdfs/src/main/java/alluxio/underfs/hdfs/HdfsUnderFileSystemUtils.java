@@ -21,7 +21,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * Utility methods for the HDFS implementation of the {@link UnderFileSystem}.
  */
 @ThreadSafe
-public class HdfsUnderFileSystemUtils {
+public final class HdfsUnderFileSystemUtils {
+
+  // prevent instantiation
+  private HdfsUnderFileSystemUtils() {}
+
   /**
    * Replaces default key with user provided key.
    *
