@@ -1266,8 +1266,7 @@ public final class FileSystemMaster extends AbstractMaster {
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
 
     // If the source file is persisted, rename it in the UFS.
-    FileInfo fileInfo = getFileInfoInternal(srcInode);
-    if (!replayed && fileInfo.isPersisted()) {
+    if (!replayed && srcInode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(srcPath);
 
       String ufsSrcUri = resolution.getUri().toString();
