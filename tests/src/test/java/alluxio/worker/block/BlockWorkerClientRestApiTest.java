@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.rest.TestCase;
-import alluxio.rest.TestCaseFactory;
 import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.LockBlockResultTest;
@@ -52,6 +51,8 @@ import javax.ws.rs.core.Response;
 public class BlockWorkerClientRestApiTest {
   private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private BlockWorker mBlockWorker;
+  private String mHostname;
+  private int mPort;
 
   @Rule
   private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
@@ -64,6 +65,8 @@ public class BlockWorkerClientRestApiTest {
     BlockWorker blockWorker = Whitebox.getInternalState(alluxioWorker, "mBlockWorker");
     blockWorker.stop();
     Whitebox.setInternalState(alluxioWorker, "mBlockWorker", mBlockWorker);
+    mHostname = mResource.get().getHostname();
+    mPort = mResource.get().getWorker().getWebLocalPort();
   }
 
   private String getEndpoint(String suffix) {
@@ -72,16 +75,14 @@ public class BlockWorkerClientRestApiTest {
 
   @Test
   public void serviceNameTest() throws Exception {
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.SERVICE_NAME), NO_PARAMS,
-            "GET", Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.SERVICE_NAME),
+        NO_PARAMS, "GET", Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.SERVICE_VERSION),
-            NO_PARAMS, "GET", Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.SERVICE_VERSION),
+        NO_PARAMS, "GET", Constants.BLOCK_WORKER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
@@ -89,9 +90,8 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.ACCESS_BLOCK), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.ACCESS_BLOCK),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
   }
@@ -101,9 +101,9 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("fileId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.ASYNC_CHECKPOINT),
-            params, "POST", false, mResource).run();
+    new TestCase(mHostname, mPort,
+        getEndpoint(BlockWorkerClientRestServiceHandler.ASYNC_CHECKPOINT), params, "POST", false)
+        .run();
   }
 
   @Test
@@ -112,9 +112,8 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.CACHE_BLOCK), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.CACHE_BLOCK),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
   }
@@ -125,9 +124,8 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.CANCEL_BLOCK), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.CANCEL_BLOCK),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
   }
@@ -144,9 +142,8 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(lockBlockResult.getBlockPath()).when(mBlockWorker)
         .readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.LOCK_BLOCK), params,
-            "POST", lockBlockResult, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.LOCK_BLOCK),
+        params, "POST", lockBlockResult).run();
 
     Mockito.verify(mBlockWorker).lockBlock(Mockito.anyLong(), Mockito.anyLong());
     Mockito.verify(mBlockWorker).readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
@@ -157,9 +154,8 @@ public class BlockWorkerClientRestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("blockId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.PROMOTE_BLOCK), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.PROMOTE_BLOCK),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker)
         .moveBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString());
@@ -184,9 +180,9 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(blockReader).when(mBlockWorker)
         .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
 
-    TestCase testCase = TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.READ_BLOCK), params,
-            "GET", byteBuffer, mResource);
+    TestCase testCase =
+        new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.READ_BLOCK),
+            params, "GET", byteBuffer);
 
     HttpURLConnection connection = (HttpURLConnection) testCase.createURL().openConnection();
     connection.setRequestMethod(testCase.getMethod());
@@ -210,9 +206,9 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(blockLocation).when(mBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION),
-            params, "POST", blockLocation, mResource).run();
+    new TestCase(mHostname, mPort,
+        getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION), params, "POST",
+        blockLocation).run();
 
     Mockito.verify(mBlockWorker)
         .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
@@ -226,9 +222,8 @@ public class BlockWorkerClientRestApiTest {
     params.put("sessionId", "1");
     params.put("requestBytes", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_SPACE), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_SPACE),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker)
         .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
@@ -240,9 +235,8 @@ public class BlockWorkerClientRestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.UNLOCK_BLOCK), params,
-            "POST", null, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.UNLOCK_BLOCK),
+        params, "POST", null).run();
 
     Mockito.verify(mBlockWorker).unlockBlock(Mockito.anyLong(), Mockito.anyLong());
 
@@ -263,9 +257,9 @@ public class BlockWorkerClientRestApiTest {
     Mockito.doReturn(blockWriter).when(mBlockWorker)
         .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
 
-    TestCase testCase = TestCaseFactory
-        .newWorkerTestCase(getEndpoint(BlockWorkerClientRestServiceHandler.WRITE_BLOCK), params,
-            "POST", null, mResource);
+    TestCase testCase =
+        new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.WRITE_BLOCK),
+            params, "POST", null);
 
     HttpURLConnection connection = (HttpURLConnection) testCase.createURL().openConnection();
     connection.setRequestProperty("Content-Type", MediaType.APPLICATION_OCTET_STREAM);
