@@ -80,7 +80,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected boolean mClosed;
   /** Whether or not the current block should be cached. */
   protected boolean mShouldCacheCurrentBlock;
-  /** Current position of the stream. */
+  /** Include incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
+  private final boolean mShouldCachePartiallyReadBlock;
+ /** Current position of the stream. */
   protected long mPos;
   /** Current {@link BlockInStream} backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
@@ -116,6 +118,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mContext = FileSystemContext.INSTANCE;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+    mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCacheCurrentBlock) {
@@ -129,6 +132,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   public void close() throws IOException {
     if (mClosed) {
       return;
+    }
+    if (mShouldCacheCurrentBlock && mShouldCachePartiallyReadBlock) {
+      readCurrentBlockToPos(mFileLength);
     }
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
@@ -228,12 +234,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(validPosition(pos),
-        PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, pos);
-
-    seekBlockInStream(pos);
-    checkAndAdvanceBlockInStream();
-    mCurrentBlockInStream.seek(mPos % mBlockSize);
+    Preconditions.checkArgument(validPosition(pos), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
+        pos);
+    if (!mShouldCachePartiallyReadBlock) {
+      seekInternal(pos);
+    } else {
+      seekInternalWithCachingPartiallyReadBlock(pos);
+    }
   }
 
   @Override
@@ -272,7 +279,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * @param pos the position to check
-   * @return the block size in bytes for the gven pos, used for worker allocation
+   * @return the block size in bytes for the given pos, used for worker allocation
    */
   protected long getBlockSizeAllocation(long pos) {
     return getBlockSize(pos);
@@ -403,8 +410,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
-    Preconditions.checkState(index < mStatus.getBlockIds().size(),
-        PreconditionMessage.ERR_BLOCK_INDEX);
+    Preconditions
+        .checkState(index < mStatus.getBlockIds().size(), PreconditionMessage.ERR_BLOCK_INDEX);
     return mStatus.getBlockIds().get(index);
   }
 
@@ -495,8 +502,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       mShouldCacheCurrentBlock =
           !(mCurrentBlockInStream instanceof LocalBlockInStream) && mAlluxioStorageType.isStore();
     } catch (IOException e) {
-      LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}",
-          blockId, e);
+      LOG.debug("Failed to get BlockInStream for block with ID {}, using UFS instead. {}", blockId,
+          e);
       if (!mStatus.isPersisted()) {
         LOG.error("Could not obtain data for block with ID {} from Alluxio."
             + " The block is also not available in the under storage.", blockId);
@@ -507,5 +514,85 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
       mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     }
+  }
+
+  /**
+   * Seeks to a file position. Blocks are not cached unless they are fully read. This is only called
+   * by {@link FileInStream#seek}.
+   *
+   * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
+   *            pos <= mFileLength)
+   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   */
+  private void seekInternal(long pos) throws IOException {
+    seekBlockInStream(pos);
+    checkAndAdvanceBlockInStream();
+    mCurrentBlockInStream.seek(mPos % mBlockSize);
+  }
+
+  /**
+   * Seeks to a file position. Blocks are cached even if they are not fully read. This is only
+   * called by {@link FileInStream#seek}.
+   * Invariant: if the current block is to be cached, [0, mPos) should have been cached already.
+   *
+   * @param pos The position to seek to. It is guaranteed to be valid (pos >= 0 && pos != mPos &&
+   *            pos <= mFileLength).
+   * @throws IOException if the seek fails due to an error accessing the stream at the position
+   */
+  private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
+    // Precompute this because mPos will be updated several times in this function.
+    boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
+
+    if (mShouldCacheCurrentBlock) {
+      // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
+      // block.
+      readCurrentBlockToPos(pos > mPos ? pos : mFileLength);
+    }
+
+    // If seeks within the current block, directly seeks to pos if we are not yet there.
+    // If seeks outside the current block, seek to the beginning of that block first, then
+    // cache the prefix (pos % mBlockSize) of that block.
+    if (isInCurrentBlock) {
+      // We don't need to seek if we are at pos already. It won't work if you remove this early
+      // return because SeekBlockInStream closes the current cache stream.
+      if (mPos == pos) {
+        return;
+      }
+
+      // Only seeking backwards or seeking forward without caching the current block can reach here.
+      seekBlockInStream(pos);
+      // mPos == pos now.
+      mCurrentBlockInStream.seek(mPos % mBlockSize);
+    } else {
+      seekBlockInStream(pos / mBlockSize * mBlockSize);
+      checkAndAdvanceBlockInStream();
+      if (mShouldCacheCurrentBlock) {
+        readCurrentBlockToPos(pos);
+      } else {
+        seekBlockInStream(pos);
+        // mPos == pos now.
+        mCurrentBlockInStream.seek(mPos % mBlockSize);
+      }
+    }
+  }
+
+  /**
+   * Reads till the file offset (mPos) equals pos or the end of the current block (whichever is
+   * met first) if pos > mPos. Otherwise no-op.
+   *
+   * @param pos file offset
+   * @throws IOException if read or cache write fails
+   */
+  private void readCurrentBlockToPos(long pos) throws IOException {
+    long len = Math.min(pos - mPos,
+        mCurrentBlockInStream == null ? getBlockSize(mPos) : mCurrentBlockInStream.remaining());
+    if (len <= 0) {
+      return;
+    }
+
+    byte[] buffer = new byte[Math.min(Constants.MB, (int) len)];
+    do {
+      len -= read(buffer);
+    } while (len > 0);
   }
 }
