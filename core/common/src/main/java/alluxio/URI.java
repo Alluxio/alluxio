@@ -38,6 +38,10 @@ public interface URI extends Comparable<URI>, Serializable {
    * Factory for {@link URI}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Creates a {@link URI} from a string.
      *
