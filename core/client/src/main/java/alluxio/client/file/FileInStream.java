@@ -64,8 +64,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected final long mFileLength;
   /** File System context containing the {@link FileSystemMasterClient} pool. */
   protected final FileSystemContext mContext;
-  /** A 1-byte array for writing a single byte to the cache stream. */
-  protected final byte[] mSingleByte;
   /** File information. */
   protected URIStatus mStatus;
   /** Constant error message for block ID not cached. */
@@ -94,7 +92,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    /** Current {@link BufferedBlockOutStream} writing the data into Alluxio. */
   protected BufferedBlockOutStream mCurrentCacheStream;
    /** The blockId used in the block streams. */
-  protected long mStreamBlockId;
+  private long mStreamBlockId;
 
   /**
    * Creates a new file input stream.
@@ -130,7 +128,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
-    mSingleByte = new byte[1];
   }
 
   @Override
@@ -165,12 +162,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return -1;
     }
 
-    updatePosForRead(1);
+    mPos++;
     if (mCurrentCacheStream != null) {
       try {
-        // writeToCacheStream writes a byte array.
-        mSingleByte[0] = (byte) (0xFF & data);
-        writeToCacheStream(mSingleByte, 0, 1);
+        mCurrentCacheStream.write(data);
       } catch (IOException e) {
         logCacheStreamIOException(e);
         closeOrCancelCacheStream();
@@ -211,13 +206,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       if (bytesRead > 0) {
         if (mCurrentCacheStream != null) {
           try {
-            writeToCacheStream(b, currentOffset, bytesRead);
+            mCurrentCacheStream.write(b, currentOffset, bytesRead);
           } catch (IOException e) {
             logCacheStreamIOException(e);
             closeOrCancelCacheStream();
           }
         }
-        updatePosForRead(bytesRead);
+        mPos += bytesRead;
         bytesLeftToRead -= bytesRead;
         currentOffset += bytesRead;
       }
@@ -285,15 +280,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Updates {@link #mPos} with the number of read bytes.
-   *
-   * @param bytesRead the number of bytes read, to increment {@link #mPos}
-   */
-  protected void updatePosForRead(int bytesRead) {
-    mPos += bytesRead;
-  }
-
-  /**
    * @param pos the position to check to validity
    * @return true of the given pos is a valid position in the file
    */
@@ -324,32 +310,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Writes data to the cache stream.
-   *
-   * @param buffer the data to write
-   * @param offset the start offset into the data
-   * @param length the number of bytes to write
-   * @throws IOException if the write failed
-   */
-  protected void writeToCacheStream(byte[] buffer, int offset, int length) throws IOException {
-    mCurrentCacheStream.write(buffer, offset, length);
-  }
-
-  /**
-   * Creates and returns a {@link BufferedBlockOutStream} for caching a block.
-   *
-   * @param blockId the block id to cache
-   * @param length the length of the block to cache
-   * @param address the {@link WorkerNetAddress} to cache to
-   * @return the created {@link BufferedBlockOutStream} for caching a block
-   * @throws IOException if the stream cannot be created
-   */
-  protected BufferedBlockOutStream createCacheStream(long blockId, long length,
-      WorkerNetAddress address) throws IOException {
-    return mContext.getAlluxioBlockStore().getOutStream(blockId, length, address);
-  }
-
-  /**
    * @param pos the position to get the block size for
    * @return the size of the current block
    */
@@ -363,6 +323,25 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     } else {
       return lastBlockSize;
     }
+  }
+
+  /**
+   * Check whether block instream and cache outstream should be updated.
+   * This function is only called by {@link #updateStreams()}.
+   *
+   * @param currentBlockId cached result of {@link #getCurrentBlockId()}
+   * @return true if the block stream should be updated
+   */
+  protected boolean shouldUpdateStreams(long currentBlockId) {
+    if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
+      return true;
+    }
+    if (mCurrentCacheStream != null) {
+      Preconditions.checkState(mCurrentBlockInStream.remaining() == mCurrentCacheStream.remaining(),
+          "BlockInStream and CacheStream is not sync-ed %d %d", mCurrentBlockInStream.remaining(),
+          mCurrentCacheStream.remaining());
+    }
+    return mCurrentBlockInStream.remaining() == 0;
   }
 
   /**
@@ -427,25 +406,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Check whether block instream and cache outstream should be updated.
-   * This function is only called by {@link #updateStreams()}.
-   *
-   * @param currentBlockId cached result of {@link #getCurrentBlockId()}
-   * @return true if the block stream should be updated
-   */
-  protected boolean shouldUpdateStreams(long currentBlockId) {
-    if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
-      return true;
-    }
-    if (mCurrentCacheStream != null) {
-      Preconditions.checkState(mCurrentBlockInStream.remaining() == mCurrentCacheStream.remaining(),
-          "BlockInStream and CacheStream is not sync-ed %d %d", mCurrentBlockInStream.remaining(),
-          mCurrentCacheStream.remaining());
-    }
-    return mCurrentBlockInStream.remaining() == 0;
-  }
-
-  /**
    * Update {@link #mCurrentCacheStream}. The following preconditions are checked inside:
    *   1. {@link #mCurrentCacheStream} is either done or null.
    *   2. EOF is reached or {@link #mCurrentBlockInStream} must be valid.
@@ -499,7 +459,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         }
       }
       // If we reach here, we need to cache.
-      mCurrentCacheStream = createCacheStream(blockId, getBlockSize(mPos), address);
+      mCurrentCacheStream =
+          mContext.getAlluxioBlockStore().getOutStream(blockId, getBlockSize(mPos), address);
     } catch (IOException e) {
       logCacheStreamIOException(e);
     } catch (AlluxioException e) {
