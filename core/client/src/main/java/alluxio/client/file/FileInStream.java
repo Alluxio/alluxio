@@ -561,6 +561,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     // cache the prefix (pos % mBlockSize) of that block.
     if (isInCurrentBlock) {
       mPos = pos;
+      // updateStreams is necessary when pos = mFileLength.
+      updateStreams();
       mCurrentBlockInStream.seek(mPos % mBlockSize);
     } else {
       mPos = pos / mBlockSize * mBlockSize;
