@@ -79,6 +79,11 @@ public final class BlockLockManager {
   private final Object mSharedMapsLock = new Object();
 
   /**
+   * Constructs a new {@link BlockLockManager}.
+   */
+  public BlockLockManager() {}
+
+  /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
    *
    * If all {@link Constants#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
