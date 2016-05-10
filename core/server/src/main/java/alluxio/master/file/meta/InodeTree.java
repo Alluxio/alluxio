@@ -753,31 +753,33 @@ public final class InodeTree implements JournalCheckpointStreamable {
       for (int i = 1; i < pathComponents.length; i++) {
         Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
         if (next == null) {
-          // The user might want to create the nonexistent directories, so return the traversal result
-          // current inode with the last Inode taken, and the index of the first path component that
-          // couldn't be found.
+          // The user might want to create the nonexistent directories, so return the traversal
+          // result current inode with the last Inode taken, and the index of the first path
+          // component that couldn't be found.
           valid = true;
           return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockGroup);
-        } else if (next.isFile()) {
-          // The inode can't have any children. If this is the last path component, we're good.
-          // Otherwise, we can't traverse further, so we clean up and throw an exception.
-          if (i == pathComponents.length - 1) {
-            lockGroup.lockRead(next);
-            inodes.add(next);
-            valid = true;
-            return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
-          } else {
-            throw new InvalidPathException(
-                "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
-          }
         } else {
+          // Lock the existing inode before proceeding.
           lockGroup.lockRead(next);
-          inodes.add(next);
-          if (!next.isPersisted() && collectNonPersisted) {
-            // next is a directory and not persisted
-            nonPersistedInodes.add(next);
+          if (next.isFile()) {
+            // The inode can't have any children. If this is the last path component, we're good.
+            // Otherwise, we can't traverse further, so we clean up and throw an exception.
+            if (i == pathComponents.length - 1) {
+              inodes.add(next);
+              valid = true;
+              return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+            } else {
+              throw new InvalidPathException(
+                  "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
+            }
+          } else {
+            inodes.add(next);
+            if (!next.isPersisted() && collectNonPersisted) {
+              // next is a directory and not persisted
+              nonPersistedInodes.add(next);
+            }
+            current = next;
           }
-          current = next;
         }
       }
       valid = true;
