@@ -36,6 +36,11 @@ public final class BaseKeyValueSystem implements KeyValueSystem {
   private final KeyValueMasterClient mMasterClient =
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
+  /**
+   * Constructs a new {@link BaseKeyValueSystem}.
+   */
+  public BaseKeyValueSystem() {}
+
   @Override
   public KeyValueStoreReader openStore(AlluxioURI uri) throws IOException, AlluxioException {
     Preconditions.checkNotNull(uri, PreconditionMessage.URI_KEY_VALUE_STORE_NULL);
