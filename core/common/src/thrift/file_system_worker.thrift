@@ -45,5 +45,5 @@ service FileSystemWorkerClientService extends common.AlluxioService {
    */
   i64 openUfsFile( /** the path of the file in the ufs */ 1: string ufsPath,
       /** the options for opening the file */ 2: OpenUfsFileTOptions options)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.ThriftIOException ioe)
 }

@@ -215,4 +215,16 @@ public final class UnderFileSystemManager {
     mInputStreams.put(workerFileId, stream);
     return workerFileId;
   }
+
+  private class UnderFileSystemInputStream {
+    private final AlluxioURI mAlluxioURI;
+    private final Configuration mConfiguration;
+
+    private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
+      mAlluxioURI = ufsUri;
+      mConfiguration = conf;
+    }
+
+    private InputStream openAtPosition()
+  }
 }
