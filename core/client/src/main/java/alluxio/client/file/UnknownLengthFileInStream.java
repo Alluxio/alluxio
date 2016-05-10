@@ -51,11 +51,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
    */
   private static final long ALLOCATION_BLOCK_SIZE = 128;
 
-  /** Number of bytes read by stream. */
-  private long mReadBytes;
-  /** Number of bytes written by {@link #mCurrentCacheStream}. */
-  private long mCurrentCacheBytesWritten;
-
   /**
    * Creates a new file input stream, for a file of unknown length.
    *
@@ -64,8 +59,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
    */
   public UnknownLengthFileInStream(URIStatus status, InStreamOptions options) {
     super(status, options);
-    mReadBytes = 0;
-    mCurrentCacheBytesWritten = 0;
   }
 
   @Override
@@ -73,14 +66,13 @@ public final class UnknownLengthFileInStream extends FileInStream {
     if (mClosed) {
       return;
     }
-    if (mPos == mReadBytes && mCurrentBlockInStream != null
-        && mCurrentBlockInStream.remaining() == 0) {
+    if (mCurrentBlockInStream != null && mCurrentBlockInStream.remaining() == 0) {
       // Every byte was read from the input stream. Therefore, the read bytes is the length.
       // Complete the file with this new, known length.
       FileSystemMasterClient masterClient = mContext.acquireMasterClient();
       try {
         masterClient.completeFile(new AlluxioURI(mStatus.getPath()),
-            CompleteFileOptions.defaults().setUfsLength(mReadBytes));
+            CompleteFileOptions.defaults().setUfsLength(mPos));
       } catch (AlluxioException e) {
         throw new IOException(e);
       } finally {
@@ -102,12 +94,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   }
 
   @Override
-  protected void updatePosForRead(int bytesRead) {
-    super.updatePosForRead(bytesRead);
-    mReadBytes += bytesRead;
-  }
-
-  @Override
   protected boolean validPosition(long pos) {
     return pos < mBlockSize;
   }
@@ -122,34 +108,6 @@ public final class UnknownLengthFileInStream extends FileInStream {
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
     return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
-  }
-
-  // TODO(peis): I don't see why this is necessary. Ask Gene to confirm.
-  /*
-  @Override
-  protected boolean shouldCloseCacheStream() {
-    if (mCurrentCacheBytesWritten == mPos && mCurrentBlockInStream != null
-        && mCurrentBlockInStream.remaining() == 0) {
-      // Only close the cache stream if everything was read from the in stream, and everything
-      // read was written to the cache out stream.
-      return true;
-    }
-    return super.shouldCloseCacheStream();
-  }
-  */
-
-  @Override
-  protected void writeToCacheStream(byte[] buffer, int offset, int length) throws IOException {
-    super.writeToCacheStream(buffer, offset, length);
-    mCurrentCacheBytesWritten += length;
-  }
-
-  @Override
-  protected BufferedBlockOutStream createCacheStream(long blockId, long length,
-      WorkerNetAddress address) throws IOException {
-    BufferedBlockOutStream out = super.createCacheStream(blockId, length, address);
-    mCurrentCacheBytesWritten = 0;
-    return out;
   }
 
   @Override
