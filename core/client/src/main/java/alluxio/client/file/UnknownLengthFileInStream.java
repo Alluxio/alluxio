@@ -15,12 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockInStream;
-import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.wire.WorkerNetAddress;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
