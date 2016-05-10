@@ -602,6 +602,64 @@ public final class InodeTreeTest {
     verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file", "file1"));
   }
 
+  @Test
+  public void getInodePathById() throws Exception {
+    InodePath rootPath = mTree.getInodePath(0);
+    try {
+      Assert.assertEquals(0, rootPath.getInode().getId());
+    } finally {
+      rootPath.unlock();
+    }
+
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
+    for (Inode<?> inode : createResult.getCreated()) {
+      long id = inode.getId();
+      InodePath inodePath = mTree.getInodePath(id);
+      try {
+        Assert.assertEquals(id, inodePath.getInode().getId());
+      } finally {
+        inodePath.unlock();
+      }
+    }
+  }
+
+  @Test
+  public void getInodePathByPath() throws Exception {
+    InodePath rootPath = mTree.getInodePath(new AlluxioURI("/"));
+    try {
+      Assert.assertTrue(mTree.isRootId(rootPath.getInode().getId()));
+    } finally {
+      rootPath.unlock();
+    }
+
+    // Create a nested file.
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
+
+    AlluxioURI uri = new AlluxioURI("/nested");
+    InodePath inodePath = mTree.getInodePath(uri);
+    try {
+      Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
+    } finally {
+      inodePath.unlock();
+    }
+
+    uri = NESTED_URI;
+    inodePath = mTree.getInodePath(uri);
+    try {
+      Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
+    } finally {
+      inodePath.unlock();
+    }
+
+    uri = NESTED_FILE_URI;
+    inodePath = mTree.getInodePath(uri);
+    try {
+      Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
+    } finally {
+      inodePath.unlock();
+    }
+  }
+
   // helper for verifying that correct objects were journaled to the output stream
   private static void verifyJournal(InodeTree root, List<Inode<?>> journaled) throws Exception {
     JournalOutputStream mockOutputStream = Mockito.mock(JournalOutputStream.class);

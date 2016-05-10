@@ -228,6 +228,66 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return (InodeFile) inode;
   }
 
+  public InodePath getInodePath(AlluxioURI path)
+      throws InvalidPathException, FileDoesNotExistException {
+    TraversalResult traversalResult =
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+    if (!traversalResult.isFound()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
+    }
+    return new InodePath(traversalResult.getInodes(), traversalResult.getInodeLockGroup());
+  }
+
+  public InodePath getInodePath(long id) throws FileDoesNotExistException {
+    for (;;) {
+      Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
+      if (inode == null) {
+        throw new FileDoesNotExistException("Inode id " + id + " does not exist.");
+      }
+      // Compute the path given the target inode.
+      StringBuilder builder = new StringBuilder();
+      computePathForInode(inode, builder);
+      AlluxioURI uri = new AlluxioURI(builder.toString());
+
+      try {
+        InodePath inodePath = getInodePath(uri);
+        if (inodePath.getInode().getId() == id) {
+          return inodePath;
+        }
+        // The path does not end up at the target inode id. Repeat the traversal.
+        inodePath.unlock();
+      } catch (InvalidPathException e) {
+        // ignore and repeat the loop
+        LOG.warn("Inode lookup id {} computed path {} mismatch id. Repeating.", id, uri);
+      }
+    }
+  }
+
+  private void computePathForInode(Inode<?> inode, StringBuilder builder)
+      throws FileDoesNotExistException {
+    inode.lockRead();
+    long id = inode.getId();
+    long parentId = inode.getParentId();
+    String name = inode.getName();
+    inode.unlockRead();
+
+    if (isRootId(id)) {
+      builder.append(AlluxioURI.SEPARATOR);
+    } else if (isRootId(parentId)) {
+      builder.append(AlluxioURI.SEPARATOR);
+      builder.append(name);
+    } else {
+      Inode<?> parentInode = mInodes.getFirstByField(mIdIndex, parentId);
+      if (parentInode == null) {
+        throw new FileDoesNotExistException("Inode id " + parentId + " does not exist.");
+      }
+
+      computePathForInode(parentInode, builder);
+      builder.append(AlluxioURI.SEPARATOR);
+      builder.append(name);
+    }
+  }
+
   /**
    * Returns a list of existing inodes on the given path.
    *
@@ -632,55 +692,75 @@ public final class InodeTree implements JournalCheckpointStreamable {
         && Objects.equal(mCachedInode, that.mCachedInode);
   }
 
+  // TODO(gpang): support locking inodes with write lock.
   private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
       throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
+    InodeLockGroup lockGroup = new InodeLockGroup();
 
-    if (pathComponents == null) {
-      throw new InvalidPathException("passed-in pathComponents is null");
-    } else if (pathComponents.length == 0) {
-      throw new InvalidPathException("passed-in pathComponents is empty");
-    } else if (pathComponents.length == 1) {
-      if (pathComponents[0].equals("")) {
-        inodes.add(mRoot);
-        return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
-      } else {
-        throw new InvalidPathException("File name starts with " + pathComponents[0]);
-      }
-    }
+    // This must be set to true when returning a valid response. Otherwise, all the locked inodes
+    // will be unlocked.
+    boolean valid = false;
 
-    Inode<?> current = mRoot;
-    inodes.add(current);
-
-    // iterate from 1, because 0 is root and it's already added
-    for (int i = 1; i < pathComponents.length; i++) {
-      Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
-      if (next == null) {
-        // The user might want to create the nonexistent directories, so return the traversal result
-        // current inode with the last Inode taken, and the index of the first path component that
-        // couldn't be found.
-        return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes);
-      } else if (next.isFile()) {
-        // The inode can't have any children. If this is the last path component, we're good.
-        // Otherwise, we can't traverse further, so we clean up and throw an exception.
-        if (i == pathComponents.length - 1) {
-          inodes.add(next);
-          return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
+    try {
+      if (pathComponents == null) {
+        throw new InvalidPathException("passed-in pathComponents is null");
+      } else if (pathComponents.length == 0) {
+        throw new InvalidPathException("passed-in pathComponents is empty");
+      } else if (pathComponents.length == 1) {
+        if (pathComponents[0].equals("")) {
+          lockGroup.lockRead(mRoot);
+          inodes.add(mRoot);
+          valid = true;
+          return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
         } else {
-          throw new InvalidPathException(
-              "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
+          throw new InvalidPathException("File name starts with " + pathComponents[0]);
         }
-      } else {
-        inodes.add(next);
-        if (!next.isPersisted() && collectNonPersisted) {
-          // next is a directory and not persisted
-          nonPersistedInodes.add(next);
+      }
+
+      Inode<?> current = mRoot;
+      lockGroup.lockRead(current);
+      inodes.add(current);
+
+      // iterate from 1, because 0 is root and it's already added
+      for (int i = 1; i < pathComponents.length; i++) {
+        Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
+        if (next == null) {
+          // The user might want to create the nonexistent directories, so return the traversal result
+          // current inode with the last Inode taken, and the index of the first path component that
+          // couldn't be found.
+          valid = true;
+          return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockGroup);
+        } else if (next.isFile()) {
+          // The inode can't have any children. If this is the last path component, we're good.
+          // Otherwise, we can't traverse further, so we clean up and throw an exception.
+          if (i == pathComponents.length - 1) {
+            lockGroup.lockRead(next);
+            inodes.add(next);
+            valid = true;
+            return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+          } else {
+            throw new InvalidPathException(
+                "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
+          }
+        } else {
+          lockGroup.lockRead(next);
+          inodes.add(next);
+          if (!next.isPersisted() && collectNonPersisted) {
+            // next is a directory and not persisted
+            nonPersistedInodes.add(next);
+          }
+          current = next;
         }
-        current = next;
+      }
+      valid = true;
+      return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+    } finally {
+      if (!valid) {
+        lockGroup.unlock();
       }
     }
-    return TraversalResult.createFoundResult(nonPersistedInodes, inodes);
   }
 
   private static final class TraversalResult {
@@ -705,22 +785,28 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     private final List<Inode<?>> mInodes;
 
-    static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes) {
-      return new TraversalResult(true, -1, nonPersisted, inodes);
+    /** The {@link InodeLockGroup} managing the locks for the inodes. */
+    private final InodeLockGroup mLockGroup;
+
+    // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
+    static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
+        InodeLockGroup lockGroup) {
+      return new TraversalResult(true, -1, nonPersisted, inodes, lockGroup);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes) {
-      return new TraversalResult(false, index, nonPersisted, inodes);
+        List<Inode<?>> inodes, InodeLockGroup lockGroup) {
+      return new TraversalResult(false, index, nonPersisted, inodes, lockGroup);
     }
 
     private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes) {
+        List<Inode<?>> inodes, InodeLockGroup lockGroup) {
       mFound = found;
       mNonexistentIndex = index;
       mInode = inodes.get(inodes.size() - 1);
       mNonPersisted = nonPersisted;
       mInodes = inodes;
+      mLockGroup = lockGroup;
     }
 
     boolean isFound() {
@@ -750,6 +836,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     List<Inode<?>> getInodes() {
       return mInodes;
+    }
+
+    /**
+     * @return the {@link InodeLockGroup} managing the locks for all the inodes
+     */
+    InodeLockGroup getInodeLockGroup() {
+      return mLockGroup;
     }
   }
 
