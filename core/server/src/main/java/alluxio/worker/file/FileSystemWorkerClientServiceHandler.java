@@ -19,6 +19,7 @@ import alluxio.thrift.CancelUfsFileTOptions;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.thrift.OpenUfsFileTOptions;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
@@ -114,6 +115,24 @@ public final class FileSystemWorkerClientServiceHandler
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
+    }
+  }
+
+  /**
+   * Opens a file in the under file system.
+   *
+   * @param ufsUri the path of the file in the ufs
+   * @param options the options for opening the file
+   * @return the temporary worker specific file id which references the opened ufs file, all
+   *         future operations from the reader should use this id until the file is closed
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
+  @Override
+  public long openUfsFile(String ufsUri, OpenUfsFileTOptions options) throws ThriftIOException {
+    try {
+      return mWorker.openUfsFile(new AlluxioURI(ufsUri));
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
     }
   }
 }
