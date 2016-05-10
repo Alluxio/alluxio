@@ -13,12 +13,12 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
 import alluxio.metrics.MetricsSystem;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -30,7 +30,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -41,7 +40,6 @@ import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,17 +57,11 @@ import javax.ws.rs.HttpMethod;
 @PrepareForTest({AlluxioMaster.class, BlockMaster.class, Configuration.class, MasterContext.class,
     MetricRegistry.class, UnderFileSystem.class})
 @Ignore("ALLUXIO-1888")
-public final class AlluxioMasterRestApiTest {
+public final class AlluxioMasterRestApiTest extends RestApiTest {
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
   private static final String NOT_ALLUXIO_CONF_PREFIX = "_alluxio_";
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
   private AlluxioMaster mAlluxioMaster;
   private BlockMaster mBlockMaster;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() {
@@ -79,10 +71,7 @@ public final class AlluxioMasterRestApiTest {
     Whitebox.setInternalState(mAlluxioMaster, "mBlockMaster", mBlockMaster);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return AlluxioMasterRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = AlluxioMasterRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test

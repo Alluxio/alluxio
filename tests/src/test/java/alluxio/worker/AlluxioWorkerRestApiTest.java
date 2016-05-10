@@ -12,11 +12,11 @@
 package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
@@ -28,7 +28,6 @@ import com.codahale.metrics.MetricRegistry;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -38,7 +37,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -55,15 +53,9 @@ import javax.ws.rs.HttpMethod;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
 @Ignore("ALLUXIO-1888")
-public final class AlluxioWorkerRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public final class AlluxioWorkerRestApiTest extends RestApiTest {
   private static AlluxioWorker sWorker;
   private static BlockStoreMeta sStoreMeta;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @BeforeClass
   public static void beforeClass() {
@@ -79,10 +71,7 @@ public final class AlluxioWorkerRestApiTest {
   public void before() {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getWorker().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return AlluxioWorkerRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test

@@ -13,20 +13,19 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -49,14 +48,8 @@ import javax.ws.rs.HttpMethod;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
 @Ignore("ALLUXIO-1888")
-public class FileSystemMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public class FileSystemMasterClientRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() throws Exception {
@@ -69,10 +62,7 @@ public class FileSystemMasterClientRestApiTest {
     Whitebox.setInternalState(alluxioMaster, "mFileSystemMaster", mFileSystemMaster);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test
