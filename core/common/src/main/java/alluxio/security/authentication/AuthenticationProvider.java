@@ -27,6 +27,7 @@ public interface AuthenticationProvider {
    */
   class Factory {
 
+    // prevent instantiation
     private Factory() {}
 
     /**

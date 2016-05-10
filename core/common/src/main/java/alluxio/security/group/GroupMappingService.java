@@ -37,6 +37,7 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+    // prevent instantiation
     private Factory() {}
 
     /**
