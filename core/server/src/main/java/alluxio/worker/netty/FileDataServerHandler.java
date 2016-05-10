@@ -51,7 +51,7 @@ public class FileDataServerHandler {
     long length = req.getLength();
     long offset = req.getOffset();
 
-    InputStream in = mWorker.getInputStream(ufsFileId);
+    InputStream in = mWorker.getUfsInputStream(ufsFileId);
 
   }
 

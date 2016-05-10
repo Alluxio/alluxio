@@ -12,6 +12,9 @@ struct CompleteUfsFileTOptions {
 struct CreateUfsFileTOptions {
 }
 
+struct OpenUfsFileTOptions {
+}
+
 /**
  * This interface contains file system worker service endpoints for Alluxio clients.
  */
@@ -35,5 +38,12 @@ service FileSystemWorkerClientService extends common.AlluxioService {
    */
   i64 createUfsFile( /** the path of the file in the ufs */ 1: string ufsPath,
       /** the options for creating the file */ 2: CreateUfsFileTOptions options)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
+   * Opens an existing file in the under file system.
+   */
+  i64 openUfsFile( /** the path of the file in the ufs */ 1: string ufsPath,
+      /** the options for opening the file */ 2: OpenUfsFileTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 }
