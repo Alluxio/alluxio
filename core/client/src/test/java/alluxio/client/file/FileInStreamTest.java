@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockInStream;
@@ -24,7 +23,6 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
@@ -102,18 +100,14 @@ public class FileInStreamTest {
               getBlockLength((int) i));
         }
       });
-      /*
-      Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
-          Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
-*/
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
           Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
-        @Override
-        public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
-          long i = (Long) invocation.getArguments()[0];
-          return mCacheStreams.get((int) i).isClosed() ? null : mCacheStreams.get((int) i);
-        }
-      });
+            @Override
+            public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
+              long i = (Long) invocation.getArguments()[0];
+              return mCacheStreams.get((int) i).isClosed() ? null : mCacheStreams.get((int) i);
+            }
+          });
     }
     mInfo.setBlockIds(blockIds);
     mStatus = new URIStatus(mInfo);
@@ -377,7 +371,6 @@ public class FileInStreamTest {
           mCacheStreams.get(1).getWrittenData());
     }
   }
-
 
   /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
