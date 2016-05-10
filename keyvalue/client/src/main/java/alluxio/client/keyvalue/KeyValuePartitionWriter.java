@@ -34,6 +34,10 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    * Factory for {@link KeyValuePartitionWriter}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value
      * data to a new partition file in Alluxio.
