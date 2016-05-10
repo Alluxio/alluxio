@@ -26,6 +26,9 @@ public interface AuthenticationProvider {
    * Factory for {@link AuthenticationProvider}.
    */
   class Factory {
+
+    private Factory() {}
+
     /**
      * @param authType authentication type to use
      * @param conf Alluxio configuration
