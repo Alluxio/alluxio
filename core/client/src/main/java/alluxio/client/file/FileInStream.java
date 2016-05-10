@@ -551,7 +551,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         return;
       }
       // The early return above guarantees that we won't close an incomplete cache stream.
-      Preconditions.checkState(mCurrentCacheStream.remaining() == 0);
+      Preconditions.checkState(mCurrentCacheStream == null || mCurrentCacheStream.remaining() == 0);
       closeOrCancelCacheStream();
     }
 
