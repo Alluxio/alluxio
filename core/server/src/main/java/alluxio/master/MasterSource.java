@@ -125,6 +125,11 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name(UNMOUNT_OPS));
 
   /**
+   * Constructs a new {@link MasterSource}.
+   */
+  public MasterSource() {}
+
+  /**
    * Registers metric gauges.
    *
    * @param alluxioMaster an Alluxio master handle
