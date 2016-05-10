@@ -747,11 +747,9 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path to delete
    * @param recursive if true, will delete all its children
-   * @return true if the file was deleted, false otherwise
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
-   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
@@ -796,7 +794,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param fileId the file id
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws InvalidPathException if the fileId is for the root directory
    * @throws IOException if an I/O error is encountered
@@ -820,7 +817,6 @@ public final class FileSystemMaster extends AbstractMaster {
    *        directory content should be deleted recursively
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
-   * @return true if the file is successfully deleted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    * @throws InvalidPathException if the specified path is the root
