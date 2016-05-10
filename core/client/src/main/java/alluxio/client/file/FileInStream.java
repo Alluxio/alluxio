@@ -167,8 +167,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       try {
         mCurrentCacheStream.write(data);
       } catch (IOException e) {
-        logCacheStreamIOException(e);
-        closeOrCancelCacheStream();
+        handleCacheStreamIOException(e);
       }
     }
     return data;
@@ -208,8 +207,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           try {
             mCurrentCacheStream.write(b, currentOffset, bytesRead);
           } catch (IOException e) {
-            logCacheStreamIOException(e);
-            closeOrCancelCacheStream();
+            handleCacheStreamIOException(e);
           }
         }
         mPos += bytesRead;
@@ -378,12 +376,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Logs IO exceptions thrown in response to the worker cache request. If the exception is not an
    * expected exception, a warning will be logged with the stack trace.
    */
-  private void logCacheStreamIOException(IOException e) {
+  private void handleCacheStreamIOException(IOException e) throws IOException {
     if (e.getCause() instanceof BlockAlreadyExistsException) {
       LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
     } else {
       LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
     }
+    closeOrCancelCacheStream();
   }
 
   /**
@@ -462,7 +461,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       mCurrentCacheStream =
           mContext.getAlluxioBlockStore().getOutStream(blockId, getBlockSize(mPos), address);
     } catch (IOException e) {
-      logCacheStreamIOException(e);
+      handleCacheStreamIOException(e);
     } catch (AlluxioException e) {
       LOG.warn(BLOCK_ID_NOT_CACHED, blockId, e);
     }
