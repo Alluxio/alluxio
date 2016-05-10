@@ -57,6 +57,9 @@ public final class NettyClient {
   public static final long TIMEOUT_MS =
       CONF.getInt(Constants.USER_NETWORK_NETTY_TIMEOUT_MS);
 
+  // prevent instantiation
+  private NettyClient() {}
+
   /**
    * Creates and returns a new Netty client bootstrap for clients to connect to remote servers.
    *

@@ -31,6 +31,10 @@ public interface RemoteBlockReader extends Closeable {
    * The factory for the {@link RemoteBlockReader}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Factory for {@link RemoteBlockReader}.
      *
