@@ -14,6 +14,7 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.cli.AlluxioShell;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
@@ -24,7 +25,6 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.security.LoginUserTestUtils;
-import alluxio.cli.AlluxioShell;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
