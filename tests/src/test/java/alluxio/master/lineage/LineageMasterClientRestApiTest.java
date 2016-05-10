@@ -13,16 +13,15 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.job.Job;
 import alluxio.master.AlluxioMaster;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.LineageInfo;
 import alluxio.wire.LineageInfoTest;
 
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -45,14 +44,8 @@ import javax.ws.rs.HttpMethod;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
 @Ignore("ALLUXIO-1888")
-public class LineageMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public class LineageMasterClientRestApiTest extends RestApiTest {
   private LineageMaster mLineageMaster;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() throws Exception {
@@ -66,10 +59,7 @@ public class LineageMasterClientRestApiTest {
     Whitebox.setInternalState(alluxioMaster, "mLineageMaster", mLineageMaster);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return LineageMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test

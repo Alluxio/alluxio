@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
@@ -24,7 +24,6 @@ import alluxio.worker.block.io.BlockWriter;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -49,14 +48,8 @@ import javax.ws.rs.core.Response;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
 @Ignore("ALLUXIO-1888")
-public class BlockWorkerClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public class BlockWorkerClientRestApiTest extends RestApiTest {
   private BlockWorker mBlockWorker;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() throws Exception {
@@ -68,10 +61,7 @@ public class BlockWorkerClientRestApiTest {
     Whitebox.setInternalState(alluxioWorker, "mBlockWorker", mBlockWorker);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getWorker().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return BlockWorkerClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = BlockWorkerClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test

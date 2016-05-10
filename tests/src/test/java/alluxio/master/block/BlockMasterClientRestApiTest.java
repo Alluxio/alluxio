@@ -12,15 +12,14 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
+import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
 import org.junit.Before;
 import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -40,14 +39,8 @@ import javax.ws.rs.HttpMethod;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
 @Ignore("ALLUXIO-1888")
-public class BlockMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public class BlockMasterClientRestApiTest extends RestApiTest {
   private BlockMaster mBlockMaster;
-  private String mHostname;
-  private int mPort;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() throws Exception {
@@ -59,10 +52,7 @@ public class BlockMasterClientRestApiTest {
     Whitebox.setInternalState(alluxioMaster, "mBlockMaster", mBlockMaster);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
-  }
-
-  private String getEndpoint(String suffix) {
-    return BlockMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test
