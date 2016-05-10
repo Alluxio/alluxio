@@ -32,6 +32,8 @@ import org.powermock.reflect.Whitebox;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.HttpMethod;
+
 /**
  * Test cases for {@link BlockMasterClientRestServiceHandler}.
  */
@@ -66,13 +68,13 @@ public class BlockMasterClientRestApiTest {
   @Test
   public void serviceNameTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME),
-        NO_PARAMS, "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).run();
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
-        NO_PARAMS, "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).run();
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
@@ -84,7 +86,7 @@ public class BlockMasterClientRestApiTest {
     Mockito.doReturn(blockInfo).when(mBlockMaster).getBlockInfo(Mockito.anyLong());
 
     new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO),
-        params, "GET", blockInfo).run();
+        params, HttpMethod.GET, blockInfo).run();
 
     Mockito.verify(mBlockMaster).getBlockInfo(Mockito.anyLong());
   }
