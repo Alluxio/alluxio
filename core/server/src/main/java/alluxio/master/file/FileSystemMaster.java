@@ -624,12 +624,16 @@ public final class FileSystemMaster extends AbstractMaster {
         mMountTable.checkUnderWritableMountPoint(path);
       }
       InodeTree.CreatePathResult createResult = createFileInternal(path, options);
-      List<Inode<?>> created = createResult.getCreated();
+      try {
+        List<Inode<?>> created = createResult.getCreated();
 
-      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-      journalCreatePathResult(createResult);
-      flushJournal();
-      return created.get(created.size() - 1).getId();
+        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+        journalCreatePathResult(createResult);
+        flushJournal();
+        return created.get(created.size() - 1).getId();
+      } finally {
+        createResult.unlock();
+      }
     }
   }
 
@@ -1093,11 +1097,15 @@ public final class FileSystemMaster extends AbstractMaster {
         mMountTable.checkUnderWritableMountPoint(path);
       }
       InodeTree.CreatePathResult createResult = createDirectoryInternal(path, options);
-      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-      journalCreatePathResult(createResult);
-      flushJournal();
-      MasterContext.getMasterSource().incDirectoriesCreated(1);
-      return createResult;
+      try {
+        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+        journalCreatePathResult(createResult);
+        flushJournal();
+        MasterContext.getMasterSource().incDirectoriesCreated(1);
+        return createResult;
+      } finally {
+        createResult.unlock();
+      }
     }
   }
 

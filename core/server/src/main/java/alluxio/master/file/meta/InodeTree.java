@@ -361,122 +361,148 @@ public final class InodeTree implements JournalCheckpointStreamable {
     String[] parentPath = new String[pathComponents.length - 1];
     System.arraycopy(pathComponents, 0, parentPath, 0, parentPath.length);
 
+    // TODO(gpang): lock the last inode(s) with write lock.
     TraversalResult traversalResult = traverseToInode(parentPath, options.isPersisted());
-    // pathIndex is the index into pathComponents where we start filling in the path from the inode.
-    int pathIndex = parentPath.length;
-    if (!traversalResult.isFound()) {
-      // Then the path component at errorInd k doesn't exist. If it's not recursive, we throw an
-      // exception here. Otherwise we add the remaining path components to the list of components
-      // to create.
-      if (!options.isRecursive()) {
-        final String msg = new StringBuilder().append("File ").append(path)
-            .append(" creation failed. Component ")
-            .append(traversalResult.getNonexistentPathIndex()).append("(")
-            .append(parentPath[traversalResult.getNonexistentPathIndex()])
-            .append(") does not exist").toString();
-        LOG.info("FileDoesNotExistException: {}", msg);
-        throw new FileDoesNotExistException(msg);
-      } else {
-        // We will start filling at the index of the non-existing step found by the traversal.
-        pathIndex = traversalResult.getNonexistentPathIndex();
-      }
-    }
+    InodeLockGroup lockGroup = traversalResult.getInodeLockGroup();
+    // This must be set to true when returning a valid response. Otherwise, all the locked inodes
+    // will be unlocked.
+    boolean valid = false;
 
-    if (!traversalResult.getInode().isDirectory()) {
-      throw new InvalidPathException("Could not traverse to parent directory of path " + path
-          + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
-    }
-    InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
-    List<Inode<?>> createdInodes = Lists.newArrayList();
-    List<Inode<?>> modifiedInodes = Lists.newArrayList();
-    // Directory persistence will not happen until the end of this method.
-    List<Inode<?>> toPersistDirectories = Lists.newArrayList(traversalResult.getNonPersisted());
-    if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
-      // (1) There are components in parent paths that need to be created. Or
-      // (2) The last component of the path needs to be created.
-      // In these two cases, the last traversed Inode will be modified.
-      modifiedInodes.add(currentInodeDirectory);
-    }
-
-    // Fill in the directories that were missing.
-    CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
-        .setMountPoint(false)
-        .setPersisted(options.isPersisted())
-        .setPermissionStatus(options.getPermissionStatus());
-    for (int k = pathIndex; k < parentPath.length; k++) {
-      InodeDirectory dir =
-          InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
-              currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
-      dir.setPinned(currentInodeDirectory.isPinned());
-      currentInodeDirectory.addChild(dir);
-      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
-      if (options.isPersisted()) {
-        toPersistDirectories.add(dir);
+    try {
+      // pathIndex is the index into pathComponents where we start filling in the path from the
+      // inode.
+      int pathIndex = parentPath.length;
+      if (!traversalResult.isFound()) {
+        // Then the path component at errorInd k doesn't exist. If it's not recursive, we throw an
+        // exception here. Otherwise we add the remaining path components to the list of components
+        // to create.
+        if (!options.isRecursive()) {
+          final String msg = new StringBuilder().append("File ").append(path)
+              .append(" creation failed. Component ")
+              .append(traversalResult.getNonexistentPathIndex()).append("(")
+              .append(parentPath[traversalResult.getNonexistentPathIndex()])
+              .append(") does not exist").toString();
+          LOG.info("FileDoesNotExistException: {}", msg);
+          throw new FileDoesNotExistException(msg);
+        } else {
+          // We will start filling at the index of the non-existing step found by the traversal.
+          pathIndex = traversalResult.getNonexistentPathIndex();
+        }
       }
-      createdInodes.add(dir);
-      mInodes.add(dir);
-      currentInodeDirectory = dir;
-    }
 
-    // Create the final path component. First we need to make sure that there isn't already a file
-    // here with that name. If there is an existing file that is a directory and we're creating a
-    // directory, update persistence property of the directories if needed, otherwise, throw
-    // FileAlreadyExistsException unless options.allowExists is true.
-    Inode<?> lastInode = currentInodeDirectory.getChild(name);
-    if (lastInode != null) {
-      if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
-          .isPersisted() && options.isPersisted()) {
-        // The final path component already exists and is not persisted, so it should be added
-        // to the non-persisted Inodes of traversalResult.
-        traversalResult.getNonPersisted().add(lastInode);
-        toPersistDirectories.add(lastInode);
-      } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
-          && ((CreateDirectoryOptions) options).isAllowExists())) {
-        LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-        throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+      if (!traversalResult.getInode().isDirectory()) {
+        throw new InvalidPathException("Could not traverse to parent directory of path " + path
+            + ". Component " + pathComponents[pathIndex - 1] + " is not a directory.");
       }
-    } else {
-      if (options instanceof CreateDirectoryOptions) {
-        CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
-        lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
-            currentInodeDirectory.getId(), name, directoryOptions);
-        if (directoryOptions.isPersisted()) {
+      InodeDirectory currentInodeDirectory = (InodeDirectory) traversalResult.getInode();
+      List<Inode<?>> createdInodes = Lists.newArrayList();
+      List<Inode<?>> modifiedInodes = Lists.newArrayList();
+      // Directory persistence will not happen until the end of this method.
+      List<Inode<?>> toPersistDirectories = Lists.newArrayList(traversalResult.getNonPersisted());
+      if (pathIndex < parentPath.length || currentInodeDirectory.getChild(name) == null) {
+        // (1) There are components in parent paths that need to be created. Or
+        // (2) The last component of the path needs to be created.
+        // In these two cases, the last traversed Inode will be modified.
+        modifiedInodes.add(currentInodeDirectory);
+      }
+
+      // Fill in the directories that were missing.
+      CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
+          .setMountPoint(false)
+          .setPersisted(options.isPersisted())
+          .setPermissionStatus(options.getPermissionStatus());
+      for (int k = pathIndex; k < parentPath.length; k++) {
+        InodeDirectory dir =
+            InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+                currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
+        // Lock the newly created inode before subsequent operations, and add it to the lock group.
+        lockGroup.lockWrite(dir);
+
+        dir.setPinned(currentInodeDirectory.isPinned());
+        currentInodeDirectory.addChild(dir);
+        currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
+        if (options.isPersisted()) {
+          toPersistDirectories.add(dir);
+        }
+        createdInodes.add(dir);
+        mInodes.add(dir);
+        currentInodeDirectory = dir;
+      }
+
+      // Create the final path component. First we need to make sure that there isn't already a file
+      // here with that name. If there is an existing file that is a directory and we're creating a
+      // directory, update persistence property of the directories if needed, otherwise, throw
+      // FileAlreadyExistsException unless options.allowExists is true.
+      Inode<?> lastInode = currentInodeDirectory.getChild(name);
+      if (lastInode != null) {
+        // Lock the last inode before subsequent operations, and add it to the lock group.
+        lockGroup.lockWrite(lastInode);
+
+        if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
+            .isPersisted() && options.isPersisted()) {
+          // The final path component already exists and is not persisted, so it should be added
+          // to the non-persisted Inodes of traversalResult.
+          traversalResult.getNonPersisted().add(lastInode);
           toPersistDirectories.add(lastInode);
+        } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
+            && ((CreateDirectoryOptions) options).isAllowExists())) {
+          LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+          throw new FileAlreadyExistsException(
+              ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
         }
-      }
-      if (options instanceof CreateFileOptions) {
-        CreateFileOptions fileOptions = (CreateFileOptions) options;
-        lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
-            currentInodeDirectory.getId(), name, fileOptions);
-        if (currentInodeDirectory.isPinned()) {
-          // Update set of pinned file ids.
-          mPinnedInodeFileIds.add(lastInode.getId());
+      } else {
+        if (options instanceof CreateDirectoryOptions) {
+          CreateDirectoryOptions directoryOptions = (CreateDirectoryOptions) options;
+          lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
+              currentInodeDirectory.getId(), name, directoryOptions);
+          // Lock the created inode before subsequent operations, and add it to the lock group.
+          lockGroup.lockWrite(lastInode);
+          if (directoryOptions.isPersisted()) {
+            toPersistDirectories.add(lastInode);
+          }
         }
-      }
-      lastInode.setPinned(currentInodeDirectory.isPinned());
+        if (options instanceof CreateFileOptions) {
+          CreateFileOptions fileOptions = (CreateFileOptions) options;
+          lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
+              currentInodeDirectory.getId(), name, fileOptions);
+          // Lock the created inode before subsequent operations, and add it to the lock group.
+          lockGroup.lockWrite(lastInode);
+          if (currentInodeDirectory.isPinned()) {
+            // Update set of pinned file ids.
+            mPinnedInodeFileIds.add(lastInode.getId());
+          }
+        }
+        lastInode.setPinned(currentInodeDirectory.isPinned());
 
-      createdInodes.add(lastInode);
-      mInodes.add(lastInode);
-      currentInodeDirectory.addChild(lastInode);
-      currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
+        createdInodes.add(lastInode);
+        mInodes.add(lastInode);
+        currentInodeDirectory.addChild(lastInode);
+        currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
+      }
+
+      if (toPersistDirectories.size() > 0) {
+        Inode<?> lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
+        MountTable.Resolution resolution = mMountTable.resolve(getPath(lastToPersistInode));
+        String ufsUri = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        // Persists only the last directory, recursively creating necessary parent directories. Even
+        // if the directory already exists in the ufs, we mark it as persisted.
+        if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, true)) {
+          for (Inode<?> inode : toPersistDirectories) {
+            inode.setPersistenceState(PersistenceState.PERSISTED);
+          }
+        }
+      }
+
+      LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
+      valid = true;
+      return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getNonPersisted(),
+          lockGroup);
+    } finally {
+      if (!valid) {
+        lockGroup.unlock();
+      }
     }
-
-    if (toPersistDirectories.size() > 0) {
-      Inode<?> lastToPersistInode = toPersistDirectories.get(toPersistDirectories.size() - 1);
-      MountTable.Resolution resolution = mMountTable.resolve(getPath(lastToPersistInode));
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      // Persists only the last directory, recursively creating necessary parent directories. Even
-      // if the directory already exists in the ufs, we mark it as persisted.
-      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, true)) {
-        for (Inode<?> inode : toPersistDirectories) {
-          inode.setPersistenceState(PersistenceState.PERSISTED);
-        }
-      }
-    }
-
-    LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes, traversalResult.getNonPersisted());
   }
 
   /**
@@ -858,17 +884,22 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final List<Inode<?>> mModified;
     private final List<Inode<?>> mCreated;
     private final List<Inode<?>> mPersisted;
+    private final InodeLockGroup mLockGroup;
 
     /**
      * Constructs the results of modified and created inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
+     * @param lockGroup the {@link InodeLockGroup} managing locks for the inodes read, modified,
+     *                  and created
      */
-    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
+    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted,
+        InodeLockGroup lockGroup) {
       mModified = Preconditions.checkNotNull(modified);
       mCreated = Preconditions.checkNotNull(created);
       mPersisted = Preconditions.checkNotNull(persisted);
+      mLockGroup = lockGroup;
     }
 
     /**
@@ -890,6 +921,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     public List<Inode<?>> getPersisted() {
       return mPersisted;
+    }
+
+    /**
+     * Unlocks all the locked inodes in this result.
+     */
+    public void unlock() {
+      mLockGroup.unlock();
     }
   }
 }
