@@ -167,6 +167,14 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void deleteFileTest() throws Exception {
+    // cannot delete root
+    try {
+      mFileSystemMaster.delete(ROOT_URI, true);
+      Assert.fail("Should not have been able to delete the root");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
+    }
+
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
     mFileSystemMaster.delete(NESTED_FILE_URI, false);
