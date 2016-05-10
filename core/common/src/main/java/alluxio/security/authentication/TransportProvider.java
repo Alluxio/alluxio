@@ -32,6 +32,7 @@ public interface TransportProvider {
    */
   class Factory {
 
+    // prevent instantiation
     private Factory() {}
 
     /**
