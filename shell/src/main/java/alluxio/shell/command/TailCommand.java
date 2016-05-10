@@ -112,13 +112,4 @@ public final class TailCommand extends WithWildCardPathCommand {
               .build();
     return new Options().addOption(bytesOption);
   }
-
-  @Override
-  public boolean validateArgs(String... args) {
-    boolean valid = args.length >= getNumOfArgs();
-    if (!valid) {
-      System.out.println(getCommandName() + " takes " + getNumOfArgs() + " argument at least\n");
-    }
-    return valid;
-  }
 }
