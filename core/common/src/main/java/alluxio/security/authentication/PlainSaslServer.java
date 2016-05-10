@@ -161,6 +161,12 @@ public final class PlainSaslServer implements SaslServer {
    */
   @ThreadSafe
   public static class Factory implements SaslServerFactory {
+
+    /**
+     * Constructs a new {@link Factory} for the {@link PlainSaslServer}.
+     */
+    public Factory() {}
+
     /**
      * Creates a {@link SaslServer} using the parameters supplied. It returns null if no SaslServer
      * can be created using the parameters supplied. Throws {@link SaslException} if it cannot
