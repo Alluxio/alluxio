@@ -128,7 +128,7 @@ public final class FileSystemWorker extends AbstractWorker {
     return mUnderFileSystemManager.createFile(ufsUri);
   }
 
-  public InputStream getInputStream(long tempUfsFileId) throws IOException {
+  public InputStream getUfsInputStream(long tempUfsFileId) throws IOException {
     return mUnderFileSystemManager.getInputStream(tempUfsFileId);
   }
 
@@ -137,6 +137,10 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
     return mServiceHandler;
+  }
+
+  public long openUfsFile(AlluxioURI ufsUri) throws IOException {
+    return mUnderFileSystemManager.openFile(ufsUri);
   }
 
   /**
