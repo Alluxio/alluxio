@@ -45,6 +45,9 @@ public final class BlockMasterClientRestServiceHandler {
 
   private final BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
 
+  // prevent instantiation
+  private BlockMasterClientRestServiceHandler() {}
+
   /**
    * @summary get the service name
    * @return the response object
