@@ -32,6 +32,10 @@ public interface Allocator {
    * Factory for {@link Allocator}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Factory for {@link Allocator}.
      *
