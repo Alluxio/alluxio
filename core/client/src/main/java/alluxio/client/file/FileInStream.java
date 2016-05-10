@@ -155,7 +155,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return -1;
     }
     updateStreams();
-    Preconditions.checkState(mCurrentBlockInStream!= null, "Reached EOF unexpectedly.");
+    Preconditions.checkState(mCurrentBlockInStream != null, "Reached EOF unexpectedly.");
 
     int data = mCurrentBlockInStream.read();
 
@@ -407,7 +407,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
   }
 
-
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
    * {@link #mStreamBlockId} to be in-sync the current block (i.e. {@link #getCurrentBlockId()}).
@@ -431,8 +430,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Check whether block instream and cache outstream should be updated.
    * This function is only called by {@link #updateStreams()}.
    *
-   * @param currentBlockId cached result of {@link #getCurrentBlockId()}.
-   * @return true if the block stream should be updated.
+   * @param currentBlockId cached result of {@link #getCurrentBlockId()}
+   * @return true if the block stream should be updated
    */
   private boolean shouldUpdateStreams(long currentBlockId) {
     if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
@@ -457,7 +456,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * and mPos is at the beginning of a block.
    * This function is only called by {@link #updateStreams()}.
    *
-   * @param blockId cached result of {@link #getCurrentBlockId()}.
+   * @param blockId cached result of {@link #getCurrentBlockId()}
    * @throws IOException if the next cache stream cannot be created
    */
   private void updateCacheStream(long blockId) throws IOException {
@@ -515,7 +514,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * stream created with be at position 0.
    * This function is only called in {@link #updateStreams()}.
    *
-   * @param blockId cached result of {@link #getCurrentBlockId()}.
+   * @param blockId cached result of {@link #getCurrentBlockId()}
    * @throws IOException if the next {@link BlockInStream} cannot be obtained
    */
   private void updateBlockInStream(long blockId) throws IOException {
