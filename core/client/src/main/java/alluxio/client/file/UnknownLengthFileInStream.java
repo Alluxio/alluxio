@@ -124,7 +124,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
     return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
   }
 
-  // TODO(peis): I don't think this is necessary. Ask Gene to confirm.
+  // TODO(peis): I don't see why this is necessary. Ask Gene to confirm.
   /*
   @Override
   protected boolean shouldCloseCacheStream() {
@@ -155,5 +155,11 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected long getBlockSize(long pos) {
     return mBlockSize;
+  }
+
+  @Override
+  protected boolean shouldUpdateStreams(long currentBlockId) {
+    // Return true either at the beginning of a file or the end of a file.
+    return mCurrentBlockInStream == null || mCurrentBlockInStream.remaining() == 0;
   }
 }
