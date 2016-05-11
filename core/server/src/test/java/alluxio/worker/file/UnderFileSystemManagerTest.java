@@ -40,14 +40,16 @@ public final class UnderFileSystemManagerTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  /** The mock output stream returned whenever a ufs file is created */
+  private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
 
   @Before
   public void before() throws Exception {
     mMockUfs = Mockito.mock(UnderFileSystem.class);
-    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
-    Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
+    mMockOutputStream = Mockito.mock(OutputStream.class);
+    Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     PowerMockito.mockStatic(UnderFileSystem.class);
     BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
         .willReturn(mMockUfs);
@@ -120,5 +122,54 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     manager.cancelFile(-1L);
+  }
+
+  /**
+   * Tests opening a file will call {@link UnderFileSystem#exists} and succeeds when the file
+   * exists.
+   */
+  @Test
+  public void openUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(new AlluxioURI(uniqPath));
+    Mockito.verify(mMockUfs).exists(uniqPath);
+  }
+
+  /**
+   * Tests opening a file fails when the file does not exist.
+   */
+  @Test
+  public void openNonExistentUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(false);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.openFile(new AlluxioURI(uniqPath));
+  }
+
+  /**
+   * Tests closing an opened file invalidates the id.
+   */
+  @Test
+  public void closeUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(new AlluxioURI(uniqPath));
+    manager.closeFile(id);
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.closeFile(id);
+  }
+
+  /**
+   * Tests closing an unopened file fails.
+   */
+  @Test
+  public void closeNonExistentUfsFileTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.closeFile(-1L);
   }
 }
