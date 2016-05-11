@@ -93,7 +93,7 @@ public final class FileSystemWorker extends AbstractWorker {
    * closed and the partial file will be cleaned up.
    *
    * @param tempUfsFileId the id of the file to cancel, only understood by the worker that created
-   *                     the file
+   *                      the file
    * @throws FileDoesNotExistException if this worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
@@ -102,10 +102,22 @@ public final class FileSystemWorker extends AbstractWorker {
   }
 
   /**
+   * Closes a file currently being read from the under file system. The open stream will be
+   * closed and the file id will no longer be valid.
+   *
+   * @param tempUfsFileId the id of the file to close, only understood by the worker that opened
+   *                      the file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public void closeUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.closeFile(tempUfsFileId);
+  }
+
+  /**
    * Completes a file currently being written to the under file system. The open stream will be
    * closed and the partial file will be promoted to the completed file in the under file system.
    *
-   * @param tempUfsFileId the id of the file to cancel, only understood by the worker that created
+   * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
@@ -170,7 +182,7 @@ public final class FileSystemWorker extends AbstractWorker {
    * @return the temporary file id which references the file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public long openUfsFile(AlluxioURI ufsUri) throws IOException {
+  public long openUfsFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
     return mUnderFileSystemManager.openFile(ufsUri);
   }
 

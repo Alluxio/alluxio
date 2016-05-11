@@ -50,9 +50,15 @@ public final class UnderFileSystemManager {
     /** The string form of the uri to the file in the under file system. */
     private final String mUri;
 
-    private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
+    private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) throws
+        FileDoesNotExistException, IOException {
       mUri = ufsUri.toString();
       mConfiguration = conf;
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      if (!ufs.exists(mUri)) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
+      }
     }
 
     /**
@@ -197,8 +203,12 @@ public final class UnderFileSystemManager {
    * @param tempUfsFileId the temporary ufs file id
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void closeFile(long tempUfsFileId) throws IOException {
-    mInputStreams.remove(tempUfsFileId);
+  public void closeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+    UnderFileSystemInputStream removed = mInputStreams.remove(tempUfsFileId);
+    if (removed == null) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    }
   }
 
   /**
@@ -245,7 +255,7 @@ public final class UnderFileSystemManager {
    * @return the worker file id which should be used to reference the open stream
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long openFile(AlluxioURI ufsUri) throws IOException {
+  public long openFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
     UnderFileSystemInputStream stream =
         new UnderFileSystemInputStream(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();

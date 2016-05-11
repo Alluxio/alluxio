@@ -6,6 +6,9 @@ include "exception.thrift"
 struct CancelUfsFileTOptions {
 }
 
+struct CloseUfsFileTOptions {
+}
+
 struct CompleteUfsFileTOptions {
 }
 
@@ -27,6 +30,13 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
+   * Closes a file in the under file system which was previously opened for reading.
+   **/
+  void closeUfsFile( /** the worker specific file id of the ufs file */ 1: i64 tempUfsFileId,
+      /** the options for closing the file */ 2: CloseUfsFileTOptions options)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
    * Completes a file in the under file system.
    */
   void completeUfsFile( /** the worker specific file id of the ufs file */ 1: i64 tempUfsFileId,
@@ -41,9 +51,9 @@ service FileSystemWorkerClientService extends common.AlluxioService {
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**
-   * Opens an existing file in the under file system.
+   * Opens an existing file in the under file system for reading.
    */
   i64 openUfsFile( /** the path of the file in the ufs */ 1: string ufsPath,
       /** the options for opening the file */ 2: OpenUfsFileTOptions options)
-    throws (1: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 }
