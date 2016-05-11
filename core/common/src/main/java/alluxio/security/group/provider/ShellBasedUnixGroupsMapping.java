@@ -27,6 +27,11 @@ import java.util.List;
 public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
 
   /**
+   * Constructs a new {@link ShellBasedUnixGroupsMapping}.
+   */
+  public ShellBasedUnixGroupsMapping() {}
+
+  /**
    * Returns list of groups for a user.
    *
    * @param user get groups for this user
@@ -37,7 +42,7 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
   public List<String> getGroups(String user) throws IOException {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
-    return new ArrayList<String>(new LinkedHashSet<String>(groups));
+    return new ArrayList<>(new LinkedHashSet<>(groups));
   }
 
   @Override

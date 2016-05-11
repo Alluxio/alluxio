@@ -11,13 +11,14 @@
 
 package alluxio.rest;
 
-import alluxio.LocalAlluxioClusterResource;
+import alluxio.Constants;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Map;
@@ -27,32 +28,53 @@ import javax.ws.rs.core.Response;
 /**
  * Represents a REST API test case.
  */
-public class TestCase {
+public final class TestCase {
   private String mEndpoint;
   private Map<String, String> mParameters;
   private String mMethod;
   private Object mExpectedResult;
-  private String mService;
-  private LocalAlluxioClusterResource mResource;
+  private String mHostname;
+  private int mPort;
+  private String mJsonString;
+  private boolean mPrettyPrint;
 
   /**
    * Creates a new instance of {@link TestCase}.
    *
+   * @param hostname the hostname to use
+   * @param port the port to use
    * @param endpoint the endpoint to use
    * @param parameters the parameters to use
    * @param method the method to use
    * @param expectedResult the expected result to use
-   * @param service the service to use
-   * @param resource the local Alluxio cluster resource
    */
-  protected TestCase(String endpoint, Map<String, String> parameters, String method,
-      Object expectedResult, String service, LocalAlluxioClusterResource resource) {
+  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
+      String method, Object expectedResult) {
+    this(hostname, port, endpoint, parameters, method, expectedResult, null, false);
+  }
+
+  /**
+   * Creates a new instance of {@link TestCase} with JSON data.
+   *
+   * @param hostname the hostname to use
+   * @param port the port to use
+   * @param endpoint the endpoint to use
+   * @param parameters the parameters to use
+   * @param method the method to use
+   * @param expectedResult the expected result to use
+   * @param jsonString the json payload in string
+   * @param prettyPrint if pretty prints the JSON response
+   */
+  public TestCase(String hostname, int port, String endpoint, Map<String, String> parameters,
+      String method, Object expectedResult, String jsonString, boolean prettyPrint) {
+    mHostname = hostname;
+    mPort = port;
     mEndpoint = endpoint;
     mParameters = parameters;
     mMethod = method;
     mExpectedResult = expectedResult;
-    mService = service;
-    mResource = resource;
+    mJsonString = jsonString;
+    mPrettyPrint = prettyPrint;
   }
 
   /**
@@ -74,18 +96,9 @@ public class TestCase {
     for (Map.Entry<String, String> parameter : mParameters.entrySet()) {
       sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
     }
-    String hostname = "";
-    int port = 0;
-    if (mService == TestCaseFactory.MASTER_SERVICE) {
-      hostname = mResource.get().getMasterHostname();
-      port = mResource.get().getMaster().getWebLocalPort();
-    }
-    if (mService == TestCaseFactory.WORKER_SERVICE) {
-      hostname = mResource.get().getWorkerAddress().getHost();
-      port = mResource.get().getWorkerAddress().getWebPort();
-    }
     return new URL(
-        "http://" + hostname + ":" + port + "/v1/api/" + mEndpoint + "?" + sb.toString());
+        "http://" + mHostname + ":" + mPort + "/" + Constants.REST_API_PREFIX + "/" + mEndpoint
+            + "?" + sb.toString());
   }
 
   public String getResponse(HttpURLConnection connection) throws Exception {
@@ -111,13 +124,23 @@ public class TestCase {
   public void run() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
+    if (mJsonString != null) {
+      connection.setDoOutput(true);
+      connection.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
+      OutputStream os = connection.getOutputStream();
+      os.write(mJsonString.getBytes("UTF-8"));
+      os.close();
+    }
+
     connection.connect();
-    Assert
-        .assertEquals(mEndpoint, Response.Status.OK.getStatusCode(), connection.getResponseCode());
+    Assert.assertEquals(mEndpoint, Response.Status.OK.getStatusCode(),
+        connection.getResponseCode());
     String expected = "";
     if (mExpectedResult != null) {
       ObjectMapper mapper = new ObjectMapper();
-      expected = mapper.writeValueAsString(mExpectedResult);
+      expected =
+          mPrettyPrint ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult)
+              : mapper.writeValueAsString(mExpectedResult);
     }
     Assert.assertEquals(mEndpoint, expected, getResponse(connection));
   }

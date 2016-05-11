@@ -53,7 +53,7 @@ public final class DataFileChannel implements DataBuffer {
     ByteBuffer buffer = ByteBuffer.allocate((int) mLength);
     try {
       mFileChannel.position(mOffset);
-      int bytesRead = 0;
+      int bytesRead;
       long bytesRemaining = mLength;
       while (bytesRemaining > 0 && (bytesRead = mFileChannel.read(buffer)) >= 0) {
         bytesRemaining -= bytesRead;

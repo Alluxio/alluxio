@@ -32,6 +32,8 @@ import org.mockito.Mockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
+
 /**
  * Unit tests for {@link CheckpointLatestPlanner}.
  */
@@ -66,7 +68,7 @@ public final class CheckpointLatestPlannerTest {
     long fileId1 = 1L;
     long fileId2 = 2L;
     long l1 =
-        mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(fileId1), mJob);
+        mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(fileId1), mJob);
     // Sleep for 1ms to guarantee that the next lineage's creation time is later than the first's
     CommonUtils.sleepMs(1);
     long l2 =

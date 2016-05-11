@@ -126,7 +126,7 @@ public final class FileSystemTestUtils {
   public static List<String> listFiles(FileSystem fs, String path) throws IOException {
     try {
       List<URIStatus> statuses = fs.listStatus(new AlluxioURI(path));
-      List<String> res = new ArrayList<String>();
+      List<String> res = new ArrayList<>();
       for (URIStatus status : statuses) {
         res.add(status.getPath());
         if (status.isFolder()) {

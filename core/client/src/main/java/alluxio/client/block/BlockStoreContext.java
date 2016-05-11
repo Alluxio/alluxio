@@ -92,7 +92,7 @@ public enum BlockStoreContext {
    * addresses, if the hostname is an empty string.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
-   * @return List of {@link WorkerNetAddress} of hostname
+   * @return a list of {@link WorkerNetAddress} with the given hostname
    */
   private List<WorkerNetAddress> getWorkerAddresses(String hostname) {
     List<WorkerNetAddress> addresses = new ArrayList<>();

@@ -16,8 +16,7 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -106,7 +105,7 @@ public final class LineageStateUtils {
    */
   public static List<Long> getLostFiles(Lineage lineage, FileSystemMasterView fileSystemMasterView)
       throws FileDoesNotExistException {
-    List<Long> result = Lists.newArrayList();
+    List<Long> result = new ArrayList<>();
     List<Long> lostFiles = fileSystemMasterView.getLostFiles();
     for (long outputFile : lineage.getOutputFiles()) {
       if (lostFiles.contains(outputFile)) {

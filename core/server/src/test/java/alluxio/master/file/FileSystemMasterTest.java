@@ -29,7 +29,9 @@ import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
+import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -43,20 +45,23 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -146,13 +151,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
     mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("remote")
         .setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
   }
 
   /**
@@ -167,8 +172,7 @@ public final class FileSystemMasterTest {
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    Assert.assertTrue(
-        mFileSystemMaster.delete(NESTED_FILE_URI, false));
+    Assert.assertTrue(mFileSystemMaster.delete(NESTED_FILE_URI, false));
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
@@ -258,7 +262,7 @@ public final class FileSystemMasterTest {
   @Test
   public void createFileWithTtlTest() throws Exception {
     CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(1);
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(fileInfo.getFileId(), fileId);
@@ -275,12 +279,13 @@ public final class FileSystemMasterTest {
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
+  @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1914")
   public void setTtlForFileWithNoTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     long fileId = mFileSystemMaster.createFile(NESTED_FILE_URI, options);
     executeTtlCheckOnce();
-    // Since no valid TTL is set, the file should not be deleted.
+    // Since no TTL is set, the file should not be deleted.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getFileId());
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
@@ -533,6 +538,112 @@ public final class FileSystemMasterTest {
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void mountTest() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+  }
+
+  /**
+   * Tests mounting an existing dir.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void mountExistingDirTest() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    mFileSystemMaster.createDirectory(alluxioURI, CreateDirectoryOptions.defaults());
+    mThrown.expect(InvalidPathException.class);
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+  }
+
+  /**
+   * Tests mounting a shadow Alluxio dir.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void mountShadowDirTest() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    AlluxioURI shadowAlluxioURI = new AlluxioURI("/hello/shadow");
+    AlluxioURI anotherUfsURI = createTempUfsDir("ufs/hi");
+    mThrown.expect(InvalidPathException.class);
+    mFileSystemMaster.mount(shadowAlluxioURI, anotherUfsURI, MountOptions.defaults());
+  }
+
+  /**
+   * Tests mounting a prefix UFS dir.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void mountPrefixUfsDirTest() throws Exception {
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    AlluxioURI preUfsURI = ufsURI.getParent();
+    AlluxioURI anotherAlluxioURI = new AlluxioURI("/hi");
+    mThrown.expect(InvalidPathException.class);
+    mFileSystemMaster.mount(anotherAlluxioURI, preUfsURI, MountOptions.defaults());
+  }
+
+  /**
+   * Tests mounting a suffix UFS dir.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void mountSuffixUfsDirTest() throws Exception {
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello/shadow");
+    AlluxioURI preUfsURI = ufsURI.getParent();
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    mFileSystemMaster.mount(alluxioURI, preUfsURI, MountOptions.defaults());
+    AlluxioURI anotherAlluxioURI = new AlluxioURI("/hi");
+    mThrown.expect(InvalidPathException.class);
+    mFileSystemMaster.mount(anotherAlluxioURI, ufsURI, MountOptions.defaults());
+  }
+
+  /**
+   * Tests unmounting operation.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void unmountTest() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+    AlluxioURI dirURI = new AlluxioURI("dir");
+    mFileSystemMaster.createDirectory(new AlluxioURI(alluxioURI, dirURI),
+        CreateDirectoryOptions.defaults().setPersisted(true));
+    mFileSystemMaster.unmount(alluxioURI);
+    AlluxioURI ufsDirURI = new AlluxioURI(ufsURI, dirURI);
+    File file = new File(ufsDirURI.toString());
+    Assert.assertTrue(file.exists());
+  }
+
+  /**
+   * Creates a temporary UFS folder. The ufsPath must be a relative path since it's a temporary dir
+   * created by mTestFolder.
+   *
+   * @param ufsPath the UFS path of the temp dir needed to created
+   * @return the AlluxioURI of the temp dir
+   * @throws IOException if {@link TemporaryFolder#newFolder(String...)} operation fails
+   */
+  private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
+    String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
+    return new AlluxioURI(path);
   }
 
   /**

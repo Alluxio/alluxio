@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.thrift.MountTOptions;
 
 import org.junit.Assert;
@@ -53,5 +54,10 @@ public class MountOptionsTest {
     options.setReadOnly(true);
     thriftOptions = options.toThrift();
     Assert.assertTrue(thriftOptions.isReadOnly());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(MountOptions.class);
   }
 }

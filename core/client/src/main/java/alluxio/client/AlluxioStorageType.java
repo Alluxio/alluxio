@@ -11,6 +11,8 @@
 
 package alluxio.client;
 
+import alluxio.annotation.PublicApi;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -23,6 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage.</li>
  * </ul>
  */
+@PublicApi
 @ThreadSafe
 public enum AlluxioStorageType {
   /** Put the data reading or writing in Alluxio storage. */

@@ -56,5 +56,5 @@ export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address ${ALLUXIO_MASTER_ADDRESS:-localhost} \
+    -master_address ${ALLUXIO_MASTER_HOSTNAME:-localhost} \
     -resource_path ${HDFS_PATH}

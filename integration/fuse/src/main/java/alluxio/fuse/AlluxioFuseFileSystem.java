@@ -28,7 +28,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import com.google.common.collect.Maps;
 import jnr.constants.platform.OpenFlags;
 import jnr.ffi.Pointer;
 import jnr.ffi.types.mode_t;
@@ -45,6 +44,7 @@ import ru.serce.jnrfuse.struct.FuseFileInfo;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -83,7 +83,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     mAlluxioMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
-    mOpenFiles = Maps.newHashMap();
+    mOpenFiles = new HashMap<>();
 
     final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
@@ -166,7 +166,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int flush(String path, FuseFileInfo fi) {
     LOG.trace("flush({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -380,7 +380,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("read({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -488,7 +488,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   public int release(String path, FuseFileInfo fi) {
     LOG.trace("release({})", path);
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.remove(fd);
       if (oe == null) {
@@ -588,7 +588,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
     LOG.trace("write({}, {}, {})", path, size, offset);
     final int sz = (int) size;
     final long fd = fi.fh.get();
-    OpenFileEntry oe = null;
+    OpenFileEntry oe;
     synchronized (mOpenFiles) {
       oe = mOpenFiles.get(fd);
     }
@@ -665,6 +665,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     */
+    public PathCacheLoader() {}
+
     @Override
     public AlluxioURI load(String fusePath) {
       // fusePath is guaranteed to always be an absolute path (i.e., starts

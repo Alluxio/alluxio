@@ -52,12 +52,15 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
+  public static final int SECOND_NANO = 1000000000;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
   public static final int BYTES_IN_INTEGER = 4;
+
+  public static final long UNKNOWN_SIZE = -1;
 
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
@@ -111,12 +114,7 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
-   * Version 2 [0.5.0] Starts to use JSON. <br>
-   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
-   */
-  public static final int JOURNAL_VERSION = 3;
+  public static final String REST_API_PREFIX = "v1/api";
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
@@ -129,7 +127,6 @@ public final class Constants {
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
-  public static final String ACCESS_LOGGER_TYPE = "alluxio.access.logger.type";
   public static final String VERSION = "alluxio.version";
   public static final String WEB_RESOURCES = "alluxio.web.resources";
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
@@ -154,6 +151,13 @@ public final class Constants {
   public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
   public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
+  public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+  public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
+      "alluxio.underfs.s3.endpoint.http.port";
+  public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+      "alluxio.underfs.s3.endpoint.https.port";
+  public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
+      "alluxio.underfs.s3.disable.dns.buckets";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
@@ -250,6 +254,8 @@ public final class Constants {
   public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+  public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
+  public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
   public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       "alluxio.worker.block.heartbeat.timeout.ms";
   public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
@@ -289,6 +295,10 @@ public final class Constants {
       "alluxio.worker.filesystem.heartbeat.interval.ms";
   public static final String WORKER_FILE_PERSIST_POOL_SIZE =
       "alluxio.worker.file.persist.pool.size";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
+      "alluxio.worker.file.persist.rate.limit.enabled";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
+      "alluxio.worker.file.persist.rate.limit";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "alluxio.worker.tieredstore.block.locks";
@@ -343,6 +353,8 @@ public final class Constants {
   public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
   public static final String USER_FILE_WRITE_LOCATION_POLICY =
       "alluxio.user.file.write.location.policy.class";
+  public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      "alluxio.user.file.cache.partially.read.block";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

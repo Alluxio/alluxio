@@ -52,12 +52,12 @@ public class FileUtilsTest {
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "000");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
     Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.assertTrue(tempFile.canRead() && tempFile.canWrite() && tempFile.canExecute());
     // File deletion should fail, because we don't have write permissions
-    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "r--r--r--");
     Assert.assertTrue(tempFile.canRead());
     Assert.assertFalse(tempFile.canWrite());
     Assert.assertFalse(tempFile.canExecute());
@@ -79,7 +79,7 @@ public class FileUtilsTest {
     // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
-    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "777");
+    FileUtils.changeLocalFilePermission(ghostFile.getAbsolutePath(), "rwxrwxrwx");
     Assert.fail("changing permissions of a non-existent file should have failed");
   }
 
@@ -92,9 +92,9 @@ public class FileUtilsTest {
   public void changeLocalDirPermissionTests() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     // Change permission on directories
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "444");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "r--r--r--");
     Assert.assertFalse(tempFile.delete());
-    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "744");
+    FileUtils.changeLocalFilePermission(mTestFolder.getRoot().getAbsolutePath(), "rwxr--r--");
     Assert.assertTrue(tempFile.delete());
   }
 
@@ -127,6 +127,64 @@ public class FileUtilsTest {
     mException.expect(IOException.class);
     FileUtils.move(ghostFile.getAbsolutePath(), toFile.getAbsolutePath());
     Assert.fail("moving a non-existent file should have failed");
+  }
+
+  /**
+   * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
+   *
+   * @throws IOException thrown if a non-Alluxio related exception occurs
+   */
+  @Test
+  public void deleteFileTest() throws IOException {
+    File tempFile = mTestFolder.newFile("fileToDelete");
+    File tempFolder = mTestFolder.newFolder("dirToDelete");
+    // Delete a file and a directory
+    FileUtils.delete(tempFile.getAbsolutePath());
+    FileUtils.delete(tempFolder.getAbsolutePath());
+    Assert.assertFalse(tempFile.exists());
+    Assert.assertFalse(tempFolder.exists());
+  }
+
+  /**
+   * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
+   * directories.
+   *
+   * @throws IOException thrown if a non-Alluxio related exception occurs
+   */
+  @Test
+  public void deletePathRecursivelyTest() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpDir1 = mTestFolder.newFolder("dir", "dir1");
+    File tmpDir2 = mTestFolder.newFolder("dir", "dir2");
+
+    File tmpFile1 = mTestFolder.newFile("dir/dir1/file1");
+    File tmpFile2 = mTestFolder.newFile("dir/dir1/file2");
+    File tmpFile3 = mTestFolder.newFile("dir/file3");
+
+    // Delete all of these.
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
+
+    Assert.assertFalse(tmpDir.exists());
+    Assert.assertFalse(tmpDir1.exists());
+    Assert.assertFalse(tmpDir2.exists());
+    Assert.assertFalse(tmpFile1.exists());
+    Assert.assertFalse(tmpFile2.exists());
+    Assert.assertFalse(tmpFile3.exists());
+  }
+
+  /**
+   * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
+   * non-existent file.
+   *
+   * @throws IOException thrown if a non-Alluxio related exception occurs
+   */
+  @Test
+  public void deleteNonExistentFileTest() throws IOException {
+    // ghostFile is never created, so deleting should fail
+    File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
+    mException.expect(IOException.class);
+    FileUtils.delete(ghostFile.getAbsolutePath());
+    Assert.fail("deleting a non-existent file should have failed");
   }
 
   /**
