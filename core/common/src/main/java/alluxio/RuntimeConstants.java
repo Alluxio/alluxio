@@ -16,7 +16,7 @@ package alluxio;
  */
 public final class RuntimeConstants {
   static {
-    Configuration configuration = new Configuration();
+    Configuration configuration = Configuration.Factory.createServerConf();
     VERSION = configuration.get(Constants.VERSION);
   }
 

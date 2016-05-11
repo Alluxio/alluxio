@@ -254,7 +254,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname = NetworkAddressUtils.getLocalHostName(new Configuration());
+    String hostname = NetworkAddressUtils.getLocalHostName(
+        Configuration.Factory.createServerConf());
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }

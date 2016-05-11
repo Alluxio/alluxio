@@ -74,7 +74,7 @@ public final class AlluxioWorker {
     }
 
     // validate the conf
-    if (!ValidateConf.validate(Configuration.Factory.createWorkerConf())) {
+    if (!ValidateConf.validate(Configuration.Factory.createServerConf())) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }

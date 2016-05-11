@@ -58,10 +58,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * distributed with Alluxio jar. Alluxio users can override values of these default properties by
  * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
  * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
- *
- * <p>
- * Developers can create an instance of this class by {@link #Configuration()}, which will load
- * values from any Java system properties set as well.
  */
 @NotThreadSafe
 public final class Configuration {
@@ -138,10 +134,6 @@ public final class Configuration {
     }
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_WORKER_BLOCK_THREADS_MIN,
-        String.valueOf(Runtime.getRuntime().availableProcessors()));
-    defaultProps.setProperty(Constants.MASTER_WORKER_THREADS_MIN,
-        String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
@@ -232,9 +224,19 @@ public final class Configuration {
    * @param alternateConf The source {@link Configuration} to be merged
    */
   public void merge(Configuration alternateConf) {
-    if (alternateConf != null) {
+    merge(alternateConf.toMap());
+  }
+
+  /**
+   * Merge the current configuration properties with alternate properties. A property from the new
+   * configuration wins if it also appears in the current configuration.
+   *
+   * @param properties The source {@link Configuration} to be merged
+   */
+  public void merge(Map<?, ?> properties) {
+    if (properties != null) {
       // merge the system properties
-      mProperties.putAll(alternateConf.toMap());
+      mProperties.putAll(properties);
     }
   }
 
@@ -546,16 +548,9 @@ public final class Configuration {
     }
 
     /**
-     * @return the configuration for master daemon
+     * @return the configuration for master or worker daemon
      */
-    public static Configuration createMasterConf() {
-      return new Configuration(SITE_PROPERTIES, true);
-    }
-
-    /**
-     * @return the configuration for worker daemon
-     */
-    public static Configuration createWorkerConf() {
+    public static Configuration createServerConf() {
       return new Configuration(SITE_PROPERTIES, true);
     }
 
