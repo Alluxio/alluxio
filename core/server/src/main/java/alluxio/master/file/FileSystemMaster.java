@@ -331,7 +331,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the path does not exist
    */
   public long getFileId(AlluxioURI path) throws AccessControlException, FileDoesNotExistException {
-    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
       // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
@@ -374,7 +374,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public FileInfo getFileInfo(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
-    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
       // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
@@ -448,7 +448,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public List<FileInfo> getFileInfoList(AlluxioURI path)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
-    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
       // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
