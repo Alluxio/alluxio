@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.ValidateConf;
+import alluxio.cli.ValidateConf;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -71,7 +71,8 @@ public class AlluxioMaster {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR, AlluxioMaster.class.getCanonicalName());
+      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
+          AlluxioMaster.class.getCanonicalName());
       System.exit(-1);
     }
 

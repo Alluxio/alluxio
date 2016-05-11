@@ -38,6 +38,11 @@ public final class AuthenticatedClientUser {
   private static ThreadLocal<User> sUserThreadLocal = new ThreadLocal<>();
 
   /**
+   * Constructs a new {@link AuthenticatedClientUser}.
+   */
+  public AuthenticatedClientUser() {}
+
+  /**
    * Creates a {@link User} and sets it to the {@link ThreadLocal} variable.
    *
    * @param userName the name of the client user

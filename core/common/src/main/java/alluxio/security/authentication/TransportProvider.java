@@ -31,6 +31,10 @@ public interface TransportProvider {
    * Factory for {@code TransportProvider}.
    */
   class Factory {
+
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Creates a new instance of {@code TransportProvider} based on authentication type. For
      * {@link AuthType#NOSASL}, return an instance of {@link NoSaslTransportProvider}; for

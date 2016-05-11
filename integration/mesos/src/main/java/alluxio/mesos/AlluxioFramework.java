@@ -178,7 +178,7 @@ public class AlluxioFramework {
                               .newBuilder()
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
-                                      .setName("ALLUXIO_MASTER_ADDRESS").setValue(mMasterHostname)
+                                      .setName("ALLUXIO_MASTER_HOSTNAME").setValue(mMasterHostname)
                                       .build())
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()

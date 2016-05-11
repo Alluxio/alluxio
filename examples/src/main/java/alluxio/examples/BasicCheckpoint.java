@@ -14,6 +14,7 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.cli.CliUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -101,6 +102,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    boolean result = CliUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    System.exit(result ? 0 : 1);
   }
 }

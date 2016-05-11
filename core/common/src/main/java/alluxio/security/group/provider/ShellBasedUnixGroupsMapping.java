@@ -27,6 +27,11 @@ import java.util.List;
 public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
 
   /**
+   * Constructs a new {@link ShellBasedUnixGroupsMapping}.
+   */
+  public ShellBasedUnixGroupsMapping() {}
+
+  /**
    * Returns list of groups for a user.
    *
    * @param user get groups for this user

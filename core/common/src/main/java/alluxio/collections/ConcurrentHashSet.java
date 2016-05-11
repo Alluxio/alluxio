@@ -34,7 +34,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    * Creates a new {@link ConcurrentHashSet}.
    */
   public ConcurrentHashSet() {
-    this(1024, 0.75f, 32);
+    this(8, 0.75f, 32);
   }
 
   /**

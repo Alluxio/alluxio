@@ -9,7 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio;
+package alluxio.cli;
+
+import alluxio.Configuration;
+import alluxio.Constants;
 
 import javax.annotation.concurrent.ThreadSafe;
 
