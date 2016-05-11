@@ -251,6 +251,7 @@ public final class UnderFileSystemManager {
   /**
    * @param tempUfsFileId the temporary ufs file id
    * @return the output stream to write to this file
+   * @throws FileDoesNotExistException if the worker file id not valid
    */
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
     UnderFileSystemOutputStream stream = mOutputStreams.get(tempUfsFileId);

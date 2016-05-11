@@ -42,9 +42,9 @@ public final class UnderFileSystemManagerTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  /** The mock input stream returned whenever a ufs file is read */
+  /** The mock input stream returned whenever a ufs file is read. */
   private InputStream mMockInputStream;
-  /** The mock output stream returned whenever a ufs file is created */
+  /** The mock output stream returned whenever a ufs file is created. */
   private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
