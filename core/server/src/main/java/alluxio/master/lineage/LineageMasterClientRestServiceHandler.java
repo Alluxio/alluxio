@@ -20,12 +20,12 @@ import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 import com.qmino.miredot.annotations.ReturnType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -97,11 +97,11 @@ public final class LineageMasterClientRestServiceHandler {
     Preconditions.checkNotNull(outputFiles, "required 'outputFiles' parameter is missing");
     Preconditions.checkNotNull(command, "required 'command' parameter is missing");
     Preconditions.checkNotNull(outputFile, "required 'commandOutputFile' parameter is missing");
-    List<AlluxioURI> inputFilesUri = Lists.newArrayList();
+    List<AlluxioURI> inputFilesUri = new ArrayList<>();
     for (String path : inputFiles.split(":", -1)) {
       inputFilesUri.add(new AlluxioURI(path));
     }
-    List<AlluxioURI> outputFilesUri = Lists.newArrayList();
+    List<AlluxioURI> outputFilesUri = new ArrayList<>();
     for (String path : outputFiles.split(":", -1)) {
       outputFilesUri.add(new AlluxioURI(path));
     }

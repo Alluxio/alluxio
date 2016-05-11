@@ -16,8 +16,12 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,6 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class StorageTier {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Alias value of this tier in tiered storage. */
   private final String mTierAlias;
   /** Ordinal value of this tier in tiered storage, highest level is 0. */
@@ -49,6 +55,7 @@ public final class StorageTier {
   private void initStorageTier()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
+    String tmpDir = WorkerContext.getConf().get(Constants.WORKER_DATA_TMP_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
     String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
@@ -71,6 +78,14 @@ public final class StorageTier {
       long capacity = FormatUtils.parseSpaceSize(dirQuotas[index]);
       totalCapacity += capacity;
       mDirs.add(StorageDir.newStorageDir(this, i, capacity, dirPaths[i]));
+
+      // Delete tmp directory.
+      String tmpDirPath = PathUtils.concatPath(dirPaths[i], tmpDir);
+      try {
+        FileUtils.deletePathRecursively(tmpDirPath);
+      } catch (IOException e) {
+        LOG.error("Failed to clean up temporary directory: {}.", tmpDirPath);
+      }
     }
     mCapacityBytes = totalCapacity;
   }

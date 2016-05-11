@@ -21,6 +21,11 @@ import javax.security.sasl.AuthenticationException;
 @ThreadSafe
 public final class SimpleAuthenticationProvider implements AuthenticationProvider {
 
+  /**
+   * Constructs a new {@link SimpleAuthenticationProvider}.
+   */
+  public SimpleAuthenticationProvider() {}
+
   @Override
   public void authenticate(String user, String password) throws AuthenticationException {
     // no-op authentication

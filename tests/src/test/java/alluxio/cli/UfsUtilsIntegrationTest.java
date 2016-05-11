@@ -9,12 +9,13 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.FileSystemTestUtils;
 import alluxio.client.file.FileSystem;
 import alluxio.collections.PrefixList;
 import alluxio.underfs.UnderFileSystem;

@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.annotation.PublicApi;
 import alluxio.util.URIUtils;
 
 import org.apache.commons.lang.StringUtils;
@@ -25,11 +26,19 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a URI in the Alluxio system. This {@link AlluxioURI} can represent
  * resources in the Alluxio namespace, as well as UFS namespaces.
  *
- * It uses a {@link URI} internally. URI requires that String is escaped, {@link AlluxioURI} does
- * not.
+ * {@link AlluxioURI} supports more than just strict {@link URI}. Some examples:
+ *   * Windows paths
+ *     * C:\
+ *     * D:\path\to\file
+ *     * E:\path\to\skip\..\file
+ *   * URI with multiple scheme components
+ *     * scheme://host:123/path
+ *     * scheme:part2://host:123/path
+ *     * scheme:part2:part3://host:123/path
  *
  * Does not support fragment in the URI.
  */
+@PublicApi
 @ThreadSafe
 public final class AlluxioURI implements Comparable<AlluxioURI>, Serializable {
   private static final long serialVersionUID = -1207227692436086387L;

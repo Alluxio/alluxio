@@ -34,8 +34,6 @@ import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -220,7 +218,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
+    List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
     for (FileInfo fileInfo : filesInfo) {
       UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
@@ -228,14 +226,15 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
                   .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
-          List<WorkerNetAddress> addrs = Lists.newArrayList();
+          List<String> locations = new ArrayList<>();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
-            addrs.add(location.getWorkerAddress());
+            WorkerNetAddress address = location.getWorkerAddress();
+            locations.add(address.getHost() + ":" + address.getDataPort());
           }
           // add underFS locations
-          addrs.addAll(blockInfo.getUfsLocations());
-          toAdd.setFileLocations(addrs);
+          locations.addAll(blockInfo.getUfsLocations());
+          toAdd.setFileLocations(locations);
         }
       } catch (FileDoesNotExistException e) {
         request.setAttribute("FileDoesNotExistException",

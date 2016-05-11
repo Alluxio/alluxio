@@ -39,8 +39,6 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import org.apache.thrift.TProcessor;
@@ -48,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,8 +86,8 @@ public final class KeyValueMaster extends AbstractMaster {
   public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
     mFileSystemMaster = fileSystemMaster;
-    mCompleteStoreToPartitions = Maps.newHashMap();
-    mIncompleteStoreToPartitions = Maps.newHashMap();
+    mCompleteStoreToPartitions = new HashMap<>();
+    mIncompleteStoreToPartitions = new HashMap<>();
   }
 
   @Override
@@ -161,11 +160,12 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param path URI of the key-value store
    * @param info information of this completed parition
-   * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws AccessControlException if permission checking fails
+   * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws InvalidPathException if the path is invalid
    */
   public synchronized void completePartition(AlluxioURI path, PartitionInfo info)
-      throws FileDoesNotExistException, AccessControlException {
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -182,7 +182,7 @@ public final class KeyValueMaster extends AbstractMaster {
   private void completePartitionFromEntry(CompletePartitionEntry entry)
       throws FileDoesNotExistException {
     PartitionInfo info = new PartitionInfo(entry.getKeyStartBytes().asReadOnlyByteBuffer(),
-        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId());
+        entry.getKeyLimitBytes().asReadOnlyByteBuffer(), entry.getBlockId(), entry.getKeyCount());
     completePartitionInternal(entry.getStoreId(), info);
   }
 
@@ -203,10 +203,11 @@ public final class KeyValueMaster extends AbstractMaster {
    *
    * @param path URI of the key-value store
    * @throws FileDoesNotExistException if the key-value store URI does not exists
+   * @throws InvalidPathException if the path is not valid
    * @throws AccessControlException if permission checking fails
    */
-  public synchronized void completeStore(AlluxioURI path) throws FileDoesNotExistException,
-      AccessControlException {
+  public synchronized void completeStore(AlluxioURI path)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     final long fileId = mFileSystemMaster.getFileId(path);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(
@@ -280,7 +281,7 @@ public final class KeyValueMaster extends AbstractMaster {
       throw new FileAlreadyExistsException(String
           .format("Failed to createStore: KeyValueStore (fileId=%d) is already created", fileId));
     }
-    mIncompleteStoreToPartitions.put(fileId, Lists.<PartitionInfo>newArrayList());
+    mIncompleteStoreToPartitions.put(fileId, new ArrayList<PartitionInfo>());
   }
 
   /**
@@ -312,7 +313,8 @@ public final class KeyValueMaster extends AbstractMaster {
     mCompleteStoreToPartitions.remove(fileId);
   }
 
-  private long getFileId(AlluxioURI uri) throws AccessControlException, FileDoesNotExistException {
+  private long getFileId(AlluxioURI uri)
+      throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     long fileId = mFileSystemMaster.getFileId(uri);
     if (fileId == IdUtils.INVALID_FILE_ID) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(uri));
@@ -409,13 +411,14 @@ public final class KeyValueMaster extends AbstractMaster {
    * @return a list of partition information
    * @throws FileDoesNotExistException if the key-value store URI does not exists
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
    */
   public synchronized List<PartitionInfo> getPartitionInfo(AlluxioURI path)
-      throws FileDoesNotExistException, AccessControlException {
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     long fileId = getFileId(path);
     List<PartitionInfo> partitions = mCompleteStoreToPartitions.get(fileId);
     if (partitions == null) {
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
     return partitions;
   }
@@ -429,7 +432,8 @@ public final class KeyValueMaster extends AbstractMaster {
     CompletePartitionEntry completePartition =
         CompletePartitionEntry.newBuilder().setStoreId(fileId).setBlockId(info.getBlockId())
             .setKeyStartBytes(ByteString.copyFrom(info.bufferForKeyStart()))
-            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit())).build();
+            .setKeyLimitBytes(ByteString.copyFrom(info.bufferForKeyLimit()))
+            .setKeyCount(info.getKeyCount()).build();
     return JournalEntry.newBuilder().setCompletePartition(completePartition).build();
   }
 

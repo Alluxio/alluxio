@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -59,5 +60,10 @@ public class OpenFileOptionsTest {
     Assert.assertEquals(options.getAlluxioStorageType(),
         inStreamOptions.getAlluxioStorageType());
     Assert.assertEquals(options.getLocationPolicy(), inStreamOptions.getLocationPolicy());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(OpenFileOptions.class);
   }
 }

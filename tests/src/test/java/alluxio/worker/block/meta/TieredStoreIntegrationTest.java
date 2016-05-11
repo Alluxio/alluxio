@@ -220,8 +220,8 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
         TimeUnit.SECONDS));
 
-    AlluxioURI toPromote = null;
-    int toPromoteLen = 0;
+    AlluxioURI toPromote;
+    int toPromoteLen;
     URIStatus file1Info = mFileSystem.getStatus(uri1);
     URIStatus file2Info = mFileSystem.getStatus(uri2);
     URIStatus file3Info = mFileSystem.getStatus(uri3);

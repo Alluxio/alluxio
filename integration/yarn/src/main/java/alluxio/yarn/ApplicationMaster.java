@@ -475,7 +475,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private static Map<String, String> setupWorkerEnvironment(String masterContainerNetAddress,
       int ramdiskMemInMB) {
     Map<String, String> env = setupCommonEnvironment();
-    env.put("ALLUXIO_MASTER_ADDRESS", masterContainerNetAddress);
+    env.put("ALLUXIO_MASTER_HOSTNAME", masterContainerNetAddress);
     env.put("ALLUXIO_WORKER_MEMORY_SIZE",
         FormatUtils.getSizeFromBytes((long) ramdiskMemInMB * Constants.MB));
     return env;

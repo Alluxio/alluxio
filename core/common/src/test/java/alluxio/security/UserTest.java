@@ -29,16 +29,20 @@ public final class UserTest {
    */
   @Test
   public void usedInSecurityContextTest() {
-    // add new users into Subject
+    // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("realUser"));
     subject.getPrincipals().add(new User("proxyUser"));
 
-    // fetch added users
+    // Fetch added users.
     Set<User> users = subject.getPrincipals(User.class);
 
-    // verification
+    // Verification.
     Assert.assertEquals(2, users.size());
+
+    // Test equals.
+    Assert.assertTrue(users.contains(new User("realUser")));
+    Assert.assertFalse(users.contains(new User("noExistingUser")));
   }
 
   /**
