@@ -607,8 +607,13 @@ public final class FileSystemMasterTest {
     mBlockMaster.commitBlock(mWorkerId1, Constants.KB, "SSD", blockId, Constants.KB);
     mFileSystemMaster.completeFile(NESTED_FILE_URI, CompleteFileOptions.defaults());
 
+    // Create 2 files in memory.
     createFileWithSingleBlock(ROOT_FILE_URI);
-    Assert.assertEquals(Lists.newArrayList(ROOT_FILE_URI), mFileSystemMaster.getInMemoryFiles());
+    AlluxioURI nestedMemUri = NESTED_URI.join("mem_file");
+    createFileWithSingleBlock(nestedMemUri);
+    Assert.assertEquals(2, mFileSystemMaster.getInMemoryFiles().size());
+    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(ROOT_FILE_URI));
+    Assert.assertTrue(mFileSystemMaster.getInMemoryFiles().contains(nestedMemUri));
   }
 
   /**

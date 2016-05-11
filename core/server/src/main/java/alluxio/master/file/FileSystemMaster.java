@@ -14,7 +14,6 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.collections.Pair;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -101,10 +100,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -451,7 +448,6 @@ public final class FileSystemMaster extends AbstractMaster {
   public List<FileInfo> getFileInfoList(AlluxioURI path)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
-
     try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
@@ -1063,29 +1059,29 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public List<AlluxioURI> getInMemoryFiles() {
     List<AlluxioURI> ret = new ArrayList<AlluxioURI>();
-    Queue<Pair<InodeDirectory, AlluxioURI>> nodesQueue =
-        new LinkedList<Pair<InodeDirectory, AlluxioURI>>();
-    synchronized (mInodeTree) {
-      // TODO(yupeng): Verify we want to use absolute path.
-      nodesQueue.add(new Pair<InodeDirectory, AlluxioURI>(mInodeTree.getRoot(),
-          new AlluxioURI(AlluxioURI.SEPARATOR)));
-      while (!nodesQueue.isEmpty()) {
-        Pair<InodeDirectory, AlluxioURI> pair = nodesQueue.poll();
-        InodeDirectory directory = pair.getFirst();
-        AlluxioURI curUri = pair.getSecond();
+    getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
+    return ret;
+  }
 
-        Set<Inode<?>> children = directory.getChildren();
-        for (Inode<?> inode : children) {
-          AlluxioURI newUri = curUri.join(inode.getName());
-          if (inode.isDirectory()) {
-            nodesQueue.add(new Pair<InodeDirectory, AlluxioURI>((InodeDirectory) inode, newUri));
-          } else if (isFullyInMemory((InodeFile) inode)) {
-            ret.add(newUri);
-          }
+  private void getInMemoryFilesInternal(Inode<?> inode, AlluxioURI uri,
+      List<AlluxioURI> inMemoryFiles) {
+    inode.lockRead();
+    try {
+      AlluxioURI newUri = uri.join(inode.getName());
+      if (inode.isFile()) {
+        if (isFullyInMemory((InodeFile) inode)) {
+          inMemoryFiles.add(newUri);
+        }
+      } else {
+        // This inode is a directory.
+        Set<Inode<?>> children = ((InodeDirectory) inode).getChildren();
+        for (Inode<?> child : children) {
+          getInMemoryFilesInternal(child, newUri, inMemoryFiles);
         }
       }
+    } finally {
+      inode.unlockRead();
     }
-    return ret;
   }
 
   /**
