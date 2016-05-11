@@ -22,13 +22,12 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -63,10 +62,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * <p>
  * Developers can create an instance of this class by {@link #Configuration()}, which will load
  * values from any Java system properties set as well.
- *
- * <p>
- * The class only supports creation using {@link #Configuration(Map)} to override default
- * values.
  */
 @NotThreadSafe
 public final class Configuration {
@@ -82,9 +77,15 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Set of properties */
+  /** Set of properties. */
   private final Properties mProperties = new Properties();
 
+  /**
+   * Loads properties from the given file.
+   *
+   * @param propertiesFile the file to load properties
+   * @return a set of properties
+   */
   public static Properties loadFromPropertiesFile(String propertiesFile) {
     Properties properties = new Properties();
 
@@ -108,7 +109,7 @@ public final class Configuration {
    *
    * @param props override {@link Properties}
    */
-  public Configuration(Map<?, ?> props) {
+  private Configuration(Map<?, ?> props) {
     if (props != null) {
       mProperties.putAll(props);
     }
@@ -146,10 +147,10 @@ public final class Configuration {
     defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
-
     // Load site specific properties file
     Properties siteProps = new Properties();
-    String dir = get(Constants.SITE_CONF_DIR);
+    String dir = defaultProps.getProperty(Constants.SITE_CONF_DIR);
+    // If site conf is overwritten in system properties, overwrite the default setting
     if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
       dir = System.getProperty(Constants.SITE_CONF_DIR);
     }
@@ -159,6 +160,7 @@ public final class Configuration {
         if (FileUtils.exists(file)) {
           siteProps = loadFromPropertiesFile(file);
           if (siteProps != null) {
+            // If a site conf is successfully loaded, stop trying different paths
             LOG.info("Load site Alluxio configuration file {}.", file);
             break;
           }
@@ -446,8 +448,8 @@ public final class Configuration {
   /**
    * @return a copy of the internal {@link Properties} of as an immutable map
    */
-  public ImmutableMap<Object, Object> toMap() {
-    return ImmutableMap.copyOf(mProperties);
+  public ImmutableMap<String, String> toMap() {
+    return Maps.fromProperties(mProperties);
   }
 
   @Override
@@ -514,11 +516,6 @@ public final class Configuration {
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 
-  private void loadFromSiteConf() {
-
-
-  }
-
   /**
    * Factory class to create configuration instances.
    */
@@ -526,10 +523,26 @@ public final class Configuration {
   public static final class Factory {
 
     /**
-     * @return the default configuration without loading site properties
+     * @param properties the source configuration
+     * @return a new configuration with only properties copied from source
      */
-    public static Configuration createDefaultWithSystemProperties() {
-      return new Configuration(null, true);
+    public static Configuration create(Map<?, ?> properties) {
+      return new Configuration(properties);
+    }
+
+    /**
+     * @param conf the source configuration
+     * @return a new configuration with only properties copied from source
+     */
+    public static Configuration create(Configuration conf) {
+      return new Configuration(conf.toMap());
+    }
+
+    /**
+     * @return the default configuration without loading site and system properties
+     */
+    public static Configuration createDefaultConf() {
+      return new Configuration(null, false);
     }
 
     /**

@@ -45,7 +45,7 @@ public final class ConfUtils {
   // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Map<Object, Object> confProperties = source.toMap();
+    Map<String, String> confProperties = source.toMap();
     try {
       DefaultStringifier.store(target, confProperties, Constants.SITE_CONF_DIR);
     } catch (IOException ex) {
@@ -84,6 +84,6 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
-    return new Configuration(alluxioConfProperties);
+    return Configuration.Factory.create(alluxioConfProperties);
   }
 }

@@ -85,9 +85,9 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<String, String>")
   public Response getConfiguration() {
-    Set<Map.Entry<Object, Object>> properties = mMasterConf.toMap().entrySet();
+    Set<Map.Entry<String, String>> properties = mMasterConf.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<Object, Object> entry : properties) {
+    for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
         configuration.put(key, (String) entry.getValue());

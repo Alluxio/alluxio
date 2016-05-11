@@ -12,11 +12,7 @@
 package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
-<<<<<<< HEAD
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.RuntimeConstants;
-=======
->>>>>>> 886b0f95b9b3a7757203da8a523a478da5a5f930
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
