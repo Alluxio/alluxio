@@ -12,7 +12,7 @@
 package alluxio;
 
 /**
- * System constants that are determined during runtime
+ * System constants that are determined during runtime.
  */
 public final class RuntimeConstants {
   static {
@@ -20,7 +20,7 @@ public final class RuntimeConstants {
     VERSION = configuration.get(Constants.VERSION);
   }
 
-  /** The version of this Alluxio instance */
+  /** The version of this Alluxio instance. */
   public static final String VERSION;
 
   /** The relative path to the Alluxio target jar. */

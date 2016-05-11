@@ -13,7 +13,6 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.RuntimeConstants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;

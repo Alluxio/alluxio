@@ -11,8 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.RuntimeConstants;
 
 import javax.annotation.concurrent.ThreadSafe;
 
