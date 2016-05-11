@@ -337,15 +337,9 @@ public final class FileSystemMaster extends AbstractMaster {
       Inode<?> inode;
       try {
         mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-        if (!mInodeTree.inodePathExists(path)) {
-          try {
-            return loadMetadata(path, true);
-          } catch (Exception e) {
-            return IdUtils.INVALID_FILE_ID;
-          }
-        }
+        loadMetadataIfNotExist(path);
         inode = mInodeTree.getInodeByPath(path);
-      } catch (InvalidPathException e) {
+      } catch (InvalidPathException | FileDoesNotExistException e) {
         return IdUtils.INVALID_FILE_ID;
       }
       return inode.getId();
@@ -386,8 +380,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      // getFileInfo should load from ufs if the file does not exist
-      getFileId(path);
+      loadMetadataIfNotExist(path);
       Inode<?> inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
@@ -460,8 +453,7 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      // getFileInfoList should load from ufs if the file does not exist
-      getFileId(path);
+      loadMetadataIfNotExist(path);
       Inode<?> inode = mInodeTree.getInodeByPath(path);
 
       List<FileInfo> ret = new ArrayList<>();
@@ -1707,6 +1699,22 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
     }
     return inodes.get(inodes.size() - 1).getId();
+  }
+
+  /**
+   * Loads the metadata for the path, if it doesn't exist.
+   *
+   * @param path the path to load the metadata for
+   */
+  @GuardedBy("mInodeTree")
+  private void loadMetadataIfNotExist(AlluxioURI path) {
+    if (!mInodeTree.inodePathExists(path)) {
+      try {
+        loadMetadataAndJournal(path, true);
+      } catch (Exception e) {
+        LOG.error("Failed to load metadata for path: {}", path);
+      }
+    }
   }
 
   /**
