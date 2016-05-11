@@ -201,6 +201,7 @@ public final class UnderFileSystemManager {
    * ufs file id will be invalid after this is called.
    *
    * @param tempUfsFileId the temporary ufs file id
+   * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs when operating on the under file system
    */
   public void closeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
@@ -253,6 +254,7 @@ public final class UnderFileSystemManager {
    *
    * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
+   * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs when operating on the under file system
    */
   public long openFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
