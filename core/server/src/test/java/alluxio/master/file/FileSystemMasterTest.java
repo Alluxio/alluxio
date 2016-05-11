@@ -37,6 +37,7 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
+import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -56,6 +57,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.internal.util.reflection.Whitebox;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -274,6 +276,166 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster.getPersistenceState(rootId + 1234);
       Assert.fail("getPath() for a non-existent id should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
+  @Test
+  public void getFileIdTest() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    // These URIs exist.
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_URI));
+    Assert.assertEquals(ROOT_URI, mFileSystemMaster.getPath(mFileSystemMaster.getFileId(ROOT_URI)));
+
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_URI));
+    Assert.assertEquals(NESTED_URI,
+        mFileSystemMaster.getPath(mFileSystemMaster.getFileId(NESTED_URI)));
+
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(NESTED_FILE_URI));
+    Assert.assertEquals(NESTED_FILE_URI,
+        mFileSystemMaster.getPath(mFileSystemMaster.getFileId(NESTED_FILE_URI)));
+
+    // These URIs do not exist.
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(ROOT_FILE_URI));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(TEST_URI));
+    Assert.assertEquals(IdUtils.INVALID_FILE_ID,
+        mFileSystemMaster.getFileId(NESTED_FILE_URI.join("DNE")));
+  }
+
+  @Test
+  public void getFileInfoTest() throws Exception {
+    createFileWithSingleBlock(NESTED_FILE_URI);
+    long fileId;
+    FileInfo info;
+
+    fileId = mFileSystemMaster.getFileId(ROOT_URI);
+    info = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(ROOT_URI.getPath(), info.getPath());
+    Assert.assertEquals(ROOT_URI.getPath(), mFileSystemMaster.getFileInfo(ROOT_URI).getPath());
+
+    fileId = mFileSystemMaster.getFileId(NESTED_URI);
+    info = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(NESTED_URI.getPath(), info.getPath());
+    Assert.assertEquals(NESTED_URI.getPath(), mFileSystemMaster.getFileInfo(NESTED_URI).getPath());
+
+    fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
+    info = mFileSystemMaster.getFileInfo(fileId);
+    Assert.assertEquals(NESTED_FILE_URI.getPath(), info.getPath());
+    Assert.assertEquals(NESTED_FILE_URI.getPath(),
+        mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPath());
+
+    // Test non-existent id.
+    try {
+      mFileSystemMaster.getFileInfo(fileId + 1234);
+      Assert.fail("getFileInfo() for a non-existent id should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+
+    // Test non-existent URIs.
+    try {
+      mFileSystemMaster.getFileInfo(ROOT_FILE_URI);
+      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+    try {
+      mFileSystemMaster.getFileInfo(TEST_URI);
+      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+    try {
+      mFileSystemMaster.getFileInfo(NESTED_URI.join("DNE"));
+      Assert.fail("getFileInfo() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
+  @Test
+  public void getFileInfoListTest() throws Exception {
+    final int files = 10;
+    List<FileInfo> infos;
+    List<String> filenames;
+
+    // Test files in root directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
+    }
+    infos = mFileSystemMaster.getFileInfoList(ROOT_URI);
+    Assert.assertEquals(files, infos.size());
+    // Copy out filenames to use List contains.
+    filenames = new ArrayList<>();
+    for (FileInfo info : infos) {
+      filenames.add(info.getPath());
+    }
+    // Compare all filenames.
+    for (int i = 0; i < files; i++) {
+      Assert.assertTrue(
+          filenames.contains(ROOT_URI.join("file" + String.format("%05d", i)).toString()));
+    }
+
+    // Test single file.
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    infos = mFileSystemMaster.getFileInfoList(ROOT_FILE_URI);
+    Assert.assertEquals(1, infos.size());
+    Assert.assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
+
+
+    // Test files in nested directory.
+    for (int i = 0; i < files; i++) {
+      createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
+    }
+    infos = mFileSystemMaster.getFileInfoList(NESTED_URI);
+    Assert.assertEquals(files, infos.size());
+    // Copy out filenames to use List contains.
+    filenames = new ArrayList<>();
+    for (FileInfo info : infos) {
+      filenames.add(info.getPath());
+    }
+    // Compare all filenames.
+    for (int i = 0; i < files; i++) {
+      Assert.assertTrue(
+          filenames.contains(NESTED_URI.join("file" + String.format("%05d", i)).toString()));
+    }
+
+    // Test non-existent URIs.
+    try {
+      mFileSystemMaster.getFileInfoList(NESTED_URI.join("DNE"));
+      Assert.fail("getFileInfoList() for a non-existent URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
+  @Test
+  public void getFileBlockInfoListTest() throws Exception {
+    createFileWithSingleBlock(ROOT_FILE_URI);
+    createFileWithSingleBlock(NESTED_FILE_URI);
+
+    List<FileBlockInfo> blockInfo;
+
+    blockInfo = mFileSystemMaster.getFileBlockInfoList(ROOT_FILE_URI);
+    Assert.assertEquals(1, blockInfo.size());
+
+    blockInfo = mFileSystemMaster.getFileBlockInfoList(NESTED_FILE_URI);
+    Assert.assertEquals(1, blockInfo.size());
+
+    // Test directory URI.
+    try {
+      mFileSystemMaster.getFileBlockInfoList(NESTED_URI);
+      Assert.fail("getFileBlockInfoList() for a directory URI should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+
+    // Test non-existent URI.
+    try {
+      mFileSystemMaster.getFileBlockInfoList(TEST_URI);
+      Assert.fail("getFileBlockInfoList() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
