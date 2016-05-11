@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
