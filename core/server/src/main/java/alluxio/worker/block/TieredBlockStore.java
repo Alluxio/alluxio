@@ -577,11 +577,6 @@ public final class TieredBlockStore implements BlockStore {
         LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
             + "but addTempBlockMeta failed", initialBlockSize, location);
         throw Throwables.propagate(e);
-      } catch (BlockAlreadyExistsException e) {
-        // If we reach here, allocator is not working properly
-        LOG.error("Unexpected failure: {} bytes allocated at {} by allocator, "
-            + "but addTempBlockMeta failed", initialBlockSize, location);
-        throw Throwables.propagate(e);
       }
       return tempBlock;
     } finally {

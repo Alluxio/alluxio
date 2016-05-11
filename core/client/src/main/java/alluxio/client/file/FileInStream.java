@@ -25,6 +25,8 @@ import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.wire.BlockInfo;
@@ -339,14 +341,24 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @throws IOException if the close or cancel fails
    */
-  private void closeOrCancelCacheStream() throws IOException {
+  private void closeOrCancelCacheStream() {
     if (mCurrentCacheStream == null) {
       return;
     }
-    if (mCurrentCacheStream.remaining() == 0) {
-      mCurrentCacheStream.close();
-    } else {
-      mCurrentCacheStream.cancel();
+    try {
+      if (mCurrentCacheStream.remaining() == 0) {
+        mCurrentCacheStream.close();
+      } else {
+        mCurrentCacheStream.cancel();
+      }
+    } catch (IOException e) {
+      if (e.getCause() instanceof BlockDoesNotExistException) {
+        LOG.info("Block {} does not exist when being cancelled.", getCurrentBlockId());
+      } else if (e.getCause() instanceof InvalidWorkerStateException) {
+        LOG.info("Block {} has invalid worker state when being cancelled.", getCurrentBlockId());
+      } else {
+        LOG.warn("Close or cancel throws IOExecption {}.", e.getMessage());
+      }
     }
     mCurrentCacheStream = null;
   }
@@ -368,11 +380,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Logs IO exceptions thrown in response to the worker cache request. If the exception is not an
    * expected exception, a warning will be logged with the stack trace.
    */
-  private void handleCacheStreamIOException(IOException e) throws IOException {
+  private void handleCacheStreamIOException(IOException e) {
     if (e.getCause() instanceof BlockAlreadyExistsException) {
-      LOG.warn(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
+      LOG.info(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
     } else {
-      LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId(), e);
+      LOG.info(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
     }
     closeOrCancelCacheStream();
   }
@@ -596,9 +608,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
-    byte[] buffer = new byte[Math.min(Constants.MB, (int) len)];
+    // Do not set the buffer size too small to avoid slowing down seek by too much.
+    byte[] buffer = new byte[Math.min(Constants.MB * 128, (int) len)];
     do {
-      len -= read(buffer);
+      int bytesRead = read(buffer);
+      Preconditions.checkState(bytesRead > 0, "Reached EOF unexpectedly.");
+      len -= bytesRead;
     } while (len > 0);
   }
 
