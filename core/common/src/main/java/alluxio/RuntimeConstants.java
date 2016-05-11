@@ -27,4 +27,6 @@ public final class RuntimeConstants {
   public static final String ALLUXIO_JAR =
       "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
 
+  private RuntimeConstants() {
+  } // prevent instantiation
 }
