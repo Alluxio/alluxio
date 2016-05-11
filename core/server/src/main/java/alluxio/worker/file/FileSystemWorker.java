@@ -31,6 +31,7 @@ import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -128,8 +129,30 @@ public final class FileSystemWorker extends AbstractWorker {
     return mUnderFileSystemManager.createFile(ufsUri);
   }
 
-  public InputStream getUfsInputStream(long tempUfsFileId) throws IOException {
-    return mUnderFileSystemManager.getInputStream(tempUfsFileId);
+  /**
+   * Opens a stream to the under file system file denoted by the temporary file id. This call
+   * will skip to the position specified in the file before returning the stream. The caller of
+   * this method is required to close the stream after they have finished operations on it.
+   *
+   * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
+   * @param position the absolute position in the file to position the stream at before returning
+   * @return an input stream to the ufs file positioned at the given position
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public InputStream getUfsInputStream(long tempUfsFileId, long position) throws IOException {
+    return mUnderFileSystemManager.getInputStreamAtPosition(tempUfsFileId, position);
+  }
+
+  /**
+   * Returns the output stream to the under file system file denoted by the temporary file id.
+   * The stream should not be closed by the caller.
+   *
+   * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
+   * @return the output stream writing the contents of the file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
+  public OutputStream getUfsOutputStream(long tempUfsFileId) throws IOException {
+    return mUnderFileSystemManager.getOutputStream(tempUfsFileId);
   }
 
   /**
