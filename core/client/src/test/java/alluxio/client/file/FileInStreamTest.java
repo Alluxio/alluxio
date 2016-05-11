@@ -263,6 +263,7 @@ public class FileInStreamTest {
     // Seek a short way past start of block 3
     mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
     Assert.assertEquals((byte) (BLOCK_LENGTH * 3.1), mTestStream.read());
+    mTestStream.seek(FILE_LENGTH);
   }
 
   /**
@@ -340,6 +341,7 @@ public class FileInStreamTest {
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 4 * 3),
         mCacheStreams.get(1).getWrittenData());
+    mTestStream.seek(FILE_LENGTH);
   }
 
   /**
