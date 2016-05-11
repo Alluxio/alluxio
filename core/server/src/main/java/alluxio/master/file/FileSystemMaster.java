@@ -510,6 +510,19 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Completes a file. After a file is completed, it cannot be written to.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the file path to complete
+   * @param options the method options
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws BlockInfoException if a block information exception is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws InvalidFileSizeException if an invalid file size is encountered
+   */
   void completeFileAndJournal(AlluxioURI path, CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException {
@@ -633,6 +646,21 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Creates a file (not a directory) for a given path.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the file to create
+   * @param options method options
+   * @return the file id of the create file
+   * @throws FileAlreadyExistsException if the file already exists
+   * @throws BlockInfoException if an invalid block information in encountered
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws IOException if the creation fails
+   */
   long createFileAndJournal(AlluxioURI path, CreateFileOptions options)
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
@@ -787,6 +815,19 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Deletes a given path.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the path to delete
+   * @param recursive if true, will delete all its children
+   * @return true if the file was deleted, false otherwise
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws IOException if an I/O error occurs
+   * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
+   */
   boolean deleteAndJournal(AlluxioURI path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
@@ -1118,6 +1159,23 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Creates a directory for a given path.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the path of the directory
+   * @param options method options
+   * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
+   *         modified inodes and created inodes during path creation
+   * @throws FileAlreadyExistsException when there is already a file at path
+   * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
+   *         option is false
+   * @throws InvalidPathException when the path is invalid, please see documentation on
+   *         {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} for more details
+   * @throws AccessControlException if permission checking fails
+   * @throws IOException if a non-Alluxio related exception occurs
+   */
   InodeTree.CreatePathResult createDirectoryAndJournal(AlluxioURI path,
       CreateDirectoryOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
@@ -1215,6 +1273,18 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Renames a file to a destination.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param srcPath the source path to rename
+   * @param dstPath the destination path to rename the file to
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileDoesNotExistException if a non-existent file is encountered
+   * @throws FileAlreadyExistsException if the file already exists
+   * @throws IOException if an I/O error occurs
+   */
   void renameAndJournal(AlluxioURI srcPath, AlluxioURI dstPath)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException {
@@ -1555,6 +1625,23 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Loads metadata for the object identified by the given path from UFS into Alluxio.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the path for which metadata should be loaded
+   * @param recursive whether parent directories should be created if they do not already exist
+   * @return the file id of the loaded path
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws FileDoesNotExistException if there is no UFS path
+   * @throws FileAlreadyExistsException if the object to be loaded already exists
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws AccessControlException if permission checking fails
+   * @throws IOException if an I/O error occurs
+   */
   long loadMetadataAndJournal(AlluxioURI path, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       BlockInfoException, FileAlreadyCompletedException, InvalidFileSizeException,
@@ -1647,6 +1734,19 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Mounts a UFS path onto an Alluxio path.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param alluxioPath the Alluxio path to mount to
+   * @param ufsPath the UFS path to mount
+   * @param options the mount options
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileAlreadyExistsException if the path to be mounted already exists
+   * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if the permission check fails
+   */
   void mountAndJournal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
@@ -1783,6 +1883,17 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Unmounts a UFS path previously mounted path onto an Alluxio path.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param alluxioPath the Alluxio path to unmount, must be a mount point
+   * @return true if the UFS path was successfully unmounted, false otherwise
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws FileDoesNotExistException if the path to be mounted does not exist
+   * @throws IOException if an I/O error occurs
+   */
   boolean unmountAndJournal(AlluxioURI alluxioPath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
     if (unmountInternal(alluxioPath)) {
@@ -1875,6 +1986,19 @@ public final class FileSystemMaster extends AbstractMaster {
     }
   }
 
+  /**
+   * Sets the file attribute.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the path to set attribute for
+   * @param options attributes to be set, see {@link SetAttributeOptions}
+   * @param rootRequired indicates whether it requires to be the superuser
+   * @param ownerRequired indicates whether it requires to be the owner of this path
+   * @throws InvalidPathException if the given path is invalid
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws AccessControlException if permission checking fails
+   */
   void setAttributeAndJournal(AlluxioURI path, SetAttributeOptions options, boolean rootRequired,
       boolean ownerRequired)
       throws InvalidPathException, FileDoesNotExistException, AccessControlException {
@@ -1943,6 +2067,14 @@ public final class FileSystemMaster extends AbstractMaster {
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
   }
 
+  /**
+   * Schedules a file for async persistence.
+   * <p>
+   * Writes to the journal.
+   *
+   * @param path the id of the file for persistence
+   * @throws AlluxioException if scheduling fails
+   */
   void scheduleAsyncPersistenceAndJournal(AlluxioURI path) throws AlluxioException {
     long fileId = mInodeTree.getInodeByPath(path).getId();
     scheduleAsyncPersistenceInternal(fileId);
