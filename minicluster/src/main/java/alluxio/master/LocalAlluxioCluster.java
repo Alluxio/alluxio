@@ -62,9 +62,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the hostname of the master
+   * @return the hostname of the cluster
    */
-  public String getMasterHostname() {
+  public String getHostname() {
     return mHostname;
   }
 

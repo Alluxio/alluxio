@@ -43,9 +43,9 @@ public abstract class RPCResponse extends RPCMessage {
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
     /** Mapping from short id to {@link Status}. */
-    private static final Map<Short, Status> SHORT_TO_STATUS_MAP = new HashMap<Short, Status>();
+    private static final Map<Short, Status> SHORT_TO_STATUS_MAP = new HashMap<>();
     /** Mapping from {@link Status} to status message. */
-    private static final Map<Status, String> STATUS_TO_MESSAGE_MAP = new HashMap<Status, String>();
+    private static final Map<Status, String> STATUS_TO_MESSAGE_MAP = new HashMap<>();
     static {
       // Populate the mappings.
       for (Status status : Status.values()) {

@@ -15,10 +15,10 @@ import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ public final class SpecificHostPolicyTest {
   @Test
   public void policyTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker2");
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
@@ -49,7 +49,7 @@ public final class SpecificHostPolicyTest {
   @Test
   public void noMatchingHostTest() {
     SpecificHostPolicy policy = new SpecificHostPolicy("worker3");
-    List<BlockWorkerInfo> workerInfoList = Lists.newArrayList();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")

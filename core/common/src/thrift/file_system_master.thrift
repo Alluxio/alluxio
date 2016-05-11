@@ -25,6 +25,16 @@ struct MountTOptions {
   2: optional map<string, string> properties
 }
 
+/**
+* Contains the information of a block in a file. In addition to the BlockInfo, it includes the
+* offset in the file, and the under file system locations of the block replicas.
+*/
+struct FileBlockInfo {
+  1: common.BlockInfo blockInfo
+  2: i64 offset
+  3: list<string> ufsLocations
+}
+
 struct FileInfo {
   1: i64 fileId
   2: string name
@@ -47,6 +57,7 @@ struct FileInfo {
   20: i32 permission
   21: string persistenceState
   22: bool mountPoint
+  23: list<FileBlockInfo> fileBlockInfos
 }
 
 struct FileSystemCommand {
@@ -112,8 +123,10 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the list of file blocks information for the given file.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
-  list<common.FileBlockInfo> getFileBlockInfoList( /** the path of the file */ 1: string path)
+  list<FileBlockInfo> getFileBlockInfoList( /** the path of the file */ 1: string path)
     throws (1: exception.AlluxioTException e)
 
   /**
@@ -124,6 +137,8 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Returns the status of the file or directory, only used internally by servers.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
   FileInfo getStatusInternal( /** the id of the file or directory */ 1: i64 fileId)
     throws (1: exception.AlluxioTException e)
@@ -209,7 +224,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
 service FileSystemMasterWorkerService extends common.AlluxioService {
 
   /*
-   * Returns the file information.
+   * Returns the file information for a file or directory identified by the given file id.
    */
   FileInfo getFileInfo( /** the id of the file */ 1: i64 fileId)
     throws (1: exception.AlluxioTException e)

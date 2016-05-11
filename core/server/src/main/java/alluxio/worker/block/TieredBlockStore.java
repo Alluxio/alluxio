@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
@@ -33,9 +32,7 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.io.LocalFileBlockReader;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
-import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
-import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.base.Preconditions;
@@ -43,7 +40,6 @@ import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -94,11 +90,10 @@ public final class TieredBlockStore implements BlockStore {
   private final Allocator mAllocator;
   private final Evictor mEvictor;
 
-  private final List<BlockStoreEventListener> mBlockStoreEventListeners =
-      new ArrayList<BlockStoreEventListener>();
+  private final List<BlockStoreEventListener> mBlockStoreEventListeners = new ArrayList<>();
 
   /** A set of pinned inodes fetched from the master. */
-  private final Set<Long> mPinnedInodes = new HashSet<Long>();
+  private final Set<Long> mPinnedInodes = new HashSet<>();
 
   /** Lock to guard metadata operations. */
   private final ReentrantReadWriteLock mMetadataLock = new ReentrantReadWriteLock();
@@ -365,26 +360,6 @@ public final class TieredBlockStore implements BlockStore {
             e.getMessage());
       }
     }
-
-    // A session may create multiple temporary directories for temp blocks, in different StorageTier
-    // and StorageDir. Go through all the storage directories and delete the session folders which
-    // should be empty
-    for (StorageTier tier : mMetaManager.getTiers()) {
-      for (StorageDir dir : tier.getStorageDirs()) {
-        String sessionFolderPath = PathUtils.concatPath(dir.getDirPath(), sessionId);
-        try {
-          if (new File(sessionFolderPath).exists()) {
-            Files.delete(Paths.get(sessionFolderPath));
-          }
-        } catch (IOException e) {
-          // This error means we could not delete the directory but should not affect the
-          // correctness of the method since the data has already been deleted. It is not
-          // necessary to throw an exception here.
-          LOG.error("Failed to clean up session: {} with directory: {}", sessionId,
-              sessionFolderPath);
-        }
-      }
-    }
   }
 
   @Override
@@ -398,8 +373,24 @@ public final class TieredBlockStore implements BlockStore {
   @Override
   public BlockStoreMeta getBlockStoreMeta() {
     mMetadataReadLock.lock();
-    BlockStoreMeta storeMeta = mMetaManager.getBlockStoreMeta();
-    mMetadataReadLock.unlock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMeta();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
+    return storeMeta;
+  }
+
+  @Override
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    mMetadataReadLock.lock();
+    BlockStoreMeta storeMeta = null;
+    try {
+      storeMeta = mMetaManager.getBlockStoreMetaFull();
+    } finally {
+      mMetadataReadLock.unlock();
+    }
     return storeMeta;
   }
 
@@ -616,7 +607,7 @@ public final class TieredBlockStore implements BlockStore {
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       if (tempBlockMeta.getParentDir().getAvailableBytes() < additionalBytes) {
-        return new Pair<Boolean, BlockStoreLocation>(false, tempBlockMeta.getBlockLocation());
+        return new Pair<>(false, tempBlockMeta.getBlockLocation());
       }
       // Increase the size of this temp block
       try {
@@ -625,7 +616,7 @@ public final class TieredBlockStore implements BlockStore {
       } catch (InvalidWorkerStateException e) {
         throw Throwables.propagate(e); // we shall never reach here
       }
-      return new Pair<Boolean, BlockStoreLocation>(true, null);
+      return new Pair<>(true, null);
     } finally {
       mMetadataWriteLock.unlock();
     }
@@ -689,7 +680,7 @@ public final class TieredBlockStore implements BlockStore {
       Set<BlockTransferInfo> toMove =
           blocksGroupedByDestTier.get(mStorageTierAssoc.getAlias(tierOrdinal));
       if (toMove == null) {
-        toMove = new HashSet<BlockTransferInfo>();
+        toMove = new HashSet<>();
       }
       for (BlockTransferInfo entry : toMove) {
         long blockId = entry.getBlockId();

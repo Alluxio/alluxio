@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
@@ -76,5 +77,10 @@ public class CreateDirectoryOptionsTest {
     Assert.assertEquals(recursive, thriftOptions.isRecursive());
     Assert.assertEquals(writeType.getUnderStorageType().isSyncPersist(),
         thriftOptions.isPersisted());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CreateDirectoryOptions.class);
   }
 }

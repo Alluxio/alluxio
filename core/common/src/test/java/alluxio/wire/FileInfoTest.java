@@ -13,11 +13,11 @@ package alluxio.wire;
 
 import alluxio.util.CommonUtils;
 
-import com.google.common.collect.Lists;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -60,6 +60,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.getPermission(), b.getPermission());
     Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
     Assert.assertEquals(a.isMountPoint(), b.isMountPoint());
+    Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());
     Assert.assertEquals(a, b);
   }
 
@@ -79,7 +80,7 @@ public class FileInfoTest {
     boolean pinned = random.nextBoolean();
     boolean cacheable = random.nextBoolean();
     boolean persisted = random.nextBoolean();
-    List<Long> blockIds = Lists.newArrayList();
+    List<Long> blockIds = new ArrayList<>();
     long numBlockIds = random.nextInt(10);
     for (int i = 0; i < numBlockIds; i++) {
       blockIds.add(random.nextLong());
@@ -92,6 +93,11 @@ public class FileInfoTest {
     int permission = random.nextInt();
     String persistenceState = CommonUtils.randomString(random.nextInt(10));
     boolean mountPoint = random.nextBoolean();
+    List<FileBlockInfo> fileBlocksInfos = new ArrayList<>();
+    long numFileBlockInfos = random.nextInt(10);
+    for (int i = 0; i < numFileBlockInfos; i++) {
+      fileBlocksInfos.add(FileBlockInfoTest.createRandom());
+    }
 
     result.setFileId(fileId);
     result.setName(name);
@@ -114,6 +120,7 @@ public class FileInfoTest {
     result.setPermission(permission);
     result.setPersistenceState(persistenceState);
     result.setMountPoint(mountPoint);
+    result.setFileBlockInfos(fileBlocksInfos);
 
     return result;
   }

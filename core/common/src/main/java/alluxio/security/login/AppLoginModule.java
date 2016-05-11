@@ -40,6 +40,11 @@ public final class AppLoginModule implements LoginModule {
   private User mUser;
   private CallbackHandler mCallbackHandler;
 
+  /**
+   * Constructs a new {@link AppLoginModule}.
+   */
+  public AppLoginModule() {}
+
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
       Map<String, ?> sharedState, Map<String, ?> options) {

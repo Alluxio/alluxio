@@ -21,7 +21,6 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
-import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,6 +31,8 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -64,7 +65,7 @@ public final class BlockMetadataManagerViewTest {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
-        Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
+        new HashSet<Long>(), new HashSet<Long>()));
   }
 
   /**
@@ -206,20 +207,25 @@ public final class BlockMetadataManagerViewTest {
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin block by passing its inode to mMetaManagerView
+    HashSet<Long> pinnedInodes = new HashSet<>();
+    Collections.addAll(pinnedInodes, inode);
     mMetaManagerView =
-        new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode), Sets.<Long>newHashSet());
+        new BlockMetadataManagerView(mMetaManager, pinnedInodes, new HashSet<Long>());
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+    HashSet<Long> testBlockIdSet = new HashSet<>();
+    Collections.addAll(testBlockIdSet, TEST_BLOCK_ID);
+    Collections.addAll(pinnedInodes, TEST_BLOCK_ID);
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, new HashSet<Long>(),
+        testBlockIdSet);
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin and lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, pinnedInodes,
+        testBlockIdSet);
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
   }

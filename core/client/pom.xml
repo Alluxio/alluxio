@@ -48,6 +48,8 @@
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
     </dependency>
+
+    <!-- Other Alluxio dependencies -->
     <dependency>
       <groupId>org.alluxio</groupId>
       <artifactId>alluxio-core-common</artifactId>
@@ -84,11 +86,24 @@
       <artifactId>alluxio-underfs-gcs</artifactId>
       <version>${project.version}</version>
     </dependency>
+   <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-swift</artifactId>
+      <version>${project.version}</version>
+    </dependency>
 
     <!-- Dependency for findbugs (SuppressFBWarnings) -->
     <dependency>
       <groupId>com.google.code.findbugs</groupId>
       <artifactId>annotations</artifactId>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
     </dependency>
 
     <!-- Other projects' test-jars -->

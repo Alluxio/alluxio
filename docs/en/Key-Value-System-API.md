@@ -81,4 +81,13 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
 Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
 `alluxio.keyvalue.enabled` to true (see [configuration parameters](Configuration-Settings.html))
 
-{% include Key-Value-Store-API/key-value-configuration.md %}
+<table class="table table-striped">
+<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+{% for item in site.data.table.key-value-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.key-value-configuration.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
+</table>

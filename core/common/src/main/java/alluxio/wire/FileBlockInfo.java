@@ -11,9 +11,10 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +24,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The file block descriptor.
  */
+@PublicApi
 @NotThreadSafe
 public final class FileBlockInfo {
   private BlockInfo mBlockInfo = new BlockInfo();
   private long mOffset;
-  private List<WorkerNetAddress> mUfsLocations = Lists.newArrayList();
+  private List<String> mUfsLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
@@ -42,10 +44,7 @@ public final class FileBlockInfo {
   protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
     mOffset = fileBlockInfo.getOffset();
-    mUfsLocations = new ArrayList<WorkerNetAddress>();
-    for (alluxio.thrift.WorkerNetAddress ufsLocation : fileBlockInfo.getUfsLocations()) {
-      mUfsLocations.add(new WorkerNetAddress(ufsLocation));
-    }
+    mUfsLocations = fileBlockInfo.getUfsLocations();
   }
 
   /**
@@ -65,7 +64,7 @@ public final class FileBlockInfo {
   /**
    * @return the UFS locations
    */
-  public List<WorkerNetAddress> getUfsLocations() {
+  public List<String> getUfsLocations() {
     return mUfsLocations;
   }
 
@@ -92,7 +91,7 @@ public final class FileBlockInfo {
    * @param ufsLocations the UFS locations to use
    * @return the file block descriptor
    */
-  public FileBlockInfo setUfsLocations(List<WorkerNetAddress> ufsLocations) {
+  public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
     Preconditions.checkNotNull(ufsLocations);
     mUfsLocations = ufsLocations;
     return this;
@@ -102,12 +101,7 @@ public final class FileBlockInfo {
    * @return thrift representation of the file block descriptor
    */
   protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations =
-        new ArrayList<alluxio.thrift.WorkerNetAddress>();
-    for (WorkerNetAddress ufsLocation : mUfsLocations) {
-      ufsLocations.add(ufsLocation.toThrift());
-    }
-    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations);
+    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, mUfsLocations);
   }
 
   @Override

@@ -39,13 +39,13 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -403,7 +403,7 @@ public class JournalIntegrationTest {
       mFileSystem.createDirectory(new AlluxioURI(directory), options);
     }
 
-    Map<String, URIStatus> directoryStatuses = Maps.newHashMap();
+    Map<String, URIStatus> directoryStatuses = new HashMap<>();
     for (String directory : directories) {
       directoryStatuses.put(directory, mFileSystem.getStatus(new AlluxioURI(directory)));
     }
@@ -514,7 +514,7 @@ public class JournalIntegrationTest {
   private List<FileInfo> lsr(FileSystemMaster fsMaster, AlluxioURI uri)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<FileInfo> files = fsMaster.getFileInfoList(uri);
-    List<FileInfo> ret = Lists.newArrayList(files);
+    List<FileInfo> ret = new ArrayList<>(files);
     for (FileInfo file : files) {
       ret.addAll(lsr(fsMaster, new AlluxioURI(file.getPath())));
     }

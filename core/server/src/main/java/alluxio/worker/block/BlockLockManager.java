@@ -20,7 +20,6 @@ import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,20 +63,25 @@ public final class BlockLockManager {
 
   /** A map from block id to the read write lock used to guard that block. */
   @GuardedBy("mSharedMapsLock")
-  private final Map<Long, ClientRWLock> mLocks = Maps.newHashMap();
+  private final Map<Long, ClientRWLock> mLocks = new HashMap<>();
 
   /** A map from a session id to all the locks hold by this session. */
   @GuardedBy("mSharedMapsLock")
-  private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<Long, Set<Long>>();
+  private final Map<Long, Set<Long>> mSessionIdToLockIdsMap = new HashMap<>();
 
   /** A map from a lock id to the lock record of it. */
   @GuardedBy("mSharedMapsLock")
-  private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<Long, LockRecord>();
+  private final Map<Long, LockRecord> mLockIdToRecordMap = new HashMap<>();
 
   /**
-   * To guard access to the Maps maintained by this class.
+   * To guard access to the maps maintained by this class.
    */
   private final Object mSharedMapsLock = new Object();
+
+  /**
+   * Constructs a new {@link BlockLockManager}.
+   */
+  public BlockLockManager() {}
 
   /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
@@ -286,7 +291,7 @@ public final class BlockLockManager {
    */
   public Set<Long> getLockedBlocks() {
     synchronized (mSharedMapsLock) {
-      Set<Long> set = new HashSet<Long>();
+      Set<Long> set = new HashSet<>();
       for (LockRecord lockRecord : mLockIdToRecordMap.values()) {
         set.add(lockRecord.getBlockId());
       }
@@ -336,7 +341,7 @@ public final class BlockLockManager {
   public void validate() {
     synchronized (mSharedMapsLock) {
       // Compute block lock reference counts based off of lock records
-      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = Maps.newConcurrentMap();
+      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMap<>();
       for (LockRecord record : mLockIdToRecordMap.values()) {
         blockLockReferenceCounts.putIfAbsent(record.getBlockId(), new AtomicInteger(0));
         blockLockReferenceCounts.get(record.getBlockId()).incrementAndGet();

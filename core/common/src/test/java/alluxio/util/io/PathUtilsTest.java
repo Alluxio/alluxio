@@ -12,6 +12,7 @@
 package alluxio.util.io;
 
 import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 
 import org.junit.Assert;
@@ -173,6 +174,48 @@ public class PathUtilsTest {
   public void getPathComponentsExceptionTest() throws InvalidPathException {
     mException.expect(InvalidPathException.class);
     PathUtils.getPathComponents("/\\   foo / bar");
+  }
+
+  /**
+   * Tests the {@link PathUtils#subtractPaths(String, String)} method.
+   */
+  @Test
+  public void subtractPathsTest() throws InvalidPathException {
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    Assert.assertEquals("c", PathUtils.subtractPaths("/a/b/c", "/a/b"));
+    Assert.assertEquals("a/b/c", PathUtils.subtractPaths("/a/b/c", "/"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/", "/"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/a/b/", "/a/b"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/a/b", "/a/b"));
+  }
+
+  /**
+   * Tests {@link PathUtils#subtractPaths(String, String)} throws the right exception if an input
+   * path is invalid or the second argument isn't a prefix of the first.
+   */
+  @Test
+  public void subtractPathsExceptionTest() throws InvalidPathException {
+    try {
+      PathUtils.subtractPaths("", "/");
+      Assert.fail("\"\" should throw an InvalidPathException");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.getMessage());
+    }
+    try {
+      PathUtils.subtractPaths("/", "noslash");
+      Assert.fail("noslash should be an invalid path");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.getMessage());
+    }
+    try {
+      PathUtils.subtractPaths("/a", "/not/a/prefix");
+      Assert.fail("subtractPaths should complain about the prefix not being a prefix");
+    } catch (RuntimeException e) {
+      String expectedMessage = "Cannot subtract /not/a/prefix from /a because it is not a prefix";
+      Assert.assertEquals(expectedMessage, e.getMessage());
+    }
   }
 
   /**
