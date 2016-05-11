@@ -249,13 +249,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
       computePathForInode(inode, builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
 
-      try {
-        InodePath inodePath = getInodePath(uri);
+      try (InodePath inodePath = getInodePath(uri)) {
         if (inodePath.getInode().getId() == id) {
           return inodePath;
         }
         // The path does not end up at the target inode id. Repeat the traversal.
-        inodePath.unlock();
       } catch (InvalidPathException e) {
         // ignore and repeat the loop
         LOG.warn("Inode lookup id {} computed path {} mismatch id. Repeating.", id, uri);
