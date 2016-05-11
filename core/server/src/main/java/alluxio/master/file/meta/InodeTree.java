@@ -232,9 +232,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
-    if (!traversalResult.isFound()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    }
+    // TODO(gpang): handle cases when entire path is not found.
     return new InodePath(traversalResult.getInodes(), traversalResult.getInodeLockGroup());
   }
 
