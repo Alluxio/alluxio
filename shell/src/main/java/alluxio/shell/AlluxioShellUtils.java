@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.cli.AlluxioShell;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -35,7 +36,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Class for convenience methods used by {@link AlluxioShell}.
  */
 @ThreadSafe
-public class AlluxioShellUtils {
+public final class AlluxioShellUtils {
+
+  private AlluxioShellUtils() {} // prevent instantiation
+
   /**
    * Removes {@link Constants#HEADER} / {@link Constants#HEADER_FT} and hostname:port information
    * from a path, leaving only the local file path.

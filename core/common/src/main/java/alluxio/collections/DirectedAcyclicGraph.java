@@ -53,7 +53,7 @@ public class DirectedAcyclicGraph<T> {
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
     // construct the new node
-    DirectedAcyclicGraphNode<T> newNode = new DirectedAcyclicGraphNode<T>(payload);
+    DirectedAcyclicGraphNode<T> newNode = new DirectedAcyclicGraphNode<>(payload);
     mIndex.put(payload, newNode);
 
     if (parents.isEmpty()) {
@@ -177,8 +177,7 @@ public class DirectedAcyclicGraph<T> {
     List<T> result = new ArrayList<>();
 
     Set<T> input = new HashSet<>(payloads);
-    Deque<DirectedAcyclicGraphNode<T>> toVisit =
-        new ArrayDeque<DirectedAcyclicGraphNode<T>>(mRoots);
+    Deque<DirectedAcyclicGraphNode<T>> toVisit = new ArrayDeque<>(mRoots);
     while (!toVisit.isEmpty()) {
       DirectedAcyclicGraphNode<T> visit = toVisit.removeFirst();
       T payload = visit.getPayload();

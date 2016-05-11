@@ -75,6 +75,8 @@ public final class AlluxioMasterRestServiceHandler {
   private final String mUfsRoot = mMasterConf.get(Constants.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
 
+  private AlluxioMasterRestServiceHandler() {} // prevent instantiation
+
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object

@@ -153,7 +153,7 @@ Existem algumas propriedades de configuração frequentemente utilizadas no Allu
 definidas através de variáveis de ambiente. Estas podem ser definidas através do terminal ou 
 modificadas dos valores padrões especificados em `conf/alluxio-env.sh`.
 
-* `$ALLUXIO_MASTER_ADDRESS`: endereço do Alluxio `master`, o padrão é o servidor local.
+* `$ALLUXIO_MASTER_HOSTNAME`: endereço do Alluxio `master`, o padrão é o servidor local.
 * `$ALLUXIO_UNDERFS_ADDRESS`: endereço do `under storage system`, o padrão é 
 `${ALLUXIO_HOME}/underFSStorage` que é o `file system` local.
 * `$ALLUXIO_JAVA_OPTS`: opções de `Java VM` para ambos `Master` e `Worker`.

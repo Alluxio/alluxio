@@ -18,7 +18,10 @@
 # The directory where log files are stored. (Default: ${ALLUXIO_HOME}/logs).
 # ALLUXIO_LOGS_DIR
 
-# Address of the master.
+# Hostname of the master.
+# ALLUXIO_MASTER_HOSTNAME
+
+# This is now deprecated. Support will be removed in v2.0
 # ALLUXIO_MASTER_ADDRESS
 
 # The directory where a worker stores in-memory data. (Default: /mnt/ramdisk).

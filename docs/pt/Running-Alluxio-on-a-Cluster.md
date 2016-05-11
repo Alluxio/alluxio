@@ -13,7 +13,7 @@ Primeiro, baixe o arquivo `tar` do Alluxio e o extraia.
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
 
 No diretório `alluxio/conf`, copie `alluxio-env.sh.template` para `alluxio-env.sh`. Tenha certeza 
-que `JAVA_HOME` aponta para uma instalação válida do `Java 7`. Atualize o `ALLUXIO_MASTER_ADDRESS` 
+que `JAVA_HOME` aponta para uma instalação válida do `Java 7`. Atualize o `ALLUXIO_MASTER_HOSTNAME`
 para o `hostname` da máquina que você deseja ser o Alluxio `Master`. Adicione o endereço de `IP` de 
 todos os `Workers Nodes` no arquivo `alluxio/conf/workers`. Finalmente, sincronize todas as 
 informações para os servidores `workers`. Você pode executar

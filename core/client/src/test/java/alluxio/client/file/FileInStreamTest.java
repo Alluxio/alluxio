@@ -257,6 +257,113 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
+   */
+  @Test
+  public void longSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true));
+    int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
+    int readAmount = (int) (BLOCK_LENGTH * 3 - BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    // Seek backward.
+    mTestStream.seek(readAmount - seekAmount);
+
+    // Block 2 is cached though it is not fully read.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray(2 * (int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
+        mCacheStreams.get(2).getWrittenData());
+  }
+
+  /**
+   * Tests seeking with incomplete block caching enabled. It seeks backward within 1 block.
+   */
+  @Test
+  public void shortSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true));
+    int seekAmount = (int) (BLOCK_LENGTH / 4);
+    int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    // Seek backward.
+    mTestStream.seek(readAmount - seekAmount);
+
+    // Block 1 is cached though it is not fully read.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
+        mCacheStreams.get(1).getWrittenData());
+
+    // Seek many times. It will cache block 1 only once.
+    for (int i = 0; i <= seekAmount; i++) {
+      mTestStream.seek(readAmount - seekAmount - i);
+    }
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
+        mCacheStreams.get(1).getWrittenData());
+  }
+
+  /**
+   * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block.
+   */
+  @Test
+  public void longSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true));
+    int seekAmount = (int) (BLOCK_LENGTH / 4 + BLOCK_LENGTH);
+    int readAmount = (int) (BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    // Seek backward.
+    mTestStream.seek(readAmount + seekAmount);
+
+    // Block 0 is cached though it is not fully read.
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH),
+        mCacheStreams.get(0).getWrittenData());
+    // Block 1 is being cached though its prefix it not read.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 4 * 3),
+        mCacheStreams.get(1).getWrittenData());
+  }
+
+  /**
+   * Tests seeking with incomplete block caching enabled. It seeks forward within a block.
+   */
+  @Test
+  public void shortSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
+            .setCachePartiallyReadBlock(true));
+    int seekAmount = (int) (BLOCK_LENGTH / 4);
+    int readAmount = (int) (BLOCK_LENGTH * 2 - BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    // Seek backward.
+    mTestStream.seek(readAmount + seekAmount);
+
+    // Block 1 (till seek pos) is being cached.
+    Assert.assertArrayEquals(
+        BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 4 * 3),
+        mCacheStreams.get(1).getWrittenData());
+
+    // Seek forward many times. The prefix is always cached.
+    for (int i = 0; i < seekAmount; i++) {
+      mTestStream.seek(readAmount + seekAmount + i);
+      Assert.assertArrayEquals(BufferUtils
+              .getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 2 + seekAmount + i),
+          mCacheStreams.get(1).getWrittenData());
+    }
+  }
+
+  /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
    *
