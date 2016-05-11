@@ -613,11 +613,8 @@ public final class InodeTreeTest {
 
   @Test
   public void getInodePathById() throws Exception {
-    InodePath rootPath = mTree.getInodePath(0);
-    try {
+    try (InodePath rootPath = mTree.getInodePath(0)) {
       Assert.assertEquals(0, rootPath.getInode().getId());
-    } finally {
-      rootPath.unlock();
     }
 
     InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
@@ -625,22 +622,16 @@ public final class InodeTreeTest {
 
     for (Inode<?> inode : createResult.getCreated()) {
       long id = inode.getId();
-      InodePath inodePath = mTree.getInodePath(id);
-      try {
+      try (InodePath inodePath = mTree.getInodePath(id)) {
         Assert.assertEquals(id, inodePath.getInode().getId());
-      } finally {
-        inodePath.unlock();
       }
     }
   }
 
   @Test
   public void getInodePathByPath() throws Exception {
-    InodePath rootPath = mTree.getInodePath(new AlluxioURI("/"));
-    try {
+    try (InodePath rootPath = mTree.getInodePath(new AlluxioURI("/"))) {
       Assert.assertTrue(mTree.isRootId(rootPath.getInode().getId()));
-    } finally {
-      rootPath.unlock();
     }
 
     // Create a nested file.
@@ -648,27 +639,18 @@ public final class InodeTreeTest {
     createResult.unlock();
 
     AlluxioURI uri = new AlluxioURI("/nested");
-    InodePath inodePath = mTree.getInodePath(uri);
-    try {
+    try (InodePath inodePath = mTree.getInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
-    } finally {
-      inodePath.unlock();
     }
 
     uri = NESTED_URI;
-    inodePath = mTree.getInodePath(uri);
-    try {
+    try (InodePath inodePath = mTree.getInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
-    } finally {
-      inodePath.unlock();
     }
 
     uri = NESTED_FILE_URI;
-    inodePath = mTree.getInodePath(uri);
-    try {
+    try (InodePath inodePath = mTree.getInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
-    } finally {
-      inodePath.unlock();
     }
   }
 

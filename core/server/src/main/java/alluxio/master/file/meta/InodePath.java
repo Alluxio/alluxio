@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import com.google.common.base.Preconditions;
+
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -21,11 +22,12 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a path of locked {@link Inode}, starting from the root.
  */
 @ThreadSafe
-public final class InodePath implements Iterable<Inode<?>> {
+public final class InodePath implements AutoCloseable {
   private final ArrayList<Inode<?>> mInodes;
   private final InodeLockGroup mLockGroup;
 
   InodePath(List<Inode<?>> inodes, InodeLockGroup lockGroup) {
+    Preconditions.checkArgument(!inodes.isEmpty());
     mInodes = new ArrayList<>(inodes);
     mLockGroup = lockGroup;
   }
@@ -37,12 +39,8 @@ public final class InodePath implements Iterable<Inode<?>> {
     return mInodes.get(mInodes.size() - 1);
   }
 
-  public synchronized void unlock() {
-    mLockGroup.unlock();
-  }
-
   @Override
-  public synchronized Iterator<Inode<?>> iterator() {
-    return mInodes.iterator();
+  public synchronized void close() {
+    mLockGroup.unlock();
   }
 }
