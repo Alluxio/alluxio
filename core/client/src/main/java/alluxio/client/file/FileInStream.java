@@ -340,7 +340,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         || (mCurrentBlockInStream.remaining() == 0 && currentBlockId != mCurrentBlockId)) {
       closeCacheStream();
       updateBlockInStream(currentBlockId);
-      mCurrentBlockId = currentBlockId;
       if (mShouldCacheCurrentBlock) {
         try {
           WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
@@ -507,5 +506,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           createUnderStoreBlockInStream(blockStart, getBlockSize(blockStart), mStatus.getUfsPath());
       mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
     }
+    mCurrentBlockId = blockId;
   }
 }
