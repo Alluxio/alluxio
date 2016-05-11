@@ -14,23 +14,32 @@ package alluxio.worker.netty;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCFileReadResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
+import alluxio.network.protocol.RPCFileWriteResponse;
+import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
+import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.file.FileSystemWorker;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
  * This class handles filesystem data server requests.
  */
 public class FileDataServerHandler {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;
-  /** The transfer type used by the data server. */
-  private final FileTransferType mTransferType;
 
   /**
    * Constructs a file data server handler for serving any ufs read/write requests.
@@ -40,8 +49,6 @@ public class FileDataServerHandler {
    */
   public FileDataServerHandler(FileSystemWorker worker, Configuration configuration) {
     mWorker = worker;
-    mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
-        FileTransferType.class);
   }
 
   public void handleFileReadRequest(ChannelHandlerContext ctx, RPCFileReadRequest req)
@@ -49,14 +56,52 @@ public class FileDataServerHandler {
     req.validate();
 
     long ufsFileId = req.getTempUfsFileId();
-    long length = req.getLength();
     long offset = req.getOffset();
+    long length = req.getLength();
+    byte[] data = new byte[(int) length];
 
-    InputStream in = mWorker.getUfsInputStream(ufsFileId);
+    // TODO(calvin): This can be more efficient for sequential reads if we keep state
+    try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
+      int read = in.read(data);
+      if (read != length) {
+        LOG.error("Only read " + read + " bytes of data when " + length + " was requested.");
+        throw new IOException(); // Intend to catch below
+      }
+      RPCFileReadResponse resp =
+          new RPCFileReadResponse(ufsFileId, offset, length, new DataByteBuffer(
+              ByteBuffer.wrap(data), length), RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+    } catch (Exception e) {
+      LOG.error("Failed to read ufs file", e);
+      RPCFileReadResponse resp =
+          RPCFileReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+    }
   }
 
   public void handleFileWriteRequest(ChannelHandlerContext ctx, RPCFileWriteRequest req)
       throws IOException {
+    long ufsFileId = req.getTempUfsFileId();
+    // Currently unused as only sequential write is supported
+    long offset = req.getOffset();
+    long length = req.getLength();
+    final DataBuffer data = req.getPayloadDataBuffer();
 
+    OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
+    try {
+      out.write(data.getReadOnlyByteBuffer().array());
+      RPCFileWriteResponse resp =
+          new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+    } catch (Exception e) {
+      LOG.error("Error writing ufs file.", e);
+      RPCFileWriteResponse resp =
+          RPCFileWriteResponse.createErrorResponse(req, RPCResponse.Status.UFS_WRITE_FAILED);
+      ChannelFuture future = ctx.writeAndFlush(resp);
+      future.addListener(ChannelFutureListener.CLOSE);
+    }
   }
 }

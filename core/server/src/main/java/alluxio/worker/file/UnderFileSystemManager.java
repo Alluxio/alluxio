@@ -106,7 +106,7 @@ public final class UnderFileSystemManager {
   /** A random id generator for worker file ids. */
   private AtomicLong mIdGenerator;
   /** Map of worker file ids to open under file system input streams. */
-  private ConcurrentMap<Long, InputStream> mInputStreams;
+  private ConcurrentMap<Long, UnderFileSystemInputStream> mInputStreams;
   /** Map of worker file ids to open under file system output streams. */
   private ConcurrentMap<Long, UnderFileSystemOutputStream> mOutputStreams;
 
@@ -163,7 +163,7 @@ public final class UnderFileSystemManager {
    * @throws IOException if an error occurs when operating on the under file system
    */
   public void closeFile(long tempUfsFileId) throws IOException {
-    mInputStreams.remove(tempUfsFileId).close();
+    mInputStreams.remove(tempUfsFileId);
   }
 
   /**
@@ -188,8 +188,9 @@ public final class UnderFileSystemManager {
    * @param tempUfsFileId the temporary ufs file id
    * @return the input stream to read from this file
    */
-  public InputStream getInputStream(long tempUfsFileId) {
-    return mInputStreams.get(tempUfsFileId);
+  public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
+      throws IOException {
+    return mInputStreams.get(tempUfsFileId).openAtPosition(position);
   }
 
   /**
@@ -208,23 +209,29 @@ public final class UnderFileSystemManager {
    * @throws IOException if an error occurs when operating on the under file system
    */
   public long openFile(AlluxioURI ufsUri) throws IOException {
-    String uri = ufsUri.toString();
-    UnderFileSystem ufs = UnderFileSystem.get(uri, WorkerContext.getConf());
-    InputStream stream = ufs.open(uri);
+    UnderFileSystemInputStream stream =
+        new UnderFileSystemInputStream(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
     mInputStreams.put(workerFileId, stream);
     return workerFileId;
   }
 
   private class UnderFileSystemInputStream {
-    private final AlluxioURI mAlluxioURI;
+    private final String mUfsPath;
     private final Configuration mConfiguration;
 
     private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
-      mAlluxioURI = ufsUri;
+      mUfsPath = ufsUri.toString();
       mConfiguration = conf;
     }
 
-    private InputStream openAtPosition()
+    private InputStream openAtPosition(long position) throws IOException {
+      UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, mConfiguration);
+      InputStream stream = ufs.open(mUfsPath);
+      if (position != stream.skip(position)) {
+        throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(position));
+      }
+      return stream;
+    }
   }
 }

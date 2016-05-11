@@ -37,7 +37,9 @@ public abstract class RPCResponse extends RPCMessage {
     // Specific errors.
     FILE_DNE(100),
     BLOCK_LOCK_ERROR(101),
-    WRITE_ERROR(102);
+    WRITE_ERROR(102),
+    UFS_READ_FAILED(103),
+    UFS_WRITE_FAILED(104);
 
     private static final String DEFAULT_ERROR_STRING = "Unknown error.";
     /** Mapping from short id to {@link Status}. */
