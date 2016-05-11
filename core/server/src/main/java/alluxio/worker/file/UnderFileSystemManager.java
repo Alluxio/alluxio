@@ -44,10 +44,10 @@ public final class UnderFileSystemManager {
    * class does not manage the life cycles of the generated streams and it is up to the caller to
    * close the streams when appropriate.
    */
-  private class UnderFileSystemInputStream {
+  private final class UnderFileSystemInputStream {
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
-    /** The string form of the uri to the file in the under file system */
+    /** The string form of the uri to the file in the under file system. */
     private final String mUri;
 
     private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
@@ -221,7 +221,9 @@ public final class UnderFileSystemManager {
 
   /**
    * @param tempUfsFileId the temporary ufs file id
+   * @param position the absolute position in the file to start the stream at
    * @return the input stream to read from this file
+   * @throws IOException if an error occurs when operating on the under file system
    */
   public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
       throws IOException {
