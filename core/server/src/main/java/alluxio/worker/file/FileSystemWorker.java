@@ -107,6 +107,7 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param tempUfsFileId the id of the file to close, only understood by the worker that opened
    *                      the file
+   * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
   public void closeUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
@@ -180,6 +181,7 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param ufsUri the under file system path of the file to open
    * @return the temporary file id which references the file
+   * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs interacting with the under file system
    */
   public long openUfsFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
