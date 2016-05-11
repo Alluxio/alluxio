@@ -14,6 +14,7 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.cli.AlluxioShell;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;

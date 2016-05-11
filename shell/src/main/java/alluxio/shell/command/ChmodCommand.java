@@ -87,7 +87,7 @@ public final class ChmodCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "chmod -R <mode> <path>";
+    return "chmod [-R] <mode> <path>";
   }
 
   @Override
