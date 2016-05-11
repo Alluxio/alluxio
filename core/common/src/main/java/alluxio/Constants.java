@@ -120,7 +120,7 @@ public final class Constants {
 
   // This constant is being used only in Hadoop MR job submissions where client need to pass site
   // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
 
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";

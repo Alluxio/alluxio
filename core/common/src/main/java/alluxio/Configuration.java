@@ -14,6 +14,8 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.FormatUtils;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
@@ -25,7 +27,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +72,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Configuration {
   /** File to set default properties. */
   public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
-  /** File to set customized properties. */
+  /** File to set customized properties for Alluxio daemons. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
+  /** File to set customized properties for Alluxio client. */
+  public static final String CLIENT_PROPERTIES = "alluxio-client.properties";
+
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
@@ -78,6 +84,24 @@ public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Set of properties */
   private final Properties mProperties = new Properties();
+
+  public static Properties loadFromPropertiesFile(String propertiesFile) {
+    Properties properties = new Properties();
+
+    InputStream inputStream =
+        Configuration.class.getClassLoader().getResourceAsStream(propertiesFile);
+    if (inputStream == null) {
+      return null;
+    }
+
+    try {
+      properties.load(inputStream);
+    } catch (IOException e) {
+      LOG.error("Unable to load default Alluxio properties file {}", propertiesFile, e);
+      return null;
+    }
+    return properties;
+  }
 
   /**
    * Overrides default properties.
@@ -95,7 +119,7 @@ public final class Configuration {
    * Default constructor.
    */
   public Configuration() {
-    this(Configuration.DEFAULT_PROPERTIES, SITE_PROPERTIES, true);
+    this(SITE_PROPERTIES, true);
   }
 
   /**
@@ -104,11 +128,13 @@ public final class Configuration {
    *
    * @param includeSystemProperties whether to include the system properties
    */
-  private Configuration(String defaultPropertiesFile, String sitePropertiesFile,
-      boolean includeSystemProperties) {
+  private Configuration(String sitePropertiesFile, boolean includeSystemProperties) {
     // Load default
-    Properties defaultProps = new Properties();
-
+    Properties defaultProps = loadFromPropertiesFile(DEFAULT_PROPERTIES);
+    if (defaultProps == null) {
+      throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
+          .getMessage());
+    }
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
     defaultProps.setProperty(Constants.WORKER_WORKER_BLOCK_THREADS_MIN,
@@ -120,28 +146,22 @@ public final class Configuration {
     defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
-    InputStream defaultInputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(defaultPropertiesFile);
-    if (defaultInputStream == null) {
-      throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
-              .getMessage());
-    }
-    try {
-      defaultProps.load(defaultInputStream);
-    } catch (IOException e) {
-      throw new RuntimeException(ExceptionMessage.UNABLE_TO_LOAD_PROPERTIES_FILE.getMessage(), e);
-    }
 
     // Load site specific properties file
     Properties siteProps = new Properties();
-    if (sitePropertiesFile != null) {
-      InputStream siteInputStream = Configuration.class.getClassLoader()
-          .getResourceAsStream(sitePropertiesFile);
-      if (siteInputStream != null) {
-        try {
-          siteProps.load(siteInputStream);
-        } catch (IOException e) {
-          LOG.warn("Unable to load site Alluxio configuration file.", e);
+    String dir = get(Constants.SITE_CONF_DIR);
+    if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
+      dir = System.getProperty(Constants.SITE_CONF_DIR);
+    }
+    if (dir != null) {
+      for (String path : dir.split(",")) {
+        String file = PathUtils.concatPath(path, sitePropertiesFile);
+        if (FileUtils.exists(file)) {
+          siteProps = loadFromPropertiesFile(file);
+          if (siteProps != null) {
+            LOG.info("Load site Alluxio configuration file {}.", file);
+            break;
+          }
         }
       }
     }
@@ -157,7 +177,6 @@ public final class Configuration {
     mProperties.putAll(siteProps);
     mProperties.putAll(systemProps);
 
-    // Update alluxio.master.address based on if Zookeeper is used or not.
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
     String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
     boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
@@ -495,43 +514,43 @@ public final class Configuration {
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 
+  private void loadFromSiteConf() {
+
+
+  }
+
   /**
    * Factory class to create configuration instances.
    */
   @ThreadSafe
   public static final class Factory {
-    public static final String DEFAULT_PROPERTIES_FILE = "alluxio-default.properties";
-    public static final String MASTER_PROPERTIES_FILE = "alluxio-master.properties";
-    public static final String WORKER_PROPERTIES_FILE = "alluxio-worker.properties";
-    public static final String CLIENT_PROPERTIES_FILE = "alluxio-client.properties";
-
 
     /**
      * @return the default configuration without loading site properties
      */
-    public static Configuration createDefault() {
-      return new Configuration(DEFAULT_PROPERTIES_FILE, null, true);
+    public static Configuration createDefaultWithSystemProperties() {
+      return new Configuration(null, true);
     }
 
     /**
      * @return the configuration for master daemon
      */
     public static Configuration createMasterConf() {
-      return new Configuration(DEFAULT_PROPERTIES_FILE, MASTER_PROPERTIES_FILE, true);
+      return new Configuration(SITE_PROPERTIES, true);
     }
 
     /**
      * @return the configuration for worker daemon
      */
     public static Configuration createWorkerConf() {
-      return new Configuration(DEFAULT_PROPERTIES_FILE, WORKER_PROPERTIES_FILE, true);
+      return new Configuration(SITE_PROPERTIES, true);
     }
 
     /**
      * @return the configuration for client
      */
     public static Configuration createClientConf() {
-      return new Configuration(DEFAULT_PROPERTIES_FILE, CLIENT_PROPERTIES_FILE, true);
+      return new Configuration(CLIENT_PROPERTIES, true);
     }
 
   }
