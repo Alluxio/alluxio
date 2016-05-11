@@ -9,21 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.hadoop.contract;
+package alluxio.rest;
 
 import alluxio.LocalAlluxioClusterResource;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractContractSeekTest;
-import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.junit.Rule;
 
-public class FileSystemContractSeekIntegrationTest extends AbstractContractSeekTest {
-  @Rule
-  public LocalAlluxioClusterResource mClusterResource = new LocalAlluxioClusterResource();
+import java.util.HashMap;
+import java.util.Map;
 
-  @Override
-  protected AbstractFSContract createContract(Configuration conf) {
-    return new FileSystemContract(conf, mClusterResource.get());
+public abstract class RestApiTest {
+  protected static final Map<String, String> NO_PARAMS = new HashMap<>();
+
+  protected String mHostname;
+  protected int mPort;
+  protected String mServicePrefix;
+
+  @Rule
+  protected LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+
+  protected String getEndpoint(String suffix) {
+    return mServicePrefix + "/" + suffix;
   }
 }
