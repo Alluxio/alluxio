@@ -506,48 +506,54 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.WRITE, path);
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
-      long opTimeMs = System.currentTimeMillis();
-      Inode<?> inode = mInodeTree.getInodeByPath(path);
-      long fileId = inode.getId();
-      if (!inode.isFile()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
-      }
-
-      InodeFile fileInode = (InodeFile) inode;
-      List<Long> blockIdList = fileInode.getBlockIds();
-      List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
-      if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
-        throw new BlockInfoException("Cannot complete a file without all the blocks committed");
-      }
-
-      // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
-      // the blocks (except the last one) is the same size as the file block size.
-      long inMemoryLength = 0;
-      long fileBlockSize = fileInode.getBlockSizeBytes();
-      for (int i = 0; i < blockInfoList.size(); i++) {
-        BlockInfo blockInfo = blockInfoList.get(i);
-        inMemoryLength += blockInfo.getLength();
-        if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
-          throw new BlockInfoException(
-              "Block index " + i + " has a block size smaller than the file block size ("
-                  + fileInode.getBlockSizeBytes() + ")");
-        }
-      }
-
-      // If the file is persisted, its length is determined by UFS. Otherwise, its length is
-      // determined by its memory footprint.
-      long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
-
-      completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
-      CompleteFileEntry completeFileEntry = CompleteFileEntry.newBuilder()
-          .addAllBlockIds(fileInode.getBlockIds())
-          .setId(fileId)
-          .setLength(length)
-          .setOpTimeMs(opTimeMs)
-          .build();
-      writeJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
-      flushJournal();
+      completeFileAndJournal(path, options);
     }
+  }
+
+  void completeFileAndJournal(AlluxioURI path, CompleteFileOptions options)
+      throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
+      FileAlreadyCompletedException, InvalidFileSizeException {
+    long opTimeMs = System.currentTimeMillis();
+    Inode<?> inode = mInodeTree.getInodeByPath(path);
+    long fileId = inode.getId();
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+
+    InodeFile fileInode = (InodeFile) inode;
+    List<Long> blockIdList = fileInode.getBlockIds();
+    List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(blockIdList);
+    if (!fileInode.isPersisted() && blockInfoList.size() != blockIdList.size()) {
+      throw new BlockInfoException("Cannot complete a file without all the blocks committed");
+    }
+
+    // Iterate over all file blocks committed to Alluxio, computing the length and verify that all
+    // the blocks (except the last one) is the same size as the file block size.
+    long inMemoryLength = 0;
+    long fileBlockSize = fileInode.getBlockSizeBytes();
+    for (int i = 0; i < blockInfoList.size(); i++) {
+      BlockInfo blockInfo = blockInfoList.get(i);
+      inMemoryLength += blockInfo.getLength();
+      if (i < blockInfoList.size() - 1 && blockInfo.getLength() != fileBlockSize) {
+        throw new BlockInfoException(
+            "Block index " + i + " has a block size smaller than the file block size ("
+                + fileInode.getBlockSizeBytes() + ")");
+      }
+    }
+
+    // If the file is persisted, its length is determined by UFS. Otherwise, its length is
+    // determined by its memory footprint.
+    long length = fileInode.isPersisted() ? options.getUfsLength() : inMemoryLength;
+
+    completeFileInternal(fileInode.getBlockIds(), fileId, length, opTimeMs);
+    CompleteFileEntry completeFileEntry = CompleteFileEntry.newBuilder()
+        .addAllBlockIds(fileInode.getBlockIds())
+        .setId(fileId)
+        .setLength(length)
+        .setOpTimeMs(opTimeMs)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setCompleteFile(completeFileEntry).build());
+    flushJournal();
   }
 
   /**
@@ -623,17 +629,23 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!options.isMetadataLoad()) {
         mMountTable.checkUnderWritableMountPoint(path);
       }
-      InodeTree.CreatePathResult createResult = createFileInternal(path, options);
-      try {
-        List<Inode<?>> created = createResult.getCreated();
+      return createFileAndJournal(path, options);
+    }
+  }
 
-        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-        journalCreatePathResult(createResult);
-        flushJournal();
-        return created.get(created.size() - 1).getId();
-      } finally {
-        createResult.unlock();
-      }
+  long createFileAndJournal(AlluxioURI path, CreateFileOptions options)
+      throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
+      InvalidPathException, IOException {
+    InodeTree.CreatePathResult createResult = createFileInternal(path, options);
+    try {
+      List<Inode<?>> created = createResult.getCreated();
+
+      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      journalCreatePathResult(createResult);
+      flushJournal();
+      return created.get(created.size() - 1).getId();
+    } finally {
+      createResult.unlock();
     }
   }
 
@@ -771,19 +783,25 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       mMountTable.checkUnderWritableMountPoint(path);
-      Inode<?> inode = mInodeTree.getInodeByPath(path);
-      long fileId = inode.getId();
-      long opTimeMs = System.currentTimeMillis();
-      boolean ret = deleteInternal(fileId, recursive, false, opTimeMs);
-      DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
-          .setId(fileId)
-          .setRecursive(recursive)
-          .setOpTimeMs(opTimeMs)
-          .build();
-      writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
-      flushJournal();
-      return ret;
+      return deleteAndJournal(path, recursive);
     }
+  }
+
+  boolean deleteAndJournal(AlluxioURI path, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException, IOException,
+      DirectoryNotEmptyException {
+    Inode<?> inode = mInodeTree.getInodeByPath(path);
+    long fileId = inode.getId();
+    long opTimeMs = System.currentTimeMillis();
+    boolean ret = deleteInternal(fileId, recursive, false, opTimeMs);
+    DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
+        .setId(fileId)
+        .setRecursive(recursive)
+        .setOpTimeMs(opTimeMs)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+    flushJournal();
+    return ret;
   }
 
   /**
@@ -1096,16 +1114,23 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!options.isMetadataLoad()) {
         mMountTable.checkUnderWritableMountPoint(path);
       }
-      InodeTree.CreatePathResult createResult = createDirectoryInternal(path, options);
-      try {
-        writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-        journalCreatePathResult(createResult);
-        flushJournal();
-        MasterContext.getMasterSource().incDirectoriesCreated(1);
-        return createResult;
-      } finally {
-        createResult.unlock();
-      }
+      return createDirectoryAndJournal(path, options);
+    }
+  }
+
+  InodeTree.CreatePathResult createDirectoryAndJournal(AlluxioURI path,
+      CreateDirectoryOptions options)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException, IOException {
+    InodeTree.CreatePathResult createResult = createDirectoryInternal(path, options);
+    try {
+      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+      journalCreatePathResult(createResult);
+      flushJournal();
+      MasterContext.getMasterSource().incDirectoriesCreated(1);
+      return createResult;
+    } finally {
+      createResult.unlock();
     }
   }
 
@@ -1185,74 +1210,79 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, dstPath);
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
-      Inode<?> srcInode = mInodeTree.getInodeByPath(srcPath);
-      // Renaming path to itself is a no-op.
-      if (srcPath.equals(dstPath)) {
-        return;
-      }
-      // Renaming the root is not allowed.
-      if (srcPath.isRoot()) {
-        throw new InvalidPathException(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage());
-      }
-      if (dstPath.isRoot()) {
-        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage());
-      }
-      // Renaming across mount points is not allowed.
-      String srcMount = mMountTable.getMountPoint(srcPath);
-      String dstMount = mMountTable.getMountPoint(dstPath);
-      if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
-          || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
-        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_ACROSS_MOUNTS.getMessage(
-            srcPath, dstPath));
-      }
-      // Renaming onto a mount point is not allowed.
-      if (mMountTable.isMountPoint(dstPath)) {
-        throw new InvalidPathException(
-            ExceptionMessage.RENAME_CANNOT_BE_ONTO_MOUNT_POINT.getMessage(dstPath));
-      }
-      // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
-      // srcComponents isn't a prefix of dstComponents.
-      if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
-        throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
-            srcPath, dstPath));
-      }
-
-      AlluxioURI dstParentURI = dstPath.getParent();
-
-      // Get the inodes of the src and dst parents.
-      Inode<?> srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
-      if (!srcParentInode.isDirectory()) {
-        throw new InvalidPathException(
-            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(srcPath));
-      }
-      Inode<?> dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
-      if (!dstParentInode.isDirectory()) {
-        throw new InvalidPathException(
-            ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstPath));
-      }
-
-      // Make sure destination path does not exist
-      InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
-      String[] dstComponents = PathUtils.getPathComponents(dstPath.getPath());
-      if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstPath));
-      }
-
-      // Now we remove srcInode from it's parent and insert it into dstPath's parent
-      long opTimeMs = System.currentTimeMillis();
-      renameInternal(srcInode.getId(), dstPath, false, opTimeMs);
-
-      RenameEntry rename = RenameEntry.newBuilder()
-          .setId(srcInode.getId())
-          .setDstPath(dstPath.getPath())
-          .setOpTimeMs(opTimeMs)
-          .build();
-      writeJournalEntry(JournalEntry.newBuilder().setRename(rename).build());
-      flushJournal();
-
+      renameAndJournal(srcPath, dstPath);
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     }
+  }
+
+  void renameAndJournal(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
+      IOException {
+    Inode<?> srcInode = mInodeTree.getInodeByPath(srcPath);
+    // Renaming path to itself is a no-op.
+    if (srcPath.equals(dstPath)) {
+      return;
+    }
+    // Renaming the root is not allowed.
+    if (srcPath.isRoot()) {
+      throw new InvalidPathException(ExceptionMessage.ROOT_CANNOT_BE_RENAMED.getMessage());
+    }
+    if (dstPath.isRoot()) {
+      throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_ROOT.getMessage());
+    }
+    // Renaming across mount points is not allowed.
+    String srcMount = mMountTable.getMountPoint(srcPath);
+    String dstMount = mMountTable.getMountPoint(dstPath);
+    if ((srcMount == null && dstMount != null) || (srcMount != null && dstMount == null)
+        || (srcMount != null && dstMount != null && !srcMount.equals(dstMount))) {
+      throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_ACROSS_MOUNTS.getMessage(
+          srcPath, dstPath));
+    }
+    // Renaming onto a mount point is not allowed.
+    if (mMountTable.isMountPoint(dstPath)) {
+      throw new InvalidPathException(
+          ExceptionMessage.RENAME_CANNOT_BE_ONTO_MOUNT_POINT.getMessage(dstPath));
+    }
+    // Renaming a path to one of its subpaths is not allowed. Check for that, by making sure
+    // srcComponents isn't a prefix of dstComponents.
+    if (PathUtils.hasPrefix(dstPath.getPath(), srcPath.getPath())) {
+      throw new InvalidPathException(ExceptionMessage.RENAME_CANNOT_BE_TO_SUBDIRECTORY.getMessage(
+          srcPath, dstPath));
+    }
+
+    AlluxioURI dstParentURI = dstPath.getParent();
+
+    // Get the inodes of the src and dst parents.
+    Inode<?> srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
+    if (!srcParentInode.isDirectory()) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(srcPath));
+    }
+    Inode<?> dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
+    if (!dstParentInode.isDirectory()) {
+      throw new InvalidPathException(
+          ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstPath));
+    }
+
+    // Make sure destination path does not exist
+    InodeDirectory dstParentDirectory = (InodeDirectory) dstParentInode;
+    String[] dstComponents = PathUtils.getPathComponents(dstPath.getPath());
+    if (dstParentDirectory.getChild(dstComponents[dstComponents.length - 1]) != null) {
+      throw new FileAlreadyExistsException(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstPath));
+    }
+
+    // Now we remove srcInode from it's parent and insert it into dstPath's parent
+    long opTimeMs = System.currentTimeMillis();
+    renameInternal(srcInode.getId(), dstPath, false, opTimeMs);
+
+    RenameEntry rename = RenameEntry.newBuilder()
+        .setId(srcInode.getId())
+        .setDstPath(dstPath.getPath())
+        .setOpTimeMs(opTimeMs)
+        .build();
+    writeJournalEntry(JournalEntry.newBuilder().setRename(rename).build());
+    flushJournal();
   }
 
   /**
@@ -1519,11 +1549,17 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
       AccessControlException {
-    MountTable.Resolution resolution;
     synchronized (mInodeTree) {
-      // Permission checking is not performed in this method, but in the methods invoked.
-      resolution = mMountTable.resolve(path);
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
+      return loadMetadataAndJournal(path, recursive);
     }
+  }
+
+  long loadMetadataAndJournal(AlluxioURI path, boolean recursive)
+      throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
+      BlockInfoException, FileAlreadyCompletedException, InvalidFileSizeException,
+      AccessControlException, IOException {
+    MountTable.Resolution resolution = mMountTable.resolve(path);
     AlluxioURI ufsUri = resolution.getUri();
     UnderFileSystem ufs = resolution.getUfs();
     try {
@@ -1538,13 +1574,13 @@ public final class FileSystemMaster extends AbstractMaster {
         CreateFileOptions options =
             CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
                 .setMetadataLoad(true).setPersisted(true);
-        long fileId = createFile(path, options);
+        long fileId = createFileAndJournal(path, options);
         CompleteFileOptions completeOptions =
             CompleteFileOptions.defaults().setUfsLength(ufsLength);
-        completeFile(path, completeOptions);
+        completeFileAndJournal(path, completeOptions);
         return fileId;
       }
-      return loadDirectoryMetadata(path, recursive);
+      return loadDirectoryMetadataInternal(path, recursive);
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw e;
@@ -1565,13 +1601,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the path does not exist
    */
   @GuardedBy("mInodeTree")
-  private long loadDirectoryMetadata(AlluxioURI path, boolean recursive)
-      throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException,
-      FileDoesNotExistException {
+  private long loadDirectoryMetadataInternal(AlluxioURI path, boolean recursive)
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException, IOException {
     CreateDirectoryOptions options =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
             .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
-    InodeTree.CreatePathResult result = createDirectory(path, options);
+    InodeTree.CreatePathResult result = createDirectoryAndJournal(path, options);
     List<Inode<?>> inodes = null;
     if (result.getCreated().size() > 0) {
       inodes = result.getCreated();
@@ -1604,57 +1640,62 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     synchronized (mInodeTree) {
-      // Permission checking is performed in loadDirectoryMetadata
+      mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
-      // Check that the Alluxio Path does not exist
-      // TODO(calvin): Provide a cleaner way to check for existence (ALLUXIO-1830)
-      boolean pathExists = false;
-      try {
-        mInodeTree.getInodeByPath(alluxioPath);
-        pathExists = true;
-      } catch (FileDoesNotExistException e) {
-        // Expected, continue
-      }
-      if (pathExists) {
-        // TODO(calvin): Add a test to validate this (ALLUXIO-1831)
-        throw new InvalidPathException(
-            ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
-      }
-
-      mountInternal(alluxioPath, ufsPath, options);
-      boolean loadMetadataSuceeded = false;
-      try {
-        // This will create the directory at alluxioPath
-        loadDirectoryMetadata(alluxioPath, false);
-        loadMetadataSuceeded = true;
-      } catch (FileDoesNotExistException e) {
-        // This exception should be impossible since we just mounted this path
-        throw Throwables.propagate(e);
-      } finally {
-        if (!loadMetadataSuceeded) {
-          unmountInternal(alluxioPath);
-        }
-        // Exception will be propagated from loadDirectoryMetadata
-      }
-
-      // For proto, build a list of String pairs representing the properties map.
-      Map<String, String> properties = options.getProperties();
-      List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
-      for (Map.Entry<String, String> entry : properties.entrySet()) {
-        protoProperties.add(StringPairEntry.newBuilder()
-            .setKey(entry.getKey())
-            .setValue(entry.getValue())
-            .build());
-      }
-
-      AddMountPointEntry addMountPoint =
-          AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
-              .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
-              .addAllProperties(protoProperties).build();
-      writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
-      flushJournal();
+      mountAndJournal(alluxioPath, ufsPath, options);
       MasterContext.getMasterSource().incPathsMounted(1);
     }
+  }
+
+  void mountAndJournal(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
+      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
+    // Check that the Alluxio Path does not exist
+    // TODO(calvin): Provide a cleaner way to check for existence (ALLUXIO-1830)
+    boolean pathExists = false;
+    try {
+      mInodeTree.getInodeByPath(alluxioPath);
+      pathExists = true;
+    } catch (FileDoesNotExistException e) {
+      // Expected, continue
+    }
+    if (pathExists) {
+      // TODO(calvin): Add a test to validate this (ALLUXIO-1831)
+      throw new InvalidPathException(
+          ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
+    }
+
+    mountInternal(alluxioPath, ufsPath, options);
+    boolean loadMetadataSuceeded = false;
+    try {
+      // This will create the directory at alluxioPath
+      loadDirectoryMetadataInternal(alluxioPath, false);
+      loadMetadataSuceeded = true;
+    } catch (FileDoesNotExistException e) {
+      // This exception should be impossible since we just mounted this path
+      throw Throwables.propagate(e);
+    } finally {
+      if (!loadMetadataSuceeded) {
+        unmountInternal(alluxioPath);
+      }
+      // Exception will be propagated from loadDirectoryMetadataInternal
+    }
+
+    // For proto, build a list of String pairs representing the properties map.
+    Map<String, String> properties = options.getProperties();
+    List<StringPairEntry> protoProperties = new ArrayList<>(properties.size());
+    for (Map.Entry<String, String> entry : properties.entrySet()) {
+      protoProperties.add(StringPairEntry.newBuilder()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build());
+    }
+
+    AddMountPointEntry addMountPoint =
+        AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString())
+            .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
+            .addAllProperties(protoProperties).build();
+    writeJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
+    flushJournal();
   }
 
   /**
@@ -1734,27 +1775,32 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incUnmountOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
-      if (unmountInternal(alluxioPath)) {
-        Inode<?> inode = mInodeTree.getInodeByPath(alluxioPath);
-        // Use the internal delete API, setting {@code replayed} to false to prevent the delete
-        // operations from being persisted in the UFS.
-        long fileId = inode.getId();
-        long opTimeMs = System.currentTimeMillis();
-        deleteRecursiveInternal(fileId, true /* replayed */, opTimeMs);
-        DeleteFileEntry deleteFile = DeleteFileEntry.newBuilder()
-            .setId(fileId)
-            .setRecursive(true)
-            .setOpTimeMs(opTimeMs)
-            .build();
-        writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
-        DeleteMountPointEntry deleteMountPoint = DeleteMountPointEntry.newBuilder()
-            .setAlluxioPath(alluxioPath.toString())
-            .build();
-        writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
-        flushJournal();
+      if (unmountAndJournal(alluxioPath)) {
         MasterContext.getMasterSource().incPathsUnmounted(1);
         return true;
       }
+      return false;
+    }
+  }
+
+  boolean unmountAndJournal(AlluxioURI alluxioPath)
+      throws InvalidPathException, FileDoesNotExistException, IOException {
+    if (unmountInternal(alluxioPath)) {
+      Inode<?> inode = mInodeTree.getInodeByPath(alluxioPath);
+      // Use the internal delete API, setting {@code replayed} to true to prevent the delete
+      // operations from being persisted in the UFS.
+      long fileId = inode.getId();
+      long opTimeMs = System.currentTimeMillis();
+      deleteRecursiveInternal(fileId, true /* replayed */, opTimeMs);
+      DeleteFileEntry deleteFile =
+          DeleteFileEntry.newBuilder().setId(fileId).setRecursive(true).setOpTimeMs(opTimeMs)
+              .build();
+      writeJournalEntry(JournalEntry.newBuilder().setDeleteFile(deleteFile).build());
+      DeleteMountPointEntry deleteMountPoint =
+          DeleteMountPointEntry.newBuilder().setAlluxioPath(alluxioPath.toString()).build();
+      writeJournalEntry(JournalEntry.newBuilder().setDeleteMountPoint(deleteMountPoint).build());
+      flushJournal();
+      return true;
     }
     return false;
   }
@@ -1825,26 +1871,31 @@ public final class FileSystemMaster extends AbstractMaster {
         (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
     synchronized (mInodeTree) {
       mPermissionChecker.checkSetAttributePermission(path, rootRequired, ownerRequired);
-
-      long fileId = mInodeTree.getInodeByPath(path).getId();
-      long opTimeMs = System.currentTimeMillis();
-      Inode<?> targetInode = mInodeTree.getInodeByPath(path);
-      if (options.isRecursive() && targetInode.isDirectory()) {
-        List<Inode<?>> inodeChildren =
-            mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
-        for (Inode<?> inode : inodeChildren) {
-          mPermissionChecker.checkSetAttributePermission(mInodeTree.getPath(inode), rootRequired,
-              ownerRequired);
-        }
-        for (Inode<?> inode : inodeChildren) {
-          long id = inode.getId();
-          setAttributeInternal(id, opTimeMs, options);
-          journalSetAttribute(id, opTimeMs, options);
-        }
-      }
-      setAttributeInternal(fileId, opTimeMs, options);
-      journalSetAttribute(fileId, opTimeMs, options);
+      setAttributeAndJournal(path, options, rootRequired, ownerRequired);
     }
+  }
+
+  void setAttributeAndJournal(AlluxioURI path, SetAttributeOptions options, boolean rootRequired,
+      boolean ownerRequired)
+      throws InvalidPathException, FileDoesNotExistException, AccessControlException {
+    long fileId = mInodeTree.getInodeByPath(path).getId();
+    long opTimeMs = System.currentTimeMillis();
+    Inode<?> targetInode = mInodeTree.getInodeByPath(path);
+    if (options.isRecursive() && targetInode.isDirectory()) {
+      List<Inode<?>> inodeChildren =
+          mInodeTree.getInodeChildrenRecursive((InodeDirectory) targetInode);
+      for (Inode<?> inode : inodeChildren) {
+        mPermissionChecker
+            .checkSetAttributePermission(mInodeTree.getPath(inode), rootRequired, ownerRequired);
+      }
+      for (Inode<?> inode : inodeChildren) {
+        long id = inode.getId();
+        setAttributeInternal(id, opTimeMs, options);
+        journalSetAttribute(id, opTimeMs, options);
+      }
+    }
+    setAttributeInternal(fileId, opTimeMs, options);
+    journalSetAttribute(fileId, opTimeMs, options);
   }
 
   /**
@@ -1886,17 +1937,21 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
     synchronized (mInodeTree) {
-      long fileId = mInodeTree.getInodeByPath(path).getId();
-      scheduleAsyncPersistenceInternal(fileId);
-      // write to journal
-      AsyncPersistRequestEntry asyncPersistRequestEntry =
-          AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
-      writeJournalEntry(
-          JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
-      flushJournal();
+      scheduleAsyncPersistenceAndJournal(path);
     }
     // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
+  }
+
+  void scheduleAsyncPersistenceAndJournal(AlluxioURI path) throws AlluxioException {
+    long fileId = mInodeTree.getInodeByPath(path).getId();
+    scheduleAsyncPersistenceInternal(fileId);
+    // write to journal
+    AsyncPersistRequestEntry asyncPersistRequestEntry =
+        AsyncPersistRequestEntry.newBuilder().setFileId(fileId).build();
+    writeJournalEntry(
+        JournalEntry.newBuilder().setAsyncPersistRequest(asyncPersistRequestEntry).build());
+    flushJournal();
   }
 
   /**
