@@ -234,19 +234,32 @@ public final class UnderFileSystemManager {
    * @param tempUfsFileId the temporary ufs file id
    * @param position the absolute position in the file to start the stream at
    * @return the input stream to read from this file
+   * @throws FileDoesNotExistException if the worker file id not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
   public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
-      throws IOException {
-    return mInputStreams.get(tempUfsFileId).openAtPosition(position);
+      throws FileDoesNotExistException, IOException {
+    UnderFileSystemInputStream stream = mInputStreams.get(tempUfsFileId);
+    if (stream != null) {
+      return stream.openAtPosition(position);
+    } else {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    }
   }
 
   /**
    * @param tempUfsFileId the temporary ufs file id
    * @return the output stream to write to this file
    */
-  public OutputStream getOutputStream(long tempUfsFileId) {
-    return mOutputStreams.get(tempUfsFileId).getStream();
+  public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
+    UnderFileSystemOutputStream stream = mOutputStreams.get(tempUfsFileId);
+    if (stream != null) {
+      return stream.getStream();
+    } else {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    }
   }
 
   /**

@@ -108,8 +108,8 @@ public class FileDataServerHandler {
     long length = req.getLength();
     final DataBuffer data = req.getPayloadDataBuffer();
 
-    OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
     try {
+      OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
       out.write(data.getReadOnlyByteBuffer().array());
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);

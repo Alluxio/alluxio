@@ -151,9 +151,11 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @param position the absolute position in the file to position the stream at before returning
    * @return an input stream to the ufs file positioned at the given position
+   * @throws FileDoesNotExistException if the worker file id is invalid
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public InputStream getUfsInputStream(long tempUfsFileId, long position) throws IOException {
+  public InputStream getUfsInputStream(long tempUfsFileId, long position)
+      throws FileDoesNotExistException, IOException {
     return mUnderFileSystemManager.getInputStreamAtPosition(tempUfsFileId, position);
   }
 
@@ -163,9 +165,9 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file
-   * @throws IOException if an error occurs interacting with the under file system
+   * @throws FileDoesNotExistException if the temporary file id is invalid
    */
-  public OutputStream getUfsOutputStream(long tempUfsFileId) throws IOException {
+  public OutputStream getUfsOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
     return mUnderFileSystemManager.getOutputStream(tempUfsFileId);
   }
 
