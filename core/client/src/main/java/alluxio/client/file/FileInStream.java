@@ -137,7 +137,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     updateStreams();
     if (mCurrentCacheStream != null && mShouldCachePartiallyReadBlock) {
-      readCurrentBlockToPos(mFileLength);
+      readCurrentBlockToPos(Long.MAX_VALUE);
     }
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
@@ -148,7 +148,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   @Override
   public int read() throws IOException {
-    if (!validPosition(mPos)) {
+    if (remaining() <= 0) {
       return -1;
     }
     updateStreams();
@@ -185,14 +185,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
     if (len == 0) {
       return 0;
-    } else if (!validPosition(mPos)) {
+    } else if (remaining() <= 0) {
       return -1;
     }
 
     int currentOffset = off;
     int bytesLeftToRead = len;
 
-    while (bytesLeftToRead > 0 && validPosition(mPos)) {
+    while (bytesLeftToRead > 0 && remaining() > 0) {
       updateStreams();
       if (mCurrentBlockInStream == null) {
         // EOF is reached.
@@ -235,9 +235,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    // Why cannot I seek to the end of a file?
-    Preconditions.checkArgument(validPosition(pos), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
-        pos);
+    Preconditions
+        .checkArgument(pos <= maxSeekPosition(), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, pos);
     if (!mShouldCachePartiallyReadBlock) {
       seekInternal(pos);
     } else {
@@ -252,19 +251,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     long toSkip = Math.min(n, remaining());
-    closeOrCancelCacheStream();
-    mPos = mPos + toSkip;
-    updateStreams();
-    mCurrentBlockInStream.seek(mPos % mBlockSize);
+    seekInternal(mPos + toSkip);
     return toSkip;
   }
 
   /**
-   * @param pos the position to check to validity
-   * @return true of the given pos is a valid position in the file
+   * @return the maximum position to seek to
    */
-  protected boolean validPosition(long pos) {
-    return pos < mFileLength;
+  protected long maxSeekPosition() {
+    return mFileLength;
   }
 
   /**
@@ -345,7 +340,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @return the current block id based on mPos, -1 if at the end of the file
    */
   private long getCurrentBlockId() {
-    if (!validPosition(mPos)) {
+    if (remaining() <= 0) {
       return -1;
     }
     int index = (int) (mPos / mBlockSize);
@@ -502,7 +497,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     closeOrCancelCacheStream();
     mPos = pos;
     updateStreams();
-    mCurrentBlockInStream.seek(mPos % mBlockSize);
+    if (mCurrentBlockInStream != null) {
+      mCurrentBlockInStream.seek(mPos % mBlockSize);
+    } else {
+      Preconditions.checkState(remaining() == 0);
+    }
   }
 
   /**
@@ -525,7 +524,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentCacheStream != null) {
       // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
       // block.
-      readCurrentBlockToPos(pos > mPos ? pos : mFileLength);
+      readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
       // Early return if we are at pos already. This happens if we seek forward with caching
       // enabled for this block.
@@ -544,17 +543,21 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       mPos = pos;
       // updateStreams is necessary when pos = mFileLength.
       updateStreams();
-      mCurrentBlockInStream.seek(mPos % mBlockSize);
+      if (mCurrentBlockInStream != null) {
+        mCurrentBlockInStream.seek(mPos % mBlockSize);
+      } else {
+        Preconditions.checkState(remaining() == 0);
+      }
     } else {
       mPos = pos / mBlockSize * mBlockSize;
       updateStreams();
       if (mCurrentCacheStream != null) {
         readCurrentBlockToPos(pos);
-      } else {
+      } else if (mCurrentBlockInStream != null){
         mPos = pos;
-        // We are not allowed to seek to EOF, which guarantees mCurrentBlockInStream to be not null.
-        Preconditions.checkNotNull(mCurrentBlockInStream);
         mCurrentBlockInStream.seek(mPos % mBlockSize);
+      } else {
+        Preconditions.checkState(remaining() == 0);
       }
     }
   }
