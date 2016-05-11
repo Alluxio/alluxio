@@ -12,8 +12,8 @@
 package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
-import alluxio.Version;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.cli.Version;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;

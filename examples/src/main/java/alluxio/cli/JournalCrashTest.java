@@ -9,12 +9,11 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -232,10 +231,6 @@ public class JournalCrashTest {
   /**
    * Runs the crash test.
    *
-   * Usage:
-   * {@code java -cp
-   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}
-   *
    * @param args no arguments
    */
   public static void main(String[] args) {
@@ -301,7 +296,7 @@ public class JournalCrashTest {
       } catch (Exception e) {
         LOG.error("Failed to check status", e);
       }
-      Utils.printPassInfo(checkSuccess);
+      CliUtils.printPassInfo(checkSuccess);
       ret &= checkSuccess;
     }
 
@@ -348,8 +343,8 @@ public class JournalCrashTest {
       sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
     } else {
       ret = false;
-      new HelpFormatter().printHelp("java -cp alluxio-" + Version.VERSION
-          + "-jar-with-dependencies.jar alluxio.examples.JournalCrashTest",
+      new HelpFormatter().printHelp(String.format("java -cp %s %s",
+          Version.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName()),
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
           + "will launch total 6 clients connecting to the Master and the Master"
