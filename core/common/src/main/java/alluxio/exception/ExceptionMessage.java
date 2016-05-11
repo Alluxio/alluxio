@@ -135,7 +135,6 @@ public enum ExceptionMessage {
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Alluxio properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security

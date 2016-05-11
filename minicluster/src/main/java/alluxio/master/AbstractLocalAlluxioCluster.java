@@ -320,7 +320,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public Configuration newTestConf() throws IOException {
-    Configuration testConf = Configuration.Factory.createDefault();
+    Configuration testConf = Configuration.Factory.createDefaultWithSystemProperties();
     setAlluxioHome();
     setHostname();
 

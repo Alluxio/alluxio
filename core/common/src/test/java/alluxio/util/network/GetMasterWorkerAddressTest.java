@@ -32,7 +32,7 @@ public class GetMasterWorkerAddressTest {
    */
   @Test
   public void getMasterAddressTest() {
-    Configuration conf = Configuration.Factory.createDefault();
+    Configuration conf = Configuration.Factory.createDefaultWithSystemProperties();
     conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
     conf.set(Constants.MASTER_RPC_PORT, "10000");
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
@@ -67,7 +67,7 @@ public class GetMasterWorkerAddressTest {
    */
   @Test
   public void getWorkerAddressTest() {
-    Configuration conf = Configuration.Factory.createDefault();
+    Configuration conf = Configuration.Factory.createDefaultWithSystemProperties();
     conf.set(Constants.WORKER_RPC_PORT, "10001");
 
     String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);

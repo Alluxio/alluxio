@@ -69,7 +69,7 @@ public class ConfigurationTest {
     sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
 
     // initialize
-    sDefaultConfiguration = Configuration.Factory.createDefault();
+    sDefaultConfiguration = Configuration.Factory.createDefaultWithSystemProperties();
 
     // initialize the system properties
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
