@@ -17,7 +17,6 @@ import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.hamcrest.CoreMatchers;
 import org.junit.After;
 import org.junit.Assert;
@@ -28,6 +27,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -61,8 +61,8 @@ public class StorageDirViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView =
-        Mockito.spy(new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(), Sets
-            .<Long>newHashSet()));
+        Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+          new HashSet<Long>()));
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestDir = mTestTier.getDir(TEST_DIR);
     mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);

@@ -159,7 +159,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   /**
-   * Generates client file info for the folder.
+   * Generates client file info for a folder.
    *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}

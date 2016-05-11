@@ -61,8 +61,8 @@ public final class BlockMetadataManager {
   private BlockMetadataManager() {
     try {
       StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-      mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
-      mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
+      mAliasToTiers = new HashMap<>(storageTierAssoc.size());
+      mTiers = new ArrayList<>(storageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal++) {
         StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
@@ -217,7 +217,16 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return new BlockStoreMeta(this);
+    return BlockStoreMeta.getBlockStoreMeta(this);
+  }
+
+  /**
+   * Gets a full summary of block store meta data. This is an expensive operation.
+   *
+   * @return the full metadata of this block store
+   */
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    return BlockStoreMeta.getBlockStoreMetaFull(this);
   }
 
   /**
@@ -300,7 +309,7 @@ public final class BlockMetadataManager {
    * @return A list of temp blocks associated with the session
    */
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
-    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         sessionTempBlocks.addAll(dir.getSessionTempBlocks(sessionId));

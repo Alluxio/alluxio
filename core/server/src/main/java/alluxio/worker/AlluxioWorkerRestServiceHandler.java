@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.RestUtils;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
@@ -56,6 +56,8 @@ public final class AlluxioWorkerRestServiceHandler {
 
   private final AlluxioWorker mWorker = AlluxioWorker.get();
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+
+  private AlluxioWorkerRestServiceHandler() {} // prevent instantiation
 
   /**
    * @summary get the address of the worker

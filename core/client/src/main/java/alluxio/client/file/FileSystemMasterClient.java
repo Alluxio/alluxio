@@ -27,7 +27,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemMasterClientService;
-import alluxio.wire.FileBlockInfo;
 import alluxio.wire.ThriftUtils;
 
 import org.apache.thrift.TException;
@@ -175,27 +174,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   }
 
   /**
-   * @param path the URI of the file
-   * @return the list of file block information for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  public synchronized List<FileBlockInfo> getFileBlockInfoList(final AlluxioURI path)
-      throws IOException, AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<List<FileBlockInfo>>() {
-      @Override
-      public List<FileBlockInfo> call() throws AlluxioTException, TException {
-        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
-        for (alluxio.thrift.FileBlockInfo fileBlockInfo :
-            mClient.getFileBlockInfoList(path.getPath())) {
-          result.add(ThriftUtils.fromThrift(fileBlockInfo));
-        }
-        return result;
-      }
-    });
-  }
-
-  /**
    * @param path the file path
    * @return the file info for the given file id
    * @throws IOException if an I/O error occurs
@@ -207,25 +185,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       @Override
       public URIStatus call() throws AlluxioTException, TException {
         return new URIStatus(ThriftUtils.fromThrift(mClient.getStatus(path.getPath())));
-      }
-    });
-  }
-
-  /**
-   * Internal API, only used by the WebUI of the servers.
-   *
-   * @param fileId the file id
-   * @return the file info for the given file id
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  // TODO(calvin): Split this into its own client
-  public synchronized URIStatus getStatusInternal(final long fileId) throws IOException,
-      AlluxioException {
-    return retryRPC(new RpcCallableThrowsAlluxioTException<URIStatus>() {
-      @Override
-      public URIStatus call() throws AlluxioTException, TException {
-        return new URIStatus(ThriftUtils.fromThrift(mClient.getStatusInternal(fileId)));
       }
     });
   }

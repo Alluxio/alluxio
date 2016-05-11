@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.shell;
+package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +30,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -41,12 +41,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Class for handling command line inputs.
  */
 @NotThreadSafe
-public class AlluxioShell implements Closeable {
+public final class AlluxioShell implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final Map<String, String[]> CMD_ALIAS = ImmutableMap.<String, String[]>builder()
-      .put("chgrpr", new String[] {"chgrp", "-R"})
-      .put("chmodr", new String[] {"chmod", "-R"})
-      .put("chownr", new String[] {"chown", "-R"})
       .put("lsr", new String[] {"ls", "-R"})
       .put("rmr", new String[] {"rm", "-R"})
       .build();
@@ -68,7 +65,7 @@ public class AlluxioShell implements Closeable {
     System.exit(ret);
   }
 
-  private final Map<String, ShellCommand> mCommands = Maps.newHashMap();
+  private final Map<String, ShellCommand> mCommands = new HashMap<>();
   private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
 

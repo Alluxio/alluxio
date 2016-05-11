@@ -24,11 +24,10 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +37,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,7 +58,8 @@ public final class FileDataManager {
   /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
-  /** The file being persisted, and the inner map tracks the block id to lock id. */
+  /** The files being persisted, keyed by fileId,
+   * and the inner map tracks the block id to lock id. */
   @GuardedBy("mLock")
   // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
@@ -69,6 +71,9 @@ public final class FileDataManager {
   private final Configuration mConfiguration;
   private final Object mLock = new Object();
 
+  /** A per worker rate limiter to throttle async persistence. */
+  private RateLimiter mPersistenceRateLimiter;
+
   /**
    * Creates a new instance of {@link FileDataManager}.
    *
@@ -76,8 +81,8 @@ public final class FileDataManager {
    */
   public FileDataManager(BlockWorker blockWorker) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
-    mPersistingInProgressFiles = Maps.newHashMap();
-    mPersistedFiles = Sets.newHashSet();
+    mPersistingInProgressFiles = new HashMap<>();
+    mPersistedFiles = new HashSet<>();
     mConfiguration = WorkerContext.getConf();
     // Create Under FileSystem Client
     String ufsAddress = mConfiguration.get(Constants.UNDERFS_ADDRESS);
@@ -165,7 +170,7 @@ public final class FileDataManager {
    * @throws IOException when an I/O exception occurs
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
-    Map<Long, Long> blockIdToLockId = Maps.newHashMap();
+    Map<Long, Long> blockIdToLockId = new HashMap<>();
     List<Throwable> errors = new ArrayList<Throwable>();
     synchronized (mLock) {
       if (mPersistingInProgressFiles.containsKey(fileId)) {
@@ -212,7 +217,7 @@ public final class FileDataManager {
     Map<Long, Long> blockIdToLockId;
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
-      if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(Sets.newHashSet(blockIds))) {
+      if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(new HashSet<>(blockIds))) {
         throw new IOException("Not all the blocks of file " + fileId + " are blocked");
       }
     }
@@ -225,6 +230,12 @@ public final class FileDataManager {
     try {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
+
+        if (mConfiguration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+          BlockMeta blockMeta =
+              mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+          getRateLimiter().acquire((int) blockMeta.getBlockSize());
+        }
 
         // obtain block reader
         BlockReader reader =
@@ -294,7 +305,7 @@ public final class FileDataManager {
    * @return the persisted file
    */
   public List<Long> getPersistedFiles() {
-    List<Long> toReturn = Lists.newArrayList();
+    List<Long> toReturn = new ArrayList<>();
     synchronized (mLock) {
       toReturn.addAll(mPersistedFiles);
       return toReturn;
@@ -310,5 +321,18 @@ public final class FileDataManager {
     synchronized (mLock) {
       mPersistedFiles.removeAll(persistedFiles);
     }
+  }
+
+  /**
+   * Gets the {@link RateLimiter} in a thread-safe manner.
+   *
+   * @return the per-worker rate limiter
+   */
+  private synchronized RateLimiter getRateLimiter() {
+    if (mPersistenceRateLimiter == null) {
+      mPersistenceRateLimiter = RateLimiter.create(
+          WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    }
+    return mPersistenceRateLimiter;
   }
 }

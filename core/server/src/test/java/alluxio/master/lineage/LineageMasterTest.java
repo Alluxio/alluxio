@@ -38,6 +38,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -77,7 +78,7 @@ public final class LineageMasterTest {
    */
   @Test
   public void listLineagesTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -114,7 +115,7 @@ public final class LineageMasterTest {
    */
   @Test
   public void deleteLineageTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    long l1 = mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -149,7 +150,7 @@ public final class LineageMasterTest {
    */
   @Test
   public void deleteLineageWithChildrenTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    long l1 = mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -169,7 +170,7 @@ public final class LineageMasterTest {
    */
   @Test
   public void reinitializeFileTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
@@ -186,7 +187,7 @@ public final class LineageMasterTest {
   @Test
   public void asyncCompleteFileTest() throws Exception {
     AlluxioURI file = new AlluxioURI("/test1");
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(), Lists.newArrayList(file), mJob);
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(), Lists.newArrayList(file), mJob);
     mFileSystemMaster.completeFile(file, CompleteFileOptions.defaults());
     Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(file),
         Mockito.any(CompleteFileOptions.class));

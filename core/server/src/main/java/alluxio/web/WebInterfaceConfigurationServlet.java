@@ -73,11 +73,11 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   }
 
   private SortedSet<Pair<String, String>> getSortedProperties() {
-    TreeSet<Pair<String, String>> rtn = new TreeSet<Pair<String, String>>();
+    TreeSet<Pair<String, String>> rtn = new TreeSet<>();
     for (Map.Entry<Object, Object> entry : mConfiguration.getInternalProperties().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<String, String>(key, mConfiguration.get(key)));
+        rtn.add(new ImmutablePair<>(key, mConfiguration.get(key)));
       }
     }
     return rtn;
