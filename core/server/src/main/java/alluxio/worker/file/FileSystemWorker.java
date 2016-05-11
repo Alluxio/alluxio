@@ -162,6 +162,14 @@ public final class FileSystemWorker extends AbstractWorker {
     return mServiceHandler;
   }
 
+  /**
+   * Opens a file in the under file system and registers a temporary file id with the file. This
+   * id is valid until the file is closed.
+   *
+   * @param ufsUri the under file system path of the file to open
+   * @return the temporary file id which references the file
+   * @throws IOException if an error occurs interacting with the under file system
+   */
   public long openUfsFile(AlluxioURI ufsUri) throws IOException {
     return mUnderFileSystemManager.openFile(ufsUri);
   }

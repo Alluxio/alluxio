@@ -21,6 +21,7 @@ import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
 import alluxio.worker.file.FileSystemWorker;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -51,6 +52,15 @@ public class FileDataServerHandler {
     mWorker = worker;
   }
 
+  /**
+   * Handles a {@link RPCFileReadRequest} by reading the data through an input stream provided by
+   * the file worker. This method assumes the length to read is less than or equal to the unread
+   * data in the file.
+   *
+   * @param ctx The context of this request which handles the result of this operation
+   * @param req The initiating {@link RPCFileReadRequest}
+   * @throws IOException if an I/O error occurs when interacting with the UFS
+   */
   public void handleFileReadRequest(ChannelHandlerContext ctx, RPCFileReadRequest req)
       throws IOException {
     req.validate();
@@ -81,6 +91,15 @@ public class FileDataServerHandler {
     }
   }
 
+  /**
+   * Handles a {@link RPCFileWriteRequest} by writing the data through an output stream provided
+   * by the file worker. This method only allows appending data to the file and does not support
+   * writing at arbitrary offsets.
+   *
+   * @param ctx The context of this request which handles the result of this operation
+   * @param req The initiating {@link RPCFileWriteRequest}
+   * @throws IOException if an I/O error occurs when interacting with the UFS
+   */
   public void handleFileWriteRequest(ChannelHandlerContext ctx, RPCFileWriteRequest req)
       throws IOException {
     long ufsFileId = req.getTempUfsFileId();
