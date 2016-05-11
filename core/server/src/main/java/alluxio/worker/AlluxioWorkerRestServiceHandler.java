@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.RestUtils;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;

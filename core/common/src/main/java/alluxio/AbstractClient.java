@@ -11,6 +11,7 @@
 
 package alluxio;
 
+import alluxio.cli.Version;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;

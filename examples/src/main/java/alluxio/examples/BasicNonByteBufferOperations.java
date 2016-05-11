@@ -13,7 +13,6 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Version;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -123,33 +122,5 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
       input.close();
     }
     return true;
-  }
-
-  /**
-   * Runs the example.
-   *
-   * Usage: {@code java -cp <ALLUXIO-VERSION> BasicNonByteBufferOperations <master address>
-   *   <file path> <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
-   *   <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)> <delete file> <number of files>}
-   *
-   * @param args the parameters to run the example
-   * @throws IOException if the example fails to run
-   */
-  public static void main(final String[] args) throws IOException {
-    if (args.length < 2 || args.length > 6) {
-      usage();
-    }
-
-    Utils.runExample(new BasicNonByteBufferOperations(new AlluxioURI(args[0]), new AlluxioURI(
-        args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
-        WriteType.CACHE_THROUGH), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
-  }
-
-  private static void usage() {
-    System.out.println("java -cp " + Version.ALLUXIO_JAR + " "
-        + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
-        + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
-        + " | THROUGH)> <delete file> <number of files>");
-    System.exit(-1);
   }
 }
