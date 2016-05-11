@@ -288,6 +288,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  public AlluxioURI getPath(InodePath inodePath) throws FileDoesNotExistException {
+    StringBuilder builder = new StringBuilder();
+    computePathForInode(inodePath.getInode(), builder);
+    return new AlluxioURI(builder.toString());
+  }
+
   /**
    * Returns a list of existing inodes on the given path.
    *
@@ -416,7 +422,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
             InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
                 currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
         // Lock the newly created inode before subsequent operations, and add it to the lock group.
-        lockGroup.lockWrite(dir);
+//        lockGroup.lockWrite(dir);
 
         dir.setPinned(currentInodeDirectory.isPinned());
         currentInodeDirectory.addChild(dir);
@@ -436,7 +442,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       Inode<?> lastInode = currentInodeDirectory.getChild(name);
       if (lastInode != null) {
         // Lock the last inode before subsequent operations, and add it to the lock group.
-        lockGroup.lockWrite(lastInode);
+//        lockGroup.lockWrite(lastInode);
 
         if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
             .isPersisted() && options.isPersisted()) {
@@ -456,7 +462,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
               currentInodeDirectory.getId(), name, directoryOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
-          lockGroup.lockWrite(lastInode);
+//          lockGroup.lockWrite(lastInode);
           if (directoryOptions.isPersisted()) {
             toPersistDirectories.add(lastInode);
           }
@@ -466,7 +472,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
               currentInodeDirectory.getId(), name, fileOptions);
           // Lock the created inode before subsequent operations, and add it to the lock group.
-          lockGroup.lockWrite(lastInode);
+//          lockGroup.lockWrite(lastInode);
           if (currentInodeDirectory.isPinned()) {
             // Update set of pinned file ids.
             mPinnedInodeFileIds.add(lastInode.getId());
@@ -736,7 +742,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         throw new InvalidPathException("passed-in pathComponents is empty");
       } else if (pathComponents.length == 1) {
         if (pathComponents[0].equals("")) {
-          lockGroup.lockRead(mRoot);
+//          lockGroup.lockRead(mRoot);
           inodes.add(mRoot);
           valid = true;
           return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
@@ -746,7 +752,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
 
       Inode<?> current = mRoot;
-      lockGroup.lockRead(current);
+//      lockGroup.lockRead(current);
       inodes.add(current);
 
       // iterate from 1, because 0 is root and it's already added
@@ -760,7 +766,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockGroup);
         } else {
           // Lock the existing inode before proceeding.
-          lockGroup.lockRead(next);
+//          lockGroup.lockRead(next);
           if (next.isFile()) {
             // The inode can't have any children. If this is the last path component, we're good.
             // Otherwise, we can't traverse further, so we clean up and throw an exception.
