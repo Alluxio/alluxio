@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.collections.Pair;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
