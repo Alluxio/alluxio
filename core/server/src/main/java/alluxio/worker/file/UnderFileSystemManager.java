@@ -40,6 +40,41 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UnderFileSystemManager {
   /**
+   * An object which generates input streams to under file system files given a position. This
+   * class does not manage the life cycles of the generated streams and it is up to the caller to
+   * close the streams when appropriate.
+   */
+  private class UnderFileSystemInputStream {
+    /** Configuration to use for this stream. */
+    private final Configuration mConfiguration;
+    /** The string form of the uri to the file in the under file system */
+    private final String mUri;
+
+    private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
+      mUri = ufsUri.toString();
+      mConfiguration = conf;
+    }
+
+    /**
+     * Opens a new input stream to the file this object references. The new stream will be at the
+     * specified position when it is returned to the caller. The caller is responsible for
+     * closing the stream.
+     *
+     * @param position the absolute position in the file to start the stream at
+     * @return an input stream to the file starting at the specified position
+     * @throws IOException if an error occurs when interacting with the UFS
+     */
+    private InputStream openAtPosition(long position) throws IOException {
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      InputStream stream = ufs.open(mUri);
+      if (position != stream.skip(position)) {
+        throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(position));
+      }
+      return stream;
+    }
+  }
+
+  /**
    * A wrapper around the output stream to the under file system. This class handles writing the
    * data to a temporary file. When the stream is closed, the temporary file will attempt to be
    * renamed to the final file path. This stream guarantees the temporary file will be cleaned up
@@ -48,7 +83,7 @@ public final class UnderFileSystemManager {
   // TODO(calvin): This can be defined by the UnderFileSystem
   private final class UnderFileSystemOutputStream {
     /** Configuration to use for this stream. */
-    private final Configuration mConf;
+    private final Configuration mConfiguration;
     /** Underlying stream to the under file system file. */
     private final OutputStream mStream;
     /** String form of the final uri to write to in the under file system. */
@@ -58,10 +93,10 @@ public final class UnderFileSystemManager {
 
     private UnderFileSystemOutputStream(AlluxioURI ufsUri, Configuration conf)
         throws FileAlreadyExistsException, IOException {
-      mConf = Preconditions.checkNotNull(conf);
+      mConfiguration = Preconditions.checkNotNull(conf);
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (ufs.exists(mUri)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
@@ -75,7 +110,7 @@ public final class UnderFileSystemManager {
      */
     private void cancel() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       // TODO(calvin): Log a warning if the delete fails
       ufs.delete(mTemporaryUri, false);
     }
@@ -88,7 +123,7 @@ public final class UnderFileSystemManager {
      */
     private void complete() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConf);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (!ufs.rename(mTemporaryUri, mUri)) {
         // TODO(calvin): Log a warning if the delete fails
         ufs.delete(mTemporaryUri, false);
@@ -214,24 +249,5 @@ public final class UnderFileSystemManager {
     long workerFileId = mIdGenerator.getAndIncrement();
     mInputStreams.put(workerFileId, stream);
     return workerFileId;
-  }
-
-  private class UnderFileSystemInputStream {
-    private final String mUfsPath;
-    private final Configuration mConfiguration;
-
-    private UnderFileSystemInputStream(AlluxioURI ufsUri, Configuration conf) {
-      mUfsPath = ufsUri.toString();
-      mConfiguration = conf;
-    }
-
-    private InputStream openAtPosition(long position) throws IOException {
-      UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, mConfiguration);
-      InputStream stream = ufs.open(mUfsPath);
-      if (position != stream.skip(position)) {
-        throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(position));
-      }
-      return stream;
-    }
   }
 }
