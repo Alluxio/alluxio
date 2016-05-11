@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class PrefixList {
-  private final List<String> mInnerList;
+  private final ImmutableList<String> mInnerList;
 
   /**
    * Prefix list is used to do file filtering.
@@ -33,9 +33,9 @@ public final class PrefixList {
    */
   public PrefixList(List<String> prefixList) {
     if (prefixList == null) {
-      mInnerList = new ArrayList<String>(0);
+      mInnerList = ImmutableList.of();
     } else {
-      mInnerList = prefixList;
+      mInnerList = ImmutableList.copyOf(prefixList);
     }
   }
 
@@ -47,16 +47,17 @@ public final class PrefixList {
    */
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
-    mInnerList = new ArrayList<String>(0);
+    List<String> prefixList = new ArrayList<String>(0);
     if (prefixes != null && !prefixes.trim().isEmpty()) {
       String[] candidates = prefixes.trim().split(separator);
       for (String prefix : candidates) {
         String trimmed = prefix.trim();
         if (!trimmed.isEmpty()) {
-          mInnerList.add(trimmed);
+          prefixList.add(trimmed);
         }
       }
     }
+    mInnerList = ImmutableList.copyOf(prefixList);
   }
 
   /**
@@ -65,7 +66,7 @@ public final class PrefixList {
    * @return the list of prefixes
    */
   public List<String> getList() {
-    return ImmutableList.copyOf(mInnerList);
+    return mInnerList;
   }
 
   /**
