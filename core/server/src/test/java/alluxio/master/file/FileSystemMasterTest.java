@@ -248,6 +248,37 @@ public final class FileSystemMasterTest {
         TimeUnit.SECONDS));
   }
 
+  @Test
+  public void getPathTest() throws Exception {
+    AlluxioURI rootUri = new AlluxioURI("/");
+    long rootId = mFileSystemMaster.getFileId(rootUri);
+    Assert.assertEquals(rootUri, mFileSystemMaster.getPath(rootId));
+
+    // get non-existent id
+    try {
+      mFileSystemMaster.getPath(rootId + 1234);
+      Assert.fail("getPath() for a non-existent id should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
+  @Test
+  public void getPersistenceStateTest() throws Exception {
+    AlluxioURI rootUri = new AlluxioURI("/");
+    long rootId = mFileSystemMaster.getFileId(rootUri);
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED,
+        mFileSystemMaster.getPersistenceState(rootId));
+
+    // get non-existent id
+    try {
+      mFileSystemMaster.getPersistenceState(rootId + 1234);
+      Assert.fail("getPath() for a non-existent id should fail.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case.
+    }
+  }
+
   /**
    * Tests that an exception is in the
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
@@ -592,6 +623,9 @@ public final class FileSystemMasterTest {
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(PersistenceState.NOT_PERSISTED.name(), fileInfo.getPersistenceState());
+    // Check with getPersistenceState
+    Assert.assertEquals(PersistenceState.NOT_PERSISTED,
+        mFileSystemMaster.getPersistenceState(fileId));
 
     // run the detector
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
@@ -600,6 +634,8 @@ public final class FileSystemMasterTest {
 
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
+    // Check with getPersistenceState
+    Assert.assertEquals(PersistenceState.LOST, mFileSystemMaster.getPersistenceState(fileId));
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

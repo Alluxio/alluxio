@@ -40,6 +40,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
+import alluxio.master.file.meta.InodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
@@ -427,9 +428,8 @@ public final class FileSystemMaster extends AbstractMaster {
   // Internal facing, currently used by Lineage master
   // TODO(binfan): Add permission checking for internal APIs
   public PersistenceState getPersistenceState(long fileId) throws FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeById(fileId);
-      return inode.getPersistenceState();
+    try (InodePath inodePath = mInodeTree.getInodePath(fileId)) {
+      return inodePath.getInode().getPersistenceState();
     }
   }
 
@@ -766,18 +766,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the number of files and directories
    */
   public int getNumberOfPaths() {
-    synchronized (mInodeTree) {
-      return mInodeTree.getSize();
-    }
+    return mInodeTree.getSize();
   }
 
   /**
    * @return the number of pinned files and directories
    */
   public int getNumberOfPinnedFiles() {
-    synchronized (mInodeTree) {
-      return mInodeTree.getPinnedSize();
-    }
+    return mInodeTree.getPinnedSize();
   }
 
   /**
@@ -1514,8 +1510,8 @@ public final class FileSystemMaster extends AbstractMaster {
   // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      return mInodeTree.getPath(mInodeTree.getInodeById(fileId));
+    try (InodePath inodePath = mInodeTree.getInodePath(fileId)) {
+      return mInodeTree.getPath(inodePath);
     }
   }
 
@@ -1523,9 +1519,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the set of inode ids which are pinned
    */
   public Set<Long> getPinIdList() {
-    synchronized (mInodeTree) {
-      return mInodeTree.getPinIdSet();
-    }
+    return mInodeTree.getPinIdSet();
   }
 
   /**
@@ -1539,9 +1533,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the white list
    */
   public List<String> getWhiteList() {
-    synchronized (mInodeTree) {
-      return mWhitelist.getList();
-    }
+    return mWhitelist.getList();
   }
 
   /**
