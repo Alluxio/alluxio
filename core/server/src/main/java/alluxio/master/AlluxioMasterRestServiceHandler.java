@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -74,6 +74,8 @@ public final class AlluxioMasterRestServiceHandler {
   private final Configuration mMasterConf = MasterContext.getConf();
   private final String mUfsRoot = mMasterConf.get(Constants.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
+
+  private AlluxioMasterRestServiceHandler() {} // prevent instantiation
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.

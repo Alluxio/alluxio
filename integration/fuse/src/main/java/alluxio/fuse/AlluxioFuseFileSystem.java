@@ -665,6 +665,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    * Resolves a FUSE path into {@link AlluxioURI} and possibly keeps it in the cache.
    */
   private class PathCacheLoader extends CacheLoader<String, AlluxioURI> {
+
+    /**
+     * Constructs a new {@link PathCacheLoader}.
+     */
+    public PathCacheLoader() {}
+
     @Override
     public AlluxioURI load(String fusePath) {
       // fusePath is guaranteed to always be an absolute path (i.e., starts

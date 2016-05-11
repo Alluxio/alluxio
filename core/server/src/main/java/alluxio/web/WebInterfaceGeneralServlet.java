@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.MasterContext;
 import alluxio.underfs.UnderFileSystem;
