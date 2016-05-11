@@ -46,7 +46,7 @@ public final class PinIntegrationTest {
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mFSMasterClient = new FileSystemMasterClient(
-        new InetSocketAddress(mLocalAlluxioClusterResource.get().getMasterHostname(),
+        new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterPort()),
         mLocalAlluxioClusterResource.get().getWorkerConf());
     mSetPinned = SetAttributeOptions.defaults().setPinned(true);
