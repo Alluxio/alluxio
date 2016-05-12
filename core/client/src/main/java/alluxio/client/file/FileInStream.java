@@ -76,8 +76,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** If the stream is closed, this can only go from false to true. */
   protected boolean mClosed;
   /**
-   * Current position of the file instream. This is not always sync-ed with block instream or
-   * cache outstream internally.
+   * Current position of the file instream.
    */
   protected long mPos;
 
@@ -288,7 +287,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param pos the position to get the block size for
    * @return the size of the block that covers pos
    */
- protected long getBlockSize(long pos) {
+  protected long getBlockSize(long pos) {
     // The size of the last block, 0 if it is equal to the normal block size
     long lastBlockSize = mFileLength % mBlockSize;
     // If we are not in the last block or if the last block is equal to the normal block size,
@@ -366,8 +365,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
    * {@link #mStreamBlockId} to be in sync with the current block (i.e.
    * {@link #getCurrentBlockId()}).
-   * This function can be called multiple times without side effect. It is recommended to be
-   * invoked before every read and seek unless you are sure about the block streams are up-to-date.
+   * If this method is called multiple times, the subsequent invokes become no-op.
+   * Call this function every read and seek unless you are sure about the block streams are
+   * up-to-date.
    *
    * @throws IOException if the next cache stream or block stream cannot be created
    */
@@ -585,8 +585,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Reads
-   * @throws IOException
+   * Reads the remaining of the current block.
+   * @throws IOException if read or cache write fails
    */
   private void readCurrentBlockToEnd() throws IOException {
     readCurrentBlockToPos(Long.MAX_VALUE);
