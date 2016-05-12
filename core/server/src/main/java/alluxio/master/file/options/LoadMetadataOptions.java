@@ -1,14 +1,15 @@
 package alluxio.master.file.options;
 
-import alluxio.thrift.LoadMetadataTOptions;
-
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
+/**
+ * Method options for loading metadata.
+ */
 @NotThreadSafe
 public final class LoadMetadataOptions {
-  private boolean mRecursive;
+  private boolean mCreateAncestors;
   private boolean mLoadDirectChildren;
 
   /**
@@ -19,22 +20,16 @@ public final class LoadMetadataOptions {
   }
 
   private LoadMetadataOptions() {
-    mRecursive = false;
+    mCreateAncestors = false;
     mLoadDirectChildren = false;
-  }
-
-  public LoadMetadataOptions(LoadMetadataTOptions options) {
-    this();
-    mRecursive = options.isRecursive();
-    mLoadDirectChildren = options.isLoadDirectChildren();
   }
 
   /**
    * @return the recursive flag value; it specifies whether parent directories should be created if
    *         they do not already exist
    */
-  public boolean isRecursive() {
-    return mRecursive;
+  public boolean isCreateAncestors() {
+    return mCreateAncestors;
   }
 
   /**
@@ -48,12 +43,12 @@ public final class LoadMetadataOptions {
   /**
    * Sets the recursive flag.
    *
-   * @param recursive the recursive flag value to use; it specifies whether parent directories
+   * @param createAncestors the recursive flag value to use; it specifies whether parent directories
    *        should be created if they do not already exist
    * @return the updated options object
    */
-  public LoadMetadataOptions setRecursive(boolean recursive) {
-    mRecursive = recursive;
+  public LoadMetadataOptions setCreateAncestors(boolean createAncestors) {
+    mCreateAncestors = createAncestors;
     return this;
   }
 
@@ -78,18 +73,18 @@ public final class LoadMetadataOptions {
       return false;
     }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive)
+    return Objects.equal(mCreateAncestors, that.mCreateAncestors)
         && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mLoadDirectChildren);
+    return Objects.hashCode(mCreateAncestors, mLoadDirectChildren);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("recursive", mRecursive)
+    return Objects.toStringHelper(this).add("createAncestors", mCreateAncestors)
         .add("loadDirectChildren", mLoadDirectChildren).toString();
   }
 }

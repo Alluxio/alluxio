@@ -335,7 +335,7 @@ public final class FileSystemMaster extends AbstractMaster {
         mPermissionChecker.checkPermission(FileSystemAction.READ, path);
         if (!mInodeTree.inodePathExists(path)) {
           try {
-            return loadMetadata(path, LoadMetadataOptions.defaults().setRecursive(true));
+            return loadMetadata(path, LoadMetadataOptions.defaults().setCreateAncestors(true));
           } catch (Exception e) {
             return IdUtils.INVALID_FILE_ID;
           }
@@ -387,7 +387,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
       if (!mInodeTree.inodePathExists(path)) {
         try {
-          loadMetadata(path, LoadMetadataOptions.defaults().setRecursive(true));
+          loadMetadata(path, LoadMetadataOptions.defaults().setCreateAncestors(true));
         } catch (Exception e) {
           // TODO(peis): consider throw an metadata loading failure exception here.
           LOG.error("Failed to load metadata at {}", path, e);
@@ -456,19 +456,22 @@ public final class FileSystemMaster extends AbstractMaster {
    * {@link FileSystemAction#EXECUTE} permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
+   * @param loadDirectChildren whether to load the direct children if path is a directory if its
+   *                           direct children have not beed loaded before
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  public List<FileInfo> getFileInfoList(AlluxioURI path)
+  public List<FileInfo> getFileInfoList(AlluxioURI path, boolean loadDirectChildren)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
 
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setRecursive(true).setLoadDirectChildren(true);
+          LoadMetadataOptions.defaults().setCreateAncestors(true)
+              .setLoadDirectChildren(loadDirectChildren);
       Inode<?> inode = null;
       if (mInodeTree.inodePathExists(path)) {
         inode = mInodeTree.getInodeByPath(path);
@@ -1551,6 +1554,7 @@ public final class FileSystemMaster extends AbstractMaster {
           if (!inode.isDirectChildrenLoaded() && options.isLoadDirectChildren()) {
             String[] files = ufs.list(ufsUri.getPath());
             LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
+            loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
             for (int i = 0; i < files.length; i++) {
               loadMetadata(path.join(files[i]), loadMetadataOptions);
             }
@@ -1596,7 +1600,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // Metadata loaded from UFS has no TTL set.
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
-            .setRecursive(options.isRecursive()).setMetadataLoad(true).setPersisted(true);
+            .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
     try {
       long fileId = createFile(path, createFileOptions);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
@@ -1628,7 +1632,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     CreateDirectoryOptions createDirectoryOptions =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
-            .setPersisted(true).setRecursive(options.isRecursive()).setMetadataLoad(true);
+            .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true);
     InodeTree.CreatePathResult result;
     try {
       result = createDirectory(path, createDirectoryOptions);
@@ -1689,7 +1693,8 @@ public final class FileSystemMaster extends AbstractMaster {
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
-        loadDirectoryMetadata(alluxioPath, LoadMetadataOptions.defaults().setRecursive(false));
+        loadDirectoryMetadata(alluxioPath,
+            LoadMetadataOptions.defaults().setCreateAncestors(false));
         loadMetadataSuceeded = true;
       } catch (FileDoesNotExistException e) {
         // This exception should be impossible since we just mounted this path

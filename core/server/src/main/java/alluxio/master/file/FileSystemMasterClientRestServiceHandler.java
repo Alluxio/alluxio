@@ -257,7 +257,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   public Response listStatus(@QueryParam("path") String path) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path)));
+      return RestUtils
+          .createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());

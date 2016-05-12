@@ -181,13 +181,15 @@ public class FileSystemMasterClientRestApiTest extends RestApiTest {
     for (int i = 0; i < numFileInfos; i++) {
       fileInfos.add(FileInfoTest.createRandom());
     }
-    Mockito.doReturn(fileInfos).when(mFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
+    Mockito.doReturn(fileInfos).when(mFileSystemMaster)
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
 
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS), params, HttpMethod.GET,
         fileInfos).run();
 
-    Mockito.verify(mFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
+    Mockito.verify(mFileSystemMaster)
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
   }
 
   @Test
@@ -206,7 +208,7 @@ public class FileSystemMasterClientRestApiTest extends RestApiTest {
         HttpMethod.POST, loadMetadataResult).run();
 
     Mockito.verify(mFileSystemMaster)
-        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions >any());
+        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions>any());
   }
 
   @Test

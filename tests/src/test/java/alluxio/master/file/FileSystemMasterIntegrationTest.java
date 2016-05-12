@@ -389,7 +389,7 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"))) {
+      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"), true)) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -415,7 +415,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test
@@ -435,14 +435,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH).size();
+    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(ROOT_PATH2).size());
+        mFsMaster.getFileInfoList(ROOT_PATH2, true).size());
   }
 
   @Test
@@ -674,11 +674,11 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = new HashSet<>();
     HashSet<Long> listedDirIds = new HashSet<>();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
+    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"), true);
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()))) {
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()), true)) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -698,13 +698,13 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0"), true).size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i)).size());
+          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i), true).size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test

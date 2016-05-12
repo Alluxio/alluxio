@@ -169,6 +169,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     return getThis();
   }
 
+  /**
+   * @param directChildrenLoaded whether to load the direct children if they were not loaded before
+   * @return the updated object
+   */
   public synchronized InodeDirectory setDirectChildrenLoaded(boolean directChildrenLoaded) {
     mDirectChildrenLoaded = directChildrenLoaded;
     return getThis();
