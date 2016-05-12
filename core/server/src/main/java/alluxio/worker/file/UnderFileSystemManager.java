@@ -48,6 +48,10 @@ public final class UnderFileSystemManager {
    */
   @ThreadSafe
   private final class InputStreamAgent {
+    /** Session this agent belongs to, indexed on */
+    private final long mSessionId;
+    /** Id referencing this agent, indexed on */
+    private final long mId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
     /** The string form of the uri to the file in the under file system. */
@@ -62,8 +66,10 @@ public final class UnderFileSystemManager {
      * @throws FileDoesNotExistException if the file does not exist in the UFS
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private InputStreamAgent(AlluxioURI ufsUri, Configuration conf) throws
-        FileDoesNotExistException, IOException {
+    private InputStreamAgent(long sessionId, long id, AlluxioURI ufsUri, Configuration conf)
+        throws FileDoesNotExistException, IOException {
+      mSessionId = sessionId;
+      mId = id;
       mUri = ufsUri.toString();
       mConfiguration = conf;
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
@@ -106,6 +112,10 @@ public final class UnderFileSystemManager {
   // TODO(calvin): This can be defined by the UnderFileSystem
   @NotThreadSafe
   private final class OutputStreamAgent {
+    /** Session this agent belongs to, indexed on */
+    private final long mSessionId;
+    /** Id referencing this agent, indexed on */
+    private final long mId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
     /** Underlying stream to the under file system file. */
@@ -119,13 +129,17 @@ public final class UnderFileSystemManager {
      * Creates an output stream agent for the specified UFS uri. The UFS file must not exist when
      * this constructor is called.
      *
+     * @param sessionId the id of the session that created this object
+     * @param id the worker specific id which references this object
      * @param ufsUri the file to create in the UFS
      * @param conf the configuration to use
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(AlluxioURI ufsUri, Configuration conf)
+    private OutputStreamAgent(long sessionId, long id, AlluxioURI ufsUri, Configuration conf)
         throws FileAlreadyExistsException, IOException {
+      mSessionId = sessionId;
+      mId = id;
       mConfiguration = Preconditions.checkNotNull(conf);
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
