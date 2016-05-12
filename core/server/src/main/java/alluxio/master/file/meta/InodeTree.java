@@ -234,8 +234,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return new InodePath(path, traversalResult.getInodes(), traversalResult.getInodeLockGroup());
   }
 
-  // TODO(gpang): make this take an InodePath instead of just AlluxioURI.
-  public InodePath getInodePath(AlluxioURI path)
+  public InodePath lockFullInodePath(AlluxioURI path)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
@@ -245,7 +244,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return new InodePath(path, traversalResult.getInodes(), traversalResult.getInodeLockGroup());
   }
 
-  public InodePath getInodePath(long id) throws FileDoesNotExistException {
+  public InodePath lockFullInodePath(long id) throws FileDoesNotExistException {
     for (;;) {
       Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
       if (inode == null) {
@@ -256,7 +255,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       computePathForInode(inode, builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
 
-      try (InodePath inodePath = getInodePath(uri)) {
+      try (InodePath inodePath = lockFullInodePath(uri)) {
         if (inodePath.getInode().getId() == id) {
           return inodePath;
         }
