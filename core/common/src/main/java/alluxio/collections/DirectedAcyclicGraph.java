@@ -195,7 +195,7 @@ public class DirectedAcyclicGraph<T> {
   /**
    * Gets all payloads of the DAG in the topological order.
    *
-   * @return the payloads of all the nodes in toplogical order
+   * @return the payloads of all the nodes in topological order
    */
   public List<T> getAllInTopologicalOrder() {
     return sortTopologically(mIndex.keySet());
