@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.LoadMetadataTOptions;
 
 import com.google.common.base.Objects;
 
@@ -20,12 +19,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for loading the metadata.
+ *
+ * @deprecated since version 1.1 and will be removed in version 2.0
  */
 @PublicApi
 @NotThreadSafe
+@Deprecated
 public final class LoadMetadataOptions {
   private boolean mRecursive;
-  private boolean mLoadDirectChildren;
 
   /**
    * @return the default {@link LoadMetadataOptions}
@@ -36,7 +37,6 @@ public final class LoadMetadataOptions {
 
   private LoadMetadataOptions() {
     mRecursive = false;
-    mLoadDirectChildren = false;
   }
 
   /**
@@ -45,14 +45,6 @@ public final class LoadMetadataOptions {
    */
   public boolean isRecursive() {
     return mRecursive;
-  }
-
-  /**
-   * @return the load direct children flag. It specifies whether the direct children should
-   * be loaded.
-   */
-  public boolean isLoadDirectChildren() {
-    return mLoadDirectChildren;
   }
 
   /**
@@ -67,18 +59,6 @@ public final class LoadMetadataOptions {
     return this;
   }
 
-  /**
-   * Sets the load direct children flag.
-   *
-   * @param loadDirectChildren the load direct children flag. It specifies whether the direct
-   *                           children should be loaded.
-   * @return the updated object
-   */
-  public LoadMetadataOptions setLoadDirectChildren(boolean loadDirectChildren) {
-    mLoadDirectChildren = loadDirectChildren;
-    return this;
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -88,28 +68,18 @@ public final class LoadMetadataOptions {
       return false;
     }
     LoadMetadataOptions that = (LoadMetadataOptions) o;
-    return Objects.equal(mRecursive, that.mRecursive)
-        && Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren);
+    return Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mLoadDirectChildren);
+    return Objects.hashCode(mRecursive);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("recursive", mRecursive)
-        .add("loadDirectChildren", mLoadDirectChildren).toString();
-  }
-
-  /**
-   * @return the thrift representation of the options
-   */
-  public LoadMetadataTOptions toThrift() {
-    LoadMetadataTOptions options = new LoadMetadataTOptions();
-    options.setRecursive(mRecursive);
-    options.setLoadDirectChildren(mLoadDirectChildren);
-    return options;
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

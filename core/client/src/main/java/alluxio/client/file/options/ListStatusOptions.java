@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.thrift.ListStatusTOptions;
 
 import com.google.common.base.Objects;
 
@@ -23,6 +24,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class ListStatusOptions {
+  private boolean mLoadDirectChildren;
+
   /**
    * @return the default {@link ListStatusOptions}
    */
@@ -31,21 +34,47 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    // No options currently
+    mLoadDirectChildren = true;
+  }
+
+  /**
+   * @return the load direct children flag. It specifies whether the direct children should
+   *         be loaded from UFS if they have not been loaded once.
+   */
+  public boolean isLoadDirectChildren() {
+    return mLoadDirectChildren;
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof ListStatusOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ListStatusOptions)) {
+      return false;
+    }
+    ListStatusOptions that = (ListStatusOptions) o;
+    return Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren);
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return Objects.hashCode(mLoadDirectChildren);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return Objects.toStringHelper(this)
+        .add("loadDirectChildren", mLoadDirectChildren)
+        .toString();
+  }
+
+  /**
+   * @return thrift representation of the options
+   */
+  public ListStatusTOptions toThrift() {
+    ListStatusTOptions options = new ListStatusTOptions();
+    options.setLoadDirectChildren(mLoadDirectChildren);
+    return options;
   }
 }

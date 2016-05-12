@@ -20,6 +20,7 @@ import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.client.file.options.FreeOptions;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
 import alluxio.client.file.options.MountOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -207,17 +208,19 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
 
   /**
    * @param path the path to list
+   * @param options the listStatus options
    * @return the list of file information for the given path
    * @throws IOException if an I/O error occurs
    * @throws AlluxioException if an Alluxio error occurs
    */
-  public synchronized List<URIStatus> listStatus(final AlluxioURI path)
-      throws IOException, AlluxioException {
+  public synchronized List<URIStatus> listStatus(final AlluxioURI path,
+      final ListStatusOptions options) throws IOException, AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<List<URIStatus>>() {
       @Override
       public List<URIStatus> call() throws AlluxioTException, TException {
         List<URIStatus> result = new ArrayList<URIStatus>();
-        for (alluxio.thrift.FileInfo fileInfo : mClient.listStatus(path.getPath())) {
+        for (alluxio.thrift.FileInfo fileInfo : mClient
+            .listStatus(path.getPath(), options.toThrift())) {
           result.add(new URIStatus(ThriftUtils.fromThrift(fileInfo)));
         }
         return result;
@@ -238,7 +241,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.loadMetadata(path.toString(), options.toThrift());
+        return mClient.loadMetadata(path.toString(), options.isRecursive());
       }
     });
   }

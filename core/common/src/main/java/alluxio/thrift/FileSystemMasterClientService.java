@@ -123,17 +123,20 @@ public class FileSystemMasterClientService {
      * directory contents.
      * 
      * @param path the path of the file or directory
+     * 
+     * @param options listStatus options
      */
-    public List<FileInfo> listStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
+    public List<FileInfo> listStatus(String path, ListStatusTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException;
 
     /**
      * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
+     * This is deprecated. Use list
      * 
      * @param ufsPath the path of the under file system
      * 
-     * @param options whether to load meta data recursively
+     * @param recursive whether to load meta data recursively
      */
-    public long loadMetadata(String ufsPath, LoadMetadataTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a new "mount point", mounts the given UFS path in the Alluxio namespace at the given
@@ -213,9 +216,9 @@ public class FileSystemMasterClientService {
 
     public void getUfsAddress(org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void listStatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void listStatus(String path, ListStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void loadMetadata(String ufsPath, LoadMetadataTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void loadMetadata(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
     public void mount(String alluxioPath, String ufsPath, MountTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
@@ -479,16 +482,17 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "getUfsAddress failed: unknown result");
     }
 
-    public List<FileInfo> listStatus(String path) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
+    public List<FileInfo> listStatus(String path, ListStatusTOptions options) throws alluxio.thrift.AlluxioTException, org.apache.thrift.TException
     {
-      send_listStatus(path);
+      send_listStatus(path, options);
       return recv_listStatus();
     }
 
-    public void send_listStatus(String path) throws org.apache.thrift.TException
+    public void send_listStatus(String path, ListStatusTOptions options) throws org.apache.thrift.TException
     {
       listStatus_args args = new listStatus_args();
       args.setPath(path);
+      args.setOptions(options);
       sendBase("listStatus", args);
     }
 
@@ -505,17 +509,17 @@ public class FileSystemMasterClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "listStatus failed: unknown result");
     }
 
-    public long loadMetadata(String ufsPath, LoadMetadataTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long loadMetadata(String ufsPath, boolean recursive) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_loadMetadata(ufsPath, options);
+      send_loadMetadata(ufsPath, recursive);
       return recv_loadMetadata();
     }
 
-    public void send_loadMetadata(String ufsPath, LoadMetadataTOptions options) throws org.apache.thrift.TException
+    public void send_loadMetadata(String ufsPath, boolean recursive) throws org.apache.thrift.TException
     {
       loadMetadata_args args = new loadMetadata_args();
       args.setUfsPath(ufsPath);
-      args.setOptions(options);
+      args.setRecursive(recursive);
       sendBase("loadMetadata", args);
     }
 
@@ -1002,24 +1006,27 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void listStatus(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void listStatus(String path, ListStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      listStatus_call method_call = new listStatus_call(path, resultHandler, this, ___protocolFactory, ___transport);
+      listStatus_call method_call = new listStatus_call(path, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class listStatus_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String path;
-      public listStatus_call(String path, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private ListStatusTOptions options;
+      public listStatus_call(String path, ListStatusTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.path = path;
+        this.options = options;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("listStatus", org.apache.thrift.protocol.TMessageType.CALL, 0));
         listStatus_args args = new listStatus_args();
         args.setPath(path);
+        args.setOptions(options);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1034,27 +1041,27 @@ public class FileSystemMasterClientService {
       }
     }
 
-    public void loadMetadata(String ufsPath, LoadMetadataTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void loadMetadata(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      loadMetadata_call method_call = new loadMetadata_call(ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
+      loadMetadata_call method_call = new loadMetadata_call(ufsPath, recursive, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class loadMetadata_call extends org.apache.thrift.async.TAsyncMethodCall {
       private String ufsPath;
-      private LoadMetadataTOptions options;
-      public loadMetadata_call(String ufsPath, LoadMetadataTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private boolean recursive;
+      public loadMetadata_call(String ufsPath, boolean recursive, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.ufsPath = ufsPath;
-        this.options = options;
+        this.recursive = recursive;
       }
 
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("loadMetadata", org.apache.thrift.protocol.TMessageType.CALL, 0));
         loadMetadata_args args = new loadMetadata_args();
         args.setUfsPath(ufsPath);
-        args.setOptions(options);
+        args.setRecursive(recursive);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -1542,7 +1549,7 @@ public class FileSystemMasterClientService {
       public listStatus_result getResult(I iface, listStatus_args args) throws org.apache.thrift.TException {
         listStatus_result result = new listStatus_result();
         try {
-          result.success = iface.listStatus(args.path);
+          result.success = iface.listStatus(args.path, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         }
@@ -1566,7 +1573,7 @@ public class FileSystemMasterClientService {
       public loadMetadata_result getResult(I iface, loadMetadata_args args) throws org.apache.thrift.TException {
         loadMetadata_result result = new loadMetadata_result();
         try {
-          result.success = iface.loadMetadata(args.ufsPath, args.options);
+          result.success = iface.loadMetadata(args.ufsPath, args.recursive);
           result.setSuccessIsSet(true);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
@@ -2327,7 +2334,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, listStatus_args args, org.apache.thrift.async.AsyncMethodCallback<List<FileInfo>> resultHandler) throws TException {
-        iface.listStatus(args.path,resultHandler);
+        iface.listStatus(args.path, args.options,resultHandler);
       }
     }
 
@@ -2390,7 +2397,7 @@ public class FileSystemMasterClientService {
       }
 
       public void start(I iface, loadMetadata_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.loadMetadata(args.ufsPath, args.options,resultHandler);
+        iface.loadMetadata(args.ufsPath, args.recursive,resultHandler);
       }
     }
 
@@ -10389,6 +10396,7 @@ public class FileSystemMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("listStatus_args");
 
     private static final org.apache.thrift.protocol.TField PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("path", org.apache.thrift.protocol.TType.STRING, (short)1);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -10397,13 +10405,18 @@ public class FileSystemMasterClientService {
     }
 
     private String path; // required
+    private ListStatusTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
        * the path of the file or directory
        */
-      PATH((short)1, "path");
+      PATH((short)1, "path"),
+      /**
+       * listStatus options
+       */
+      OPTIONS((short)2, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -10420,6 +10433,8 @@ public class FileSystemMasterClientService {
         switch(fieldId) {
           case 1: // PATH
             return PATH;
+          case 2: // OPTIONS
+            return OPTIONS;
           default:
             return null;
         }
@@ -10465,6 +10480,8 @@ public class FileSystemMasterClientService {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.PATH, new org.apache.thrift.meta_data.FieldMetaData("path", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, ListStatusTOptions.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(listStatus_args.class, metaDataMap);
     }
@@ -10473,10 +10490,12 @@ public class FileSystemMasterClientService {
     }
 
     public listStatus_args(
-      String path)
+      String path,
+      ListStatusTOptions options)
     {
       this();
       this.path = path;
+      this.options = options;
     }
 
     /**
@@ -10485,6 +10504,9 @@ public class FileSystemMasterClientService {
     public listStatus_args(listStatus_args other) {
       if (other.isSetPath()) {
         this.path = other.path;
+      }
+      if (other.isSetOptions()) {
+        this.options = new ListStatusTOptions(other.options);
       }
     }
 
@@ -10495,6 +10517,7 @@ public class FileSystemMasterClientService {
     @Override
     public void clear() {
       this.path = null;
+      this.options = null;
     }
 
     /**
@@ -10527,6 +10550,36 @@ public class FileSystemMasterClientService {
       }
     }
 
+    /**
+     * listStatus options
+     */
+    public ListStatusTOptions getOptions() {
+      return this.options;
+    }
+
+    /**
+     * listStatus options
+     */
+    public listStatus_args setOptions(ListStatusTOptions options) {
+      this.options = options;
+      return this;
+    }
+
+    public void unsetOptions() {
+      this.options = null;
+    }
+
+    /** Returns true if field options is set (has been assigned a value) and false otherwise */
+    public boolean isSetOptions() {
+      return this.options != null;
+    }
+
+    public void setOptionsIsSet(boolean value) {
+      if (!value) {
+        this.options = null;
+      }
+    }
+
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
       case PATH:
@@ -10537,6 +10590,14 @@ public class FileSystemMasterClientService {
         }
         break;
 
+      case OPTIONS:
+        if (value == null) {
+          unsetOptions();
+        } else {
+          setOptions((ListStatusTOptions)value);
+        }
+        break;
+
       }
     }
 
@@ -10544,6 +10605,9 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return getPath();
+
+      case OPTIONS:
+        return getOptions();
 
       }
       throw new IllegalStateException();
@@ -10558,6 +10622,8 @@ public class FileSystemMasterClientService {
       switch (field) {
       case PATH:
         return isSetPath();
+      case OPTIONS:
+        return isSetOptions();
       }
       throw new IllegalStateException();
     }
@@ -10584,6 +10650,15 @@ public class FileSystemMasterClientService {
           return false;
       }
 
+      boolean this_present_options = true && this.isSetOptions();
+      boolean that_present_options = true && that.isSetOptions();
+      if (this_present_options || that_present_options) {
+        if (!(this_present_options && that_present_options))
+          return false;
+        if (!this.options.equals(that.options))
+          return false;
+      }
+
       return true;
     }
 
@@ -10595,6 +10670,11 @@ public class FileSystemMasterClientService {
       list.add(present_path);
       if (present_path)
         list.add(path);
+
+      boolean present_options = true && (isSetOptions());
+      list.add(present_options);
+      if (present_options)
+        list.add(options);
 
       return list.hashCode();
     }
@@ -10613,6 +10693,16 @@ public class FileSystemMasterClientService {
       }
       if (isSetPath()) {
         lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.path, other.path);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetOptions()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -10644,6 +10734,14 @@ public class FileSystemMasterClientService {
         sb.append(this.path);
       }
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("options:");
+      if (this.options == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.options);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -10651,6 +10749,9 @@ public class FileSystemMasterClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
+      if (options != null) {
+        options.validate();
+      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -10695,6 +10796,15 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
+            case 2: // OPTIONS
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.options = new ListStatusTOptions();
+                struct.options.read(iprot);
+                struct.setOptionsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             default:
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
           }
@@ -10713,6 +10823,11 @@ public class FileSystemMasterClientService {
         if (struct.path != null) {
           oprot.writeFieldBegin(PATH_FIELD_DESC);
           oprot.writeString(struct.path);
+          oprot.writeFieldEnd();
+        }
+        if (struct.options != null) {
+          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
+          struct.options.write(oprot);
           oprot.writeFieldEnd();
         }
         oprot.writeFieldStop();
@@ -10736,19 +10851,30 @@ public class FileSystemMasterClientService {
         if (struct.isSetPath()) {
           optionals.set(0);
         }
-        oprot.writeBitSet(optionals, 1);
+        if (struct.isSetOptions()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
         if (struct.isSetPath()) {
           oprot.writeString(struct.path);
+        }
+        if (struct.isSetOptions()) {
+          struct.options.write(oprot);
         }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, listStatus_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(1);
+        BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           struct.path = iprot.readString();
           struct.setPathIsSet(true);
+        }
+        if (incoming.get(1)) {
+          struct.options = new ListStatusTOptions();
+          struct.options.read(iprot);
+          struct.setOptionsIsSet(true);
         }
       }
     }
@@ -11281,7 +11407,7 @@ public class FileSystemMasterClientService {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("loadMetadata_args");
 
     private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField RECURSIVE_FIELD_DESC = new org.apache.thrift.protocol.TField("recursive", org.apache.thrift.protocol.TType.BOOL, (short)2);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -11290,7 +11416,7 @@ public class FileSystemMasterClientService {
     }
 
     private String ufsPath; // required
-    private LoadMetadataTOptions options; // required
+    private boolean recursive; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -11301,7 +11427,7 @@ public class FileSystemMasterClientService {
       /**
        * whether to load meta data recursively
        */
-      OPTIONS((short)2, "options");
+      RECURSIVE((short)2, "recursive");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -11318,8 +11444,8 @@ public class FileSystemMasterClientService {
         switch(fieldId) {
           case 1: // UFS_PATH
             return UFS_PATH;
-          case 2: // OPTIONS
-            return OPTIONS;
+          case 2: // RECURSIVE
+            return RECURSIVE;
           default:
             return null;
         }
@@ -11360,13 +11486,15 @@ public class FileSystemMasterClientService {
     }
 
     // isset id assignments
+    private static final int __RECURSIVE_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-      tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, LoadMetadataTOptions.class)));
+      tmpMap.put(_Fields.RECURSIVE, new org.apache.thrift.meta_data.FieldMetaData("recursive", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(loadMetadata_args.class, metaDataMap);
     }
@@ -11376,23 +11504,23 @@ public class FileSystemMasterClientService {
 
     public loadMetadata_args(
       String ufsPath,
-      LoadMetadataTOptions options)
+      boolean recursive)
     {
       this();
       this.ufsPath = ufsPath;
-      this.options = options;
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
     }
 
     /**
      * Performs a deep copy on <i>other</i>.
      */
     public loadMetadata_args(loadMetadata_args other) {
+      __isset_bitfield = other.__isset_bitfield;
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
-      if (other.isSetOptions()) {
-        this.options = new LoadMetadataTOptions(other.options);
-      }
+      this.recursive = other.recursive;
     }
 
     public loadMetadata_args deepCopy() {
@@ -11402,7 +11530,8 @@ public class FileSystemMasterClientService {
     @Override
     public void clear() {
       this.ufsPath = null;
-      this.options = null;
+      setRecursiveIsSet(false);
+      this.recursive = false;
     }
 
     /**
@@ -11438,31 +11567,30 @@ public class FileSystemMasterClientService {
     /**
      * whether to load meta data recursively
      */
-    public LoadMetadataTOptions getOptions() {
-      return this.options;
+    public boolean isRecursive() {
+      return this.recursive;
     }
 
     /**
      * whether to load meta data recursively
      */
-    public loadMetadata_args setOptions(LoadMetadataTOptions options) {
-      this.options = options;
+    public loadMetadata_args setRecursive(boolean recursive) {
+      this.recursive = recursive;
+      setRecursiveIsSet(true);
       return this;
     }
 
-    public void unsetOptions() {
-      this.options = null;
+    public void unsetRecursive() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
     }
 
-    /** Returns true if field options is set (has been assigned a value) and false otherwise */
-    public boolean isSetOptions() {
-      return this.options != null;
+    /** Returns true if field recursive is set (has been assigned a value) and false otherwise */
+    public boolean isSetRecursive() {
+      return EncodingUtils.testBit(__isset_bitfield, __RECURSIVE_ISSET_ID);
     }
 
-    public void setOptionsIsSet(boolean value) {
-      if (!value) {
-        this.options = null;
-      }
+    public void setRecursiveIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __RECURSIVE_ISSET_ID, value);
     }
 
     public void setFieldValue(_Fields field, Object value) {
@@ -11475,11 +11603,11 @@ public class FileSystemMasterClientService {
         }
         break;
 
-      case OPTIONS:
+      case RECURSIVE:
         if (value == null) {
-          unsetOptions();
+          unsetRecursive();
         } else {
-          setOptions((LoadMetadataTOptions)value);
+          setRecursive((Boolean)value);
         }
         break;
 
@@ -11491,8 +11619,8 @@ public class FileSystemMasterClientService {
       case UFS_PATH:
         return getUfsPath();
 
-      case OPTIONS:
-        return getOptions();
+      case RECURSIVE:
+        return isRecursive();
 
       }
       throw new IllegalStateException();
@@ -11507,8 +11635,8 @@ public class FileSystemMasterClientService {
       switch (field) {
       case UFS_PATH:
         return isSetUfsPath();
-      case OPTIONS:
-        return isSetOptions();
+      case RECURSIVE:
+        return isSetRecursive();
       }
       throw new IllegalStateException();
     }
@@ -11535,12 +11663,12 @@ public class FileSystemMasterClientService {
           return false;
       }
 
-      boolean this_present_options = true && this.isSetOptions();
-      boolean that_present_options = true && that.isSetOptions();
-      if (this_present_options || that_present_options) {
-        if (!(this_present_options && that_present_options))
+      boolean this_present_recursive = true;
+      boolean that_present_recursive = true;
+      if (this_present_recursive || that_present_recursive) {
+        if (!(this_present_recursive && that_present_recursive))
           return false;
-        if (!this.options.equals(that.options))
+        if (this.recursive != that.recursive)
           return false;
       }
 
@@ -11556,10 +11684,10 @@ public class FileSystemMasterClientService {
       if (present_ufsPath)
         list.add(ufsPath);
 
-      boolean present_options = true && (isSetOptions());
-      list.add(present_options);
-      if (present_options)
-        list.add(options);
+      boolean present_recursive = true;
+      list.add(present_recursive);
+      if (present_recursive)
+        list.add(recursive);
 
       return list.hashCode();
     }
@@ -11582,12 +11710,12 @@ public class FileSystemMasterClientService {
           return lastComparison;
         }
       }
-      lastComparison = Boolean.valueOf(isSetOptions()).compareTo(other.isSetOptions());
+      lastComparison = Boolean.valueOf(isSetRecursive()).compareTo(other.isSetRecursive());
       if (lastComparison != 0) {
         return lastComparison;
       }
-      if (isSetOptions()) {
-        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.options, other.options);
+      if (isSetRecursive()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.recursive, other.recursive);
         if (lastComparison != 0) {
           return lastComparison;
         }
@@ -11620,12 +11748,8 @@ public class FileSystemMasterClientService {
       }
       first = false;
       if (!first) sb.append(", ");
-      sb.append("options:");
-      if (this.options == null) {
-        sb.append("null");
-      } else {
-        sb.append(this.options);
-      }
+      sb.append("recursive:");
+      sb.append(this.recursive);
       first = false;
       sb.append(")");
       return sb.toString();
@@ -11634,9 +11758,6 @@ public class FileSystemMasterClientService {
     public void validate() throws org.apache.thrift.TException {
       // check for required fields
       // check for sub-struct validity
-      if (options != null) {
-        options.validate();
-      }
     }
 
     private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
@@ -11649,6 +11770,8 @@ public class FileSystemMasterClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -11681,11 +11804,10 @@ public class FileSystemMasterClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
-              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.options = new LoadMetadataTOptions();
-                struct.options.read(iprot);
-                struct.setOptionsIsSet(true);
+            case 2: // RECURSIVE
+              if (schemeField.type == org.apache.thrift.protocol.TType.BOOL) {
+                struct.recursive = iprot.readBool();
+                struct.setRecursiveIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -11710,11 +11832,9 @@ public class FileSystemMasterClientService {
           oprot.writeString(struct.ufsPath);
           oprot.writeFieldEnd();
         }
-        if (struct.options != null) {
-          oprot.writeFieldBegin(OPTIONS_FIELD_DESC);
-          struct.options.write(oprot);
-          oprot.writeFieldEnd();
-        }
+        oprot.writeFieldBegin(RECURSIVE_FIELD_DESC);
+        oprot.writeBool(struct.recursive);
+        oprot.writeFieldEnd();
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -11736,15 +11856,15 @@ public class FileSystemMasterClientService {
         if (struct.isSetUfsPath()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetRecursive()) {
           optionals.set(1);
         }
         oprot.writeBitSet(optionals, 2);
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
-        if (struct.isSetOptions()) {
-          struct.options.write(oprot);
+        if (struct.isSetRecursive()) {
+          oprot.writeBool(struct.recursive);
         }
       }
 
@@ -11757,9 +11877,8 @@ public class FileSystemMasterClientService {
           struct.setUfsPathIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.options = new LoadMetadataTOptions();
-          struct.options.read(iprot);
-          struct.setOptionsIsSet(true);
+          struct.recursive = iprot.readBool();
+          struct.setRecursiveIsSet(true);
         }
       }
     }
