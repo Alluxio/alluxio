@@ -59,6 +59,10 @@ public final class InodePath implements AutoCloseable {
     return (InodeFile) inode;
   }
 
+  public synchronized boolean fullPathExists() {
+    return mInodes.size() == mPathComponents.length;
+  }
+
   @Override
   public synchronized void close() {
     mLockGroup.unlock();
