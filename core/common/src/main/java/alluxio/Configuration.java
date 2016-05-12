@@ -13,8 +13,8 @@ package alluxio;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
-import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
@@ -25,10 +25,6 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,80 +76,6 @@ public final class Configuration {
   private final Properties mProperties = new Properties();
 
   /**
-   * Loads properties from the given file. This method will search Classpath for the properties
-   * file.
-   *
-   * @param propertiesFile filename of the properties file
-   * @return a set of properties on success, or null if failed
-   */
-  private static Properties loadPropertiesFileInClassPath(String propertiesFile) {
-    Properties properties = new Properties();
-
-    InputStream inputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(propertiesFile);
-    if (inputStream == null) {
-      return null;
-    }
-
-    try {
-      properties.load(inputStream);
-    } catch (IOException e) {
-      LOG.error("Unable to load default Alluxio properties file {}", propertiesFile, e);
-      return null;
-    }
-    return properties;
-  }
-
-  /**
-   * Loads properties from the given file. This method will search Classpath for the properties
-   * file.
-   *
-   * @param path the file to load properties
-   * @return a set of properties on success, or null if failed
-   */
-  private static Properties loadPropertiesFile(String path) {
-    Properties properties = new Properties();
-
-    FileInputStream fileInputStream;
-    try {
-      fileInputStream = new FileInputStream(path);
-    } catch (FileNotFoundException e) {
-      return null;
-    }
-
-    try {
-      properties.load(fileInputStream);
-    } catch (IOException e) {
-      LOG.error("Unable to load default Alluxio properties file {}", path, e);
-      return null;
-    }
-    return properties;
-  }
-
-  /**
-   * Loads properties from the given file under a given list of paths as well as Classpath.
-   *
-   * @param propertiesFile the file to load properties
-   * @param confPathList a list of paths to search the propertiesFile
-   * @return loaded properties on success, or null if failed
-   */
-  private static Properties searchPropertiesFile(String propertiesFile,
-      String[] confPathList) {
-    if (propertiesFile == null || confPathList == null) {
-      return null;
-    }
-    for (String path : confPathList) {
-      String file = PathUtils.concatPath(path, propertiesFile);
-      Properties properties = loadPropertiesFile(file);
-      if (properties != null) {
-        // If a site conf is successfully loaded, stop trying different paths
-        LOG.info("Configuration file {} loaded.", file);
-        return properties;
-      }
-    }
-    return loadPropertiesFileInClassPath(propertiesFile);
-  }
-  /**
    * Overrides default properties.
    *
    * @param props override {@link Properties}
@@ -184,7 +106,7 @@ public final class Configuration {
   private Configuration(String sitePropertiesFile, String processPropertiesFile,
       boolean includeSystemProperties) {
     // Load default
-    Properties defaultProps = loadPropertiesFileInClassPath(DEFAULT_PROPERTIES);
+    Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
     if (defaultProps == null) {
       throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
           .getMessage());
@@ -206,10 +128,12 @@ public final class Configuration {
     String[] confPathList = confPaths.split(",");
 
     // Load site specific properties file
-    Properties siteProps = searchPropertiesFile(sitePropertiesFile, confPathList);
+    Properties siteProps = ConfigurationUtils
+        .searchPropertiesFile(sitePropertiesFile, confPathList);
 
     // Load server or client specific properties file
-    Properties processProps = searchPropertiesFile(processPropertiesFile, confPathList);
+    Properties processProps = ConfigurationUtils
+        .searchPropertiesFile(processPropertiesFile, confPathList);
 
     // Load system properties
     Properties systemProps = new Properties();
@@ -217,7 +141,7 @@ public final class Configuration {
       systemProps.putAll(System.getProperties());
     }
 
-    // Now lets combine
+    // Now lets combine, order matters here
     mProperties.putAll(defaultProps);
     if (siteProps != null) {
       mProperties.putAll(siteProps);
