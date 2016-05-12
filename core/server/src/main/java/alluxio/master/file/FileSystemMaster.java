@@ -500,7 +500,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, AccessControlException {
     MasterContext.getMasterSource().incCompleteFileOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.WRITE, path);
       // Even readonly mount points should be able to complete a file, for UFS reads in CACHE mode.
       completeFileAndJournal(path, options);
@@ -634,11 +634,9 @@ public final class FileSystemMaster extends AbstractMaster {
       throws AccessControlException, InvalidPathException, FileAlreadyExistsException,
           BlockInfoException, IOException, FileDoesNotExistException {
     MasterContext.getMasterSource().incCreateFileOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
-      if (!options.isMetadataLoad()) {
-        mMountTable.checkUnderWritableMountPoint(path);
-      }
+      mMountTable.checkUnderWritableMountPoint(path);
       return createFileAndJournal(path, options);
     }
   }
@@ -717,7 +715,7 @@ public final class FileSystemMaster extends AbstractMaster {
   // Used by lineage master
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException {
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
           .setPath(path.getPath())
@@ -758,13 +756,11 @@ public final class FileSystemMaster extends AbstractMaster {
   public long getNewBlockIdForFile(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetNewBlockOps(1);
-    InodeFile inode;
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.WRITE, path);
-      inode = mInodeTree.getInodeFileByPath(path);
+      MasterContext.getMasterSource().incNewBlocksGot(1);
+      return inodePath.getInodeFile().getNewBlockId();
     }
-    MasterContext.getMasterSource().incNewBlocksGot(1);
-    return inode.getNewBlockId();
   }
 
   /**
@@ -801,7 +797,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws IOException, FileDoesNotExistException, DirectoryNotEmptyException,
           InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incDeletePathOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       mMountTable.checkUnderWritableMountPoint(path);
       return deleteAndJournal(path, recursive);
@@ -976,11 +972,8 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetFileBlockInfoOps(1);
     try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      Inode<?> inode = inodePath.getInode();
-      if (!inode.isFile()) {
-        throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
-      }
-      List<FileBlockInfo> ret = getFileBlockInfoListInternal((InodeFile) inode);
+      InodeFile inode = inodePath.getInodeFile();
+      List<FileBlockInfo> ret = getFileBlockInfoListInternal(inode);
       MasterContext.getMasterSource().incFileBlockInfosGot(ret.size());
       return ret;
     }
@@ -1146,11 +1139,9 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException {
     LOG.debug("createDirectory {} ", path);
     MasterContext.getMasterSource().incCreateDirectoriesOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
-      if (!options.isMetadataLoad()) {
-        mMountTable.checkUnderWritableMountPoint(path);
-      }
+      mMountTable.checkUnderWritableMountPoint(path);
       return createDirectoryAndJournal(path, options);
     }
   }
@@ -1259,7 +1250,14 @@ public final class FileSystemMaster extends AbstractMaster {
   public void rename(AlluxioURI srcPath, AlluxioURI dstPath) throws FileAlreadyExistsException,
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incRenamePathOps(1);
-    synchronized (mInodeTree) {
+    AlluxioURI uriLock1 = srcPath;
+    AlluxioURI uriLock2 = dstPath;
+    if (srcPath.compareTo(dstPath) > 0) {
+      uriLock1 = dstPath;
+      uriLock2 = srcPath;
+    }
+    try (InodePath inodePath1 = mInodeTree.lockInodePath(uriLock1);
+         InodePath inodePath2 = mInodeTree.lockInodePath(uriLock2)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, srcPath);
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, dstPath);
       mMountTable.checkUnderWritableMountPoint(srcPath);
@@ -1466,11 +1464,9 @@ public final class FileSystemMaster extends AbstractMaster {
   public boolean free(AlluxioURI path, boolean recursive)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incFreeFileOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-
-      Inode<?> inode = mInodeTree.getInodeByPath(path);
-      return freeInternal(inode, recursive);
+      return freeInternal(inodePath.getInode(), recursive);
     }
   }
 
@@ -1567,8 +1563,8 @@ public final class FileSystemMaster extends AbstractMaster {
   // Currently used by Lineage Master
   // TODO(binfan): Add permission checking for internal APIs
   public void reportLostFile(long fileId) throws FileDoesNotExistException {
-    synchronized (mInodeTree) {
-      Inode<?> inode = mInodeTree.getInodeById(fileId);
+    try (InodePath inodePath = mInodeTree.getInodePath(fileId)) {
+      Inode<?> inode = inodePath.getInode();
       if (inode.isDirectory()) {
         LOG.warn("Reported file is a directory {}", inode);
         return;
@@ -1611,7 +1607,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
       InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
       AccessControlException {
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(path)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, path);
       return loadMetadataAndJournal(path, recursive);
     }
@@ -1734,7 +1730,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.lockInodePath(alluxioPath)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
       mMountTable.checkUnderWritableMountPoint(alluxioPath);
       mountAndJournal(alluxioPath, ufsPath, options);
@@ -1881,7 +1877,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public boolean unmount(AlluxioURI alluxioPath)
       throws FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incUnmountOps(1);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(alluxioPath)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, alluxioPath);
       if (unmountAndJournal(alluxioPath)) {
         MasterContext.getMasterSource().incPathsUnmounted(1);
@@ -1959,10 +1955,10 @@ public final class FileSystemMaster extends AbstractMaster {
   public void resetFile(long fileId)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     // TODO(yupeng) check the file is not persisted
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(fileId)) {
       // free the file first
+      InodeFile inodeFile = (InodeFile) inodePath.getInode();
       freeInternal(mInodeTree.getInodeById(fileId), false);
-      InodeFile inodeFile = (InodeFile) mInodeTree.getInodeById(fileId);
       inodeFile.reset();
     }
   }
@@ -1988,7 +1984,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // for chgrp, chmod
     boolean ownerRequired =
         (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       mPermissionChecker.checkSetAttributePermission(path, rootRequired, ownerRequired);
       setAttributeAndJournal(path, options, rootRequired, ownerRequired);
     }
@@ -2068,7 +2064,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AlluxioException if scheduling fails
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
-    synchronized (mInodeTree) {
+    try (InodePath inodePath = mInodeTree.getInodePath(path)) {
       scheduleAsyncPersistenceAndJournal(path);
     }
     // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
