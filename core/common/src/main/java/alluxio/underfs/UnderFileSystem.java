@@ -520,7 +520,8 @@ public abstract class UnderFileSystem {
   public abstract void setConf(Object conf);
 
   /**
-   * Sets the user and group of the given path.
+   * Sets the user and group of the given path. An empty implementation should be provided if
+   * unsupported.
    *
    * @param path path of the file
    * @param user the new user to set, unchanged if null
