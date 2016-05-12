@@ -729,11 +729,11 @@ public final class FileSystemMasterTest {
   public void testLoadMetadataTest() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setRecursive(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
-        LoadMetadataOptions.defaults().setRecursive(true).setLoadDirectChildren(true));
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
