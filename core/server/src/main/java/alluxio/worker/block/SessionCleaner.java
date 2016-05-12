@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
+import alluxio.worker.SessionTracker;
 import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Block worker handler responsible for interacting with Alluxio and UFS storage. */
-  private final BlockWorker mBlockWorker;
+  private final SessionTracker mSessionTracker;
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
@@ -39,10 +40,10 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param blockWorker the block worker handle
+   * @param sessionTracker the session tracker which should be periodically cleaned
    */
-  public SessionCleaner(BlockWorker blockWorker) {
-    mBlockWorker = blockWorker;
+  public SessionCleaner(SessionTracker sessionTracker) {
+    mSessionTracker = sessionTracker;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
@@ -67,7 +68,7 @@ public final class SessionCleaner implements Runnable {
 
       // Check if any sessions have become zombies, if so clean them up
       lastCheckMs = System.currentTimeMillis();
-      mBlockWorker.cleanupSessions();
+      mSessionTracker.cleanupSessions();
     }
   }
 

@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.Sessions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -23,6 +24,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.SessionTracker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -44,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 // TODO(calvin): Add session concept
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class FileSystemWorker extends AbstractWorker {
+public final class FileSystemWorker extends AbstractWorker implements SessionTracker {
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -53,6 +56,8 @@ public final class FileSystemWorker extends AbstractWorker {
   private final Configuration mConf;
   /** Logic for handling RPC requests. */
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
+  /** Object for managing this worker's sessions */
+  private final Sessions mSessions;
   /** Manager for under file system operations. */
   private final UnderFileSystemManager mUnderFileSystemManager;
 
@@ -70,6 +75,7 @@ public final class FileSystemWorker extends AbstractWorker {
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
     mConf = WorkerContext.getConf();
+    mSessions = new Sessions();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
     mUnderFileSystemManager = new UnderFileSystemManager();
 
@@ -100,6 +106,17 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   public void cancelUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
     mUnderFileSystemManager.cancelFile(tempUfsFileId);
+  }
+
+  /**
+   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
+   * {@link SessionCleaner} thread.
+   */
+  public void cleanupSessions() {
+    for (long session: mSessions.getTimedOutSessions()) {
+      mSessions.removeSession(session);
+      mUnderFileSystemManager.cleanupSession(session);
+    }
   }
 
   /**
@@ -189,6 +206,18 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   public long openUfsFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
     return mUnderFileSystemManager.openFile(ufsUri);
+  }
+
+  /**
+   * Registers a client's heartbeat to keep its session alive. The client can also
+   * piggyback metrics on this call. Currently there are no metrics collected from this call.
+   *
+   * @param sessionId the session id to renew
+   * @param metrics a list of metrics to update from the client
+   */
+  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
+    // Metrics currently ignored
+    mSessions.sessionHeartbeat(sessionId);
   }
 
   /**
