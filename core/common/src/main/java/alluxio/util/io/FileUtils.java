@@ -20,13 +20,19 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.nio.file.attribute.UserPrincipal;
+import java.nio.file.attribute.UserPrincipalLookupService;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,6 +46,24 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  public static void changeLocalFileOwner(String path, String user, String group) {
+    try {
+      UserPrincipalLookupService lookupService =
+          FileSystems.getDefault().getUserPrincipalLookupService();
+      GroupPrincipal groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+      UserPrincipal userPrincipal = lookupService.lookupPrincipalByName(user);
+      PosixFileAttributeView view =
+          Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
+              LinkOption.NOFOLLOW_LINKS);
+      view.setOwner(userPrincipal);
+      view.setGroup(groupPrincipal);
+    } catch (IOException e) {
+      // In the case of setting the user and group to a setting which is invalid, log a warning
+      // instead of crashing
+      LOG.warn("Failed to set file {} owner to user: {}, group: {}", path, user, group, e);
+    }
+  }
 
   /**
    * Changes local file's permission.
