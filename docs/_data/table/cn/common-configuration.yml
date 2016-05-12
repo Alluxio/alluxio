@@ -14,6 +14,8 @@ alluxio.network.host.resolution.&#8203;timeout.ms:
   Alluxio在启动Master和Worker过程中，需要确保它们在监听外部可达且可解析的主机名。如果没有显式指定主机名，Alluxio会自动尝试选择一个合适的主机名。该配置项指定用于判断一个候选主机名在网络上是否可达的最长等待时间。
 alluxio.test.mode:
   设置在测试过程中是否启用某些特殊行为。
+alluxio.thrift.frame.size.bytes.max:
+  设置在Thrift RPC通讯过程中,使用的最大容许帧包（Frame）限值.
 alluxio.underfs.address:
   Alluxio在底层文件系统中的文件夹。
 alluxio.underfs.glusterfs.impl:

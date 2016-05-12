@@ -129,6 +129,9 @@ public class ConfigurationTest {
         sDefaultConfiguration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     Assert.assertEquals(Constants.MB * 8, longBytesValue);
 
+    longBytesValue = sDefaultConfiguration.getBytes(Constants.THRIFT_FRAME_SIZE_BYTES_MAX);
+    Assert.assertEquals(Constants.MB * 64, longBytesValue);
+
     int maxTry = sDefaultConfiguration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
     Assert.assertEquals(10, maxTry);
   }
