@@ -65,6 +65,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
+  public enum LockMode {
+    READ,
+    WRITE,
+  }
+
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Only the root inode should have the empty string as its name. */
   private static final String ROOT_INODE_NAME = "";
@@ -170,7 +175,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public boolean inodePathExists(AlluxioURI path) {
     try {
       TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(path.toString()), false);
+          traverseToInode(PathUtils.getPathComponents(path.toString()), false, LockMode.READ);
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
       return false;
@@ -199,7 +204,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public Inode<?> getInodeByPath(AlluxioURI path)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false, LockMode.READ);
     if (!traversalResult.isFound()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
@@ -217,7 +222,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public InodeFile getInodeFileByPath(AlluxioURI path) throws InvalidPathException,
       FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.toString()), false);
+        traverseToInode(PathUtils.getPathComponents(path.toString()), false, LockMode.READ);
     if (!traversalResult.isFound()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
@@ -228,23 +233,23 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return (InodeFile) inode;
   }
 
-  public InodePath lockInodePath(AlluxioURI path) throws InvalidPathException {
+  public InodePath lockInodePath(AlluxioURI path, LockMode lockMode) throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false, lockMode);
     return new InodePath(path, traversalResult.getInodes(), traversalResult.getInodeLockGroup());
   }
 
-  public InodePath lockFullInodePath(AlluxioURI path)
+  public InodePath lockFullInodePath(AlluxioURI path, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false, lockMode);
     if (!traversalResult.isFound()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     return new InodePath(path, traversalResult.getInodes(), traversalResult.getInodeLockGroup());
   }
 
-  public InodePath lockFullInodePath(long id) throws FileDoesNotExistException {
+  public InodePath lockFullInodePath(long id, LockMode lockMode) throws FileDoesNotExistException {
     for (;;) {
       Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
       if (inode == null) {
@@ -255,7 +260,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       computePathForInode(inode, builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
 
-      try (InodePath inodePath = lockFullInodePath(uri)) {
+      try (InodePath inodePath = lockFullInodePath(uri, lockMode)) {
         if (inodePath.getInode().getId() == id) {
           return inodePath;
         }
@@ -307,7 +312,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public List<Inode<?>> collectInodes(AlluxioURI path) throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), false);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), false, LockMode.READ);
     return traversalResult.getInodes();
   }
 
@@ -372,7 +377,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     System.arraycopy(pathComponents, 0, parentPath, 0, parentPath.length);
 
     // TODO(gpang): lock the last inode(s) with write lock.
-    TraversalResult traversalResult = traverseToInode(parentPath, options.isPersisted());
+    TraversalResult traversalResult =
+        traverseToInode(parentPath, options.isPersisted(), LockMode.WRITE);
     InodeLockGroup lockGroup = traversalResult.getInodeLockGroup();
     // This must be set to true when returning a valid response. Otherwise, all the locked inodes
     // will be unlocked.
@@ -729,8 +735,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   // TODO(gpang): support locking inodes with write lock.
-  private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted)
-      throws InvalidPathException {
+  private TraversalResult traverseToInode(String[] pathComponents, boolean collectNonPersisted,
+      LockMode lockMode) throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
     InodeLockGroup lockGroup = new InodeLockGroup();
