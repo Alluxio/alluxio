@@ -187,7 +187,7 @@ public class DirectedAcyclicGraph<T> {
       toVisit.addAll(visit.getChildren());
     }
 
-    Preconditions.checkState(toVisit.isEmpty(), "Not all the given payloads are in the DAG: ",
+    Preconditions.checkState(input.isEmpty(), "Not all the given payloads are in the DAG: ",
         input);
     return result;
   }
