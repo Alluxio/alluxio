@@ -43,6 +43,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class is responsible for managing all top level components of the file system worker.
  */
 // TODO(calvin): Add session concept
+// TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */
@@ -161,7 +162,8 @@ public final class FileSystemWorker extends AbstractWorker {
 
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
-   * The stream should not be closed by the caller.
+   * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long)}
+   * or the {@link #completeUfsFile(long)} methods.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file
