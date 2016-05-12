@@ -227,14 +227,14 @@ public final class Configuration {
   }
 
   /**
-   * @return a new cloned configuration with the properties copied from this instance
+   * @return a configuration instance with the properties cloned from this instance
    */
   public Configuration clone() {
     return new Configuration(toMap());
   }
 
   /**
-   * Merge the current configuration properties with another one. A property from the new
+   * Merges the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
    * @param alternateConf The source {@link Configuration} to be merged
@@ -244,7 +244,7 @@ public final class Configuration {
   }
 
   /**
-   * Merge the current configuration properties with alternate properties. A property from the new
+   * Merges the current configuration properties with alternate properties. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
    * @param properties The source {@link Properties} to be merged
