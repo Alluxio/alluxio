@@ -89,9 +89,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   // The following 3 fields must be kept in sync. They are only updated in updateStreams together.
   /** Current {@link BlockInStream} backing this stream. */
   protected BlockInStream mCurrentBlockInStream;
-   /** Current {@link BufferedBlockOutStream} writing the data into Alluxio. */
+  /** Current {@link BufferedBlockOutStream} writing the data into Alluxio. */
   protected BufferedBlockOutStream mCurrentCacheStream;
-   /** The blockId used in the block streams. */
+  /** The blockId used in the block streams. */
   private long mStreamBlockId;
 
   /**
@@ -156,7 +156,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     int data = mCurrentBlockInStream.read();
 
-    // This should not happen?
     if (data == -1) {
       // The underlying stream is done.
       return -1;
@@ -287,7 +286,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * @param pos the position to get the block size for
-   * @return the size of the current block
+   * @return the size of the block that covers pos
    */
  protected long getBlockSize(long pos) {
     // The size of the last block, 0 if it is equal to the normal block size
@@ -302,7 +301,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Check whether block instream and cache outstream should be updated.
+   * Checks whether block instream and cache outstream should be updated.
    * This function is only called by {@link #updateStreams()}.
    *
    * @param currentBlockId cached result of {@link #getCurrentBlockId()}
@@ -314,14 +313,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     if (mCurrentCacheStream != null) {
       Preconditions.checkState(mCurrentBlockInStream.remaining() == mCurrentCacheStream.remaining(),
-          "BlockInStream and CacheStream is not sync-ed %d %d", mCurrentBlockInStream.remaining(),
+          "BlockInStream and CacheStream is out of sync %d %d", mCurrentBlockInStream.remaining(),
           mCurrentCacheStream.remaining());
     }
     return mCurrentBlockInStream.remaining() == 0;
   }
 
   /**
-   * Close or cancel {@link #mCurrentCacheStream}.
+   * Closes or cancels {@link #mCurrentCacheStream}.
    *
    * @throws IOException if the close or cancel fails
    */
@@ -365,7 +364,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
-   * {@link #mStreamBlockId} to be in-sync the current block (i.e. {@link #getCurrentBlockId()}).
+   * {@link #mStreamBlockId} to be in sync with the current block (i.e.
+   * {@link #getCurrentBlockId()}).
    * This function can be called multiple times without side effect. It is recommended to be
    * invoked before every read and seek.
    *
@@ -582,5 +582,13 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     do {
       len -= read(buffer);
     } while (len > 0);
+  }
+
+  /**
+   * Reads
+   * @throws IOException
+   */
+  private void readCurrentBlockToEnd() throws IOException {
+    readCurrentBlockToPos(Long.MAX_VALUE);
   }
 }
