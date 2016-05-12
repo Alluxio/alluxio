@@ -43,7 +43,7 @@ public final class NoSaslTransportProvider implements TransportProvider {
   public NoSaslTransportProvider(Configuration conf) {
     Preconditions.checkNotNull(conf);
     mSocketTimeoutMs = conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-    mThriftFrameSizeMax = (int) conf.getBytes(Constants.THRIFT_FRAME_SIZE_BYTES_MAX);
+    mThriftFrameSizeMax = (int) conf.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
   }
 
   @Override
