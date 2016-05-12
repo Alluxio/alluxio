@@ -76,6 +76,35 @@ public final class Configuration {
   private final Properties mProperties = new Properties();
 
   /**
+   * @param properties the source configuration
+   * @return a new configuration with only properties copied from source
+   */
+  public static Configuration fromProperties(Map<?, ?> properties) {
+    return new Configuration(properties);
+  }
+
+  /**
+   * @return the default configuration without loading site and system properties
+   */
+  public static Configuration createDefaultConf() {
+    return new Configuration(null, null, false);
+  }
+
+  /**
+   * @return the configuration for master or worker daemon
+   */
+  public static Configuration createServerConf() {
+    return new Configuration(SITE_PROPERTIES, SERVER_PROPERTIES, true);
+  }
+
+  /**
+   * @return the configuration for client
+   */
+  public static Configuration createClientConf() {
+    return new Configuration(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
+  }
+
+  /**
    * Overrides default properties.
    *
    * @param props override {@link Properties}
@@ -195,6 +224,13 @@ public final class Configuration {
     }
     Configuration that = (Configuration) o;
     return mProperties.equals(that.mProperties);
+  }
+
+  /**
+   * @return a new cloned configuration with the properties copied from this instance
+   */
+  public Configuration clone() {
+    return new Configuration(toMap());
   }
 
   /**
@@ -498,48 +534,4 @@ public final class Configuration {
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 
-  /**
-   * Factory class to create configuration instances.
-   */
-  @ThreadSafe
-  public static final class Factory {
-
-    /**
-     * @param properties the source configuration
-     * @return a new configuration with only properties copied from source
-     */
-    public static Configuration create(Map<?, ?> properties) {
-      return new Configuration(properties);
-    }
-
-    /**
-     * @param conf the source configuration
-     * @return a new configuration with only properties copied from source
-     */
-    public static Configuration create(Configuration conf) {
-      return new Configuration(conf.toMap());
-    }
-
-    /**
-     * @return the default configuration without loading site and system properties
-     */
-    public static Configuration createDefaultConf() {
-      return new Configuration(null, null, false);
-    }
-
-    /**
-     * @return the configuration for master or worker daemon
-     */
-    public static Configuration createServerConf() {
-      return new Configuration(SITE_PROPERTIES, SERVER_PROPERTIES, true);
-    }
-
-    /**
-     * @return the configuration for client
-     */
-    public static Configuration createClientConf() {
-      return new Configuration(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
-    }
-
-  }
 }

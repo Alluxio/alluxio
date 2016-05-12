@@ -84,6 +84,6 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
-    return Configuration.Factory.create(alluxioConfProperties);
+    return Configuration.fromProperties(alluxioConfProperties);
   }
 }

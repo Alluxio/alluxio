@@ -127,7 +127,7 @@ public final class UfsUtils {
 
     try {
       loadUfs(new AlluxioURI(args[0]), new AlluxioURI(args[1]), new PrefixList(exList, ";"),
-          Configuration.Factory.createClientConf());
+          Configuration.createClientConf());
     } catch (Exception e) {
       e.printStackTrace();
       printUsage();

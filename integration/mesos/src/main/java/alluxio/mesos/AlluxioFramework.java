@@ -44,7 +44,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class AlluxioFramework {
   static class AlluxioScheduler implements Scheduler {
-    private static Configuration sConf = Configuration.Factory.createServerConf();
+    private static Configuration sConf = Configuration.createServerConf();
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
     private String mTaskName = "";
@@ -346,7 +346,7 @@ public class AlluxioFramework {
   }
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
-    Configuration conf = Configuration.Factory.createServerConf();
+    Configuration conf = Configuration.createServerConf();
     String dependencyPath = conf.get(Constants.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
     return Lists.newArrayList(
         CommandInfo.URI.newBuilder()
@@ -388,7 +388,7 @@ public class AlluxioFramework {
     }
     String hostname = args[0];
 
-    Configuration conf = Configuration.Factory.createServerConf();
+    Configuration conf = Configuration.createServerConf();
 
     // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
     // current user.
