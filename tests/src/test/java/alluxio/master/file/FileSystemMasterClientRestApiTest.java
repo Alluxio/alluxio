@@ -17,6 +17,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.RestApiTest;
@@ -198,13 +199,14 @@ public class FileSystemMasterClientRestApiTest extends RestApiTest {
     Random random = new Random();
     long loadMetadataResult = random.nextLong();
     Mockito.doReturn(loadMetadataResult).when(mFileSystemMaster)
-        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions>any());
 
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.LOAD_METADATA), params,
         HttpMethod.POST, loadMetadataResult).run();
 
-    Mockito.verify(mFileSystemMaster).loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+    Mockito.verify(mFileSystemMaster)
+        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions >any());
   }
 
   @Test
