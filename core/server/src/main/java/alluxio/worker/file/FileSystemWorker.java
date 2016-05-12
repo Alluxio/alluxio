@@ -104,8 +104,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws FileDoesNotExistException if this worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void cancelUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.cancelFile(tempUfsFileId);
+  public void cancelUfsFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.cancelFile(sessionId, tempUfsFileId);
   }
 
   /**
@@ -128,8 +129,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void closeUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.closeFile(tempUfsFileId);
+  public void closeUfsFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.closeFile(sessionId, tempUfsFileId);
   }
 
   /**
@@ -141,8 +143,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void completeUfsFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.completeFile(tempUfsFileId);
+  public void completeUfsFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId);
   }
 
   /**
@@ -156,8 +159,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
   // TODO(calvin): Add a session id to clean up in case of disconnection
-  public long createUfsFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
-    return mUnderFileSystemManager.createFile(ufsUri);
+  public long createUfsFile(long sessionId, AlluxioURI ufsUri)
+      throws FileAlreadyExistsException, IOException {
+    return mUnderFileSystemManager.createFile(sessionId, ufsUri);
   }
 
   /**
@@ -204,8 +208,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public long openUfsFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.openFile(ufsUri);
+  public long openUfsFile(long sessionId, AlluxioURI ufsUri)
+      throws FileDoesNotExistException, IOException {
+    return mUnderFileSystemManager.openFile(sessionId, ufsUri);
   }
 
   /**
