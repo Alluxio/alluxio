@@ -71,7 +71,7 @@ public abstract class UnderFileSystemCluster {
    */
   public static synchronized UnderFileSystemCluster get(String baseDir, Configuration configuration)
       throws IOException {
-    if (sUnderFSCluster == null) {
+    if (sUnderFSCluster == null || sUnderFSCluster.mBaseDir != baseDir) {
       sUnderFSCluster = getUnderFilesystemCluster(baseDir, configuration);
     }
 

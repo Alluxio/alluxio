@@ -21,12 +21,14 @@ import alluxio.security.LoginUser;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -280,6 +282,10 @@ public abstract class AbstractLocalAlluxioCluster {
 
     resetContext();
     resetLoginUser();
+    if (mHome != null) {
+      FileUtils.deletePathRecursively(mHome);
+      mHome = null;
+    }
   }
 
   /**
@@ -460,6 +466,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() throws IOException {
+    Preconditions.checkState(mHome == null);
     mHome =
         File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
