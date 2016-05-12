@@ -47,22 +47,21 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class FileUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  public static void changeLocalFileOwner(String path, String user, String group) {
-    try {
-      UserPrincipalLookupService lookupService =
-          FileSystems.getDefault().getUserPrincipalLookupService();
-      GroupPrincipal groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
-      UserPrincipal userPrincipal = lookupService.lookupPrincipalByName(user);
-      PosixFileAttributeView view =
-          Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
-              LinkOption.NOFOLLOW_LINKS);
-      view.setOwner(userPrincipal);
-      view.setGroup(groupPrincipal);
-    } catch (IOException e) {
-      // In the case of setting the user and group to a setting which is invalid, log a warning
-      // instead of crashing
-      LOG.warn("Failed to set file {} owner to user: {}, group: {}", path, user, group, e);
-    }
+  /**
+   * Changes the local file's group.
+   *
+   * @param path that will change owner
+   * @param group the new group
+   * @throws IOException if the group is unable to be changed
+   */
+  public static void changeLocalFileGroup(String path, String group) throws IOException {
+    UserPrincipalLookupService lookupService =
+        FileSystems.getDefault().getUserPrincipalLookupService();
+    PosixFileAttributeView view =
+        Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
+            LinkOption.NOFOLLOW_LINKS);
+    GroupPrincipal groupPrincipal = lookupService.lookupPrincipalByGroupName(group);
+    view.setGroup(groupPrincipal);
   }
 
   /**
@@ -84,6 +83,23 @@ public final class FileUtils {
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
+  }
+
+  /**
+   * Changes the local file's user.
+   *
+   * @param path that will change owner
+   * @param user the new user
+   * @throws IOException if the group is unable to be changed
+   */
+  public static void changeLocalFileUser(String path, String user) throws IOException {
+    UserPrincipalLookupService lookupService =
+        FileSystems.getDefault().getUserPrincipalLookupService();
+    PosixFileAttributeView view =
+        Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
+            LinkOption.NOFOLLOW_LINKS);
+    UserPrincipal userPrincipal = lookupService.lookupPrincipalByGroupName(user);
+    view.setOwner(userPrincipal);
   }
 
   /**
