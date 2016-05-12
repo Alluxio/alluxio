@@ -38,6 +38,10 @@ public final class InodePath implements AutoCloseable {
     mLockGroup = lockGroup;
   }
 
+  public synchronized AlluxioURI getUri() {
+    return mUri;
+  }
+
   public synchronized Inode getInode() {
     return mInodes.get(mInodes.size() - 1);
   }

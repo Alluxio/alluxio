@@ -613,7 +613,7 @@ public final class InodeTreeTest {
 
   @Test
   public void getInodePathById() throws Exception {
-    try (InodePath rootPath = mTree.getInodePath(0)) {
+    try (InodePath rootPath = mTree.lockFullInodePath(0)) {
       Assert.assertEquals(0, rootPath.getInode().getId());
     }
 
@@ -622,7 +622,7 @@ public final class InodeTreeTest {
 
     for (Inode<?> inode : createResult.getCreated()) {
       long id = inode.getId();
-      try (InodePath inodePath = mTree.getInodePath(id)) {
+      try (InodePath inodePath = mTree.lockFullInodePath(id)) {
         Assert.assertEquals(id, inodePath.getInode().getId());
       }
     }
@@ -630,7 +630,7 @@ public final class InodeTreeTest {
 
   @Test
   public void getInodePathByPath() throws Exception {
-    try (InodePath rootPath = mTree.getInodePath(new AlluxioURI("/"))) {
+    try (InodePath rootPath = mTree.lockFullInodePath(new AlluxioURI("/"))) {
       Assert.assertTrue(mTree.isRootId(rootPath.getInode().getId()));
     }
 
@@ -639,17 +639,17 @@ public final class InodeTreeTest {
     createResult.unlock();
 
     AlluxioURI uri = new AlluxioURI("/nested");
-    try (InodePath inodePath = mTree.getInodePath(uri)) {
+    try (InodePath inodePath = mTree.lockFullInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
     }
 
     uri = NESTED_URI;
-    try (InodePath inodePath = mTree.getInodePath(uri)) {
+    try (InodePath inodePath = mTree.lockFullInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
     }
 
     uri = NESTED_FILE_URI;
-    try (InodePath inodePath = mTree.getInodePath(uri)) {
+    try (InodePath inodePath = mTree.lockFullInodePath(uri)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
     }
   }
