@@ -192,12 +192,14 @@ public final class UnderFileSystemManager {
    * Creates a {@link OutputStreamAgent} for the given file path and adds it to the open streams map
    * keyed with the returned worker file id.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long createFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
+  public long createFile(long sessionId, AlluxioURI ufsUri) throws FileAlreadyExistsException,
+      IOException {
     OutputStreamAgent stream = new OutputStreamAgent(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
     mOutputStreams.put(workerFileId, stream);
@@ -208,11 +210,13 @@ public final class UnderFileSystemManager {
    * Cancels the open stream associated with the given worker file id. This will close the open
    * stream.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void cancelFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+  public void cancelFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
     OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
     if (stream != null) {
       stream.cancel();
@@ -226,11 +230,13 @@ public final class UnderFileSystemManager {
    * Closes an open input stream associated with the given temporary ufs file id. The temporary
    * ufs file id will be invalid after this is called.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the temporary ufs file id
    * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void closeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+  public void closeFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
     InputStreamAgent removed = mInputStreams.remove(tempUfsFileId);
     if (removed == null) {
       throw new FileDoesNotExistException(
@@ -242,11 +248,13 @@ public final class UnderFileSystemManager {
    * Completes an open stream associated with the given worker file id. This will close the open
    * stream.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void completeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
+  public void completeFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
     OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
     if (stream == null) {
       throw new FileDoesNotExistException(
@@ -289,12 +297,14 @@ public final class UnderFileSystemManager {
   /**
    * Opens a file from the under file system and associates it with a worker file id.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
    * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long openFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
+  public long openFile(long sessionId, AlluxioURI ufsUri)
+      throws FileDoesNotExistException, IOException {
     InputStreamAgent stream = new InputStreamAgent(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
     mInputStreams.put(workerFileId, stream);
