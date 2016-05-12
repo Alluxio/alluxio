@@ -438,6 +438,21 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public void setOwner(String path, String user, String group) throws IOException {
+    try {
+      FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
+      LOG.info("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),
+          fileStatus.getOwner(), user, fileStatus.getGroup(), group);
+      mFileSystem.setOwner(fileStatus.getPath(), user, group);
+    } catch (IOException e) {
+      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
+      LOG.warn("In order for Alluxio to create HDFS files with the correct user and groups, "
+          + "Alluxio should be added to the HDFS superusers.");
+      throw e;
+    }
+  }
+
+  @Override
   public void setPermission(String path, String posixPerm) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
