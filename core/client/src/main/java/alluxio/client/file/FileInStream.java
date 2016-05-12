@@ -137,7 +137,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     updateStreams();
     if (mCurrentCacheStream != null && mShouldCachePartiallyReadBlock) {
-      readCurrentBlockToPos(Long.MAX_VALUE);
+      readCurrentBlockToEnd();
     }
     if (mCurrentBlockInStream != null) {
       mCurrentBlockInStream.close();
@@ -367,7 +367,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * {@link #mStreamBlockId} to be in sync with the current block (i.e.
    * {@link #getCurrentBlockId()}).
    * This function can be called multiple times without side effect. It is recommended to be
-   * invoked before every read and seek.
+   * invoked before every read and seek unless you are sure about the block streams are up-to-date.
    *
    * @throws IOException if the next cache stream or block stream cannot be created
    */
@@ -383,7 +383,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Update {@link #mCurrentCacheStream}. The following preconditions are checked inside:
+   * Updates {@link #mCurrentCacheStream}. The following preconditions are checked inside:
    *   1. {@link #mCurrentCacheStream} is either done or null.
    *   2. EOF is reached or {@link #mCurrentBlockInStream} must be valid.
    * After this call, {@link #mCurrentCacheStream} is either null or freshly created.
