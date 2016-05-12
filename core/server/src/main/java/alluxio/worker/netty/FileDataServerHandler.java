@@ -28,6 +28,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -36,6 +37,7 @@ import java.nio.ByteBuffer;
 /**
  * This class handles filesystem data server requests.
  */
+@NotThreadSafe
 public class FileDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
@@ -116,7 +118,7 @@ public class FileDataServerHandler {
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
-      LOG.error("Error writing ufs file.", e);
+      LOG.error("Failed to write ufs file.", e);
       RPCFileWriteResponse resp =
           RPCFileWriteResponse.createErrorResponse(req, RPCResponse.Status.UFS_WRITE_FAILED);
       ChannelFuture future = ctx.writeAndFlush(resp);

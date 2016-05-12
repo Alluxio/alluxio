@@ -211,8 +211,10 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(new AlluxioURI(uniqPath));
-    Assert.assertEquals(mMockInputStream, manager.getInputStreamAtPosition(id, position));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, in);
     Mockito.verify(mMockInputStream).skip(position);
+    in.close();
   }
 
   /**
@@ -226,8 +228,10 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(new AlluxioURI(uniqPath));
-    Assert.assertEquals(mMockInputStream, manager.getInputStreamAtPosition(id, position));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, in);
     Mockito.verify(mMockInputStream).skip(position);
+    in.close();
   }
 
   /**
