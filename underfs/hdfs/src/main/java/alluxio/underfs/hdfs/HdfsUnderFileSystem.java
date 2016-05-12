@@ -446,6 +446,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       mFileSystem.setOwner(fileStatus.getPath(), user, group);
     } catch (IOException e) {
       LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
+      LOG.warn("In order for Alluxio to create HDFS files with the correct user and groups, " +
+          "Alluxio should be added to the HDFS superusers.");
       throw e;
     }
   }
