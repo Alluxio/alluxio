@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
@@ -29,6 +30,7 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.ThriftIOException;
@@ -198,12 +200,13 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public long loadMetadata(final String alluxioPath, final boolean recursive)
+  public long loadMetadata(final String alluxioPath, final LoadMetadataTOptions options)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
-        return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive);
+        return mFileSystemMaster
+            .loadMetadata(new AlluxioURI(alluxioPath), new LoadMetadataOptions(options));
       }
     });
   }

@@ -1,27 +1,11 @@
-/*
- * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
- * available at www.apache.org/licenses/LICENSE-2.0
- *
- * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
- * either express or implied, as more fully set forth in the License.
- *
- * See the NOTICE file distributed with this work for information regarding copyright ownership.
- */
+package alluxio.master.file.options;
 
-package alluxio.client.file.options;
-
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.LoadMetadataTOptions;
 
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
-/**
- * Method options for loading the metadata.
- */
-@PublicApi
 @NotThreadSafe
 public final class LoadMetadataOptions {
   private boolean mRecursive;
@@ -37,6 +21,12 @@ public final class LoadMetadataOptions {
   private LoadMetadataOptions() {
     mRecursive = false;
     mLoadDirectChildren = false;
+  }
+
+  public LoadMetadataOptions(LoadMetadataTOptions options) {
+    this();
+    mRecursive = options.isRecursive();
+    mLoadDirectChildren = options.isLoadDirectChildren();
   }
 
   /**
@@ -101,15 +91,5 @@ public final class LoadMetadataOptions {
   public String toString() {
     return Objects.toStringHelper(this).add("recursive", mRecursive)
         .add("loadDirectChildren", mLoadDirectChildren).toString();
-  }
-
-  /**
-   * @return the thrift representation of the options
-   */
-  public LoadMetadataTOptions toThrift() {
-    LoadMetadataTOptions options = new LoadMetadataTOptions();
-    options.setRecursive(mRecursive);
-    options.setLoadDirectChildren(mLoadDirectChildren);
-    return options;
   }
 }

@@ -19,6 +19,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
@@ -276,8 +277,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("recursive") boolean recursive) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils
-          .createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive));
+      return RestUtils.createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path),
+          LoadMetadataOptions.defaults().setRecursive(recursive)));
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());

@@ -238,7 +238,7 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
     retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.loadMetadata(path.toString(), options.isRecursive());
+        return mClient.loadMetadata(path.toString(), options.toThrift());
       }
     });
   }
