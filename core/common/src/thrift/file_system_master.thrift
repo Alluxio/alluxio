@@ -171,7 +171,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
 
   /**
    * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
-   * This is deprecated. Use list
+   * This is deprecated. Use listStatus.
    */
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
       /** whether to load meta data recursively */ 2: bool recursive)

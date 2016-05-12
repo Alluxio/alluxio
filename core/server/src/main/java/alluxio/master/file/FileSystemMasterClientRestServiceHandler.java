@@ -279,7 +279,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       return RestUtils.createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path),
-          LoadMetadataOptions.defaults().setRecursive(recursive)));
+          LoadMetadataOptions.defaults().setCreateAncestors(recursive)));
     } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
