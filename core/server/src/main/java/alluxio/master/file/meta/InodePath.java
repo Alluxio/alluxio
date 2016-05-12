@@ -11,6 +11,10 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
+
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
@@ -23,20 +27,27 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InodePath implements AutoCloseable {
+  private final AlluxioURI mUri;
   private final ArrayList<Inode<?>> mInodes;
   private final InodeLockGroup mLockGroup;
 
-  InodePath(List<Inode<?>> inodes, InodeLockGroup lockGroup) {
+  InodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup) {
     Preconditions.checkArgument(!inodes.isEmpty());
+    mUri = uri;
     mInodes = new ArrayList<>(inodes);
     mLockGroup = lockGroup;
   }
 
   public synchronized Inode getInode() {
-    if (mInodes.size() == 0) {
-      return null;
-    }
     return mInodes.get(mInodes.size() - 1);
+  }
+
+  public synchronized  InodeFile getInodeFile() throws FileDoesNotExistException {
+    Inode inode = getInode();
+    if (!inode.isFile()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(mUri));
+    }
+    return (InodeFile) inode;
   }
 
   @Override
