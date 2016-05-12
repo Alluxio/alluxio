@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
 import alluxio.util.FormatUtils;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -26,6 +25,8 @@ import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -63,8 +64,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Configuration {
   /** File to set default properties. */
   public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
-  /** File to set customized properties for Alluxio daemons. */
+  /** File to set customized properties for Alluxio deployment. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
+  /** File to set customized properties for Alluxio server. */
+  public static final String SERVER_PROPERTIES = "alluxio-server.properties";
   /** File to set customized properties for Alluxio client. */
   public static final String CLIENT_PROPERTIES = "alluxio-client.properties";
 
@@ -77,12 +80,13 @@ public final class Configuration {
   private final Properties mProperties = new Properties();
 
   /**
-   * Loads properties from the given file.
+   * Loads properties from the given file. This method will search Classpath for the properties
+   * file.
    *
-   * @param propertiesFile the file to load properties
-   * @return a set of properties
+   * @param propertiesFile filename of the properties file
+   * @return a set of properties on success, or null if failed
    */
-  public static Properties loadFromPropertiesFile(String propertiesFile) {
+  private static Properties loadPropertiesFileInClassPath(String propertiesFile) {
     Properties properties = new Properties();
 
     InputStream inputStream =
@@ -101,6 +105,55 @@ public final class Configuration {
   }
 
   /**
+   * Loads properties from the given file. This method will search Classpath for the properties
+   * file.
+   *
+   * @param path the file to load properties
+   * @return a set of properties on success, or null if failed
+   */
+  private static Properties loadPropertiesFile(String path) {
+    Properties properties = new Properties();
+
+    FileInputStream fileInputStream;
+    try {
+      fileInputStream = new FileInputStream(path);
+    } catch (FileNotFoundException e) {
+      return null;
+    }
+
+    try {
+      properties.load(fileInputStream);
+    } catch (IOException e) {
+      LOG.error("Unable to load default Alluxio properties file {}", path, e);
+      return null;
+    }
+    return properties;
+  }
+
+  /**
+   * Loads properties from the given file under a given list of paths as well as Classpath.
+   *
+   * @param propertiesFile the file to load properties
+   * @param confPathList a list of paths to search the propertiesFile
+   * @return loaded properties on success, or null if failed
+   */
+  private static Properties searchPropertiesFile(String propertiesFile,
+      String[] confPathList) {
+    if (propertiesFile == null || confPathList == null) {
+      return null;
+    }
+    for (String path : confPathList) {
+      String file = PathUtils.concatPath(path, propertiesFile);
+      Properties properties = loadPropertiesFile(file);
+      if (properties != null) {
+        // If a site conf is successfully loaded, stop trying different paths
+        LOG.info("Configuration file {} loaded.", file);
+        return properties;
+      }
+    }
+    return loadPropertiesFileInClassPath(propertiesFile);
+  }
+  /**
    * Overrides default properties.
    *
    * @param props override {@link Properties}
@@ -115,19 +168,23 @@ public final class Configuration {
   /**
    * Default constructor.
    */
+  // TODO(binfan): make this constructor private
   public Configuration() {
-    this(SITE_PROPERTIES, true);
+    this(SITE_PROPERTIES, null, true);
   }
 
   /**
    * Constructor with a flag to indicate whether system properties should be included. When the flag
    * is set to false, it is used for {@link Configuration} test class.
    *
+   * @param sitePropertiesFile site-wide properties
+   * @param processPropertiesFile server or client specific properties
    * @param includeSystemProperties whether to include the system properties
    */
-  private Configuration(String sitePropertiesFile, boolean includeSystemProperties) {
+  private Configuration(String sitePropertiesFile, String processPropertiesFile,
+      boolean includeSystemProperties) {
     // Load default
-    Properties defaultProps = loadFromPropertiesFile(DEFAULT_PROPERTIES);
+    Properties defaultProps = loadPropertiesFileInClassPath(DEFAULT_PROPERTIES);
     if (defaultProps == null) {
       throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
           .getMessage());
@@ -139,26 +196,20 @@ public final class Configuration {
     defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
-    // Load site specific properties file
-    Properties siteProps = new Properties();
-    String dir = defaultProps.getProperty(Constants.SITE_CONF_DIR);
+    String confPaths;
     // If site conf is overwritten in system properties, overwrite the default setting
     if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
-      dir = System.getProperty(Constants.SITE_CONF_DIR);
+      confPaths = System.getProperty(Constants.SITE_CONF_DIR);
+    } else {
+      confPaths = defaultProps.getProperty(Constants.SITE_CONF_DIR);
     }
-    if (dir != null) {
-      for (String path : dir.split(",")) {
-        String file = PathUtils.concatPath(path, sitePropertiesFile);
-        if (FileUtils.exists(file)) {
-          siteProps = loadFromPropertiesFile(file);
-          if (siteProps != null) {
-            // If a site conf is successfully loaded, stop trying different paths
-            LOG.info("Load site Alluxio configuration file {}.", file);
-            break;
-          }
-        }
-      }
-    }
+    String[] confPathList = confPaths.split(",");
+
+    // Load site specific properties file
+    Properties siteProps = searchPropertiesFile(sitePropertiesFile, confPathList);
+
+    // Load server or client specific properties file
+    Properties processProps = searchPropertiesFile(processPropertiesFile, confPathList);
 
     // Load system properties
     Properties systemProps = new Properties();
@@ -168,7 +219,12 @@ public final class Configuration {
 
     // Now lets combine
     mProperties.putAll(defaultProps);
-    mProperties.putAll(siteProps);
+    if (siteProps != null) {
+      mProperties.putAll(siteProps);
+    }
+    if (processProps != null) {
+      mProperties.putAll(processProps);
+    }
     mProperties.putAll(systemProps);
 
     String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
@@ -231,7 +287,7 @@ public final class Configuration {
    * Merge the current configuration properties with alternate properties. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
-   * @param properties The source {@link Configuration} to be merged
+   * @param properties The source {@link Properties} to be merged
    */
   public void merge(Map<?, ?> properties) {
     if (properties != null) {
@@ -544,21 +600,21 @@ public final class Configuration {
      * @return the default configuration without loading site and system properties
      */
     public static Configuration createDefaultConf() {
-      return new Configuration(null, false);
+      return new Configuration(null, null, false);
     }
 
     /**
      * @return the configuration for master or worker daemon
      */
     public static Configuration createServerConf() {
-      return new Configuration(SITE_PROPERTIES, true);
+      return new Configuration(SITE_PROPERTIES, SERVER_PROPERTIES, true);
     }
 
     /**
      * @return the configuration for client
      */
     public static Configuration createClientConf() {
-      return new Configuration(CLIENT_PROPERTIES, true);
+      return new Configuration(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
     }
 
   }
