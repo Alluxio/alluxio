@@ -26,6 +26,7 @@ import alluxio.thrift.ThriftIOException;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -64,10 +65,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options)
+  public void cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.cancelUfsFile(tempUfsFileId);
+      mWorker.cancelUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -85,10 +86,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options)
+  public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.cancelUfsFile(tempUfsFileId);
+      mWorker.cancelUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -106,10 +107,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options)
+  public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.completeUfsFile(tempUfsFileId);
+      mWorker.completeUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -129,10 +130,10 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public long createUfsFile(String ufsUri, CreateUfsFileTOptions options)
+  public long createUfsFile(long sessionId, String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.createUfsFile(new AlluxioURI(ufsUri));
+      return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -151,14 +152,25 @@ public final class FileSystemWorkerClientServiceHandler
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public long openUfsFile(String ufsUri, OpenUfsFileTOptions options)
+  public long openUfsFile(long sessionId, String ufsUri, OpenUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.openUfsFile(new AlluxioURI(ufsUri));
+      return mWorker.openUfsFile(sessionId, new AlluxioURI(ufsUri));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
       throw e.toAlluxioTException();
     }
+  }
+
+  /**
+   * Local session send heartbeat to local worker to keep its state.
+   *
+   * @param sessionId the id of the client sending the heartbeat
+   * @param metrics a list of the client metrics that were collected since the last heartbeat
+   */
+  @Override
+  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
+    mWorker.sessionHeartbeat(sessionId, metrics);
   }
 }
