@@ -52,7 +52,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
-    mConfiguration = Configuration.Factory.createServerConf();
+    mConfiguration = Configuration.createServerConf();
   }
 
   /**

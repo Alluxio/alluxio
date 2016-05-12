@@ -65,7 +65,7 @@ public final class Format {
       System.exit(-1);
     }
 
-    Configuration configuration = Configuration.Factory.createServerConf();
+    Configuration configuration = Configuration.createServerConf();
     if ("MASTER".equalsIgnoreCase(args[0])) {
       String masterJournal =
           configuration.get(Constants.MASTER_JOURNAL_FOLDER);

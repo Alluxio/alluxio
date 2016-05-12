@@ -193,7 +193,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    Configuration conf = Configuration.Factory.createServerConf();
+    Configuration conf = Configuration.createServerConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, conf);
 

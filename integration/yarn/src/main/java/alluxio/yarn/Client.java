@@ -205,7 +205,7 @@ public final class Client {
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     mMaxWorkersPerHost =
-        Configuration.Factory.createServerConf()
+        Configuration.createServerConf()
             .getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,

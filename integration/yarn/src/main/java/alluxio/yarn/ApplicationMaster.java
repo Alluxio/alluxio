@@ -133,7 +133,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, Configuration.Factory.createClientConf());
+    this(numWorkers, masterAddress, resourcePath, Configuration.createClientConf());
   }
 
   /**
@@ -255,7 +255,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
     // Register with ResourceManager
     String hostname = NetworkAddressUtils.getLocalHostName(
-        Configuration.Factory.createServerConf());
+        Configuration.createServerConf());
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }

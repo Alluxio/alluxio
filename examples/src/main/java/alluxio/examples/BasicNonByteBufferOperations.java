@@ -123,5 +123,4 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
     }
     return true;
   }
-
 }

@@ -103,7 +103,7 @@ public final class ValidateConf {
    * @param args there are no arguments needed
    */
   public static void main(String[] args) {
-    if (!validate(Configuration.Factory.createClientConf())) {
+    if (!validate(Configuration.createClientConf())) {
       System.exit(-1);
     }
     System.out.println("All configuration entries are valid.");
