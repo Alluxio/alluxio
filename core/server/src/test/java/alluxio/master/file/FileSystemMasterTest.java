@@ -360,6 +360,46 @@ public final class FileSystemMasterTest {
   }
 
   @Test
+  public void getFileInfoWithLoadMetadataTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createFile(Paths.get(ufsMount.join("file").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileInfo should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/file");
+    Assert.assertEquals(uri.getPath(), mFileSystemMaster.getFileInfo(uri).getPath());
+
+    // getFileInfo should have loaded another file, so now 4 paths exist.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void getFileIdWithLoadMetadataTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createFile(Paths.get(ufsMount.join("file").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/file");
+    Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFileSystemMaster.getFileId(uri));
+
+    // getFileId should have loaded another file, so now 4 paths exist.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
   public void getFileInfoListTest() throws Exception {
     final int files = 10;
     List<FileInfo> infos;

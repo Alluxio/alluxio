@@ -272,6 +272,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  public void ensureFullInodePath(InodePath inodePath, LockMode lockMode)
+      throws InvalidPathException, FileDoesNotExistException {
+    TraversalResult traversalResult = traverseToInode(inodePath, lockMode);
+    if (!traversalResult.isFound()) {
+      throw new FileDoesNotExistException(
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(inodePath.getUri()));
+    }
+  }
+
   private void computePathForInode(Inode<?> inode, StringBuilder builder)
       throws FileDoesNotExistException {
     inode.lockRead();
@@ -736,39 +745,54 @@ public final class InodeTree implements JournalCheckpointStreamable {
         && Objects.equal(mCachedInode, that.mCachedInode);
   }
 
-  // TODO(gpang): support locking inodes with write lock.
   private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode)
       throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
     InodeLockGroup lockGroup = new InodeLockGroup();
 
+    if (pathComponents == null) {
+      throw new InvalidPathException("passed-in pathComponents is null");
+    } else if (pathComponents.length == 0) {
+      throw new InvalidPathException("passed-in pathComponents is empty");
+    } else if (pathComponents.length == 1) {
+      if (pathComponents[0].equals("")) {
+
+//          lockGroup.lockRead(mRoot);
+        inodes.add(mRoot);
+        return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+      } else {
+        throw new InvalidPathException("File name starts with " + pathComponents[0]);
+      }
+    }
+
+//      lockGroup.lockRead(mRoot);
+    inodes.add(mRoot);
+    return traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockGroup,
+        lockMode);
+  }
+
+  private TraversalResult traverseToInode(InodePath inodePath, LockMode lockMode)
+      throws InvalidPathException {
+    // the inodePath is guaranteed to already include at least the root inode.
+    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
+    List<Inode<?>> inodes = inodePath.getInodes();
+    InodeLockGroup lockGroup = inodePath.getLockGroup();
+    return traverseToInodeInternal(inodePath.getPathComponents(), inodes, nonPersistedInodes,
+        lockGroup, lockMode);
+  }
+
+  // TODO(gpang): support locking inodes with write lock.
+  private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
+      List<Inode<?>> nonPersistedInodes, InodeLockGroup lockGroup,
+      LockMode lockMode) throws InvalidPathException {
     // This must be set to true when returning a valid response. Otherwise, all the locked inodes
     // will be unlocked.
     boolean valid = false;
-
     try {
-      if (pathComponents == null) {
-        throw new InvalidPathException("passed-in pathComponents is null");
-      } else if (pathComponents.length == 0) {
-        throw new InvalidPathException("passed-in pathComponents is empty");
-      } else if (pathComponents.length == 1) {
-        if (pathComponents[0].equals("")) {
-//          lockGroup.lockRead(mRoot);
-          inodes.add(mRoot);
-          valid = true;
-          return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
-        } else {
-          throw new InvalidPathException("File name starts with " + pathComponents[0]);
-        }
-      }
+      Inode<?> current = inodes.get(inodes.size() - 1);
 
-      Inode<?> current = mRoot;
-//      lockGroup.lockRead(current);
-      inodes.add(current);
-
-      // iterate from 1, because 0 is root and it's already added
-      for (int i = 1; i < pathComponents.length; i++) {
+      for (int i = inodes.size(); i < pathComponents.length; i++) {
         Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
         if (next == null) {
           // The user might want to create the nonexistent directories, so return the traversal

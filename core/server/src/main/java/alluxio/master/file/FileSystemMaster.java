@@ -334,10 +334,8 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
-      // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
-      try (InodePath fullInodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
-        return fullInodePath.getInode().getId();
-      }
+      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+      return inodePath.getInode().getId();
     } catch (InvalidPathException | FileDoesNotExistException e) {
       return IdUtils.INVALID_FILE_ID;
     }
@@ -377,10 +375,8 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
-      // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
-      try (InodePath fullInodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
-        return getFileInfoInternal(fullInodePath.getInode());
-      }
+      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+      return getFileInfoInternal(inodePath.getInode());
     }
   }
 
@@ -451,27 +447,25 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       loadMetadataIfNotExist(path);
-      // TODO(gpang): avoid re-locking prefix and continue to traverse from existing InodePath
-      try (InodePath fullInodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.READ)) {
-        Inode<?> inode = fullInodePath.getInode();
+      mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.READ);
+      Inode<?> inode = inodePath.getInode();
 
-        List<FileInfo> ret = new ArrayList<>();
-        if (inode.isDirectory()) {
-          mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
-          for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-            child.lockRead();
-            try {
-              ret.add(getFileInfoInternal(child));
-            } finally {
-              child.unlockRead();
-            }
+      List<FileInfo> ret = new ArrayList<>();
+      if (inode.isDirectory()) {
+        mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
+        for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
+          child.lockRead();
+          try {
+            ret.add(getFileInfoInternal(child));
+          } finally {
+            child.unlockRead();
           }
-        } else {
-          ret.add(getFileInfoInternal(inode));
         }
-        MasterContext.getMasterSource().incFileInfosGot(ret.size());
-        return ret;
+      } else {
+        ret.add(getFileInfoInternal(inode));
       }
+      MasterContext.getMasterSource().incFileInfosGot(ret.size());
+      return ret;
     }
   }
 
