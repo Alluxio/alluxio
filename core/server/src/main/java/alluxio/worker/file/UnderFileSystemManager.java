@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -27,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -185,12 +185,48 @@ public final class UnderFileSystemManager {
     }
   }
 
+  // Input stream agent session index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputSessionIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Input stream agent id index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputIdIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mId;
+        }
+      };
+
+  // Output stream agent session index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputSessionIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Output stream agent id index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputIdIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mId;
+        }
+      };
+
   /** A random id generator for worker file ids. */
   private final AtomicLong mIdGenerator;
   /** Map of worker file ids to open under file system input streams. */
-  private final ConcurrentMap<Long, InputStreamAgent> mInputStreams;
+  private final IndexedSet<InputStreamAgent> mInputAgents;
   /** Map of worker file ids to open under file system output streams. */
-  private final ConcurrentMap<Long, OutputStreamAgent> mOutputStreams;
+  private final IndexedSet<OutputStreamAgent> mOutputAgents;
 
   /**
    * Creates a new under file system manager. Stream ids are unique to each under file system
@@ -198,8 +234,8 @@ public final class UnderFileSystemManager {
    */
   public UnderFileSystemManager() {
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
-    mInputStreams = new ConcurrentHashMap<>();
-    mOutputStreams = new ConcurrentHashMap<>();
+    mInputAgents = new IndexedSet<>(mInputSessionIndex, mInputIdIndex);
+    mOutputAgents = new IndexedSet<>(mOutputSessionIndex, mOutputIdIndex);
   }
 
   /**
@@ -214,10 +250,11 @@ public final class UnderFileSystemManager {
    */
   public long createFile(long sessionId, AlluxioURI ufsUri) throws FileAlreadyExistsException,
       IOException {
-    OutputStreamAgent stream = new OutputStreamAgent(ufsUri, WorkerContext.getConf());
-    long workerFileId = mIdGenerator.getAndIncrement();
-    mOutputStreams.put(workerFileId, stream);
-    return workerFileId;
+    long id = mIdGenerator.getAndIncrement();
+    OutputStreamAgent stream =
+        new OutputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
+    mOutputAgents.add(stream);
+    return id;
   }
 
   /**
@@ -231,7 +268,7 @@ public final class UnderFileSystemManager {
    */
   public void cancelFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
+    OutputStreamAgent stream = mOutputAgents.remove(tempUfsFileId);
     if (stream != null) {
       stream.cancel();
     } else {
@@ -251,7 +288,7 @@ public final class UnderFileSystemManager {
    */
   public void closeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent removed = mInputStreams.remove(tempUfsFileId);
+    InputStreamAgent removed = mInputAgents.remove(tempUfsFileId);
     if (removed == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -269,7 +306,7 @@ public final class UnderFileSystemManager {
    */
   public void completeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
+    OutputStreamAgent stream = mOutputAgents.remove(tempUfsFileId);
     if (stream == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -286,7 +323,7 @@ public final class UnderFileSystemManager {
    */
   public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent stream = mInputStreams.get(tempUfsFileId);
+    InputStreamAgent stream = mInputAgents.get(tempUfsFileId);
     if (stream == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -300,7 +337,7 @@ public final class UnderFileSystemManager {
    * @throws FileDoesNotExistException if the worker file id not valid
    */
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
-    OutputStreamAgent stream = mOutputStreams.get(tempUfsFileId);
+    OutputStreamAgent stream = mOutputAgents.get(tempUfsFileId);
     if (stream == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -321,7 +358,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent stream = new InputStreamAgent(ufsUri, WorkerContext.getConf());
     long workerFileId = mIdGenerator.getAndIncrement();
-    mInputStreams.put(workerFileId, stream);
+    mInputAgents.put(workerFileId, stream);
     return workerFileId;
   }
 }
