@@ -25,6 +25,11 @@ struct MountTOptions {
   2: optional map<string, string> properties
 }
 
+struct LoadMetadataTOptions {
+  1: optional bool recursive
+  2: optional bool loadDirectChildren
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -169,7 +174,7 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   // TODO(jiri): Get rid of this.
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
-      /** whether to load meta data recursively */ 2: bool recursive)
+      /** whether to load meta data recursively */ 2: LoadMetadataTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
 
   /**

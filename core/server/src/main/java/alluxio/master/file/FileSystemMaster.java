@@ -49,6 +49,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
@@ -76,6 +77,7 @@ import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
@@ -334,7 +336,7 @@ public final class FileSystemMaster extends AbstractMaster {
         mPermissionChecker.checkPermission(FileSystemAction.READ, path);
         if (!mInodeTree.inodePathExists(path)) {
           try {
-            return loadMetadata(path, true);
+            return loadMetadata(path, LoadMetadataOptions.defaults().setRecursive(true));
           } catch (Exception e) {
             return IdUtils.INVALID_FILE_ID;
           }
@@ -383,6 +385,16 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
       // getFileInfo should load from ufs if the file does not exist
       getFileId(path);
+
+      if (!mInodeTree.inodePathExists(path)) {
+        try {
+          loadMetadata(path, LoadMetadataOptions.defaults().setRecursive(true));
+        } catch (Exception e) {
+          // TODO(peis): consider throw an metadata loading failure exception here.
+          LOG.error("Failed to load metadata at {}", path, e);
+        }
+      }
+
       Inode<?> inode = mInodeTree.getInodeByPath(path);
       return getFileInfoInternal(inode);
     }
@@ -455,13 +467,28 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      // getFileInfoList should load from ufs if the file does not exist
-      getFileId(path);
-      Inode<?> inode = mInodeTree.getInodeByPath(path);
+
+      LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
+      Inode<?> inode = null;
+      if (mInodeTree.inodePathExists(path)) {
+        inode = mInodeTree.getInodeByPath(path);
+        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+          mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
+          loadMetadataOptions.setLoadDirectChildren(true);
+        }
+      }
+      try {
+        loadMetadata(path, loadMetadataOptions);
+      } catch (Exception e) {
+        LOG.error("Failed to load metadata at {}.", path, e);
+      }
+
+      if (inode != null) {
+        inode = mInodeTree.getInodeByPath(path);
+      }
 
       List<FileInfo> ret = new ArrayList<>();
       if (inode.isDirectory()) {
-        mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
           ret.add(getFileInfoInternal(child));
         }
@@ -1487,10 +1514,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * parent path if path is a directory.
    *
    * @param path the path for which metadata should be loaded
-   * @param recursive whether parent directories should be created if they do not already exist
+   * @param options the load metadata options
    * @return the file id of the loaded path
    * @throws BlockInfoException if an invalid block size is encountered
-   * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
    * @throws InvalidFileSizeException if invalid file size is encountered
@@ -1499,10 +1525,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    */
   // TODO(jiri): Make it possible to load UFS objects recursively.
-  public long loadMetadata(AlluxioURI path, boolean recursive)
-      throws BlockInfoException, FileAlreadyExistsException, FileDoesNotExistException,
-      InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException, IOException,
-      AccessControlException {
+  public long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
+      throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
     MountTable.Resolution resolution;
     synchronized (mInodeTree) {
       // Permission checking is not performed in this method, but in the methods invoked.
@@ -1516,22 +1541,70 @@ public final class FileSystemMaster extends AbstractMaster {
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
       if (ufs.isFile(ufsUri.toString())) {
-        long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
-        long ufsLength = ufs.getFileSize(ufsUri.toString());
-        // Metadata loaded from UFS has no TTL set.
-        CreateFileOptions options =
-            CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte).setRecursive(recursive)
-                .setMetadataLoad(true).setPersisted(true);
-        long fileId = createFile(path, options);
-        CompleteFileOptions completeOptions =
-            CompleteFileOptions.defaults().setUfsLength(ufsLength);
-        completeFile(path, completeOptions);
-        return fileId;
+        synchronized (mInodeTree) {
+          return loadFileMetadata(path, resolution, options);
+        }
+      } else {
+        synchronized (mInodeTree) {
+          long fileId = loadDirectoryMetadata(path, options);
+          InodeDirectory inode = (InodeDirectory) mInodeTree.getInodeById(fileId);
+          if (!inode.isDirectChildrenLoaded() && options.isLoadDirectChildren()) {
+            String[] files = ufs.list(ufsUri.getPath());
+            LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
+            for (int i = 0; i < files.length; i++) {
+              loadMetadata(path.join(files[i]), loadMetadataOptions);
+            }
+            inode.isDirectChildrenLoaded();
+          }
+          return fileId;
+        }
       }
-      return loadDirectoryMetadata(path, recursive);
     } catch (IOException e) {
       LOG.error(ExceptionUtils.getStackTrace(e));
       throw e;
+    }
+  }
+
+  /**
+   * Loads metadata for the file identified by the given path from UFS into Alluxio.
+   *
+   * @param path the path for which metadata should be loaded
+   * @param resolution the UFS resolution of path
+   * @param options the load metadata options
+   * @return the file id of the loaded file
+   * @throws BlockInfoException if an invalid block size is encountered
+   * @throws FileDoesNotExistException if there is no UFS path
+   * @throws InvalidPathException if invalid path is encountered
+   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws IOException if an I/O error occurs
+   * @throws AccessControlException if permission checking fails
+   */
+  @GuardedBy("mInodeTree")
+  private long loadFileMetadata(AlluxioURI path, MountTable.Resolution resolution,
+      LoadMetadataOptions options)
+      throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
+      AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException {
+    if (mInodeTree.inodePathExists(path)) {
+      return mInodeTree.getInodeByPath(path).getId();
+    }
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
+
+    long ufsBlockSizeByte = ufs.getBlockSizeByte(ufsUri.toString());
+    long ufsLength = ufs.getFileSize(ufsUri.toString());
+    // Metadata loaded from UFS has no TTL set.
+    CreateFileOptions createFileOptions =
+        CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
+            .setRecursive(options.isRecursive()).setMetadataLoad(true).setPersisted(true);
+    try {
+      long fileId = createFile(path, createFileOptions);
+      CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
+      completeFile(path, completeOptions);
+      return mInodeTree.getInodeById(fileId).getId();
+    } catch (FileAlreadyExistsException e) {
+      LOG.error("FileAlreadyExistsException seen unexpectedly.", e);
+      throw Throwables.propagate(e);
     }
   }
 
@@ -1540,22 +1613,28 @@ public final class FileSystemMaster extends AbstractMaster {
    * not actually require looking at the UFS path.
    *
    * @param path the path for which metadata should be loaded
-   * @param recursive whether parent directories should be created if they do not already exist
+   * @param options the load metadata options
    * @return the file id of the loaded directory
-   * @throws FileAlreadyExistsException if the object to be loaded already exists
    * @throws InvalidPathException if invalid path is encountered
    * @throws IOException if an I/O error occurs   *
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
   @GuardedBy("mInodeTree")
-  private long loadDirectoryMetadata(AlluxioURI path, boolean recursive)
-      throws IOException, FileAlreadyExistsException, InvalidPathException, AccessControlException,
-      FileDoesNotExistException {
-    CreateDirectoryOptions options =
+  private long loadDirectoryMetadata(AlluxioURI path, LoadMetadataOptions options)
+      throws IOException, InvalidPathException, AccessControlException, FileDoesNotExistException {
+    if (mInodeTree.inodePathExists(path)) {
+      return mInodeTree.getInodeByPath(path).getId();
+    }
+    CreateDirectoryOptions createDirectoryOptions =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
-            .setPersisted(true).setRecursive(recursive).setMetadataLoad(true);
-    InodeTree.CreatePathResult result = createDirectory(path, options);
+            .setPersisted(true).setRecursive(options.isRecursive()).setMetadataLoad(true);
+    InodeTree.CreatePathResult result;
+    try {
+      result = createDirectory(path, createDirectoryOptions);
+    } catch (FileAlreadyExistsException e) {
+      throw Throwables.propagate(e);
+    }
     List<Inode<?>> inodes = null;
     if (result.getCreated().size() > 0) {
       inodes = result.getCreated();
@@ -1565,7 +1644,8 @@ public final class FileSystemMaster extends AbstractMaster {
       inodes = result.getModified();
     }
     if (inodes == null) {
-      throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+      throw Throwables.propagate(
+          new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path)));
     }
     return inodes.get(inodes.size() - 1).getId();
   }
@@ -1609,7 +1689,7 @@ public final class FileSystemMaster extends AbstractMaster {
       boolean loadMetadataSuceeded = false;
       try {
         // This will create the directory at alluxioPath
-        loadDirectoryMetadata(alluxioPath, false);
+        loadDirectoryMetadata(alluxioPath, LoadMetadataOptions.defaults().setRecursive(false));
         loadMetadataSuceeded = true;
       } catch (FileDoesNotExistException e) {
         // This exception should be impossible since we just mounted this path
