@@ -77,7 +77,6 @@ import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
-import alluxio.thrift.LoadMetadataTOptions;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
@@ -468,7 +467,8 @@ public final class FileSystemMaster extends AbstractMaster {
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
 
-      LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults().setRecursive(true);
+      LoadMetadataOptions loadMetadataOptions =
+          LoadMetadataOptions.defaults().setRecursive(true).setLoadDirectChildren(true);
       Inode<?> inode = null;
       if (mInodeTree.inodePathExists(path)) {
         inode = mInodeTree.getInodeByPath(path);
@@ -483,7 +483,7 @@ public final class FileSystemMaster extends AbstractMaster {
         LOG.error("Failed to load metadata at {}.", path, e);
       }
 
-      if (inode != null) {
+      if (inode == null) {
         inode = mInodeTree.getInodeByPath(path);
       }
 

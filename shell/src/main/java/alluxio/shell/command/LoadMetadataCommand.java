@@ -55,7 +55,8 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
     try {
-      LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
+      LoadMetadataOptions options =
+          LoadMetadataOptions.defaults().setRecursive(true).setLoadDirectChildren(true);
       mFileSystem.loadMetadata(inputPath, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
