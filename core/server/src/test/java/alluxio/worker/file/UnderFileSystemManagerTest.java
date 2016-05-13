@@ -48,6 +48,8 @@ public final class UnderFileSystemManagerTest {
   private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
+  /** The testing session id */
+  private long mSessionId = 1L;
 
   @Before
   public void before() throws Exception {
@@ -68,7 +70,7 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    manager.createFile(new AlluxioURI(uniqPath));
+    manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
   }
 
@@ -81,7 +83,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileAlreadyExistsException.class);
-    manager.createFile(new AlluxioURI(uniqPath));
+    manager.createFile(mSessionId, new AlluxioURI(uniqPath));
   }
 
   /**
@@ -91,9 +93,9 @@ public final class UnderFileSystemManagerTest {
   public void completeUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(new AlluxioURI(uniqPath));
+    long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.completeFile(id);
+    manager.completeFile(mSessionId, id);
     Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
   }
 
@@ -104,7 +106,7 @@ public final class UnderFileSystemManagerTest {
   public void completeNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.completeFile(-1L);
+    manager.completeFile(mSessionId, -1L);
   }
 
   /**
@@ -114,9 +116,9 @@ public final class UnderFileSystemManagerTest {
   public void cancelUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(new AlluxioURI(uniqPath));
+    long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.cancelFile(id);
+    manager.cancelFile(mSessionId, id);
     Mockito.verify(mMockUfs).delete(Mockito.contains(uniqPath), Mockito.eq(false));
   }
 
@@ -127,7 +129,7 @@ public final class UnderFileSystemManagerTest {
   public void cancelNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.cancelFile(-1L);
+    manager.cancelFile(mSessionId, -1L);
   }
 
   /**
@@ -139,7 +141,7 @@ public final class UnderFileSystemManagerTest {
     String uniqPath = PathUtils.uniqPath();
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    manager.openFile(new AlluxioURI(uniqPath));
+    manager.openFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).exists(uniqPath);
   }
 
@@ -152,7 +154,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(false);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.openFile(new AlluxioURI(uniqPath));
+    manager.openFile(mSessionId, new AlluxioURI(uniqPath));
   }
 
   /**
@@ -163,10 +165,10 @@ public final class UnderFileSystemManagerTest {
     String uniqPath = PathUtils.uniqPath();
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.openFile(new AlluxioURI(uniqPath));
-    manager.closeFile(id);
+    long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
+    manager.closeFile(mSessionId, id);
     mThrown.expect(FileDoesNotExistException.class);
-    manager.closeFile(id);
+    manager.closeFile(mSessionId, id);
   }
 
   /**
@@ -176,7 +178,7 @@ public final class UnderFileSystemManagerTest {
   public void closeNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.closeFile(-1L);
+    manager.closeFile(mSessionId, -1L);
   }
 
   /**
@@ -186,7 +188,7 @@ public final class UnderFileSystemManagerTest {
   public void getOutputStreamTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(new AlluxioURI(uniqPath));
+    long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Assert.assertEquals(mMockOutputStream, manager.getOutputStream(id));
   }
 
@@ -210,7 +212,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.openFile(new AlluxioURI(uniqPath));
+    long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
     Assert.assertEquals(mMockInputStream, in);
     Mockito.verify(mMockInputStream).skip(position);
@@ -227,7 +229,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.openFile(new AlluxioURI(uniqPath));
+    long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
     Assert.assertEquals(mMockInputStream, in);
     Mockito.verify(mMockInputStream).skip(position);
