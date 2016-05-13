@@ -130,7 +130,7 @@ public final class ReplayCacheTest {
     } catch (AlluxioTException e) {
       Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getName());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getClassName());
     }
   }
 
@@ -149,7 +149,7 @@ public final class ReplayCacheTest {
     } catch (AlluxioTException e) {
       Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getName());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getClassName());
     }
   }
 
