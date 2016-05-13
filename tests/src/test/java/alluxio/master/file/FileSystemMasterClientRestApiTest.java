@@ -46,7 +46,7 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-public class FileSystemMasterClientRestApiTest extends RestApiTest {
+public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
 
   @Before
