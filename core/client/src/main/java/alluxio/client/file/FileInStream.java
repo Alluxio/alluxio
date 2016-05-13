@@ -34,7 +34,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -82,7 +81,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   protected long mPos;
 
   /**
-   * Include partially read blocks if Alluxio is configured to cache blocks read blocks from ufs.
+   * Caches the entire block even if only a portion of the block is read. Only valid when
+   * mShouldCache is true.
    */
   private final boolean mShouldCachePartiallyReadBlock;
   /** Whether to cache blocks in this file into Alluxio. */
@@ -312,7 +312,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     if (mCurrentCacheStream != null
         && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
-      throw new InvalidStateException(
+      throw new IllegalStateException(
           String.format("BlockInStream and CacheStream is out of sync %d %d.",
               mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
