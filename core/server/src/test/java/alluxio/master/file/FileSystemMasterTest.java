@@ -739,7 +739,8 @@ public final class FileSystemMasterTest {
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     mThrown.expect(FileAlreadyExistsException.class);
-    mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+    mFileSystemMaster
+        .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),

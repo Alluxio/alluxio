@@ -377,6 +377,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if the file path is not valid
    * @throws AccessControlException if permission checking fails
    */
+  // TODO(peis): Add an option not to load metadata.
   public FileInfo getFileInfo(AlluxioURI path)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
@@ -460,7 +461,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  // TODO(peis): Create GetFileInfoListOptions.
+  // TODO(peis): Create GetFileInfoListOptions and add an option not to load metadata.
   public List<FileInfo> getFileInfoList(AlluxioURI path, boolean loadDirectChildren)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
@@ -1607,7 +1608,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return mInodeTree.getInodeById(fileId).getId();
     } catch (FileAlreadyExistsException e) {
       LOG.error("FileAlreadyExistsException seen unexpectedly.", e);
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
   }
 
@@ -1641,7 +1642,7 @@ public final class FileSystemMaster extends AbstractMaster {
     try {
       result = createDirectory(path, createDirectoryOptions);
     } catch (FileAlreadyExistsException e) {
-      throw Throwables.propagate(e);
+      throw new RuntimeException(e);
     }
     List<Inode<?>> inodes = null;
     if (result.getCreated().size() > 0) {
@@ -1652,7 +1653,7 @@ public final class FileSystemMaster extends AbstractMaster {
       inodes = result.getModified();
     }
     if (inodes == null) {
-      throw Throwables.propagate(
+      throw new RuntimeException(
           new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path)));
     }
     return inodes.get(inodes.size() - 1).getId();
