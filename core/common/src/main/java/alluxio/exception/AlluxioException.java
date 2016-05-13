@@ -93,6 +93,9 @@ public abstract class AlluxioException extends Exception {
         // server version 1.0.x
         throwClass = AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
       }
+      if (throwClass == null) {
+        throwClass = AlluxioException.class;
+      }
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
       String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
