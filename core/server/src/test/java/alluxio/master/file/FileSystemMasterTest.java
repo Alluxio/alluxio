@@ -758,6 +758,11 @@ public final class FileSystemMasterTest {
     // move a nested file to a root file
     mFileSystemMaster.rename(NESTED_FILE_URI, TEST_URI);
     Assert.assertEquals(mFileSystemMaster.getFileInfo(TEST_URI).getPath(), TEST_URI.getPath());
+
+    // move a file where the dst is lexicographically earlier than the source
+    AlluxioURI newDst = new AlluxioURI("/abc_test");
+    mFileSystemMaster.rename(TEST_URI, newDst);
+    Assert.assertEquals(mFileSystemMaster.getFileInfo(newDst).getPath(), newDst.getPath());
   }
 
   /**
