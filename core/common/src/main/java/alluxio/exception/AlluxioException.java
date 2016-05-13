@@ -93,9 +93,9 @@ public abstract class AlluxioException extends Exception {
   }
 
   /**
-   * @deprecated
-   * The exception type used in Alluxio exceptions before 1.1
+   * @deprecated The exception type is no longer used since 1.1
    */
+  @Deprecated
   @ThreadSafe
   private enum AlluxioExceptionType {
     ACCESS_CONTROL(AccessControlException.class),
