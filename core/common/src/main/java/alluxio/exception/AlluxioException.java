@@ -72,7 +72,7 @@ public abstract class AlluxioException extends Exception {
   /**
    * Constructs a {@link AlluxioException} from a {@link AlluxioTException}.
    *
-   * @param e the {link AlluxioTException} to convert to a {@link AlluxioException}
+   * @param e the {@link AlluxioTException} to convert to a {@link AlluxioException}
    * @return a {@link AlluxioException} of the type specified in e, with the message specified in e
    */
 
