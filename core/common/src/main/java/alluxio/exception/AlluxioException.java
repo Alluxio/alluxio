@@ -75,15 +75,16 @@ public abstract class AlluxioException extends Exception {
    * @param e the {link AlluxioTException} to convert to a {@link AlluxioException}
    * @return a {@link AlluxioException} of the type specified in e, with the message specified in e
    */
-  @SuppressWarnings("unchecked")
+
   public static AlluxioException from(AlluxioTException e) {
     try {
       // For 1.0, the type returns the enum type, while for ALLUXIO 1.1 and after, the type contains
       // the exception class name
-      Class<? extends AlluxioException> throwClass =
+      Class<? extends AlluxioException> throwClassBackCompat =
           AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
-      throwClass = throwClass == null
-          ? (Class<? extends AlluxioException>) Class.forName(e.getType()) : throwClass;
+      @SuppressWarnings("unchecked")
+      Class<? extends AlluxioException> throwClass = throwClassBackCompat == null
+          ? (Class<? extends AlluxioException>) Class.forName(e.getType()) : throwClassBackCompat;
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
       String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
