@@ -90,9 +90,9 @@ public abstract class AlluxioException extends Exception {
       // For 1.0, the type returns the enum type, while for ALLUXIO 1.1 and after, the type contains
       // the exception class name
       Class<? extends AlluxioException> throwClass;
-      if (e.isSetName()) {
+      if (e.isSetClassName()) {
         // version 1.1 or newer
-        throwClass = (Class<? extends AlluxioException>) Class.forName(e.getName());
+        throwClass = (Class<? extends AlluxioException>) Class.forName(e.getClassName());
       } else {
         // version 1.0
         AlluxioExceptionType exceptionType = AlluxioExceptionType.valueOf(e.getType());
