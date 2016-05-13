@@ -27,9 +27,9 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -224,9 +224,11 @@ public final class UnderFileSystemManager {
   /** A random id generator for worker file ids. */
   private final AtomicLong mIdGenerator;
   /** Map of worker file ids to open under file system input streams. */
-  private final IndexedSet<InputStreamAgent> mInputAgents;
+  @GuardedBy("itself")
+  private final IndexedSet<InputStreamAgent> mInputStreamAgents;
   /** Map of worker file ids to open under file system output streams. */
-  private final IndexedSet<OutputStreamAgent> mOutputAgents;
+  @GuardedBy("itself")
+  private final IndexedSet<OutputStreamAgent> mOutputStreamAgents;
 
   /**
    * Creates a new under file system manager. Stream ids are unique to each under file system
@@ -234,8 +236,8 @@ public final class UnderFileSystemManager {
    */
   public UnderFileSystemManager() {
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
-    mInputAgents = new IndexedSet<>(mInputSessionIndex, mInputIdIndex);
-    mOutputAgents = new IndexedSet<>(mOutputSessionIndex, mOutputIdIndex);
+    mInputStreamAgents = new IndexedSet<>(mInputSessionIndex, mInputIdIndex);
+    mOutputStreamAgents = new IndexedSet<>(mOutputSessionIndex, mOutputIdIndex);
   }
 
   /**
@@ -251,9 +253,11 @@ public final class UnderFileSystemManager {
   public long createFile(long sessionId, AlluxioURI ufsUri) throws FileAlreadyExistsException,
       IOException {
     long id = mIdGenerator.getAndIncrement();
-    OutputStreamAgent stream =
+    OutputStreamAgent agent =
         new OutputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
-    mOutputAgents.add(stream);
+    synchronized (mOutputStreamAgents) {
+      mOutputStreamAgents.add(agent);
+    }
     return id;
   }
 
@@ -268,12 +272,32 @@ public final class UnderFileSystemManager {
    */
   public void cancelFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputAgents.remove(tempUfsFileId);
-    if (stream != null) {
-      stream.cancel();
-    } else {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to cancel file not "
+          + "owned by session.");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent), "Failed to remove agent "
+          + "with id " + tempUfsFileId + "from output stream agents.");
+    }
+    agent.cancel();
+  }
+
+  /**
+   * Cleans up the state of the given session id
+   *
+   * @param sessionId the session id to clean up
+   */
+  public void cleanupSession(long sessionId) {
+    synchronized(mInputStreamAgents) {
+      mInputStreamAgents.removeByField(mInputSessionIndex, sessionId);
+    }
+    synchronized(mOutputStreamAgents) {
+      mOutputStreamAgents.removeByField(mOutputSessionIndex, sessionId);
     }
   }
 
@@ -288,10 +312,17 @@ public final class UnderFileSystemManager {
    */
   public void closeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent removed = mInputAgents.remove(tempUfsFileId);
-    if (removed == null) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    InputStreamAgent agent;
+    synchronized (mInputStreamAgents) {
+      agent = mInputStreamAgents.getFirstByField(mInputIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to close file not "
+          + "owned by session.");
+      Preconditions.checkState(mInputStreamAgents.remove(agent), "Failed to remove agent "
+          + "with id " + tempUfsFileId + "from input stream agents.");
     }
   }
 
@@ -306,12 +337,19 @@ public final class UnderFileSystemManager {
    */
   public void completeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputAgents.remove(tempUfsFileId);
-    if (stream == null) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to complete file not "
+          + "owned by session.");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent), "Failed to remove agent "
+          + "with id " + tempUfsFileId + "from output stream agents.");
     }
-    stream.complete();
+    agent.complete();
   }
 
   /**
@@ -323,12 +361,15 @@ public final class UnderFileSystemManager {
    */
   public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent stream = mInputAgents.get(tempUfsFileId);
-    if (stream == null) {
+    InputStreamAgent agent;
+    synchronized (mInputStreamAgents) {
+      agent = mInputStreamAgents.getFirstByField(mInputIdIndex, tempUfsFileId);
+    }
+    if (agent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
-    return stream.openAtPosition(position);
+    return agent.openAtPosition(position);
   }
 
   /**
@@ -337,12 +378,15 @@ public final class UnderFileSystemManager {
    * @throws FileDoesNotExistException if the worker file id not valid
    */
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
-    OutputStreamAgent stream = mOutputAgents.get(tempUfsFileId);
-    if (stream == null) {
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputIdIndex, tempUfsFileId);
+    }
+    if (agent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
-    return stream.getStream();
+    return agent.getStream();
   }
 
   /**
@@ -356,9 +400,11 @@ public final class UnderFileSystemManager {
    */
   public long openFile(long sessionId, AlluxioURI ufsUri)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent stream = new InputStreamAgent(ufsUri, WorkerContext.getConf());
-    long workerFileId = mIdGenerator.getAndIncrement();
-    mInputAgents.put(workerFileId, stream);
-    return workerFileId;
+    long id = mIdGenerator.getAndIncrement();
+    InputStreamAgent agent = new InputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
+    synchronized (mInputStreamAgents) {
+      mInputStreamAgents.add(agent);
+    }
+    return id;
   }
 }
