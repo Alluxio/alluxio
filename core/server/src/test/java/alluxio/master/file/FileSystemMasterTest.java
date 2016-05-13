@@ -732,11 +732,13 @@ public final class FileSystemMasterTest {
   @Test
   public void testLoadMetadataTest() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio://localhost:19998/a"),
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio://localhost:19998/a"),
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
   }
 

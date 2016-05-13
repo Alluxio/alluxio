@@ -100,7 +100,7 @@ public class JournalIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, false).size());
     long xyzId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(xyzId != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(xyzId);
@@ -162,7 +162,7 @@ public class JournalIntegrationTest {
 
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, false).size());
     Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/xyz")) != IdUtils.INVALID_FILE_ID);
     FileInfo fsMasterInfo = fsMaster.getFileInfo(fsMaster.getFileId(new AlluxioURI("/xyz")));
     Assert.assertEquals(status, new URIStatus(fsMasterInfo));
@@ -231,7 +231,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(5, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(5, fsMaster.getFileInfoList(mRootUri, false).size());
     for (int i = 0; i < 5; i++) {
       for (int j = 0; j < 5; j++) {
         Assert.assertTrue(
@@ -247,7 +247,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(0, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(0, fsMaster.getFileInfoList(mRootUri, false).size());
     fsMaster.stop();
   }
 
@@ -273,7 +273,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, false).size());
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 10; j++) {
         Assert.assertTrue(
@@ -303,7 +303,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, false).size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(status, new URIStatus(fsMaster.getFileInfo(fileId)));
@@ -378,7 +378,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(1, fsMaster.getFileInfoList(mRootUri, false).size());
     long fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
     Assert.assertTrue(fileId != IdUtils.INVALID_FILE_ID);
     Assert.assertEquals(status, new URIStatus(fsMaster.getFileInfo(fileId)));
@@ -443,7 +443,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, false).size());
     for (int k = 0; k < 10; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -469,7 +469,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(124, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(124, fsMaster.getFileInfoList(mRootUri, false).size());
     for (int k = 0; k < 124; k++) {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
@@ -501,7 +501,7 @@ public class JournalIntegrationTest {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
     long rootId = fsMaster.getFileId(mRootUri);
     Assert.assertTrue(rootId != IdUtils.INVALID_FILE_ID);
-    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, true).size());
+    Assert.assertEquals(10, fsMaster.getFileInfoList(mRootUri, false).size());
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 10; j++) {
         Assert.assertTrue(
@@ -513,7 +513,7 @@ public class JournalIntegrationTest {
 
   private List<FileInfo> lsr(FileSystemMaster fsMaster, AlluxioURI uri)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    List<FileInfo> files = fsMaster.getFileInfoList(uri, true);
+    List<FileInfo> files = fsMaster.getFileInfoList(uri, false);
     List<FileInfo> ret = new ArrayList<>(files);
     for (FileInfo file : files) {
       ret.addAll(lsr(fsMaster, new AlluxioURI(file.getPath())));

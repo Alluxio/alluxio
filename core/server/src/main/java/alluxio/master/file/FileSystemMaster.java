@@ -470,16 +470,13 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
 
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setCreateAncestors(true);
+          LoadMetadataOptions.defaults().setCreateAncestors(true)
+              .setLoadDirectChildren(loadDirectChildren);
       Inode<?> inode = null;
       if (mInodeTree.inodePathExists(path)) {
         inode = mInodeTree.getInodeByPath(path);
-        if (inode.isDirectory()) {
-          mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
-          if (!((InodeDirectory) inode).isDirectChildrenLoaded()) {
-            loadMetadataOptions.setLoadDirectChildren(true)
-                .setLoadDirectChildren(loadDirectChildren);
-          }
+        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+          loadMetadataOptions.setLoadDirectChildren(false);
         }
       }
       try {
@@ -490,6 +487,10 @@ public final class FileSystemMaster extends AbstractMaster {
 
       if (inode == null) {
         inode = mInodeTree.getInodeByPath(path);
+      }
+
+      if (inode.isDirectory()) {
+        mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
       }
 
       List<FileInfo> ret = new ArrayList<>();
@@ -1617,6 +1618,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Loads metadata for the directory identified by the given path from UFS into Alluxio. This does
    * not actually require looking at the UFS path.
+   * It is a no-op if the directory exists and is persisted.
    *
    * @param path the path for which metadata should be loaded
    * @param options the load metadata options
@@ -1630,11 +1632,15 @@ public final class FileSystemMaster extends AbstractMaster {
   private long loadDirectoryMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws IOException, InvalidPathException, AccessControlException, FileDoesNotExistException {
     if (mInodeTree.inodePathExists(path)) {
-      return mInodeTree.getInodeByPath(path).getId();
+      Inode inode = mInodeTree.getInodeByPath(path);
+      if (inode.isPersisted()) {
+        return inode.getId();
+      }
     }
     CreateDirectoryOptions createDirectoryOptions =
         CreateDirectoryOptions.defaults().setMountPoint(mMountTable.isMountPoint(path))
-            .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true);
+            .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true)
+            .setAllowExists(true);
     InodeTree.CreatePathResult result;
     try {
       result = createDirectory(path, createDirectoryOptions);

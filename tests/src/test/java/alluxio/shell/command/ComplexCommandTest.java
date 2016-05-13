@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -57,7 +56,6 @@ public class ComplexCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/dir1")).isPersisted());
     // Load metadata
     mFsShell.run("loadMetadata", "/dir1");
-    Assert.assertEquals(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage("/dir1") + "\n",
-        mOutput.toString());
+    Assert.assertEquals("", mOutput.toString());
   }
 }

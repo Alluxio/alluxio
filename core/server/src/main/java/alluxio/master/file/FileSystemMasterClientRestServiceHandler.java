@@ -19,7 +19,6 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 
