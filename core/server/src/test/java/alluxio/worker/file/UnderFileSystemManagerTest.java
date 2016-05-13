@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -283,5 +284,36 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     manager.getInputStreamAtPosition(-1L, 0L);
+  }
+
+  /**
+   * Tests cleaning sessions clears the correct state.
+   */
+  @Test
+  public void cleanSessionsTest() throws Exception {
+    String uniqPath1 = PathUtils.uniqPath();
+    String uniqPath2 = PathUtils.uniqPath();
+    long secondSession = mSessionId + 1;
+    long position = 0L;
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    Mockito.when(mMockUfs.exists(Mockito.anyString())).thenReturn(true);
+    long id1 = manager.openFile(mSessionId, new AlluxioURI(uniqPath1));
+    long id2 = manager.openFile(secondSession, new AlluxioURI(uniqPath2));
+    // Both files should be accessible
+    InputStream in1 = manager.getInputStreamAtPosition(id1, position);
+    Assert.assertEquals(mMockInputStream, in1);
+    InputStream in2 = manager.getInputStreamAtPosition(id2, position);
+    Assert.assertEquals(mMockInputStream, in2);
+    in1.close();
+    in2.close();
+    // Clean up second session
+    manager.cleanupSession(secondSession);
+    // First file should still be available
+    in1 = manager.getInputStreamAtPosition(id1, position);
+    Assert.assertEquals(mMockInputStream, in1);
+    in1.close();
+    // Second file should no longer be available
+    mThrown.expect(FileDoesNotExistException.class);
+    in2 = manager.getInputStreamAtPosition(id2, position);
   }
 }
