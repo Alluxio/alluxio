@@ -768,9 +768,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throw new InvalidPathException("Not an ExtensibleInodePath: " + inodePath.getUri());
     }
     ExtensibleInodePath extensibleInodePath = (ExtensibleInodePath) inodePath;
-    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = extensibleInodePath.getInodes();
     InodeLockGroup lockGroup = extensibleInodePath.getLockGroup();
+    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
+    for (Inode<?> inode : inodes) {
+      if (!inode.isPersisted()) {
+        nonPersistedInodes.add(inode);
+      }
+    }
     return traverseToInodeInternal(extensibleInodePath.getPathComponents(), inodes,
         nonPersistedInodes, lockGroup, lockMode);
   }
