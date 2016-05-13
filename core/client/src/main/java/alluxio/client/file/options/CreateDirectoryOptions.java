@@ -99,13 +99,32 @@ public final class CreateDirectoryOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateDirectoryOptions)) {
+      return false;
+    }
+    CreateDirectoryOptions that = (CreateDirectoryOptions) o;
+    return Objects.equal(mAllowExists, that.mAllowExists)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mUnderStorageType, that.mUnderStorageType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAllowExists, mRecursive, mUnderStorageType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
-        .add("recursive", mRecursive).add("underStorageType", mUnderStorageType).toString();
+    return Objects.toStringHelper(this)
+        .add("allowExists", mAllowExists)
+        .add("recursive", mRecursive)
+        .add("underStorageType", mUnderStorageType)
+        .toString();
   }
 
   /**

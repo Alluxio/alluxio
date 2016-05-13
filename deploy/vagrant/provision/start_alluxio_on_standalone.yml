@@ -6,7 +6,7 @@
 - hosts: AlluxioMaster*
   tasks:
     - name: set master address to own hostname
-      shell: sed -i "s/export ALLUXIO_MASTER_ADDRESS=.*/export ALLUXIO_MASTER_ADDRESS=$(hostname -A | cut -d' ' -f1)/g" /alluxio/conf/alluxio-env.sh
+      shell: sed -i "s/export ALLUXIO_MASTER_HOSTNAME=.*/export ALLUXIO_MASTER_HOSTNAME=$(hostname -A | cut -d' ' -f1)/g" /alluxio/conf/alluxio-env.sh
 
     - include: roles/alluxio/tasks/start_master.yml
 

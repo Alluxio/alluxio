@@ -19,7 +19,7 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The method options for completing a file.
+ * Method options for completing a file.
  */
 @PublicApi
 @NotThreadSafe
@@ -53,12 +53,28 @@ public final class CompleteFileOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CompleteFileOptions)) {
+      return false;
+    }
+    CompleteFileOptions that = (CompleteFileOptions) o;
+    return Objects.equal(mUfsLength, that.mUfsLength);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mUfsLength);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("ufsLength", mUfsLength).toString();
+    return Objects.toStringHelper(this)
+        .add("ufsLength", mUfsLength)
+        .toString();
   }
 
   /**

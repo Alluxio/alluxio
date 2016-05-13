@@ -4,7 +4,7 @@ title: Overview
 group: Home
 ---
 
-Alluxio, the world’s first memory-centric virtual distributed storage system, unifies data access
+Alluxio, formerly known as Tachyon, the world’s first memory-centric virtual distributed storage system, unifies data access
 and bridges computation frameworks and underlying storage systems. Applications only need to connect
 with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
 memory-centric architecture enables data access orders of magnitude faster than existing solutions.
@@ -26,7 +26,7 @@ of Alluxio without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years of open source history, Alluxio has attracted more than
-[180 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
+[200 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
 [Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
 [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/),
@@ -37,7 +37,7 @@ The project is the storage layer of the Berkeley Data Analytics Stack
 
 [Github](https://github.com/alluxio/alluxio/) |
 [Releases](http://alluxio.org/releases/) |
-[Downloads](http://alluxio.org/downloads/) |
+[Downloads](http://alluxio.org/download/) |
 [User Document](Getting-Started.html) |
 [Developer Document](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
@@ -87,7 +87,7 @@ page which will go through how to deploy Alluxio and run some basic examples in 
 # Downloads
 
 You can get the released versions of Alluxio from the
-[Project Downloads Page](http://alluxio.org/downloads). Each release comes with prebuilt
+[Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
 [Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html).

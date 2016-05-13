@@ -11,6 +11,8 @@
 
 package alluxio.client;
 
+import alluxio.annotation.PublicApi;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -20,6 +22,7 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * This option is for developers and advanced users. See {@link WriteType} and {@link ReadType}.
  */
+@PublicApi
 @ThreadSafe
 public enum UnderStorageType {
   /** Persist data to Under Storage synchronously. */

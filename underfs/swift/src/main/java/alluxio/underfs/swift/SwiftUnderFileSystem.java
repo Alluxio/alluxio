@@ -11,6 +11,7 @@
 
 package alluxio.underfs.swift;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -71,23 +72,32 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
-   * @param containerName the name of the container
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(String containerName,
-      Configuration configuration) {
-    super(configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
+    super(uri, configuration);
+    String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-    config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
+    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+      // tempauth requires authentication header to be of the form tenant:user.
+      // JOSS however generates header of the form user:tenant.
+      // To resolve this, we switch user with tenant
+      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -121,6 +131,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
+    if (newPath.endsWith("_SUCCESS")) {
+      // when path/_SUCCESS is created, there is need to create path as
+      // an empty object. This is required by Spark in case Spark
+      // accesses path directly, bypassing Alluxio
+      String plainName = newPath.substring(0, newPath.indexOf("_SUCCESS"));
+      LOG.debug("Plain name: {}", plainName);
+      SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
+      out.close();
+    }
     SwiftOutputStream out = SwiftDirectClient.put(mAccess, newPath);
     return out;
   }
@@ -175,6 +194,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
+    if (newPath.endsWith("_temporary")) {
+      // To get better performance Swift driver does not
+      // creates _temporary folder
+      // This optimization should be hidden from Spark, therefore
+      // exists _teporary will return true
+      return true;
+    }
     return isObjectExists(newPath);
   }
 
@@ -191,16 +217,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Gets the block size in bytes. There is no concept of a block in Swift, however the maximum
-   * allowed size of one file is currently 4 GB.
+   * Gets the block size in bytes. There is no concept of a block in Swift and the maximum size of
+   * one file is 4 GB. This method defaults to the default user block size in Alluxio.
    *
-   * @param path to the object
-   * @return 4 GB in bytes
+   * @param path the path to the object
+   * @return the default Alluxio user block size
    * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Constants.GB * 4;
+    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -326,9 +352,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {
   }
 
+  // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
-  }
+  public void setOwner(String path, String user, String group) {}
+
+  // Not supported
+  @Override
+  public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
    * Copies an object to another name.
@@ -339,10 +369,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean copy(String src, String dst) {
     LOG.debug("copy from {} to {}", src, dst);
+    String strippedSrcPath = stripPrefixIfPresent(src);
+    String strippedDstPath = stripPrefixIfPresent(dst);
     try {
       Container container = mAccount.getContainer(mContainerName);
-      container.getObject(src).copyObject(container,
-          container.getObject(dst));
+      container.getObject(strippedSrcPath).copyObject(container,
+          container.getObject(strippedDstPath));
       return true;
     } catch (Exception e) {
       LOG.error(e.getMessage());
@@ -405,6 +437,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return stripPrefixIfPresent(path, PATH_SEPARATOR);
+    }
     return stripPrefixIfPresent(path, mContainerPrefix);
   }
 

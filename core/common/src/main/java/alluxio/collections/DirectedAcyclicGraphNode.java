@@ -12,8 +12,8 @@
 package alluxio.collections;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -49,8 +49,8 @@ public class DirectedAcyclicGraphNode<T> {
    * @param payload the payload of the node
    */
   public DirectedAcyclicGraphNode(T payload) {
-    this(payload, Lists.<DirectedAcyclicGraphNode<T>>newArrayList(),
-        Lists.<DirectedAcyclicGraphNode<T>>newArrayList());
+    this(payload, new ArrayList<DirectedAcyclicGraphNode<T>>(),
+      new ArrayList<DirectedAcyclicGraphNode<T>>());
   }
 
   /**
@@ -74,7 +74,7 @@ public class DirectedAcyclicGraphNode<T> {
   /**
    * Gets the children nodes of the node.
    *
-   * @return the childrens of the node
+   * @return the children of the node
    */
   public List<DirectedAcyclicGraphNode<T>> getChildren() {
     return mChildren;

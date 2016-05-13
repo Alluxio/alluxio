@@ -65,9 +65,13 @@ Alluxio有两种存储类型：Alluxio管理的存储和底层存储。Alluxio�
 
 ### 定位策略
 
-Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件数据块。通过使用Alluxio的Java API，用户可以在`CreateFileOptions`中设置该策略以用于写文件，也可在`OpenFileOptions`中设置该策略用于向Alluxio中读文件。Alluxio支持自定义定位策略，用户可以很容易地重载[配置项设置](Configuration-Settings.html)中`alluxio.user.file.write.location.policy.class`属性中的默认策略类。目前已经内置的策略包括：
+Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件数据块。
 
-* **LocalFirstPolicy (alluxio.client.file.policy.LocalFirstPolicy)**
+使用Alluxio的Java API，用户可以在`CreateFileOptions`中设置该策略以用于写文件，也可在`OpenFileOptions`中设置该策略用于向Alluxio中读文件。
+
+用户可以简单的覆盖默认策略类通过修改[配置文件](Configuration-Settings.html)`alluxio.user.file.write.location.policy.class`内的属性。内置策略包括：
+
+* **LocalFirstPolicy(alluxio.client.file.policy.LocalFirstPolicy)**
 
     首先返回本地主机，如果本地Worker没有足够的容量容纳一个数据块，那么就会从有效的Worker列表中随机选择一个Worker。这也是默认策略。
 
@@ -83,7 +87,7 @@ Alluxio提供定位策略，用于确定应该选择哪个Worker来存储文件�
 
     返回指定主机名的Worker。该策略不能被设置为默认策略。
 
-Alluxio支持自定义策略，所以你可以通过实现`alluxio.client.file.policyFileWriteLocationPolicy`接口来开发定制的定位策略来自己的迎合应用需求。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
+Alluxio支持自定义策略，所以你可以通过实现接口`alluxio.client.file.policyFileWriteLocationPolicy`，开发自己的定位策略来迎合应用需求。注意默认策略必须要有一个空构造函数。要想使用ASYNC_THROUGH写类型，所有的文件数据块必须被写到相同的Worker上。
 
 ### 访问Alluxio上一个存在的文件
 

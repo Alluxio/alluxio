@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.thrift.CompleteFileTOptions;
 
 import org.junit.Assert;
@@ -53,5 +54,10 @@ public class CompleteFileOptionsTest {
     options.setUfsLength(len);
     CompleteFileTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(len, thriftOptions.getUfsLength());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CompleteFileOptions.class);
   }
 }

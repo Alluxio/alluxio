@@ -20,6 +20,10 @@ alluxio.worker.data.bind.host:
   <a href="#configure-multihomed-networks">multi-homed networks</a>
 alluxio.worker.data.folder:
   A relative path within each storage directory used as the data folder for Alluxio worker to put data for tiered store.
+alluxio.worker.data.folder.tmp:
+  A relative path in alluxio.worker.data.folder used to store the temporary data for uncommitted files.
+alluxio.worker.data.tmp.subdir.max:
+  The maximum number of sub-directories allowed to be created in alluxio.worker.data.tmp.folder.
 alluxio.worker.data.port:
   The port Alluxio's worker's data server runs on.
 alluxio.worker.data.server.class:
@@ -36,6 +40,10 @@ alluxio.worker.evictor.lrfu.step.factor:
   LFU; and larger value makes LRFU closer to LRU."
 alluxio.worker.file.persist.pool.size:
   The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.
+alluxio.worker.file.persist.rate.limit.enabled:
+  Whether to enable rate limiting when performing asynchronous persistence.
+alluxio.worker.file.persist.rate.limit:
+  The rate limit of asynchronous persistence per second.
 alluxio.worker.filesystem.heartbeat.interval.ms:
   The heartbeat interval (in milliseconds) between the worker and file system master.
 alluxio.worker.hostname:

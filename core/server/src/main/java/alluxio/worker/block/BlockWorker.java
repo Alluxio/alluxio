@@ -149,11 +149,9 @@ public final class BlockWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerClientService.Processor<>(getWorkerServiceHandler()));
     return services;
   }
 
@@ -292,9 +290,7 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException e) {
+    } catch (IOException | ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
@@ -320,7 +316,9 @@ public final class BlockWorker extends AbstractWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    return createdBlock.getPath();
+    String blockPath = createdBlock.getPath();
+    createBlockFile(blockPath);
+    return blockPath;
   }
 
   /**
@@ -341,7 +339,7 @@ public final class BlockWorker extends AbstractWorker {
       throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
     BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
     TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    FileUtils.createBlockPath(createdBlock.getPath());
+    createBlockFile(createdBlock.getPath());
   }
 
   /**
@@ -393,12 +391,22 @@ public final class BlockWorker extends AbstractWorker {
 
   /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
-   * the total capacity and used capacity of each tier.
+   * the total capacity and used capacity of each tier. This function is cheap.
    *
    * @return the block store metadata
    */
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
+  }
+
+  /**
+   * Similar as {@link BlockWorker#getStoreMeta} except that this also contains full blockId
+   * list. This function is expensive.
+   *
+   * @return the full block store metadata
+   */
+  public BlockStoreMeta getStoreMetaFull() {
+    return mBlockStore.getBlockStoreMetaFull();
   }
 
   /**
@@ -411,6 +419,26 @@ public final class BlockWorker extends AbstractWorker {
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return mBlockStore.getVolatileBlockMeta(blockId);
+  }
+
+  /**
+   * Gets the meta data of a specific block from local storage.
+   * <p>
+   * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
+   * previously acquired {@link #lockBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @param lockId the id of the lock
+   * @return metadata of the block
+   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
+   *         lockId can not be found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lockId
+   */
+  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    return mBlockStore.getBlockMeta(sessionId, blockId, lockId);
   }
 
   /**
@@ -593,5 +621,21 @@ public final class BlockWorker extends AbstractWorker {
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
+  }
+
+  /**
+   * Creates a file to represent a block denoted by the given block path. This file will be owned
+   * by the Alluxio worker but have 777 permissions so processes under users different from the
+   * user that launched the Alluxio worker can read and write to the file. The tiered storage
+   * directory has the sticky bit so only the worker user can delete or rename files it creates.
+   *
+   * @param blockPath the block path to create
+   * @throws IOException if the file cannot be created in the tiered storage folder
+   */
+  private void createBlockFile(String blockPath) throws IOException {
+    FileUtils.createBlockPath(blockPath);
+    FileUtils.createFile(blockPath);
+    FileUtils.changeLocalFileToFullPermission(blockPath);
+    LOG.info("Created new file block, block path: {}", blockPath);
   }
 }

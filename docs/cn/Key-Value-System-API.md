@@ -78,4 +78,13 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
 
 以下是键值存储库的配置参数：
 
-{% include Key-Value-Store-API/key-value-configuration.md %}
+<table class="table table-striped">
+<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+{% for item in site.data.table.key-value-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.cn.key-value-configuration.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
+</table>

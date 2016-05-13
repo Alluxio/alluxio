@@ -95,6 +95,7 @@ public class BlockWorkerTest {
     conf.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
     conf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+
     mBlockWorker = new BlockWorker();
 
     Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
@@ -109,7 +110,7 @@ public class BlockWorkerTest {
    * Resets the worker context.
    */
   @After
-  public void after() {
+  public void after() throws IOException {
     WorkerContext.reset();
   }
 
@@ -177,6 +178,7 @@ public class BlockWorkerTest {
     when(mBlockStore.getBlockMeta(sessionId, blockId, lockId)).thenReturn(
         blockMeta);
     when(mBlockStore.getBlockStoreMeta()).thenReturn(blockStoreMeta);
+    when(mBlockStore.getBlockStoreMetaFull()).thenReturn(blockStoreMeta);
     when(blockMeta.getBlockLocation()).thenReturn(blockStoreLocation);
     when(blockStoreLocation.tierAlias()).thenReturn(tierAlias);
     when(blockMeta.getBlockSize()).thenReturn(length);
@@ -206,7 +208,9 @@ public class BlockWorkerTest {
     when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
+    assertEquals(
+        PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+            String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
@@ -228,7 +232,8 @@ public class BlockWorkerTest {
     when(mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes))
         .thenReturn(meta);
     when(storageDir.getDirPath()).thenReturn("/tmp");
-    assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
+    assertEquals(PathUtils.concatPath("/tmp", ".tmp_blocks", sessionId % 1024,
+        String.format("%x-%x", sessionId, blockId)),
         mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes));
   }
 
@@ -277,7 +282,9 @@ public class BlockWorkerTest {
   @Test
   public void getStoreMetaTest() {
     mBlockWorker.getStoreMeta();
+    mBlockWorker.getStoreMetaFull();
     verify(mBlockStore).getBlockStoreMeta();
+    verify(mBlockStore).getBlockStoreMetaFull();
   }
 
   /**
@@ -293,8 +300,21 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
+   * Tests the {@link BlockWorker#getBlockMeta(long)} method.
    *
+   * @throws Exception if the getVolatileBlockMeta check fails
+   */
+  @Test
+  public void getBlockMetaTest() throws Exception {
+    long sessionId = mRandom.nextLong();
+    long blockId = mRandom.nextLong();
+    long lockId = mRandom.nextLong();
+    mBlockWorker.getBlockMeta(sessionId, blockId, lockId);
+    verify(mBlockStore).getBlockMeta(sessionId, blockId, lockId);
+  }
+
+  /**
+   * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
    */
   @Test
   public void hasBlockMetaTest() {

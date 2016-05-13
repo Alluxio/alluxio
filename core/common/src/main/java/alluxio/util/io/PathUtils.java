@@ -110,7 +110,10 @@ public final class PathUtils {
   }
 
   /**
-   * Gets the path components of the given path.
+   * Gets the path components of the given path. The first component will be an empty string.
+   *
+   * "/a/b/c" => {"", "a", "b", "c"}
+   * "/" => {""}
    *
    * @param path The path to split
    * @return the path split into components
@@ -119,11 +122,35 @@ public final class PathUtils {
   public static String[] getPathComponents(String path) throws InvalidPathException {
     path = cleanPath(path);
     if (isRoot(path)) {
-      String[] ret = new String[1];
-      ret[0] = "";
-      return ret;
+      return new String[]{""};
     }
     return path.split(AlluxioURI.SEPARATOR);
+  }
+
+  /**
+   * Removes the prefix from the path, yielding a relative path from the second path to the first.
+   *
+   * If the paths are the same, this method returns the empty string.
+   *
+   * @param path the full path
+   * @param prefix the prefix to remove
+   * @return the path with the prefix removed
+   * @throws InvalidPathException if either of the arguments are not valid paths
+   */
+  public static String subtractPaths(String path, String prefix) throws InvalidPathException {
+    String cleanedPath = cleanPath(path);
+    String cleanedPrefix = cleanPath(prefix);
+    if (cleanedPath.equals(cleanedPrefix)) {
+      return "";
+    }
+    if (!hasPrefix(cleanedPath, cleanedPrefix)) {
+      throw new RuntimeException(
+          String.format("Cannot subtract %s from %s because it is not a prefix", prefix, path));
+    }
+    // The only clean path which ends in '/' is the root.
+    int prefixLen = cleanedPrefix.length();
+    int charsToDrop = PathUtils.isRoot(cleanedPrefix) ? prefixLen : prefixLen + 1;
+    return cleanedPath.substring(charsToDrop, cleanedPath.length());
   }
 
   /**

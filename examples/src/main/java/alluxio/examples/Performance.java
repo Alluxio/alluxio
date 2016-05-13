@@ -14,7 +14,7 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -24,6 +24,7 @@ import alluxio.util.FormatUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import com.google.common.net.HostAndPort;
 import org.apache.hadoop.fs.Path;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class Performance {
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static FileSystem sFileSystem = null;
-  private static AlluxioURI sMasterAddress = null;
+  private static HostAndPort sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
   private static long sBlocksPerFile = -1;
@@ -75,7 +76,7 @@ public class Performance {
   }
 
   /**
-   * Write log information.
+   * Writes log information.
    *
    * @param startTimeMs the start time in milliseconds
    * @param times the number of the iteration
@@ -603,7 +604,7 @@ public class Performance {
       System.exit(-1);
     }
 
-    sMasterAddress = new AlluxioURI(args[0]);
+    sMasterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
     sBlocksPerFile = Long.parseLong(args[3]);
@@ -628,7 +629,7 @@ public class Performance {
 
     CommonUtils.warmUpLoop();
 
-    configuration.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHost());
+    configuration.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHostText());
     configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
 
     if (testCase == 1) {

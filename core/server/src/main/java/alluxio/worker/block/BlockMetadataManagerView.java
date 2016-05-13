@@ -22,7 +22,6 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Preconditions;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,16 +48,16 @@ public class BlockMetadataManagerView {
    * A list of {@link StorageTierView}, derived from {@link StorageTier}s from the
    * {@link BlockMetadataManager}.
    */
-  private List<StorageTierView> mTierViews = new ArrayList<StorageTierView>();
+  private List<StorageTierView> mTierViews = new ArrayList<>();
 
   /** A list of pinned inodes. */
-  private final Set<Long> mPinnedInodes = new HashSet<Long>();
+  private final Set<Long> mPinnedInodes = new HashSet<>();
 
   /** Indices of locks that are being used. */
-  private final BitSet mInUseLocks = new BitSet();
+  private final Set<Long> mInUseBlocks = new HashSet<>();
 
   /** A map from tier alias to {@link StorageTierView}. */
-  private Map<String, StorageTierView> mAliasToTierViews = new HashMap<String, StorageTierView>();
+  private Map<String, StorageTierView> mAliasToTierViews = new HashMap<>();
 
   /**
    * Creates a new instance of {@link BlockMetadataManagerView}. Now we always create a new view
@@ -74,9 +73,7 @@ public class BlockMetadataManagerView {
     mMetadataManager = Preconditions.checkNotNull(manager);
     mPinnedInodes.addAll(Preconditions.checkNotNull(pinnedInodes));
     Preconditions.checkNotNull(lockedBlocks);
-    for (Long blockId : lockedBlocks) {
-      mInUseLocks.set(BlockLockManager.blockHashIndex(blockId));
-    }
+    mInUseBlocks.addAll(lockedBlocks);
 
     // iteratively create all StorageTierViews and StorageDirViews
     for (StorageTier tier : manager.getTiers()) {
@@ -115,12 +112,7 @@ public class BlockMetadataManagerView {
    * @return boolean, true if block is locked
    */
   public boolean isBlockLocked(long blockId) {
-    int index = BlockLockManager.blockHashIndex(blockId);
-    if (index < mInUseLocks.length()) {
-      return mInUseLocks.get(index);
-    } else {
-      return false;
-    }
+    return mInUseBlocks.contains(blockId);
   }
 
   /**

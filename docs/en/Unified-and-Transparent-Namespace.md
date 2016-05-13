@@ -32,8 +32,7 @@ was not created through Alluxio. For instance, if the underlying storage system 
 `Data` with files `Reports` and `Sales`, all of which were not created through Alluxio, their
 metadata will be loaded into Alluxio the first time they are accessed (e.g. when a user requests to
 open a file). The data of file is not loaded to Alluxio during this process. To load the data into
-Alluxio, one can set the `AlluxioStorageType` to `STORE` when reading the data for the first time or
-use the `load` command of the Alluxio shell.
+Alluxio, one can read the data using `FileInStream` or use the `load` command of the Alluxio shell.
 
 ## Unified Namespace
 

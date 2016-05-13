@@ -111,7 +111,7 @@ public final class BlockStoreLocation {
       result.append("dir ").append(mDirIndex);
     }
 
-    if (mTierAlias == ANY_TIER) {
+    if (mTierAlias.equals(ANY_TIER)) {
       result.append(", any tier");
     } else {
       result.append(", tierAlias ").append(mTierAlias);

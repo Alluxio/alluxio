@@ -16,9 +16,10 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.S3Service;
-import org.jets3t.service.ServiceException;
 import org.jets3t.service.model.S3Object;
+import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.utils.Mimetypes;
+import org.jets3t.service.utils.MultipartUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,8 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -63,6 +66,17 @@ public class S3OutputStream extends OutputStream {
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private AtomicBoolean mClosed = new AtomicBoolean(false);
+
+  /**
+   * A {@link MultipartUtils} to upload the file to S3 using Multipart Uploads. Multipart Uploads
+   * involves uploading an object's data in parts instead of all at once, which can work around S3's
+   * limit of 5GB on a single Object PUT operation.
+   *
+   * It is recommended (http://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html)
+   * to upload file larger than 100MB using Multipart Uploads, we use 512MB here
+   * since it is close to the size of a typical Alluxio file block.
+   */
+  private static final MultipartUtils MULTIPART_UTIL = new MultipartUtils(Constants.MB * 512);
 
   /**
    * Constructs a new stream for writing a file.
@@ -127,11 +141,20 @@ public class S3OutputStream extends OutputStream {
       } else {
         LOG.warn("MD5 was not computed for: {}", mKey);
       }
-      mClient.putObject(mBucketName, obj);
+      if (MULTIPART_UTIL.isFileLargerThanMaxPartSize(mFile)) {
+        // Big object will be split into parts and uploaded to S3 in parallel.
+        List<StorageObject> objectsToUploadAsMultipart = new ArrayList<>();
+        objectsToUploadAsMultipart.add(obj);
+        MULTIPART_UTIL.uploadObjects(mBucketName, mClient, objectsToUploadAsMultipart, null);
+      } else {
+        // Avoid uploading file with Multipart if it's not necessary to save the
+        // extra overhead.
+        mClient.putObject(mBucketName, obj);
+      }
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
-    } catch (ServiceException e) {
+    } catch (Exception e) {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
     }

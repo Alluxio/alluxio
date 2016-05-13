@@ -14,6 +14,7 @@ package alluxio.client.file.policy;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.util.List;
@@ -47,5 +48,29 @@ public final class SpecificHostPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SpecificHostPolicy)) {
+      return false;
+    }
+    SpecificHostPolicy that = (SpecificHostPolicy) o;
+    return Objects.equal(mHostname, that.mHostname);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mHostname);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("hostname", mHostname)
+        .toString();
   }
 }

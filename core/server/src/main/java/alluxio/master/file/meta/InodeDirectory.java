@@ -13,6 +13,8 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.collections.IndexedSet;
+import alluxio.master.MasterContext;
+import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
@@ -30,22 +32,22 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private IndexedSet.FieldIndex<Inode> mIdIndex = new IndexedSet.FieldIndex<Inode>() {
+  private IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
-    public Object getFieldValue(Inode o) {
+    public Object getFieldValue(Inode<?> o) {
       return o.getId();
     }
   };
 
-  private IndexedSet.FieldIndex<Inode> mNameIndex = new IndexedSet.FieldIndex<Inode>() {
+  private IndexedSet.FieldIndex<Inode<?>> mNameIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
-    public Object getFieldValue(Inode o) {
+    public Object getFieldValue(Inode<?> o) {
       return o.getName();
     }
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode> mChildren = new IndexedSet<Inode>(mIdIndex, mNameIndex);
+  private IndexedSet<Inode<?>> mChildren = new IndexedSet<Inode<?>>(mIdIndex, mNameIndex);
 
   private boolean mMountPoint;
 
@@ -54,7 +56,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    *
    * @param id the id to use
    */
-  public InodeDirectory(long id) {
+  private InodeDirectory(long id) {
     super(id);
     mDirectory = true;
     mMountPoint = false;
@@ -75,7 +77,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    *
    * @param child the inode to add
    */
-  public synchronized void addChild(Inode child) {
+  public synchronized void addChild(Inode<?> child) {
     mChildren.add(child);
   }
 
@@ -83,7 +85,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param id the inode id of the child
    * @return the inode with the given id, or null if there is no child with that id
    */
-  public synchronized Inode getChild(long id) {
+  public synchronized Inode<?> getChild(long id) {
     return mChildren.getFirstByField(mIdIndex, id);
   }
 
@@ -91,14 +93,14 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param name the name of the child
    * @return the inode with the given name, or null if there is no child with that name
    */
-  public synchronized Inode getChild(String name) {
+  public synchronized Inode<?> getChild(String name) {
     return mChildren.getFirstByField(mNameIndex, name);
   }
 
   /**
    * @return an unmodifiable set of the children inodes
    */
-  public synchronized Set<Inode> getChildren() {
+  public synchronized Set<Inode<?>> getChildren() {
     return ImmutableSet.copyOf(mChildren.iterator());
   }
 
@@ -107,7 +109,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public synchronized Set<Long> getChildrenIds() {
     Set<Long> ret = new HashSet<Long>(mChildren.size());
-    for (Inode child : mChildren) {
+    for (Inode<?> child : mChildren) {
       ret.add(child.getId());
     }
     return ret;
@@ -133,7 +135,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param child the Inode to remove
    * @return true if the inode was removed, false otherwise
    */
-  public synchronized boolean removeChild(Inode child) {
+  public synchronized boolean removeChild(Inode<?> child) {
     return mChildren.remove(child);
   }
 
@@ -144,7 +146,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public synchronized boolean removeChild(String name) {
-    return mChildren.removeByField(mNameIndex, name);
+    return mChildren.removeByField(mNameIndex, name) == 0;
   }
 
   /**
@@ -157,7 +159,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   /**
-   * Generates client file info for the folder.
+   * Generates client file info for a folder.
    *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
@@ -168,7 +170,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(0);
+    ret.setLength(mChildren.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
@@ -209,6 +211,27 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
             .setMountPoint(entry.getMountPoint());
+    return inode;
+  }
+
+  /**
+   * Creates an {@link InodeDirectory}.
+   *
+   * @param id id of this inode
+   * @param parentId id of the parent of this inode
+   * @param name name of this inode
+   * @param directoryOptions options to create this directory
+   * @return the {@link InodeDirectory} representation
+   */
+  public static InodeDirectory create(long id, long parentId, String name,
+      CreateDirectoryOptions directoryOptions) {
+    PermissionStatus permissionStatus = new PermissionStatus(directoryOptions.getPermissionStatus())
+        .applyDirectoryUMask(MasterContext.getConf());
+    InodeDirectory inode = new InodeDirectory(id)
+        .setParentId(parentId)
+        .setName(name)
+        .setPermissionStatus(permissionStatus)
+        .setMountPoint(directoryOptions.isMountPoint());
     return inode;
   }
 

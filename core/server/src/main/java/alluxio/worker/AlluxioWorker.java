@@ -13,8 +13,8 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ValidateConf;
-import alluxio.Version;
+import alluxio.cli.ValidateConf;
+import alluxio.cli.Version;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
@@ -40,6 +40,7 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -58,28 +59,35 @@ public final class AlluxioWorker {
   private static AlluxioWorker sAlluxioWorker = null;
 
   /**
-   * Main method for Alluxio Worker. A Block Worker will be started and the Alluxio Worker will
-   * continue to run until the Block Worker thread exits.
+   * Starts the Alluxio worker.
+   *
+   * A block worker will be started and the Alluxio worker will continue to run until the block
+   * worker thread exits.
    *
    * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
-    checkArgs(args);
+    if (args.length != 0) {
+      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioWorker.class.getCanonicalName());
+      System.exit(-1);
+    }
+
     // validate the conf
     if (!ValidateConf.validate()) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
+
     AlluxioWorker worker = get();
     try {
       worker.start();
     } catch (Exception e) {
-      LOG.error("Uncaught exception while running worker, stopping it and exiting.", e);
+      LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
       try {
         worker.stop();
-      } catch (Exception ex) {
+      } catch (Exception e2) {
         // continue to exit
-        LOG.error("Uncaught exception while stopping worker, simply exiting.", ex);
+        LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
       }
       System.exit(-1);
     }
@@ -88,7 +96,7 @@ public final class AlluxioWorker {
   /**
    * Returns a handle to the Alluxio worker instance.
    *
-   * @return Alluxio master handle
+   * @return Alluxio worker handle
    */
   public static synchronized AlluxioWorker get() {
     if (sAlluxioWorker == null) {
@@ -152,7 +160,7 @@ public final class AlluxioWorker {
       mBlockWorker = new BlockWorker();
       mFileSystemWorker = new FileSystemWorker(mBlockWorker);
 
-      mAdditionalWorkers = Lists.newArrayList();
+      mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
       // Discover and register the available factories
       // NOTE: ClassLoader is explicitly specified so we don't need to set ContextClassLoader
@@ -187,16 +195,16 @@ public final class AlluxioWorker {
       mThriftServer = createThriftServer();
 
       // Setup Data server
-      mDataServer = DataServer.Factory.create(
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration),
-          mBlockWorker, mConfiguration);
+      mDataServer =
+          DataServer.Factory.create(
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration), this,
+              mConfiguration);
       // Reset data server port
       mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
       mWorkerAddress =
           NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
               mConfiguration);
-
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
@@ -316,14 +324,14 @@ public final class AlluxioWorker {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started worker with id {}", WorkerIdRegistry.getWorkerId());
+    LOG.info("Started Alluxio worker with id {}", WorkerIdRegistry.getWorkerId());
 
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio Worker version {} started @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} started @ {}", Version.VERSION, mWorkerAddress);
     mThriftServer.serve();
-    LOG.info("Alluxio Worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} ended @ {}", Version.VERSION, mWorkerAddress);
   }
 
   /**
@@ -333,12 +341,12 @@ public final class AlluxioWorker {
    */
   public void stop() throws Exception {
     if (mIsServingRPC) {
-      LOG.info("Stopping RPC server on Alluxio Worker @ {}", mWorkerAddress);
+      LOG.info("Stopping RPC server on Alluxio worker @ {}", mWorkerAddress);
       stopServing();
       stopWorkers();
       mIsServingRPC = false;
     } else {
-      LOG.info("Stopping Alluxio Worker @ {}", mWorkerAddress);
+      LOG.info("Stopping Alluxio worker @ {}", mWorkerAddress);
     }
   }
 
@@ -439,19 +447,7 @@ public final class AlluxioWorker {
   }
 
   /**
-   * Verifies that no parameters are passed in.
-   *
-   * @param args command line arguments
-   */
-  private static void checkArgs(String[] args) {
-    if (args.length != 0) {
-      LOG.info("Usage: java AlluxioWorker");
-      System.exit(-1);
-    }
-  }
-
-  /**
-   * @return the master metric system reference
+   * @return the worker metric system reference
    */
   public MetricsSystem getWorkerMetricsSystem() {
     return mWorkerMetricsSystem;

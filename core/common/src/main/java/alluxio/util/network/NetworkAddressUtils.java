@@ -14,6 +14,7 @@ package alluxio.util.network;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.LeaderInquireClient;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -455,7 +456,7 @@ public final class NetworkAddressUtils {
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();
       }
-      return new AlluxioURI(path.getScheme(), authority, path.getPath());
+      return new AlluxioURI(path.getScheme(), authority, path.getPath(), path.getQueryMap());
     }
     return path;
   }
@@ -486,6 +487,7 @@ public final class NetworkAddressUtils {
    * @return the resolved FQDN host name
    */
   public static String getFqdnHost(InetSocketAddress addr) {
+    Preconditions.checkNotNull(addr.getAddress(), "the address of " + addr + " is invalid.");
     return addr.getAddress().getCanonicalHostName();
   }
 
@@ -578,6 +580,28 @@ public final class NetworkAddressUtils {
       int port = netAddress.getDataPort();
       return new InetSocketAddress(host, port);
     } catch (UnknownHostException e) {
+      throw Throwables.propagate(e);
+    }
+  }
+
+  /**
+   * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
+   * The zookeeper path is specified by the config: {@link Constants.ZOOKEEPER_LEADER_PATH}.
+   *
+   * @param conf the Alluxio configuration
+   * @return InetSocketAddress the active master address retrieved from zookeeper
+   */
+  public static InetSocketAddress getMasterAddressFromZK(Configuration conf) {
+    Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(conf.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
+    LeaderInquireClient leaderInquireClient =
+            LeaderInquireClient.getClient(conf.get(Constants.ZOOKEEPER_ADDRESS),
+                    conf.get(Constants.ZOOKEEPER_LEADER_PATH), conf);
+    try {
+      String temp = leaderInquireClient.getMasterAddress();
+      return NetworkAddressUtils.parseInetSocketAddress(temp);
+    } catch (IOException e) {
+      LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
     }
   }

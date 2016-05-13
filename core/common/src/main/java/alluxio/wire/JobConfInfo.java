@@ -21,8 +21,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The lineage command-line job configuration.
  */
-@NotThreadSafe
 @PublicApi
+@NotThreadSafe
 // TODO(jiri): Consolidate with alluxio.job.JobConf
 public final class JobConfInfo {
   private String mOutputFile = "";

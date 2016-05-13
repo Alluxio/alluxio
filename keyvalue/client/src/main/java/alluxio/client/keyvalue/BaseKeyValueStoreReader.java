@@ -75,11 +75,18 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public ByteBuffer get(ByteBuffer key) throws IOException, AlluxioException {
     Preconditions.checkNotNull(key);
-    // TODO(binfan): improve the inefficient for-loop to binary search.
-    for (PartitionInfo partition : mPartitions) {
+    int left = 0;
+    int right = mPartitions.size();
+    while (left < right) {
+      int middle = (right + left) / 2;
+      PartitionInfo partition = mPartitions.get(middle);
       // NOTE: keyStart and keyLimit are both inclusive
-      if (key.compareTo(partition.bufferForKeyStart()) >= 0
-              && key.compareTo(partition.bufferForKeyLimit()) <= 0) {
+      if (key.compareTo(partition.bufferForKeyStart()) < 0) {
+        right = middle;
+      } else if (key.compareTo(partition.bufferForKeyLimit()) > 0) {
+        left = middle + 1;
+      } else {
+        // The key is either in this partition or not in the kv store
         long blockId = partition.getBlockId();
         KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
         try {
@@ -101,12 +108,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   @Override
   public int size() throws IOException, AlluxioException {
     int totalSize = 0;
-    // TODO(cc): Put size into PartitionInfo.
     for (PartitionInfo partition : mPartitions) {
-      KeyValuePartitionReader partitionReader =
-          KeyValuePartitionReader.Factory.create(partition.getBlockId());
-      totalSize += partitionReader.size();
-      partitionReader.close();
+      totalSize += partition.getKeyCount();
     }
     return totalSize;
   }

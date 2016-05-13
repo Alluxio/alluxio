@@ -27,7 +27,6 @@ import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.client.file.options.UnmountOptions;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,6 +38,7 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -211,15 +211,15 @@ public final class BaseFileSystemTest {
   }
 
   /**
-   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)}
-   * method.
+   * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
    *
    * @throws Exception when listing the status fails
    */
   @Test
   public void listStatusTest() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    List<URIStatus> infos = Lists.newArrayList(new URIStatus(new FileInfo()));
+    List<URIStatus> infos = new ArrayList<>();
+    infos.add(new URIStatus(new FileInfo()));
     Mockito.when(mFileSystemMasterClient.listStatus(file)).thenReturn(infos);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     Assert.assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));

@@ -36,7 +36,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,6 +51,7 @@ import org.powermock.reflect.Whitebox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -66,12 +66,10 @@ public class FileOutStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
 
-  private AlluxioBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
   private UnderFileSystem mUnderFileSystem;
-  private BlockWorkerClient mBlockWorkerClient;
 
   private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
   private ByteArrayOutputStream mUnderStorageOutputStream;
@@ -90,13 +88,11 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    AlluxioBlockStore mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
 
     Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mBlockStoreContext.acquireWorkerClient()).thenReturn(mBlockWorkerClient);
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
@@ -113,7 +109,7 @@ public class FileOutStreamTest {
         });
 
     // Set up out streams. When they are created, add them to outStreamMap
-    final Map<Long, TestBufferedBlockOutStream> outStreamMap = Maps.newHashMap();
+    final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
     Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
         Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
@@ -482,7 +478,6 @@ public class FileOutStreamTest {
       throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(path, options);
-    return stream;
+    return new FileOutStream(path, options);
   }
 }

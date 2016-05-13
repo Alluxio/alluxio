@@ -44,7 +44,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   /** Handle to write to the underlying file. */
   private final AbstractOutStream mFileOutStream;
   /** Number of key-value pairs added. */
-  private long mKeyCount = 0;
+  private int mKeyCount = 0;
   /** Key-value index. */
   private Index mIndex;
   /** Key-value payload. */
@@ -114,7 +114,8 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
   /**
    * @return number of keys
    */
-  public long keyCount() {
+  @Override
+  public int keyCount() {
     return mKeyCount;
   }
 

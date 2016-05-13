@@ -17,8 +17,10 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
@@ -137,10 +139,8 @@ public final class MountTable {
   }
 
   /**
-   * Returns in indication of whether the given path is a mount point.
-   *
    * @param uri an Alluxio path URI
-   * @return mount point the given Alluxio path is nested under
+   * @return whether the given uri is a mount point
    */
   public synchronized boolean isMountPoint(AlluxioURI uri) {
     return mMountTable.containsKey(uri.getPath());
@@ -152,19 +152,23 @@ public final class MountTable {
    * no-op.
    *
    * @param uri an Alluxio path URI
-   * @return the resolved path
+   * @return the {@link Resolution} respresenting the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
-  public synchronized AlluxioURI resolve(AlluxioURI uri) throws InvalidPathException {
+  public synchronized Resolution resolve(AlluxioURI uri) throws InvalidPathException {
     String path = uri.getPath();
     LOG.debug("Resolving {}", path);
     String mountPoint = getMountPoint(uri);
     if (mountPoint != null) {
-      AlluxioURI ufsPath = mMountTable.get(mountPoint).getUfsUri();
-      return new AlluxioURI(ufsPath.getScheme(), ufsPath.getAuthority(),
-          PathUtils.concatPath(ufsPath.getPath(), path.substring(mountPoint.length())));
+      MountInfo info = mMountTable.get(mountPoint);
+      AlluxioURI ufsUri = info.getUfsUri();
+      // TODO(gpang): this ufs should probably be cached.
+      UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), MasterContext.getConf());
+      ufs.setProperties(info.getOptions().getProperties());
+      AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
+      return new Resolution(resolvedUri, ufs);
     }
-    return uri;
+    return new Resolution(uri, null);
   }
 
   /**
@@ -181,6 +185,34 @@ public final class MountTable {
     MountInfo mountInfo = mMountTable.get(mountPoint);
     if (mountInfo.getOptions().isReadOnly()) {
       throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
+    }
+  }
+
+  /**
+   * This class represents a UFS path after resolution. The UFS URI and the {@link UnderFileSystem}
+   * for the UFS path are available.
+   */
+  public final class Resolution {
+    private final AlluxioURI mUri;
+    private final UnderFileSystem mUfs;
+
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs) {
+      mUri = uri;
+      mUfs = ufs;
+    }
+
+    /**
+     * @return the URI in the ufs
+     */
+    public AlluxioURI getUri() {
+      return mUri;
+    }
+
+    /**
+     * @return the {@link UnderFileSystem} instance
+     */
+    public UnderFileSystem getUfs() {
+      return mUfs;
     }
   }
 }

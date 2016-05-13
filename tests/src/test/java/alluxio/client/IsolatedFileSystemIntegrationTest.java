@@ -12,27 +12,28 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.AlluxioException;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.LocalAlluxioCluster;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Integration tests on Alluxio client (do not reuse the {@link LocalAlluxioCluster}).
@@ -40,26 +41,26 @@ import java.util.List;
 public class IsolatedFileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule =
+      new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, 100 * Constants.MB,
       Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
-  private int mWorkerToMasterHeartbeatIntervalMs;
   private CreateFileOptions mWriteBoth;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
-    mWorkerToMasterHeartbeatIntervalMs =
-        workerConfiguration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @Test
-  public void lockBlockTest1() throws IOException, AlluxioException {
+  public void lockBlockTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
@@ -74,7 +75,11 @@ public class IsolatedFileSystemIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
 
-    CommonUtils.sleepMs(mWorkerToMasterHeartbeatIntervalMs);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
 
     Assert.assertFalse(mFileSystem.getStatus(files.get(0)).getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -83,7 +88,7 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void lockBlockTest2() throws IOException, AlluxioException {
+  public void lockBlockTest2() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
@@ -109,14 +114,17 @@ public class IsolatedFileSystemIntegrationTest {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
-    // Sleep to ensure eviction has been reported to master
-    CommonUtils.sleepMs(getSleepMs());
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test
-  public void lockBlockTest3() throws IOException, AlluxioException {
+  public void lockBlockTest3() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
@@ -140,8 +148,11 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    // Sleep to ensure eviction has been reported to master
-    CommonUtils.sleepMs(getSleepMs());
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -151,7 +162,7 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest1() throws IOException, AlluxioException {
+  public void unlockBlockTest1() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
@@ -172,8 +183,11 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    // Sleep to ensure eviction has been reported to master
-    CommonUtils.sleepMs(getSleepMs());
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
@@ -183,7 +197,7 @@ public class IsolatedFileSystemIntegrationTest {
   }
 
   @Test
-  public void unlockBlockTest2() throws IOException, AlluxioException {
+  public void unlockBlockTest2() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf;
@@ -211,14 +225,17 @@ public class IsolatedFileSystemIntegrationTest {
       URIStatus info = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(info.getInMemoryPercentage() == 100);
     }
-    // Sleep to ensure eviction has been reported to master
-    CommonUtils.sleepMs(getSleepMs());
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     URIStatus info = mFileSystem.getStatus(files.get(numOfFiles));
     Assert.assertTrue(info.getInMemoryPercentage() == 100);
   }
 
   @Test
-  public void unlockBlockTest3() throws IOException, AlluxioException {
+  public void unlockBlockTest3() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileInStream is;
     ByteBuffer buf1;
@@ -243,17 +260,16 @@ public class IsolatedFileSystemIntegrationTest {
     }
     FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + numOfFiles, fileSize, mWriteBoth);
     files.add(new AlluxioURI(uniqPath + numOfFiles));
-    // Sleep to ensure eviction has been reported to master
-    CommonUtils.sleepMs(getSleepMs());
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
+        TimeUnit.SECONDS));
     URIStatus info = mFileSystem.getStatus(files.get(0));
     Assert.assertFalse(info.getInMemoryPercentage() == 100);
     for (int k = 1; k <= numOfFiles; k++) {
       URIStatus in = mFileSystem.getStatus(files.get(k));
       Assert.assertTrue(in.getInMemoryPercentage() == 100);
     }
-  }
-
-  private long getSleepMs() {
-    return mWorkerToMasterHeartbeatIntervalMs * 2 + 10;
   }
 }
