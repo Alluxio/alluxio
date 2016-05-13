@@ -231,7 +231,6 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * Loads the metadata of a file from the under file system.
    *
-   *
    * @param path the path of the file to load metadata for
    * @param options method options
    * @throws AlluxioException if an Alluxio error occurs
