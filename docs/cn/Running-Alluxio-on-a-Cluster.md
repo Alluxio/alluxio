@@ -12,17 +12,17 @@ priority: 2
 
 {% include Running-Alluxio-on-a-Cluster/download-extract-Alluxio-tar.md %}
 
-在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 7安装路径。将`ALLUXIO_MASTER_ADDRESS`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
+在`alluxio/conf`目录下，将`alluxio-env.sh.template`拷贝到`alluxio-env.sh`。确保`JAVA_HOME`指向有效的Java 7安装路径。将`ALLUXIO_MASTER_HOSTNAME`更新为运行Alluxio Master的机器的主机名。添加所有worker节点的IP地址到`alluxio/conf/workers`文件。最后，同步worker节点的所有信息。可使用
 
 {% include Running-Alluxio-on-a-Cluster/sync-info.md %}
 
-同步在`alluxio/conf/workers` 文件中指定的所有文件和文件夹。
+同步所有文件和文件夹到`alluxio/conf/workers` 文件中指定的主机里。
 
 现在可以启动Alluxio：
 
 {% include Running-Alluxio-on-a-Cluster/start-Alluxio.md %}
 
-验证Alluxio是否运行，访问**[http://localhost:19999](http://localhost:19999)**，或查看`alluxio/logs`文件夹下的日志。也可以运行一个样例程序
+验证Alluxio是否运行，可以访问`http://<alluxio_master_hostname>:19999`，或查看`alluxio/logs`文件夹下的日志。也可以运行一个样例程序
 
 {% include Running-Alluxio-on-a-Cluster/run-tests.md %}
 

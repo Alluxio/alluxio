@@ -12,12 +12,12 @@
 package alluxio.collections;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,8 +38,8 @@ public class DirectedAcyclicGraph<T> {
    * A Directed Acyclic Graph (DAG).
    */
   public DirectedAcyclicGraph() {
-    mRoots = Lists.newArrayList();
-    mIndex = Maps.newHashMap();
+    mRoots = new ArrayList<>();
+    mIndex = new HashMap<>();
   }
 
   /**
@@ -49,11 +49,11 @@ public class DirectedAcyclicGraph<T> {
    * @param parents the parents of the created node
    */
   public void add(T payload, List<T> parents) {
-    // this checks the payload doesn't exist in the graph, and therefore prevents cycles
+    // This checks the payload doesn't exist in the graph, and therefore prevents cycles.
     Preconditions.checkState(!contains(payload), "the payload already exists in the DAG");
 
     // construct the new node
-    DirectedAcyclicGraphNode<T> newNode = new DirectedAcyclicGraphNode<T>(payload);
+    DirectedAcyclicGraphNode<T> newNode = new DirectedAcyclicGraphNode<>(payload);
     mIndex.put(payload, newNode);
 
     if (parents.isEmpty()) {
@@ -111,7 +111,7 @@ public class DirectedAcyclicGraph<T> {
    * @return the children's payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getChildren(T payload) {
-    List<T> children = Lists.newArrayList();
+    List<T> children = new ArrayList<>();
     if (!mIndex.containsKey(payload)) {
       return children;
     }
@@ -129,7 +129,7 @@ public class DirectedAcyclicGraph<T> {
    * @return the parents' payloads, an empty list if the given payload doesn't exist in the DAG
    */
   public List<T> getParents(T payload) {
-    List<T> parents = Lists.newArrayList();
+    List<T> parents = new ArrayList<>();
     if (!mIndex.containsKey(payload)) {
       return parents;
     }
@@ -159,7 +159,7 @@ public class DirectedAcyclicGraph<T> {
    * @return all the root payloads
    */
   public List<T> getRoots() {
-    List<T> roots = Lists.newArrayList();
+    List<T> roots = new ArrayList<>();
     for (DirectedAcyclicGraphNode<T> root : mRoots) {
       roots.add(root.getPayload());
     }
@@ -174,11 +174,10 @@ public class DirectedAcyclicGraph<T> {
    * @return the payloads after topological sort
    */
   public List<T> sortTopologically(Set<T> payloads) {
-    List<T> result = Lists.newArrayList();
+    List<T> result = new ArrayList<>();
 
-    Set<T> input = Sets.newHashSet(payloads);
-    Deque<DirectedAcyclicGraphNode<T>> toVisit =
-        new ArrayDeque<DirectedAcyclicGraphNode<T>>(mRoots);
+    Set<T> input = new HashSet<>(payloads);
+    Deque<DirectedAcyclicGraphNode<T>> toVisit = new ArrayDeque<>(mRoots);
     while (!toVisit.isEmpty()) {
       DirectedAcyclicGraphNode<T> visit = toVisit.removeFirst();
       T payload = visit.getPayload();
@@ -188,7 +187,7 @@ public class DirectedAcyclicGraph<T> {
       toVisit.addAll(visit.getChildren());
     }
 
-    Preconditions.checkState(toVisit.isEmpty(), "Not all the given payloads are in the DAG: ",
+    Preconditions.checkState(input.isEmpty(), "Not all the given payloads are in the DAG: ",
         input);
     return result;
   }
@@ -196,7 +195,7 @@ public class DirectedAcyclicGraph<T> {
   /**
    * Gets all payloads of the DAG in the topological order.
    *
-   * @return the payloads of all the nodes in toplogical order
+   * @return the payloads of all the nodes in topological order
    */
   public List<T> getAllInTopologicalOrder() {
     return sortTopologically(mIndex.keySet());

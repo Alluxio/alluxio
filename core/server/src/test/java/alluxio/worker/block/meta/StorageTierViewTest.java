@@ -16,7 +16,6 @@ import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,6 +25,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.util.HashSet;
 
 /**
  * Unit tests for {@link StorageTierView}.
@@ -54,8 +54,8 @@ public class StorageTierViewTest {
     BlockMetadataManager metaManager =
         TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     BlockMetadataManagerView metaManagerView =
-        new BlockMetadataManagerView(metaManager, Sets.<Long>newHashSet(),
-            Sets.<Long>newHashSet());
+        new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
+            new HashSet<Long>());
     mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
     mTestTierView = new StorageTierView(mTestTier, metaManagerView);
   }

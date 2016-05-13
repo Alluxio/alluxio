@@ -84,14 +84,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * be locked first.
    */
   @GuardedBy("itself")
-  private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<Long, MasterBlockInfo>();
+  private final Map<Long, MasterBlockInfo> mBlocks = new HashMap<>();
 
   /**
    * Keeps track of block which are no longer in Alluxio storage. Access must be synchronized on
    * mBlocks.
    */
   @GuardedBy("mBlocks")
-  private final Set<Long> mLostBlocks = new HashSet<Long>();
+  private final Set<Long> mLostBlocks = new HashSet<>();
 
   /** This state must be journaled. */
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
@@ -125,18 +125,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * All worker information. Access must be synchronized on mWorkers. If both block and worker
    * metadata must be locked, mBlocks must be locked first.
    */
-  // This warning cannot be avoided when passing generics into varargs
   @GuardedBy("itself")
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /**
    * Keeps track of workers which are no longer in communication with the master. Access must be
    * synchronized on {@link #mWorkers}.
    */
-  // This warning cannot be avoided when passing generics into varargs
   @GuardedBy("mWorkers")
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
 
@@ -169,15 +165,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-        new BlockMasterClientService.Processor<BlockMasterClientServiceHandler>(
-        new BlockMasterClientServiceHandler(this)));
-    services.put(
-        Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
-        new BlockMasterWorkerService.Processor<BlockMasterWorkerServiceHandler>(
-            new BlockMasterWorkerServiceHandler(this)));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
+    services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+        new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -202,8 +194,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
-      mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
-          blockInfoEntry.getLength()));
+      if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
+        // Update the existing block info.
+        MasterBlockInfo blockInfo = mBlocks.get(blockInfoEntry.getBlockId());
+        blockInfo.updateLength(blockInfoEntry.getLength());
+      } else {
+        mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
+            blockInfoEntry.getLength()));
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -245,7 +243,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public List<WorkerInfo> getWorkerInfoList() {
     synchronized (mWorkers) {
-      List<WorkerInfo> workerInfoList = new ArrayList<WorkerInfo>(mWorkers.size());
+      List<WorkerInfo> workerInfoList = new ArrayList<>(mWorkers.size());
       for (MasterWorkerInfo masterWorkerInfo : mWorkers) {
         workerInfoList.add(masterWorkerInfo.generateClientWorkerInfo());
       }
@@ -293,7 +291,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public Set<WorkerInfo> getLostWorkersInfo() {
     synchronized (mWorkers) {
-      Set<WorkerInfo> ret = new HashSet<WorkerInfo>(mLostWorkers.size());
+      Set<WorkerInfo> ret = new HashSet<>(mLostWorkers.size());
       for (MasterWorkerInfo worker : mLostWorkers) {
         ret.add(worker.generateClientWorkerInfo());
       }
@@ -316,10 +314,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             continue;
           }
           for (long workerId : new ArrayList<Long>(masterBlockInfo.getWorkers())) {
-            masterBlockInfo.removeWorker(workerId);
-            MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
-            if (worker != null) {
-              worker.updateToRemovedBlock(true, blockId);
+            MasterWorkerInfo workerInfo = mWorkers.getFirstByField(mIdIndex, workerId);
+            if (workerInfo != null) {
+              workerInfo.updateToRemovedBlock(true, blockId);
             }
           }
           // Two cases here:
@@ -370,10 +367,22 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         workerInfo.updateUsedBytes(tierAlias, usedBytesOnTier);
         workerInfo.updateLastUpdatedTimeMs();
 
+        boolean writeJournal = false;
         MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
         if (masterBlockInfo == null) {
           masterBlockInfo = new MasterBlockInfo(blockId, length);
           mBlocks.put(blockId, masterBlockInfo);
+          writeJournal = true;
+        } else if (masterBlockInfo.getLength() != length
+            && masterBlockInfo.getLength() == Constants.UNKNOWN_SIZE) {
+          // The block size was previously unknown. Update the block size with the committed size.
+          masterBlockInfo.updateLength(length);
+          writeJournal = true;
+        }
+        masterBlockInfo.addWorker(workerId, tierAlias);
+        mLostBlocks.remove(blockId);
+
+        if (writeJournal) {
           BlockInfoEntry blockInfo = BlockInfoEntry.newBuilder()
               .setBlockId(masterBlockInfo.getBlockId())
               .setLength(masterBlockInfo.getLength())
@@ -381,8 +390,6 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           writeJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
           flushJournal();
         }
-        masterBlockInfo.addWorker(workerId, tierAlias);
-        mLostBlocks.remove(blockId);
       }
     }
   }
@@ -421,7 +428,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     synchronized (mBlocks) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
       if (masterBlockInfo == null) {
-        throw new BlockInfoException("Block info not found for " + blockId);
+        throw new BlockInfoException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
       }
       // Construct the block info object to return.
       synchronized (mWorkers) {
@@ -438,7 +445,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *         list is in the same order as the input list
    */
   public List<BlockInfo> getBlockInfoList(List<Long> blockIds) {
-    List<BlockInfo> ret = new ArrayList<BlockInfo>(blockIds.size());
+    List<BlockInfo> ret = new ArrayList<>(blockIds.size());
     synchronized (mBlocks) {
       synchronized (mWorkers) {
         for (long blockId : blockIds) {
@@ -457,7 +464,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the total bytes on each storage tier
    */
   public Map<String, Long> getTotalBytesOnTiers() {
-    Map<String, Long> ret = new HashMap<String, Long>();
+    Map<String, Long> ret = new HashMap<>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
         for (Map.Entry<String, Long> entry : worker.getTotalBytesOnTiers().entrySet()) {
@@ -473,7 +480,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @return the used bytes on each storage tier
    */
   public Map<String, Long> getUsedBytesOnTiers() {
-    Map<String, Long> ret = new HashMap<String, Long>();
+    Map<String, Long> ret = new HashMap<>();
     synchronized (mWorkers) {
       for (MasterWorkerInfo worker : mWorkers) {
         for (Map.Entry<String, Long> entry : worker.getUsedBytesOnTiers().entrySet()) {
@@ -610,8 +617,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo masterBlockInfo = mBlocks.get(removedBlockId);
       if (masterBlockInfo == null) {
-        LOG.warn("Worker {} removed block {} but block does not exist.", workerInfo.getId(),
-            removedBlockId);
+        LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
+            + " on Master!", workerInfo.getId(), removedBlockId);
+        // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
+        // Ideally, the delete/free I/O flow should never reach this point. Because Master may
+        // update the block metadata only after receiving the acknowledgement from Workers.
+        workerInfo.removeBlock(removedBlockId);
         // Continue to remove the remaining blocks.
         continue;
       }
@@ -679,7 +690,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   private BlockInfo generateBlockInfo(MasterBlockInfo masterBlockInfo) {
     // "Join" to get all the addresses of the workers.
-    List<BlockLocation> locations = new ArrayList<BlockLocation>();
+    List<BlockLocation> locations = new ArrayList<>();
     List<MasterBlockLocation> blockLocations = masterBlockInfo.getBlockLocations();
     // Sort the block locations by their alias ordinal in the master storage tier mapping
     Collections.sort(blockLocations, new Comparator<MasterBlockLocation>() {
@@ -717,6 +728,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Lost worker periodic check.
    */
   private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostWorkerDetectionHeartbeatExecutor}.
+     */
+    public LostWorkerDetectionHeartbeatExecutor() {}
+
     @Override
     public void heartbeat() {
       LOG.debug("System status checking.");
@@ -730,7 +747,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             MasterWorkerInfo worker = iter.next();
             final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
             if (lastUpdate > masterWorkerTimeoutMs) {
-              LOG.error("The worker {} got timed out!", worker);
+              LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
+                  lastUpdate);
               mLostWorkers.add(worker);
               iter.remove();
               processLostWorker(worker);

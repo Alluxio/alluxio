@@ -62,8 +62,6 @@ public class IndexedSetTest {
         return o.longValue();
       }
     };
-    // This warning cannot be avoided when passing generics into varargs
-    @SuppressWarnings("unchecked")
     IndexedSet<Pair> set = new IndexedSet<Pair>(mIntIndex, mLongIndex);
     mSet = set;
     for (int i = 0; i < 3; i++) {
@@ -141,8 +139,8 @@ public class IndexedSetTest {
   @Test
   public void removeNonExistTest() {
     Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
-    Assert.assertFalse(mSet.removeByField(mIntIndex, -1));
-    Assert.assertFalse(mSet.removeByField(mLongIndex, -1L));
+    Assert.assertEquals(0, mSet.removeByField(mIntIndex, -1));
+    Assert.assertEquals(0, mSet.removeByField(mLongIndex, -1L));
   }
 
   /**
@@ -152,7 +150,7 @@ public class IndexedSetTest {
   public void removeByFieldTest() {
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 1).size());
     Assert.assertEquals(9, mSet.size());
-    Assert.assertTrue(mSet.removeByField(mIntIndex, 1));
+    Assert.assertEquals(3, mSet.removeByField(mIntIndex, 1));
     Assert.assertEquals(6, mSet.size());
     Assert.assertEquals(0, mSet.getByField(mIntIndex, 1).size());
     Assert.assertEquals(3, mSet.getByField(mIntIndex, 0).size());

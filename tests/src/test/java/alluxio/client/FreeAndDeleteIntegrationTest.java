@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
@@ -22,6 +21,7 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.util.CommonUtils;
@@ -29,10 +29,10 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -43,9 +43,15 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public final class FreeAndDeleteIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
+
+  @ClassRule
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.WORKER_BLOCK_SYNC,
+      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   /** The exception expected to be thrown. */
   @Rule
@@ -55,30 +61,14 @@ public final class FreeAndDeleteIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, 100 * Constants.MB,
       Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough(workerConfiguration);
-  }
-
-  @BeforeClass
-  public static void beforeClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SCHEDULED_TIMER_CLASS);
-  }
-
-  @AfterClass
-  public static void afterClass() {
-    HeartbeatContext.setTimerClass(HeartbeatContext.WORKER_BLOCK_SYNC,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
-    HeartbeatContext.setTimerClass(HeartbeatContext.MASTER_LOST_FILES_DETECTION,
-        HeartbeatContext.SLEEPING_TIMER_CLASS);
+    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
   }
 
   @Test
@@ -109,13 +99,20 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 
     mFileSystem.free(filePath);
-    // Execute the blocks free, which needs two heartbeats. Make sure there is some time delay
-    // between two heartbeats to make sure worker got time to generate block removal reports.
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+    // Schedule 1st heartbeat from worker.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
-    CommonUtils.sleepMs(50);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Waiting for the removal of blockMeta from worker.
+    while (bw.hasBlockMeta(blockId)) {
+      CommonUtils.sleepMs(50);
+    }
+    // Schedule 2nd heartbeat from worker.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+    // Ensure the 2nd heartbeat is finished.
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
         TimeUnit.SECONDS));
 

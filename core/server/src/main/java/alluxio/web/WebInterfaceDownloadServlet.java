@@ -104,6 +104,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
    * @param response the {@link HttpServletResponse} object
    * @throws FileDoesNotExistException if the file does not exist
    * @throws IOException if an I/O error occurs
+   * @throws InvalidPathException if an invalid path is encountered
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
   private void downloadFile(AlluxioURI path, HttpServletRequest request,
       HttpServletResponse response) throws FileDoesNotExistException, IOException,
@@ -123,7 +125,6 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
     FileInStream is = null;
     ServletOutputStream out = null;
     try {
-      // TODO(jiri): Should we use MasterContext here instead?
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       is = alluxioClient.openFile(path, options);
       out = response.getOutputStream();

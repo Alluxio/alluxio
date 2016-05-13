@@ -85,7 +85,7 @@ public final class ChownCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "chown -R <owner> <path>";
+    return "chown [-R] <owner> <path>";
   }
 
   @Override

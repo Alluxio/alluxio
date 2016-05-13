@@ -11,6 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.retry.CountingRetry;
@@ -57,20 +58,20 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop
    */
-  public HdfsUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
-    super(configuration);
-    mUfsPrefix = fsDefaultName;
+  public HdfsUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
+    super(uri, configuration);
+    mUfsPrefix = uri.toString();
     org.apache.hadoop.conf.Configuration tConf;
     if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
       tConf = (org.apache.hadoop.conf.Configuration) conf;
     } else {
       tConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(fsDefaultName, configuration, tConf);
+    prepareConfiguration(mUfsPrefix, configuration, tConf);
     tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
@@ -434,6 +435,21 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {
     mFileSystem.setConf((org.apache.hadoop.conf.Configuration) conf);
+  }
+
+  @Override
+  public void setOwner(String path, String user, String group) throws IOException {
+    try {
+      FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
+      LOG.info("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),
+          fileStatus.getOwner(), user, fileStatus.getGroup(), group);
+      mFileSystem.setOwner(fileStatus.getPath(), user, group);
+    } catch (IOException e) {
+      LOG.error("Fail to set owner for {} with user: {}, group: {}", path, user, group, e);
+      LOG.warn("In order for Alluxio to create HDFS files with the correct user and groups, "
+          + "Alluxio should be added to the HDFS superusers.");
+      throw e;
+    }
   }
 
   @Override

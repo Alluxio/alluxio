@@ -36,7 +36,7 @@ public enum ExceptionMessage {
   BLOCK_UNAVAILABLE("Block {0} is not available in Alluxio"),
   CANNOT_REQUEST_SPACE("Unable to request space from worker"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
-  NO_WORKER_AVAILABLE_ON_HOST("No Alluxio worker available for host {0}"),
+  NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),
 
   // block lock manager
@@ -55,7 +55,7 @@ public enum ExceptionMessage {
   // instream/outstream
   FAILED_CACHE("Failed to cache: {0}"),
   FAILED_CREATE("Failed to create {0}"),
-  FAILED_SEEK_FORWARD("Failed to seek forward to {0}"),
+  FAILED_SEEK("Failed to seek to {0}"),
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
@@ -93,14 +93,16 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
+  DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  FILE_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
   RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),

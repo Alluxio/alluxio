@@ -13,12 +13,9 @@ package alluxio;
 
 import alluxio.util.network.NetworkAddressUtils;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Throwables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -57,18 +54,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
     if (!mUseZookeeper) {
       return super.getAddress();
     }
-
-    Preconditions.checkState(mConfiguration.containsKey(Constants.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(mConfiguration.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
-    LeaderInquireClient leaderInquireClient =
-        LeaderInquireClient.getClient(mConfiguration.get(Constants.ZOOKEEPER_ADDRESS),
-            mConfiguration.get(Constants.ZOOKEEPER_LEADER_PATH), mConfiguration);
-    try {
-      String temp = leaderInquireClient.getMasterAddress();
-      return NetworkAddressUtils.parseInetSocketAddress(temp);
-    } catch (IOException e) {
-      LOG.error(e.getMessage(), e);
-      throw Throwables.propagate(e);
-    }
+    return NetworkAddressUtils.getMasterAddressFromZK(mConfiguration);
   }
 }

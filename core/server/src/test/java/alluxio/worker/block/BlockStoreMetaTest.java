@@ -41,6 +41,7 @@ public class BlockStoreMetaTest {
 
   private BlockMetadataManager mMetadataManager;
   private BlockStoreMeta mBlockStoreMeta;
+  private BlockStoreMeta mBlockStoreMetaFull;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -62,7 +63,8 @@ public class BlockStoreMetaTest {
       TieredBlockStoreTestUtils.cache(TEST_SESSION_ID, blockId, TEST_BLOCK_SIZE, dir,
           mMetadataManager, null);
     }
-    mBlockStoreMeta = new BlockStoreMeta(mMetadataManager);
+    mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
+    mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
   }
 
   /**
@@ -86,7 +88,7 @@ public class BlockStoreMetaTest {
       }
       tierAliasToBlockIds.put(tier.getTierAlias(), blockIdsOnTier);
     }
-    Map<String, List<Long>> actual = mBlockStoreMeta.getBlockList();
+    Map<String, List<Long>> actual = mBlockStoreMetaFull.getBlockList();
     Assert.assertEquals(TieredBlockStoreTestUtils.TIER_ALIAS.length, actual.keySet().size());
     Assert.assertEquals(tierAliasToBlockIds, actual);
   }
@@ -131,7 +133,7 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getNumberOfBlocksTest() {
-    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMeta.getNumberOfBlocks());
+    Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMetaFull.getNumberOfBlocks());
   }
 
   /**

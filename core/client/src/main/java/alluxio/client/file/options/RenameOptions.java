@@ -34,9 +34,16 @@ public final class RenameOptions {
     // No options currently
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    return this == o || o instanceof RenameOptions;
+  }
+
+  @Override
+  public int hashCode() {
+    return 0;
+  }
+
   @Override
   public String toString() {
     return Objects.toStringHelper(this).toString();

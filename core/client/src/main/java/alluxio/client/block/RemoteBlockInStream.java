@@ -15,6 +15,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.ClientMetrics;
 
@@ -48,7 +49,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    *
    * @param blockId the block id
    * @param blockSize the block size
-   * @param workerNetAddress the address of the worker to read from
+   * @param workerNetAddress the worker address
    * @throws IOException if the block is not available on the remote worker
    */
   public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
@@ -59,13 +60,14 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
 
     mContext = BlockStoreContext.INSTANCE;
-    mBlockWorkerClient = mContext.acquireWorkerClient(mWorkerInetSocketAddress.getHostName());
+    mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
 
     try {
-      mLockId = mBlockWorkerClient.lockBlock(blockId).getLockId();
-      if (mLockId == null) {
+      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
+      if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
+      mLockId = result.getLockId();
       mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
@@ -79,9 +81,9 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       return;
     }
 
-    // TODO(calvin): Perhaps verify that something was read from this stream
-    mMetrics.incBlocksReadRemote(1);
-
+    if (mBlockIsRead) {
+      mMetrics.incBlocksReadRemote(1);
+    }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (ConnectionFailedException e) {

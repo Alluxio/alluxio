@@ -14,10 +14,10 @@ Download the binary distribution of Alluxio {{site.ALLUXIO_RELEASED_VERSION}}:
 
 {% include Running-Alluxio-Locally/download-Alluxio-binary.md %}
 
-Before executing Alluxio run scripts, requisite environment variables must be specified in
-`conf/alluxio-env.sh`, which can be copied from the included template file:
+Before executing Alluxio run scripts, the Alluxio environment configuration `conf/alluxio-env.sh`
+needs to be created. The default configuration can be bootstrapped using:
 
-{% include Running-Alluxio-Locally/copy-template.md %}
+{% include Running-Alluxio-Locally/bootstrap.md %}
 
 To run in standalone mode, make sure that:
 
@@ -29,8 +29,9 @@ filesystem (e.g., `export ALLUXIO_UNDERFS_ADDRESS=/tmp`).
 Then, you can format Alluxio FileSystem and start it. *Note: since Alluxio needs to setup
 [RAMFS](https://www.kernel.org/doc/Documentation/filesystems/ramfs-rootfs-initramfs.txt), starting a
 local system requires users to input their root password for Linux based users. To avoid the need to
-repeatedly input the root password, you can add the public ssh key for the host into 
-`~/.ssh/authorized_keys`.*
+repeatedly input the root password, you can add the public ssh key for the host into
+`~/.ssh/authorized_keys`. See [this tutorial](http://www.linuxproblem.org/art_9.html) for more
+details.*
 
 {% include Running-Alluxio-Locally/Alluxio-format-start.md %}
 

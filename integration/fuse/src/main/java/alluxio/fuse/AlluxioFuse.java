@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -28,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -129,7 +129,7 @@ public final class AlluxioFuse {
       String mntPointValue = cli.getOptionValue("m");
       String alluxioRootValue = cli.getOptionValue("r");
 
-      List<String> fuseOpts = Lists.newArrayList();
+      List<String> fuseOpts = new ArrayList<>();
       boolean noUserMaxWrite = true;
       if (cli.hasOption("o")) {
         String[] fopts = cli.getOptionValues("o");

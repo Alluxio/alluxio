@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -32,6 +31,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -170,25 +170,25 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void noOrderIteratorTest() throws Exception {
-    List<AlluxioURI> storeUris = Lists.newArrayList();
-    List<List<KeyValuePair>> keyValuePairs = Lists.newArrayList();
+    List<AlluxioURI> storeUris = new ArrayList<>();
+    List<List<KeyValuePair>> keyValuePairs = new ArrayList<>();
 
-    List<KeyValuePair> pairs = Lists.newArrayList();
+    List<KeyValuePair> pairs = new ArrayList<>();
     storeUris.add(createStoreOfSize(0, pairs));
     keyValuePairs.add(pairs);
 
-    pairs = Lists.newArrayList();
+    pairs = new ArrayList<>();
     storeUris.add(createStoreOfSize(2, pairs));
     keyValuePairs.add(pairs);
 
-    pairs = Lists.newArrayList();
+    pairs = new ArrayList<>();
     storeUris.add(createStoreOfMultiplePartitions(3, pairs));
     keyValuePairs.add(pairs);
 
     int numStoreUri = storeUris.size();
     for (int i = 0; i < numStoreUri; i++) {
       List<KeyValuePair> expectedPairs = keyValuePairs.get(i);
-      List<KeyValuePair> iteratedPairs = Lists.newArrayList();
+      List<KeyValuePair> iteratedPairs = new ArrayList<>();
       mReader = sKeyValueSystem.openStore(storeUris.get(i));
       KeyValueIterator iterator = mReader.iterator();
       while (iterator.hasNext()) {
@@ -210,7 +210,6 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void createMultiPartitionsTest() throws Exception {
-    // TODO(cc): Remove codes using createStoreOfMultiplePartitions.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -218,23 +217,15 @@ public final class KeyValueSystemIntegrationTest {
 
     FileSystem fs = FileSystem.Factory.get();
 
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-        String.valueOf(maxPartitionSize));
-    mWriter = sKeyValueSystem.createStore(mStoreUri);
-    for (int i = 0; i < numKeys; i++) {
-      byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
-      byte[] value = BufferUtils.getIncreasingByteArray(i, valueLength);
-      mWriter.put(key, value);
-    }
-    mWriter.close();
+    AlluxioURI storeUri = createStoreOfMultiplePartitions(numKeys, null);
 
-    List<URIStatus> files = fs.listStatus(mStoreUri);
+    List<URIStatus> files = fs.listStatus(storeUri);
     Assert.assertEquals(numKeys, files.size());
     for (URIStatus info : files) {
       Assert.assertTrue(info.getLength() <= maxPartitionSize);
     }
 
-    mReader = sKeyValueSystem.openStore(mStoreUri);
+    mReader = sKeyValueSystem.openStore(storeUri);
     for (int i = 0; i < numKeys; i++) {
       byte[] key = BufferUtils.getIncreasingByteArray(i, keyLength);
       byte[] value = mReader.get(key);
@@ -377,7 +368,7 @@ public final class KeyValueSystemIntegrationTest {
    */
   @Test
   public void deleteStoreTest() throws Exception {
-    List<AlluxioURI> storeUris = Lists.newArrayList();
+    List<AlluxioURI> storeUris = new ArrayList<>();
     storeUris.add(createStoreOfSize(0, null));
     storeUris.add(createStoreOfSize(2, null));
     storeUris.add(createStoreOfMultiplePartitions(3, null));
@@ -390,7 +381,7 @@ public final class KeyValueSystemIntegrationTest {
   private void testRenameStore(AlluxioURI oldStore, List<KeyValuePair> pairs, AlluxioURI newStore)
       throws Exception {
     sKeyValueSystem.renameStore(oldStore, newStore);
-    List<KeyValuePair> newPairs = Lists.newArrayList();
+    List<KeyValuePair> newPairs = new ArrayList<>();
     mReader = sKeyValueSystem.openStore(newStore);
     KeyValueIterator iterator = mReader.iterator();
     while (iterator.hasNext()) {
@@ -419,7 +410,7 @@ public final class KeyValueSystemIntegrationTest {
   public void renameStoreTest() throws Exception {
     final int storeOfSize = 5;
     final String newPath = "newPath";
-    List<KeyValuePair> pairs = Lists.newArrayList();
+    List<KeyValuePair> pairs = new ArrayList<>();
     AlluxioURI oldStore = createStoreOfSize(storeOfSize, pairs);
     AlluxioURI newStore = new AlluxioURI(PathUtils.concatPath(oldStore.getParent().toString(),
         newPath));
@@ -431,11 +422,11 @@ public final class KeyValueSystemIntegrationTest {
     sKeyValueSystem.mergeStore(store1, store2);
 
     // store2 contains all key-value pairs in both store1 and store2.
-    List<KeyValuePair> mergedPairs = Lists.newArrayList();
+    List<KeyValuePair> mergedPairs = new ArrayList<>();
     mergedPairs.addAll(keyValuePairs1);
     mergedPairs.addAll(keyValuePairs2);
 
-    List<KeyValuePair> store2Pairs = Lists.newArrayList();
+    List<KeyValuePair> store2Pairs = new ArrayList<>();
     KeyValueIterator iterator = sKeyValueSystem.openStore(store2).iterator();
     while (iterator.hasNext()) {
       store2Pairs.add(iterator.next());
@@ -477,13 +468,13 @@ public final class KeyValueSystemIntegrationTest {
       for (int j = 0; j < length; j++) {
         int method1 = storeCreationMethodAndParameter[i][0];
         int parameter1 = storeCreationMethodAndParameter[i][1];
-        List<KeyValuePair> pairs1 = Lists.newArrayList();
+        List<KeyValuePair> pairs1 = new ArrayList<>();
         AlluxioURI storeUri1 = method1 == storeOfSize ? createStoreOfSize(parameter1, pairs1) :
             createStoreOfMultiplePartitions(parameter1, pairs1);
 
         int method2 = storeCreationMethodAndParameter[j][0];
         int parameter2 = storeCreationMethodAndParameter[j][1];
-        List<KeyValuePair> pairs2 = Lists.newArrayList();
+        List<KeyValuePair> pairs2 = new ArrayList<>();
         AlluxioURI storeUri2 = method2 == storeOfSize ? createStoreOfSize(parameter2, pairs2) :
             createStoreOfMultiplePartitions(parameter2, pairs2);
 

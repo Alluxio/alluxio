@@ -20,8 +20,8 @@ import alluxio.proto.journal.Lineage.LineageEntry;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -113,9 +113,9 @@ public final class Lineage implements JournalEntryRepresentable {
    * @return the {@link Lineage} representation
    */
   public static Lineage fromJournalEntry(LineageEntry entry) {
-    List<Long> inputFiles = Lists.newArrayList(entry.getInputFilesList());
+    List<Long> inputFiles = new ArrayList<>(entry.getInputFilesList());
 
-    List<Long> outputFiles = Lists.newArrayList();
+    List<Long> outputFiles = new ArrayList<>();
     Job job = new CommandLineJob(entry.getJobCommand(), new JobConf(entry.getJobOutputPath()));
 
     return new Lineage(entry.getId(), inputFiles, outputFiles, job, entry.getCreationTimeMs());
@@ -123,8 +123,8 @@ public final class Lineage implements JournalEntryRepresentable {
 
   @Override
   public synchronized JournalEntry toJournalEntry() {
-    List<Long> inputFileIds = Lists.newArrayList(mInputFiles);
-    List<Long> outputFileIds = Lists.newArrayList(mOutputFiles);
+    List<Long> inputFileIds = new ArrayList<>(mInputFiles);
+    List<Long> outputFileIds = new ArrayList<>(mOutputFiles);
     Preconditions.checkState(mJob instanceof CommandLineJob);
     CommandLineJob commandLineJob = (CommandLineJob) mJob;
     String jobCommand = commandLineJob.getCommand();

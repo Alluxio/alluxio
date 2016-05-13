@@ -69,6 +69,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               alluxio_dist:    alluxio_dist,
               alluxio_memory:  AlluxioV.memory,
               alluxio_version: alluxio_version,
+              alluxio_version_lessthan_1_1: AlluxioV.v_lt_1_1,
               alluxio_masters: AlluxioV.masters,
               alluxio_platform: alluxio_platform,
 
@@ -87,6 +88,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               s3_id:     UfsV.s3.id,
               s3_key:    UfsV.s3.key,
               s3_bucket: UfsV.s3.bucket,
+
+              gcs_id:     UfsV.gcs.id,
+              gcs_key:    UfsV.gcs.key,
+              gcs_bucket: UfsV.gcs.bucket,
 
               provider: Provider,
           }

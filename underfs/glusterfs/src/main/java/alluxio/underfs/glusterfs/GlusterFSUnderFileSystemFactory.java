@@ -11,6 +11,7 @@
 
 package alluxio.underfs.glusterfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
@@ -28,7 +29,7 @@ public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    return new GlusterFSUnderFileSystem(path, configuration, conf);
+    return new GlusterFSUnderFileSystem(new AlluxioURI(path), configuration, conf);
   }
 
   @Override
