@@ -200,6 +200,11 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   */
   @Override
   @Deprecated
   public long loadMetadata(final String alluxioPath, final boolean recursive)
