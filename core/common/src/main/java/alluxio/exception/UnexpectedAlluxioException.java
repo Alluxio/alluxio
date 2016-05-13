@@ -17,22 +17,19 @@ package alluxio.exception;
 public final class UnexpectedAlluxioException extends AlluxioException {
   private static final long serialVersionUID = -1029072354884843903L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.UNEXPECTED_ALLUXIO_EXCEPTION;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public UnexpectedAlluxioException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
    * @param e an exception to wrap
    */
   public UnexpectedAlluxioException(RuntimeException e) {
-    super(EXCEPTION_TYPE, e);
+    super(e);
   }
 }
