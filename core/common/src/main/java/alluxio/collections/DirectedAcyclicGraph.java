@@ -187,7 +187,7 @@ public class DirectedAcyclicGraph<T> {
       toVisit.addAll(visit.getChildren());
     }
 
-    Preconditions.checkState(toVisit.isEmpty(), "Not all the given payloads are in the DAG: ",
+    Preconditions.checkState(input.isEmpty(), "Not all the given payloads are in the DAG: ",
         input);
     return result;
   }
@@ -195,7 +195,7 @@ public class DirectedAcyclicGraph<T> {
   /**
    * Gets all payloads of the DAG in the topological order.
    *
-   * @return the payloads of all the nodes in toplogical order
+   * @return the payloads of all the nodes in topological order
    */
   public List<T> getAllInTopologicalOrder() {
     return sortTopologically(mIndex.keySet());

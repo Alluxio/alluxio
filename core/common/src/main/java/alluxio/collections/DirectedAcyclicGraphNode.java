@@ -74,7 +74,7 @@ public class DirectedAcyclicGraphNode<T> {
   /**
    * Gets the children nodes of the node.
    *
-   * @return the childrens of the node
+   * @return the children of the node
    */
   public List<DirectedAcyclicGraphNode<T>> getChildren() {
     return mChildren;
