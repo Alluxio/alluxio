@@ -321,6 +321,10 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
+  public void setOwner(String path, String user, String group) {}
+
+  // Not supported
+  @Override
   public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
