@@ -28,9 +28,8 @@ public final class TempInodePathWithDescendant extends InodePath {
   private AlluxioURI mDescendantUri;
   private Inode<?> mDescendantInode;
 
-  public TempInodePathWithDescendant(InodePath inodePath)
-      throws InvalidPathException {
-    super(inodePath.mUri, inodePath.mInodes, inodePath.mLockGroup);
+  public TempInodePathWithDescendant(InodePath inodePath) {
+    super(inodePath);
     mDescendantUri = new AlluxioURI(inodePath.mUri.toString());
     mDescendantInode = null;
   }

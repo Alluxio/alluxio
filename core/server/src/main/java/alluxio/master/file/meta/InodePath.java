@@ -43,6 +43,14 @@ public abstract class InodePath implements AutoCloseable {
     mLockGroup = lockGroup;
   }
 
+  InodePath(InodePath inodePath) {
+    Preconditions.checkArgument(!inodePath.mInodes.isEmpty());
+    mUri = inodePath.mUri;
+    mPathComponents = inodePath.mPathComponents;
+    mInodes = inodePath.mInodes;
+    mLockGroup = inodePath.mLockGroup;
+  }
+
   public synchronized AlluxioURI getUri() {
     return mUri;
   }
@@ -54,12 +62,25 @@ public abstract class InodePath implements AutoCloseable {
     return mInodes.get(mInodes.size() - 1);
   }
 
+  // TODO(gpang): consider adding related getParentInodeDirectory() convenience method
   public synchronized  InodeFile getInodeFile() throws FileDoesNotExistException {
     Inode inode = getInode();
     if (!inode.isFile()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(mUri));
     }
     return (InodeFile) inode;
+  }
+
+  public synchronized  InodeDirectory getParentInodeDirectory() throws InvalidPathException {
+    if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
+      // The path is only the root, or the list of inodes is not long enough to contain the parent
+      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+    }
+    Inode inode = mInodes.get(mPathComponents.length - 2);
+    if (!inode.isDirectory()) {
+      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+    }
+    return (InodeDirectory) inode;
   }
 
   public synchronized boolean fullPathExists() {
