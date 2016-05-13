@@ -21,13 +21,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockInfoException extends AlluxioException {
   private static final long serialVersionUID = 3516332549351705198L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.BLOCK_INFO;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public BlockInfoException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -37,7 +39,7 @@ public class BlockInfoException extends AlluxioException {
    * @param cause the cause
    */
   public BlockInfoException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

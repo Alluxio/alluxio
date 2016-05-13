@@ -20,13 +20,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FileAlreadyCompletedException extends AlluxioException {
   private static final long serialVersionUID = -623565413624572542L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.FILE_ALREADY_COMPLETED;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public FileAlreadyCompletedException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -36,7 +39,7 @@ public class FileAlreadyCompletedException extends AlluxioException {
    * @param cause the cause
    */
   public FileAlreadyCompletedException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

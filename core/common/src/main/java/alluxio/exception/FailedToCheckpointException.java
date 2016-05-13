@@ -20,13 +20,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public class FailedToCheckpointException extends AlluxioException {
   private static final long serialVersionUID = -3192642866222213537L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.FAILED_TO_CHECKPOINT;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public FailedToCheckpointException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -36,7 +39,7 @@ public class FailedToCheckpointException extends AlluxioException {
    * @param cause the cause
    */
   public FailedToCheckpointException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**
