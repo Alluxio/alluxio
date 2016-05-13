@@ -110,6 +110,19 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
+   * Tests completing a file with an invalid session will fail.
+   */
+  @Test
+  public void completeUfsFileInvalidSessionTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    manager.completeFile(mSessionId, id);
+    Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
+  }
+
+  /**
    * Tests canceling a file with the manager will call {@link UnderFileSystem#delete}.
    */
   @Test
@@ -130,6 +143,19 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     manager.cancelFile(mSessionId, -1L);
+  }
+
+  /**
+   * Tests canceling a file with an invalid session fails.
+   */
+  @Test
+  public void cancelUfsFileInvalidSessionTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    mThrown.expect(IllegalArgumentException.class);
+    manager.cancelFile(-1L, id);
   }
 
   /**
@@ -179,6 +205,19 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     manager.closeFile(mSessionId, -1L);
+  }
+
+  /**
+   * Tests closing an opened file with an invalid session fails.
+   */
+  @Test
+  public void closeUfsFileInvalidSessionTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
+    mThrown.expect(IllegalArgumentException.class);
+    manager.closeFile(-1L, id);
   }
 
   /**
