@@ -983,7 +983,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   @GuardedBy("mInodeTree")
   private List<FileBlockInfo> getFileBlockInfoListInternal(InodeFile file)
-    throws InvalidPathException {
+    throws InvalidPathException, FileDoesNotExistException {
+    // TODO(gpang): use InodeFile to remove FileDoesNotExistException
     List<BlockInfo> blockInfoList = mBlockMaster.getBlockInfoList(file.getBlockIds());
 
     List<FileBlockInfo> ret = new ArrayList<>();
@@ -1004,7 +1005,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   @GuardedBy("mInodeTree")
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
-      throws InvalidPathException {
+      throws InvalidPathException, FileDoesNotExistException {
+    // TODO(gpang): use InodeFile to remove FileDoesNotExistException
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
     fileBlockInfo.setUfsLocations(new ArrayList<String>());
@@ -1527,7 +1529,7 @@ public final class FileSystemMaster extends AbstractMaster {
   // TODO(binfan): Add permission checking for internal APIs
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     try (InodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
-      return mInodeTree.getPath(inodePath);
+      return mInodeTree.getPath(inodePath.getInode());
     }
   }
 
@@ -1964,7 +1966,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // TODO(yupeng) check the file is not persisted
     try (InodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
       // free the file first
-      InodeFile inodeFile = (InodeFile) inodePath.getInode();
+      InodeFile inodeFile = inodePath.getInodeFile();
       freeInternal(mInodeTree.getInodeById(fileId), false);
       inodeFile.reset();
     }
