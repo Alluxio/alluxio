@@ -202,12 +202,22 @@ public class BaseFileSystem implements FileSystem {
     }
   }
 
+  /**
+   * @inheritDoc
+   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
+   */
+  @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
+  /**
+   * @inheritDoc
+   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
+   */
+  @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {
