@@ -284,14 +284,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
+   * If we are not in the last block or if the last block is equal to the normal block size,
+   * return the normal block size. Otherwise return the block size of the last block.
+   *
    * @param pos the position to get the block size for
    * @return the size of the block that covers pos
    */
   protected long getBlockSize(long pos) {
     // The size of the last block, 0 if it is equal to the normal block size
     long lastBlockSize = mFileLength % mBlockSize;
-    // If we are not in the last block or if the last block is equal to the normal block size,
-    // return the normal block size. Otherwise return the block size of the last block.
     if (mFileLength - pos > lastBlockSize) {
       return mBlockSize;
     } else {
@@ -458,8 +459,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       mCurrentBlockInStream.close();
       mCurrentBlockInStream = null;
     }
+
+    // blockId = -1 if mPos = EOF.
     if (blockId < 0) {
-      // End of file.
       return;
     }
     try {
