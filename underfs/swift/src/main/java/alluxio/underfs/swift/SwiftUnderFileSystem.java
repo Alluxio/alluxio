@@ -352,9 +352,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {
   }
 
+  // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
-  }
+  public void setOwner(String path, String user, String group) {}
+
+  // Not supported
+  @Override
+  public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
    * Copies an object to another name.
