@@ -389,7 +389,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     closeOrCancelCacheStream();
   }
 
-
   /**
    * Only updates {@link #mCurrentCacheStream}, {@link #mCurrentBlockInStream} and
    * {@link #mStreamBlockId} to be in sync with the current block (i.e.
@@ -555,7 +554,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentCacheStream != null) {
       // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
       // block.
-     readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
+      readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
       // Early return if we are at pos already. This happens if we seek forward with caching
       // enabled for this block.
