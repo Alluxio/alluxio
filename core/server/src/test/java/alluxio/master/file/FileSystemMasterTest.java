@@ -738,6 +738,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
+    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster
         .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
@@ -746,6 +747,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
 
+    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
   }
