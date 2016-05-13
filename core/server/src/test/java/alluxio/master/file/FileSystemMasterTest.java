@@ -168,11 +168,16 @@ public final class FileSystemMasterTest {
   @Test
   public void deleteFileTest() throws Exception {
     // cannot delete root
-    Assert.assertFalse(mFileSystemMaster.delete(ROOT_URI, true));
+    try {
+      mFileSystemMaster.delete(ROOT_URI, true);
+      Assert.fail("Should not have been able to delete the root");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage(), e.getMessage());
+    }
 
     // delete the file
     long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
-    Assert.assertTrue(mFileSystemMaster.delete(NESTED_FILE_URI, false));
+    mFileSystemMaster.delete(NESTED_FILE_URI, false);
 
     mThrown.expect(BlockInfoException.class);
     mBlockMaster.getBlockInfo(blockId);
@@ -209,7 +214,7 @@ public final class FileSystemMasterTest {
     }
 
     // Now delete with recursive set to true
-    Assert.assertTrue(mFileSystemMaster.delete(NESTED_URI, true));
+    mFileSystemMaster.delete(NESTED_URI, true);
   }
 
   /**
@@ -221,7 +226,7 @@ public final class FileSystemMasterTest {
   public void deleteDirTest() throws Exception {
     createFileWithSingleBlock(NESTED_FILE_URI);
     // delete the dir
-    Assert.assertTrue(mFileSystemMaster.delete(NESTED_URI, true));
+    mFileSystemMaster.delete(NESTED_URI, true);
 
     // verify the dir is deleted
     Assert.assertEquals(-1, mFileSystemMaster.getFileId(NESTED_URI));
