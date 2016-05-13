@@ -34,6 +34,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.plugin.dom.exception.InvalidStateException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -80,7 +81,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected long mPos;
 
-  /** Include partially read blocks if Alluxio is configured to store blocks in Alluxio storage. */
+  /**
+   * Include partially read blocks if Alluxio is configured to cache blocks read blocks from ufs.
+   */
   private final boolean mShouldCachePartiallyReadBlock;
   /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
@@ -107,7 +110,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     return new FileInStream(status, options);
   }
 
- /**
+  /**
    * Creates a new file input stream.
    *
    * @param status the file status
@@ -151,7 +154,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return -1;
     }
     updateStreams();
-    Preconditions.checkState(mCurrentBlockInStream != null, "Reached EOF unexpectedly.");
+    Preconditions.checkState(mCurrentBlockInStream != null, PreconditionMessage.ERR_UNEXPECTED_EOF);
 
     int data = mCurrentBlockInStream.read();
 
@@ -192,12 +195,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     while (bytesLeftToRead > 0 && remaining() > 0) {
       updateStreams();
-      if (mCurrentBlockInStream == null) {
-        // EOF is reached.
-        break;
-      }
+      Preconditions.checkNotNull(mCurrentBlockInStream, PreconditionMessage.ERR_UNEXPECTED_EOF);
       int bytesToRead = (int) Math.min(bytesLeftToRead, mCurrentBlockInStream.remaining());
-      Preconditions.checkState(bytesToRead > 0);
 
       int bytesRead = mCurrentBlockInStream.read(b, currentOffset, bytesToRead);
       if (bytesRead > 0) {
@@ -311,10 +310,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mCurrentBlockInStream == null || currentBlockId != mStreamBlockId) {
       return true;
     }
-    if (mCurrentCacheStream != null) {
-      Preconditions.checkState(mCurrentBlockInStream.remaining() == mCurrentCacheStream.remaining(),
-          "BlockInStream and CacheStream is out of sync %d %d", mCurrentBlockInStream.remaining(),
-          mCurrentCacheStream.remaining());
+    if (mCurrentCacheStream != null
+        && mCurrentBlockInStream.remaining() != mCurrentCacheStream.remaining()) {
+      throw new InvalidStateException(
+          String.format("BlockInStream and CacheStream is out of sync %d %d.",
+              mCurrentBlockInStream.remaining(), mCurrentCacheStream.remaining()));
     }
     return mCurrentBlockInStream.remaining() == 0;
   }
