@@ -21,13 +21,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public class InvalidWorkerStateException extends AlluxioException {
   private static final long serialVersionUID = -5416224494611880597L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE =
+      AlluxioExceptionType.INVALID_WORKER_STATE;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public InvalidWorkerStateException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -37,7 +40,7 @@ public class InvalidWorkerStateException extends AlluxioException {
    * @param cause the cause
    */
   public InvalidWorkerStateException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

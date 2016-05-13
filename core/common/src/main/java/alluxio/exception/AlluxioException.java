@@ -23,6 +23,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AlluxioException extends Exception {
   private static final long serialVersionUID = 2243833925609642384L;
 
+  private final AlluxioExceptionType mType;
+
   /**
    * Constructs a {@link AlluxioException} with an exception type from a {@link AlluxioTException}.
    *
@@ -30,34 +32,41 @@ public abstract class AlluxioException extends Exception {
    */
   protected AlluxioException(AlluxioTException te) {
     super(te.getMessage());
+    mType = AlluxioExceptionType.valueOf(te.getType());
   }
 
   /**
    * Constructs an {@link AlluxioException} with the given cause.
    *
+   * @param type the exception type
    * @param cause the cause
    */
-  protected AlluxioException(Throwable cause) {
+  protected AlluxioException(AlluxioExceptionType type, Throwable cause) {
     super(cause);
+    mType = type;
   }
 
   /**
    * Constructs an {@link AlluxioException} with the given message.
    *
+   * @param type the exception type
    * @param message the message
    */
-  protected AlluxioException(String message) {
+  protected AlluxioException(AlluxioExceptionType type, String message) {
     super(message);
+    mType = type;
   }
 
   /**
    * Constructs an {@link AlluxioException} with the given message and cause.
    *
+   * @param type the exception type
    * @param message the message
    * @param cause the cause
    */
-  protected AlluxioException(String message, Throwable cause) {
+  protected AlluxioException(AlluxioExceptionType type, String message, Throwable cause) {
     super(message, cause);
+    mType = type;
   }
 
   /**
@@ -66,7 +75,7 @@ public abstract class AlluxioException extends Exception {
    * @return a {@link AlluxioTException} of the type of this exception
    */
   public AlluxioTException toAlluxioTException() {
-    return new AlluxioTException(getClass().getName(), getMessage());
+    return new AlluxioTException(mType.name(), getMessage(), getClass().getName());
   }
 
   /**
@@ -80,63 +89,20 @@ public abstract class AlluxioException extends Exception {
     try {
       // For 1.0, the type returns the enum type, while for ALLUXIO 1.1 and after, the type contains
       // the exception class name
-      Class<? extends AlluxioException> throwClassBackCompat =
-          AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
-      @SuppressWarnings("unchecked")
-      Class<? extends AlluxioException> throwClass = throwClassBackCompat == null
-          ? (Class<? extends AlluxioException>) Class.forName(e.getType()) : throwClassBackCompat;
+      Class<? extends AlluxioException> throwClass;
+      if (e.isSetName()) {
+        // version 1.1 or newer
+        throwClass = (Class<? extends AlluxioException>) Class.forName(e.getName());
+      } else {
+        // version 1.0
+        AlluxioExceptionType exceptionType = AlluxioExceptionType.valueOf(e.getType());
+        throwClass = exceptionType.getExceptionClass();
+      }
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
     } catch (ReflectiveOperationException reflectException) {
       String errorMessage = "Could not instantiate " + e.getType() + " with a String-only "
           + "constructor: " + reflectException.getMessage();
       throw new IllegalStateException(errorMessage, reflectException);
-    }
-  }
-
-  /**
-   * @deprecated the exception type is no longer used since 1.1
-   */
-  @Deprecated
-  @ThreadSafe
-  private enum AlluxioExceptionType {
-    ACCESS_CONTROL(AccessControlException.class),
-    BLOCK_ALREADY_EXISTS(BlockAlreadyExistsException.class),
-    BLOCK_DOES_NOT_EXIST(BlockDoesNotExistException.class),
-    BLOCK_INFO(BlockInfoException.class),
-    CONNECTION_FAILED(ConnectionFailedException.class),
-    DEPENDENCY_DOES_NOT_EXIST(DependencyDoesNotExistException.class),
-    DIRECTORY_NOT_EMPTY_EXCEPTION(DirectoryNotEmptyException.class),
-    FAILED_TO_CHECKPOINT(FailedToCheckpointException.class),
-    FILE_ALREADY_COMPLETED(FileAlreadyCompletedException.class),
-    FILE_ALREADY_EXISTS(FileAlreadyExistsException.class),
-    FILE_DOES_NOT_EXIST(FileDoesNotExistException.class),
-    INVALID_FILE_SIZE(InvalidFileSizeException.class),
-    INVALID_PATH(InvalidPathException.class),
-    INVALID_WORKER_STATE(InvalidWorkerStateException.class),
-    LINEAGE_DELETION(LineageDeletionException.class),
-    LINEAGE_DOES_NOT_EXIST(LineageDoesNotExistException.class),
-    NO_WORKER(NoWorkerException.class),
-    WORKER_OUT_OF_SPACE(WorkerOutOfSpaceException.class)
-    ;
-
-    private final Class<? extends AlluxioException> mExceptionClass;
-
-    /**
-     * Constructs a {@link AlluxioExceptionType} with its corresponding {@link AlluxioException}.
-     */
-    AlluxioExceptionType(Class<? extends AlluxioException> exceptionClass) {
-      mExceptionClass = exceptionClass;
-    }
-
-    static Class<? extends AlluxioException> getAlluxioExceptionClass(String text) {
-      if (text != null) {
-        for (AlluxioExceptionType t : AlluxioExceptionType.values()) {
-          if (text.equalsIgnoreCase(t.name())) {
-            return t.mExceptionClass;
-          }
-        }
-      }
-      return null;
     }
   }
 }

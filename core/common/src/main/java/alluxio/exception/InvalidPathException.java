@@ -21,13 +21,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public class InvalidPathException extends AlluxioException {
   private static final long serialVersionUID = 880152286891141665L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.INVALID_PATH;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public InvalidPathException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -37,7 +39,7 @@ public class InvalidPathException extends AlluxioException {
    * @param cause the cause
    */
   public InvalidPathException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

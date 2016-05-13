@@ -22,13 +22,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ConnectionFailedException extends AlluxioException {
   private static final long serialVersionUID = 3160271300708523896L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.CONNECTION_FAILED;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public ConnectionFailedException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -38,7 +40,7 @@ public final class ConnectionFailedException extends AlluxioException {
    * @param cause the cause
    */
   public ConnectionFailedException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

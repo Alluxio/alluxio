@@ -12,6 +12,7 @@
 package alluxio.replay;
 
 import alluxio.exception.AlluxioException;
+import alluxio.exception.AlluxioExceptionType;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.replay.ReplayCache.ReplayCallable;
 import alluxio.replay.ReplayCache.ReplayCallableThrowsIOException;
@@ -127,8 +128,9 @@ public final class ReplayCacheTest {
       mCache.run("key", new ThrowingCallable(new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
+      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getName());
     }
   }
 
@@ -145,8 +147,9 @@ public final class ReplayCacheTest {
           new FileAlreadyExistsException(TEST_ERROR_MESSAGE)));
       Assert.fail("Should have thrown AlluxioTException");
     } catch (AlluxioTException e) {
+      Assert.assertEquals(AlluxioExceptionType.FILE_ALREADY_EXISTS.name(), e.getType());
       Assert.assertEquals(TEST_ERROR_MESSAGE, e.getMessage());
-      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getType());
+      Assert.assertEquals(FileAlreadyExistsException.class.getName(), e.getName());
     }
   }
 

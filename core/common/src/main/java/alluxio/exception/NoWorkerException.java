@@ -20,13 +20,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public class NoWorkerException extends AlluxioException {
   private static final long serialVersionUID = -4513463729402967717L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.NO_WORKER;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public NoWorkerException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -36,7 +38,7 @@ public class NoWorkerException extends AlluxioException {
    * @param cause the cause
    */
   public NoWorkerException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**

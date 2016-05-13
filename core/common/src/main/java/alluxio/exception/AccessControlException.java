@@ -20,13 +20,15 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AccessControlException extends AlluxioException {
   private static final long serialVersionUID = 7147533331335543932L;
 
+  private static final AlluxioExceptionType EXCEPTION_TYPE = AlluxioExceptionType.ACCESS_CONTROL;
+
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public AccessControlException(String message) {
-    super(message);
+    super(EXCEPTION_TYPE, message);
   }
 
   /**
@@ -36,7 +38,7 @@ public class AccessControlException extends AlluxioException {
    * @param cause the cause
    */
   public AccessControlException(String message, Throwable cause) {
-    super(message, cause);
+    super(EXCEPTION_TYPE, message, cause);
   }
 
   /**
