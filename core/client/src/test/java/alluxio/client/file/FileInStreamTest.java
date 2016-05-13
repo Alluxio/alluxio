@@ -253,7 +253,7 @@ public class FileInStreamTest {
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(seekAmount, readAmount), buffer);
     // First block should not be cached since we skipped over it, but the second should be
-    Assert.assertTrue(mCacheStreams.get(0).getWrittenData().length == 0);
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getWrittenData());
