@@ -81,7 +81,7 @@ public abstract class AlluxioException extends Exception {
       // For 1.0, the type returns the enum type, while for ALLUXIO 1.1 and after, the type contains
       // the exception class name
       Class<? extends AlluxioException> throwClass =
-          AlluxioExceptionType.getAlluxioExceptionClassfromString(e.getType());
+          AlluxioExceptionType.getAlluxioExceptionClass(e.getType());
       throwClass = throwClass == null
           ? (Class<? extends AlluxioException>) Class.forName(e.getType()) : throwClass;
       return throwClass.getConstructor(String.class).newInstance(e.getMessage());
@@ -93,7 +93,7 @@ public abstract class AlluxioException extends Exception {
   }
 
   /**
-   * @deprecated The exception type is no longer used since 1.1
+   * @deprecated the exception type is no longer used since 1.1
    */
   @Deprecated
   @ThreadSafe
@@ -127,7 +127,7 @@ public abstract class AlluxioException extends Exception {
       mExceptionClass = exceptionClass;
     }
 
-    static Class<? extends AlluxioException> getAlluxioExceptionClassfromString(String text) {
+    static Class<? extends AlluxioException> getAlluxioExceptionClass(String text) {
       if (text != null) {
         for (AlluxioExceptionType t : AlluxioExceptionType.values()) {
           if (text.equalsIgnoreCase(t.name())) {
