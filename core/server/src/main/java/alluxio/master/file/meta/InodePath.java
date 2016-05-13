@@ -28,11 +28,11 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a path of locked {@link Inode}, starting from the root.
  */
 @ThreadSafe
-public final class InodePath implements AutoCloseable {
-  private final AlluxioURI mUri;
-  private final String[] mPathComponents;
-  private final ArrayList<Inode<?>> mInodes;
-  private final InodeLockGroup mLockGroup;
+public abstract class InodePath implements AutoCloseable {
+  protected final AlluxioURI mUri;
+  protected final String[] mPathComponents;
+  protected final ArrayList<Inode<?>> mInodes;
+  protected final InodeLockGroup mLockGroup;
 
   InodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
       throws InvalidPathException {
@@ -47,7 +47,10 @@ public final class InodePath implements AutoCloseable {
     return mUri;
   }
 
-  public synchronized Inode getInode() {
+  public synchronized Inode getInode() throws FileDoesNotExistException {
+    if (!fullPathExists()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
     return mInodes.get(mInodes.size() - 1);
   }
 
@@ -66,17 +69,5 @@ public final class InodePath implements AutoCloseable {
   @Override
   public synchronized void close() {
     mLockGroup.unlock();
-  }
-
-  String[] getPathComponents() {
-    return mPathComponents;
-  }
-
-  List<Inode<?>> getInodes() {
-    return mInodes;
-  }
-
-  InodeLockGroup getLockGroup() {
-    return mLockGroup;
   }
 }
