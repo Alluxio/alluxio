@@ -23,7 +23,6 @@ import alluxio.worker.block.io.BlockWriter;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -47,7 +46,6 @@ import javax.ws.rs.core.Response;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
-@Ignore("ALLUXIO-1888")
 public class BlockWorkerClientRestApiTest extends RestApiTest {
   private BlockWorker mBlockWorker;
 

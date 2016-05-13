@@ -25,7 +25,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -47,7 +46,6 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-@Ignore("ALLUXIO-1888")
 public class FileSystemMasterClientRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
 
