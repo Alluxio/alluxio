@@ -99,9 +99,9 @@ public final class FileSystemMasterTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   @ClassRule
-  public static ManuallyScheduleHeartbeat sManuallySchedule =
-      new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK,
-          HeartbeatContext.MASTER_LOST_FILES_DETECTION);
+  public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
+      HeartbeatContext.MASTER_TTL_CHECK,
+      HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
   /**
    * Sets up the dependencies before a single test runs.
@@ -727,6 +727,7 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests load metadata logic.
+   *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
@@ -737,9 +738,15 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+
+    mThrown.expect(FileAlreadyExistsException.class);
+    mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

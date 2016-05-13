@@ -460,6 +460,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
+  // TODO(peis): Create GetFileInfoListOptions.
   public List<FileInfo> getFileInfoList(AlluxioURI path, boolean loadDirectChildren)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
@@ -1528,7 +1529,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    */
-  // TODO(jiri): Make it possible to load UFS objects recursively.
   public long loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws BlockInfoException, FileDoesNotExistException, InvalidPathException,
       InvalidFileSizeException, FileAlreadyCompletedException, IOException, AccessControlException {
@@ -1544,12 +1544,10 @@ public final class FileSystemMaster extends AbstractMaster {
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
-      if (ufs.isFile(ufsUri.toString())) {
-        synchronized (mInodeTree) {
+      synchronized (mInodeTree) {
+        if (ufs.isFile(ufsUri.toString())) {
           return loadFileMetadata(path, resolution, options);
-        }
-      } else {
-        synchronized (mInodeTree) {
+        } else {
           long fileId = loadDirectoryMetadata(path, options);
           InodeDirectory inode = (InodeDirectory) mInodeTree.getInodeById(fileId);
           if (!inode.isDirectChildrenLoaded() && options.isLoadDirectChildren()) {
