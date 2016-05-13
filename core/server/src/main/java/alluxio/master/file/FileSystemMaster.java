@@ -1605,7 +1605,7 @@ public final class FileSystemMaster extends AbstractMaster {
       long fileId = createFile(path, createFileOptions);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
       completeFile(path, completeOptions);
-      return mInodeTree.getInodeById(fileId).getId();
+      return fileId;
     } catch (FileAlreadyExistsException e) {
       LOG.error("FileAlreadyExistsException seen unexpectedly.", e);
       throw new RuntimeException(e);
