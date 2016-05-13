@@ -12,8 +12,11 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
+
+import com.google.common.collect.ImmutableList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,6 +56,22 @@ public final class TempInodePathWithDescendant extends InodePath {
       return super.getInode();
     }
     return mDescendantInode;
+  }
+
+  @Override
+  public synchronized  InodeDirectory getParentInodeDirectory() throws InvalidPathException {
+    if (mDescendantInode == null) {
+      return super.getParentInodeDirectory();
+    }
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public synchronized List<Inode<?>> getInodeList() {
+    if (mDescendantInode == null) {
+      return super.getInodeList();
+    }
+    throw new UnsupportedOperationException();
   }
 
   @Override

@@ -99,6 +99,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1416,7 +1417,7 @@ public final class FileSystemMaster extends AbstractMaster {
     dstParentInode.addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incPathsRenamed(1);
-    propagatePersisted(srcInode, replayed);
+    propagatePersisted(srcInodePath, replayed);
   }
 
   /**
@@ -1461,20 +1462,25 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Propagates the persisted status to all parents of the given inode in the same mount partition.
    *
-   * @param inode the inode to start the propagation at
+   * @param inodePath the inode to start the propagation at
    * @param replayed whether the invocation is a result of replaying the journal
    * @throws FileDoesNotExistException if a non-existent file is encountered
    */
   @GuardedBy("mInodeTree")
-  private void propagatePersisted(Inode<?> inode, boolean replayed)
+  private void propagatePersisted(InodePath inodePath, boolean replayed)
       throws FileDoesNotExistException {
-    // TODO(gpang): figure out how to traverse up with the path lock.
+    Inode<?> inode = inodePath.getInode();
     if (!inode.isPersisted()) {
       return;
     }
-    Inode<?> handle = inode;
-    while (handle.getParentId() != InodeTree.NO_PARENT) {
-      handle = mInodeTree.getInodeById(handle.getParentId());
+
+    List<Inode<?>> inodes = inodePath.getInodeList();
+    // Traverse the inodes from target inode to the root.
+    Collections.reverse(inodes);
+    // Skip the first, to not examine the target inode itself.
+    inodes = inodes.subList(1, inodes.size());
+
+    for (Inode<?> handle : inodes) {
       AlluxioURI path = mInodeTree.getPath(handle);
       if (mMountTable.isMountPoint(path)) {
         // Stop propagating the persisted status at mount points.
@@ -2214,7 +2220,7 @@ public final class FileSystemMaster extends AbstractMaster {
           PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         file.setPersistenceState(PersistenceState.PERSISTED);
-        propagatePersisted(file, false);
+        propagatePersisted(inodePath, false);
         file.setLastModificationTimeMs(opTimeMs);
         MasterContext.getMasterSource().incFilesPersisted(1);
       }

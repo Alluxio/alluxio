@@ -18,6 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,6 +82,10 @@ public abstract class InodePath implements AutoCloseable {
       throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
     }
     return (InodeDirectory) inode;
+  }
+
+  public synchronized List<Inode<?>> getInodeList() {
+    return Lists.newArrayList(mInodes);
   }
 
   public synchronized boolean fullPathExists() {
