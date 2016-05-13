@@ -20,16 +20,13 @@ import javax.annotation.concurrent.ThreadSafe;
 public class BlockAlreadyExistsException extends AlluxioException {
   private static final long serialVersionUID = -127826899023625880L;
 
-  private static final AlluxioExceptionType EXCEPTION_TYPE =
-      AlluxioExceptionType.BLOCK_ALREADY_EXISTS;
-
   /**
    * Constructs a new exception with the specified detail message.
    *
    * @param message the detail message
    */
   public BlockAlreadyExistsException(String message) {
-    super(EXCEPTION_TYPE, message);
+    super(message);
   }
 
   /**
@@ -39,7 +36,7 @@ public class BlockAlreadyExistsException extends AlluxioException {
    * @param cause the cause
    */
   public BlockAlreadyExistsException(String message, Throwable cause) {
-    super(EXCEPTION_TYPE, message, cause);
+    super(message, cause);
   }
 
   /**

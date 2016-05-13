@@ -39,10 +39,10 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     } catch (RuntimeException e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new UnexpectedAlluxioException(e).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
 
@@ -60,12 +60,12 @@ public final class RpcUtils {
     try {
       return callable.call();
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (RuntimeException e) {
       LOG.error("Unexpected error running rpc", e);
-      throw new UnexpectedAlluxioException(e).toAlluxioTException();
+      throw new UnexpectedAlluxioException(e).toThrift();
     }
   }
 
