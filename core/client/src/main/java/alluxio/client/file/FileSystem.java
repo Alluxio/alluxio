@@ -241,16 +241,21 @@ public interface FileSystem {
    * Convenience method for {@link #loadMetadata(AlluxioURI, LoadMetadataOptions)} with default
    * options.
    *
+   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
+   *
    * @param path the path for which to load metadata from UFS
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
   /**
    * Loads metadata about a path in the UFS to Alluxio. No data will be transferred.
+   *
+   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
    *
    * @param path the path for which to load metadata from UFS
    * @param options options to associate with this operation
@@ -258,6 +263,7 @@ public interface FileSystem {
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
