@@ -27,7 +27,6 @@ import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -52,7 +51,6 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
-@Ignore("ALLUXIO-1888")
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
   private static AlluxioWorker sWorker;
   private static BlockStoreMeta sStoreMeta;
