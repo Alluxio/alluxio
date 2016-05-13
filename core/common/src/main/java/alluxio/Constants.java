@@ -162,6 +162,8 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "alluxio.zookeeper.leader.inquiry.retry";
+  public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+      "alluxio.network.thrift.frame.size.bytes.max";
   public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
   public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "alluxio.keyvalue.partition.size.bytes.max";
