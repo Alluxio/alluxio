@@ -48,9 +48,9 @@ public final class UnderFileSystemManager {
    */
   @ThreadSafe
   private final class InputStreamAgent {
-    /** Session this agent belongs to, indexed on */
+    /** Session this agent belongs to, indexed on. */
     private final long mSessionId;
-    /** Id referencing this agent, indexed on */
+    /** Id referencing this agent, indexed on. */
     private final long mId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
@@ -61,6 +61,8 @@ public final class UnderFileSystemManager {
      * Constructor for an input stream agent for a UFS file. The file must exist when this is
      * called.
      *
+     * @param sessionId the session this agent belongs to
+     * @param id the id of the agent
      * @param ufsUri the uri of the file in the UFS
      * @param conf the configuration to use
      * @throws FileDoesNotExistException if the file does not exist in the UFS
@@ -112,9 +114,9 @@ public final class UnderFileSystemManager {
   // TODO(calvin): This can be defined by the UnderFileSystem
   @NotThreadSafe
   private final class OutputStreamAgent {
-    /** Session this agent belongs to, indexed on */
+    /** Session this agent belongs to, indexed on. */
     private final long mSessionId;
-    /** Id referencing this agent, indexed on */
+    /** Id referencing this agent, indexed on. */
     private final long mId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
@@ -288,15 +290,15 @@ public final class UnderFileSystemManager {
   }
 
   /**
-   * Cleans up the state of the given session id
+   * Cleans up the state of the given session id.
    *
    * @param sessionId the session id to clean up
    */
   public void cleanupSession(long sessionId) {
-    synchronized(mInputStreamAgents) {
+    synchronized (mInputStreamAgents) {
       mInputStreamAgents.removeByField(mInputSessionIndex, sessionId);
     }
-    synchronized(mOutputStreamAgents) {
+    synchronized (mOutputStreamAgents) {
       mOutputStreamAgents.removeByField(mOutputSessionIndex, sessionId);
     }
   }
