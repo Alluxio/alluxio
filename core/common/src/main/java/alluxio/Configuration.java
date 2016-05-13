@@ -75,10 +75,18 @@ public final class Configuration {
   private final Properties mProperties = new Properties();
 
   /**
+   * @param conf the source configuration to copy
+   * @return a new configuration instance with the properties copied from source configuration
+   */
+  public static Configuration copyFrom(Configuration conf) {
+    return new Configuration(conf.toMap());
+  }
+
+  /**
    * @param properties the source configuration
    * @return a new configuration with only properties copied from source
    */
-  public static Configuration fromProperties(Map<?, ?> properties) {
+  public static Configuration fromMap(Map<?, ?> properties) {
     return new Configuration(properties);
   }
 
@@ -223,13 +231,6 @@ public final class Configuration {
     }
     Configuration that = (Configuration) o;
     return mProperties.equals(that.mProperties);
-  }
-
-  /**
-   * @return a configuration instance with the properties cloned from this instance
-   */
-  public Configuration clone() {
-    return new Configuration(toMap());
   }
 
   /**
