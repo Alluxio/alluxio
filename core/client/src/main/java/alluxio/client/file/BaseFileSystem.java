@@ -203,8 +203,9 @@ public class BaseFileSystem implements FileSystem {
   }
 
   /**
-   * @inheritDoc
-   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
   @Override
@@ -214,8 +215,9 @@ public class BaseFileSystem implements FileSystem {
   }
 
   /**
-   * @inheritDoc
-   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
   @Override
