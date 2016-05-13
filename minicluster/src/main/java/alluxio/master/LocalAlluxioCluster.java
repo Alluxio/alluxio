@@ -112,7 +112,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   protected void startMaster(Configuration testConf) throws IOException {
-    mMasterConf = testConf.clone();
+    mMasterConf = Configuration.copyFrom(testConf);
     MasterContext.reset(mMasterConf);
 
     mMaster = LocalAlluxioMaster.create(mHome);
@@ -131,7 +131,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = conf.clone();
+    mWorkerConf = Configuration.copyFrom(conf);
     WorkerContext.reset(mWorkerConf);
 
     runWorker();

@@ -83,7 +83,7 @@ public class ConfigurationTest {
   @Before
   public void beforeTests() {
     // initialize Alluxio configuration
-    mCustomPropsConfiguration = Configuration.fromProperties(sTestProperties);
+    mCustomPropsConfiguration = Configuration.fromMap(sTestProperties);
     mSystemPropsConfiguration = new Configuration();
   }
 
@@ -315,7 +315,7 @@ public class ConfigurationTest {
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES ,
             String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    Configuration.fromProperties(mProperties);
+    Configuration.fromMap(mProperties);
   }
 
   /**
@@ -327,7 +327,7 @@ public class ConfigurationTest {
     properties.put(Constants.USER_FILE_BUFFER_BYTES ,
             String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    Configuration.fromProperties(properties);
+    Configuration.fromMap(properties);
   }
 
   /**
@@ -337,7 +337,7 @@ public class ConfigurationTest {
   public void variableUserFileBufferBytesNormalCheckTest() {
     Properties mProperties = new Properties();
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
-    mCustomPropsConfiguration = Configuration.fromProperties(mProperties);
+    mCustomPropsConfiguration = Configuration.fromMap(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
     mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
