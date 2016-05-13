@@ -57,7 +57,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
   private final Configuration mConf;
   /** Logic for handling RPC requests. */
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
-  /** Object for managing this worker's sessions */
+  /** Object for managing this worker's sessions. */
   private final Sessions mSessions;
   /** Manager for under file system operations. */
   private final UnderFileSystemManager mUnderFileSystemManager;
@@ -100,6 +100,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * Cancels a file currently being written to the under file system. The open stream will be
    * closed and the partial file will be cleaned up.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to cancel, only understood by the worker that created
    *                      the file
    * @throws FileDoesNotExistException if this worker is not writing the specified file
@@ -125,6 +126,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * Closes a file currently being read from the under file system. The open stream will be
    * closed and the file id will no longer be valid.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to close, only understood by the worker that opened
    *                      the file
    * @throws FileDoesNotExistException if the worker is not reading the specified file
@@ -139,6 +141,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * Completes a file currently being written to the under file system. The open stream will be
    * closed and the partial file will be promoted to the completed file in the under file system.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
@@ -153,6 +156,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * Creates a new file in the under file system. This will register a new stream in the under
    * file system manager. The stream can only be accessed with the returned id afterward.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the under file system uri to create a file for
    * @throws FileAlreadyExistsException if a file already exists in the under file system with
    *                                    the same path
@@ -205,6 +209,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * Opens a file in the under file system and registers a temporary file id with the file. This
    * id is valid until the file is closed.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the under file system path of the file to open
    * @return the temporary file id which references the file
    * @throws FileDoesNotExistException if the file does not exist in the under file system

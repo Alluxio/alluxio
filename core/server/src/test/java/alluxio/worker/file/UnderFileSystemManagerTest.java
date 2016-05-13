@@ -48,7 +48,7 @@ public final class UnderFileSystemManagerTest {
   private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
-  /** The testing session id */
+  /** The testing session id. */
   private long mSessionId = 1L;
 
   @Before
