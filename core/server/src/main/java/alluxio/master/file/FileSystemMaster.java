@@ -382,9 +382,6 @@ public final class FileSystemMaster extends AbstractMaster {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     synchronized (mInodeTree) {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
-      // getFileInfo should load from ufs if the file does not exist
-      getFileId(path);
-
       if (!mInodeTree.inodePathExists(path)) {
         try {
           loadMetadata(path, LoadMetadataOptions.defaults().setCreateAncestors(true));
@@ -482,6 +479,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         loadMetadata(path, loadMetadataOptions);
       } catch (Exception e) {
+        // TODO(peis): consider throwing a metadata loading failure exception here.
         LOG.error("Failed to load metadata at {}.", path, e);
       }
 
