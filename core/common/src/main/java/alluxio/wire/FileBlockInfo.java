@@ -113,7 +113,7 @@ public final class FileBlockInfo {
     for (String ufsLocation : mUfsLocations) {
       HostAndPort address = HostAndPort.fromString(ufsLocation);
       ufsLocations.add(new alluxio.thrift.WorkerNetAddress().setHost(address.getHostText())
-          .setDataPort(address.getPort()));
+          .setDataPort(address.getPortOrDefault(-1)));
     }
     return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
         mUfsLocations);
