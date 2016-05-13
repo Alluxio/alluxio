@@ -201,6 +201,7 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
+  @Deprecated
   public long loadMetadata(final String alluxioPath, final boolean recursive)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {

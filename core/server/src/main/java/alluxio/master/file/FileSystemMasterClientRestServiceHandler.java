@@ -266,27 +266,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary load metadata for a path
-   * @param path the alluxio path to load metadata for
-   * @param recursive whether metadata should be loaded recursively
-   * @return the response object
-   */
-  @POST
-  @Path(LOAD_METADATA)
-  @ReturnType("java.lang.Long")
-  public Response loadMetadata(@QueryParam("path") String path,
-      @QueryParam("recursive") boolean recursive) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path),
-          LoadMetadataOptions.defaults().setCreateAncestors(recursive)));
-    } catch (AlluxioException | IOException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
    * @summary mount a UFS path
    * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount

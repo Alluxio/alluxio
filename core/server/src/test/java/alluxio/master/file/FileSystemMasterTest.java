@@ -725,14 +725,18 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
   }
 
+  /**
+   * Tests load metadata logic.
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
   @Test
   public void testLoadMetadataTest() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio://localhost:19998/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio://localhost:19998/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
   }
 
