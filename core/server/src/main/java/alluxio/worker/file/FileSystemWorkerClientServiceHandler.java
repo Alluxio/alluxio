@@ -16,9 +16,11 @@ import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
+import alluxio.thrift.CloseUfsFileTOptions;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.thrift.CreateUfsFileTOptions;
 import alluxio.thrift.FileSystemWorkerClientService;
+import alluxio.thrift.OpenUfsFileTOptions;
 import alluxio.thrift.ThriftIOException;
 
 import com.google.common.base.Preconditions;
@@ -74,6 +76,27 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   /**
+   * Closes a file in the under file system which was opened for reading. The ufs id will be
+   * invalid after this call.
+   *
+   * @param tempUfsFileId the worker specific file id of the ufs file
+   * @param options the options for closing the file
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
+  @Override
+  public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      mWorker.cancelUfsFile(tempUfsFileId);
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    }
+  }
+
+  /**
    * Completes the write to the file in the under file system specified by the worker file id. The
    * temporary file will be automatically promoted to the final file if possible.
    *
@@ -110,6 +133,28 @@ public final class FileSystemWorkerClientServiceHandler
       throws AlluxioTException, ThriftIOException {
     try {
       return mWorker.createUfsFile(new AlluxioURI(ufsUri));
+    } catch (IOException e) {
+      throw new ThriftIOException(e.getMessage());
+    } catch (AlluxioException e) {
+      throw e.toAlluxioTException();
+    }
+  }
+
+  /**
+   * Opens a file in the under file system.
+   *
+   * @param ufsUri the path of the file in the ufs
+   * @param options the options for opening the file
+   * @return the temporary worker specific file id which references the opened ufs file, all
+   *         future operations from the reader should use this id until the file is closed
+   * @throws AlluxioTException if an internal Alluxio error occurs
+   * @throws ThriftIOException if an error occurs outside of Alluxio
+   */
+  @Override
+  public long openUfsFile(String ufsUri, OpenUfsFileTOptions options)
+      throws AlluxioTException, ThriftIOException {
+    try {
+      return mWorker.openUfsFile(new AlluxioURI(ufsUri));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCErrorResponse;
+import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
@@ -72,8 +74,12 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
         break;
       case RPC_FILE_READ_REQUEST:
+        assert msg instanceof RPCFileReadRequest;
+        mFileHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
         break;
       case RPC_FILE_WRITE_REQUEST:
+        assert msg instanceof RPCFileWriteRequest;
+        mFileHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);

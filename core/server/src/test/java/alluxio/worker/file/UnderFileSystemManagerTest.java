@@ -18,6 +18,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +30,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 
 @RunWith(PowerMockRunner.class)
@@ -40,14 +42,20 @@ public final class UnderFileSystemManagerTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
+  /** The mock input stream returned whenever a ufs file is read. */
+  private InputStream mMockInputStream;
+  /** The mock output stream returned whenever a ufs file is created. */
+  private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
 
   @Before
   public void before() throws Exception {
     mMockUfs = Mockito.mock(UnderFileSystem.class);
-    OutputStream mockOutputStream = Mockito.mock(OutputStream.class);
-    Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mockOutputStream);
+    mMockOutputStream = Mockito.mock(OutputStream.class);
+    mMockInputStream = Mockito.mock(InputStream.class);
+    Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
+    Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     PowerMockito.mockStatic(UnderFileSystem.class);
     BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
         .willReturn(mMockUfs);
@@ -120,5 +128,119 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     manager.cancelFile(-1L);
+  }
+
+  /**
+   * Tests opening a file will call {@link UnderFileSystem#exists} and succeeds when the file
+   * exists.
+   */
+  @Test
+  public void openUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    manager.openFile(new AlluxioURI(uniqPath));
+    Mockito.verify(mMockUfs).exists(uniqPath);
+  }
+
+  /**
+   * Tests opening a file fails when the file does not exist.
+   */
+  @Test
+  public void openNonExistentUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(false);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.openFile(new AlluxioURI(uniqPath));
+  }
+
+  /**
+   * Tests closing an opened file invalidates the id.
+   */
+  @Test
+  public void closeUfsFileTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(new AlluxioURI(uniqPath));
+    manager.closeFile(id);
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.closeFile(id);
+  }
+
+  /**
+   * Tests closing an unopened file fails.
+   */
+  @Test
+  public void closeNonExistentUfsFileTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.closeFile(-1L);
+  }
+
+  /**
+   * Tests getting an output stream for a valid file returns the correct output stream.
+   */
+  @Test
+  public void getOutputStreamTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.createFile(new AlluxioURI(uniqPath));
+    Assert.assertEquals(mMockOutputStream, manager.getOutputStream(id));
+  }
+
+  /**
+   * Tests getting an output stream from an invalid file fails.
+   */
+  @Test
+  public void getNonExistentOutputStreamTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.getOutputStream(-1L);
+  }
+
+  /**
+   * Tests getting an input stream to a valid file at the start returns the correct input stream.
+   */
+  @Test
+  public void getInputStreamTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    long position = 0L;
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(new AlluxioURI(uniqPath));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, in);
+    Mockito.verify(mMockInputStream).skip(position);
+    in.close();
+  }
+
+  /**
+   * Tests getting an input stream to a valid file at a position returns the correct input stream.
+   */
+  @Test
+  public void getInputStreamAtPositionTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    long position = 100L;
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(new AlluxioURI(uniqPath));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, in);
+    Mockito.verify(mMockInputStream).skip(position);
+    in.close();
+  }
+
+  /**
+   * Tests getting an input stream to an invalid file fails.
+   */
+  @Test
+  public void getNonExistentInputStreamTest() throws Exception {
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    mThrown.expect(FileDoesNotExistException.class);
+    manager.getInputStreamAtPosition(-1L, 0L);
   }
 }
