@@ -389,7 +389,7 @@ public final class FileSystemMaster extends AbstractMaster {
         try {
           loadMetadata(path, LoadMetadataOptions.defaults().setCreateAncestors(true));
         } catch (Exception e) {
-          // TODO(peis): consider throw an metadata loading failure exception here.
+          // TODO(peis): consider throwing a metadata loading failure exception here.
           LOG.error("Failed to load metadata at {}", path, e);
         }
       }
@@ -457,7 +457,7 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param path the path to get the {@link FileInfo} list for
    * @param loadDirectChildren whether to load the direct children if path is a directory if its
-   *                           direct children have not beed loaded before
+   *        direct children have not beed loaded before
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist

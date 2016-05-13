@@ -193,25 +193,6 @@ public class FileSystemMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void loadMetadataTest() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("path", "test");
-    params.put("recursive", "false");
-
-    Random random = new Random();
-    long loadMetadataResult = random.nextLong();
-    Mockito.doReturn(loadMetadataResult).when(mFileSystemMaster)
-        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions>any());
-
-    new TestCase(mHostname, mPort,
-        getEndpoint(FileSystemMasterClientRestServiceHandler.LOAD_METADATA), params,
-        HttpMethod.POST, loadMetadataResult).run();
-
-    Mockito.verify(mFileSystemMaster)
-        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.<LoadMetadataOptions>any());
-  }
-
-  @Test
   public void mountTest() throws Exception {
     Map<String, String> params = new HashMap<>();
     params.put("path", "test");
