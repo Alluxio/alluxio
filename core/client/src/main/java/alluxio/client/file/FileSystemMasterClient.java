@@ -231,12 +231,12 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
   /**
    * Loads the metadata of a file from the under file system.
    *
-   * @deprecated This is deprecated in version 1.1 and will be removed in version 2.0.
    *
    * @param path the path of the file to load metadata for
    * @param options method options
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
   @Deprecated
   public synchronized void loadMetadata(final AlluxioURI path,
