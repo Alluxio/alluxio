@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;

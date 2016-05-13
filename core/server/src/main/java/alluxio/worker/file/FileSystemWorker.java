@@ -24,6 +24,7 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionTracker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
@@ -59,6 +60,8 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
   /** Object for managing this worker's sessions. */
   private final Sessions mSessions;
+  /** Runnable responsible for clean up potential zombie sessions. */
+  private SessionCleaner mSessionCleanerThread;
   /** Manager for under file system operations. */
   private final UnderFileSystemManager mUnderFileSystemManager;
 
@@ -83,6 +86,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+
+    // Setup session cleaner
+    mSessionCleanerThread = new SessionCleaner(this);
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }
@@ -241,6 +247,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
             mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+
+    // Start the session cleanup checker to perform the periodical checking
+    getExecutorService().submit(mSessionCleanerThread);
   }
 
   /**
