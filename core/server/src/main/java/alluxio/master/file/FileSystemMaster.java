@@ -470,14 +470,16 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkPermission(FileSystemAction.READ, path);
 
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDirectChildren(loadDirectChildren);
+          LoadMetadataOptions.defaults().setCreateAncestors(true);
       Inode<?> inode = null;
       if (mInodeTree.inodePathExists(path)) {
         inode = mInodeTree.getInodeByPath(path);
-        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+        if (inode.isDirectory()) {
           mPermissionChecker.checkPermission(FileSystemAction.EXECUTE, path);
-          loadMetadataOptions.setLoadDirectChildren(true);
+          if (!((InodeDirectory) inode).isDirectChildrenLoaded()) {
+            loadMetadataOptions.setLoadDirectChildren(true)
+                .setLoadDirectChildren(loadDirectChildren);
+          }
         }
       }
       try {
