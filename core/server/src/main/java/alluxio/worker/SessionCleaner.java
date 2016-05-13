@@ -9,12 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.worker;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
-import alluxio.worker.SessionTracker;
-import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

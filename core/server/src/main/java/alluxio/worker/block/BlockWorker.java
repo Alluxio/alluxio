@@ -30,6 +30,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionTracker;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
@@ -253,7 +254,7 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
 
   /**
    * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
+   * {@link alluxio.worker.SessionCleaner} thread.
    */
   @Override
   public void cleanupSessions() {
