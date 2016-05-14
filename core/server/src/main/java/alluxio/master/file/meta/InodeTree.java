@@ -183,19 +183,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * @param id the id to get the inode for
-   * @return the inode with the given id
-   * @throws FileDoesNotExistException if the file does not exist
-   */
-  public Inode<?> getInodeById(long id) throws FileDoesNotExistException {
-    Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
-    if (inode == null) {
-      throw new FileDoesNotExistException("Inode id " + id + " does not exist.");
-    }
-    return inode;
-  }
-
-  /**
    * @param path the path to get the inode for
    * @return the inode with the given path
    * @throws InvalidPathException if the path is invalid
