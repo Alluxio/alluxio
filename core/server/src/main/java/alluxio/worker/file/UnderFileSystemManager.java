@@ -41,6 +41,63 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Consider whether the manager or the agents should contain the execution logic
 @ThreadSafe
 public final class UnderFileSystemManager {
+  // Input stream agent session index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Input stream agent id index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mAgentId;
+        }
+      };
+
+  // Output stream agent session index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Output stream agent id index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mAgentId;
+        }
+      };
+
+  /** A random id generator for worker file ids. */
+  private final AtomicLong mIdGenerator;
+  /** Map of worker file ids to open under file system input streams. */
+  @GuardedBy("itself")
+  private final IndexedSet<InputStreamAgent> mInputStreamAgents;
+  /** Map of worker file ids to open under file system output streams. */
+  @GuardedBy("itself")
+  private final IndexedSet<OutputStreamAgent> mOutputStreamAgents;
+
+  /**
+   * Creates a new under file system manager. Stream ids are unique to each under file system
+   * manager.
+   */
+  public UnderFileSystemManager() {
+    mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
+    mInputStreamAgents =
+        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
+    mOutputStreamAgents =
+        new IndexedSet<>(mOuputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
+  }
+
   /**
    * An object which generates input streams to under file system files given a position. This
    * class does not manage the life cycles of the generated streams and it is up to the caller to
@@ -185,63 +242,6 @@ public final class UnderFileSystemManager {
     private OutputStream getStream() {
       return mStream;
     }
-  }
-
-  // Input stream agent session index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
-        @Override
-        public Object getFieldValue(InputStreamAgent o) {
-          return o.mSessionId;
-        }
-      };
-
-  // Input stream agent id index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
-        @Override
-        public Object getFieldValue(InputStreamAgent o) {
-          return o.mAgentId;
-        }
-      };
-
-  // Output stream agent session index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
-        @Override
-        public Object getFieldValue(OutputStreamAgent o) {
-          return o.mSessionId;
-        }
-      };
-
-  // Output stream agent id index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
-        @Override
-        public Object getFieldValue(OutputStreamAgent o) {
-          return o.mAgentId;
-        }
-      };
-
-  /** A random id generator for worker file ids. */
-  private final AtomicLong mIdGenerator;
-  /** Map of worker file ids to open under file system input streams. */
-  @GuardedBy("itself")
-  private final IndexedSet<InputStreamAgent> mInputStreamAgents;
-  /** Map of worker file ids to open under file system output streams. */
-  @GuardedBy("itself")
-  private final IndexedSet<OutputStreamAgent> mOutputStreamAgents;
-
-  /**
-   * Creates a new under file system manager. Stream ids are unique to each under file system
-   * manager.
-   */
-  public UnderFileSystemManager() {
-    mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
-    mInputStreamAgents =
-        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
-    mOutputStreamAgents =
-        new IndexedSet<>(mOuputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
   }
 
   /**
