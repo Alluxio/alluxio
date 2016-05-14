@@ -49,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): Add session concept
 // TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class FileSystemWorker extends AbstractWorker implements SessionCleanable {
+public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -88,7 +88,18 @@ public final class FileSystemWorker extends AbstractWorker implements SessionCle
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(this);
+    mSessionCleaner = new SessionCleaner(new SessionCleanable() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding ufs resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mUnderFileSystemManager.cleanupSession(session);
+        }
+      }
+    });
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }
@@ -115,17 +126,6 @@ public final class FileSystemWorker extends AbstractWorker implements SessionCle
   public void cancelUfsFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
     mUnderFileSystemManager.cancelFile(sessionId, tempUfsFileId);
-  }
-
-  /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
-   */
-  public void cleanupSessions() {
-    for (long session: mSessions.getTimedOutSessions()) {
-      mSessions.removeSession(session);
-      mUnderFileSystemManager.cleanupSession(session);
-    }
   }
 
   /**
