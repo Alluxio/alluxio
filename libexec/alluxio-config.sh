@@ -28,7 +28,7 @@ if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
-JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/../.."}
+JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
 
 # Make sure alluxio-env.sh exists
