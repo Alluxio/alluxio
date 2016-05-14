@@ -13,8 +13,10 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -36,6 +38,11 @@ import java.io.OutputStream;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.class})
 public final class UnderFileSystemManagerTest {
+  /** An invalid session id. */
+  private static final long INVALID_SESSION_ID = -1L;
+  /** An invalid file id. */
+  private static final long INVALID_FILE_ID = -2L;
+
   /** The testing session id. */
   private final long mSessionId = 1L;
 
@@ -84,6 +91,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileAlreadyExistsException.class);
+    mThrown.expectMessage(ExceptionMessage.FAILED_UFS_CREATE.getMessage(uniqPath));
     manager.createFile(mSessionId, new AlluxioURI(uniqPath));
   }
 
@@ -107,7 +115,8 @@ public final class UnderFileSystemManagerTest {
   public void completeNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.completeFile(mSessionId, -1L);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
+    manager.completeFile(mSessionId, INVALID_FILE_ID);
   }
 
   /**
@@ -120,7 +129,9 @@ public final class UnderFileSystemManagerTest {
     long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    manager.completeFile(-1L, id);
+    mThrown.expectMessage(String.format(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete"));
+    manager.completeFile(INVALID_SESSION_ID, id);
   }
 
   /**
@@ -143,7 +154,8 @@ public final class UnderFileSystemManagerTest {
   public void cancelNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.cancelFile(mSessionId, -1L);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
+    manager.cancelFile(mSessionId, INVALID_FILE_ID);
   }
 
   /**
@@ -156,7 +168,9 @@ public final class UnderFileSystemManagerTest {
     long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    manager.cancelFile(-1L, id);
+    mThrown.expectMessage(String.format(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "cancel"));
+    manager.cancelFile(INVALID_SESSION_ID, id);
   }
 
   /**
@@ -181,6 +195,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(false);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(uniqPath));
     manager.openFile(mSessionId, new AlluxioURI(uniqPath));
   }
 
@@ -195,6 +210,7 @@ public final class UnderFileSystemManagerTest {
     long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
     manager.closeFile(mSessionId, id);
     mThrown.expect(FileDoesNotExistException.class);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(id));
     manager.closeFile(mSessionId, id);
   }
 
@@ -205,7 +221,8 @@ public final class UnderFileSystemManagerTest {
   public void closeNonExistentUfsFileTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.closeFile(mSessionId, -1L);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
+    manager.closeFile(mSessionId, INVALID_FILE_ID);
   }
 
   /**
@@ -218,7 +235,9 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(mSessionId, new AlluxioURI(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    manager.closeFile(-1L, id);
+    mThrown.expectMessage(String.format(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "close"));
+    manager.closeFile(INVALID_SESSION_ID, id);
   }
 
   /**
@@ -239,7 +258,8 @@ public final class UnderFileSystemManagerTest {
   public void getNonExistentOutputStreamTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.getOutputStream(-1L);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
+    manager.getOutputStream(INVALID_FILE_ID);
   }
 
   /**
@@ -283,7 +303,8 @@ public final class UnderFileSystemManagerTest {
   public void getNonExistentInputStreamTest() throws Exception {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
-    manager.getInputStreamAtPosition(-1L, 0L);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
+    manager.getInputStreamAtPosition(INVALID_FILE_ID, 0L);
   }
 
   /**
@@ -314,6 +335,7 @@ public final class UnderFileSystemManagerTest {
     in1.close();
     // Second file should no longer be available
     mThrown.expect(FileDoesNotExistException.class);
-    in2 = manager.getInputStreamAtPosition(id2, position);
+    mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(id2));
+    manager.getInputStreamAtPosition(id2, position);
   }
 }
