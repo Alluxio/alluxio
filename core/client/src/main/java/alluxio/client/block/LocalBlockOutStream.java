@@ -140,7 +140,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   }
 
   /**
-   * Release {@link #mBlockWorkerClient} and set {@link #mClosed} to true.
+   * Releases {@link #mBlockWorkerClient} and sets {@link #mClosed} to true.
    */
   private void releaseAndClose() {
     mContext.releaseWorkerClient(mBlockWorkerClient);
