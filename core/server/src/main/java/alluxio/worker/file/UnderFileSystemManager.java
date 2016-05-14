@@ -17,6 +17,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -283,10 +284,10 @@ public final class UnderFileSystemManager {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
-      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to cancel file not "
-          + "owned by session.");
-      Preconditions.checkState(mOutputStreamAgents.remove(agent), "Failed to remove agent "
-          + "with id " + tempUfsFileId + "from output stream agents.");
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "cancel");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
     agent.cancel();
   }
@@ -323,10 +324,10 @@ public final class UnderFileSystemManager {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
-      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to close file not "
-          + "owned by session.");
-      Preconditions.checkState(mInputStreamAgents.remove(agent), "Failed to remove agent "
-          + "with id " + tempUfsFileId + "from input stream agents.");
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "close");
+      Preconditions.checkState(mInputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
   }
 
@@ -348,10 +349,10 @@ public final class UnderFileSystemManager {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
-      Preconditions.checkArgument(agent.mSessionId == sessionId, "Attempted to complete file not "
-          + "owned by session.");
-      Preconditions.checkState(mOutputStreamAgents.remove(agent), "Failed to remove agent "
-          + "with id " + tempUfsFileId + "from output stream agents.");
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
     agent.complete();
   }
