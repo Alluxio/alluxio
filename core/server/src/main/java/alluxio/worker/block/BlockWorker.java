@@ -31,7 +31,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionTracker;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -66,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class BlockWorker extends AbstractWorker implements SessionTracker {
+public final class BlockWorker extends AbstractWorker implements SessionCleanable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */

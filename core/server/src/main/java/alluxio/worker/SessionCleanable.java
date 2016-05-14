@@ -14,7 +14,7 @@ package alluxio.worker;
 /**
  * Interface for classes which track sessions and provide a method to clean any expired sessions.
  */
-public interface SessionTracker {
+public interface SessionCleanable {
   /**
    * Runs a session inspection and cleans up sessions which have expired.
    */

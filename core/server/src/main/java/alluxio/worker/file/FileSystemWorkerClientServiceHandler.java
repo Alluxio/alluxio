@@ -164,9 +164,9 @@ public final class FileSystemWorkerClientServiceHandler
   }
 
   /**
-   * Local session send heartbeat to local worker to keep its state.
+   * Session heartbeat to worker to keep its state, for example open ufs streams.
    *
-   * @param sessionId the id of the client sending the heartbeat
+   * @param sessionId the session id of the client sending the heartbeat
    * @param metrics a list of the client metrics that were collected since the last heartbeat
    */
   @Override
