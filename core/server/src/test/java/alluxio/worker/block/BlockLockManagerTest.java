@@ -231,7 +231,8 @@ public class BlockLockManagerTest {
    * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
    * hang.
    *
-   * @param the block id to try locking
+   * @param manager the manager to used to lock
+   * @param blockId block id to try locking
    */
   private void lockExpectingHang(final BlockLockManager manager, final long blockId)
       throws Exception {
