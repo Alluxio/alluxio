@@ -111,7 +111,7 @@ public final class PermissionCheckTest {
   }
 
   public static class FakeUserGroupsMapping implements GroupMappingService {
-    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+    private HashMap<String, String> mUserGroups = new HashMap<>();
 
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups());
