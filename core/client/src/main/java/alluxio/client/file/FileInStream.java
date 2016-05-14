@@ -126,7 +126,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
-    LOG.warn("Should cache partially read block: {}", mShouldCachePartiallyReadBlock);
+    if (mShouldCachePartiallyReadBlock) {
+      LOG.warn("Should cache partially read block.");
+    }
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCache) {
