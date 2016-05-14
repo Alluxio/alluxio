@@ -315,6 +315,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       }
       workerIds.clear();
       synchronized (masterBlockInfo) {
+        // Technically, masterBlockInfo should be confirmed to still be in the data structure. A
+        // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
+        // race, since deleting the same block again is a noop.
         workerIds.addAll(masterBlockInfo.getWorkers());
         // Two cases here:
         // 1) For delete: delete the block metadata.
@@ -612,6 +615,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     }
 
     synchronized (workerInfo) {
+      // Technically, workerInfo should be confirmed to still be in the data structure. Lost worker
+      // detection can remove it. However, we are intentionally ignoring this race, since the worker
+      // will just re-register regardless.
       processWorkerRemovedBlocks(workerInfo, removedBlockIds);
       processWorkerAddedBlocks(workerInfo, addedBlocksOnTiers);
 
