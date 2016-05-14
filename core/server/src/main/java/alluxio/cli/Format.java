@@ -13,7 +13,6 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.cli.Version;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
