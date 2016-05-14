@@ -43,15 +43,15 @@ public class AllocatorContractTest extends BaseAllocatorTest {
   @Override
   public void before() throws Exception {
     super.before();
-    mStrategies = new ArrayList<String>();
+    mStrategies = new ArrayList<>();
     try {
       String packageName = Reflection.getPackageName(Allocator.class);
       ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
       List<ClassPath.ClassInfo> clazzInPackage =
-          new ArrayList<ClassPath.ClassInfo>(path.getTopLevelClassesRecursive(packageName));
+          new ArrayList<>(path.getTopLevelClassesRecursive(packageName));
       for (ClassPath.ClassInfo clazz : clazzInPackage) {
         Set<Class<?>> interfaces =
-            new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
+            new HashSet<>(Arrays.asList(clazz.load().getInterfaces()));
         if (interfaces.size() > 0 && interfaces.contains(Allocator.class)) {
           mStrategies.add(clazz.getName());
         }
