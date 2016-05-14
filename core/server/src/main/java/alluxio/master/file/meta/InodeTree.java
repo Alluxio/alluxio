@@ -567,7 +567,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
   public void deleteInode(Inode<?> inode, long opTimeMs) throws FileDoesNotExistException {
-    InodeDirectory parent = (InodeDirectory) getInodeById(inode.getParentId());
+    InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+    if (parent == null) {
+      throw new FileDoesNotExistException("Inode id " + inode.getParentId() + " does not exist.");
+    }
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
 

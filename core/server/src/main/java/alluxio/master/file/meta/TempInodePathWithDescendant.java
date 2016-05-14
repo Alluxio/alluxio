@@ -59,7 +59,8 @@ public final class TempInodePathWithDescendant extends InodePath {
   }
 
   @Override
-  public synchronized  InodeDirectory getParentInodeDirectory() throws InvalidPathException {
+  public synchronized  InodeDirectory getParentInodeDirectory()
+      throws InvalidPathException, FileDoesNotExistException {
     if (mDescendantInode == null) {
       return super.getParentInodeDirectory();
     }
