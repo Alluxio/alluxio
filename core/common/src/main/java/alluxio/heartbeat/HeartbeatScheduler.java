@@ -13,6 +13,7 @@ package alluxio.heartbeat;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -20,8 +21,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class can be used for controlling heartbeat execution of a thread.
@@ -40,7 +39,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeartbeatScheduler {
-  private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
+  private static Map<String, ScheduledTimer> sTimers = new HashMap<>();
   private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
