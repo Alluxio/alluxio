@@ -126,6 +126,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
+    LOG.warn("Should cache partially read block: {}", mShouldCachePartiallyReadBlock);
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCache) {
@@ -340,7 +341,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       } else if (e.getCause() instanceof InvalidWorkerStateException) {
         LOG.info("Block {} has invalid worker state when being cancelled.", getCurrentBlockId());
       } else {
-        LOG.warn("Close or cancel throws IOExecption {}.", e.getMessage());
+        LOG.info("Close or cancel throws IOExecption {}.", e.getMessage());
       }
     }
     mCurrentCacheStream = null;
