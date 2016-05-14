@@ -73,7 +73,7 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   @Override
   public Map<String, TProcessor> getServices() {
-    return new HashMap<String, TProcessor>();
+    return new HashMap<>();
   }
 
   /**
