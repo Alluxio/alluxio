@@ -127,7 +127,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     if (mShouldCachePartiallyReadBlock) {
-      LOG.warn("Should cache partially read block.");
+      LOG.debug("Should cache partially read block enabled.");
     }
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
@@ -597,7 +597,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     byte[] buffer = new byte[Math.min(Constants.MB * 128, (int) len)];
     do {
       int bytesRead = read(buffer);
-      Preconditions.checkState(bytesRead > 0, "Reached EOF unexpectedly.");
+      Preconditions.checkState(bytesRead > 0, PreconditionMessage.ERR_UNEXPECTED_EOF);
       len -= bytesRead;
     } while (len > 0);
   }
