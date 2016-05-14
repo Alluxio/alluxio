@@ -27,8 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Block worker handler responsible for interacting with Alluxio and UFS storage. */
-  private final SessionTracker mSessionTracker;
+  /** The object which supports cleaning up sessions. */
+  private final SessionCleanable mSessionCleanable;
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
@@ -38,10 +38,10 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param sessionTracker the session tracker which should be periodically cleaned
+   * @param sessionCleanable the session tracker to periodically clean
    */
-  public SessionCleaner(SessionTracker sessionTracker) {
-    mSessionTracker = sessionTracker;
+  public SessionCleaner(SessionCleanable sessionCleanable) {
+    mSessionCleanable = sessionCleanable;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
@@ -66,7 +66,7 @@ public final class SessionCleaner implements Runnable {
 
       // Check if any sessions have become zombies, if so clean them up
       lastCheckMs = System.currentTimeMillis();
-      mSessionTracker.cleanupSessions();
+      mSessionCleanable.cleanupSessions();
     }
   }
 

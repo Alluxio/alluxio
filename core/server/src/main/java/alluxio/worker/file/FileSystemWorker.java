@@ -25,7 +25,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionTracker;
+import alluxio.worker.SessionCleanable;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -49,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): Add session concept
 // TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class FileSystemWorker extends AbstractWorker implements SessionTracker {
+public final class FileSystemWorker extends AbstractWorker implements SessionCleanable {
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -61,7 +61,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
   /** Object for managing this worker's sessions. */
   private final Sessions mSessions;
   /** Runnable responsible for clean up potential zombie sessions. */
-  private SessionCleaner mSessionCleanerThread;
+  private final SessionCleaner mSessionCleaner;
   /** Manager for under file system operations. */
   private final UnderFileSystemManager mUnderFileSystemManager;
 
@@ -88,7 +88,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(this);
+    mSessionCleaner = new SessionCleaner(this);
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }
@@ -169,7 +169,6 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws IOException if an error occurs interacting with the under file system
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
-  // TODO(calvin): Add a session id to clean up in case of disconnection
   public long createUfsFile(long sessionId, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, IOException {
     return mUnderFileSystemManager.createFile(sessionId, ufsUri);
@@ -249,7 +248,7 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
             mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleanerThread);
+    getExecutorService().submit(mSessionCleaner);
   }
 
   /**
