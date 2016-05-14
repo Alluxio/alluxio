@@ -719,7 +719,7 @@ public final class FileSystemMaster extends AbstractMaster {
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException {
     try (InodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
-      long id = mInodeTree.reinitializeFile(path, blockSizeBytes, ttl);
+      long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
           .setPath(path.getPath())
           .setBlockSizeBytes(blockSizeBytes)
@@ -736,9 +736,9 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   @GuardedBy("mInodeTree")
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
-    try {
-      mInodeTree.reinitializeFile(new AlluxioURI(entry.getPath()), entry.getBlockSizeBytes(),
-          entry.getTtl());
+    try (InodePath inodePath = mInodeTree
+        .lockFullInodePath(new AlluxioURI(entry.getPath()), InodeTree.LockMode.WRITE)) {
+      mInodeTree.reinitializeFile(inodePath, entry.getBlockSizeBytes(), entry.getTtl());
     } catch (InvalidPathException | FileDoesNotExistException e) {
       throw new RuntimeException(e);
     }

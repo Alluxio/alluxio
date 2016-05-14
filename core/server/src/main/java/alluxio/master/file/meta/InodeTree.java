@@ -491,16 +491,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Reinitializes the block size and TTL of an existing open file.
    *
-   * @param path the path to the file
+   * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
+  public long reinitializeFile(InodePath inodePath, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException {
-    InodeFile file = (InodeFile) getInodeByPath(path);
+    InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
     return file.getId();
