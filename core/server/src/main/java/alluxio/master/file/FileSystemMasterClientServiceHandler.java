@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.thrift.AlluxioTException;
@@ -29,6 +30,7 @@ import alluxio.thrift.CreateFileTOptions;
 import alluxio.thrift.FileBlockInfo;
 import alluxio.thrift.FileInfo;
 import alluxio.thrift.FileSystemMasterClientService;
+import alluxio.thrift.ListStatusTOptions;
 import alluxio.thrift.MountTOptions;
 import alluxio.thrift.SetAttributeTOptions;
 import alluxio.thrift.ThriftIOException;
@@ -183,13 +185,14 @@ public final class FileSystemMasterClientServiceHandler implements
   }
 
   @Override
-  public List<FileInfo> listStatus(final String path) throws AlluxioTException {
+  public List<FileInfo> listStatus(final String path, final ListStatusTOptions options)
+      throws AlluxioTException {
     return RpcUtils.call(new RpcCallable<List<FileInfo>>() {
       @Override
       public List<FileInfo> call() throws AlluxioException {
         List<FileInfo> result = new ArrayList<FileInfo>();
-        for (alluxio.wire.FileInfo fileInfo :
-            mFileSystemMaster.getFileInfoList(new AlluxioURI(path))) {
+        for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
+            .getFileInfoList(new AlluxioURI(path), options.isLoadDirectChildren())) {
           result.add(ThriftUtils.toThrift(fileInfo));
         }
         return result;
@@ -197,13 +200,20 @@ public final class FileSystemMasterClientServiceHandler implements
     });
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   */
   @Override
+  @Deprecated
   public long loadMetadata(final String alluxioPath, final boolean recursive)
       throws AlluxioTException, ThriftIOException {
     return RpcUtils.call(new RpcCallableThrowsIOException<Long>() {
       @Override
       public Long call() throws AlluxioException, IOException {
-        return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath), recursive);
+        return mFileSystemMaster.loadMetadata(new AlluxioURI(alluxioPath),
+            LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
       }
     });
   }

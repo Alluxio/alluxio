@@ -101,7 +101,7 @@ public final class PrefixList {
   /**
    * Print out all prefixes separated by ";".
    *
-   * @return the string representation like "a;b/c"
+   * @return the string representation like "a;b/c;"
    */
   @Override
   public String toString() {
