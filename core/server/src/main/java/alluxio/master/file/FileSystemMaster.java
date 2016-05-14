@@ -224,17 +224,17 @@ public final class FileSystemMaster extends AbstractMaster {
       }
     } else if (innerEntry instanceof InodeLastModificationTimeEntry) {
       InodeLastModificationTimeEntry modTimeEntry = (InodeLastModificationTimeEntry) innerEntry;
-      try {
-        Inode<?> inode = mInodeTree.getInodeById(modTimeEntry.getId());
-        inode.setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
+      try (InodePath inodePath = mInodeTree.lockFullInodePath(modTimeEntry.getId(),
+          InodeTree.LockMode.WRITE)) {
+        inodePath.getInode().setLastModificationTimeMs(modTimeEntry.getLastModificationTimeMs());
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof PersistDirectoryEntry) {
       PersistDirectoryEntry typedEntry = (PersistDirectoryEntry) innerEntry;
-      try {
-        Inode<?> inode = mInodeTree.getInodeById(typedEntry.getId());
-        inode.setPersistenceState(PersistenceState.PERSISTED);
+      try (InodePath inodePath = mInodeTree.lockFullInodePath(typedEntry.getId(),
+          InodeTree.LockMode.WRITE)) {
+        inodePath.getInode().setPersistenceState(PersistenceState.PERSISTED);
       } catch (FileDoesNotExistException e) {
         throw new RuntimeException(e);
       }
@@ -1337,15 +1337,13 @@ public final class FileSystemMaster extends AbstractMaster {
           srcInodePath.getUri(), dstInodePath.getUri()));
     }
 
-    AlluxioURI dstParentURI = dstInodePath.getUri().getParent();
-
     // Get the inodes of the src and dst parents.
-    Inode<?> srcParentInode = mInodeTree.getInodeById(srcInode.getParentId());
+    Inode<?> srcParentInode = srcInodePath.getParentInodeDirectory();
     if (!srcParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(srcInodePath.getUri()));
     }
-    Inode<?> dstParentInode = mInodeTree.getInodeByPath(dstParentURI);
+    Inode<?> dstParentInode = dstInodePath.getParentInodeDirectory();
     if (!dstParentInode.isDirectory()) {
       throw new InvalidPathException(
           ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(dstInodePath.getUri()));
@@ -2308,16 +2306,13 @@ public final class FileSystemMaster extends AbstractMaster {
     public void heartbeat() {
       for (long fileId : getLostFiles()) {
         // update the state
-        synchronized (mInodeTree) {
-          Inode<?> inode;
-          try {
-            inode = mInodeTree.getInodeById(fileId);
-            if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
-              inode.setPersistenceState(PersistenceState.LOST);
-            }
-          } catch (FileDoesNotExistException e) {
-            LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
+        try (InodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.WRITE)) {
+          Inode<?> inode = inodePath.getInode();
+          if (inode.getPersistenceState() != PersistenceState.PERSISTED) {
+            inode.setPersistenceState(PersistenceState.LOST);
           }
+        } catch (FileDoesNotExistException e) {
+          LOG.error("Exception trying to get inode from inode tree: {}", e.toString());
         }
       }
     }

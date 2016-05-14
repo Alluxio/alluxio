@@ -72,10 +72,12 @@ public abstract class InodePath implements AutoCloseable {
     return (InodeFile) inode;
   }
 
-  public synchronized  InodeDirectory getParentInodeDirectory() throws InvalidPathException {
+  public synchronized  InodeDirectory getParentInodeDirectory()
+      throws InvalidPathException, FileDoesNotExistException {
     if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
       // The path is only the root, or the list of inodes is not long enough to contain the parent
-      throw new InvalidPathException(ExceptionMessage.PATH_MUST_HAVE_VALID_PARENT.getMessage(mUri));
+      throw new FileDoesNotExistException(
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri.getParent()));
     }
     Inode inode = mInodes.get(mPathComponents.length - 2);
     if (!inode.isDirectory()) {
