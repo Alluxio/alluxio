@@ -197,7 +197,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath);
+      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath, true);
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
