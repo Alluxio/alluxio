@@ -69,7 +69,8 @@ public final class BlockWorkerClientRestServiceHandler {
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
-   * @summary get the service name
+   * Get the service name.
+   *
    * @return the response object
    */
   @GET
@@ -82,7 +83,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary get the service version
+   * Get the service version.
+   *
    * @return the response object
    */
   @GET
@@ -94,7 +96,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary access a block
+   * Access a block.
+   *
    * @param blockId the block id
    * @return the response object
    */
@@ -114,7 +117,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary asynchronously persist a file
+   * Asynchronously persist a file.
+   *
    * @param fileId the file id
    * @return the response object
    */
@@ -133,7 +137,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary cache a block
+   * Cache a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @return the response object
@@ -156,7 +161,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary cancel a block
+   * Cancel a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @return the response object
@@ -179,7 +185,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary lock a block
+   * Lock a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @return the response object
@@ -203,7 +210,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary promote a block
+   * Promote a block.
+   *
    * @param blockId the block id
    * @return the response object
    */
@@ -224,7 +232,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary read a block
+   * Read a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @param lockId the lock id
@@ -279,7 +288,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary request a block location
+   * Request a block location.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @param initialBytes the initial number of bytes to allocate
@@ -304,7 +314,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary request additional space for a block
+   * Request additional space for a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @param requestBytes the additional number of bytes to allocate
@@ -329,7 +340,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary unlock a block
+   * Unlock a block.
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @return the response object
@@ -352,7 +364,8 @@ public final class BlockWorkerClientRestServiceHandler {
   }
 
   /**
-   * @summary write a block
+   * Write a block.
+   * 
    * @param sessionId the session id
    * @param blockId the block id
    * @param offset the offset to start the read at
