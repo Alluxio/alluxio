@@ -348,8 +348,7 @@ public final class InodeTreeTest {
   @Test
   public void createFileUnderFileTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mThrown.expectMessage("Could not traverse to parent directory of path /nested/test/test."
-        + " Component test is not a directory.");
+    mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
     createAndUnlockPath(NESTED_URI, sNestedFileOptions);
     createAndUnlockPath(new AlluxioURI("/nested/test/test"), sNestedFileOptions);

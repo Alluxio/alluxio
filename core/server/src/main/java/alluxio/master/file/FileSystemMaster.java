@@ -690,7 +690,7 @@ public final class FileSystemMaster extends AbstractMaster {
   InodeTree.CreatePathResult createFileInternal(InodePath inodePath, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
-    InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath.getUri(), options);
+    InodeTree.CreatePathResult createResult = mInodeTree.createPath(inodePath, options);
     // If the create succeeded, the list of created inodes will not be empty.
     List<Inode<?>> created = createResult.getCreated();
     InodeFile inode = (InodeFile) created.get(created.size() - 1);
@@ -1167,7 +1167,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    * @throws InvalidPathException when the path is invalid, please see documentation on
-   *         {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} for more details
+   *         {@link InodeTree#createPath(InodePath, CreatePathOptions)} for more details
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
    */
@@ -1197,7 +1197,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return an {@link alluxio.master.file.meta.InodeTree.CreatePathResult} representing the
    *         modified inodes and created inodes during path creation
    * @throws InvalidPathException when the path is invalid, please see documentation on
-   *         {@link InodeTree#createPath(AlluxioURI, CreatePathOptions)} for more details
+   *         {@link InodeTree#createPath(InodePath, CreatePathOptions)} for more details
    * @throws FileAlreadyExistsException when there is already a file at path
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
@@ -1206,7 +1206,7 @@ public final class FileSystemMaster extends AbstractMaster {
       CreateDirectoryOptions options) throws InvalidPathException, FileAlreadyExistsException,
       IOException, AccessControlException, FileDoesNotExistException {
     try {
-      return mInodeTree.createPath(inodePath.getUri(), options);
+      return mInodeTree.createPath(inodePath, options);
     } catch (BlockInfoException e) {
       // Since we are creating a directory, the block size is ignored, no such exception should
       // happen.
