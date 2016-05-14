@@ -36,6 +36,9 @@ import java.io.OutputStream;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({UnderFileSystem.class})
 public final class UnderFileSystemManagerTest {
+  /** The testing session id. */
+  private final long mSessionId = 1L;
+
   /**
    * The exception expected to be thrown.
    */
@@ -48,8 +51,6 @@ public final class UnderFileSystemManagerTest {
   private OutputStream mMockOutputStream;
   /** The mock under file system client. */
   private UnderFileSystem mMockUfs;
-  /** The testing session id. */
-  private long mSessionId = 1L;
 
   @Before
   public void before() throws Exception {
@@ -118,8 +119,8 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.createFile(mSessionId, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.completeFile(mSessionId, id);
-    Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
+    mThrown.expect(IllegalArgumentException.class);
+    manager.completeFile(-1L, id);
   }
 
   /**
