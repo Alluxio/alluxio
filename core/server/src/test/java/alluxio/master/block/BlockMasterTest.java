@@ -281,7 +281,7 @@ public class BlockMasterTest {
     workerInfo.updateToRemovedBlock(true, BLOCK_TO_FREE);
     Command heartBeat3 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
         ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
-    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.<Long>of(BLOCK_TO_FREE)),
+    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.of(BLOCK_TO_FREE)),
         heartBeat3);
   }
 
@@ -380,10 +380,8 @@ public class BlockMasterTest {
    */
   @Test
   public void stopTest() throws Exception {
-    ExecutorService service =
-        (ExecutorService) Whitebox.getInternalState(mMaster, "mExecutorService");
-    Future<?> lostWorkerThread =
-        (Future<?>) Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
+    ExecutorService service = Whitebox.getInternalState(mMaster, "mExecutorService");
+    Future<?> lostWorkerThread = Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
     Assert.assertFalse(lostWorkerThread.isDone());
     Assert.assertFalse(service.isShutdown());
     mMaster.stop();
