@@ -27,8 +27,8 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Validate the Alluxio configuration.
- *
  */
+// TODO(binfan): move property names from Constants to separate class and validate conf from there.
 @ThreadSafe
 public final class ValidateConf {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -57,7 +57,7 @@ public final class ValidateConf {
     }
 
     // Alluxio version is a valid conf entry but not defined in alluxio.Constants
-    validProperties.add("alluxio.version");
+    validProperties.add(Constants.VERSION);
 
     // There are three properties that are auto-generated in WorkerStorage based on corresponding
     // format strings defined in alluxio.Constants. Here we transform each format string to a regexp
@@ -103,10 +103,19 @@ public final class ValidateConf {
    * @param args there are no arguments needed
    */
   public static void main(String[] args) {
-    if (!validate(Configuration.createClientConf())) {
-      System.exit(-1);
+    System.out.println("Validating client configuration.");
+    if (validate(Configuration.createClientConf())) {
+      System.out.println("All client configuration entries are valid.");
+    } else {
+      System.out.println("Client configuration has invalid entries.");
     }
-    System.out.println("All configuration entries are valid.");
+
+    System.out.println("Validating client configuration.");
+    if (validate(Configuration.createServerConf())) {
+      System.out.println("All server configuration entries are valid.");
+    } else {
+      System.out.println("Server configuration has invalid entries.");
+    }
     System.exit(0);
   }
 
