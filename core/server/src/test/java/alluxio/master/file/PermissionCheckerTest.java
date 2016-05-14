@@ -21,6 +21,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
+import alluxio.master.file.meta.InodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
@@ -197,9 +198,12 @@ public final class PermissionCheckerTest {
   // Helper function to create a path and set the permission to what specified in option.
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
-    InodeTree.CreatePathResult result = sTree.createPath(new AlluxioURI(path), option);
-    result.getCreated().get(result.getCreated().size() - 1)
-        .setPermissionStatus(option.getPermissionStatus());
+    try (
+        InodePath inodePath = sTree.lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
+      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      result.getCreated().get(result.getCreated().size() - 1)
+          .setPermissionStatus(option.getPermissionStatus());
+    }
   }
 
   private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {

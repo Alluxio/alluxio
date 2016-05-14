@@ -12,6 +12,8 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
 import java.util.List;
@@ -26,6 +28,15 @@ public final class ExtensibleInodePath extends InodePath {
   ExtensibleInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
       throws InvalidPathException {
     super(uri, inodes, lockGroup);
+  }
+
+  public synchronized Inode getAncestorInode() throws FileDoesNotExistException {
+    int ancestorIndex = mPathComponents.length - 2;
+    if (ancestorIndex < 0) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
+    }
+    ancestorIndex = Math.min(ancestorIndex, mInodes.size() - 1);
+    return mInodes.get(ancestorIndex);
   }
 
   String[] getPathComponents() {
