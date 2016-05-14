@@ -59,9 +59,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   /** File to set default properties. */
   public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
-  /** File to set customized properties for Alluxio deployment. */
+  /** File to set customized properties for Alluxio server (both master and worker) and client. */
   public static final String SITE_PROPERTIES = "alluxio-site.properties";
-  /** File to set customized properties for Alluxio server. */
+  /** File to set customized properties for Alluxio server (both master and worker). */
   public static final String SERVER_PROPERTIES = "alluxio-server.properties";
   /** File to set customized properties for Alluxio client. */
   public static final String CLIENT_PROPERTIES = "alluxio-client.properties";
@@ -74,14 +74,7 @@ public final class Configuration {
   /** Set of properties. */
   private final Properties mProperties = new Properties();
 
-  /**
-   * @param conf the source configuration to copy
-   * @return a new configuration instance with the properties copied from source configuration
-   */
-  public static Configuration copyFrom(Configuration conf) {
-    return new Configuration(conf.toMap());
-  }
-
+  // TODO(binfan): Add unit tests for those constructors
   /**
    * @param properties the source configuration
    * @return a new configuration with only properties copied from source
@@ -121,6 +114,15 @@ public final class Configuration {
       mProperties.putAll(props);
     }
     checkUserFileBufferBytes();
+  }
+
+  /**
+   * A copy constructor with properties from the source configuration.
+   *
+   * @param conf the source configuration to copy
+   */
+  public Configuration(Configuration conf) {
+    this(conf.toMap());
   }
 
   /**
