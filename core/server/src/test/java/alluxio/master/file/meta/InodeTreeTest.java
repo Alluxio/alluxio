@@ -362,7 +362,7 @@ public final class InodeTreeTest {
     Inode<?> inode = getInodeByPath(mTree, TEST_URI);
     Assert.assertTrue(mTree.inodeIdExists(inode.getId()));
 
-    mTree.deleteInode(inode);
+    deleteInodeByPath(mTree, TEST_URI);
     Assert.assertFalse(mTree.inodeIdExists(inode.getId()));
   }
 
@@ -376,7 +376,7 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, sFileOptions);
     Assert.assertTrue(mTree.inodePathExists(TEST_URI));
 
-    mTree.deleteInode(getInodeByPath(mTree, TEST_URI));
+    deleteInodeByPath(mTree, TEST_URI);
     Assert.assertFalse(mTree.inodePathExists(TEST_URI));
   }
 
@@ -481,7 +481,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#deleteInode(Inode)} method.
+   * Tests the {@link InodeTree#deleteInode(InodePath)} method.
    *
    * @throws Exception if an {@link InodeTree} operation fails
    */
@@ -498,26 +498,11 @@ public final class InodeTreeTest {
       // /nested, /nested/test
       Assert.assertEquals(2, inodes.size());
       // delete the nested inode
-      mTree.deleteInode(created.get(created.size() - 1));
+      deleteInodeByPath(mTree, NESTED_URI);
       inodes = mTree.getInodeChildrenRecursive((InodeDirectory) inodePath.getInode());
       // only /nested left
       Assert.assertEquals(1, inodes.size());
     }
-  }
-
-  /**
-   * Tests that an exception is thrown when trying to delete a non-existing Inode.
-   *
-   * @throws Exception if deleting the Inode fails
-   */
-  @Test
-  public void deleteNonexistingInodeTest() throws Exception {
-    mThrown.expect(FileDoesNotExistException.class);
-    mThrown.expectMessage("Inode id 1 does not exist");
-
-    InodeFile testFile = InodeFile.create(1, 1, "testFile",
-        CreateFileOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS));
-    mTree.deleteInode(testFile);
   }
 
   /**
@@ -659,6 +644,13 @@ public final class InodeTreeTest {
   private static Inode<?> getInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
     try (InodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.READ)) {
       return inodePath.getInode();
+    }
+  }
+
+  // Helper to delete an inode by path.
+  private static void deleteInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
+    try (InodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
+      root.deleteInode(inodePath);
     }
   }
 
