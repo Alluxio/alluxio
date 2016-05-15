@@ -462,6 +462,7 @@ public final class FileSystemMaster extends AbstractMaster {
         for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
           child.lockRead();
           try {
+            // the path to child for getPath should already be locked.
             tempInodePath.setDescendant(child, mInodeTree.getPath(child));
             ret.add(getFileInfoInternal(tempInodePath));
           } finally {
@@ -919,6 +920,7 @@ public final class FileSystemMaster extends AbstractMaster {
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i--) {
         Inode<?> delInode = delInodes.get(i);
+        // the path to delInode for getPath should already be locked.
         AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
         tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
@@ -997,7 +999,7 @@ public final class FileSystemMaster extends AbstractMaster {
 
     List<FileBlockInfo> ret = new ArrayList<>();
     for (BlockInfo blockInfo : blockInfoList) {
-      ret.add(generateFileBlockInfo(file, blockInfo));
+      ret.add(generateFileBlockInfo(inodePath, blockInfo));
     }
     return ret;
   }
@@ -1006,15 +1008,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * Generates a {@link FileBlockInfo} object from internal metadata. This adds file information to
    * the block, such as the file offset, and additional UFS locations for the block.
    *
-   * @param file the file the block is a part of
+   * @param inodePath the file the block is a part of
    * @param blockInfo the {@link BlockInfo} to generate the {@link FileBlockInfo} from
    * @return a new {@link FileBlockInfo} for the block
    * @throws InvalidPathException if the mount table is not able to resolve the file
    */
   @GuardedBy("mInodeTree")
-  private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
+  private FileBlockInfo generateFileBlockInfo(InodePath inodePath, BlockInfo blockInfo)
       throws InvalidPathException, FileDoesNotExistException {
-    // TODO(gpang): use InodeFile to remove FileDoesNotExistException
+    InodeFile file = inodePath.getInodeFile();
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.setBlockInfo(blockInfo);
     fileBlockInfo.setUfsLocations(new ArrayList<String>());
@@ -1026,7 +1028,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (fileBlockInfo.getBlockInfo().getLocations().isEmpty() && file.isPersisted()) {
       // No alluxio locations, but there is a checkpoint in the under storage system. Add the
       // locations from the under storage system.
-      MountTable.Resolution resolution = mMountTable.resolve(mInodeTree.getPath(file));
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
       UnderFileSystem ufs = resolution.getUfs();
       List<String> locs;
@@ -1474,6 +1476,7 @@ public final class FileSystemMaster extends AbstractMaster {
     inodes = inodes.subList(1, inodes.size());
 
     for (Inode<?> handle : inodes) {
+      // the path is already locked.
       AlluxioURI path = mInodeTree.getPath(handle);
       if (mMountTable.isMountPoint(path)) {
         // Stop propagating the persisted status at mount points.
@@ -1565,6 +1568,7 @@ public final class FileSystemMaster extends AbstractMaster {
   // TODO(binfan): Add permission checking for internal APIs
   public AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     try (InodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
+      // the path is already locked.
       return mInodeTree.getPath(inodePath.getInode());
     }
   }
@@ -2065,11 +2069,13 @@ public final class FileSystemMaster extends AbstractMaster {
           .getInodeChildrenRecursive(inodePath, InodeTree.LockMode.WRITE)) {
         List<Inode<?>> inodeChildren = lockGroup.getInodes();
         for (Inode<?> inode : inodeChildren) {
+          // the path to inode for getPath should already be locked.
           mPermissionChecker
               .checkSetAttributePermission(mInodeTree.getPath(inode), rootRequired, ownerRequired);
         }
         TempInodePathWithDescendant tempInodePath = new TempInodePathWithDescendant(inodePath);
         for (Inode<?> inode : inodeChildren) {
+          // the path to inode for getPath should already be locked.
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
           setAttributeInternal(tempInodePath, opTimeMs, options);
           journalSetAttribute(inode.getId(), opTimeMs, options);

@@ -182,6 +182,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     try {
       TraversalResult traversalResult =
           traverseToInode(PathUtils.getPathComponents(path.toString()), LockMode.READ);
+      traversalResult.getInodeLockGroup().close();
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
       return false;
@@ -200,6 +201,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode);
     if (!traversalResult.isFound()) {
+      traversalResult.getInodeLockGroup().close();
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     return new ExtensibleInodePath(path, traversalResult.getInodes(),
@@ -727,27 +729,37 @@ public final class InodeTree implements JournalCheckpointStreamable {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
     InodeLockGroup lockGroup = new InodeLockGroup();
-    // TODO(gpang): close lockGroup if any exception happens.
 
-    if (pathComponents == null) {
-      throw new InvalidPathException("passed-in pathComponents is null");
-    } else if (pathComponents.length == 0) {
-      throw new InvalidPathException("passed-in pathComponents is empty");
-    } else if (pathComponents.length == 1) {
-      if (pathComponents[0].equals("")) {
-
+    // This must be set to true before returning a valid value, otherwise all the inodes will be
+    // unlocked.
+    boolean valid = false;
+    try {
+      if (pathComponents == null) {
+        throw new InvalidPathException("passed-in pathComponents is null");
+      } else if (pathComponents.length == 0) {
+        throw new InvalidPathException("passed-in pathComponents is empty");
+      } else if (pathComponents.length == 1) {
+        if (pathComponents[0].equals("")) {
 //          lockGroup.lockRead(mRoot);
-        inodes.add(mRoot);
-        return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
-      } else {
-        throw new InvalidPathException("File name starts with " + pathComponents[0]);
+          inodes.add(mRoot);
+          valid = true;
+          return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+        } else {
+          throw new InvalidPathException("File name starts with " + pathComponents[0]);
+        }
       }
-    }
 
 //      lockGroup.lockRead(mRoot);
-    inodes.add(mRoot);
-    return traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockGroup,
-        lockMode);
+      inodes.add(mRoot);
+      TraversalResult result =
+          traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockGroup, lockMode);
+      valid = true;
+      return result;
+    } finally {
+      if (!valid) {
+        lockGroup.close();
+      }
+    }
   }
 
   private TraversalResult traverseToInode(InodePath inodePath, LockMode lockMode)
