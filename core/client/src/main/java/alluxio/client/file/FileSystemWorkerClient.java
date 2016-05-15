@@ -12,7 +12,9 @@ import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.heartbeat.HeartbeatThread;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
@@ -68,6 +70,30 @@ public class FileSystemWorkerClient extends AbstractClient {
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemWorkerClientService.Client(mProtocol);
+
+    // only start the heartbeat thread if the connection is successful and if there is not
+    // another heartbeat thread running
+    if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
+      final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+      mHeartbeat =
+          mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
+              mHeartbeatExecutor, interval));
+    }
+  }
+
+  @Override
+  protected synchronized void afterDisconnect() {
+    if (mHeartbeat != null) {
+      mHeartbeat.cancel(true);
+    }
+  }
+
+  @Override
+  protected synchronized void beforeDisconnect() {
+    // Heartbeat to send the client metrics.
+    if (mHeartbeatExecutor != null) {
+      mHeartbeatExecutor.heartbeat();
+    }
   }
 
   @Override
@@ -126,6 +152,10 @@ public class FileSystemWorkerClient extends AbstractClient {
         return mClient.createUfsFile(sessionId, path.toString(), options.toThrift());
       }
     });
+  }
+
+  public InetSocketAddress getWorkerDataServerAddress() {
+    return mWorkerDataServerAddress;
   }
 
   public synchronized long openUfsFile(final long sessionId, final AlluxioURI path,
