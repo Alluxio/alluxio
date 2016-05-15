@@ -1,16 +1,25 @@
 package alluxio.client.file;
 
 import alluxio.AbstractClient;
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 
+import alluxio.client.file.options.CancelUfsFileOptions;
+import alluxio.client.file.options.CloseUfsFileOptions;
+import alluxio.client.file.options.CompleteUfsFileOptions;
+import alluxio.client.file.options.CreateUfsFileOptions;
+import alluxio.client.file.options.OpenUfsFileOptions;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.AlluxioService;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.ClientMetrics;
+
 import com.google.common.base.Preconditions;
 import org.apache.thrift.TException;
 import org.slf4j.Logger;
@@ -74,6 +83,59 @@ public class FileSystemWorkerClient extends AbstractClient {
   @Override
   protected long getServiceVersion() {
     return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
+  }
+
+  public synchronized void cancelUfsFile(final long sessionId, final long tempUfsFileId,
+      final CancelUfsFileOptions options) throws AlluxioException, IOException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.cancelUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  public synchronized void closeUfsFile(final long sessionId, final long tempUfsFileId,
+      final CloseUfsFileOptions options) throws AlluxioException, IOException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.closeUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  public synchronized void completeUfsFile(final long sessionId, final long tempUfsFileId,
+      final CompleteUfsFileOptions options) throws AlluxioException, IOException {
+    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+      @Override
+      public Void call() throws AlluxioTException, TException {
+        mClient.completeUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        return null;
+      }
+    });
+  }
+
+  public synchronized long createUfsFile(final long sessionId, final AlluxioURI path,
+      final CreateUfsFileOptions options) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
+      @Override
+      public Long call() throws AlluxioTException, TException {
+        return mClient.createUfsFile(sessionId, path.toString(), options.toThrift());
+      }
+    });
+  }
+
+  public synchronized long openUfsFile(final long sessionId, final AlluxioURI path,
+      final OpenUfsFileOptions options) throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
+      @Override
+      public Long call() throws AlluxioTException, TException {
+        return mClient.openUfsFile(sessionId, path.toString(), options.toThrift());
+      }
+    });
   }
 
   /**
