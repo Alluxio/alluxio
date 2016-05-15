@@ -217,14 +217,22 @@ public final class PermissionCheckerTest {
 
   @Test
   public void createFileAndDirsTest() throws Exception {
-    verifyInodesList(TEST_DIR_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_DIR_FILE_URI)));
-    verifyInodesList(TEST_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_FILE_URI)));
-    verifyInodesList(TEST_WEIRD_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_WEIRD_FILE_URI)));
-    verifyInodesList(new String[]{"", "testDir"},
-        sTree.collectInodes(new AlluxioURI(TEST_NOT_EXIST_URI)));
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_DIR_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_WEIRD_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_NOT_EXIST_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(new String[]{"", "testDir"}, inodePath.getInodeList());
+    }
   }
 
   @Test
