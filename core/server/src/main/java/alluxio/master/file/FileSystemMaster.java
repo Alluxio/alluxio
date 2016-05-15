@@ -2269,25 +2269,30 @@ public final class FileSystemMaster extends AbstractMaster {
   private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
     @Override
     public void heartbeat() {
-      synchronized (mInodeTree) {
-        Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
-        for (TtlBucket bucket : expiredBuckets) {
-          for (InodeFile file : bucket.getFiles()) {
-            if (!file.isDeleted()) {
-              // file.isPinned() is deliberately not checked because ttl will have effect no matter
-              // whether the file is pinned.
-              try {
-                // WRITE permission required at parent of file
-                delete(mInodeTree.getPath(file), false);
-              } catch (Exception e) {
-                LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
-                    e.toString());
-              }
+      Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
+      for (TtlBucket bucket : expiredBuckets) {
+        for (InodeFile file : bucket.getFiles()) {
+          AlluxioURI path = null;
+          try (InodePath inodePath = mInodeTree
+              .lockFullInodePath(file.getId(), InodeTree.LockMode.READ)) {
+            path = inodePath.getUri();
+          } catch (Exception e) {
+            LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+                e.toString());
+          }
+          if (path != null) {
+            try {
+              // public delete method will lock the path, and check WRITE permission required at
+              // parent of file
+              delete(path, false);
+            } catch (Exception e) {
+              LOG.error("Exception trying to clean up {} for ttl check: {}", file.toString(),
+                  e.toString());
             }
           }
         }
-        mTtlBuckets.removeBuckets(expiredBuckets);
       }
+      mTtlBuckets.removeBuckets(expiredBuckets);
     }
 
     @Override
