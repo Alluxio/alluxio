@@ -114,11 +114,11 @@ public final class InodeTreeTest {
    */
   @Test
   public void initializeRootTwiceTest() throws Exception {
-    Inode<?> root = mTree.getInodeByPath(new AlluxioURI("/"));
+    Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION_STATUS);
     Assert.assertEquals(TEST_PERMISSION_STATUS.getUserName(), root.getUserName());
-    Inode<?> newRoot = mTree.getInodeByPath(new AlluxioURI("/"));
+    Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
 
@@ -133,7 +133,7 @@ public final class InodeTreeTest {
     // create directory
     mTree.createPath(TEST_URI, sDirectoryOptions);
     Assert.assertTrue(mTree.inodePathExists(TEST_URI));
-    Inode<?> test = mTree.getInodeByPath(TEST_URI);
+    Inode<?> test = getInodeByPath(mTree, TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getUserName());
@@ -143,7 +143,7 @@ public final class InodeTreeTest {
     // create nested directory
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     Assert.assertTrue(mTree.inodePathExists(NESTED_URI));
-    Inode<?> nested = mTree.getInodeByPath(NESTED_URI);
+    Inode<?> nested = getInodeByPath(mTree, NESTED_URI);
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
@@ -180,13 +180,12 @@ public final class InodeTreeTest {
   @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
     // create nested directory
-    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
-    List<Inode<?>> created = createResult.getCreated();
-    Inode<?> nested = created.get(created.size() - 1);
-    createResult.unlock();
+    mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
 
     // pin nested folder
-    mTree.setPinned(nested, true);
+    try (InodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+      mTree.setPinned(inodePath, true);
+    }
 
     // create nested file under pinned folder
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
@@ -205,7 +204,7 @@ public final class InodeTreeTest {
   public void createFileTest() throws Exception {
     // created nested file
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
-    Inode<?> nestedFile = mTree.getInodeByPath(NESTED_FILE_URI);
+    Inode<?> nestedFile = getInodeByPath(mTree, NESTED_FILE_URI);
     Assert.assertEquals("file", nestedFile.getName());
     Assert.assertEquals(2, nestedFile.getParentId());
     Assert.assertTrue(nestedFile.isFile());
@@ -227,11 +226,9 @@ public final class InodeTreeTest {
     CommonUtils.sleepMs(10);
 
     // create nested directory
-    InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
+    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode<?>> modified = createResult.getModified();
     List<Inode<?>> created = createResult.getCreated();
-    createResult.unlock();
 
     // 1 modified directory
     Assert.assertEquals(1, modified.size());
@@ -261,7 +258,6 @@ public final class InodeTreeTest {
     createResult = mTree.createPath(NESTED_FILE_URI, options);
     modified = createResult.getModified();
     created = createResult.getCreated();
-    createResult.unlock();
 
     // test directory was modified
     Assert.assertEquals(1, modified.size());
@@ -363,7 +359,7 @@ public final class InodeTreeTest {
     Assert.assertFalse(mTree.inodeIdExists(1));
 
     mTree.createPath(TEST_URI, sFileOptions);
-    Inode<?> inode = mTree.getInodeByPath(TEST_URI);
+    Inode<?> inode = getInodeByPath(mTree, TEST_URI);
     Assert.assertTrue(mTree.inodeIdExists(inode.getId()));
 
     mTree.deleteInode(inode);
@@ -380,7 +376,7 @@ public final class InodeTreeTest {
     mTree.createPath(TEST_URI, sFileOptions);
     Assert.assertTrue(mTree.inodePathExists(TEST_URI));
 
-    mTree.deleteInode(mTree.getInodeByPath(TEST_URI));
+    mTree.deleteInode(getInodeByPath(mTree, TEST_URI));
     Assert.assertFalse(mTree.inodePathExists(TEST_URI));
   }
 
@@ -395,7 +391,7 @@ public final class InodeTreeTest {
     mThrown.expectMessage("Path /test does not exist");
 
     Assert.assertFalse(mTree.inodePathExists(TEST_URI));
-    mTree.getInodeByPath(TEST_URI);
+    getInodeByPath(mTree, TEST_URI);
   }
 
   /**
@@ -410,7 +406,7 @@ public final class InodeTreeTest {
 
     mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     Assert.assertFalse(mTree.inodePathExists(NESTED_FILE_URI));
-    mTree.getInodeByPath(NESTED_FILE_URI);
+    getInodeByPath(mTree, NESTED_FILE_URI);
   }
 
   /**
@@ -454,13 +450,11 @@ public final class InodeTreeTest {
     // test one level
     InodeTree.CreatePathResult createResult = mTree.createPath(TEST_URI, sDirectoryOptions);
     List<Inode<?>> created = createResult.getCreated();
-    createResult.unlock();
     Assert.assertEquals(new AlluxioURI("/test"), mTree.getPath(created.get(created.size() - 1)));
 
     // test nesting
     createResult = mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     created = createResult.getCreated();
-    createResult.unlock();
     Assert.assertEquals(new AlluxioURI("/nested/test"),
         mTree.getPath(created.get(created.size() - 1)));
   }
@@ -496,7 +490,6 @@ public final class InodeTreeTest {
     InodeTree.CreatePathResult createResult =
         mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     List<Inode<?>> created = createResult.getCreated();
-    createResult.unlock();
 
     // all inodes under root
     try (InodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {
@@ -528,29 +521,29 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#setPinned(Inode, boolean)} method.
+   * Tests the {@link InodeTree#setPinned(InodePath, boolean)} method.
    *
    * @throws Exception if creating the path fails
    */
   @Test
   public void setPinnedTest() throws Exception {
-    InodeTree.CreatePathResult createResult =
-        mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
-    List<Inode<?>> created = createResult.getCreated();
-    Inode<?> nested = created.get(created.size() - 1);
-    createResult.unlock();
+    mTree.createPath(NESTED_URI, sNestedDirectoryOptions);
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     // no inodes pinned
     Assert.assertEquals(0, mTree.getPinIdSet().size());
 
     // pin nested folder
-    mTree.setPinned(nested, true);
+    try (InodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+      mTree.setPinned(inodePath, true);
+    }
     // nested file pinned
     Assert.assertEquals(1, mTree.getPinIdSet().size());
 
     // unpin nested folder
-    mTree.setPinned(nested, false);
+    try (InodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.WRITE)) {
+      mTree.setPinned(inodePath, false);
+    }
     Assert.assertEquals(0, mTree.getPinIdSet().size());
   }
 
@@ -627,7 +620,6 @@ public final class InodeTreeTest {
     }
 
     InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
-    createResult.unlock();
 
     for (Inode<?> inode : createResult.getCreated()) {
       long id = inode.getId();
@@ -645,8 +637,7 @@ public final class InodeTreeTest {
     }
 
     // Create a nested file.
-    InodeTree.CreatePathResult createResult = mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
-    createResult.unlock();
+    mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     AlluxioURI uri = new AlluxioURI("/nested");
     try (InodePath inodePath = mTree.lockFullInodePath(uri, InodeTree.LockMode.READ)) {
@@ -661,6 +652,13 @@ public final class InodeTreeTest {
     uri = NESTED_FILE_URI;
     try (InodePath inodePath = mTree.lockFullInodePath(uri, InodeTree.LockMode.READ)) {
       Assert.assertEquals(uri.getName(), inodePath.getInode().getName());
+    }
+  }
+
+  // Helper to get an inode by path. The inode is unlocked before returning.
+  private static Inode<?> getInodeByPath(InodeTree root, AlluxioURI path) throws Exception {
+    try (InodePath inodePath = root.lockFullInodePath(path, InodeTree.LockMode.READ)) {
+      return inodePath.getInode();
     }
   }
 
