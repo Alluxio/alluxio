@@ -24,7 +24,8 @@ import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.SessionTracker;
+import alluxio.worker.SessionCleaner;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -48,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 // TODO(calvin): Add session concept
 // TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class FileSystemWorker extends AbstractWorker implements SessionTracker {
+public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
@@ -59,6 +60,8 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
   /** Object for managing this worker's sessions. */
   private final Sessions mSessions;
+  /** Runnable responsible for clean up potential zombie sessions. */
+  private final SessionCleaner mSessionCleaner;
   /** Manager for under file system operations. */
   private final UnderFileSystemManager mUnderFileSystemManager;
 
@@ -83,6 +86,20 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+
+    // Setup session cleaner
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding ufs resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mUnderFileSystemManager.cleanupSession(session);
+        }
+      }
+    });
 
     mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
   }
@@ -109,17 +126,6 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
   public void cancelUfsFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
     mUnderFileSystemManager.cancelFile(sessionId, tempUfsFileId);
-  }
-
-  /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
-   */
-  public void cleanupSessions() {
-    for (long session: mSessions.getTimedOutSessions()) {
-      mSessions.removeSession(session);
-      mUnderFileSystemManager.cleanupSession(session);
-    }
   }
 
   /**
@@ -163,7 +169,6 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
    * @throws IOException if an error occurs interacting with the under file system
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
-  // TODO(calvin): Add a session id to clean up in case of disconnection
   public long createUfsFile(long sessionId, AlluxioURI ufsUri)
       throws FileAlreadyExistsException, IOException {
     return mUnderFileSystemManager.createFile(sessionId, ufsUri);
@@ -187,8 +192,8 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
 
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
-   * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long)}
-   * or the {@link #completeUfsFile(long)} methods.
+   * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long,long)}
+   * or the {@link #completeUfsFile(long,long)} methods.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file
@@ -241,6 +246,9 @@ public final class FileSystemWorker extends AbstractWorker implements SessionTra
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
             mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+
+    // Start the session cleanup checker to perform the periodical checking
+    getExecutorService().submit(mSessionCleaner);
   }
 
   /**

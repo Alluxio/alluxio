@@ -30,7 +30,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.SessionTracker;
+import alluxio.worker.SessionCleaner;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -65,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Logic: {@link BlockWorker} (Logic for all block related storage operations)
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class BlockWorker extends AbstractWorker implements SessionTracker {
+public final class BlockWorker extends AbstractWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Runnable responsible for heartbeating and registration with master. */
@@ -75,7 +76,7 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
   private PinListSync mPinListSync;
 
   /** Runnable responsible for clean up potential zombie sessions. */
-  private SessionCleaner mSessionCleanerThread;
+  private SessionCleaner mSessionCleaner;
 
   /** Logic for handling RPC requests. */
   private final BlockWorkerClientServiceHandler mServiceHandler;
@@ -181,7 +182,7 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(this);
+    setupSessionCleaner();
 
     // Setup space reserver
     if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
@@ -198,7 +199,7 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
             WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleanerThread);
+    getExecutorService().submit(mSessionCleaner);
 
     // Start the space reserver
     if (mSpaceReserver != null) {
@@ -213,7 +214,7 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
    */
   @Override
   public void stop() throws IOException {
-    mSessionCleanerThread.stop();
+    mSessionCleaner.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
       mSpaceReserver.stop();
@@ -249,18 +250,6 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
    */
   public void accessBlock(long sessionId, long blockId) throws BlockDoesNotExistException {
     mBlockStore.accessBlock(sessionId, blockId);
-  }
-
-  /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
-   */
-  @Override
-  public void cleanupSessions() {
-    for (long session : mSessions.getTimedOutSessions()) {
-      mSessions.removeSession(session);
-      mBlockStore.cleanupSession(session);
-    }
   }
 
   /**
@@ -599,6 +588,24 @@ public final class BlockWorker extends AbstractWorker implements SessionTracker 
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {
     mSessions.sessionHeartbeat(sessionId);
     mMetricsReporter.updateClientMetrics(metrics);
+  }
+
+  /**
+   * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
+   */
+  private void setupSessionCleaner() {
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding local resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mBlockStore.cleanupSession(session);
+        }
+      }
+    });
   }
 
   /**
