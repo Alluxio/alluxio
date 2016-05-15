@@ -15,7 +15,10 @@ import alluxio.thrift.OpenUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
-public class OpenUfsFileOptions {
+/**
+ * Options for opening a UFS file.
+ */
+public final class OpenUfsFileOptions {
   /**
    * @return the default {@link OpenUfsFileOptions}
    */
@@ -42,6 +45,9 @@ public class OpenUfsFileOptions {
     return Objects.toStringHelper(this).toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public OpenUfsFileTOptions toThrift() {
     return new OpenUfsFileTOptions();
   }

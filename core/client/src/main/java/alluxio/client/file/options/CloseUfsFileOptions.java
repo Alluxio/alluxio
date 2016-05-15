@@ -15,7 +15,10 @@ import alluxio.thrift.CloseUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
-public class CloseUfsFileOptions {
+/**
+ * Options for closing a UFS file.
+ */
+public final class CloseUfsFileOptions {
   /**
    * @return the default {@link CloseUfsFileOptions}
    */
@@ -42,6 +45,9 @@ public class CloseUfsFileOptions {
     return Objects.toStringHelper(this).toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public CloseUfsFileTOptions toThrift() {
     return new CloseUfsFileTOptions();
   }

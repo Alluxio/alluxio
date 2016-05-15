@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the “License”). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.client.file;
 
 import alluxio.AbstractClient;
@@ -199,11 +210,11 @@ public class FileSystemWorkerClient extends AbstractClient {
   }
 
   /**
-   * Creates a new file in the UFS with the given path. A worker specific file id will be
-   * returned which can be used to access the file.
+   * Creates a new file in the UFS with the given path.
    *
    * @param path the path in the UFS to create, must not already exist
    * @param options method options
+   * @return the worker specific file id to reference the created file
    * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
    * @throws IOException if an error occurs interacting with the UFS
    */
@@ -225,11 +236,11 @@ public class FileSystemWorkerClient extends AbstractClient {
   }
 
   /**
-   * Opens an existing file in the UFS with the given path. A worker specific file id will be
-   * returned which can be used to access the file.
+   * Opens an existing file in the UFS with the given path.
    *
    * @param path the path in the UFS to open, must exist
    * @param options method options
+   * @return the worker specific file id to reference the opened file
    * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
    * @throws IOException if an error occurs interacting with the UFS
    */

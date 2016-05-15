@@ -15,7 +15,10 @@ import alluxio.thrift.CompleteUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
-public class CompleteUfsFileOptions {
+/**
+ * Options for completing a UFS file.
+ */
+public final class CompleteUfsFileOptions {
   /**
    * @return the default {@link CompleteUfsFileOptions}
    */
@@ -42,6 +45,9 @@ public class CompleteUfsFileOptions {
     return Objects.toStringHelper(this).toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public CompleteUfsFileTOptions toThrift() {
     return new CompleteUfsFileTOptions();
   }
