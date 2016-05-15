@@ -45,17 +45,33 @@ import java.util.concurrent.Future;
 public class FileSystemWorkerClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Address of the worker this client should connect to. */
   private final WorkerNetAddress mWorkerNetAddress;
+  /** Executor service for running the heartbeat thread. */
   private final ExecutorService mExecutorService;
+  /** Heartbeat executor for the session heartbeat thread. */
   private final HeartbeatExecutor mHeartbeatExecutor;
-
+  /** Metrics object. */
   private final ClientMetrics mClientMetrics;
+
+  /** Underlying thrift RPC client which executes the operations. */
   private FileSystemWorkerClientService.Client mClient;
+  /** The current heartbeat thread, this will be updated each time this client connects. */
   private Future<?> mHeartbeat;
-  // This is the address of the data server on the worker.
+  /** Address of the data server on the worker. */
   private InetSocketAddress mWorkerDataServerAddress;
+  /** The current session id, managed by the caller. */
   private long mSessionId;
 
+  /**
+   * Constructor for a client that communicates with the {@link FileSystemWorkerClientService}.
+   *
+   * @param workerNetAddress the worker address to connect to
+   * @param executorService the executor service to run this client's heartbeat thread
+   * @param conf the configuration to use
+   * @param sessionId the session id to use, this should be unique
+   * @param metrics the metrics object to send any metrics through
+   */
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       Configuration conf, long sessionId, ClientMetrics metrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "FileSystemWorker");
@@ -67,6 +83,12 @@ public class FileSystemWorkerClient extends AbstractClient {
     mHeartbeatExecutor = new FileSystemWorkerClientHeartbeatExecutor(this);
   }
 
+  /**
+   * Creates the underying thrift client and starts the heartbeat thread, unless one is already
+   * running.
+   *
+   * @throws IOException if the thrift client cannot be created
+   */
   @Override
   protected void afterConnect() throws IOException {
     mClient = new FileSystemWorkerClientService.Client(mProtocol);
@@ -81,6 +103,9 @@ public class FileSystemWorkerClient extends AbstractClient {
     }
   }
 
+  /**
+   * Cancels the current heartbeat thread.
+   */
   @Override
   protected synchronized void afterDisconnect() {
     if (mHeartbeat != null) {
@@ -88,9 +113,11 @@ public class FileSystemWorkerClient extends AbstractClient {
     }
   }
 
+  /**
+   * Sends one last heartbeat to the worker in order to update metrics.
+   */
   @Override
   protected synchronized void beforeDisconnect() {
-    // Heartbeat to send the client metrics.
     if (mHeartbeatExecutor != null) {
       mHeartbeatExecutor.heartbeat();
     }
@@ -111,59 +138,107 @@ public class FileSystemWorkerClient extends AbstractClient {
     return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
   }
 
-  public synchronized void cancelUfsFile(final long sessionId, final long tempUfsFileId,
+  /**
+   * Cancels the file currently being written with the specified id. This file must have also
+   * been created through this client. The file id will be invalid after this call.
+   *
+   * @param tempUfsFileId the worker specific id of the file to cancel
+   * @param options method options
+   * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
+   * @throws IOException if an error occurs interacting with the UFS
+   */
+  public synchronized void cancelUfsFile(final long tempUfsFileId,
       final CancelUfsFileOptions options) throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.cancelUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        mClient.cancelUfsFile(mSessionId, tempUfsFileId, options.toThrift());
         return null;
       }
     });
   }
 
-  public synchronized void closeUfsFile(final long sessionId, final long tempUfsFileId,
-      final CloseUfsFileOptions options) throws AlluxioException, IOException {
+  /**
+   * Closes the file currently being written with the specified id. This file must have also
+   * been opened through this client. The file id will be invalid after this call.
+   *
+   * @param tempUfsFileId the worker specific id of the file to close
+   * @param options method options
+   * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
+   * @throws IOException if an error occurs interacting with the UFS
+   */
+  public synchronized void closeUfsFile(final long tempUfsFileId, final CloseUfsFileOptions options)
+      throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.closeUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        mClient.closeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
         return null;
       }
     });
   }
 
-  public synchronized void completeUfsFile(final long sessionId, final long tempUfsFileId,
+  /**
+   * Completes the file currently being written with the specified id. This file must have also
+   * been created through this client. The file id will be invalid after this call.
+   *
+   * @param tempUfsFileId the worker specific id of the file to complete
+   * @param options method options
+   * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
+   * @throws IOException if an error occurs interacting with the UFS
+   */
+  public synchronized void completeUfsFile(final long tempUfsFileId,
       final CompleteUfsFileOptions options) throws AlluxioException, IOException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
       public Void call() throws AlluxioTException, TException {
-        mClient.completeUfsFile(sessionId, tempUfsFileId, options.toThrift());
+        mClient.completeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
         return null;
       }
     });
   }
 
-  public synchronized long createUfsFile(final long sessionId, final AlluxioURI path,
-      final CreateUfsFileOptions options) throws AlluxioException, IOException {
+  /**
+   * Creates a new file in the UFS with the given path. A worker specific file id will be
+   * returned which can be used to access the file.
+   *
+   * @param path the path in the UFS to create, must not already exist
+   * @param options method options
+   * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
+   * @throws IOException if an error occurs interacting with the UFS
+   */
+  public synchronized long createUfsFile(final AlluxioURI path, final CreateUfsFileOptions options)
+      throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.createUfsFile(sessionId, path.toString(), options.toThrift());
+        return mClient.createUfsFile(mSessionId, path.toString(), options.toThrift());
       }
     });
   }
 
+  /**
+   * @return the data server address of the worker this client is connected to
+   */
   public InetSocketAddress getWorkerDataServerAddress() {
     return mWorkerDataServerAddress;
   }
 
-  public synchronized long openUfsFile(final long sessionId, final AlluxioURI path,
-      final OpenUfsFileOptions options) throws AlluxioException, IOException {
+  /**
+   * Opens an existing file in the UFS with the given path. A worker specific file id will be
+   * returned which can be used to access the file.
+   *
+   * @param path the path in the UFS to open, must exist
+   * @param options method options
+   * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
+   * @throws IOException if an error occurs interacting with the UFS
+   */
+  public synchronized long openUfsFile(final AlluxioURI path, final OpenUfsFileOptions options)
+      throws AlluxioException, IOException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
       public Long call() throws AlluxioTException, TException {
-        return mClient.openUfsFile(sessionId, path.toString(), options.toThrift());
+        return mClient.openUfsFile(mSessionId, path.toString(), options.toThrift());
       }
     });
   }
