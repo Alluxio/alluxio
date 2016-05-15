@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The object which supports cleaning up sessions. */
-  private final SessionCleanable mSessionCleanable;
+  private final SessionCleanupCallback mSessionCleanupCallback;
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
@@ -38,10 +38,10 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param sessionCleanable the session tracker to periodically clean
+   * @param sessionCleanupCallback the session clean up callback which will periodically be invoked
    */
-  public SessionCleaner(SessionCleanable sessionCleanable) {
-    mSessionCleanable = sessionCleanable;
+  public SessionCleaner(SessionCleanupCallback sessionCleanupCallback) {
+    mSessionCleanupCallback = sessionCleanupCallback;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
@@ -66,7 +66,7 @@ public final class SessionCleaner implements Runnable {
 
       // Check if any sessions have become zombies, if so clean them up
       lastCheckMs = System.currentTimeMillis();
-      mSessionCleanable.cleanupSessions();
+      mSessionCleanupCallback.cleanupSessions();
     }
   }
 

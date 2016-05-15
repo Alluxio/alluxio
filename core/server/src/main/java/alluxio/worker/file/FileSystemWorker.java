@@ -25,7 +25,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanable;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
@@ -88,7 +88,7 @@ public final class FileSystemWorker extends AbstractWorker {
         NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
 
     // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(new SessionCleanable() {
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
       /**
        * Cleans up after sessions, to prevent zombie sessions holding ufs resources.
        */
