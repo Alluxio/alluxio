@@ -28,6 +28,7 @@ import alluxio.wire.WorkerInfoTest;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -156,7 +157,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         CommonUtils.randomString(10));
 
     Configuration configuration = mockConfiguration();
-    Mockito.doReturn(properties).when(configuration).toMap();
+    Mockito.doReturn(ImmutableMap.copyOf(properties)).when(configuration).toMap();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION),
         NO_PARAMS, HttpMethod.GET, propertyMap).run();
