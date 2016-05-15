@@ -511,11 +511,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
-   * @param inode The {@link Inode} to delete
+   * @param inodePath The {@link InodePath} to delete
    * @param opTimeMs The operation time
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(Inode<?> inode, long opTimeMs) throws FileDoesNotExistException {
+  public void deleteInode(InodePath inodePath, long opTimeMs) throws FileDoesNotExistException {
+    Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
     if (parent == null) {
       throw new FileDoesNotExistException("Inode id " + inode.getParentId() + " does not exist.");
@@ -531,11 +532,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Deletes a single inode from the inode tree by removing it from the parent inode.
    *
-   * @param inode The {@link Inode} to delete
+   * @param inodePath The {@link InodePath} to delete
    * @throws FileDoesNotExistException if the Inode cannot be retrieved
    */
-  public void deleteInode(Inode<?> inode) throws FileDoesNotExistException {
-    deleteInode(inode, System.currentTimeMillis());
+  public void deleteInode(InodePath inodePath) throws FileDoesNotExistException {
+    deleteInode(inodePath, System.currentTimeMillis());
   }
 
   /**

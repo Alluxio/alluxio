@@ -918,13 +918,13 @@ public final class FileSystemMaster extends AbstractMaster {
     // file, we deal with the checkpoints and blocks as well.
     for (int i = delInodes.size() - 1; i >= 0; i--) {
       Inode<?> delInode = delInodes.get(i);
+      AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
+      tempInodePath.setDescendant(delInode, alluxioUriToDel);
 
       // TODO(jiri): What should the Alluxio behavior be when a UFS delete operation fails?
       // Currently, it will result in an inconsistency between Alluxio and UFS.
       if (!replayed && delInode.isPersisted()) {
         try {
-          AlluxioURI alluxioUriToDel = mInodeTree.getPath(delInode);
-          tempInodePath.setDescendant(delInode, alluxioUriToDel);
           // If this is a mount point, we have deleted all the children and can unmount it
           // TODO(calvin): Add tests (ALLUXIO-1831)
           if (mMountTable.isMountPoint(alluxioUriToDel)) {
@@ -951,7 +951,7 @@ public final class FileSystemMaster extends AbstractMaster {
         mBlockMaster.removeBlocks(((InodeFile) delInode).getBlockIds(), true /* delete */);
       }
 
-      mInodeTree.deleteInode(delInode, opTimeMs);
+      mInodeTree.deleteInode(tempInodePath, opTimeMs);
     }
     MasterContext.getMasterSource().incPathsDeleted(delInodes.size());
     return true;
