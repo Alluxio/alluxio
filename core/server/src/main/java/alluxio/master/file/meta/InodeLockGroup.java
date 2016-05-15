@@ -38,6 +38,25 @@ public final class InodeLockGroup implements AutoCloseable {
     mInodes.add(inode);
   }
 
+  public synchronized void unlockPrevious() {
+    if (mInodes.isEmpty()) {
+      return;
+    }
+    Inode<?> inode = mInodes.remove(mInodes.size() - 1);
+    if (mReadLockedInodes.size() > 0 && mReadLockedInodes.get(mReadLockedInodes.size() - 1)
+        .equals(inode)) {
+      inode.unlockRead();
+      mReadLockedInodes.remove(mReadLockedInodes.size() - 1);
+      return;
+    }
+    if (mWriteLockedInodes.size() > 0 && mWriteLockedInodes.get(mWriteLockedInodes.size() - 1)
+        .equals(inode)) {
+      inode.unlockWrite();
+      mWriteLockedInodes.remove(mWriteLockedInodes.size() - 1);
+      return;
+    }
+  }
+
   public synchronized void lockWrite(Inode<?> inode) {
     inode.lockWrite();
     mWriteLockedInodes.add(inode);
