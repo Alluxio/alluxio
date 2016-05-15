@@ -13,10 +13,13 @@ package alluxio.client.file;
 
 import alluxio.heartbeat.HeartbeatExecutor;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Session client that sends periodic heartbeats to the file system worker in order to preserve
  * its state on the worker.
  */
+@ThreadSafe
 public class FileSystemWorkerClientHeartbeatExecutor implements HeartbeatExecutor {
   /** the file system worker client to heartbeat for. */
   private final FileSystemWorkerClient mFileSystemWorkerClient;
