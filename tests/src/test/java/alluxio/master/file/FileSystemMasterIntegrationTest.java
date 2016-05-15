@@ -26,6 +26,7 @@ import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodePath;
+import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
@@ -668,11 +669,11 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
 
-    // paths must be locked in lexicographical order.
-    try (InodePath srcPath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE);
-         InodePath dstPath = mInodeTree
-             .lockInodePath(new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+      InodePath srcPath = inodePathPair.getFirst();
+      InodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
     }
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
@@ -809,11 +810,11 @@ public class FileSystemMasterIntegrationTest {
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
 
-    // paths must be locked in lexicographical order.
-    try (InodePath srcPath = mInodeTree
-        .lockInodePath(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE);
-         InodePath dstPath = mInodeTree
-             .lockInodePath(new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+      InodePath srcPath = inodePathPair.getFirst();
+      InodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, TEST_CURRENT_TIME);
     }
     FileInfo folderInfo =

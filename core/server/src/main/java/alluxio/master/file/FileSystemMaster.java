@@ -41,6 +41,7 @@ import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
 import alluxio.master.file.meta.InodeLockGroup;
 import alluxio.master.file.meta.InodePath;
+import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.meta.PersistenceState;
@@ -663,8 +664,6 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
-    // TODO(gpang): let create path take InodePath (and update it with correct locks).
-    mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.WRITE);
     List<Inode<?>> created = createResult.getCreated();
 
     writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
@@ -1177,8 +1176,6 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
-    // TODO(gpang): let create path take InodePath (and update it with correct locks).
-    mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.WRITE);
     writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
     journalCreatePathResult(createResult);
     flushJournal();
@@ -1257,26 +1254,15 @@ public final class FileSystemMaster extends AbstractMaster {
   public void rename(AlluxioURI srcPath, AlluxioURI dstPath) throws FileAlreadyExistsException,
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incRenamePathOps(1);
-    AlluxioURI uriLock1 = srcPath;
-    AlluxioURI uriLock2 = dstPath;
-    if (srcPath.compareTo(dstPath) > 0) {
-      // multiple paths must be locked in deterministic order.
-      uriLock1 = dstPath;
-      uriLock2 = srcPath;
-    }
-    // TODO(gpang): lock write parent for src.
-    try (InodePath inodePath1 = mInodeTree.lockInodePath(uriLock1, InodeTree.LockMode.WRITE);
-         InodePath inodePath2 = mInodeTree.lockInodePath(uriLock2, InodeTree.LockMode.WRITE)) {
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
+            InodeTree.LockMode.WRITE)) {
+      InodePath srcInodePath = inodePathPair.getFirst();
+      InodePath dstInodePath = inodePathPair.getSecond();
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, srcPath);
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, dstPath);
       mMountTable.checkUnderWritableMountPoint(srcPath);
       mMountTable.checkUnderWritableMountPoint(dstPath);
-      InodePath srcInodePath = inodePath1;
-      InodePath dstInodePath = inodePath2;
-      if (srcPath.compareTo(dstPath) > 0) {
-        srcInodePath = inodePath2;
-        dstInodePath = inodePath1;
-      }
       renameAndJournal(srcInodePath, dstInodePath);
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     }
@@ -1431,23 +1417,11 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     AlluxioURI dstPath = new AlluxioURI(entry.getDstPath());
 
-    AlluxioURI uriLock1 = srcPath;
-    AlluxioURI uriLock2 = dstPath;
-    if (srcPath.compareTo(dstPath) > 0) {
-      // multiple paths must be locked in deterministic order.
-      uriLock1 = dstPath;
-      uriLock2 = srcPath;
-    }
-    // TODO(gpang): lock write parent for src.
-    try (InodePath inodePath1 = mInodeTree.lockInodePath(uriLock1, InodeTree.LockMode.WRITE);
-         InodePath inodePath2 = mInodeTree.lockInodePath(uriLock2, InodeTree.LockMode.WRITE)) {
-      InodePath srcInodePath = inodePath1;
-      InodePath dstInodePath = inodePath2;
-      if (srcPath.compareTo(dstPath) > 0) {
-        srcInodePath = inodePath2;
-        dstInodePath = inodePath1;
-      }
-
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
+            InodeTree.LockMode.WRITE)) {
+      InodePath srcInodePath = inodePathPair.getFirst();
+      InodePath dstInodePath = inodePathPair.getSecond();
       renameInternal(srcInodePath, dstInodePath, true, entry.getOpTimeMs());
     } catch (Exception e) {
       throw new RuntimeException(e);

@@ -47,10 +47,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -64,16 +66,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public static final long NO_PARENT = -1;
 
   public enum LockMode {
+    /** Read lock the entire path. */
     READ,
-    WRITE;
-
-    static boolean isRead(LockMode lockMode) {
-      return lockMode == READ;
-    }
-
-    static boolean isWrite(LockMode lockMode) {
-      return !isRead(lockMode);
-    }
+    /**
+     * Read lock the entire path, but write lock the target inode. If the target inode does not
+     * exist, the last found inode is write locked.
+     */
+    WRITE,
+    /**
+     * Read lock the entire path, but write lock the target inode and the parent of the target.
+     * If the target inode does not exist, this mode behaves like WRITE.
+     */
+    WRITE_PARENT,
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -181,7 +185,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public boolean inodePathExists(AlluxioURI path) {
     try {
       TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(path.toString()), LockMode.READ);
+          traverseToInode(PathUtils.getPathComponents(path.toString()), LockMode.READ, null);
       traversalResult.getInodeLockGroup().close();
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
@@ -191,15 +195,105 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   public InodePath lockInodePath(AlluxioURI path, LockMode lockMode) throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
     return new ExtensibleInodePath(path, traversalResult.getInodes(),
         traversalResult.getInodeLockGroup());
+  }
+
+  public InodePathPair lockInodePathPair(AlluxioURI path1, LockMode lockMode1, AlluxioURI path2,
+      LockMode lockMode2) throws InvalidPathException {
+    String[] pathComponents1 = PathUtils.getPathComponents(path1.getPath());
+    String[] pathComponents2 = PathUtils.getPathComponents(path2.getPath());
+    List<LockMode> lockHints = new ArrayList<>();
+
+    int minLength = Math.min(pathComponents1.length, pathComponents2.length);
+    for (int i = 0; i < minLength; i++) {
+      if (pathComponents1[i].equals(pathComponents2[i])) {
+        // The two paths share a common path prefix.
+        LockMode mode1 = getLockModeForComponent(i, pathComponents1.length, lockMode1, null);
+        LockMode mode2 = getLockModeForComponent(i, pathComponents2.length, lockMode1, null);
+        // If either of the modes are WRITE, lock both paths as WRITE to prevent deadlock.
+        if (mode1 == LockMode.READ && mode2 == LockMode.READ) {
+          lockHints.add(LockMode.READ);
+        } else {
+          lockHints.add(LockMode.WRITE);
+        }
+      } else {
+        // The two paths no longer share a common prefix.
+        break;
+      }
+    }
+
+    // Lock paths in a deterministic order.
+    boolean switched = false;
+    AlluxioURI uriFirst = path1;
+    LockMode lockModeFirst = lockMode1;
+    String[] componentsFirst = pathComponents1;
+    AlluxioURI uriSecond = path2;
+    LockMode lockModeSecond = lockMode2;
+    String[] componentsSecond = pathComponents2;
+    if (path1.compareTo(path2) > 0) {
+      switched = true;
+      uriFirst = path2;
+      lockModeFirst = lockMode2;
+      componentsFirst = pathComponents2;
+      uriSecond = path1;
+      lockModeSecond = lockMode1;
+      componentsSecond = pathComponents1;
+    }
+
+    TraversalResult traversalResult1 = null;
+    TraversalResult traversalResult2 = null;
+    boolean valid = false;
+    try {
+      traversalResult1 = traverseToInode(componentsFirst, lockModeFirst, lockHints);
+      traversalResult2 = traverseToInode(componentsSecond, lockModeSecond, lockHints);
+
+      InodePath inodePath1 = new ExtensibleInodePath(uriFirst, traversalResult1.getInodes(),
+          traversalResult1.getInodeLockGroup());
+
+      InodePath inodePath2 = new ExtensibleInodePath(uriSecond, traversalResult2.getInodes(),
+          traversalResult2.getInodeLockGroup());
+      valid = true;
+      if (switched) {
+        return new InodePathPair(inodePath2, inodePath1);
+      }
+      return new InodePathPair(inodePath1, inodePath2);
+    } finally {
+      if (!valid) {
+        if (traversalResult1 != null) {
+          traversalResult1.getInodeLockGroup().close();
+        }
+        if (traversalResult2 != null) {
+          traversalResult2.getInodeLockGroup().close();
+        }
+      }
+    }
+  }
+
+  private LockMode getLockModeForComponent(int index, int length, LockMode lockMode,
+      List<LockMode> lockHints) {
+    if (lockHints != null && index < lockHints.size()) {
+      // Use the lock hint if it exists.
+      return lockHints.get(index);
+    }
+    if (lockMode == LockMode.READ) {
+      return LockMode.READ;
+    }
+    boolean isTarget = (index == length - 1);
+    boolean isTargetOrParent = (index >= length - 2);
+
+    if (isTargetOrParent && lockMode == LockMode.WRITE_PARENT
+        || isTarget && lockMode == LockMode.WRITE) {
+      return LockMode.WRITE;
+    }
+    return LockMode.READ;
   }
 
   public InodePath lockFullInodePath(AlluxioURI path, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
     if (!traversalResult.isFound()) {
       traversalResult.getInodeLockGroup().close();
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
@@ -281,7 +375,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public List<Inode<?>> collectInodes(AlluxioURI path) throws InvalidPathException {
     TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), LockMode.READ);
+        traverseToInode(PathUtils.getPathComponents(path.getPath()), LockMode.READ, null);
+    // TODO(gpang): use inodePath
+    traversalResult.getInodeLockGroup().close();
     return traversalResult.getInodes();
   }
 
@@ -339,8 +435,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     LOG.debug("createPath {}", path);
 
-    // TODO(gpang): lock the last inode(s) with write lock.
-    TraversalResult traversalResult = traverseToInode(inodePath, LockMode.WRITE);
+    TraversalResult traversalResult = traverseToInode(inodePath, LockMode.WRITE_PARENT);
     InodeLockGroup lockGroup = traversalResult.getInodeLockGroup();
 
     ExtensibleInodePath extensibleInodePath = (ExtensibleInodePath) inodePath;
@@ -398,7 +493,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
               currentInodeDirectory.getId(), pathComponents[k], missingDirOptions);
       // Lock the newly created inode before subsequent operations, and add it to the lock group.
-//        lockGroup.lockWrite(dir);
+      lockGroup.lockWrite(dir);
 
       dir.setPinned(currentInodeDirectory.isPinned());
       currentInodeDirectory.addChild(dir);
@@ -418,7 +513,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     Inode<?> lastInode = currentInodeDirectory.getChild(name);
     if (lastInode != null) {
       // Lock the last inode before subsequent operations, and add it to the lock group.
-//        lockGroup.lockWrite(lastInode);
+      lockGroup.lockWrite(lastInode);
 
       if (lastInode.isDirectory() && options instanceof CreateDirectoryOptions && !lastInode
           .isPersisted() && options.isPersisted()) {
@@ -438,7 +533,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode = InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
             currentInodeDirectory.getId(), name, directoryOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-//          lockGroup.lockWrite(lastInode);
+        lockGroup.lockWrite(lastInode);
         if (directoryOptions.isPersisted()) {
           toPersistDirectories.add(lastInode);
         }
@@ -448,7 +543,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
             currentInodeDirectory.getId(), name, fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
-//          lockGroup.lockWrite(lastInode);
+        lockGroup.lockWrite(lastInode);
         if (currentInodeDirectory.isPinned()) {
           // Update set of pinned file ids.
           mPinnedInodeFileIds.add(lastInode.getId());
@@ -476,6 +571,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
     }
 
+    // Extend the inodePath with the created inodes.
+    extensibleInodePath.getInodes().addAll(createdInodes);
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes, existingNonPersisted);
   }
@@ -520,7 +617,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public InodeLockGroup getInodeChildrenRecursiveInternal(InodeDirectory inodeDirectory,
       LockMode lockMode, InodeLockGroup inodeGroup) {
     for (Inode<?> child : inodeDirectory.getChildren()) {
-      if (LockMode.isRead(lockMode)) {
+      if (lockMode == LockMode.READ) {
         inodeGroup.lockRead(child);
       } else {
         inodeGroup.lockWrite(child);
@@ -724,7 +821,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
         && Objects.equal(mCachedInode, that.mCachedInode);
   }
 
-  private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode)
+  private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode,
+      List<LockMode> lockHints)
       throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
@@ -740,7 +838,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
         throw new InvalidPathException("passed-in pathComponents is empty");
       } else if (pathComponents.length == 1) {
         if (pathComponents[0].equals("")) {
-//          lockGroup.lockRead(mRoot);
+          if (lockMode == LockMode.READ) {
+            lockGroup.lockRead(mRoot);
+          } else {
+            lockGroup.lockWrite(mRoot);
+          }
           inodes.add(mRoot);
           valid = true;
           return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
@@ -749,10 +851,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
         }
       }
 
-//      lockGroup.lockRead(mRoot);
+      if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints) == LockMode.READ) {
+        lockGroup.lockRead(mRoot);
+      } else {
+        lockGroup.lockWrite(mRoot);
+      }
       inodes.add(mRoot);
       TraversalResult result =
-          traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockGroup, lockMode);
+          traverseToInodeInternal(pathComponents, inodes, nonPersistedInodes, lockGroup, lockMode,
+              lockHints);
       valid = true;
       return result;
     } finally {
@@ -778,58 +885,58 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
     }
     return traverseToInodeInternal(extensibleInodePath.getPathComponents(), inodes,
-        nonPersistedInodes, lockGroup, lockMode);
+        nonPersistedInodes, lockGroup, lockMode, null);
   }
 
   // TODO(gpang): support locking inodes with write lock.
   private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
-      List<Inode<?>> nonPersistedInodes, InodeLockGroup lockGroup,
-      LockMode lockMode) throws InvalidPathException {
-    // This must be set to true when returning a valid response. Otherwise, all the locked inodes
-    // will be unlocked.
-    boolean valid = false;
-    try {
-      Inode<?> current = inodes.get(inodes.size() - 1);
-
-      for (int i = inodes.size(); i < pathComponents.length; i++) {
-        Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
-        if (next == null) {
-          // The user might want to create the nonexistent directories, so return the traversal
-          // result current inode with the last Inode taken, and the index of the first path
-          // component that couldn't be found.
-          valid = true;
-          return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockGroup);
+      List<Inode<?>> nonPersistedInodes, InodeLockGroup lockGroup, LockMode lockMode,
+      List<LockMode> lockHints)
+      throws InvalidPathException {
+    Inode<?> current = inodes.get(inodes.size() - 1);
+    for (int i = inodes.size(); i < pathComponents.length; i++) {
+      Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
+      if (next == null) {
+        if (lockMode != LockMode.READ
+            && getLockModeForComponent(i - 1, pathComponents.length, lockMode, lockHints)
+            == LockMode.READ) {
+          // The lock mode is one of the WRITE modes, but the previous inode was READ locked.
+          lockGroup.unlockPrevious();
+          lockGroup.lockWrite(current);
+        }
+        // The user might want to create the nonexistent directories, so return the traversal
+        // result current inode with the last Inode taken, and the index of the first path
+        // component that couldn't be found.
+        return TraversalResult.createNotFoundResult(i, nonPersistedInodes, inodes, lockGroup);
+      } else {
+        // Lock the existing inode before proceeding.
+        if (getLockModeForComponent(i, pathComponents.length, lockMode, lockHints)
+            == LockMode.READ) {
+          lockGroup.lockRead(next);
         } else {
-          // Lock the existing inode before proceeding.
-//          lockGroup.lockRead(next);
-          if (next.isFile()) {
-            // The inode can't have any children. If this is the last path component, we're good.
-            // Otherwise, we can't traverse further, so we clean up and throw an exception.
-            if (i == pathComponents.length - 1) {
-              inodes.add(next);
-              valid = true;
-              return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
-            } else {
-              throw new InvalidPathException(
-                  "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
-            }
-          } else {
+          lockGroup.lockWrite(next);
+        }
+        if (next.isFile()) {
+          // The inode can't have any children. If this is the last path component, we're good.
+          // Otherwise, we can't traverse further, so we clean up and throw an exception.
+          if (i == pathComponents.length - 1) {
             inodes.add(next);
-            if (!next.isPersisted()) {
-              // next is a directory and not persisted
-              nonPersistedInodes.add(next);
-            }
-            current = next;
+            return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
+          } else {
+            throw new InvalidPathException(
+                "Traversal failed. Component " + i + "(" + next.getName() + ") is a file");
           }
+        } else {
+          inodes.add(next);
+          if (!next.isPersisted()) {
+            // next is a directory and not persisted
+            nonPersistedInodes.add(next);
+          }
+          current = next;
         }
       }
-      valid = true;
-      return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
-    } finally {
-      if (!valid) {
-        lockGroup.close();
-      }
     }
+    return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
   }
 
   private static final class TraversalResult {
