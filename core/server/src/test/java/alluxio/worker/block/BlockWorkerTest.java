@@ -20,6 +20,8 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.SessionCleanupCallback;
+import alluxio.worker.SessionCleaner;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.meta.BlockMeta;
@@ -141,16 +143,20 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#cleanupSessions()} method.
+   * Tests the Block Worker's session cleanable implementation.
    */
   @Test
-  public void cleanupSessionsTest() {
+  public void cleanupSessionsTest() throws Exception {
     long sessionId = 1;
     LinkedList<Long> sessions = new LinkedList<Long>();
     sessions.add(sessionId);
 
     when(mSessions.getTimedOutSessions()).thenReturn(sessions);
-    mBlockWorker.cleanupSessions();
+    Whitebox.invokeMethod(mBlockWorker, "setupSessionCleaner");
+    SessionCleaner cleaner = Whitebox.getInternalState(mBlockWorker, "mSessionCleaner");
+    SessionCleanupCallback cleanable =
+        Whitebox.getInternalState(cleaner, "mSessionCleanupCallback");
+    cleanable.cleanupSessions();
     verify(mSessions).removeSession(sessionId);
     verify(mBlockStore).cleanupSession(sessionId);
   }
