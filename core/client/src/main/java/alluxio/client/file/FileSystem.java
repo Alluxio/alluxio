@@ -245,7 +245,9 @@ public interface FileSystem {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException;
 
@@ -257,7 +259,9 @@ public interface FileSystem {
    * @throws IOException if a non-Alluxio exception occurs
    * @throws FileDoesNotExistException if the given path does not exist
    * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @deprecated since version 1.1 and will be removed in version 2.0
    */
+  @Deprecated
   void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException;
 

@@ -25,7 +25,6 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -47,8 +46,7 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
-@Ignore("ALLUXIO-1888")
-public class FileSystemMasterClientRestApiTest extends RestApiTest {
+public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   private FileSystemMaster mFileSystemMaster;
 
   @Before
@@ -180,31 +178,15 @@ public class FileSystemMasterClientRestApiTest extends RestApiTest {
     for (int i = 0; i < numFileInfos; i++) {
       fileInfos.add(FileInfoTest.createRandom());
     }
-    Mockito.doReturn(fileInfos).when(mFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
+    Mockito.doReturn(fileInfos).when(mFileSystemMaster)
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
 
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS), params, HttpMethod.GET,
         fileInfos).run();
 
-    Mockito.verify(mFileSystemMaster).getFileInfoList(Mockito.<AlluxioURI>any());
-  }
-
-  @Test
-  public void loadMetadataTest() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("path", "test");
-    params.put("recursive", "false");
-
-    Random random = new Random();
-    long loadMetadataResult = random.nextLong();
-    Mockito.doReturn(loadMetadataResult).when(mFileSystemMaster)
-        .loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
-
-    new TestCase(mHostname, mPort,
-        getEndpoint(FileSystemMasterClientRestServiceHandler.LOAD_METADATA), params,
-        HttpMethod.POST, loadMetadataResult).run();
-
-    Mockito.verify(mFileSystemMaster).loadMetadata(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+    Mockito.verify(mFileSystemMaster)
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
   }
 
   @Test
