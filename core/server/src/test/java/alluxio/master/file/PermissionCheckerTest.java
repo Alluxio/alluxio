@@ -318,7 +318,9 @@ public final class PermissionCheckerTest {
   @Test
   public void invalidPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mPermissionChecker.checkPermission(FileSystemAction.WRITE, new AlluxioURI(""));
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(""), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(FileSystemAction.WRITE, inodePath);
+    }
   }
 
   /**
@@ -327,13 +329,17 @@ public final class PermissionCheckerTest {
   private void checkPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mPermissionChecker.checkPermission(action, new AlluxioURI(path));
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(path), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(action, inodePath);
+    }
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mPermissionChecker.checkParentPermission(action, new AlluxioURI(path));
+    try (InodePath inodePath = sTree.lockInodePath(new AlluxioURI(path), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkParentPermission(action, inodePath);
+    }
   }
 
   private String toExceptionMessage(String user, FileSystemAction action, String path,
