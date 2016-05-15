@@ -367,21 +367,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * Returns a list of existing inodes on the given path.
-   *
-   * @param path the path to get the inodes list for
-   * @return the inodes list with the given path
-   * @throws InvalidPathException if the path is invalid
-   */
-  public List<Inode<?>> collectInodes(AlluxioURI path) throws InvalidPathException {
-    TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), LockMode.READ, null);
-    // TODO(gpang): use inodePath
-    traversalResult.getInodeLockGroup().close();
-    return traversalResult.getInodes();
-  }
-
-  /**
    * @return the root inode
    */
   public InodeDirectory getRoot() {
