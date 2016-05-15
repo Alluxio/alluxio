@@ -6,6 +6,7 @@ import alluxio.Constants;
 
 import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatExecutor;
+import alluxio.thrift.AlluxioService;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -28,11 +29,10 @@ import java.util.concurrent.Future;
  * Since {@link alluxio.thrift.FileSystemWorkerClientService} is not thread safe, this class
  * guarantees thread safety.
  */
-// TODO(calvin): Session tracking logic can be abstracted
+// TODO(calvin): Session logic can be abstracted
 @ThreadSafe
 public class FileSystemWorkerClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final int CONNECTION_RETRY_TIMES = 5;
 
   private final WorkerNetAddress mWorkerNetAddress;
   private final ExecutorService mExecutorService;
@@ -54,6 +54,26 @@ public class FileSystemWorkerClient extends AbstractClient {
     mSessionId = sessionId;
     mClientMetrics = Preconditions.checkNotNull(metrics);
     mHeartbeatExecutor = new FileSystemWorkerClientHeartbeatExecutor(this);
+  }
+
+  @Override
+  protected void afterConnect() throws IOException {
+    mClient = new FileSystemWorkerClientService.Client(mProtocol);
+  }
+
+  @Override
+  protected AlluxioService.Client getClient() {
+    return mClient;
+  }
+
+  @Override
+  protected String getServiceName() {
+    return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME;
+  }
+
+  @Override
+  protected long getServiceVersion() {
+    return Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION;
   }
 
   /**
