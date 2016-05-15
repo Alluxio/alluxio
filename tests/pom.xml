@@ -177,6 +177,11 @@
               <systemPropertyVariables>
                 <ufs>alluxio.underfs.hdfs.LocalMiniDFSCluster</ufs>
               </systemPropertyVariables>
+              <excludes>
+                <!-- Exclude RestApi related tests on hdfsTest: conflict between powermock (introduced by
+                     RestApiTest) and LocalMiniDFSCluster -->
+                <exclude>**/*RestApiTest.java</exclude>
+              </excludes>
             </configuration>
           </plugin>
         </plugins>
