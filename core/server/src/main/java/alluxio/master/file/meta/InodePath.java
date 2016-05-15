@@ -96,6 +96,6 @@ public abstract class InodePath implements AutoCloseable {
 
   @Override
   public synchronized void close() {
-    mLockGroup.unlock();
+    mLockGroup.close();
   }
 }

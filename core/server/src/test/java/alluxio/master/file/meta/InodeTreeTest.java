@@ -460,7 +460,7 @@ public final class InodeTreeTest {
   }
 
   /**
-   * Tests the {@link InodeTree#getInodeChildrenRecursive(InodeDirectory)} method.
+   * Tests the {@link InodeTree#getInodeChildrenRecursive(InodePath, InodeTree.LockMode)} method.
    *
    * @throws Exception if creating the path fails
    */
@@ -472,9 +472,10 @@ public final class InodeTreeTest {
     mTree.createPath(NESTED_FILE_URI, sNestedFileOptions);
 
     // all inodes under root
-    try (InodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
-      List<Inode<?>> inodes =
-          mTree.getInodeChildrenRecursive((InodeDirectory) inodePath.getInode());
+    try (InodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ);
+         InodeLockGroup inodeGroup = mTree
+             .getInodeChildrenRecursive(inodePath, InodeTree.LockMode.READ)) {
+      List<Inode<?>> inodes = inodeGroup.getInodes();
       // /test, /nested, /nested/test, /nested/test/file
       Assert.assertEquals(4, inodes.size());
     }
@@ -493,15 +494,21 @@ public final class InodeTreeTest {
 
     // all inodes under root
     try (InodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {
-      List<Inode<?>> inodes =
-          mTree.getInodeChildrenRecursive((InodeDirectory) inodePath.getInode());
-      // /nested, /nested/test
-      Assert.assertEquals(2, inodes.size());
+      try (InodeLockGroup inodeGroup = mTree.getInodeChildrenRecursive(inodePath,
+          InodeTree.LockMode.WRITE)) {
+        List<Inode<?>> inodes = inodeGroup.getInodes();
+        // /nested, /nested/test
+        Assert.assertEquals(2, inodes.size());
+      }
       // delete the nested inode
       deleteInodeByPath(mTree, NESTED_URI);
-      inodes = mTree.getInodeChildrenRecursive((InodeDirectory) inodePath.getInode());
-      // only /nested left
-      Assert.assertEquals(1, inodes.size());
+
+      try (InodeLockGroup inodeGroup = mTree.getInodeChildrenRecursive(inodePath,
+          InodeTree.LockMode.WRITE)) {
+        List<Inode<?>> inodes = inodeGroup.getInodes();
+        // only /nested left
+        Assert.assertEquals(1, inodes.size());
+      }
     }
   }
 
@@ -581,21 +588,30 @@ public final class InodeTreeTest {
     // re-init the root since the tree was reset above
     root = mTree.getRoot();
 
-    Assert.assertEquals(0, mTree.getInodeChildrenRecursive(root).size());
-    mTree.addInodeFromJournal(nested.toJournalEntry());
-    verifyChildrenNames(mTree, root, Sets.newHashSet("nested"));
+    try (
+        InodePath inodePath = mTree
+            .lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
+      try (InodeLockGroup inodeGroup = mTree
+          .getInodeChildrenRecursive(inodePath, InodeTree.LockMode.READ)) {
+        Assert.assertEquals(0, inodeGroup.getInodes().size());
+      }
 
-    mTree.addInodeFromJournal(test.toJournalEntry());
-    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test"));
+      mTree.addInodeFromJournal(nested.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested"));
 
-    mTree.addInodeFromJournal(test1.toJournalEntry());
-    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1"));
+      mTree.addInodeFromJournal(test.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test"));
 
-    mTree.addInodeFromJournal(file.toJournalEntry());
-    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file"));
+      mTree.addInodeFromJournal(test1.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1"));
 
-    mTree.addInodeFromJournal(file1.toJournalEntry());
-    verifyChildrenNames(mTree, root, Sets.newHashSet("nested", "test", "test1", "file", "file1"));
+      mTree.addInodeFromJournal(file.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath, Sets.newHashSet("nested", "test", "test1", "file"));
+
+      mTree.addInodeFromJournal(file1.toJournalEntry());
+      verifyChildrenNames(mTree, inodePath,
+          Sets.newHashSet("nested", "test", "test1", "file", "file1"));
+    }
   }
 
   @Test
@@ -665,12 +681,15 @@ public final class InodeTreeTest {
   }
 
   // verify that the tree has the given children
-  private static void verifyChildrenNames(InodeTree tree, InodeDirectory root,
+  private static void verifyChildrenNames(InodeTree tree, InodePath inodePath,
       Set<String> childNames) throws Exception {
-    List<Inode<?>> children = tree.getInodeChildrenRecursive(root);
-    Assert.assertEquals(childNames.size(), children.size());
-    for (Inode<?> child : children) {
-      Assert.assertTrue(childNames.contains(child.getName()));
+    try (InodeLockGroup inodeGroup = tree
+        .getInodeChildrenRecursive(inodePath, InodeTree.LockMode.READ)) {
+      List<Inode<?>> children = inodeGroup.getInodes();
+      Assert.assertEquals(childNames.size(), children.size());
+      for (Inode<?> child : children) {
+        Assert.assertTrue(childNames.contains(child.getName()));
+      }
     }
   }
 }

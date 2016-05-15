@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -20,26 +21,35 @@ import javax.annotation.concurrent.ThreadSafe;
  * Manages the locks for a group of {@link Inode}.
  */
 @ThreadSafe
-public final class InodeLockGroup {
+public final class InodeLockGroup implements AutoCloseable {
   private final List<Inode<?>> mReadLockedInodes;
   private final List<Inode<?>> mWriteLockedInodes;
+  private final List<Inode<?>> mInodes;
 
   InodeLockGroup() {
     mReadLockedInodes = new ArrayList<>();
     mWriteLockedInodes = new ArrayList<>();
+    mInodes = new ArrayList<>();
   }
 
   public synchronized void lockRead(Inode<?> inode) {
     inode.lockRead();
     mReadLockedInodes.add(inode);
+    mInodes.add(inode);
   }
 
   public synchronized void lockWrite(Inode<?> inode) {
     inode.lockWrite();
     mWriteLockedInodes.add(inode);
+    mInodes.add(inode);
   }
 
-  public synchronized void unlock() {
+  public synchronized List<Inode<?>> getInodes() {
+    return mInodes;
+  }
+
+  @Override
+  public synchronized void close() {
     for (Inode<?> inode : mReadLockedInodes) {
       inode.unlockRead();
     }
@@ -48,5 +58,6 @@ public final class InodeLockGroup {
     }
     mReadLockedInodes.clear();
     mWriteLockedInodes.clear();
+    mInodes.clear();
   }
 }

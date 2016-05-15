@@ -35,7 +35,6 @@ import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 
@@ -48,7 +47,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -67,7 +65,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   public enum LockMode {
     READ,
-    WRITE,
+    WRITE;
+
+    static boolean isRead(LockMode lockMode) {
+      return lockMode == READ;
+    }
+
+    static boolean isWrite(LockMode lockMode) {
+      return !isRead(lockMode);
+    }
   }
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -494,18 +500,34 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Returns a list of all descendants of a particular {@link InodeDirectory}. Any directory inode
    * precedes its descendants in the list.
    *
-   * @param inodeDirectory the root {@link InodeDirectory} to retrieve all descendants from
-   * @return a list of all descendants
+   * @param inodePath the root {@link InodePath} to retrieve all descendants from
+   * @param lockMode the lock type to use
+   * @return an {@link InodeLockGroup} representing the list of all descendants
+   * @throws FileDoesNotExistException if inode does not exist
    */
-  public List<Inode<?>> getInodeChildrenRecursive(InodeDirectory inodeDirectory) {
-    List<Inode<?>> ret = new ArrayList<Inode<?>>();
-    for (Inode<?> i : inodeDirectory.getChildren()) {
-      ret.add(i);
-      if (i.isDirectory()) {
-        ret.addAll(getInodeChildrenRecursive((InodeDirectory) i));
+  public InodeLockGroup getInodeChildrenRecursive(InodePath inodePath, LockMode lockMode)
+      throws FileDoesNotExistException {
+    Inode<?> inode = inodePath.getInode();
+    InodeLockGroup inodeGroup = new InodeLockGroup();
+    if (!inode.isDirectory()) {
+      return inodeGroup;
+    }
+    return getInodeChildrenRecursiveInternal((InodeDirectory) inode, lockMode, inodeGroup);
+  }
+
+  public InodeLockGroup getInodeChildrenRecursiveInternal(InodeDirectory inodeDirectory,
+      LockMode lockMode, InodeLockGroup inodeGroup) {
+    for (Inode<?> child : inodeDirectory.getChildren()) {
+      if (LockMode.isRead(lockMode)) {
+        inodeGroup.lockRead(child);
+      } else {
+        inodeGroup.lockWrite(child);
+      }
+      if (child.isDirectory()) {
+        getInodeChildrenRecursiveInternal((InodeDirectory) child, lockMode, inodeGroup);
       }
     }
-    return ret;
+    return inodeGroup;
   }
 
   /**
@@ -793,7 +815,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return TraversalResult.createFoundResult(nonPersistedInodes, inodes, lockGroup);
     } finally {
       if (!valid) {
-        lockGroup.unlock();
+        lockGroup.close();
       }
     }
   }
