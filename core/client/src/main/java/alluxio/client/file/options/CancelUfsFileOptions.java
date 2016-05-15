@@ -15,7 +15,10 @@ import alluxio.thrift.CancelUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
-public class CancelUfsFileOptions {
+/**
+ * Options for canceling a UFS file.
+ */
+public final class CancelUfsFileOptions {
   /**
    * @return the default {@link CancelUfsFileOptions}
    */
@@ -42,6 +45,9 @@ public class CancelUfsFileOptions {
     return Objects.toStringHelper(this).toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public CancelUfsFileTOptions toThrift() {
     return new CancelUfsFileTOptions();
   }

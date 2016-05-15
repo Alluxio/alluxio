@@ -15,7 +15,10 @@ import alluxio.thrift.CreateUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
-public class CreateUfsFileOptions {
+/**
+ * Options for creating a UFS file.
+ */
+public final class CreateUfsFileOptions {
   /**
    * @return the default {@link CreateUfsFileOptions}
    */
@@ -42,6 +45,9 @@ public class CreateUfsFileOptions {
     return Objects.toStringHelper(this).toString();
   }
 
+  /**
+   * @return Thrift representation of the options
+   */
   public CreateUfsFileTOptions toThrift() {
     return new CreateUfsFileTOptions();
   }
