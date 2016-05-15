@@ -11,13 +11,18 @@
 
 package alluxio.client.file.options;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.CreateUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
+import javax.annotation.concurrent.NotThreadSafe;
+
 /**
  * Options for creating a UFS file.
  */
+@PublicApi
+@NotThreadSafe
 public final class CreateUfsFileOptions {
   /**
    * @return the default {@link CreateUfsFileOptions}
