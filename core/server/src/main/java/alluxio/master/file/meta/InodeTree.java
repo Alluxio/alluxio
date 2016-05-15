@@ -182,22 +182,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
-  /**
-   * @param path the path to get the inode for
-   * @return the inode with the given path
-   * @throws InvalidPathException if the path is invalid
-   * @throws FileDoesNotExistException if the path does not exist
-   */
-  public Inode<?> getInodeByPath(AlluxioURI path)
-      throws InvalidPathException, FileDoesNotExistException {
-    TraversalResult traversalResult =
-        traverseToInode(PathUtils.getPathComponents(path.getPath()), LockMode.READ);
-    if (!traversalResult.isFound()) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    }
-    return traversalResult.getInode();
-  }
-
   public InodePath lockInodePath(AlluxioURI path, LockMode lockMode) throws InvalidPathException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode);
@@ -485,7 +469,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
-    return new CreatePathResult(modifiedInodes, createdInodes, existingNonPersisted, lockGroup);
+    return new CreatePathResult(modifiedInodes, createdInodes, existingNonPersisted);
   }
 
   /**
@@ -558,11 +542,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inode the {@link Inode} to set the pinned state for
+   * @param inodePath the {@link InodePath} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
    * @param opTimeMs the operation time
+   * @throws FileDoesNotExistException if inode does not exist
    */
-  public void setPinned(Inode<?> inode, boolean pinned, long opTimeMs) {
+  public void setPinned(InodePath inodePath, boolean pinned, long opTimeMs)
+      throws FileDoesNotExistException {
+    Inode<?> inode = inodePath.getInode();
     inode.setPinned(pinned);
     inode.setLastModificationTimeMs(opTimeMs);
 
@@ -575,8 +562,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       assert inode instanceof InodeDirectory;
       // inode is a directory. Set the pinned state for all children.
+      TempInodePathWithDescendant tempInodePath = new TempInodePathWithDescendant(inodePath);
       for (Inode<?> child : ((InodeDirectory) inode).getChildren()) {
-        setPinned(child, pinned, opTimeMs);
+        child.lockWrite();
+        try {
+          tempInodePath.setDescendant(child, getPath(child));
+          setPinned(tempInodePath, pinned, opTimeMs);
+        } finally {
+          child.unlockWrite();
+        }
       }
     }
   }
@@ -585,11 +579,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * Sets the pinned state of an inode. If the inode is a directory, the pinned state will be set
    * recursively.
    *
-   * @param inode the {@link Inode} to set the pinned state for
+   * @param inodePath the {@link InodePath} to set the pinned state for
    * @param pinned the pinned state to set for the inode (and possible descendants)
+   * @throws FileDoesNotExistException if inode does not exist
    */
-  public void setPinned(Inode<?> inode, boolean pinned) {
-    setPinned(inode, pinned, System.currentTimeMillis());
+  public void setPinned(InodePath inodePath, boolean pinned) throws FileDoesNotExistException {
+    setPinned(inodePath, pinned, System.currentTimeMillis());
   }
 
   /**
@@ -709,6 +704,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
     List<Inode<?>> inodes = Lists.newArrayList();
     InodeLockGroup lockGroup = new InodeLockGroup();
+    // TODO(gpang): close lockGroup if any exception happens.
 
     if (pathComponents == null) {
       throw new InvalidPathException("passed-in pathComponents is null");
@@ -896,22 +892,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
     private final List<Inode<?>> mModified;
     private final List<Inode<?>> mCreated;
     private final List<Inode<?>> mPersisted;
-    private final InodeLockGroup mLockGroup;
 
     /**
      * Constructs the results of modified and created inodes when creating a path.
      *
      * @param modified a list of modified inodes
      * @param created a list of created inodes
-     * @param lockGroup the {@link InodeLockGroup} managing locks for the inodes read, modified,
-     *                  and created
      */
-    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted,
-        InodeLockGroup lockGroup) {
+    CreatePathResult(List<Inode<?>> modified, List<Inode<?>> created, List<Inode<?>> persisted) {
       mModified = Preconditions.checkNotNull(modified);
       mCreated = Preconditions.checkNotNull(created);
       mPersisted = Preconditions.checkNotNull(persisted);
-      mLockGroup = lockGroup;
     }
 
     /**
@@ -933,13 +924,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     public List<Inode<?>> getPersisted() {
       return mPersisted;
-    }
-
-    /**
-     * Unlocks all the locked inodes in this result.
-     */
-    public void unlock() {
-      mLockGroup.unlock();
     }
   }
 }

@@ -663,16 +663,12 @@ public final class FileSystemMaster extends AbstractMaster {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
     // TODO(gpang): let create path take InodePath (and update it with correct locks).
     mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.WRITE);
-    try {
-      List<Inode<?>> created = createResult.getCreated();
+    List<Inode<?>> created = createResult.getCreated();
 
-      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-      journalCreatePathResult(createResult);
-      flushJournal();
-      return created.get(created.size() - 1).getId();
-    } finally {
-      createResult.unlock();
-    }
+    writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+    journalCreatePathResult(createResult);
+    flushJournal();
+    return created.get(created.size() - 1).getId();
   }
 
   /**
@@ -1178,15 +1174,11 @@ public final class FileSystemMaster extends AbstractMaster {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
     // TODO(gpang): let create path take InodePath (and update it with correct locks).
     mInodeTree.ensureFullInodePath(inodePath, InodeTree.LockMode.WRITE);
-    try {
-      writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-      journalCreatePathResult(createResult);
-      flushJournal();
-      MasterContext.getMasterSource().incDirectoriesCreated(1);
-      return createResult;
-    } finally {
-      createResult.unlock();
-    }
+    writeJournalEntry(mDirectoryIdGenerator.toJournalEntry());
+    journalCreatePathResult(createResult);
+    flushJournal();
+    MasterContext.getMasterSource().incDirectoriesCreated(1);
+    return createResult;
   }
 
   /**
@@ -2194,7 +2186,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     if (options.getPinned() != null) {
-      mInodeTree.setPinned(inode, options.getPinned(), opTimeMs);
+      mInodeTree.setPinned(inodePath, options.getPinned(), opTimeMs);
       inode.setLastModificationTimeMs(opTimeMs);
     }
     if (options.getTtl() != null) {
