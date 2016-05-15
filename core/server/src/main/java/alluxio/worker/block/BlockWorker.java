@@ -31,7 +31,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanable;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -594,7 +594,7 @@ public final class BlockWorker extends AbstractWorker {
    * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
    */
   private void setupSessionCleaner() {
-    mSessionCleaner = new SessionCleaner(new SessionCleanable() {
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
       /**
        * Cleans up after sessions, to prevent zombie sessions holding local resources.
        */

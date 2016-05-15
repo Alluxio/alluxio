@@ -20,7 +20,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.SessionCleanable;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
@@ -154,7 +154,8 @@ public class BlockWorkerTest {
     when(mSessions.getTimedOutSessions()).thenReturn(sessions);
     Whitebox.invokeMethod(mBlockWorker, "setupSessionCleaner");
     SessionCleaner cleaner = Whitebox.getInternalState(mBlockWorker, "mSessionCleaner");
-    SessionCleanable cleanable = Whitebox.getInternalState(cleaner, "mSessionCleanable");
+    SessionCleanupCallback cleanable =
+        Whitebox.getInternalState(cleaner, "mSessionCleanupCallback");
     cleanable.cleanupSessions();
     verify(mSessions).removeSession(sessionId);
     verify(mBlockStore).cleanupSession(sessionId);
