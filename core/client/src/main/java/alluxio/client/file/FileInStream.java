@@ -339,12 +339,24 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       }
     } catch (IOException e) {
       if (e.getCause() instanceof BlockDoesNotExistException) {
+        // This happens if two concurrent readers read trying to cache the same block. One cancelled
+        // before the other. Then the other reader will see this exception since we only keep
+        // one block per blockId in block worker.
         LOG.info("Block {} does not exist when being cancelled.", getCurrentBlockId());
       } else if (e.getCause() instanceof InvalidWorkerStateException) {
+        // This happens if two concurrent readers trying to cache the same block and they acquired
+        // different BlockClient (e.g. BlockStoreContext.acquireRemoteWorkerClient)
+        // instances (each instance has its only session ID).
         LOG.info("Block {} has invalid worker state when being cancelled.", getCurrentBlockId());
       } else if (e.getCause() instanceof BlockAlreadyExistsException) {
+        // This happens if two concurrent readers trying to cache the same block. One successfully
+        // committed. The other reader sees this.
         LOG.info("Block {} exists.", getCurrentBlockId());
       } else {
+        // This happens when there is any other cache stream close/cancel related errors (e.g.
+        // server unreachable due to network partition, server busy due to alluxio worker is
+        // busy, timeout because congested network etc). But we want to proceed since we want
+        // the user to continue reading when Alluxio is having trouble.
         LOG.warn("Cache stream close or cancel throws IOExecption {}, read continues.",
             e.getMessage());
       }
@@ -371,6 +383,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void handleCacheStreamIOException(IOException e) {
     if (e.getCause() instanceof BlockAlreadyExistsException) {
+      // This can happen if there are two readers trying to cache the same block. The first one
+      // created the block (either as temp block or committed block). The second sees this
+      // exception.
       LOG.info(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
     } else {
       LOG.info(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
