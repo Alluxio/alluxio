@@ -161,7 +161,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    *
    * @param path the file or folder name
    * @param recursive whether we delete folder and its children
