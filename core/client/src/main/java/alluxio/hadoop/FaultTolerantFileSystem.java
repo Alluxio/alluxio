@@ -29,6 +29,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class FaultTolerantFileSystem extends AbstractFileSystem {
 
+  /**
+   * Constructs a new {@link FaultTolerantFileSystem}.
+   */
+  public FaultTolerantFileSystem() {}
+
   @Override
   public String getScheme() {
     return Constants.SCHEME_FT;
