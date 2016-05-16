@@ -119,6 +119,54 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class FileSystemMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Locking in the FileSystemMaster
+   *
+   * Individual paths are locked in the inode tree. In order to read or write any inode, the path
+   * must be locked. A path is locked via one of the lock methods in {@link InodeTree}, such as
+   * {@link InodeTree#lockInodePath(AlluxioURI, InodeTree.LockMode)} or
+   * {@link InodeTree#lockFullInodePath(AlluxioURI, InodeTree.LockMode)}. These lock methods return
+   * an {@link InodePath}, which represents a locked path of inodes. These locked paths
+   * ({@link InodePath}) must be unlocked. In order to ensure a locked {@link InodePath} is always
+   * unlocked, the following paradigm is recommended:
+   *
+   * <p><blockquote><pre>
+   *    try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.READ)) {
+   *      ...
+   *    }
+   * </pre></blockquote>
+   *
+   *
+   * Method Conventions in the FileSystemMaster
+   *
+   * All of the flow of the FileSystemMaster follow a convention. There are essentially 3 main
+   * types of methods:
+   *   (A) public api methods
+   *   (B) private (or package private) methods that journal
+   *   (C) private (or package private) internal methods
+   *
+   * (A) public api methods:
+   * These methods are public and are accessed by the RPC and REST APIs. These methods lock all
+   * the required paths, and also perform all permission checking.
+   * (A) cannot call (A)
+   * (A) can call (B)
+   * (A) can call (C)
+   *
+   * (B) private (or package private) methods that journal:
+   * These methods perform the work from the public apis, and also asynchronously write to the
+   * journal (for write operations). The names of these methods are suffixed with "AndJournal".
+   * (B) cannot call (A)
+   * (B) can call (B)
+   * (B) can call (C)
+   *
+   * (C) private (or package private) internal methods:
+   * These methods perform the rest of the work, and do not do any journaling. The names of these
+   * methods are suffixed by "Internal".
+   * (C) cannot call (A)
+   * (C) cannot call (B)
+   * (C) can call (C)
+   */
+
   /** Handle to the block master. */
   private final BlockMaster mBlockMaster;
 
