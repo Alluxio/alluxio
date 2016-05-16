@@ -194,7 +194,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     // TODO(calvin): Fix the exception handling in the master
     try {
-      return masterClient.listStatus(path);
+      return masterClient.listStatus(path, options);
     } catch (FileDoesNotExistException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
@@ -202,12 +202,24 @@ public class BaseFileSystem implements FileSystem {
     }
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   */
+  @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path)
       throws FileDoesNotExistException, IOException, AlluxioException {
     loadMetadata(path, LoadMetadataOptions.defaults());
   }
 
+  /**
+   * {@inheritDoc}
+   *
+   * @deprecated since version 1.1 and will be removed in version 2.0
+   */
+  @Deprecated
   @Override
   public void loadMetadata(AlluxioURI path, LoadMetadataOptions options)
       throws FileDoesNotExistException, IOException, AlluxioException {

@@ -220,10 +220,10 @@ public final class BaseFileSystemTest {
     AlluxioURI file = new AlluxioURI("/file");
     List<URIStatus> infos = new ArrayList<>();
     infos.add(new URIStatus(new FileInfo()));
-    Mockito.when(mFileSystemMasterClient.listStatus(file)).thenReturn(infos);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+    Mockito.when(mFileSystemMasterClient.listStatus(file, listStatusOptions)).thenReturn(infos);
     Assert.assertSame(infos, mFileSystem.listStatus(file, listStatusOptions));
-    Mockito.verify(mFileSystemMasterClient).listStatus(file);
+    Mockito.verify(mFileSystemMasterClient).listStatus(file, listStatusOptions);
   }
 
   /**
@@ -234,7 +234,8 @@ public final class BaseFileSystemTest {
   @Test
   public void listStatusExceptionTest() throws Exception {
     AlluxioURI file = new AlluxioURI("/file");
-    Mockito.when(mFileSystemMasterClient.listStatus(file)).thenThrow(EXCEPTION);
+    Mockito.when(mFileSystemMasterClient.listStatus(file, ListStatusOptions.defaults()))
+        .thenThrow(EXCEPTION);
     ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
     try {
       mFileSystem.listStatus(file, listStatusOptions);

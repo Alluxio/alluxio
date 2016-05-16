@@ -14,14 +14,14 @@ package alluxio.examples.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.cli.CliUtils;
+import alluxio.cli.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.examples.Utils;
 import alluxio.util.io.BufferUtils;
 
 import org.slf4j.Logger;
@@ -127,11 +127,15 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
-          + KeyValueStoreOperations.class.getName() + " <key-value store URI>");
+      System.out.println(
+          "Usage: java -cp " + Version.ALLUXIO_JAR + " " + KeyValueStoreOperations.class.getName()
+              + " <key-value store URI>");
       System.exit(-1);
     }
 
-    Utils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    // TODO(binfan): the "run and exit" pattern shows up repeatedly in the code base and it might
+    // make sense to add a utility function for it to CliUtils
+    boolean result = CliUtils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));
+    System.exit(result ? 0 : 1);
   }
 }
