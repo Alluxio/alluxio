@@ -152,7 +152,7 @@ public final class ReplayCache<V> {
           try {
             return replayCallable.call();
           } catch (AlluxioException e) {
-            throw e.toAlluxioTException();
+            throw e.toThrift();
           }
         }
       });
@@ -183,7 +183,7 @@ public final class ReplayCache<V> {
           try {
             return replayCallable.call();
           } catch (AlluxioException e) {
-            throw e.toAlluxioTException();
+            throw e.toThrift();
           } catch (IOException e) {
             throw new ThriftIOException(e.getMessage());
           }
