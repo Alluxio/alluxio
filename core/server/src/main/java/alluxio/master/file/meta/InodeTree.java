@@ -52,7 +52,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.locks.Lock;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -65,6 +64,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
+  /**
+   * The type of lock to lock inode paths with.
+   */
   public enum LockMode {
     /** Read lock the entire path. */
     READ,
@@ -193,6 +195,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  /**
+   * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
+   * inode is not required to exist.
+   *
+   * @param path the path to lock
+   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @return the {@link InodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   */
   public InodePath lockInodePath(AlluxioURI path, LockMode lockMode) throws InvalidPathException {
     TraversalResult traversalResult =
         traverseToInode(PathUtils.getPathComponents(path.getPath()), lockMode, null);
@@ -200,6 +211,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
         traversalResult.getInodeLockGroup());
   }
 
+  /**
+   * Locks existing inodes on the two specified paths. The two paths will be locked in the
+   * correct order. The target inodes are not required to exist.
+   *
+   * @param path1 the first path to lock
+   * @param lockMode1 the {@link LockMode} of the first path
+   * @param path2 the second path to lock
+   * @param lockMode2 the {@link LockMode} of the second path
+   * @return a {@link InodePathPair} representing the two locked paths
+   * @throws InvalidPathException if a path is invalid
+   */
   public InodePathPair lockInodePathPair(AlluxioURI path1, LockMode lockMode1, AlluxioURI path2,
       LockMode lockMode2) throws InvalidPathException {
     String[] pathComponents1 = PathUtils.getPathComponents(path1.getPath());
@@ -271,6 +293,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  /**
+   * Returns the lock mode for a particular index into the path components.
+   *
+   * @param index the index into the path components
+   * @param length the length of path components
+   * @param lockMode the specified {@link LockMode}
+   * @param lockHints the list of lock hints for each index. This can be null, or incomplete
+   * @return the {@link LockMode} to lock this particular inode at this index with
+   */
   private LockMode getLockModeForComponent(int index, int length, LockMode lockMode,
       List<LockMode> lockHints) {
     if (lockHints != null && index < lockHints.size()) {
@@ -290,6 +321,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return LockMode.READ;
   }
 
+  /**
+   * Locks existing inodes on the specified path, in the specified {@link LockMode}. The target
+   * inode must exist.
+   *
+   * @param path the path to lock
+   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @return the {@link InodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the target inode does not exist
+   */
   public InodePath lockFullInodePath(AlluxioURI path, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult =
@@ -302,6 +343,17 @@ public final class InodeTree implements JournalCheckpointStreamable {
         traversalResult.getInodeLockGroup());
   }
 
+  /**
+   * Locks existing inodes on the path to the inode specified by an id., in the specified
+   * {@link LockMode}. The target inode must exist. This may require multiple traversals of the
+   * tree, so may be inefficient.
+   *
+   * @param id the inode id
+   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @return the {@link InodePath} representing the locked path of inodes
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the target inode does not exist
+   */
   public InodePath lockFullInodePath(long id, LockMode lockMode) throws FileDoesNotExistException {
     for (;;) {
       Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
@@ -325,6 +377,15 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  /**
+   * Attempts to extend an existing {@link InodePath} to reach the target inode. If the target
+   * inode does not exist, an exception will be thrown.
+   *
+   * @param inodePath the {@link InodePath} to extend to the target inode
+   * @param lockMode the {@link LockMode} to lock the inodes with
+   * @throws InvalidPathException if the path is invalid
+   * @throws FileDoesNotExistException if the target inode does not exist
+   */
   public void ensureFullInodePath(InodePath inodePath, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
     TraversalResult traversalResult = traverseToInode(inodePath, lockMode);
@@ -359,7 +420,14 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
-  // inode must already be locked!
+  /**
+   * Returns the path for a particular inode. The inode and the path to the inode must already be
+   * locked.
+   *
+   * @param inode the inode to get the path for
+   * @return the {@link AlluxioURI} for the path of the inode
+   * @throws FileDoesNotExistException if the path does not exist
+   */
   public AlluxioURI getPath(Inode<?> inode) throws FileDoesNotExistException {
     StringBuilder builder = new StringBuilder();
     computePathForInode(inode, builder);
@@ -599,7 +667,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     return getInodeChildrenRecursiveInternal((InodeDirectory) inode, lockMode, inodeGroup);
   }
 
-  public InodeLockGroup getInodeChildrenRecursiveInternal(InodeDirectory inodeDirectory,
+  private InodeLockGroup getInodeChildrenRecursiveInternal(InodeDirectory inodeDirectory,
       LockMode lockMode, InodeLockGroup inodeGroup) {
     for (Inode<?> child : inodeDirectory.getChildren()) {
       if (lockMode == LockMode.READ) {

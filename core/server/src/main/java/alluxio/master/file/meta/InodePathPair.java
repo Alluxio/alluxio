@@ -11,22 +11,10 @@
 
 package alluxio.master.file.meta;
 
-import alluxio.AlluxioURI;
-import alluxio.exception.ExceptionMessage;
-import alluxio.exception.FileDoesNotExistException;
-import alluxio.exception.InvalidPathException;
-import alluxio.util.io.PathUtils;
-
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a path of locked {@link Inode}, starting from the root.
+ * This class represents a pair of {@link InodePath}s.
  */
 @ThreadSafe
 public class InodePathPair implements AutoCloseable {
@@ -38,10 +26,16 @@ public class InodePathPair implements AutoCloseable {
     mInodePath2 = inodePath2;
   }
 
+  /**
+   * @return the first of two {@link InodePath}
+   */
   public synchronized InodePath getFirst() {
     return mInodePath1;
   }
 
+  /**
+   * @return the second of two {@link InodePath}
+   */
   public synchronized InodePath getSecond() {
     return mInodePath2;
   }

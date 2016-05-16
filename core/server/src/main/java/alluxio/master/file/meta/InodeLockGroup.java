@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -32,12 +31,20 @@ public final class InodeLockGroup implements AutoCloseable {
     mInodes = new ArrayList<>();
   }
 
+  /**
+   * Locks the given inode in read mode, and adds it to this lock group.
+   *
+   * @param inode the inode to lock
+   */
   public synchronized void lockRead(Inode<?> inode) {
     inode.lockRead();
     mReadLockedInodes.add(inode);
     mInodes.add(inode);
   }
 
+  /**
+   * Unlocks the last inode that was locked.
+   */
   public synchronized void unlockPrevious() {
     if (mInodes.isEmpty()) {
       return;
@@ -57,12 +64,20 @@ public final class InodeLockGroup implements AutoCloseable {
     }
   }
 
+  /**
+   * Locks the given inode in write mode, and adds it to this lock group.
+   *
+   * @param inode the inode to lock
+   */
   public synchronized void lockWrite(Inode<?> inode) {
     inode.lockWrite();
     mWriteLockedInodes.add(inode);
     mInodes.add(inode);
   }
 
+  /**
+   * @return the list of inodes locked in this lock group, in order of when the inodes were locked
+   */
   public synchronized List<Inode<?>> getInodes() {
     return mInodes;
   }

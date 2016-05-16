@@ -429,7 +429,6 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(1, infos.size());
     Assert.assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
 
-
     // Test files in nested directory.
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));

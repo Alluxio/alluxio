@@ -52,10 +52,19 @@ public abstract class InodePath implements AutoCloseable {
     mLockGroup = inodePath.mLockGroup;
   }
 
+  /**
+   * @return the full uri of the path
+   */
   public synchronized AlluxioURI getUri() {
     return mUri;
   }
 
+  /**
+   * Returns the target inode. If the target inode does not exist, an exception will be thrown.
+   *
+   * @return the target inode
+   * @throws FileDoesNotExistException if the target inode does not exist
+   */
   public synchronized Inode getInode() throws FileDoesNotExistException {
     if (!fullPathExists()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -63,7 +72,13 @@ public abstract class InodePath implements AutoCloseable {
     return mInodes.get(mInodes.size() - 1);
   }
 
-  // TODO(gpang): consider adding related getParentInodeDirectory() convenience method
+  /**
+   * Returns the target inode, as an {@link InodeFile}. If the target inode does not exist, or it
+   * is not a file, an exception will be thrown.
+   *
+   * @return the target inode as an {@link InodeFile}
+   * @throws FileDoesNotExistException if the target inode does not exist, or it is not a file
+   */
   public synchronized  InodeFile getInodeFile() throws FileDoesNotExistException {
     Inode inode = getInode();
     if (!inode.isFile()) {
@@ -72,6 +87,14 @@ public abstract class InodePath implements AutoCloseable {
     return (InodeFile) inode;
   }
 
+  /**
+   * Returns the parent of the target inode. If the parent of the target inode does not exist, an
+   * exception will be thrown.
+   *
+   * @return the parent of the target inode
+   * @throws InvalidPathException if the parent inode is not a directory
+   * @throws FileDoesNotExistException if the parent of the target does not exist
+   */
   public synchronized  InodeDirectory getParentInodeDirectory()
       throws InvalidPathException, FileDoesNotExistException {
     if (mPathComponents.length < 2 || mInodes.size() < (mPathComponents.length - 1)) {
@@ -86,10 +109,16 @@ public abstract class InodePath implements AutoCloseable {
     return (InodeDirectory) inode;
   }
 
+  /**
+   * @return a copy of the list of existing inodes, from the root
+   */
   public synchronized List<Inode<?>> getInodeList() {
     return Lists.newArrayList(mInodes);
   }
 
+  /**
+   * @return true if the entire path of inodes exists, false otherwise
+   */
   public synchronized boolean fullPathExists() {
     return mInodes.size() == mPathComponents.length;
   }
