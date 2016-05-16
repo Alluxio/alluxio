@@ -286,7 +286,8 @@ public final class MasterSourceTest {
   public void deletePathTest() throws Exception {
 
     // cannot delete root
-    Assert.assertFalse(mFileSystemMaster.delete(ROOT_URI, true));
+    // TODO(gpang): re-enable this assert when delete throws an exception for deleting root
+    mFileSystemMaster.delete(ROOT_URI, true);
 
     Assert.assertEquals(1, mCounters.get(MasterSource.DELETE_PATH_OPS).getCount());
     Assert.assertEquals(0, mCounters.get(MasterSource.PATHS_DELETED).getCount());
