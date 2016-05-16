@@ -353,10 +353,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         // committed. The other reader sees this.
         LOG.info("Block {} exists.", getCurrentBlockId());
       } else {
-        // This happens when there is any other cache stream close/cancel related errors (e.g.
+        // This happens when there are any other cache stream close/cancel related errors (e.g.
         // server unreachable due to network partition, server busy due to alluxio worker is
-        // busy, timeout because congested network etc). But we want to proceed since we want
-        // the user to continue reading when Alluxio is having trouble.
+        // busy, timeout due to congested network etc). But we want to proceed since we want
+        // the user to continue reading when one Alluxio worker is having trouble.
         LOG.warn("Cache stream close or cancel throws IOExecption {}, read continues.",
             e.getMessage());
       }
