@@ -36,6 +36,10 @@ public class UnderFileSystemFileOutStream extends OutputStream {
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
   private final NettyUnderFileSystemFileWriter mWriter;
+  /** Address of the worker to write to. */
+  private final InetSocketAddress mAddress;
+  /** Worker file id referencing the file to write to. */
+  private final long mUfsFileId;
 
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
@@ -52,7 +56,9 @@ public class UnderFileSystemFileOutStream extends OutputStream {
    */
   public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
-    mWriter = new NettyUnderFileSystemFileWriter(address, ufsFileId);
+    mAddress = address;
+    mUfsFileId = ufsFileId;
+    mWriter = new NettyUnderFileSystemFileWriter();
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;
@@ -147,7 +153,7 @@ public class UnderFileSystemFileOutStream extends OutputStream {
    * @throws IOException if an error occurs during when writing to the worker
    */
   private void writeToWorker(byte[] b, int off, int len) throws IOException {
-    mWriter.write(b, off, len);
+    mWriter.write(mAddress, mUfsFileId, mFlushedBytes, b, off, len);
     mFlushedBytes += len;
   }
 
