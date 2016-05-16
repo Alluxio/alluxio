@@ -438,8 +438,8 @@ public abstract class UnderFileSystem {
     // Clean the path by creating a URI and turning it back to a string
     AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();
-    List<String> returnPaths = new ArrayList<String>();
-    Queue<String> pathsToProcess = new ArrayDeque<String>();
+    List<String> returnPaths = new ArrayList<>();
+    Queue<String> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
     String[] subpaths = list(path);
     if (subpaths == null) {

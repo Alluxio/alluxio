@@ -26,6 +26,11 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class FileSystem extends AbstractFileSystem {
 
+  /**
+   * Constructs a new {@link FileSystem}.
+   */
+  public FileSystem() {}
+
   @Override
   public String getScheme() {
     return Constants.SCHEME;
