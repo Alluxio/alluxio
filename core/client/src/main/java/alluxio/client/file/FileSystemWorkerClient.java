@@ -181,16 +181,16 @@ public class FileSystemWorkerClient extends AbstractClient {
    *
    * @param tempUfsFileId the worker specific id of the file to complete
    * @param options method options
+   * @return the file size of the completed file
    * @throws AlluxioException if an error occurs in the internals of the Alluxio worker
    * @throws IOException if an error occurs interacting with the UFS
    */
-  public synchronized void completeUfsFile(final long tempUfsFileId,
+  public synchronized long completeUfsFile(final long tempUfsFileId,
       final CompleteUfsFileOptions options) throws AlluxioException, IOException {
-    retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<Long>() {
       @Override
-      public Void call() throws AlluxioTException, TException {
-        mClient.completeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
-        return null;
+      public Long call() throws AlluxioTException, TException {
+        return mClient.completeUfsFile(mSessionId, tempUfsFileId, options.toThrift());
       }
     });
   }

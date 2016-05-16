@@ -103,14 +103,15 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for completing the file
+   * @return the length of the completed file
    * @throws AlluxioTException if an internal Alluxio error occurs
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
+  public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.completeUfsFile(sessionId, tempUfsFileId);
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

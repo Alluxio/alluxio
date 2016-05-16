@@ -150,12 +150,13 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
+   * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void completeUfsFile(long sessionId, long tempUfsFileId)
+  public long completeUfsFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId);
+    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId);
   }
 
   /**
