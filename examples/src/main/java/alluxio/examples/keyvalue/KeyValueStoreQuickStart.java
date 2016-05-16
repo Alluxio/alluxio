@@ -22,8 +22,7 @@ import alluxio.client.keyvalue.KeyValueSystem;
  */
 public final class KeyValueStoreQuickStart {
 
-  // prevent instantiation
-  private KeyValueStoreQuickStart() {}
+  private KeyValueStoreQuickStart() {} // prevent instantiation
 
   /**
    * The main program.
