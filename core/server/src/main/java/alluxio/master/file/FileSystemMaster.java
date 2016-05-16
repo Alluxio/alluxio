@@ -641,7 +641,8 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      return createFileAndJournal(inodePath, options);
+      createFileAndJournal(inodePath, options);
+      return inodePath.getInode().getId();
     }
   }
 
@@ -800,7 +801,8 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, inodePath);
       mMountTable.checkUnderWritableMountPoint(path);
-      return deleteAndJournal(inodePath, recursive);
+      deleteAndJournal(inodePath, recursive);
+      return true;
     }
   }
 
@@ -1637,7 +1639,8 @@ public final class FileSystemMaster extends AbstractMaster {
       AccessControlException {
     try (InodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, inodePath);
-      return loadMetadataAndJournal(inodePath, recursive);
+      loadMetadataAndJournal(inodePath, recursive);
+      return inodePath.getInode().getId();
     }
   }
 
