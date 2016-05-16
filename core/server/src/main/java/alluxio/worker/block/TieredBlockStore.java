@@ -666,8 +666,7 @@ public final class TieredBlockStore implements BlockStore {
     }
     // 2. transfer blocks among tiers.
     // 2.1. group blocks move plan by the destination tier.
-    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier =
-        new HashMap<String, Set<BlockTransferInfo>>();
+    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier = new HashMap<>();
     for (BlockTransferInfo entry : plan.toMove()) {
       String alias = entry.getDstLocation().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
