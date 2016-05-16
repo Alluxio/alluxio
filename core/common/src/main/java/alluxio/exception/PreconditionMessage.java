@@ -35,8 +35,8 @@ public final class PreconditionMessage {
       "Cannot do operations on a closed BlockInStream";
   public static final String ERR_CLOSED_BLOCK_OUT_STREAM =
       "Cannot do operations on a closed BlockOutStream";
-  public static final String ERR_CLOSED_NETTY_UNDER_FILE_WRITER =
-      "Cannot do operations on a closed NettyUnderFileWriter";
+  public static final String ERR_CLOSED_UNDER_FILE_SYSTEM_FILE_OUT_STREAM =
+      "Cannot do operations on a closed UnderFileSystemFileOutStraem";
   public static final String ERR_END_OF_BLOCK = "Cannot write past end of block";
   public static final String ERR_READ_BUFFER_NULL = "Read buffer cannot be null";
   public static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
