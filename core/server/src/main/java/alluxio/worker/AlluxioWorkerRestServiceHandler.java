@@ -58,6 +58,11 @@ public final class AlluxioWorkerRestServiceHandler {
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
 
   /**
+   * Constructs a new {@link AlluxioWorkerRestServiceHandler}.
+   */
+  public AlluxioWorkerRestServiceHandler() {}
+
+  /**
    * @summary get the address of the worker
    * @return the response object
    */
