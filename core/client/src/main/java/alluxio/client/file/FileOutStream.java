@@ -159,7 +159,10 @@ public class FileOutStream extends AbstractOutStream {
           if (mCanceled) {
             mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
           } else {
-            mFileSystemWorkerClient.completeUfsFile(mUfsFileId, CompleteUfsFileOptions.defaults());
+            long len =
+                mFileSystemWorkerClient.completeUfsFile(mUfsFileId,
+                    CompleteUfsFileOptions.defaults());
+            options.setUfsLength(len);
           }
         } catch (AlluxioException e) {
           throw new IOException(e);

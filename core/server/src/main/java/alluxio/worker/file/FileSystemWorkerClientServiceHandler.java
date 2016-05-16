@@ -89,7 +89,7 @@ public final class FileSystemWorkerClientServiceHandler
   public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.cancelUfsFile(sessionId, tempUfsFileId);
+      mWorker.closeUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

@@ -77,6 +77,9 @@ public class UnderFileSystemFileOutStream extends OutputStream {
 
   @Override
   public void flush() throws IOException {
+    if (mBuffer.position() == 0) {
+      return;
+    }
     writeToWorker(mBuffer.array(), 0, mBuffer.position());
     mBuffer.clear();
   }
