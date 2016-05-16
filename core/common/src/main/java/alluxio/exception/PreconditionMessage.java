@@ -76,6 +76,7 @@ public final class PreconditionMessage {
   public static final String ERR_PUT_EMPTY_VALUE = "Cannot put an empty buffer as a value";
   public static final String ERR_PUT_NULL_KEY = "Cannot put a null key";
   public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
+  public static final String ERR_UNEXPECTED_EOF = "Reached EOF unepxectedly.";
 
   private PreconditionMessage() {} // to prevent initialization
 }

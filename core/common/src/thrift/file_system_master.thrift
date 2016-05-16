@@ -25,6 +25,10 @@ struct MountTOptions {
   2: optional map<string, string> properties
 }
 
+struct ListStatusTOptions {
+  1: optional bool loadDirectChildren
+}
+
 /**
 * Contains the information of a block in a file. In addition to the BlockInfo, it includes the
 * offset in the file, and the under file system locations of the block replicas.
@@ -162,13 +166,15 @@ service FileSystemMasterClientService extends common.AlluxioService {
    * If the path points to a directory, the method returns a list with file information for the
    * directory contents.
    */
-  list<FileInfo> listStatus( /** the path of the file or directory */ 1: string path)
+  list<FileInfo> listStatus( /** the path of the file or directory */ 1: string path,
+      /** listStatus options */ 2: ListStatusTOptions options)
     throws (1: exception.AlluxioTException e)
 
   /**
    * Loads metadata for the object identified by the given Alluxio path from UFS into Alluxio.
+   *
+   * THIS METHOD IS DEPRECATED SINCE VERSION 1.1 AND WILL BE REMOVED IN VERSION 2.0.
    */
-  // TODO(jiri): Get rid of this.
   i64 loadMetadata( /** the path of the under file system */ 1: string ufsPath,
       /** whether to load meta data recursively */ 2: bool recursive)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
