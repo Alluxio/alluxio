@@ -32,8 +32,7 @@ public interface JournalFormatter {
    */
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * Factory method for {@link JournalFormatter}.

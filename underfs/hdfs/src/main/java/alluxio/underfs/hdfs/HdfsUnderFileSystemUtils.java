@@ -23,8 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class HdfsUnderFileSystemUtils {
 
-  // prevent instantiation
-  private HdfsUnderFileSystemUtils() {}
+  private HdfsUnderFileSystemUtils() {} // prevent instantiation
 
   /**
    * Replaces default key with user provided key.
