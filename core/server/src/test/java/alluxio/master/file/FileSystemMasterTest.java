@@ -733,7 +733,6 @@ public final class FileSystemMasterTest {
   @Test
   public void testLoadMetadataTest() throws Exception {
     FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
-    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true));
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
@@ -751,6 +750,16 @@ public final class FileSystemMasterTest {
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     mThrown.expect(FileAlreadyExistsException.class);
     mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+  }
+
+  /**
+   * Tests load root metadata. It should not fail.
+   *
+    * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void testLoadRoot() throws Exception {
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
