@@ -25,8 +25,7 @@ public final class LoginModuleConfigurationUtils {
   /** Class name of Principal according to different OS type. */
   public static final String OS_PRINCIPAL_CLASS_NAME;
 
-  // prevent instantiation
-  private LoginModuleConfigurationUtils() {}
+  private LoginModuleConfigurationUtils() {} // prevent instantiation
 
   static {
     OS_LOGIN_MODULE_NAME = getOSLoginModuleName();

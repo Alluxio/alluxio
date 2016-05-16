@@ -61,8 +61,7 @@ public final class Performance {
   private static int sBaseFileNumber = 0;
   private static boolean sAlluxioStreamingRead = false;
 
-  // prevent instantiation
-  private Performance() {}
+  private Performance() {} // prevent instantiation
 
   /**
    * Creates the files for this example.
