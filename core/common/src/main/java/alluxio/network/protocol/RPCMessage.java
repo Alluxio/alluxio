@@ -100,7 +100,7 @@ public abstract class RPCMessage implements EncodedMessage {
         case 7:
           return RPC_FILE_WRITE_REQUEST;
         case 8:
-          return RPC_BLOCK_WRITE_RESPONSE;
+          return RPC_FILE_WRITE_RESPONSE;
         default:
           throw new IllegalArgumentException("Unknown RPCMessage type id. id: " + id);
       }

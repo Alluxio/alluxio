@@ -78,13 +78,13 @@ public enum FileSystemContext {
    * @throws IOException if an error occurs getting the list of workers in the system
    */
   public FileSystemWorkerClient acquireWorkerClient() throws IOException {
+    WorkerNetAddress address;
     synchronized (mWorkerAddressesLock) {
       if (mWorkerAddresses == null) {
         mWorkerAddresses = getWorkerAddresses();
       }
+      address = mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
     }
-    WorkerNetAddress address =
-        mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
     long sessionId = IdUtils.getRandomNonNegativeLong();
     return new FileSystemWorkerClient(address, ClientContext.getExecutorService(),
         ClientContext.getConf(), sessionId, ClientContext.getClientMetrics());
@@ -114,6 +114,9 @@ public enum FileSystemContext {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+    synchronized (mWorkerAddressesLock) {
+      mWorkerAddresses = null;
+    }
   }
 
   /**
