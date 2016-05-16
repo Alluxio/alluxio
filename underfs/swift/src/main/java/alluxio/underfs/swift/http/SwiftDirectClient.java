@@ -37,6 +37,11 @@ public class SwiftDirectClient {
   private static final int HTTP_CHUNK_STREAMING = 8 * 1024 * 1024;
 
   /**
+   * Constructs a new {@link SwiftDirectClient}.
+   */
+  public SwiftDirectClient() {}
+
+  /**
    * Swift HTTP PUT request.
    *
    * @param access JOSS access object

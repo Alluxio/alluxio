@@ -254,8 +254,9 @@ function main {
     runJavaClass "$@"
   ;;
   "loadufs")
-    CLASS="alluxio.cli.UfsUtils"
-    runJavaClass "$@"
+    echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1."
+    echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead."
+    exit 1
   ;;
   "runClass")
     CLASS=$1

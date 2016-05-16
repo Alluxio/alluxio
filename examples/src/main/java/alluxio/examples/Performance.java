@@ -40,7 +40,7 @@ import java.nio.channels.FileChannel.MapMode;
 /**
  * Example to show the performance of Alluxio.
  */
-public class Performance {
+public final class Performance {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
@@ -60,6 +60,8 @@ public class Performance {
   private static long[] sResults = new long[RESULT_ARRAY_SIZE];
   private static int sBaseFileNumber = 0;
   private static boolean sAlluxioStreamingRead = false;
+
+  private Performance() {} // prevent instantiation
 
   /**
    * Creates the files for this example.
