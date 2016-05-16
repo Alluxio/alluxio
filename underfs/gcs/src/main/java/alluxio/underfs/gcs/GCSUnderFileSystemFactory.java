@@ -35,6 +35,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link GCSUnderFileSystemFactory}.
+   */
+  public GCSUnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
     Preconditions.checkNotNull(path);

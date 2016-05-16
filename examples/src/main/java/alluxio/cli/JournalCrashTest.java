@@ -37,7 +37,9 @@ import java.util.List;
  * Class to perform Journal crash test. The clients issue commands to the master, and the master
  * generates journal events. Check if the master can generate and reproduce the journal correctly.
  */
-public class JournalCrashTest {
+public final class JournalCrashTest {
+
+  private JournalCrashTest() {} // prevent instantiation
 
   /**
    * The operation types to test.
