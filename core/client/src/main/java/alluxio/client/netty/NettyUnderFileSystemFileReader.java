@@ -65,7 +65,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
    * @param ufsFileId the worker specific file id referencing the file to read
    * @param offset the offset in the file to read from
    * @param length the length to read
-   * @return a byte buffer with the requested data
+   * @return a byte buffer with the requested data, null if EOF is reached
    * @throws IOException if an error occurs communicating with the worker
    */
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
@@ -92,6 +92,10 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
             // always clear the previous response before reading another one
             cleanup();
             mReadResponse = resp;
+            // End of file reached
+            if (resp.getLength() == -1) {
+              return null;
+            }
             return resp.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + resp);
