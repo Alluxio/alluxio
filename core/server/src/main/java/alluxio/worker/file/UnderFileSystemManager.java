@@ -226,15 +226,17 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
+     * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private void complete() throws IOException {
+    private long complete() throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (!ufs.rename(mTemporaryUri, mUri)) {
         // TODO(calvin): Log a warning if the delete fails
         ufs.delete(mTemporaryUri, false);
       }
+      return ufs.getFileSize(mUri);
     }
 
     /**
@@ -337,10 +339,11 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
+   * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void completeFile(long sessionId, long tempUfsFileId)
+  public long completeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
@@ -354,7 +357,7 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
-    agent.complete();
+    return agent.complete();
   }
 
   /**
