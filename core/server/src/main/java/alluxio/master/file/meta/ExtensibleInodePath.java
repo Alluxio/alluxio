@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * additional inodes along the path.
  */
 @ThreadSafe
-public final class ExtensibleInodePath extends InodePath {
+public class ExtensibleInodePath extends InodePath {
   ExtensibleInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
       throws InvalidPathException {
     super(uri, inodes, lockGroup);

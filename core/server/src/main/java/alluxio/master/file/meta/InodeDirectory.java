@@ -52,6 +52,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   private boolean mMountPoint;
 
+  private boolean mDirectChildrenLoaded;
+
   /**
    * Creates a new instance of {@link InodeDirectory}.
    *
@@ -66,6 +68,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   private InodeDirectory(long id, long creationTimeMs) {
     this(id);
     mCreationTimeMs = creationTimeMs;
+
+    mDirectChildrenLoaded = false;
   }
 
   @Override
@@ -131,6 +135,13 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   }
 
   /**
+   * @return true if we have loaded all the direct children's metadata once
+   */
+  public synchronized boolean isDirectChildrenLoaded() {
+    return mDirectChildrenLoaded;
+  }
+
+  /**
    * Removes the given inode from the directory.
    *
    * @param child the Inode to remove
@@ -156,11 +167,20 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public InodeDirectory setMountPoint(boolean mountPoint) {
     mMountPoint = mountPoint;
-    return this;
+    return getThis();
   }
 
   /**
-   * Generates client file info for the folder.
+   * @param directChildrenLoaded whether to load the direct children if they were not loaded before
+   * @return the updated object
+   */
+  public synchronized InodeDirectory setDirectChildrenLoaded(boolean directChildrenLoaded) {
+    mDirectChildrenLoaded = directChildrenLoaded;
+    return getThis();
+  }
+
+  /**
+   * Generates client file info for a folder.
    *
    * @param path the path of the folder in the filesystem
    * @return the generated {@link FileInfo}
@@ -211,7 +231,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
             .setPinned(entry.getPinned())
             .setLastModificationTimeMs(entry.getLastModificationTimeMs())
             .setPermissionStatus(permissionStatus)
-            .setMountPoint(entry.getMountPoint());
+            .setMountPoint(entry.getMountPoint())
+            .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
     return inode;
   }
 
@@ -250,6 +271,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setGroupName(getGroupName())
         .setPermission(getPermission())
         .setMountPoint(isMountPoint())
+        .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

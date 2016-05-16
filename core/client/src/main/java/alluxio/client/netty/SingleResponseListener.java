@@ -29,6 +29,11 @@ public final class SingleResponseListener implements ClientHandler.ResponseListe
 
   private SettableFuture<RPCResponse> mResponse = SettableFuture.create();
 
+  /**
+   * Constructs a new {@link SingleResponseListener}.
+   */
+  public SingleResponseListener() {}
+
   @Override
   public void onResponseReceived(RPCResponse response) {
     mResponse.set(response);

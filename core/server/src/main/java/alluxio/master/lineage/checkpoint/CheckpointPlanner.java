@@ -28,6 +28,9 @@ public interface CheckpointPlanner {
    * Factory for {@link CheckpointPlanner}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * @param conf Alluxio configuration to determine the planner type
      * @param lineageStoreView a view of the lineage store

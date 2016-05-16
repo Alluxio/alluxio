@@ -22,6 +22,8 @@ import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -65,7 +67,7 @@ public final class CheckpointLatestPlanner implements CheckpointPlanner {
       }
     }
 
-    return toCheckpoint == null ? new CheckpointPlan(Lists.<Long>newArrayList())
+    return toCheckpoint == null ? new CheckpointPlan(new ArrayList<Long>())
         : new CheckpointPlan(Lists.newArrayList(toCheckpoint.getId()));
   }
 }

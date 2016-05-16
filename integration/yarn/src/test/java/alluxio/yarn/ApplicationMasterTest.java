@@ -98,7 +98,7 @@ public class ApplicationMasterTest {
       ImmutableMap.<String, String>builder()
           .put("CLASSPATH", ENV_CLASSPATH)
           .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
-          .put("ALLUXIO_MASTER_ADDRESS", "masterAddress")
+          .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
           .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
           .build();
   private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =

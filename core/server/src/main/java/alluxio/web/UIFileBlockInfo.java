@@ -15,7 +15,6 @@ import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
@@ -69,7 +68,7 @@ public final class UIFileBlockInfo {
   }
 
   private void addLocations(FileBlockInfo fileBlockInfo) {
-    Set<String> locations = Sets.newHashSet();
+    Set<String> locations = new HashSet<>();
     // add alluxio locations
     for (BlockLocation location : fileBlockInfo.getBlockInfo().getLocations()) {
       locations.add(location.getWorkerAddress().getHost());

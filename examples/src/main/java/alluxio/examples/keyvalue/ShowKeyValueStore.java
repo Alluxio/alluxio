@@ -12,7 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
@@ -40,6 +40,8 @@ public final class ShowKeyValueStore {
           scope));
     }
   }
+
+  private ShowKeyValueStore() {} // prevent instantiation
 
   /**
    * @param args two parameters, the first is the key-value store URI, the second is the scope of

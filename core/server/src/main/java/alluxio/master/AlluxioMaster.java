@@ -14,8 +14,8 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ValidateConf;
-import alluxio.Version;
+import alluxio.cli.ValidateConf;
+import alluxio.cli.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -32,6 +32,7 @@ import alluxio.web.UIWebServer;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
+
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -45,6 +46,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -62,13 +65,13 @@ public class AlluxioMaster {
   private static AlluxioMaster sAlluxioMaster = null;
 
   /**
-   * Starts the Alluxio master server via {@code java -cp <ALLUXIO-VERSION> alluxio.Master}.
+   * Starts the Alluxio master.
    *
-   * @param args there are no arguments used
+   * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} alluxio.Master", Version.ALLUXIO_JAR);
+      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioMaster.class.getCanonicalName());
       System.exit(-1);
     }
 
@@ -78,11 +81,17 @@ public class AlluxioMaster {
       System.exit(-1);
     }
 
+    AlluxioMaster master = get();
     try {
-      AlluxioMaster master = get();
       master.start();
     } catch (Exception e) {
-      LOG.error("Uncaught exception terminating Master", e);
+      LOG.error("Uncaught exception while running Alluxio master, stopping it and exiting.", e);
+      try {
+        master.stop();
+      } catch (Exception e2) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping Alluxio master, simply exiting.", e2);
+      }
       System.exit(-1);
     }
   }
@@ -179,7 +188,7 @@ public class AlluxioMaster {
     if (sServiceNames != null) {
       return sServiceNames;
     }
-    sServiceNames = Lists.newArrayList();
+    sServiceNames = new ArrayList<>();
     sServiceNames.add(Constants.BLOCK_MASTER_NAME);
     sServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
     sServiceNames.add(Constants.LINEAGE_MASTER_NAME);
@@ -231,9 +240,9 @@ public class AlluxioMaster {
       // deployment more complicated.
       if (!conf.getBoolean(Constants.IN_TEST_MODE)) {
         Preconditions.checkState(conf.getInt(Constants.MASTER_RPC_PORT) > 0,
-            "Master rpc port is only allowed to be zero in test mode.");
+            "Alluxio master rpc port is only allowed to be zero in test mode.");
         Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
-            "Master web port is only allowed to be zero in test mode.");
+            "Alluxio master web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create(conf);
       mTServerSocket =
@@ -249,7 +258,7 @@ public class AlluxioMaster {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
       Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Alluxio was not formatted! The journal folder is " + journalDirectory);
+          "Alluxio master was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
       mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
@@ -264,7 +273,7 @@ public class AlluxioMaster {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
 
-      mAdditionalMasters = Lists.newArrayList();
+      mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
@@ -331,6 +340,13 @@ public class AlluxioMaster {
   }
 
   /**
+   * @return other additional {@link Master}s
+   */
+  public List<Master> getAdditionalMasters() {
+    return Collections.unmodifiableList(mAdditionalMasters);
+  }
+
+  /**
    * @return internal {@link FileSystemMaster}
    */
   public FileSystemMaster getFileSystemMaster() {
@@ -382,13 +398,13 @@ public class AlluxioMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping RPC server on Alluxio Master @ {}", mMasterAddress);
+      LOG.info("Stopping RPC server on Alluxio master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
     } else {
-      LOG.info("Stopping Alluxio Master @ {}", mMasterAddress);
+      LOG.info("Stopping Alluxio master @ {}", mMasterAddress);
     }
   }
 
@@ -436,10 +452,10 @@ public class AlluxioMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Alluxio Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} started @ {} {}", Version.VERSION, mMasterAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Alluxio Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
         stopMessage);
   }
 
@@ -514,7 +530,7 @@ public class AlluxioMaster {
   /**
    * Checks to see if the journal directory is formatted.
    *
-   * @param journalDirectory The journal directory to check
+   * @param journalDirectory the journal directory to check
    * @return true if the journal directory was formatted previously, false otherwise
    * @throws IOException if an I/O error occurs
    */

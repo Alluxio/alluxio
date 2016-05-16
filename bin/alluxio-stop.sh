@@ -56,4 +56,3 @@ case "${WHAT}" in
     exit 1
     ;;
 esac
-

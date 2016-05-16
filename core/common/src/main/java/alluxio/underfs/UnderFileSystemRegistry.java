@@ -71,10 +71,14 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class UnderFileSystemRegistry {
 
-  private static final List<UnderFileSystemFactory> FACTORIES =
-      new CopyOnWriteArrayList<UnderFileSystemFactory>();
+  private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
+
+  /**
+   * Constructs a new {@link UnderFileSystemRegistry}.
+   */
+  public UnderFileSystemRegistry() {}
 
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes
@@ -162,7 +166,7 @@ public final class UnderFileSystemRegistry {
   public static List<UnderFileSystemFactory> findAll(String path, Configuration configuration) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
-    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<UnderFileSystemFactory>();
+    List<UnderFileSystemFactory> eligibleFactories = new ArrayList<>();
     for (UnderFileSystemFactory factory : FACTORIES) {
       if (factory.supportsPath(path, configuration)) {
         LOG.debug("Under File System Factory implementation {} is eligible for path {}",

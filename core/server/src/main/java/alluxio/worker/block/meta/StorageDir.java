@@ -64,9 +64,9 @@ public final class StorageDir {
     mAvailableBytes = new AtomicLong(capacityBytes);
     mCommittedBytes = new AtomicLong(0);
     mDirPath = dirPath;
-    mBlockIdToBlockMap = new HashMap<Long, BlockMeta>(200);
-    mBlockIdToTempBlockMap = new HashMap<Long, TempBlockMeta>(200);
-    mSessionIdToTempBlockIdsMap = new HashMap<Long, Set<Long>>(200);
+    mBlockIdToBlockMap = new HashMap<>(200);
+    mBlockIdToTempBlockMap = new HashMap<>(200);
+    mSessionIdToTempBlockIdsMap = new HashMap<>(200);
   }
 
   /**
@@ -201,7 +201,7 @@ public final class StorageDir {
    * @return a list of block ids
    */
   public List<Long> getBlockIds() {
-    return new ArrayList<Long>(mBlockIdToBlockMap.keySet());
+    return new ArrayList<>(mBlockIdToBlockMap.keySet());
   }
 
   /**
@@ -210,7 +210,7 @@ public final class StorageDir {
    * @return a list of blocks
    */
   public List<BlockMeta> getBlocks() {
-    return new ArrayList<BlockMeta>(mBlockIdToBlockMap.values());
+    return new ArrayList<>(mBlockIdToBlockMap.values());
   }
 
   /**
@@ -430,7 +430,7 @@ public final class StorageDir {
     if (sessionTempBlockIds == null || sessionTempBlockIds.isEmpty()) {
       return Collections.emptyList();
     }
-    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<>();
     for (long blockId : sessionTempBlockIds) {
       sessionTempBlocks.add(mBlockIdToTempBlockMap.get(blockId));
     }

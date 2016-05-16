@@ -32,6 +32,11 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private boolean mInitialized = false;
 
   /**
+   * Constructs a new {@link RoundRobinPolicy}.
+   */
+  public RoundRobinPolicy() {}
+
+  /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
    * round-robin manner in the subsequent calls. The policy doesn't assume the list of worker info
    * in the subsequent calls has the same order from the first, and it will skip the workers that
