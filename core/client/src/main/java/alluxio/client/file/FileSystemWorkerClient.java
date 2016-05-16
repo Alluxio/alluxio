@@ -120,16 +120,6 @@ public class FileSystemWorkerClient extends AbstractClient {
     }
   }
 
-  /**
-   * Sends one last heartbeat to the worker in order to update metrics.
-   */
-  @Override
-  protected synchronized void beforeDisconnect() {
-    if (mHeartbeatExecutor != null) {
-      mHeartbeatExecutor.heartbeat();
-    }
-  }
-
   @Override
   protected synchronized AlluxioService.Client getClient() {
     return mClient;

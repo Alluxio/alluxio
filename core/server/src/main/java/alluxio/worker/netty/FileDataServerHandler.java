@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * This class handles filesystem data server requests.
@@ -108,7 +110,9 @@ public class FileDataServerHandler {
 
     try {
       OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
-      out.write(data.getReadOnlyByteBuffer().array());
+      WritableByteChannel channel = Channels.newChannel(out);
+      channel.write(data.getReadOnlyByteBuffer());
+      channel.close();
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
