@@ -68,6 +68,9 @@ public final class BlockWorkerClientRestServiceHandler {
   private final StorageTierAssoc mStorageTierAssoc =
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
+  /**
+   * Constructs a new {@link BlockWorkerClientRestServiceHandler}.
+   */
   public BlockWorkerClientRestServiceHandler() {}
 
   /**
