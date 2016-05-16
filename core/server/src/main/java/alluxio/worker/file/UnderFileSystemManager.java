@@ -13,9 +13,11 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -26,10 +28,9 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -41,6 +42,63 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Consider whether the manager or the agents should contain the execution logic
 @ThreadSafe
 public final class UnderFileSystemManager {
+  // Input stream agent session index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Input stream agent id index
+  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
+      new IndexedSet.FieldIndex<InputStreamAgent>() {
+        @Override
+        public Object getFieldValue(InputStreamAgent o) {
+          return o.mAgentId;
+        }
+      };
+
+  // Output stream agent session index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mSessionId;
+        }
+      };
+
+  // Output stream agent id index
+  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
+      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+        @Override
+        public Object getFieldValue(OutputStreamAgent o) {
+          return o.mAgentId;
+        }
+      };
+
+  /** A random id generator for worker file ids. */
+  private final AtomicLong mIdGenerator;
+  /** Map of worker file ids to open under file system input streams. */
+  @GuardedBy("itself")
+  private final IndexedSet<InputStreamAgent> mInputStreamAgents;
+  /** Map of worker file ids to open under file system output streams. */
+  @GuardedBy("itself")
+  private final IndexedSet<OutputStreamAgent> mOutputStreamAgents;
+
+  /**
+   * Creates a new under file system manager. Stream ids are unique to each under file system
+   * manager.
+   */
+  public UnderFileSystemManager() {
+    mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
+    mInputStreamAgents =
+        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
+    mOutputStreamAgents =
+        new IndexedSet<>(mOuputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
+  }
+
   /**
    * An object which generates input streams to under file system files given a position. This
    * class does not manage the life cycles of the generated streams and it is up to the caller to
@@ -48,6 +106,10 @@ public final class UnderFileSystemManager {
    */
   @ThreadSafe
   private final class InputStreamAgent {
+    /** Session this agent belongs to, used as an index. */
+    private final long mSessionId;
+    /** Id referencing this agent, used as an index. */
+    private final long mAgentId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
     /** The string form of the uri to the file in the under file system. */
@@ -57,13 +119,17 @@ public final class UnderFileSystemManager {
      * Constructor for an input stream agent for a UFS file. The file must exist when this is
      * called.
      *
+     * @param sessionId the session this agent belongs to
+     * @param agentId the agentId of the agent
      * @param ufsUri the uri of the file in the UFS
      * @param conf the configuration to use
      * @throws FileDoesNotExistException if the file does not exist in the UFS
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private InputStreamAgent(AlluxioURI ufsUri, Configuration conf) throws
-        FileDoesNotExistException, IOException {
+    private InputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf)
+        throws FileDoesNotExistException, IOException {
+      mSessionId = sessionId;
+      mAgentId = agentId;
       mUri = ufsUri.toString();
       mConfiguration = conf;
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
@@ -106,6 +172,10 @@ public final class UnderFileSystemManager {
   // TODO(calvin): This can be defined by the UnderFileSystem
   @NotThreadSafe
   private final class OutputStreamAgent {
+    /** Session this agent belongs to, indexed on. */
+    private final long mSessionId;
+    /** Id referencing this agent, indexed on. */
+    private final long mAgentId;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
     /** Underlying stream to the under file system file. */
@@ -119,13 +189,17 @@ public final class UnderFileSystemManager {
      * Creates an output stream agent for the specified UFS uri. The UFS file must not exist when
      * this constructor is called.
      *
+     * @param sessionId the agentId of the session that created this object
+     * @param agentId the worker specific agentId which references this object
      * @param ufsUri the file to create in the UFS
      * @param conf the configuration to use
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(AlluxioURI ufsUri, Configuration conf)
+    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf)
         throws FileAlreadyExistsException, IOException {
+      mSessionId = sessionId;
+      mAgentId = agentId;
       mConfiguration = Preconditions.checkNotNull(conf);
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
@@ -171,54 +245,64 @@ public final class UnderFileSystemManager {
     }
   }
 
-  /** A random id generator for worker file ids. */
-  private final AtomicLong mIdGenerator;
-  /** Map of worker file ids to open under file system input streams. */
-  private final ConcurrentMap<Long, InputStreamAgent> mInputStreams;
-  /** Map of worker file ids to open under file system output streams. */
-  private final ConcurrentMap<Long, OutputStreamAgent> mOutputStreams;
-
-  /**
-   * Creates a new under file system manager. Stream ids are unique to each under file system
-   * manager.
-   */
-  public UnderFileSystemManager() {
-    mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
-    mInputStreams = new ConcurrentHashMap<>();
-    mOutputStreams = new ConcurrentHashMap<>();
-  }
-
   /**
    * Creates a {@link OutputStreamAgent} for the given file path and adds it to the open streams map
    * keyed with the returned worker file id.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long createFile(AlluxioURI ufsUri) throws FileAlreadyExistsException, IOException {
-    OutputStreamAgent stream = new OutputStreamAgent(ufsUri, WorkerContext.getConf());
-    long workerFileId = mIdGenerator.getAndIncrement();
-    mOutputStreams.put(workerFileId, stream);
-    return workerFileId;
+  public long createFile(long sessionId, AlluxioURI ufsUri) throws FileAlreadyExistsException,
+      IOException {
+    long id = mIdGenerator.getAndIncrement();
+    OutputStreamAgent agent =
+        new OutputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
+    synchronized (mOutputStreamAgents) {
+      mOutputStreamAgents.add(agent);
+    }
+    return id;
   }
 
   /**
    * Cancels the open stream associated with the given worker file id. This will close the open
    * stream.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void cancelFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
-    if (stream != null) {
-      stream.cancel();
-    } else {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+  public void cancelFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "cancel");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+    }
+    agent.cancel();
+  }
+
+  /**
+   * Cleans up the state of the given session id.
+   *
+   * @param sessionId the session id to clean up
+   */
+  public void cleanupSession(long sessionId) {
+    synchronized (mInputStreamAgents) {
+      mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
+    }
+    synchronized (mOutputStreamAgents) {
+      mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
     }
   }
 
@@ -226,15 +310,24 @@ public final class UnderFileSystemManager {
    * Closes an open input stream associated with the given temporary ufs file id. The temporary
    * ufs file id will be invalid after this is called.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the temporary ufs file id
    * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void closeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    InputStreamAgent removed = mInputStreams.remove(tempUfsFileId);
-    if (removed == null) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+  public void closeFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    synchronized (mInputStreamAgents) {
+      InputStreamAgent agent =
+          mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "close");
+      Preconditions.checkState(mInputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
   }
 
@@ -242,17 +335,26 @@ public final class UnderFileSystemManager {
    * Completes an open stream associated with the given worker file id. This will close the open
    * stream.
    *
+   * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void completeFile(long tempUfsFileId) throws FileDoesNotExistException, IOException {
-    OutputStreamAgent stream = mOutputStreams.remove(tempUfsFileId);
-    if (stream == null) {
-      throw new FileDoesNotExistException(
-          ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+  public void completeFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException {
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      if (agent == null) {
+        throw new FileDoesNotExistException(
+            ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
+      }
+      Preconditions.checkArgument(agent.mSessionId == sessionId,
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete");
+      Preconditions.checkState(mOutputStreamAgents.remove(agent),
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
-    stream.complete();
+    agent.complete();
   }
 
   /**
@@ -264,12 +366,15 @@ public final class UnderFileSystemManager {
    */
   public InputStream getInputStreamAtPosition(long tempUfsFileId, long position)
       throws FileDoesNotExistException, IOException {
-    InputStreamAgent stream = mInputStreams.get(tempUfsFileId);
-    if (stream == null) {
+    InputStreamAgent agent;
+    synchronized (mInputStreamAgents) {
+      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+    }
+    if (agent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
-    return stream.openAtPosition(position);
+    return agent.openAtPosition(position);
   }
 
   /**
@@ -278,26 +383,33 @@ public final class UnderFileSystemManager {
    * @throws FileDoesNotExistException if the worker file id not valid
    */
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
-    OutputStreamAgent stream = mOutputStreams.get(tempUfsFileId);
-    if (stream == null) {
+    OutputStreamAgent agent;
+    synchronized (mOutputStreamAgents) {
+      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+    }
+    if (agent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
     }
-    return stream.getStream();
+    return agent.getStream();
   }
 
   /**
    * Opens a file from the under file system and associates it with a worker file id.
    *
+   * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
    * @return the worker file id which should be used to reference the open stream
    * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long openFile(AlluxioURI ufsUri) throws FileDoesNotExistException, IOException {
-    InputStreamAgent stream = new InputStreamAgent(ufsUri, WorkerContext.getConf());
-    long workerFileId = mIdGenerator.getAndIncrement();
-    mInputStreams.put(workerFileId, stream);
-    return workerFileId;
+  public long openFile(long sessionId, AlluxioURI ufsUri)
+      throws FileDoesNotExistException, IOException {
+    long id = mIdGenerator.getAndIncrement();
+    InputStreamAgent agent = new InputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
+    synchronized (mInputStreamAgents) {
+      mInputStreamAgents.add(agent);
+    }
+    return id;
   }
 }
