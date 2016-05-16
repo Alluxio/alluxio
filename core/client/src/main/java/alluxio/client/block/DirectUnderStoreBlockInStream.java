@@ -34,6 +34,7 @@ public class DirectUnderStoreBlockInStream extends UnderStoreBlockInStream {
   public DirectUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       String ufsPath) throws IOException {
     super(initPos, length, fileBlockSize, ufsPath);
+    setUnderStoreStream(0);
   }
 
   @Override

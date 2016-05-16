@@ -55,15 +55,12 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
    * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param fileBlockSize the block size for the file
    * @param ufsPath the under file system path
-   * @throws IOException if an I/O error occurs
    */
-  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath)
-      throws IOException {
+  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath) {
     mInitPos = initPos;
     mLength = length;
     mFileBlockSize = fileBlockSize;
     mUfsPath = ufsPath;
-    setUnderStoreStream(0);
   }
 
   @Override
