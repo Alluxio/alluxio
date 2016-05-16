@@ -369,6 +369,8 @@ public final class Constants {
       "alluxio.user.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "alluxio.user.block.master.client.threads";
+  public static final String USER_FILE_WORKER_CLIENT_THREADS =
+      "alluxio.user.file.worker.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "alluxio.user.file.master.client.threads";
   public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
