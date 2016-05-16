@@ -70,8 +70,7 @@ public final class FileSystemMasterClientRestServiceHandler {
 
   private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
-  // prevent instantiation
-  private FileSystemMasterClientRestServiceHandler() {}
+  public  FileSystemMasterClientRestServiceHandler() {}
 
   /**
    * @summary get the service name

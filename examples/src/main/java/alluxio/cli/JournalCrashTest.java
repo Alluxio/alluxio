@@ -39,8 +39,7 @@ import java.util.List;
  */
 public final class JournalCrashTest {
 
-  // prevent instantiation
-  private JournalCrashTest() {}
+  private JournalCrashTest() {} // prevent instantiation
 
   /**
    * The operation types to test.
