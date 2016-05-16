@@ -21,7 +21,8 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a path of locked {@link Inode}, starting from the root.
+ * This class represents an {@link InodePath}, where the list of inodes can be extended to gather
+ * additional inodes along the path.
  */
 @ThreadSafe
 public final class ExtensibleInodePath extends InodePath {
@@ -30,6 +31,12 @@ public final class ExtensibleInodePath extends InodePath {
     super(uri, inodes, lockGroup);
   }
 
+  /**
+   * Returns the closest ancestor of the target inode.
+   *
+   * @return the closest ancestor inode
+   * @throws FileDoesNotExistException if an ancestor does not exist
+   */
   public synchronized Inode getAncestorInode() throws FileDoesNotExistException {
     int ancestorIndex = mPathComponents.length - 2;
     if (ancestorIndex < 0) {

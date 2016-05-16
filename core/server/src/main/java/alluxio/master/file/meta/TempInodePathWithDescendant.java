@@ -12,31 +12,40 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 
-import com.google.common.collect.ImmutableList;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a path of locked {@link Inode}, starting from the root.
+ * This class represents a temporary {@link InodePath}. This {@link InodePath} will not unlock the
+ * inodes on close. This {@link InodePath} can set any descendant (does not have to be immediate),
+ * useful for operations requiring an {@link InodePath}.
  */
 @ThreadSafe
 public final class TempInodePathWithDescendant extends InodePath {
   private AlluxioURI mDescendantUri;
   private Inode<?> mDescendantInode;
 
+  /**
+   * Constructs a temporary {@link InodePath} from an existing {@link InodePath}.
+   *
+   * @param inodePath the {@link InodePath} to create the temporary path from
+   */
   public TempInodePathWithDescendant(InodePath inodePath) {
     super(inodePath);
     mDescendantUri = new AlluxioURI(inodePath.mUri.toString());
     mDescendantInode = null;
   }
 
+  /**
+   * Sets the already locked descendant inode for this temporary {@link InodePath}.
+   *
+   * @param descendantInode the descendant inode, which should already be locked
+   * @param uri the path of this descendant
+   */
   public synchronized void setDescendant(Inode<?> descendantInode, AlluxioURI uri) {
     mDescendantInode = descendantInode;
     mDescendantUri = uri;

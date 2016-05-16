@@ -269,18 +269,30 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   protected abstract T getThis();
 
+  /**
+   * Lock this inode for reading.
+   */
   public void lockRead() {
     mReadLock.lock();
   }
 
+  /**
+   * Read unlock this inode.
+   */
   public void unlockRead() {
     mReadLock.unlock();
   }
 
+  /**
+   * Lock this inode for writing/updating.
+   */
   public void lockWrite() {
     mWriteLock.lock();
   }
 
+  /**
+   * Write unlock this inode.
+   */
   public void unlockWrite() {
     mWriteLock.unlock();
   }

@@ -11,7 +11,6 @@
 
 package alluxio.master.file;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
