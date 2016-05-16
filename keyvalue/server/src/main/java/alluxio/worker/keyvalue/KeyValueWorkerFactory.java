@@ -31,6 +31,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueWorkerFactory implements WorkerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link KeyValueWorkerFactory}.
+   */
+  public KeyValueWorkerFactory() {}
+
   @Override
   public KeyValueWorker create(List<? extends Worker> workers) {
     if (!WorkerContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {

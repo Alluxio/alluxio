@@ -71,6 +71,11 @@ public final class FileSystemMasterClientRestServiceHandler {
   private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
   /**
+   * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   */
+  public  FileSystemMasterClientRestServiceHandler() {}
+
+  /**
    * @summary get the service name
    * @return the response object
    */
@@ -248,37 +253,19 @@ public final class FileSystemMasterClientRestServiceHandler {
   /**
    * @summary get the file descriptors for a path
    * @param path the file path
+   * @param loadDirectChildren whether to load direct children of path
    * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
-  public Response listStatus(@QueryParam("path") String path) {
+  public Response listStatus(@QueryParam("path") String path,
+      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path)));
+      return RestUtils.createResponse(
+          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), loadDirectChildren));
     } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
-   * @summary load metadata for a path
-   * @param path the alluxio path to load metadata for
-   * @param recursive whether metadata should be loaded recursively
-   * @return the response object
-   */
-  @POST
-  @Path(LOAD_METADATA)
-  @ReturnType("java.lang.Long")
-  public Response loadMetadata(@QueryParam("path") String path,
-      @QueryParam("recursive") boolean recursive) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils
-          .createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive));
-    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }

@@ -81,8 +81,10 @@ public final class FileInfo {
     mPersistenceState = fileInfo.getPersistenceState();
     mMountPoint = fileInfo.isMountPoint();
     mFileBlockInfos = new ArrayList<>();
-    for (alluxio.thrift.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
-      mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
+    if (fileInfo.getFileBlockInfos() != null) {
+      for (alluxio.thrift.FileBlockInfo fileBlockInfo : fileInfo.getFileBlockInfos()) {
+        mFileBlockInfos.add(new FileBlockInfo(fileBlockInfo));
+      }
     }
   }
 

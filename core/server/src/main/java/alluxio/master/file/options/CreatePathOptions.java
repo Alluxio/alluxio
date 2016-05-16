@@ -28,6 +28,7 @@ public abstract class CreatePathOptions<T> {
   protected long mOperationTimeMs;
   protected PermissionStatus mPermissionStatus;
   protected boolean mPersisted;
+  // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 

@@ -11,7 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -50,6 +50,8 @@ public final class JournalTool {
 
   private static boolean sNoTimeout = false;
   private static boolean sHelp = false;
+
+  private JournalTool() {} // prevent instantiation
 
   /**
    * Reads a journal via

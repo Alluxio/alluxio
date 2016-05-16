@@ -32,6 +32,11 @@ public final class AlluxioLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
 
+  /**
+   * Constructs a new {@link AlluxioLoginModule}.
+   */
+  public AlluxioLoginModule() {}
+
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
       Map<String, ?> sharedState, Map<String, ?> options) {
@@ -129,7 +134,7 @@ public final class AlluxioLoginModule implements LoginModule {
       loader = ClassLoader.getSystemClassLoader();
     }
 
-    Class<? extends Principal> clazz = null;
+    Class<? extends Principal> clazz;
     try {
       // Declare a temp variable so that we can suppress warnings locally
       @SuppressWarnings("unchecked")

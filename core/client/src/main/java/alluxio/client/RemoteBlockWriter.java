@@ -30,6 +30,9 @@ public interface RemoteBlockWriter extends Closeable {
    * The factory for the {@link RemoteBlockWriter}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory for {@link RemoteBlockWriter}.
      *
