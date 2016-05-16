@@ -33,6 +33,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link OSSUnderFileSystemFactory}.
+   */
+  public OSSUnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
     Preconditions.checkNotNull(path);
