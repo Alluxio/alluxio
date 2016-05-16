@@ -35,8 +35,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
    */
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * Factory method to create a {@link KeyValuePartitionWriter} instance that writes key-value
