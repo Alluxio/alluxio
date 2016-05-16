@@ -76,6 +76,11 @@ public final class AlluxioMasterRestServiceHandler {
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
 
   /**
+   * Constructs a new {@link AlluxioMasterRestServiceHandler}.
+   */
+  public AlluxioMasterRestServiceHandler() {}
+
+  /**
    * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    */
