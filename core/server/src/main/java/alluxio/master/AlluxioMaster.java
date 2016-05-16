@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.cli.ValidateConf;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -23,6 +22,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -77,7 +77,7 @@ public class AlluxioMaster {
     }
 
     // validate the conf
-    if (!ValidateConf.validate(Configuration.createServerConf())) {
+    if (!ConfigurationUtils.validateConf(Configuration.createServerConf())) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }

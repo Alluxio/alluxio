@@ -14,10 +14,10 @@ package alluxio.worker;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.cli.ValidateConf;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
@@ -74,7 +74,7 @@ public final class AlluxioWorker {
     }
 
     // validate the conf
-    if (!ValidateConf.validate(Configuration.createServerConf())) {
+    if (!ConfigurationUtils.validateConf(Configuration.createServerConf())) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
