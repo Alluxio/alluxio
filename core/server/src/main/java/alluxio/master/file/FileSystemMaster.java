@@ -110,7 +110,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -124,26 +123,21 @@ public final class FileSystemMaster extends AbstractMaster {
   private final BlockMaster mBlockMaster;
 
   /** This manages the file system inode structure. This must be journaled. */
-  @GuardedBy("itself")
   private final InodeTree mInodeTree;
 
   /** This manages the file system mount points. */
-  @GuardedBy("mInodeTree")
   private final MountTable mMountTable;
 
   /** Map from worker to the files to persist on that worker. Used by async persistence service. */
-  @GuardedBy("mInodeTree")
   private final Map<Long, Set<Long>> mWorkerToAsyncPersistFiles;
 
   /** This maintains inodes with ttl set, for the for the ttl checker service to use. */
-  @GuardedBy("mInodeTree")
   private final TtlBucketList mTtlBuckets = new TtlBucketList();
 
   /** This generates unique directory ids. This must be journaled. */
   private final InodeDirectoryIdGenerator mDirectoryIdGenerator;
 
   /** This checks user permissions on different operations. */
-  @GuardedBy("mInodeTree")
   private final PermissionChecker mPermissionChecker;
 
   /** List of paths to always keep in memory. */
@@ -404,7 +398,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the {@link FileInfo} for the given inode
    * @throws FileDoesNotExistException if the file does not exist
    */
-  @GuardedBy("mInodeTree")
   private FileInfo getFileInfoInternal(InodePath inodePath) throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     AlluxioURI path = inodePath.getUri();
@@ -604,7 +597,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
-  @GuardedBy("mInodeTree")
   void completeFileInternal(List<Long> blockIds, InodePath inodePath, long length, long opTimeMs)
       throws FileDoesNotExistException, InvalidPathException, InvalidFileSizeException,
       FileAlreadyCompletedException {
@@ -631,7 +623,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidFileSizeException if an invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file has already been completed
    */
-  @GuardedBy("mInodeTree")
   private void completeFileFromEntry(CompleteFileEntry entry)
       throws InvalidPathException, InvalidFileSizeException, FileAlreadyCompletedException {
     try (InodePath inodePath = mInodeTree
@@ -713,7 +704,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
    *         option is false
    */
-  @GuardedBy("mInodeTree")
   InodeTree.CreatePathResult createFileInternal(InodePath inodePath, CreateFileOptions options)
       throws InvalidPathException, FileAlreadyExistsException, BlockInfoException, IOException,
       FileDoesNotExistException {
@@ -767,7 +757,6 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    */
-  @GuardedBy("mInodeTree")
   private void resetBlockFileFromEntry(ReinitializeFileEntry entry) {
     try (InodePath inodePath = mInodeTree
         .lockFullInodePath(new AlluxioURI(entry.getPath()), InodeTree.LockMode.WRITE)) {
@@ -878,7 +867,6 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    */
-  @GuardedBy("mInodeTree")
   private void deleteFromEntry(DeleteFileEntry entry) {
     MasterContext.getMasterSource().incDeletePathOps(1);
     try (InodePath inodePath = mInodeTree
@@ -900,7 +888,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileDoesNotExistException if a non-existent file is encountered
    * @throws IOException if an I/O error is encountered
    */
-  @GuardedBy("mInodeTree")
   private boolean deleteRecursiveInternal(InodePath inodePath, boolean replayed, long opTimeMs)
       throws FileDoesNotExistException, IOException {
     try {
@@ -925,7 +912,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error is encountered
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  @GuardedBy("mInodeTree")
   boolean deleteInternal(InodePath inodePath, boolean recursive, boolean replayed,
       long opTimeMs) throws FileDoesNotExistException, IOException, DirectoryNotEmptyException {
     // TODO(jiri): A crash after any UFS object is deleted and before the delete operation is
@@ -1031,7 +1017,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return a list of {@link FileBlockInfo} for all the blocks of the given inode
    * @throws InvalidPathException if the path of the given file is invalid
    */
-  @GuardedBy("mInodeTree")
   private List<FileBlockInfo> getFileBlockInfoListInternal(InodePath inodePath)
     throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
@@ -1053,7 +1038,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return a new {@link FileBlockInfo} for the block
    * @throws InvalidPathException if the mount table is not able to resolve the file
    */
-  @GuardedBy("mInodeTree")
   private FileBlockInfo generateFileBlockInfo(InodePath inodePath, BlockInfo blockInfo)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
@@ -1416,7 +1400,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error is encountered
    */
-  @GuardedBy("mInodeTree")
   void renameInternal(InodePath srcInodePath, InodePath dstInodePath, boolean replayed,
       long opTimeMs) throws FileDoesNotExistException, InvalidPathException, IOException {
     Inode<?> srcInode = srcInodePath.getInode();
@@ -1457,7 +1440,6 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    */
-  @GuardedBy("mInodeTree")
   private void renameFromEntry(RenameEntry entry) {
     MasterContext.getMasterSource().incRenamePathOps(1);
     // Determine the srcPath and dstPath
@@ -1489,7 +1471,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    */
-  @GuardedBy("mInodeTree")
   private List<Inode<?>> propagatePersistedInternal(InodePath inodePath, boolean replayed)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
@@ -1570,7 +1551,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param recursive if true, and the file is a directory, all descendants will be freed
    * @return true if the file was freed
    */
-  @GuardedBy("mInodeTree")
   private boolean freeInternal(InodePath inodePath, boolean recursive)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
@@ -1784,7 +1764,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-  @GuardedBy("mInodeTree")
   private long loadDirectoryMetadataAndJournal(InodePath inodePath, boolean recursive)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
@@ -1804,7 +1783,6 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the {@link InodePath} to load the metadata for
    */
-  @GuardedBy("mInodeTree")
   private long loadMetadataIfNotExistAndJournal(InodePath inodePath) {
     if (!inodePath.fullPathExists()) {
       try {
@@ -1909,7 +1887,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  @GuardedBy("mInodeTree")
   void mountFromEntry(AddMountPointEntry entry)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
@@ -1930,7 +1907,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  @GuardedBy("mInodeTree")
   void mountInternal(InodePath inodePath, AlluxioURI ufsPath, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
@@ -2036,7 +2012,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileDoesNotExistException if path does not exist
    */
-  @GuardedBy("mInodeTree")
   private void unmountFromEntry(DeleteMountPointEntry entry)
       throws InvalidPathException, FileDoesNotExistException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
@@ -2052,7 +2027,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return true if successful, false otherwise
    * @throws InvalidPathException if an invalied path is encountered
    */
-  @GuardedBy("mInodeTree")
   private boolean unmountInternal(InodePath inodePath) throws InvalidPathException {
     return mMountTable.delete(inodePath.getUri());
   }
@@ -2148,25 +2122,26 @@ public final class FileSystemMaster extends AbstractMaster {
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
           List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, opTimeMs, options);
           journalPersistedInodes(persistedInodes);
-          journalSetAttribute(inode.getId(), opTimeMs, options);
+          journalSetAttribute(tempInodePath, opTimeMs, options);
         }
       }
     }
     List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, opTimeMs, options);
     journalPersistedInodes(persistedInodes);
-    return journalSetAttribute(targetInode.getId(), opTimeMs, options);
+    return journalSetAttribute(inodePath, opTimeMs, options);
   }
 
   /**
-   * @param fileId the file id to use
+   * @param inodePath the file path to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @return the flush counter for journaling
+   * @throws FileDoesNotExistException if path does not exist
    */
-  @GuardedBy("mInodeTree")
-  private long journalSetAttribute(long fileId, long opTimeMs, SetAttributeOptions options) {
+  private long journalSetAttribute(InodePath inodePath, long opTimeMs,
+      SetAttributeOptions options) throws FileDoesNotExistException {
     SetAttributeEntry.Builder builder =
-        SetAttributeEntry.newBuilder().setId(fileId).setOpTimeMs(opTimeMs);
+        SetAttributeEntry.newBuilder().setId(inodePath.getInode().getId()).setOpTimeMs(opTimeMs);
     if (options.getPinned() != null) {
       builder.setPinned(options.getPinned());
     }
@@ -2271,7 +2246,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException
    */
-  @GuardedBy("mInodeTree")
   List<Inode<?>> setAttributeInternal(InodePath inodePath, long opTimeMs,
       SetAttributeOptions options)
       throws FileDoesNotExistException {
@@ -2323,7 +2297,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
    */
-  @GuardedBy("mInodeTree")
   private void setAttributeFromEntry(SetAttributeEntry entry) throws FileDoesNotExistException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {

@@ -32,7 +32,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -78,7 +77,6 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
   public void checkParentPermission(FileSystemAction action, InodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
@@ -114,7 +112,6 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
   public void checkPermission(FileSystemAction action, InodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
@@ -140,7 +137,6 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
   public void checkSetAttributePermission(InodePath inodePath, boolean superuserRequired,
       boolean ownerRequired) throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
@@ -196,7 +192,6 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
   private void checkOwner(InodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
