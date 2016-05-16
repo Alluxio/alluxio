@@ -72,7 +72,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -93,7 +93,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -115,7 +115,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -138,7 +138,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -160,7 +160,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
