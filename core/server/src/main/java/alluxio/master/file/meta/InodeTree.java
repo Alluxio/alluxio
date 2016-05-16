@@ -873,7 +873,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
         nonPersistedInodes, lockGroup, lockMode, null);
   }
 
-  // TODO(gpang): support locking inodes with write lock.
   private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
       List<Inode<?>> nonPersistedInodes, InodeLockGroup lockGroup, LockMode lockMode,
       List<LockMode> lockHints)
