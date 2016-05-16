@@ -28,9 +28,9 @@ import java.io.IOException;
  * past the end of the file will be successful until a subsequent read occurs.
  */
 public class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStream {
-  /** File System Worker Client */
+  /** File System Worker Client. */
   private final FileSystemWorkerClient mClient;
-  /** File id of the ufs file */
+  /** File id of the ufs file. */
   private final long mUfsFileId;
 
   /**
