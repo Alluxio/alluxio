@@ -11,11 +11,8 @@
 
 package alluxio.shell.command;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.options.LoadMetadataOptions;
-import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -51,8 +48,9 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    System.out.println("The \"loadMetadata\" command is deprecated since version 1.1.");
-    System.out.println("Use the \"ls\" command instead.");
+    System.out
+        .println("The \"alluxio fs loadMetadata <path>\" command is deprecated since version 1.1.");
+    System.out.println("Use the \"alluxio fs ls <path>\" command instead.");
   }
 
   @Override
