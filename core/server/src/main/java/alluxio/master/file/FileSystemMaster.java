@@ -1630,7 +1630,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws IOException, InvalidPathException, AccessControlException, FileDoesNotExistException {
     if (mInodeTree.inodePathExists(path)) {
       Inode inode = mInodeTree.getInodeByPath(path);
-      if (inode.isPersisted() || path.isRoot()) {
+      if (inode.isPersisted()) {
         return inode.getId();
       }
     }
