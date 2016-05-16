@@ -110,9 +110,10 @@ public class FileDataServerHandler {
 
     try {
       OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
+      // This channel will not be closed because the underlying stream should not be closed, the
+      // channel will be cleaned up when the underyling stream is closed.
       WritableByteChannel channel = Channels.newChannel(out);
       channel.write(data.getReadOnlyByteBuffer());
-      channel.close();
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
