@@ -44,45 +44,36 @@ public final class NettyUnderFileSystemFileWriter {
   private final Bootstrap mClientBootstrap;
   /** Handler for Netty messages. */
   private final ClientHandler mHandler;
-  /** Worker address. */
-  private final InetSocketAddress mAddress;
-  /** Worker specific file id of the file to write to. */
-  private final long mUfsFileId;
-
-  /** Total number of bytes written to the ufs file. */
-  private long mWrittenBytes;
 
   /**
    * Constructor for a Netty based writer to an under file system file on a worker.
-   *
-   * @param address the address of the worker managing the file
-   * @param tempUfsFileId the worker specific file id
    */
-  public NettyUnderFileSystemFileWriter(InetSocketAddress address, long tempUfsFileId) {
+  public NettyUnderFileSystemFileWriter() {
     mHandler = new ClientHandler();
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
-    mAddress = address;
-    mUfsFileId = tempUfsFileId;
-    mWrittenBytes = 0;
   }
 
   /**
    * Writes data to the file in the under file system.
    *
+   * @param address worker address to write the data to
+   * @param ufsFileId worker file id referencing the file
+   * @param fileOffset where in the file to start writing, only sequential writes are supported
    * @param bytes data to write
    * @param offset start offset of the data
    * @param length length to write
    * @throws IOException if an error occurs during the write
    */
-  public void write(byte[] bytes, int offset, int length) throws IOException {
+  public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
+      int offset, int length) throws IOException {
     SingleResponseListener listener = new SingleResponseListener();
     try {
-      ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
+      ChannelFuture f = mClientBootstrap.connect(address).sync();
 
-      LOG.info("Connected to remote machine {}", mAddress);
+      LOG.info("Connected to remote machine {}", address);
       Channel channel = f.channel();
       mHandler.addListener(listener);
-      channel.writeAndFlush(new RPCFileWriteRequest(mUfsFileId, mWrittenBytes, length,
+      channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
           new DataByteArrayChannel(bytes, offset, length)));
 
       RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -92,13 +83,12 @@ public final class NettyUnderFileSystemFileWriter {
         case RPC_FILE_WRITE_RESPONSE:
           RPCFileWriteResponse resp = (RPCFileWriteResponse) response;
           RPCResponse.Status status = resp.getStatus();
-          LOG.info("status: {} from remote machine {} received", status, mAddress);
+          LOG.info("status: {} from remote machine {} received", status, address);
 
           if (status != RPCResponse.Status.SUCCESS) {
-            throw new IOException(ExceptionMessage.UNDER_FILE_WRITE_ERROR.getMessage(mUfsFileId,
-                mAddress, status.getMessage()));
+            throw new IOException(ExceptionMessage.UNDER_FILE_WRITE_ERROR.getMessage(ufsFileId,
+                address, status.getMessage()));
           }
-          mWrittenBytes += length;
           break;
         case RPC_ERROR_RESPONSE:
           RPCErrorResponse error = (RPCErrorResponse) response;
