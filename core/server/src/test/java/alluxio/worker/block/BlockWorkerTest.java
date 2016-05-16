@@ -154,9 +154,9 @@ public class BlockWorkerTest {
     when(mSessions.getTimedOutSessions()).thenReturn(sessions);
     Whitebox.invokeMethod(mBlockWorker, "setupSessionCleaner");
     SessionCleaner cleaner = Whitebox.getInternalState(mBlockWorker, "mSessionCleaner");
-    SessionCleanupCallback cleanable =
+    SessionCleanupCallback callback =
         Whitebox.getInternalState(cleaner, "mSessionCleanupCallback");
-    cleanable.cleanupSessions();
+    callback.cleanupSessions();
     verify(mSessions).removeSession(sessionId);
     verify(mBlockStore).cleanupSession(sessionId);
   }
