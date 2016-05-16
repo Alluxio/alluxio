@@ -45,62 +45,84 @@ public class FileSystemWorkerClientService {
     /**
      * Cancels a file which has not been completed in the under file system.
      * 
+     * @param sessionId the id of the current session
+     * 
      * @param tempUfsFileId the worker specific file id of the ufs file
      * 
      * @param options the options for canceling the file
      */
-    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Closes a file in the under file system which was previously opened for reading.
      * 
      * 
+     * @param sessionId the id of the current session
+     * 
      * @param tempUfsFileId the worker specific file id of the ufs file
      * 
      * @param options the options for closing the file
      */
-    public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Completes a file in the under file system.
+     * 
+     * @param sessionId the id of the current session
      * 
      * @param tempUfsFileId the worker specific file id of the ufs file
      * 
      * @param options the options for completing the file
      */
-    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file in the under file system.
+     * 
+     * @param sessionId the id of the current session
      * 
      * @param ufsPath the path of the file in the ufs
      * 
      * @param options the options for creating the file
      */
-    public long createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Opens an existing file in the under file system for reading.
+     * 
+     * @param sessionId the id of the current session
      * 
      * @param ufsPath the path of the file in the ufs
      * 
      * @param options the options for opening the file
      */
-    public long openUfsFile(String ufsPath, OpenUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long openUfsFile(long sessionId, String ufsPath, OpenUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+
+    /**
+     * Local session send heartbeat to local worker to keep its state. It also can be used to send
+     * client metrics to the worker.
+     * 
+     * @param sessionId the id of the current session
+     * 
+     * @param metrics the client metrics
+     */
+    public void sessionHeartbeat(long sessionId, List<Long> metrics) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface extends alluxio.thrift.AlluxioService .AsyncIface {
 
-    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void createUfsFile(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
-    public void openUfsFile(String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void openUfsFile(long sessionId, String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+
+    public void sessionHeartbeat(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -124,15 +146,16 @@ public class FileSystemWorkerClientService {
       super(iprot, oprot);
     }
 
-    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_cancelUfsFile(tempUfsFileId, options);
+      send_cancelUfsFile(sessionId, tempUfsFileId, options);
       recv_cancelUfsFile();
     }
 
-    public void send_cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options) throws org.apache.thrift.TException
+    public void send_cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options) throws org.apache.thrift.TException
     {
       cancelUfsFile_args args = new cancelUfsFile_args();
+      args.setSessionId(sessionId);
       args.setTempUfsFileId(tempUfsFileId);
       args.setOptions(options);
       sendBase("cancelUfsFile", args);
@@ -151,15 +174,16 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_closeUfsFile(tempUfsFileId, options);
+      send_closeUfsFile(sessionId, tempUfsFileId, options);
       recv_closeUfsFile();
     }
 
-    public void send_closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options) throws org.apache.thrift.TException
+    public void send_closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options) throws org.apache.thrift.TException
     {
       closeUfsFile_args args = new closeUfsFile_args();
+      args.setSessionId(sessionId);
       args.setTempUfsFileId(tempUfsFileId);
       args.setOptions(options);
       sendBase("closeUfsFile", args);
@@ -178,15 +202,16 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_completeUfsFile(tempUfsFileId, options);
+      send_completeUfsFile(sessionId, tempUfsFileId, options);
       recv_completeUfsFile();
     }
 
-    public void send_completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options) throws org.apache.thrift.TException
+    public void send_completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws org.apache.thrift.TException
     {
       completeUfsFile_args args = new completeUfsFile_args();
+      args.setSessionId(sessionId);
       args.setTempUfsFileId(tempUfsFileId);
       args.setOptions(options);
       sendBase("completeUfsFile", args);
@@ -205,15 +230,16 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public long createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_createUfsFile(ufsPath, options);
+      send_createUfsFile(sessionId, ufsPath, options);
       return recv_createUfsFile();
     }
 
-    public void send_createUfsFile(String ufsPath, CreateUfsFileTOptions options) throws org.apache.thrift.TException
+    public void send_createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options) throws org.apache.thrift.TException
     {
       createUfsFile_args args = new createUfsFile_args();
+      args.setSessionId(sessionId);
       args.setUfsPath(ufsPath);
       args.setOptions(options);
       sendBase("createUfsFile", args);
@@ -235,15 +261,16 @@ public class FileSystemWorkerClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "createUfsFile failed: unknown result");
     }
 
-    public long openUfsFile(String ufsPath, OpenUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long openUfsFile(long sessionId, String ufsPath, OpenUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
-      send_openUfsFile(ufsPath, options);
+      send_openUfsFile(sessionId, ufsPath, options);
       return recv_openUfsFile();
     }
 
-    public void send_openUfsFile(String ufsPath, OpenUfsFileTOptions options) throws org.apache.thrift.TException
+    public void send_openUfsFile(long sessionId, String ufsPath, OpenUfsFileTOptions options) throws org.apache.thrift.TException
     {
       openUfsFile_args args = new openUfsFile_args();
+      args.setSessionId(sessionId);
       args.setUfsPath(ufsPath);
       args.setOptions(options);
       sendBase("openUfsFile", args);
@@ -265,6 +292,27 @@ public class FileSystemWorkerClientService {
       throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "openUfsFile failed: unknown result");
     }
 
+    public void sessionHeartbeat(long sessionId, List<Long> metrics) throws org.apache.thrift.TException
+    {
+      send_sessionHeartbeat(sessionId, metrics);
+      recv_sessionHeartbeat();
+    }
+
+    public void send_sessionHeartbeat(long sessionId, List<Long> metrics) throws org.apache.thrift.TException
+    {
+      sessionHeartbeat_args args = new sessionHeartbeat_args();
+      args.setSessionId(sessionId);
+      args.setMetrics(metrics);
+      sendBase("sessionHeartbeat", args);
+    }
+
+    public void recv_sessionHeartbeat() throws org.apache.thrift.TException
+    {
+      sessionHeartbeat_result result = new sessionHeartbeat_result();
+      receiveBase(result, "sessionHeartbeat");
+      return;
+    }
+
   }
   public static class AsyncClient extends alluxio.thrift.AlluxioService.AsyncClient implements AsyncIface {
     public static class Factory implements org.apache.thrift.async.TAsyncClientFactory<AsyncClient> {
@@ -283,18 +331,20 @@ public class FileSystemWorkerClientService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void cancelUfsFile(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void cancelUfsFile(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      cancelUfsFile_call method_call = new cancelUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      cancelUfsFile_call method_call = new cancelUfsFile_call(sessionId, tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class cancelUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
       private long tempUfsFileId;
       private CancelUfsFileTOptions options;
-      public cancelUfsFile_call(long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public cancelUfsFile_call(long sessionId, long tempUfsFileId, CancelUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
         this.tempUfsFileId = tempUfsFileId;
         this.options = options;
       }
@@ -302,6 +352,7 @@ public class FileSystemWorkerClientService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("cancelUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         cancelUfsFile_args args = new cancelUfsFile_args();
+        args.setSessionId(sessionId);
         args.setTempUfsFileId(tempUfsFileId);
         args.setOptions(options);
         args.write(prot);
@@ -318,18 +369,20 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void closeUfsFile(long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      closeUfsFile_call method_call = new closeUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      closeUfsFile_call method_call = new closeUfsFile_call(sessionId, tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class closeUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
       private long tempUfsFileId;
       private CloseUfsFileTOptions options;
-      public closeUfsFile_call(long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public closeUfsFile_call(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
         this.tempUfsFileId = tempUfsFileId;
         this.options = options;
       }
@@ -337,6 +390,7 @@ public class FileSystemWorkerClientService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("closeUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         closeUfsFile_args args = new closeUfsFile_args();
+        args.setSessionId(sessionId);
         args.setTempUfsFileId(tempUfsFileId);
         args.setOptions(options);
         args.write(prot);
@@ -353,18 +407,20 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void completeUfsFile(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      completeUfsFile_call method_call = new completeUfsFile_call(tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
+      completeUfsFile_call method_call = new completeUfsFile_call(sessionId, tempUfsFileId, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class completeUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
       private long tempUfsFileId;
       private CompleteUfsFileTOptions options;
-      public completeUfsFile_call(long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public completeUfsFile_call(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
         this.tempUfsFileId = tempUfsFileId;
         this.options = options;
       }
@@ -372,6 +428,7 @@ public class FileSystemWorkerClientService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("completeUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         completeUfsFile_args args = new completeUfsFile_args();
+        args.setSessionId(sessionId);
         args.setTempUfsFileId(tempUfsFileId);
         args.setOptions(options);
         args.write(prot);
@@ -388,18 +445,20 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void createUfsFile(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      createUfsFile_call method_call = new createUfsFile_call(ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
+      createUfsFile_call method_call = new createUfsFile_call(sessionId, ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class createUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
       private String ufsPath;
       private CreateUfsFileTOptions options;
-      public createUfsFile_call(String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public createUfsFile_call(long sessionId, String ufsPath, CreateUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
         this.ufsPath = ufsPath;
         this.options = options;
       }
@@ -407,6 +466,7 @@ public class FileSystemWorkerClientService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("createUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         createUfsFile_args args = new createUfsFile_args();
+        args.setSessionId(sessionId);
         args.setUfsPath(ufsPath);
         args.setOptions(options);
         args.write(prot);
@@ -423,18 +483,20 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public void openUfsFile(String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void openUfsFile(long sessionId, String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      openUfsFile_call method_call = new openUfsFile_call(ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
+      openUfsFile_call method_call = new openUfsFile_call(sessionId, ufsPath, options, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
 
     public static class openUfsFile_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
       private String ufsPath;
       private OpenUfsFileTOptions options;
-      public openUfsFile_call(String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      public openUfsFile_call(long sessionId, String ufsPath, OpenUfsFileTOptions options, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
         this.ufsPath = ufsPath;
         this.options = options;
       }
@@ -442,6 +504,7 @@ public class FileSystemWorkerClientService {
       public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
         prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("openUfsFile", org.apache.thrift.protocol.TMessageType.CALL, 0));
         openUfsFile_args args = new openUfsFile_args();
+        args.setSessionId(sessionId);
         args.setUfsPath(ufsPath);
         args.setOptions(options);
         args.write(prot);
@@ -455,6 +518,41 @@ public class FileSystemWorkerClientService {
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
         return (new Client(prot)).recv_openUfsFile();
+      }
+    }
+
+    public void sessionHeartbeat(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+      checkReady();
+      sessionHeartbeat_call method_call = new sessionHeartbeat_call(sessionId, metrics, resultHandler, this, ___protocolFactory, ___transport);
+      this.___currentMethod = method_call;
+      ___manager.call(method_call);
+    }
+
+    public static class sessionHeartbeat_call extends org.apache.thrift.async.TAsyncMethodCall {
+      private long sessionId;
+      private List<Long> metrics;
+      public sessionHeartbeat_call(long sessionId, List<Long> metrics, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+        super(client, protocolFactory, transport, resultHandler, false);
+        this.sessionId = sessionId;
+        this.metrics = metrics;
+      }
+
+      public void write_args(org.apache.thrift.protocol.TProtocol prot) throws org.apache.thrift.TException {
+        prot.writeMessageBegin(new org.apache.thrift.protocol.TMessage("sessionHeartbeat", org.apache.thrift.protocol.TMessageType.CALL, 0));
+        sessionHeartbeat_args args = new sessionHeartbeat_args();
+        args.setSessionId(sessionId);
+        args.setMetrics(metrics);
+        args.write(prot);
+        prot.writeMessageEnd();
+      }
+
+      public void getResult() throws org.apache.thrift.TException {
+        if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
+          throw new IllegalStateException("Method call not finished!");
+        }
+        org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
+        org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
+        (new Client(prot)).recv_sessionHeartbeat();
       }
     }
 
@@ -476,6 +574,7 @@ public class FileSystemWorkerClientService {
       processMap.put("completeUfsFile", new completeUfsFile());
       processMap.put("createUfsFile", new createUfsFile());
       processMap.put("openUfsFile", new openUfsFile());
+      processMap.put("sessionHeartbeat", new sessionHeartbeat());
       return processMap;
     }
 
@@ -495,7 +594,7 @@ public class FileSystemWorkerClientService {
       public cancelUfsFile_result getResult(I iface, cancelUfsFile_args args) throws org.apache.thrift.TException {
         cancelUfsFile_result result = new cancelUfsFile_result();
         try {
-          iface.cancelUfsFile(args.tempUfsFileId, args.options);
+          iface.cancelUfsFile(args.sessionId, args.tempUfsFileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -521,7 +620,7 @@ public class FileSystemWorkerClientService {
       public closeUfsFile_result getResult(I iface, closeUfsFile_args args) throws org.apache.thrift.TException {
         closeUfsFile_result result = new closeUfsFile_result();
         try {
-          iface.closeUfsFile(args.tempUfsFileId, args.options);
+          iface.closeUfsFile(args.sessionId, args.tempUfsFileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -547,7 +646,7 @@ public class FileSystemWorkerClientService {
       public completeUfsFile_result getResult(I iface, completeUfsFile_args args) throws org.apache.thrift.TException {
         completeUfsFile_result result = new completeUfsFile_result();
         try {
-          iface.completeUfsFile(args.tempUfsFileId, args.options);
+          iface.completeUfsFile(args.sessionId, args.tempUfsFileId, args.options);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -573,7 +672,7 @@ public class FileSystemWorkerClientService {
       public createUfsFile_result getResult(I iface, createUfsFile_args args) throws org.apache.thrift.TException {
         createUfsFile_result result = new createUfsFile_result();
         try {
-          result.success = iface.createUfsFile(args.ufsPath, args.options);
+          result.success = iface.createUfsFile(args.sessionId, args.ufsPath, args.options);
           result.setSuccessIsSet(true);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
@@ -600,13 +699,33 @@ public class FileSystemWorkerClientService {
       public openUfsFile_result getResult(I iface, openUfsFile_args args) throws org.apache.thrift.TException {
         openUfsFile_result result = new openUfsFile_result();
         try {
-          result.success = iface.openUfsFile(args.ufsPath, args.options);
+          result.success = iface.openUfsFile(args.sessionId, args.ufsPath, args.options);
           result.setSuccessIsSet(true);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
           result.ioe = ioe;
         }
+        return result;
+      }
+    }
+
+    public static class sessionHeartbeat<I extends Iface> extends org.apache.thrift.ProcessFunction<I, sessionHeartbeat_args> {
+      public sessionHeartbeat() {
+        super("sessionHeartbeat");
+      }
+
+      public sessionHeartbeat_args getEmptyArgsInstance() {
+        return new sessionHeartbeat_args();
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public sessionHeartbeat_result getResult(I iface, sessionHeartbeat_args args) throws org.apache.thrift.TException {
+        sessionHeartbeat_result result = new sessionHeartbeat_result();
+        iface.sessionHeartbeat(args.sessionId, args.metrics);
         return result;
       }
     }
@@ -629,6 +748,7 @@ public class FileSystemWorkerClientService {
       processMap.put("completeUfsFile", new completeUfsFile());
       processMap.put("createUfsFile", new createUfsFile());
       processMap.put("openUfsFile", new openUfsFile());
+      processMap.put("sessionHeartbeat", new sessionHeartbeat());
       return processMap;
     }
 
@@ -689,7 +809,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, cancelUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.cancelUfsFile(args.tempUfsFileId, args.options,resultHandler);
+        iface.cancelUfsFile(args.sessionId, args.tempUfsFileId, args.options,resultHandler);
       }
     }
 
@@ -750,7 +870,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, closeUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.closeUfsFile(args.tempUfsFileId, args.options,resultHandler);
+        iface.closeUfsFile(args.sessionId, args.tempUfsFileId, args.options,resultHandler);
       }
     }
 
@@ -811,7 +931,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, completeUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
-        iface.completeUfsFile(args.tempUfsFileId, args.options,resultHandler);
+        iface.completeUfsFile(args.sessionId, args.tempUfsFileId, args.options,resultHandler);
       }
     }
 
@@ -874,7 +994,7 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, createUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.createUfsFile(args.ufsPath, args.options,resultHandler);
+        iface.createUfsFile(args.sessionId, args.ufsPath, args.options,resultHandler);
       }
     }
 
@@ -937,7 +1057,57 @@ public class FileSystemWorkerClientService {
       }
 
       public void start(I iface, openUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
-        iface.openUfsFile(args.ufsPath, args.options,resultHandler);
+        iface.openUfsFile(args.sessionId, args.ufsPath, args.options,resultHandler);
+      }
+    }
+
+    public static class sessionHeartbeat<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, sessionHeartbeat_args, Void> {
+      public sessionHeartbeat() {
+        super("sessionHeartbeat");
+      }
+
+      public sessionHeartbeat_args getEmptyArgsInstance() {
+        return new sessionHeartbeat_args();
+      }
+
+      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+        final org.apache.thrift.AsyncProcessFunction fcall = this;
+        return new AsyncMethodCallback<Void>() { 
+          public void onComplete(Void o) {
+            sessionHeartbeat_result result = new sessionHeartbeat_result();
+            try {
+              fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
+              return;
+            } catch (Exception e) {
+              LOGGER.error("Exception writing to internal frame buffer", e);
+            }
+            fb.close();
+          }
+          public void onError(Exception e) {
+            byte msgType = org.apache.thrift.protocol.TMessageType.REPLY;
+            org.apache.thrift.TBase msg;
+            sessionHeartbeat_result result = new sessionHeartbeat_result();
+            {
+              msgType = org.apache.thrift.protocol.TMessageType.EXCEPTION;
+              msg = (org.apache.thrift.TBase)new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.INTERNAL_ERROR, e.getMessage());
+            }
+            try {
+              fcall.sendResponse(fb,msg,msgType,seqid);
+              return;
+            } catch (Exception ex) {
+              LOGGER.error("Exception writing to internal frame buffer", ex);
+            }
+            fb.close();
+          }
+        };
+      }
+
+      protected boolean isOneway() {
+        return false;
+      }
+
+      public void start(I iface, sessionHeartbeat_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+        iface.sessionHeartbeat(args.sessionId, args.metrics,resultHandler);
       }
     }
 
@@ -946,8 +1116,9 @@ public class FileSystemWorkerClientService {
   public static class cancelUfsFile_args implements org.apache.thrift.TBase<cancelUfsFile_args, cancelUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<cancelUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("cancelUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -955,19 +1126,24 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new cancelUfsFile_argsTupleSchemeFactory());
     }
 
+    private long sessionId; // required
     private long tempUfsFileId; // required
     private CancelUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
        * the worker specific file id of the ufs file
        */
-      TEMP_UFS_FILE_ID((short)1, "tempUfsFileId"),
+      TEMP_UFS_FILE_ID((short)2, "tempUfsFileId"),
       /**
        * the options for canceling the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -982,9 +1158,11 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TEMP_UFS_FILE_ID
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // TEMP_UFS_FILE_ID
             return TEMP_UFS_FILE_ID;
-          case 2: // OPTIONS
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -1026,11 +1204,14 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __TEMPUFSFILEID_ISSET_ID = 0;
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private static final int __TEMPUFSFILEID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -1043,10 +1224,13 @@ public class FileSystemWorkerClientService {
     }
 
     public cancelUfsFile_args(
+      long sessionId,
       long tempUfsFileId,
       CancelUfsFileTOptions options)
     {
       this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
       this.tempUfsFileId = tempUfsFileId;
       setTempUfsFileIdIsSet(true);
       this.options = options;
@@ -1057,6 +1241,7 @@ public class FileSystemWorkerClientService {
      */
     public cancelUfsFile_args(cancelUfsFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
       this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
         this.options = new CancelUfsFileTOptions(other.options);
@@ -1069,9 +1254,40 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
       setTempUfsFileIdIsSet(false);
       this.tempUfsFileId = 0;
       this.options = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public cancelUfsFile_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
     /**
@@ -1135,6 +1351,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
       case TEMP_UFS_FILE_ID:
         if (value == null) {
           unsetTempUfsFileId();
@@ -1156,6 +1380,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
       case TEMP_UFS_FILE_ID:
         return getTempUfsFileId();
 
@@ -1173,6 +1400,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
       case TEMP_UFS_FILE_ID:
         return isSetTempUfsFileId();
       case OPTIONS:
@@ -1193,6 +1422,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(cancelUfsFile_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
 
       boolean this_present_tempUfsFileId = true;
       boolean that_present_tempUfsFileId = true;
@@ -1219,6 +1457,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
       boolean present_tempUfsFileId = true;
       list.add(present_tempUfsFileId);
       if (present_tempUfsFileId)
@@ -1240,6 +1483,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetTempUfsFileId()).compareTo(other.isSetTempUfsFileId());
       if (lastComparison != 0) {
         return lastComparison;
@@ -1280,6 +1533,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("cancelUfsFile_args(");
       boolean first = true;
 
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("tempUfsFileId:");
       sb.append(this.tempUfsFileId);
       first = false;
@@ -1339,7 +1596,15 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TEMP_UFS_FILE_ID
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // TEMP_UFS_FILE_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.tempUfsFileId = iprot.readI64();
                 struct.setTempUfsFileIdIsSet(true);
@@ -1347,7 +1612,7 @@ public class FileSystemWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new CancelUfsFileTOptions();
                 struct.options.read(iprot);
@@ -1371,6 +1636,9 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
         oprot.writeFieldBegin(TEMP_UFS_FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.tempUfsFileId);
         oprot.writeFieldEnd();
@@ -1397,13 +1665,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, cancelUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTempUfsFileId()) {
+        if (struct.isSetSessionId()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetTempUfsFileId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
         if (struct.isSetTempUfsFileId()) {
           oprot.writeI64(struct.tempUfsFileId);
         }
@@ -1415,12 +1689,16 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, cancelUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.tempUfsFileId = iprot.readI64();
           struct.setTempUfsFileIdIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.options = new CancelUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
@@ -1903,8 +2181,9 @@ public class FileSystemWorkerClientService {
   public static class closeUfsFile_args implements org.apache.thrift.TBase<closeUfsFile_args, closeUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<closeUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("closeUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -1912,19 +2191,24 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new closeUfsFile_argsTupleSchemeFactory());
     }
 
+    private long sessionId; // required
     private long tempUfsFileId; // required
     private CloseUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
        * the worker specific file id of the ufs file
        */
-      TEMP_UFS_FILE_ID((short)1, "tempUfsFileId"),
+      TEMP_UFS_FILE_ID((short)2, "tempUfsFileId"),
       /**
        * the options for closing the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -1939,9 +2223,11 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TEMP_UFS_FILE_ID
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // TEMP_UFS_FILE_ID
             return TEMP_UFS_FILE_ID;
-          case 2: // OPTIONS
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -1983,11 +2269,14 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __TEMPUFSFILEID_ISSET_ID = 0;
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private static final int __TEMPUFSFILEID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -2000,10 +2289,13 @@ public class FileSystemWorkerClientService {
     }
 
     public closeUfsFile_args(
+      long sessionId,
       long tempUfsFileId,
       CloseUfsFileTOptions options)
     {
       this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
       this.tempUfsFileId = tempUfsFileId;
       setTempUfsFileIdIsSet(true);
       this.options = options;
@@ -2014,6 +2306,7 @@ public class FileSystemWorkerClientService {
      */
     public closeUfsFile_args(closeUfsFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
       this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
         this.options = new CloseUfsFileTOptions(other.options);
@@ -2026,9 +2319,40 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
       setTempUfsFileIdIsSet(false);
       this.tempUfsFileId = 0;
       this.options = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public closeUfsFile_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
     /**
@@ -2092,6 +2416,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
       case TEMP_UFS_FILE_ID:
         if (value == null) {
           unsetTempUfsFileId();
@@ -2113,6 +2445,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
       case TEMP_UFS_FILE_ID:
         return getTempUfsFileId();
 
@@ -2130,6 +2465,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
       case TEMP_UFS_FILE_ID:
         return isSetTempUfsFileId();
       case OPTIONS:
@@ -2150,6 +2487,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(closeUfsFile_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
 
       boolean this_present_tempUfsFileId = true;
       boolean that_present_tempUfsFileId = true;
@@ -2176,6 +2522,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
       boolean present_tempUfsFileId = true;
       list.add(present_tempUfsFileId);
       if (present_tempUfsFileId)
@@ -2197,6 +2548,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetTempUfsFileId()).compareTo(other.isSetTempUfsFileId());
       if (lastComparison != 0) {
         return lastComparison;
@@ -2237,6 +2598,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("closeUfsFile_args(");
       boolean first = true;
 
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("tempUfsFileId:");
       sb.append(this.tempUfsFileId);
       first = false;
@@ -2296,7 +2661,15 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TEMP_UFS_FILE_ID
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // TEMP_UFS_FILE_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.tempUfsFileId = iprot.readI64();
                 struct.setTempUfsFileIdIsSet(true);
@@ -2304,7 +2677,7 @@ public class FileSystemWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new CloseUfsFileTOptions();
                 struct.options.read(iprot);
@@ -2328,6 +2701,9 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
         oprot.writeFieldBegin(TEMP_UFS_FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.tempUfsFileId);
         oprot.writeFieldEnd();
@@ -2354,13 +2730,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, closeUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTempUfsFileId()) {
+        if (struct.isSetSessionId()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetTempUfsFileId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
         if (struct.isSetTempUfsFileId()) {
           oprot.writeI64(struct.tempUfsFileId);
         }
@@ -2372,12 +2754,16 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, closeUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.tempUfsFileId = iprot.readI64();
           struct.setTempUfsFileIdIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.options = new CloseUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
@@ -2860,8 +3246,9 @@ public class FileSystemWorkerClientService {
   public static class completeUfsFile_args implements org.apache.thrift.TBase<completeUfsFile_args, completeUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<completeUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField TEMP_UFS_FILE_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("tempUfsFileId", org.apache.thrift.protocol.TType.I64, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -2869,19 +3256,24 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new completeUfsFile_argsTupleSchemeFactory());
     }
 
+    private long sessionId; // required
     private long tempUfsFileId; // required
     private CompleteUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
        * the worker specific file id of the ufs file
        */
-      TEMP_UFS_FILE_ID((short)1, "tempUfsFileId"),
+      TEMP_UFS_FILE_ID((short)2, "tempUfsFileId"),
       /**
        * the options for completing the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -2896,9 +3288,11 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // TEMP_UFS_FILE_ID
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // TEMP_UFS_FILE_ID
             return TEMP_UFS_FILE_ID;
-          case 2: // OPTIONS
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -2940,11 +3334,14 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
-    private static final int __TEMPUFSFILEID_ISSET_ID = 0;
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private static final int __TEMPUFSFILEID_ISSET_ID = 1;
     private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.TEMP_UFS_FILE_ID, new org.apache.thrift.meta_data.FieldMetaData("tempUfsFileId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -2957,10 +3354,13 @@ public class FileSystemWorkerClientService {
     }
 
     public completeUfsFile_args(
+      long sessionId,
       long tempUfsFileId,
       CompleteUfsFileTOptions options)
     {
       this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
       this.tempUfsFileId = tempUfsFileId;
       setTempUfsFileIdIsSet(true);
       this.options = options;
@@ -2971,6 +3371,7 @@ public class FileSystemWorkerClientService {
      */
     public completeUfsFile_args(completeUfsFile_args other) {
       __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
       this.tempUfsFileId = other.tempUfsFileId;
       if (other.isSetOptions()) {
         this.options = new CompleteUfsFileTOptions(other.options);
@@ -2983,9 +3384,40 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
       setTempUfsFileIdIsSet(false);
       this.tempUfsFileId = 0;
       this.options = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public completeUfsFile_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
     /**
@@ -3049,6 +3481,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
       case TEMP_UFS_FILE_ID:
         if (value == null) {
           unsetTempUfsFileId();
@@ -3070,6 +3510,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
       case TEMP_UFS_FILE_ID:
         return getTempUfsFileId();
 
@@ -3087,6 +3530,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
       case TEMP_UFS_FILE_ID:
         return isSetTempUfsFileId();
       case OPTIONS:
@@ -3107,6 +3552,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(completeUfsFile_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
 
       boolean this_present_tempUfsFileId = true;
       boolean that_present_tempUfsFileId = true;
@@ -3133,6 +3587,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
       boolean present_tempUfsFileId = true;
       list.add(present_tempUfsFileId);
       if (present_tempUfsFileId)
@@ -3154,6 +3613,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetTempUfsFileId()).compareTo(other.isSetTempUfsFileId());
       if (lastComparison != 0) {
         return lastComparison;
@@ -3194,6 +3663,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("completeUfsFile_args(");
       boolean first = true;
 
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("tempUfsFileId:");
       sb.append(this.tempUfsFileId);
       first = false;
@@ -3253,7 +3726,15 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // TEMP_UFS_FILE_ID
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // TEMP_UFS_FILE_ID
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.tempUfsFileId = iprot.readI64();
                 struct.setTempUfsFileIdIsSet(true);
@@ -3261,7 +3742,7 @@ public class FileSystemWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new CompleteUfsFileTOptions();
                 struct.options.read(iprot);
@@ -3285,6 +3766,9 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
         oprot.writeFieldBegin(TEMP_UFS_FILE_ID_FIELD_DESC);
         oprot.writeI64(struct.tempUfsFileId);
         oprot.writeFieldEnd();
@@ -3311,13 +3795,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, completeUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetTempUfsFileId()) {
+        if (struct.isSetSessionId()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetTempUfsFileId()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
         if (struct.isSetTempUfsFileId()) {
           oprot.writeI64(struct.tempUfsFileId);
         }
@@ -3329,12 +3819,16 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.tempUfsFileId = iprot.readI64();
           struct.setTempUfsFileIdIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.options = new CompleteUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
@@ -3817,8 +4311,9 @@ public class FileSystemWorkerClientService {
   public static class createUfsFile_args implements org.apache.thrift.TBase<createUfsFile_args, createUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<createUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("createUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -3826,19 +4321,24 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new createUfsFile_argsTupleSchemeFactory());
     }
 
+    private long sessionId; // required
     private String ufsPath; // required
     private CreateUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
        * the path of the file in the ufs
        */
-      UFS_PATH((short)1, "ufsPath"),
+      UFS_PATH((short)2, "ufsPath"),
       /**
        * the options for creating the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -3853,9 +4353,11 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // UFS_PATH
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // UFS_PATH
             return UFS_PATH;
-          case 2: // OPTIONS
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -3897,9 +4399,13 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -3912,10 +4418,13 @@ public class FileSystemWorkerClientService {
     }
 
     public createUfsFile_args(
+      long sessionId,
       String ufsPath,
       CreateUfsFileTOptions options)
     {
       this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
       this.ufsPath = ufsPath;
       this.options = options;
     }
@@ -3924,6 +4433,8 @@ public class FileSystemWorkerClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public createUfsFile_args(createUfsFile_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
@@ -3938,8 +4449,39 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
       this.ufsPath = null;
       this.options = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public createUfsFile_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
     /**
@@ -4004,6 +4546,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
       case UFS_PATH:
         if (value == null) {
           unsetUfsPath();
@@ -4025,6 +4575,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
       case UFS_PATH:
         return getUfsPath();
 
@@ -4042,6 +4595,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
       case UFS_PATH:
         return isSetUfsPath();
       case OPTIONS:
@@ -4062,6 +4617,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(createUfsFile_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
 
       boolean this_present_ufsPath = true && this.isSetUfsPath();
       boolean that_present_ufsPath = true && that.isSetUfsPath();
@@ -4088,6 +4652,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
       boolean present_ufsPath = true && (isSetUfsPath());
       list.add(present_ufsPath);
       if (present_ufsPath)
@@ -4109,6 +4678,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetUfsPath()).compareTo(other.isSetUfsPath());
       if (lastComparison != 0) {
         return lastComparison;
@@ -4149,6 +4728,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("createUfsFile_args(");
       boolean first = true;
 
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("ufsPath:");
       if (this.ufsPath == null) {
         sb.append("null");
@@ -4186,6 +4769,8 @@ public class FileSystemWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -4210,7 +4795,15 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // UFS_PATH
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // UFS_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.ufsPath = iprot.readString();
                 struct.setUfsPathIsSet(true);
@@ -4218,7 +4811,7 @@ public class FileSystemWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new CreateUfsFileTOptions();
                 struct.options.read(iprot);
@@ -4242,6 +4835,9 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
         if (struct.ufsPath != null) {
           oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
           oprot.writeString(struct.ufsPath);
@@ -4270,13 +4866,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, createUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetUfsPath()) {
+        if (struct.isSetSessionId()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
@@ -4288,12 +4890,16 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, createUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.ufsPath = iprot.readString();
           struct.setUfsPathIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.options = new CreateUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
@@ -4881,8 +5487,9 @@ public class FileSystemWorkerClientService {
   public static class openUfsFile_args implements org.apache.thrift.TBase<openUfsFile_args, openUfsFile_args._Fields>, java.io.Serializable, Cloneable, Comparable<openUfsFile_args>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("openUfsFile_args");
 
-    private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)1);
-    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)2);
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField UFS_PATH_FIELD_DESC = new org.apache.thrift.protocol.TField("ufsPath", org.apache.thrift.protocol.TType.STRING, (short)2);
+    private static final org.apache.thrift.protocol.TField OPTIONS_FIELD_DESC = new org.apache.thrift.protocol.TField("options", org.apache.thrift.protocol.TType.STRUCT, (short)3);
 
     private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
     static {
@@ -4890,19 +5497,24 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new openUfsFile_argsTupleSchemeFactory());
     }
 
+    private long sessionId; // required
     private String ufsPath; // required
     private OpenUfsFileTOptions options; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
       /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
        * the path of the file in the ufs
        */
-      UFS_PATH((short)1, "ufsPath"),
+      UFS_PATH((short)2, "ufsPath"),
       /**
        * the options for opening the file
        */
-      OPTIONS((short)2, "options");
+      OPTIONS((short)3, "options");
 
       private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -4917,9 +5529,11 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
-          case 1: // UFS_PATH
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // UFS_PATH
             return UFS_PATH;
-          case 2: // OPTIONS
+          case 3: // OPTIONS
             return OPTIONS;
           default:
             return null;
@@ -4961,9 +5575,13 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.UFS_PATH, new org.apache.thrift.meta_data.FieldMetaData("ufsPath", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
       tmpMap.put(_Fields.OPTIONS, new org.apache.thrift.meta_data.FieldMetaData("options", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -4976,10 +5594,13 @@ public class FileSystemWorkerClientService {
     }
 
     public openUfsFile_args(
+      long sessionId,
       String ufsPath,
       OpenUfsFileTOptions options)
     {
       this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
       this.ufsPath = ufsPath;
       this.options = options;
     }
@@ -4988,6 +5609,8 @@ public class FileSystemWorkerClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public openUfsFile_args(openUfsFile_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
       if (other.isSetUfsPath()) {
         this.ufsPath = other.ufsPath;
       }
@@ -5002,8 +5625,39 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
       this.ufsPath = null;
       this.options = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public openUfsFile_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
     }
 
     /**
@@ -5068,6 +5722,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
       case UFS_PATH:
         if (value == null) {
           unsetUfsPath();
@@ -5089,6 +5751,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
       case UFS_PATH:
         return getUfsPath();
 
@@ -5106,6 +5771,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
       case UFS_PATH:
         return isSetUfsPath();
       case OPTIONS:
@@ -5126,6 +5793,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(openUfsFile_args that) {
       if (that == null)
         return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
 
       boolean this_present_ufsPath = true && this.isSetUfsPath();
       boolean that_present_ufsPath = true && that.isSetUfsPath();
@@ -5152,6 +5828,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
       boolean present_ufsPath = true && (isSetUfsPath());
       list.add(present_ufsPath);
       if (present_ufsPath)
@@ -5173,6 +5854,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetUfsPath()).compareTo(other.isSetUfsPath());
       if (lastComparison != 0) {
         return lastComparison;
@@ -5213,6 +5904,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("openUfsFile_args(");
       boolean first = true;
 
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("ufsPath:");
       if (this.ufsPath == null) {
         sb.append("null");
@@ -5250,6 +5945,8 @@ public class FileSystemWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -5274,7 +5971,15 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
-            case 1: // UFS_PATH
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // UFS_PATH
               if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
                 struct.ufsPath = iprot.readString();
                 struct.setUfsPathIsSet(true);
@@ -5282,7 +5987,7 @@ public class FileSystemWorkerClientService {
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
               break;
-            case 2: // OPTIONS
+            case 3: // OPTIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.options = new OpenUfsFileTOptions();
                 struct.options.read(iprot);
@@ -5306,6 +6011,9 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
         if (struct.ufsPath != null) {
           oprot.writeFieldBegin(UFS_PATH_FIELD_DESC);
           oprot.writeString(struct.ufsPath);
@@ -5334,13 +6042,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, openUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetUfsPath()) {
+        if (struct.isSetSessionId()) {
           optionals.set(0);
         }
-        if (struct.isSetOptions()) {
+        if (struct.isSetUfsPath()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetOptions()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
         if (struct.isSetUfsPath()) {
           oprot.writeString(struct.ufsPath);
         }
@@ -5352,12 +6066,16 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, openUfsFile_args struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.ufsPath = iprot.readString();
           struct.setUfsPathIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.options = new OpenUfsFileTOptions();
           struct.options.read(iprot);
           struct.setOptionsIsSet(true);
@@ -5937,6 +6655,785 @@ public class FileSystemWorkerClientService {
           struct.ioe.read(iprot);
           struct.setIoeIsSet(true);
         }
+      }
+    }
+
+  }
+
+  public static class sessionHeartbeat_args implements org.apache.thrift.TBase<sessionHeartbeat_args, sessionHeartbeat_args._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_args>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_args");
+
+    private static final org.apache.thrift.protocol.TField SESSION_ID_FIELD_DESC = new org.apache.thrift.protocol.TField("sessionId", org.apache.thrift.protocol.TType.I64, (short)1);
+    private static final org.apache.thrift.protocol.TField METRICS_FIELD_DESC = new org.apache.thrift.protocol.TField("metrics", org.apache.thrift.protocol.TType.LIST, (short)2);
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new sessionHeartbeat_argsStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionHeartbeat_argsTupleSchemeFactory());
+    }
+
+    private long sessionId; // required
+    private List<Long> metrics; // required
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      /**
+       * the id of the current session
+       */
+      SESSION_ID((short)1, "sessionId"),
+      /**
+       * the client metrics
+       */
+      METRICS((short)2, "metrics");
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          case 1: // SESSION_ID
+            return SESSION_ID;
+          case 2: // METRICS
+            return METRICS;
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+
+    // isset id assignments
+    private static final int __SESSIONID_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SESSION_ID, new org.apache.thrift.meta_data.FieldMetaData("sessionId", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.METRICS, new org.apache.thrift.meta_data.FieldMetaData("metrics", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.ListMetaData(org.apache.thrift.protocol.TType.LIST, 
+              new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64))));
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_args.class, metaDataMap);
+    }
+
+    public sessionHeartbeat_args() {
+    }
+
+    public sessionHeartbeat_args(
+      long sessionId,
+      List<Long> metrics)
+    {
+      this();
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      this.metrics = metrics;
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public sessionHeartbeat_args(sessionHeartbeat_args other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.sessionId = other.sessionId;
+      if (other.isSetMetrics()) {
+        List<Long> __this__metrics = new ArrayList<Long>(other.metrics);
+        this.metrics = __this__metrics;
+      }
+    }
+
+    public sessionHeartbeat_args deepCopy() {
+      return new sessionHeartbeat_args(this);
+    }
+
+    @Override
+    public void clear() {
+      setSessionIdIsSet(false);
+      this.sessionId = 0;
+      this.metrics = null;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public long getSessionId() {
+      return this.sessionId;
+    }
+
+    /**
+     * the id of the current session
+     */
+    public sessionHeartbeat_args setSessionId(long sessionId) {
+      this.sessionId = sessionId;
+      setSessionIdIsSet(true);
+      return this;
+    }
+
+    public void unsetSessionId() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    /** Returns true if field sessionId is set (has been assigned a value) and false otherwise */
+    public boolean isSetSessionId() {
+      return EncodingUtils.testBit(__isset_bitfield, __SESSIONID_ISSET_ID);
+    }
+
+    public void setSessionIdIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SESSIONID_ISSET_ID, value);
+    }
+
+    public int getMetricsSize() {
+      return (this.metrics == null) ? 0 : this.metrics.size();
+    }
+
+    public java.util.Iterator<Long> getMetricsIterator() {
+      return (this.metrics == null) ? null : this.metrics.iterator();
+    }
+
+    public void addToMetrics(long elem) {
+      if (this.metrics == null) {
+        this.metrics = new ArrayList<Long>();
+      }
+      this.metrics.add(elem);
+    }
+
+    /**
+     * the client metrics
+     */
+    public List<Long> getMetrics() {
+      return this.metrics;
+    }
+
+    /**
+     * the client metrics
+     */
+    public sessionHeartbeat_args setMetrics(List<Long> metrics) {
+      this.metrics = metrics;
+      return this;
+    }
+
+    public void unsetMetrics() {
+      this.metrics = null;
+    }
+
+    /** Returns true if field metrics is set (has been assigned a value) and false otherwise */
+    public boolean isSetMetrics() {
+      return this.metrics != null;
+    }
+
+    public void setMetricsIsSet(boolean value) {
+      if (!value) {
+        this.metrics = null;
+      }
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      case SESSION_ID:
+        if (value == null) {
+          unsetSessionId();
+        } else {
+          setSessionId((Long)value);
+        }
+        break;
+
+      case METRICS:
+        if (value == null) {
+          unsetMetrics();
+        } else {
+          setMetrics((List<Long>)value);
+        }
+        break;
+
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      case SESSION_ID:
+        return getSessionId();
+
+      case METRICS:
+        return getMetrics();
+
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      case SESSION_ID:
+        return isSetSessionId();
+      case METRICS:
+        return isSetMetrics();
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof sessionHeartbeat_args)
+        return this.equals((sessionHeartbeat_args)that);
+      return false;
+    }
+
+    public boolean equals(sessionHeartbeat_args that) {
+      if (that == null)
+        return false;
+
+      boolean this_present_sessionId = true;
+      boolean that_present_sessionId = true;
+      if (this_present_sessionId || that_present_sessionId) {
+        if (!(this_present_sessionId && that_present_sessionId))
+          return false;
+        if (this.sessionId != that.sessionId)
+          return false;
+      }
+
+      boolean this_present_metrics = true && this.isSetMetrics();
+      boolean that_present_metrics = true && that.isSetMetrics();
+      if (this_present_metrics || that_present_metrics) {
+        if (!(this_present_metrics && that_present_metrics))
+          return false;
+        if (!this.metrics.equals(that.metrics))
+          return false;
+      }
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      boolean present_sessionId = true;
+      list.add(present_sessionId);
+      if (present_sessionId)
+        list.add(sessionId);
+
+      boolean present_metrics = true && (isSetMetrics());
+      list.add(present_metrics);
+      if (present_metrics)
+        list.add(metrics);
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(sessionHeartbeat_args other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      lastComparison = Boolean.valueOf(isSetSessionId()).compareTo(other.isSetSessionId());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSessionId()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.sessionId, other.sessionId);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      lastComparison = Boolean.valueOf(isSetMetrics()).compareTo(other.isSetMetrics());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetMetrics()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.metrics, other.metrics);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+    }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("sessionHeartbeat_args(");
+      boolean first = true;
+
+      sb.append("sessionId:");
+      sb.append(this.sessionId);
+      first = false;
+      if (!first) sb.append(", ");
+      sb.append("metrics:");
+      if (this.metrics == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.metrics);
+      }
+      first = false;
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class sessionHeartbeat_argsStandardSchemeFactory implements SchemeFactory {
+      public sessionHeartbeat_argsStandardScheme getScheme() {
+        return new sessionHeartbeat_argsStandardScheme();
+      }
+    }
+
+    private static class sessionHeartbeat_argsStandardScheme extends StandardScheme<sessionHeartbeat_args> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            case 1: // SESSION_ID
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.sessionId = iprot.readI64();
+                struct.setSessionIdIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 2: // METRICS
+              if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
+                {
+                  org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
+                  struct.metrics = new ArrayList<Long>(_list0.size);
+                  long _elem1;
+                  for (int _i2 = 0; _i2 < _list0.size; ++_i2)
+                  {
+                    _elem1 = iprot.readI64();
+                    struct.metrics.add(_elem1);
+                  }
+                  iprot.readListEnd();
+                }
+                struct.setMetricsIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldBegin(SESSION_ID_FIELD_DESC);
+        oprot.writeI64(struct.sessionId);
+        oprot.writeFieldEnd();
+        if (struct.metrics != null) {
+          oprot.writeFieldBegin(METRICS_FIELD_DESC);
+          {
+            oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, struct.metrics.size()));
+            for (long _iter3 : struct.metrics)
+            {
+              oprot.writeI64(_iter3);
+            }
+            oprot.writeListEnd();
+          }
+          oprot.writeFieldEnd();
+        }
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class sessionHeartbeat_argsTupleSchemeFactory implements SchemeFactory {
+      public sessionHeartbeat_argsTupleScheme getScheme() {
+        return new sessionHeartbeat_argsTupleScheme();
+      }
+    }
+
+    private static class sessionHeartbeat_argsTupleScheme extends TupleScheme<sessionHeartbeat_args> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+        BitSet optionals = new BitSet();
+        if (struct.isSetSessionId()) {
+          optionals.set(0);
+        }
+        if (struct.isSetMetrics()) {
+          optionals.set(1);
+        }
+        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetSessionId()) {
+          oprot.writeI64(struct.sessionId);
+        }
+        if (struct.isSetMetrics()) {
+          {
+            oprot.writeI32(struct.metrics.size());
+            for (long _iter4 : struct.metrics)
+            {
+              oprot.writeI64(_iter4);
+            }
+          }
+        }
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_args struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
+        BitSet incoming = iprot.readBitSet(2);
+        if (incoming.get(0)) {
+          struct.sessionId = iprot.readI64();
+          struct.setSessionIdIsSet(true);
+        }
+        if (incoming.get(1)) {
+          {
+            org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.I64, iprot.readI32());
+            struct.metrics = new ArrayList<Long>(_list5.size);
+            long _elem6;
+            for (int _i7 = 0; _i7 < _list5.size; ++_i7)
+            {
+              _elem6 = iprot.readI64();
+              struct.metrics.add(_elem6);
+            }
+          }
+          struct.setMetricsIsSet(true);
+        }
+      }
+    }
+
+  }
+
+  public static class sessionHeartbeat_result implements org.apache.thrift.TBase<sessionHeartbeat_result, sessionHeartbeat_result._Fields>, java.io.Serializable, Cloneable, Comparable<sessionHeartbeat_result>   {
+    private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("sessionHeartbeat_result");
+
+
+    private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
+    static {
+      schemes.put(StandardScheme.class, new sessionHeartbeat_resultStandardSchemeFactory());
+      schemes.put(TupleScheme.class, new sessionHeartbeat_resultTupleSchemeFactory());
+    }
+
+
+    /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
+    public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+;
+
+      private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
+
+      static {
+        for (_Fields field : EnumSet.allOf(_Fields.class)) {
+          byName.put(field.getFieldName(), field);
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, or null if its not found.
+       */
+      public static _Fields findByThriftId(int fieldId) {
+        switch(fieldId) {
+          default:
+            return null;
+        }
+      }
+
+      /**
+       * Find the _Fields constant that matches fieldId, throwing an exception
+       * if it is not found.
+       */
+      public static _Fields findByThriftIdOrThrow(int fieldId) {
+        _Fields fields = findByThriftId(fieldId);
+        if (fields == null) throw new IllegalArgumentException("Field " + fieldId + " doesn't exist!");
+        return fields;
+      }
+
+      /**
+       * Find the _Fields constant that matches name, or null if its not found.
+       */
+      public static _Fields findByName(String name) {
+        return byName.get(name);
+      }
+
+      private final short _thriftId;
+      private final String _fieldName;
+
+      _Fields(short thriftId, String fieldName) {
+        _thriftId = thriftId;
+        _fieldName = fieldName;
+      }
+
+      public short getThriftFieldId() {
+        return _thriftId;
+      }
+
+      public String getFieldName() {
+        return _fieldName;
+      }
+    }
+    public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
+    static {
+      Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      metaDataMap = Collections.unmodifiableMap(tmpMap);
+      org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(sessionHeartbeat_result.class, metaDataMap);
+    }
+
+    public sessionHeartbeat_result() {
+    }
+
+    /**
+     * Performs a deep copy on <i>other</i>.
+     */
+    public sessionHeartbeat_result(sessionHeartbeat_result other) {
+    }
+
+    public sessionHeartbeat_result deepCopy() {
+      return new sessionHeartbeat_result(this);
+    }
+
+    @Override
+    public void clear() {
+    }
+
+    public void setFieldValue(_Fields field, Object value) {
+      switch (field) {
+      }
+    }
+
+    public Object getFieldValue(_Fields field) {
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    /** Returns true if field corresponding to fieldID is set (has been assigned a value) and false otherwise */
+    public boolean isSet(_Fields field) {
+      if (field == null) {
+        throw new IllegalArgumentException();
+      }
+
+      switch (field) {
+      }
+      throw new IllegalStateException();
+    }
+
+    @Override
+    public boolean equals(Object that) {
+      if (that == null)
+        return false;
+      if (that instanceof sessionHeartbeat_result)
+        return this.equals((sessionHeartbeat_result)that);
+      return false;
+    }
+
+    public boolean equals(sessionHeartbeat_result that) {
+      if (that == null)
+        return false;
+
+      return true;
+    }
+
+    @Override
+    public int hashCode() {
+      List<Object> list = new ArrayList<Object>();
+
+      return list.hashCode();
+    }
+
+    @Override
+    public int compareTo(sessionHeartbeat_result other) {
+      if (!getClass().equals(other.getClass())) {
+        return getClass().getName().compareTo(other.getClass().getName());
+      }
+
+      int lastComparison = 0;
+
+      return 0;
+    }
+
+    public _Fields fieldForId(int fieldId) {
+      return _Fields.findByThriftId(fieldId);
+    }
+
+    public void read(org.apache.thrift.protocol.TProtocol iprot) throws org.apache.thrift.TException {
+      schemes.get(iprot.getScheme()).getScheme().read(iprot, this);
+    }
+
+    public void write(org.apache.thrift.protocol.TProtocol oprot) throws org.apache.thrift.TException {
+      schemes.get(oprot.getScheme()).getScheme().write(oprot, this);
+      }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder("sessionHeartbeat_result(");
+      boolean first = true;
+
+      sb.append(")");
+      return sb.toString();
+    }
+
+    public void validate() throws org.apache.thrift.TException {
+      // check for required fields
+      // check for sub-struct validity
+    }
+
+    private void writeObject(java.io.ObjectOutputStream out) throws java.io.IOException {
+      try {
+        write(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(out)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
+      try {
+        read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
+      } catch (org.apache.thrift.TException te) {
+        throw new java.io.IOException(te);
+      }
+    }
+
+    private static class sessionHeartbeat_resultStandardSchemeFactory implements SchemeFactory {
+      public sessionHeartbeat_resultStandardScheme getScheme() {
+        return new sessionHeartbeat_resultStandardScheme();
+      }
+    }
+
+    private static class sessionHeartbeat_resultStandardScheme extends StandardScheme<sessionHeartbeat_result> {
+
+      public void read(org.apache.thrift.protocol.TProtocol iprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+        org.apache.thrift.protocol.TField schemeField;
+        iprot.readStructBegin();
+        while (true)
+        {
+          schemeField = iprot.readFieldBegin();
+          if (schemeField.type == org.apache.thrift.protocol.TType.STOP) { 
+            break;
+          }
+          switch (schemeField.id) {
+            default:
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+          }
+          iprot.readFieldEnd();
+        }
+        iprot.readStructEnd();
+
+        // check for required fields of primitive type, which can't be checked in the validate method
+        struct.validate();
+      }
+
+      public void write(org.apache.thrift.protocol.TProtocol oprot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+        struct.validate();
+
+        oprot.writeStructBegin(STRUCT_DESC);
+        oprot.writeFieldStop();
+        oprot.writeStructEnd();
+      }
+
+    }
+
+    private static class sessionHeartbeat_resultTupleSchemeFactory implements SchemeFactory {
+      public sessionHeartbeat_resultTupleScheme getScheme() {
+        return new sessionHeartbeat_resultTupleScheme();
+      }
+    }
+
+    private static class sessionHeartbeat_resultTupleScheme extends TupleScheme<sessionHeartbeat_result> {
+
+      @Override
+      public void write(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol oprot = (TTupleProtocol) prot;
+      }
+
+      @Override
+      public void read(org.apache.thrift.protocol.TProtocol prot, sessionHeartbeat_result struct) throws org.apache.thrift.TException {
+        TTupleProtocol iprot = (TTupleProtocol) prot;
       }
     }
 

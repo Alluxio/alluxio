@@ -78,5 +78,11 @@ public final class PreconditionMessage {
   public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
   public static final String ERR_UNEXPECTED_EOF = "Reached EOF unepxectedly.";
 
+  // UnderFileSystemManager
+  public static final String ERR_UFS_MANAGER_OPERATION_INVALID_SESSION =
+      "Attempted to %s ufs file with invalid session id.";
+  public static final String ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT =
+      "Failed to remove agent %s from ufs manager's internal state.";
+
   private PreconditionMessage() {} // to prevent initialization
 }
