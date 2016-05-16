@@ -45,6 +45,9 @@ public final class BlockMasterClientRestServiceHandler {
 
   private final BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
 
+  /**
+   * Constructs a new {@link BlockMasterClientRestServiceHandler}.
+   */
   public BlockMasterClientRestServiceHandler() {}
 
   /**
