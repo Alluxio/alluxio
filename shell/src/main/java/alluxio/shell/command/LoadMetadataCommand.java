@@ -51,15 +51,8 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    String[] args = cl.getArgs();
-    AlluxioURI inputPath = new AlluxioURI(args[0]);
-
-    try {
-      LoadMetadataOptions options = LoadMetadataOptions.defaults().setRecursive(true);
-      mFileSystem.loadMetadata(inputPath, options);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    System.out.println("The \"loadMetadata\" command is deprecated since version 1.1.");
+    System.out.println("Use the \"ls\" command instead.");
   }
 
   @Override

@@ -254,8 +254,9 @@ function main {
     runJavaClass "$@"
   ;;
   "loadufs")
-    CLASS="alluxio.cli.UfsUtils"
-    runJavaClass "$@"
+    echo "The \"loadufs ...\" command is deprecated since version 1.1."
+    echo "Use the \"fs ls ...\" command instead."
+    exit 1
   ;;
   "runClass")
     CLASS=$1
