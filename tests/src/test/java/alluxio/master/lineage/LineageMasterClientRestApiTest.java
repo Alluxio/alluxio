@@ -21,7 +21,6 @@ import alluxio.wire.LineageInfo;
 import alluxio.wire.LineageInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -43,8 +42,7 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({LineageMaster.class})
-@Ignore("ALLUXIO-1888")
-public class LineageMasterClientRestApiTest extends RestApiTest {
+public final class LineageMasterClientRestApiTest extends RestApiTest {
   private LineageMaster mLineageMaster;
 
   @Before

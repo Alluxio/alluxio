@@ -69,6 +69,11 @@ public final class BlockWorkerClientRestServiceHandler {
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
+   * Constructs a new {@link BlockWorkerClientRestServiceHandler}.
+   */
+  public BlockWorkerClientRestServiceHandler() {}
+
+  /**
    * Get the service name.
    *
    * @return the response object
@@ -365,7 +370,7 @@ public final class BlockWorkerClientRestServiceHandler {
 
   /**
    * Write a block.
-   * 
+   *
    * @param sessionId the session id
    * @param blockId the block id
    * @param offset the offset to start the read at
