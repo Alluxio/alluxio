@@ -69,6 +69,11 @@ public final class BlockWorkerClientRestServiceHandler {
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
   /**
+   * Constructs a new {@link BlockWorkerClientRestServiceHandler}.
+   */
+  public BlockWorkerClientRestServiceHandler() {}
+
+  /**
    * @summary get the service name
    * @return the response object
    */
