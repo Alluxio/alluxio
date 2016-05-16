@@ -68,8 +68,7 @@ public final class BlockWorkerClientRestServiceHandler {
   private final StorageTierAssoc mStorageTierAssoc =
       new WorkerStorageTierAssoc(WorkerContext.getConf());
 
-  // prevent instantiation
-  private BlockWorkerClientRestServiceHandler() {}
+  public BlockWorkerClientRestServiceHandler() {}
 
   /**
    * @summary get the service name

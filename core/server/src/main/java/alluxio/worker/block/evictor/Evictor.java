@@ -35,8 +35,7 @@ public interface Evictor {
   @ThreadSafe
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * Factory for {@link Evictor}.

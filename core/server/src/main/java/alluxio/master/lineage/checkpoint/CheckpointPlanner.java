@@ -29,8 +29,7 @@ public interface CheckpointPlanner {
    */
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * @param conf Alluxio configuration to determine the planner type
