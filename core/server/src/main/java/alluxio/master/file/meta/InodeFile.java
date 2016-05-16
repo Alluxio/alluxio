@@ -29,12 +29,13 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Alluxio file system's file representation in the file system master.
+ * Alluxio file system's file representation in the file system master. The inode must be locked
+ * ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  */
-@ThreadSafe
+@NotThreadSafe
 public final class InodeFile extends Inode<InodeFile> {
   private List<Long> mBlocks;
   private long mBlockContainerId;
@@ -73,7 +74,7 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public synchronized FileInfo generateClientFileInfo(String path) {
+  public FileInfo generateClientFileInfo(String path) {
     FileInfo ret = new FileInfo();
     // note: in-memory percentage is NOT calculated here, because it needs blocks info stored in
     // block master
@@ -102,7 +103,7 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * Resets the file inode.
    */
-  public synchronized void reset() {
+  public  void reset() {
     mBlocks = Lists.newArrayList();
     mLength = 0;
     mCompleted = false;
@@ -112,28 +113,28 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return a duplication of all the block ids of the file
    */
-  public synchronized List<Long> getBlockIds() {
+  public List<Long> getBlockIds() {
     return new ArrayList<Long>(mBlocks);
   }
 
   /**
    * @return the block size in bytes
    */
-  public synchronized long getBlockSizeBytes() {
+  public long getBlockSizeBytes() {
     return mBlockSizeBytes;
   }
 
   /**
    * @return the length of the file in bytes. This is not accurate before the file is closed
    */
-  public synchronized long getLength() {
+  public long getLength() {
     return mLength;
   }
 
   /**
    * @return the id of a new block of the file
    */
-  public synchronized long getNewBlockId() {
+  public long getNewBlockId() {
     long blockId = BlockId.createBlockId(mBlockContainerId, mBlocks.size());
     // TODO(gene): Check for max block sequence number, and sanity check the sequence number.
     // TODO(gene): Check isComplete?
@@ -150,7 +151,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the block id for the index
    * @throws BlockInfoException if the index of the block is out of range
    */
-  public synchronized long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
+  public long getBlockIdByIndex(int blockIndex) throws BlockInfoException {
     if (blockIndex < 0 || blockIndex >= mBlocks.size()) {
       throw new BlockInfoException(
           "blockIndex " + blockIndex + " is out of range. File blocks: " + mBlocks.size());
@@ -161,14 +162,14 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return true if the file is cacheable, false otherwise
    */
-  public synchronized boolean isCacheable() {
+  public boolean isCacheable() {
     return mCacheable;
   }
 
   /**
    * @return true if the file is complete, false otherwise
    */
-  public synchronized boolean isCompleted() {
+  public boolean isCompleted() {
     return mCompleted;
   }
 
@@ -176,7 +177,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockSizeBytes the block size to use
    * @return the updated object
    */
-  public synchronized InodeFile setBlockSizeBytes(long blockSizeBytes) {
+  public InodeFile setBlockSizeBytes(long blockSizeBytes) {
     Preconditions.checkArgument(blockSizeBytes >= 0, "Block size cannot be negative");
     mBlockSizeBytes = blockSizeBytes;
     return getThis();
@@ -186,7 +187,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param blockIds the id's of the block
    * @return the updated object
    */
-  public synchronized InodeFile setBlockIds(List<Long> blockIds) {
+  public InodeFile setBlockIds(List<Long> blockIds) {
     mBlocks = Lists.newArrayList(Preconditions.checkNotNull(blockIds));
     return getThis();
   }
@@ -195,7 +196,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param cacheable the cacheable flag value to use
    * @return the updated object
    */
-  public synchronized InodeFile setCacheable(boolean cacheable) {
+  public InodeFile setCacheable(boolean cacheable) {
     // TODO(gene). This related logic is not complete right. Fix this.
     mCacheable = cacheable;
     return getThis();
@@ -205,7 +206,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param completed the complete flag value to use
    * @return the updated object
    */
-  public synchronized InodeFile setCompleted(boolean completed) {
+  public InodeFile setCompleted(boolean completed) {
     mCompleted = completed;
     return getThis();
   }
@@ -214,7 +215,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param length the length to use
    * @return the updated object
    */
-  public synchronized InodeFile setLength(long length) {
+  public InodeFile setLength(long length) {
     mLength = length;
     return getThis();
   }
@@ -223,7 +224,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param ttl the TTL to use, in milliseconds
    * @return the updated object
    */
-  public synchronized InodeFile setTtl(long ttl) {
+  public InodeFile setTtl(long ttl) {
     mTtl = ttl;
     return getThis();
   }
@@ -236,7 +237,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws FileAlreadyCompletedException if the file is already completed
    */
-  public synchronized void complete(long length)
+  public void complete(long length)
       throws InvalidFileSizeException, FileAlreadyCompletedException {
     if (mCompleted) {
       throw new FileAlreadyCompletedException("File " + getName() + " has already been completed.");
@@ -255,7 +256,7 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public synchronized String toString() {
+  public String toString() {
     return toStringHelper().add("blocks", mBlocks).add("blockContainerId", mBlockContainerId)
         .add("blockSizeBytes", mBlockSizeBytes).add("cacheable", mCacheable)
         .add("completed", mCompleted).add("length", mLength).add("ttl", mTtl).toString();
@@ -313,7 +314,7 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   @Override
-  public synchronized JournalEntry toJournalEntry() {
+  public JournalEntry toJournalEntry() {
     InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
         .setCreationTimeMs(getCreationTimeMs())
         .setId(getId())
@@ -338,7 +339,7 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * @return the ttl of the file
    */
-  public synchronized long getTtl() {
+  public long getTtl() {
     return mTtl;
   }
 }

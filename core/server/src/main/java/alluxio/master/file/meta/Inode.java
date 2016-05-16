@@ -20,14 +20,15 @@ import com.google.common.base.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import javax.annotation.concurrent.ThreadSafe;
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * {@link Inode} is an abstract class, with information shared by all types of Inodes.
+ * {@link Inode} is an abstract class, with information shared by all types of Inodes. The inode
+ * must be locked ({@link #lockRead()} or {@link #lockWrite()}) before methods are called.
  *
  * @param <T> the concrete subclass of this object
  */
-@ThreadSafe
+@NotThreadSafe
 public abstract class Inode<T> implements JournalEntryRepresentable {
   protected long mCreationTimeMs;
   private boolean mDeleted;
@@ -67,98 +68,98 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   /**
    * @return the create time, in milliseconds
    */
-  public synchronized long getCreationTimeMs() {
+  public long getCreationTimeMs() {
     return mCreationTimeMs;
   }
 
   /**
    * @return the group name of the inode
    */
-  public synchronized String getGroupName() {
+  public String getGroupName() {
     return mGroupName;
   }
 
   /**
    * @return the id of the inode
    */
-  public synchronized long getId() {
+  public long getId() {
     return mId;
   }
 
   /**
    * @return the last modification time, in milliseconds
    */
-  public synchronized long getLastModificationTimeMs() {
+  public long getLastModificationTimeMs() {
     return mLastModificationTimeMs;
   }
 
   /**
    * @return the name of the inode
    */
-  public synchronized String getName() {
+  public String getName() {
     return mName;
   }
 
   /**
    * @return the permission of the inode
    */
-  public synchronized short getPermission() {
+  public short getPermission() {
     return mPermission;
   }
 
   /**
    * @return the {@link PersistenceState} of the inode
    */
-  public synchronized PersistenceState getPersistenceState() {
+  public PersistenceState getPersistenceState() {
     return mPersistenceState;
   }
 
   /**
    * @return the id of the parent folder
    */
-  public synchronized long getParentId() {
+  public long getParentId() {
     return mParentId;
   }
 
   /**
    * @return the user name of the inode
    */
-  public synchronized String getUserName() {
+  public String getUserName() {
     return mUserName;
   }
 
   /**
    * @return true if the inode is deleted, false otherwise
    */
-  public synchronized boolean isDeleted() {
+  public boolean isDeleted() {
     return mDeleted;
   }
 
   /**
    * @return true if the inode is a directory, false otherwise
    */
-  public synchronized boolean isDirectory() {
+  public boolean isDirectory() {
     return mDirectory;
   }
 
   /**
    * @return true if the inode is a file, false otherwise
    */
-  public synchronized boolean isFile() {
+  public boolean isFile() {
     return !mDirectory;
   }
 
   /**
    * @return true if the inode is pinned, false otherwise
    */
-  public synchronized boolean isPinned() {
+  public boolean isPinned() {
     return mPinned;
   }
 
   /**
    * @return true if the file has persisted, false otherwise
    */
-  public synchronized boolean isPersisted() {
+  public boolean isPersisted() {
     return mPersistenceState == PersistenceState.PERSISTED;
   }
 
@@ -166,7 +167,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param deleted the deleted flag to use
    * @return the updated object
    */
-  public synchronized T setDeleted(boolean deleted) {
+  public T setDeleted(boolean deleted) {
     mDeleted = deleted;
     return getThis();
   }
@@ -175,7 +176,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param groupName the group name of the inode
    * @return the updated object
    */
-  public synchronized T setGroupName(String groupName) {
+  public T setGroupName(String groupName) {
     mGroupName = groupName;
     return getThis();
   }
@@ -184,7 +185,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param lastModificationTimeMs the last modification time to use
    * @return the updated object
    */
-  public synchronized T setLastModificationTimeMs(long lastModificationTimeMs) {
+  public T setLastModificationTimeMs(long lastModificationTimeMs) {
     mLastModificationTimeMs = lastModificationTimeMs;
     return getThis();
   }
@@ -193,7 +194,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param name the name to use
    * @return the updated object
    */
-  public synchronized T setName(String name) {
+  public T setName(String name) {
     mName = name;
     return getThis();
   }
@@ -202,7 +203,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param parentId the parent id to use
    * @return the updated object
    */
-  public synchronized T setParentId(long parentId) {
+  public T setParentId(long parentId) {
     mParentId = parentId;
     return getThis();
   }
@@ -211,7 +212,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param persistenceState the {@link PersistenceState} to use
    * @return the updated object
    */
-  public synchronized T setPersistenceState(PersistenceState persistenceState) {
+  public T setPersistenceState(PersistenceState persistenceState) {
     mPersistenceState = persistenceState;
     return getThis();
   }
@@ -220,7 +221,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param permissionStatus the {@link PermissionStatus} to use
    * @return the updated object
    */
-  public synchronized T setPermissionStatus(PermissionStatus permissionStatus) {
+  public T setPermissionStatus(PermissionStatus permissionStatus) {
     if (permissionStatus != null) {
       mGroupName = permissionStatus.getGroupName();
       mPermission = permissionStatus.getPermission().toShort();
@@ -233,7 +234,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param permission the permission of the inode
    * @return the updated object
    */
-  public synchronized T setPermission(short permission) {
+  public T setPermission(short permission) {
     mPermission = permission;
     return getThis();
   }
@@ -242,7 +243,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param pinned the pinned flag value to use
    * @return the updated object
    */
-  public synchronized T setPinned(boolean pinned) {
+  public T setPinned(boolean pinned) {
     mPinned = pinned;
     return getThis();
   }
@@ -251,7 +252,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * @param userName the user name of the inode
    * @return the updated object
    */
-  public synchronized T setUserName(String userName) {
+  public T setUserName(String userName) {
     mUserName = userName;
     return getThis();
   }
@@ -298,12 +299,12 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   @Override
-  public synchronized int hashCode() {
+  public int hashCode() {
     return ((Long) mId).hashCode();
   }
 
   @Override
-  public synchronized boolean equals(Object o) {
+  public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
@@ -314,7 +315,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return mId == that.mId;
   }
 
-  protected synchronized Objects.ToStringHelper toStringHelper() {
+  protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
