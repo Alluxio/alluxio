@@ -1394,6 +1394,8 @@ public final class FileSystemMaster extends AbstractMaster {
     // Now we remove srcInode from it's parent and insert it into dstPath's parent
     long opTimeMs = System.currentTimeMillis();
     renameInternal(srcInodePath, dstInodePath, false, opTimeMs);
+    List<Inode<?>> persistedInodes = propagatePersistedInternal(srcInodePath, false);
+    journalPersistedInodes(persistedInodes);
 
     RenameEntry rename = RenameEntry.newBuilder()
         .setId(srcInode.getId())
@@ -1450,7 +1452,6 @@ public final class FileSystemMaster extends AbstractMaster {
     dstParentInode.addChild(srcInode);
     dstParentInode.setLastModificationTimeMs(opTimeMs);
     MasterContext.getMasterSource().incPathsRenamed(1);
-    propagatePersisted(srcInodePath, replayed);
   }
 
   /**
@@ -1485,14 +1486,15 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the inode to start the propagation at
    * @param replayed whether the invocation is a result of replaying the journal
+   * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException if a non-existent file is encountered
    */
   @GuardedBy("mInodeTree")
-  private void propagatePersisted(InodePath inodePath, boolean replayed)
+  private List<Inode<?>> propagatePersistedInternal(InodePath inodePath, boolean replayed)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     if (!inode.isPersisted()) {
-      return;
+      return Collections.emptyList();
     }
 
     List<Inode<?>> inodes = inodePath.getInodeList();
@@ -1501,6 +1503,7 @@ public final class FileSystemMaster extends AbstractMaster {
     // Skip the first, to not examine the target inode itself.
     inodes = inodes.subList(1, inodes.size());
 
+    List<Inode<?>> persistedInodes = new ArrayList<>();
     for (Inode<?> handle : inodes) {
       // the path is already locked.
       AlluxioURI path = mInodeTree.getPath(handle);
@@ -1514,12 +1517,28 @@ public final class FileSystemMaster extends AbstractMaster {
       }
       handle.setPersistenceState(PersistenceState.PERSISTED);
       if (!replayed) {
-        PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
-            .setId(inode.getId())
-            .build();
-        writeJournalEntry(JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+        persistedInodes.add(inode);
       }
     }
+    return persistedInodes;
+  }
+
+  /**
+   * Journals the list of persisted inodes returned from
+   * {@link #propagatePersistedInternal(InodePath, boolean)}. This does not flush the journal.
+   *
+   * @param persistedInodes the list of persisted inodes to journal
+   * @return the flush counter for journaling
+   */
+  private long journalPersistedInodes(List<Inode<?>> persistedInodes) {
+    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    for (Inode<?> inode : persistedInodes) {
+      PersistDirectoryEntry persistDirectory =
+          PersistDirectoryEntry.newBuilder().setId(inode.getId()).build();
+      counter = appendJournalEntry(
+          JournalEntry.newBuilder().setPersistDirectory(persistDirectory).build());
+    }
+    return counter;
   }
 
   /**
@@ -2127,12 +2146,14 @@ public final class FileSystemMaster extends AbstractMaster {
         for (Inode<?> inode : inodeChildren) {
           // the path to inode for getPath should already be locked.
           tempInodePath.setDescendant(inode, mInodeTree.getPath(inode));
-          setAttributeInternal(tempInodePath, opTimeMs, options);
+          List<Inode<?>> persistedInodes = setAttributeInternal(tempInodePath, opTimeMs, options);
+          journalPersistedInodes(persistedInodes);
           journalSetAttribute(inode.getId(), opTimeMs, options);
         }
       }
     }
-    setAttributeInternal(inodePath, opTimeMs, options);
+    List<Inode<?>> persistedInodes = setAttributeInternal(inodePath, opTimeMs, options);
+    journalPersistedInodes(persistedInodes);
     return journalSetAttribute(targetInode.getId(), opTimeMs, options);
   }
 
@@ -2247,11 +2268,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the {@link InodePath} to use
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
+   * @return list of inodes which were marked as persisted
    * @throws FileDoesNotExistException
    */
   @GuardedBy("mInodeTree")
-  void setAttributeInternal(InodePath inodePath, long opTimeMs, SetAttributeOptions options)
+  List<Inode<?>> setAttributeInternal(InodePath inodePath, long opTimeMs,
+      SetAttributeOptions options)
       throws FileDoesNotExistException {
+    List<Inode<?>> persistedInodes = Collections.emptyList();
     Inode<?> inode = inodePath.getInode();
     if (options.getPinned() != null) {
       mInodeTree.setPinned(inodePath, options.getPinned(), opTimeMs);
@@ -2278,7 +2302,7 @@ public final class FileSystemMaster extends AbstractMaster {
           PreconditionMessage.ERR_SET_STATE_UNPERSIST);
       if (!file.isPersisted()) {
         file.setPersistenceState(PersistenceState.PERSISTED);
-        propagatePersisted(inodePath, false);
+        persistedInodes = propagatePersistedInternal(inodePath, false);
         file.setLastModificationTimeMs(opTimeMs);
         MasterContext.getMasterSource().incFilesPersisted(1);
       }
@@ -2292,6 +2316,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getPermission() != Constants.INVALID_PERMISSION) {
       inode.setPermission(options.getPermission());
     }
+    return persistedInodes;
   }
 
   /**
@@ -2322,6 +2347,7 @@ public final class FileSystemMaster extends AbstractMaster {
     try (InodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
       setAttributeInternal(inodePath, entry.getOpTimeMs(), options);
+      // Intentionally not journaling the persisted inodes from setAttributeInternal
     }
   }
 
