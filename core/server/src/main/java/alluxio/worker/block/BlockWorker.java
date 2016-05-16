@@ -149,11 +149,9 @@ public final class BlockWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerClientService.Processor<>(getWorkerServiceHandler()));
     return services;
   }
 
@@ -292,9 +290,7 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException e) {
+    } catch (IOException | ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
@@ -423,6 +419,26 @@ public final class BlockWorker extends AbstractWorker {
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return mBlockStore.getVolatileBlockMeta(blockId);
+  }
+
+  /**
+   * Gets the meta data of a specific block from local storage.
+   * <p>
+   * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
+   * previously acquired {@link #lockBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @param lockId the id of the lock
+   * @return metadata of the block
+   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
+   *         lockId can not be found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lockId
+   */
+  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    return mBlockStore.getBlockMeta(sessionId, blockId, lockId);
   }
 
   /**

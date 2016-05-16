@@ -190,27 +190,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the list of file block descriptors for a file
-   * @param path the file path
-   * @return the response object
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   * @see {@link #getStatus(String)}
-   */
-  @Deprecated
-  @GET
-  @Path(GET_FILE_BLOCK_INFO_LIST)
-  @ReturnType("java.util.List<alluxio.wire.FileBlockInfo>")
-  public Response getFileBlockInfoList(@QueryParam("path") String path) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path)));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
    * @summary get a new block id for a file
    * @param path the file path
    * @return the response object
@@ -246,37 +225,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get a file descriptor for a file id
-   * @param fileId the file id
-   * @return the response object
-   */
-  @GET
-  @Path(GET_STATUS_INTERNAL)
-  @ReturnType("alluxio.wire.FileInfo")
-  public Response getStatusInternal(@QueryParam("fileId") Long fileId) {
-    try {
-      Preconditions.checkNotNull(fileId, "required 'fileId' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileInfo(fileId));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
-   * @summary get the UFS address
-   * @return the UFS address
-   * @deprecated since version 1.1 and will be removed in version 2.0
-   */
-  @Deprecated
-  @GET
-  @Path(GET_UFS_ADDRESS)
-  @ReturnType("java.lang.String")
-  public Response getUfsAddress() {
-    return RestUtils.createResponse(mFileSystemMaster.getUfsAddress());
-  }
-
-  /**
    * @summary free a path
    * @param path the path
    * @param recursive whether the path should be freed recursively
@@ -300,37 +248,19 @@ public final class FileSystemMasterClientRestServiceHandler {
   /**
    * @summary get the file descriptors for a path
    * @param path the file path
+   * @param loadDirectChildren whether to load direct children of path
    * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
-  public Response listStatus(@QueryParam("path") String path) {
+  public Response listStatus(@QueryParam("path") String path,
+      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path)));
+      return RestUtils.createResponse(
+          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), loadDirectChildren));
     } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
-   * @summary load metadata for a path
-   * @param path the alluxio path to load metadata for
-   * @param recursive whether metadata should be loaded recursively
-   * @return the response object
-   */
-  @POST
-  @Path(LOAD_METADATA)
-  @ReturnType("java.lang.Long")
-  public Response loadMetadata(@QueryParam("path") String path,
-      @QueryParam("recursive") boolean recursive) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils
-          .createResponse(mFileSystemMaster.loadMetadata(new AlluxioURI(path), recursive));
-    } catch (AlluxioException | IOException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }
@@ -441,31 +371,31 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,
       @QueryParam("group") String group, @QueryParam("permission") Short permission,
       @QueryParam("recursive") Boolean recursive) {
-    SetAttributeOptions builder = SetAttributeOptions.defaults();
+    SetAttributeOptions options = SetAttributeOptions.defaults();
     Preconditions.checkNotNull(path, "required 'path' parameter is missing");
     if (pinned != null) {
-      builder.setPinned(pinned);
+      options.setPinned(pinned);
     }
     if (ttl != null) {
-      builder.setTtl(ttl);
+      options.setTtl(ttl);
     }
     if (persisted != null) {
-      builder.setPersisted(persisted);
+      options.setPersisted(persisted);
     }
     if (owner != null) {
-      builder.setOwner(owner);
+      options.setOwner(owner);
     }
     if (group != null) {
-      builder.setGroup(group);
+      options.setGroup(group);
     }
     if (permission != null) {
-      builder.setPermission(permission);
+      options.setPermission(permission);
     }
     if (recursive != null) {
-      builder.setRecursive(recursive);
+      options.setRecursive(recursive);
     }
     try {
-      mFileSystemMaster.setAttribute(new AlluxioURI(path), builder);
+      mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
       return RestUtils.createResponse();
     } catch (AlluxioException | IllegalArgumentException | NullPointerException e) {
       LOG.warn(e.getMessage());

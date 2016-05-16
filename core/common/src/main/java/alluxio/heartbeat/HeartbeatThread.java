@@ -33,7 +33,7 @@ public final class HeartbeatThread implements Runnable {
   private HeartbeatTimer mTimer;
 
   /**
-   * Creates a {@code Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
+   * Creates a {@link Runnable} to execute heartbeats for the given {@link HeartbeatExecutor}.
    *
    * This class is responsible for closing the given {@link HeartbeatExecutor} when it finishes.
    *

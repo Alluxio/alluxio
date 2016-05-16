@@ -36,8 +36,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -397,7 +395,7 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"))) {
+      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"), true)) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -423,7 +421,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test
@@ -443,14 +441,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH).size();
+    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(ROOT_PATH2).size());
+        mFsMaster.getFileInfoList(ROOT_PATH2, true).size());
   }
 
   @Test
@@ -525,7 +523,7 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(fileId2,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder/testFolder2/testFile2")));
   }
@@ -566,7 +564,7 @@ public class FileSystemMasterIntegrationTest {
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -594,7 +592,7 @@ public class FileSystemMasterIntegrationTest {
   public void deleteEmptyDirectoryTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     Assert.assertEquals(1, mFsMaster.getFileId(new AlluxioURI("/testFolder")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFolder"), true));
+    mFsMaster.delete(new AlluxioURI("/testFolder"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID,
         mFsMaster.getFileId(new AlluxioURI("/testFolder")));
   }
@@ -603,15 +601,15 @@ public class FileSystemMasterIntegrationTest {
   public void deleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFile")));
-    Assert.assertTrue(mFsMaster.delete(new AlluxioURI("/testFile"), true));
+    mFsMaster.delete(new AlluxioURI("/testFile"), true);
     Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(new AlluxioURI("/testFile")));
   }
 
-  // TODO(gpang): re-enable this test when delete throws an exception for deleting root
-  // @Test
+  @Test
   public void deleteRootTest() throws Exception {
-    Assert.assertFalse(mFsMaster.delete(new AlluxioURI("/"), true));
-    Assert.assertFalse(mFsMaster.delete(new AlluxioURI("/"), false));
+    mThrown.expect(InvalidPathException.class);
+    mThrown.expectMessage(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
+    mFsMaster.delete(new AlluxioURI("/"), true);
   }
 
   @Test
@@ -627,7 +625,7 @@ public class FileSystemMasterIntegrationTest {
     long opTimeMs = TEST_CURRENT_TIME;
     try (InodePath inodePath = mInodeTree
         .lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
-      mFsMaster.completeFileInternal(Lists.<Long>newArrayList(), inodePath, 0, opTimeMs);
+      mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
     }
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
@@ -646,21 +644,19 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
 
+  /**
+   * Tests that deleting a file from a folder updates the folder's last modification time.
+   */
   @Test
   public void lastModificationTimeDeleteTest() throws Exception {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
-    long fileId =
-        mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
+    mFsMaster.createFile(new AlluxioURI("/testFolder/testFile"), CreateFileOptions.defaults());
     long folderId = mFsMaster.getFileId(new AlluxioURI("/testFolder"));
-    Assert.assertEquals(1, folderId);
-    Assert.assertEquals(fileId, mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
-    long opTimeMs = TEST_CURRENT_TIME;
-    try (InodePath inodePath = mInodeTree
-        .lockFullInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
-      Assert.assertTrue(mFsMaster.deleteInternal(inodePath, true, true, opTimeMs));
-    }
-    FileInfo folderInfo = mFsMaster.getFileInfo(folderId);
-    Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
+    long modificationTimeBeforeDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    CommonUtils.sleepMs(2);
+    mFsMaster.delete(new AlluxioURI("/testFolder/testFile"), true);
+    long modificationTimeAfterDelete = mFsMaster.getFileInfo(folderId).getLastModificationTimeMs();
+    Assert.assertTrue(modificationTimeBeforeDelete < modificationTimeAfterDelete);
   }
 
   @Test
@@ -695,13 +691,13 @@ public class FileSystemMasterIntegrationTest {
         ids.add(mFsMaster.createFile(dir.join("j" + j), options));
       }
     }
-    HashSet<Long> listedIds = Sets.newHashSet();
-    HashSet<Long> listedDirIds = Sets.newHashSet();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
+    HashSet<Long> listedIds = new HashSet<>();
+    HashSet<Long> listedDirIds = new HashSet<>();
+    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"), true);
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()))) {
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()), true)) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -721,13 +717,13 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0"), true).size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i)).size());
+          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i), true).size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test

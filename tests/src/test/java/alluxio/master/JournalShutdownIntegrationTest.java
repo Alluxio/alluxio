@@ -121,7 +121,7 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR)).size();
+    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR), true).size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(

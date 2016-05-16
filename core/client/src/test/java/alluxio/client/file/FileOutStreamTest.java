@@ -66,7 +66,6 @@ public class FileOutStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
 
-  private AlluxioBlockStore mBlockStore;
   private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
@@ -89,7 +88,7 @@ public class FileOutStreamTest {
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
+    AlluxioBlockStore mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
@@ -479,7 +478,6 @@ public class FileOutStreamTest {
       throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(path, options);
-    return stream;
+    return new FileOutStream(path, options);
   }
 }

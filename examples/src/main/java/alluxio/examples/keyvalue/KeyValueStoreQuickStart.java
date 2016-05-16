@@ -12,7 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Version;
+import alluxio.cli.Version;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;

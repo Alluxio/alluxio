@@ -55,7 +55,7 @@ public final class ClientHandler extends SimpleChannelInboundHandler<RPCMessage>
    * Creates a new {@link ClientHandler}.
    */
   public ClientHandler() {
-    mListeners = new HashSet<ResponseListener>(4);
+    mListeners = new HashSet<>(4);
   }
 
   /**

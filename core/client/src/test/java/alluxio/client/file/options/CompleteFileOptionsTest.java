@@ -57,7 +57,7 @@ public class CompleteFileOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(CompleteFileOptions.class);
   }
 }
