@@ -13,8 +13,21 @@ package alluxio.client.file;
 
 import alluxio.client.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.BlockStoreContext;
+import alluxio.exception.AlluxioException;
+import alluxio.resource.CloseableResource;
+import alluxio.util.IdUtils;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.WorkerInfo;
+import alluxio.wire.WorkerNetAddress;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * A shared context in each client JVM for common file master client functionality such as a pool of
@@ -33,6 +46,12 @@ public enum FileSystemContext {
   private FileSystemMasterClientPool mFileSystemMasterClientPool;
   private final AlluxioBlockStore mAlluxioBlockStore;
 
+  /** A list of valid workers, if there is a local worker, only the local worker addresses. */
+  @GuardedBy("mWorkerAddressesLock")
+  private List<WorkerNetAddress> mWorkerAddresses;
+  /** Lock for mWorkerAddresses. */
+  private final Object mWorkerAddressesLock = new Object();
+
   /**
    * Creates a new file stream context.
    */
@@ -49,6 +68,26 @@ public enum FileSystemContext {
    */
   public FileSystemMasterClient acquireMasterClient() {
     return mFileSystemMasterClientPool.acquire();
+  }
+
+  /**
+   * Acquires a file system worker client, prioritizing local workers if available. This method
+   * initializes the list of worker addresses.
+   *
+   * @return a file system worker client to a worker in the system
+   * @throws IOException if an error occurs getting the list of workers in the system
+   */
+  public FileSystemWorkerClient acquireWorkerClient() throws IOException {
+    synchronized (mWorkerAddressesLock) {
+      if (mWorkerAddresses == null) {
+        mWorkerAddresses = getWorkerAddresses();
+      }
+    }
+    WorkerNetAddress address =
+        mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
+    long sessionId = IdUtils.getRandomNonNegativeLong();
+    return new FileSystemWorkerClient(address, ClientContext.getExecutorService(),
+        ClientContext.getConf(), sessionId, ClientContext.getClientMetrics());
   }
 
   /**
@@ -75,5 +114,34 @@ public enum FileSystemContext {
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+  }
+
+  /**
+   * @return if there are any local workers, the returned list will ONLY contain the local workers,
+   *         otherwise a list of all remote workers will be returned
+   * @throws IOException if an error occurs communicating with the master
+   */
+  private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
+    List<WorkerInfo> infos;
+    try (CloseableResource<BlockMasterClient> masterClientResource =
+        BlockStoreContext.INSTANCE.acquireMasterClientResource()) {
+      infos = masterClientResource.get().getWorkerInfoList();
+    } catch (AlluxioException e) {
+      throw new IOException(e);
+    }
+
+    // Convert the worker infos into net addresses, if there are local addresses, only keep those
+    List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
+    List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
+    String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    for (WorkerInfo info : infos) {
+      WorkerNetAddress netAddress = info.getAddress();
+      if (netAddress.getHost().equals(localHostname)) {
+        localWorkerNetAddresses.add(netAddress);
+      }
+      workerNetAddresses.add(netAddress);
+    }
+
+    return localWorkerNetAddresses.isEmpty() ? workerNetAddresses : localWorkerNetAddresses;
   }
 }
