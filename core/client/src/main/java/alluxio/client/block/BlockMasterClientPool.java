@@ -38,6 +38,17 @@ final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
     mMasterAddress = masterAddress;
   }
 
+  /**
+   * Creates a new block master client pool.
+   *
+   * @param masterAddress the master address
+   * @param clientThreads the number of client threads to use
+   */
+  public BlockMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
+    super(clientThreads);
+    mMasterAddress = masterAddress;
+  }
+
   @Override
   public void close() {
     // TODO(calvin): Consider collecting all the clients and shutting them down.
