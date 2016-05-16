@@ -46,8 +46,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class is responsible for managing all top level components of the file system worker.
  */
-// TODO(calvin): Add session concept
-// TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */

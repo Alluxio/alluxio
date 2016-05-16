@@ -86,7 +86,7 @@ public enum FileSystemContext {
       address = mWorkerAddresses.get(ThreadLocalRandom.current().nextInt(mWorkerAddresses.size()));
     }
     long sessionId = IdUtils.getRandomNonNegativeLong();
-    return new FileSystemWorkerClient(address, ClientContext.getExecutorService(),
+    return new FileSystemWorkerClient(address, ClientContext.getFileClientExecutorService(),
         ClientContext.getConf(), sessionId, ClientContext.getClientMetrics());
   }
 
