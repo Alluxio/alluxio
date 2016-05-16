@@ -357,6 +357,8 @@ public final class Constants {
       "alluxio.user.file.write.location.policy.class";
   public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
