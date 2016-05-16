@@ -138,4 +138,15 @@ public final class AsyncJournalWriter {
     }
   }
 
+  /**
+   * Returns a flush counter that includes both specified counters. Either counter can be
+   * {@link #INVALID_FLUSH_COUNTER}.
+   *
+   * @param counter1 first flush counter
+   * @param counter2 second flush counter
+   * @return the flush counter that includes both specified counters
+   */
+  public static long getFlushCounter(long counter1, long counter2) {
+    return Math.max(counter1, counter2);
+  }
 }
