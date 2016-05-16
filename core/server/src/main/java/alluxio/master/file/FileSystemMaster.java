@@ -745,6 +745,7 @@ public final class FileSystemMaster extends AbstractMaster {
   // Used by lineage master
   public long reinitializeFile(AlluxioURI path, long blockSizeBytes, long ttl)
       throws InvalidPathException, FileDoesNotExistException {
+    long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (InodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       long id = mInodeTree.reinitializeFile(inodePath, blockSizeBytes, ttl);
       ReinitializeFileEntry reinitializeFile = ReinitializeFileEntry.newBuilder()
@@ -752,9 +753,14 @@ public final class FileSystemMaster extends AbstractMaster {
           .setBlockSizeBytes(blockSizeBytes)
           .setTtl(ttl)
           .build();
-      writeJournalEntry(JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
-      flushJournal();
+      flushCounter = appendJournalEntry(
+          JournalEntry.newBuilder().setReinitializeFile(reinitializeFile).build());
       return id;
+    } finally {
+      // finally runs after resources are closed (unlocked).
+      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+        waitForJournalFlush(flushCounter);
+      }
     }
   }
 
