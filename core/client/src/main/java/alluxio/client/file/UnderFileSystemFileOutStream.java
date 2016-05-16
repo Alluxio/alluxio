@@ -1,3 +1,14 @@
+/*
+ * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+ * (the “License”). You may not use this work except in compliance with the License, which is
+ * available at www.apache.org/licenses/LICENSE-2.0
+ *
+ * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+ * either express or implied, as more fully set forth in the License.
+ *
+ * See the NOTICE file distributed with this work for information regarding copyright ownership.
+ */
+
 package alluxio.client.file;
 
 import alluxio.Configuration;
@@ -33,6 +44,12 @@ public class UnderFileSystemFileOutStream extends OutputStream {
   /** Number of bytes written, including unflushed bytes. */
   private long mWrittenBytes;
 
+  /**
+   * Constructor for a under file system file output stream.
+   *
+   * @param address address of the worker
+   * @param ufsFileId the worker specific file id
+   */
   public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
     mWriter = new NettyUnderFileWriter(address, ufsFileId);
