@@ -67,6 +67,7 @@ public enum ExceptionMessage {
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
   WRITER_ALREADY_OPEN("This writer is already open for address: {0}, blockId: {1}, sessionId: {2}"),
+  UNDER_FILE_WRITE_ERROR("Error writing to under file system fileId: {0}, addr: {1}, msg: {3}"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
