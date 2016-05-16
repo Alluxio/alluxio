@@ -14,7 +14,7 @@ package alluxio.client.file;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.netty.NettyUnderFileWriter;
+import alluxio.client.netty.NettyUnderFileSystemFileWriter;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -35,7 +35,7 @@ public class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
-  private final NettyUnderFileWriter mWriter;
+  private final NettyUnderFileSystemFileWriter mWriter;
 
   /** If the stream is closed, this can only go from false to true. */
   private boolean mClosed;
@@ -52,7 +52,7 @@ public class UnderFileSystemFileOutStream extends OutputStream {
    */
   public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
-    mWriter = new NettyUnderFileWriter(address, ufsFileId);
+    mWriter = new NettyUnderFileSystemFileWriter(address, ufsFileId);
     mFlushedBytes = 0;
     mWrittenBytes = 0;
     mClosed = false;

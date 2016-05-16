@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * not keep lingering resources and does not need to be closed.
  */
 @NotThreadSafe
-public final class NettyUnderFileWriter {
+public final class NettyUnderFileSystemFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
@@ -58,7 +58,7 @@ public final class NettyUnderFileWriter {
    * @param address the address of the worker managing the file
    * @param tempUfsFileId the worker specific file id
    */
-  public NettyUnderFileWriter(InetSocketAddress address, long tempUfsFileId) {
+  public NettyUnderFileSystemFileWriter(InetSocketAddress address, long tempUfsFileId) {
     mHandler = new ClientHandler();
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
     mAddress = address;
