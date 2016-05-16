@@ -51,6 +51,8 @@ public final class JournalTool {
   private static boolean sNoTimeout = false;
   private static boolean sHelp = false;
 
+  private JournalTool() {} // prevent instantiation
+
   /**
    * Reads a journal via
    * {@code java -cp \

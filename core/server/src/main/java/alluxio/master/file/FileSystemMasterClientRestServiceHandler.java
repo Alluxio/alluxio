@@ -71,6 +71,11 @@ public final class FileSystemMasterClientRestServiceHandler {
   private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
 
   /**
+   * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   */
+  public  FileSystemMasterClientRestServiceHandler() {}
+
+  /**
    * @summary get the service name
    * @return the response object
    */

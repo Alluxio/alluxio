@@ -52,7 +52,7 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
-  public static final int SECOND_NANO = 1000000000;
+  public static final long SECOND_NANO = 1000000000L;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
@@ -76,6 +76,8 @@ public final class Constants {
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
+
+  public static final int MAX_PORT = 65535;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -357,6 +359,8 @@ public final class Constants {
       "alluxio.user.file.write.location.policy.class";
   public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

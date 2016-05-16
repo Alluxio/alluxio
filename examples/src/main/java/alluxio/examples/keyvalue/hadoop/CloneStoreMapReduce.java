@@ -30,11 +30,22 @@ import java.io.IOException;
  * key-value store with a different URI.
  */
 public final class CloneStoreMapReduce {
+
+  /**
+   * Constructs a new {@link CloneStoreMapReduce}.
+   */
+  public CloneStoreMapReduce() {}
+
   /**
    * The mapper emits all key-value pairs it receives to reducers.
    */
   public static class CloneStoreMapper
       extends Mapper<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    /**
+     * Constructs a new {@link CloneStoreMapper}.
+     */
+    public CloneStoreMapper() {}
 
     @Override
     public void map(BytesWritable key, BytesWritable value, Context context)
@@ -48,6 +59,11 @@ public final class CloneStoreMapReduce {
    */
   public static class CloneStoreReducer
       extends Reducer<BytesWritable, BytesWritable, BytesWritable, BytesWritable> {
+
+    /**
+     * Constructs a new {@link CloneStoreReducer}.
+     */
+    public CloneStoreReducer() {}
 
     @Override
     public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context)
