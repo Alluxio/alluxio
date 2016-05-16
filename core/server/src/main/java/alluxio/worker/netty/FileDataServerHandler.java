@@ -75,13 +75,9 @@ public class FileDataServerHandler {
     // TODO(calvin): This can be more efficient for sequential reads if we keep state
     try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
       int read = in.read(data);
-      if (read != length) {
-        LOG.error("Only read " + read + " bytes of data when " + length + " was requested.");
-        throw new IOException(); // Intend to catch below
-      }
       RPCFileReadResponse resp =
-          new RPCFileReadResponse(ufsFileId, offset, length, new DataByteBuffer(
-              ByteBuffer.wrap(data), length), RPCResponse.Status.SUCCESS);
+          new RPCFileReadResponse(ufsFileId, offset, read, new DataByteBuffer(
+              ByteBuffer.wrap(data), read), RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
