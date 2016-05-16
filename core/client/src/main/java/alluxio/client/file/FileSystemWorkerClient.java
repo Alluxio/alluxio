@@ -56,8 +56,6 @@ import java.util.concurrent.Future;
 public class FileSystemWorkerClient extends AbstractClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Address of the worker this client should connect to. */
-  private final WorkerNetAddress mWorkerNetAddress;
   /** Executor service for running the heartbeat thread. */
   private final ExecutorService mExecutorService;
   /** Heartbeat executor for the session heartbeat thread. */
@@ -86,7 +84,6 @@ public class FileSystemWorkerClient extends AbstractClient {
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       Configuration conf, long sessionId, ClientMetrics metrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "FileSystemWorker");
-    mWorkerNetAddress = workerNetAddress;
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
@@ -101,9 +98,8 @@ public class FileSystemWorkerClient extends AbstractClient {
    * @throws IOException if the thrift client cannot be created
    */
   @Override
-  protected void afterConnect() throws IOException {
+  protected synchronized void afterConnect() throws IOException {
     mClient = new FileSystemWorkerClientService.Client(mProtocol);
-
     // only start the heartbeat thread if the connection is successful and if there is not
     // another heartbeat thread running
     if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
@@ -135,7 +131,7 @@ public class FileSystemWorkerClient extends AbstractClient {
   }
 
   @Override
-  protected AlluxioService.Client getClient() {
+  protected synchronized AlluxioService.Client getClient() {
     return mClient;
   }
 
