@@ -33,6 +33,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class KeyValueMasterFactory implements MasterFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link KeyValueMasterFactory}.
+   */
+  public KeyValueMasterFactory() {}
+
   @Override
   public boolean isEnabled() {
     return MasterContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED);

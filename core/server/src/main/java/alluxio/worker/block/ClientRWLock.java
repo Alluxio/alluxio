@@ -35,6 +35,11 @@ public final class ClientRWLock implements ReadWriteLock {
   /** Reference count. */
   private AtomicInteger mReferences = new AtomicInteger();
 
+  /**
+   * Constructs a new {@link ClientRWLock}.
+   */
+  public ClientRWLock() {}
+
   @Override
   public Lock readLock() {
     return new SessionLock(1);

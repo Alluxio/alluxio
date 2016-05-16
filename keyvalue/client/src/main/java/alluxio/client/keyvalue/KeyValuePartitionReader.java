@@ -31,6 +31,9 @@ public interface KeyValuePartitionReader extends Closeable, KeyValueIterable {
    * Factory for {@link KeyValuePartitionReader}.
    */
   class Factory {
+
+    private Factory() {} // prevent instantiation
+
     /**
      * Factory method to create a {@link KeyValuePartitionReader} given the {@link AlluxioURI} of a
      * key-value partition.
