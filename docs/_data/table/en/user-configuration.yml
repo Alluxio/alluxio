@@ -36,6 +36,8 @@ alluxio.user.file.writetype.default:
 alluxio.user.file.cache.partially.read.block:
   When read type is CACHE_PROMOTE or CACHE and this property is set to true, the entire block will be cached by Alluxio
   space even if the client only reads a part of this block.
+alluxio.user.file.seek.buffer.size.bytes:
+  The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
 alluxio.user.lineage.enabled:
