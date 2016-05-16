@@ -57,7 +57,10 @@ public final class LineageMasterClientRestServiceHandler {
 
   private final LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
 
-  private LineageMasterClientRestServiceHandler() {} // prevent instantiation
+  /**
+   * Constructs a new {@link LineageMasterClientRestServiceHandler}.
+   */
+  public LineageMasterClientRestServiceHandler() {}
 
   /**
    * @summary get the service name
