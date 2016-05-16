@@ -98,6 +98,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** The blockId used in the block streams. */
   private long mStreamBlockId;
 
+  /** The read buffer size in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
+  private final long mSeekBufferSizeBytes;
+
   /**
    * Creates a new file input stream.
    *
@@ -126,15 +129,14 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
-    if (mShouldCachePartiallyReadBlock) {
-      LOG.debug("CacheParitallyReadBlock is enabled.");
-    }
     mClosed = false;
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCache) {
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
+    mSeekBufferSizeBytes = options.getSeekBufferSizeBytes();
+    LOG.debug(options.toString());
   }
 
   @Override
@@ -378,8 +380,10 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Logs IO exceptions thrown in response to the worker cache request. If the exception is not an
-   * expected exception, a warning will be logged with the stack trace.
+   * Handles IO exceptions thrown in response to the worker cache request. Cache stream is closed
+   * or cancelled after logging some messages about the exceptions.
+   *
+   * @param e the exception to handle
    */
   private void handleCacheStreamIOException(IOException e) {
     if (e.getCause() instanceof BlockAlreadyExistsException) {
@@ -388,7 +392,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // exception.
       LOG.info(BLOCK_ID_EXISTS_SO_NOT_CACHED, getCurrentBlockId());
     } else {
-      LOG.info(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
+      LOG.warn(BLOCK_ID_NOT_CACHED, getCurrentBlockId());
     }
     closeOrCancelCacheStream();
   }
@@ -612,7 +616,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
 
     // Do not set the buffer size too small to avoid slowing down seek by too much.
-    byte[] buffer = new byte[Math.min(Constants.MB * 128, (int) len)];
+    byte[] buffer = new byte[Math.min((int) mSeekBufferSizeBytes, (int) len)];
     do {
       int bytesRead = read(buffer);
       Preconditions.checkState(bytesRead > 0, PreconditionMessage.ERR_UNEXPECTED_EOF);

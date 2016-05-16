@@ -27,6 +27,8 @@ alluxio.user.file.writetype.default:
   `CACHE_THROUGH` (尽量缓冲数据，同时同步写入到底层文件系统), `THROUGH` (不缓冲数据，同步写入到底层文件系统)。
 alluxio.user.file.cache.partially.read.block:
   当读取类型是 `CACHE` 或者 `CACHE_PROMOTE` 的时候, 如果设置这个变量为真, 没有完全读取的数据块也会被存到Alluxio内.
+alluxio.user.file.seek.buffer.size.bytes:
+  在文件seek操作中使用的缓存大小。
 alluxio.user.heartbeat.interval.ms:
   Alluxio worker的心跳时间间隔（单位：毫秒）。
 alluxio.user.lineage.enabled:
