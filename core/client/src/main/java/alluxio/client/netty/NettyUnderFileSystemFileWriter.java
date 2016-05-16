@@ -33,8 +33,9 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Writer for an under file system file through a worker data server via Netty. This class does
- * not keep lingering resources and does not need to be closed.
+ * Writer for an under file system file through a worker data server via Netty. This class does not
+ * hold any state specific to the file and can be used to write to different files, but not
+ * concurrently. This class does not keep lingering resources and does not need to be closed.
  */
 @NotThreadSafe
 public final class NettyUnderFileSystemFileWriter {
