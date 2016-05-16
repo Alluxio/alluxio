@@ -26,6 +26,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
+  /**
+   * Constructs a new {@link GlusterFSUnderFileSystemFactory}.
+   */
+  public GlusterFSUnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");
