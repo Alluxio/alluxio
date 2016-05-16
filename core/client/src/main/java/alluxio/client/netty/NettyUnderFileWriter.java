@@ -13,7 +13,6 @@ package alluxio.client.netty;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.PreconditionMessage;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCFileWriteResponse;
@@ -21,14 +20,12 @@ import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
 
-import com.google.common.base.Preconditions;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
@@ -36,10 +33,11 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Writer for an under file system file through a worker data server via Netty.
+ * Writer for an under file system file through a worker data server via Netty. This class does
+ * not keep lingering resources and does not need to be closed.
  */
 @NotThreadSafe
-public final class NettyUnderFileWriter implements Closeable {
+public final class NettyUnderFileWriter {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
@@ -51,8 +49,6 @@ public final class NettyUnderFileWriter implements Closeable {
   /** Worker specific file id of the file to write to. */
   private final long mUfsFileId;
 
-  /** If this writer is still usable. */
-  private boolean mOpen;
   /** Total number of bytes written to the ufs file. */
   private long mWrittenBytes;
 
@@ -68,14 +64,6 @@ public final class NettyUnderFileWriter implements Closeable {
     mAddress = address;
     mUfsFileId = tempUfsFileId;
     mWrittenBytes = 0;
-    mOpen = true;
-  }
-
-  @Override
-  public void close() {
-    if (mOpen) {
-      mOpen = false;
-    }
   }
 
   /**
@@ -87,7 +75,6 @@ public final class NettyUnderFileWriter implements Closeable {
    * @throws IOException if an error occurs during the write
    */
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    Preconditions.checkState(mOpen, PreconditionMessage.ERR_CLOSED_NETTY_UNDER_FILE_WRITER);
     SingleResponseListener listener = new SingleResponseListener();
     try {
       ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
