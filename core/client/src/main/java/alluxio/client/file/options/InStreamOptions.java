@@ -17,12 +17,10 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.thrift.AlluxioService;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import com.sun.tools.internal.jxc.ap.Const;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
