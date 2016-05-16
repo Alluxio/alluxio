@@ -40,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeartbeatScheduler {
-  private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
+  private static Map<String, ScheduledTimer> sTimers = new HashMap<>();
   private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
