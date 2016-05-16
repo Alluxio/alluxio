@@ -33,8 +33,7 @@ public interface DataServer extends Closeable {
   @ThreadSafe
   class Factory {
 
-    // prevent instantiation
-    private Factory() {}
+    private Factory() {} // prevent instantiation
 
     /**
      * Factory for {@link DataServer}.
