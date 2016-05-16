@@ -66,7 +66,7 @@ public final class ClientContext {
 
     sExecutorService = Executors.newFixedThreadPool(
         sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+        ThreadFactoryUtils.build("worker-heartbeat-%d", true));
   }
 
   /**
