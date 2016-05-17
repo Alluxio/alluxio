@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -24,6 +25,8 @@ import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +45,8 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Consider whether the manager or the agents should contain the execution logic
 @ThreadSafe
 public final class UnderFileSystemManager {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   // Input stream agent session index
   private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
       new IndexedSet.FieldIndex<InputStreamAgent>() {
@@ -236,7 +241,11 @@ public final class UnderFileSystemManager {
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (ufs.rename(mTemporaryUri, mUri)) {
         if (user != null || group != null) {
-          ufs.setOwner(mUri, user, group);
+          try {
+            ufs.setOwner(mUri, user, group);
+          } catch (Exception e) {
+            LOG.error("Failed to update the ufs user, Alluxio system user will be used.", e);
+          }
         }
       } else {
         ufs.delete(mTemporaryUri, false);

@@ -20,6 +20,7 @@ import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
 /**
@@ -27,7 +28,8 @@ import java.io.IOException;
  * Alluxio worker. Note that the seek implementation of this class is not fail fast, and seeking
  * past the end of the file will be successful until a subsequent read occurs.
  */
-public class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStream {
+@NotThreadSafe
+public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStream {
   /** File System Worker Client. */
   private final FileSystemWorkerClient mClient;
   /** File id of the ufs file. */

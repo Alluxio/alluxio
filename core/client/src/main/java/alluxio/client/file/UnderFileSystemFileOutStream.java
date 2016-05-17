@@ -20,6 +20,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
@@ -31,6 +32,7 @@ import java.nio.ByteBuffer;
  * {@link alluxio.client.block.BufferedBlockOutStream}.
  */
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
+@NotThreadSafe
 public class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
