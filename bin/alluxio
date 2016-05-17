@@ -320,6 +320,7 @@ function main {
   ;;
   "validateConf")
     CLASS="alluxio.cli.ValidateConf"
+    ALLUXIO_SHELL_JAVA_OPTS+=" -Dalluxio.logger.type=Console"
     runJavaClass "$@"
   ;;
   *)

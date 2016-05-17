@@ -13,8 +13,8 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
-import alluxio.cli.Version;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -97,7 +97,7 @@ public class BasicCheckpoint implements Callable<Boolean> {
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR
+      System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
           + " alluxio.examples.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }

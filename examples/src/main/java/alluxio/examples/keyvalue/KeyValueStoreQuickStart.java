@@ -12,7 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.cli.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
@@ -32,7 +32,7 @@ public final class KeyValueStoreQuickStart {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
           + KeyValueStoreQuickStart.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }
