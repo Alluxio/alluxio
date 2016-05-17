@@ -84,11 +84,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /**
    * Caches the entire block even if only a portion of the block is read. Only valid when
-   * mShouldCacheCurrentBlock is true.
+   * mShouldCache is true.
    */
   private final boolean mShouldCachePartiallyReadBlock;
   /** Whether to cache the current block in this file into Alluxio. */
-  private boolean mShouldCacheCurrentBlock;
+  private final boolean mShouldCache;
 
   // The following 3 fields must be kept in sync. They are only updated in updateStreams together.
   /** Current {@link BlockInStream} backing this stream. */
@@ -128,12 +128,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mFileLength = status.getLength();
     mContext = FileSystemContext.INSTANCE;
     mAlluxioStorageType = options.getAlluxioStorageType();
-    mShouldCacheCurrentBlock = mAlluxioStorageType.isStore();
+    mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
     mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     mLocationPolicy = options.getLocationPolicy();
-    if (mShouldCacheCurrentBlock) {
+    if (mShouldCache) {
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
@@ -443,7 +443,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
     Preconditions.checkNotNull(mCurrentBlockInStream);
-    if (!mShouldCacheCurrentBlock || mCurrentBlockInStream instanceof LocalBlockInStream) {
+    if (!mShouldCache || mCurrentBlockInStream instanceof LocalBlockInStream) {
       return;
     }
 
@@ -463,7 +463,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
           && !address.getHost().equals(mLocalHostName)) {
         // If the block is already on some remote worker, then we will try to cache it only on
         // the local host if possible.
-        mShouldCacheCurrentBlock = false;
+        return;
       }
       // If we reach here, we need to cache.
       mCurrentCacheStream =
