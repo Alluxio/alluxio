@@ -103,7 +103,7 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * Resets the file inode.
    */
-  public  void reset() {
+  public void reset() {
     mBlocks = Lists.newArrayList();
     mLength = 0;
     mCompleted = false;

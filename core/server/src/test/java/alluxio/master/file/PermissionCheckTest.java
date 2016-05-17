@@ -19,7 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodePath;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -176,7 +176,7 @@ public final class PermissionCheckTest {
 
     // create "/testDir" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    try (InodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_URI),
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_URI),
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateDirectoryOptions.defaults()
@@ -186,7 +186,7 @@ public final class PermissionCheckTest {
 
     // create "/testDir/file" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    try (InodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
@@ -196,7 +196,7 @@ public final class PermissionCheckTest {
 
     // create "/testFile" for user2
     AuthenticatedClientUser.set(TEST_USER_2.getUser());
-    try (InodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)

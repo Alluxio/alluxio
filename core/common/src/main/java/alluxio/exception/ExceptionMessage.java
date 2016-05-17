@@ -107,6 +107,9 @@ public enum ExceptionMessage {
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
+  NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
+  PATH_COMPONENTS_INVALID("parameter pathComponents is {0}"),
+  PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
 
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),

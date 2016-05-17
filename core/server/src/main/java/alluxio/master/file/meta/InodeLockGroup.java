@@ -45,7 +45,7 @@ public final class InodeLockGroup implements AutoCloseable {
   /**
    * Unlocks the last inode that was locked.
    */
-  public synchronized void unlockPrevious() {
+  public synchronized void unlockLast() {
     if (mInodes.isEmpty()) {
       return;
     }

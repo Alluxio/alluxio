@@ -14,29 +14,29 @@ package alluxio.master.file.meta;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a pair of {@link InodePath}s.
+ * This class represents a pair of {@link LockedInodePath}s.
  */
 @ThreadSafe
-public class InodePathPair implements AutoCloseable {
-  protected final InodePath mInodePath1;
-  protected final InodePath mInodePath2;
+public final class InodePathPair implements AutoCloseable {
+  private final LockedInodePath mInodePath1;
+  private final LockedInodePath mInodePath2;
 
-  InodePathPair(InodePath inodePath1, InodePath inodePath2) {
+  InodePathPair(LockedInodePath inodePath1, LockedInodePath inodePath2) {
     mInodePath1 = inodePath1;
     mInodePath2 = inodePath2;
   }
 
   /**
-   * @return the first of two {@link InodePath}
+   * @return the first of two {@link LockedInodePath}
    */
-  public synchronized InodePath getFirst() {
+  public synchronized LockedInodePath getFirst() {
     return mInodePath1;
   }
 
   /**
-   * @return the second of two {@link InodePath}
+   * @return the second of two {@link LockedInodePath}
    */
-  public synchronized InodePath getSecond() {
+  public synchronized LockedInodePath getSecond() {
     return mInodePath2;
   }
 
