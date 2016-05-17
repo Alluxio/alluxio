@@ -11,6 +11,7 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -55,5 +56,10 @@ public final class SpecificHostPolicyTest {
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
     Assert.assertNull(policy.getWorkerForNextBlock(workerInfoList, Constants.MB));
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(SpecificHostPolicy.class);
   }
 }
