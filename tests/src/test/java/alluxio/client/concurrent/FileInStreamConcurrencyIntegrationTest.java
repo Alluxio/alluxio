@@ -23,11 +23,11 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +58,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 
-    List<Thread> threads = Lists.newArrayList();
+    List<Thread> threads = new ArrayList<>();
     for (int i = 0; i < READ_THREADS_NUM; i++) {
       threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
     }

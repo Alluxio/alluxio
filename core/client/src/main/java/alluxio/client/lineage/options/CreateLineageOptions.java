@@ -36,13 +36,7 @@ public final class CreateLineageOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof CreateLineageOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof CreateLineageOptions;
   }
 
   @Override

@@ -37,8 +37,9 @@ public class TouchCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void touchTestWithFullURI() throws IOException, AlluxioException {
-    String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getMasterHostname() + ":"
-        + mLocalAlluxioCluster.getMasterPort() + "/destFileURI";
+    String alluxioURI =
+        "alluxio://" + mLocalAlluxioCluster.getHostname() + ":" + mLocalAlluxioCluster
+            .getMasterPort() + "/destFileURI";
     // when
     String[] argv = new String[] {"touch", alluxioURI};
     mFsShell.run(argv);

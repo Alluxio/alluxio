@@ -15,8 +15,8 @@ import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -28,10 +28,15 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
+  /**
+   * Constructs a new {@link MostAvailableFirstPolicy}.
+   */
+  public MostAvailableFirstPolicy() {}
+
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
-    List<BlockWorkerInfo> inputList = Lists.newArrayList(workerInfoList);
+    List<BlockWorkerInfo> inputList = new ArrayList<>(workerInfoList);
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : inputList) {
@@ -45,13 +50,7 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof MostAvailableFirstPolicy)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof MostAvailableFirstPolicy;
   }
 
   @Override

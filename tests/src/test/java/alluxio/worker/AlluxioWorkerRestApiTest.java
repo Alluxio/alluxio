@@ -12,12 +12,12 @@
 package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
-import alluxio.LocalAlluxioClusterResource;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
-import alluxio.rest.TestCaseFactory;
+import alluxio.rest.RestApiTest;
+import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
@@ -25,11 +25,7 @@ import alluxio.worker.block.BlockWorker;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import org.junit.BeforeClass;
-import org.junit.Ignore;
-import org.junit.Rule;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -40,37 +36,36 @@ import org.powermock.reflect.Whitebox;
 
 import java.net.InetSocketAddress;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.SortedMap;
+import java.util.TreeMap;
+
+import javax.ws.rs.HttpMethod;
 
 /**
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
-@Ignore
-public final class AlluxioWorkerRestApiTest {
-  private static final Map<String, String> NO_PARAMS = Maps.newHashMap();
-  private static AlluxioWorker sWorker;
-  private static BlockStoreMeta sStoreMeta;
+public final class AlluxioWorkerRestApiTest extends RestApiTest {
+  private AlluxioWorker mWorker;
+  private BlockStoreMeta mStoreMeta;
 
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
-
-  @BeforeClass
-  public static void beforeClass() {
-    sWorker = PowerMockito.mock(AlluxioWorker.class);
+  @Before
+  public void before() {
+    mWorker = PowerMockito.spy(mResource.get().getWorker());
+    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
-    sStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
-    Mockito.doReturn(sStoreMeta).when(blockWorker).getStoreMeta();
-    Mockito.doReturn(blockWorker).when(sWorker).getBlockWorker();
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", sWorker);
-  }
-
-  private String getEndpoint(String suffix) {
-    return AlluxioWorkerRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    Whitebox.setInternalState(mWorker, "mBlockWorker", blockWorker);
+    mStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
+    Mockito.doReturn(mStoreMeta).when(blockWorker).getStoreMeta();
+    Mockito.doReturn(blockWorker).when(mWorker).getBlockWorker();
+    mHostname = mResource.get().getHostname();
+    mPort = mResource.get().getWorker().getWebLocalPort();
+    mServicePrefix = AlluxioWorkerRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test
@@ -78,35 +73,32 @@ public final class AlluxioWorkerRestApiTest {
     Random random = new Random();
     InetSocketAddress address = new InetSocketAddress(IntegrationTestUtils.randomString(),
         random.nextInt(8080) + 1);
-    Mockito.doReturn(address).when(sWorker).getWorkerAddress();
+    Mockito.doReturn(address).when(mWorker).getWorkerAddress();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS), NO_PARAMS,
-            "GET", address.toString(), mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS),
+        NO_PARAMS, HttpMethod.GET, address.toString()).run();
 
-    Mockito.verify(sWorker).getWorkerAddress();
+    Mockito.verify(mWorker).getWorkerAddress();
   }
 
   @Test
   public void getCapacityBytesTest() throws Exception {
     Random random = new Random();
     long capacityBytes = random.nextLong();
-    Mockito.doReturn(capacityBytes).when(sStoreMeta).getCapacityBytes();
+    Mockito.doReturn(capacityBytes).when(mStoreMeta).getCapacityBytes();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
-            NO_PARAMS, "GET", capacityBytes, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
+        NO_PARAMS, HttpMethod.GET, capacityBytes).run();
   }
 
   @Test
   public void getUsedBytesTest() throws Exception {
     Random random = new Random();
     long usedBytes = random.nextLong();
-    Mockito.doReturn(usedBytes).when(sStoreMeta).getUsedBytes();
+    Mockito.doReturn(usedBytes).when(mStoreMeta).getUsedBytes();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES),
-            NO_PARAMS, "GET", usedBytes, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES),
+        NO_PARAMS, HttpMethod.GET, usedBytes).run();
   }
 
   @Test
@@ -115,11 +107,11 @@ public final class AlluxioWorkerRestApiTest {
     MetricRegistry metricRegistry = PowerMockito.mock(MetricRegistry.class);
     MetricsSystem metricsSystem = PowerMockito.mock(MetricsSystem.class);
     Mockito.doReturn(metricRegistry).when(metricsSystem).getMetricRegistry();
-    Mockito.doReturn(metricsSystem).when(sWorker).getWorkerMetricsSystem();
+    Mockito.doReturn(metricsSystem).when(mWorker).getWorkerMetricsSystem();
 
     // Generate random metrics.
     Random random = new Random();
-    SortedMap<String, Long> metricsMap = Maps.newTreeMap();
+    SortedMap<String, Long> metricsMap = new TreeMap<>();
     metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
     metricsMap.put(IntegrationTestUtils.randomString(), random.nextLong());
     String blocksCachedProperty = CommonUtils.argsToString(".",
@@ -128,7 +120,7 @@ public final class AlluxioWorkerRestApiTest {
     metricsMap.put(blocksCachedProperty, blocksCached.longValue());
 
     // Mock counters.
-    SortedMap<String, Counter> counters = Maps.newTreeMap();
+    SortedMap<String, Counter> counters = new TreeMap<>();
     for (Map.Entry<String, Long> entry : metricsMap.entrySet()) {
       Counter counter = new Counter();
       counter.inc(entry.getValue());
@@ -139,13 +131,12 @@ public final class AlluxioWorkerRestApiTest {
     // Mock gauges.
     Gauge<?> blocksCachedGauge = PowerMockito.mock(Gauge.class);
     Mockito.doReturn(blocksCached).when(blocksCachedGauge).getValue();
-    SortedMap<String, Gauge<?>> gauges = Maps.newTreeMap();
+    SortedMap<String, Gauge<?>> gauges = new TreeMap<>();
     gauges.put(blocksCachedProperty, blocksCachedGauge);
     Mockito.doReturn(gauges).when(metricRegistry).getGauges();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_METRICS), NO_PARAMS,
-            "GET", metricsMap, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_METRICS),
+        NO_PARAMS, HttpMethod.GET, metricsMap).run();
 
     Mockito.verify(metricRegistry).getCounters();
     Mockito.verify(metricRegistry).getGauges();
@@ -154,8 +145,8 @@ public final class AlluxioWorkerRestApiTest {
 
   @Test
   public void getVersionTest() throws Exception {
-    TestCaseFactory.newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
-        NO_PARAMS, "GET", Version.VERSION, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
+        NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
   }
 
   @Test
@@ -165,17 +156,17 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, Long> capacityBytesOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, Long> capacityBytesOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
       capacityBytesOnTiers.put(tierAssoc.getAlias(ordinal), random.nextLong());
     }
-    Mockito.doReturn(capacityBytesOnTiers).when(sStoreMeta).getCapacityBytesOnTiers();
+    Mockito.doReturn(capacityBytesOnTiers).when(mStoreMeta).getCapacityBytesOnTiers();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS),
-            NO_PARAMS, "GET", capacityBytesOnTiers, mResource).run();
+    new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, capacityBytesOnTiers).run();
 
-    Mockito.verify(sStoreMeta).getCapacityBytesOnTiers();
+    Mockito.verify(mStoreMeta).getCapacityBytesOnTiers();
   }
 
   @Test
@@ -185,17 +176,17 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, Long> usedBytesOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, Long> usedBytesOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
       usedBytesOnTiers.put(tierAssoc.getAlias(ordinal), random.nextLong());
     }
-    Mockito.doReturn(usedBytesOnTiers).when(sStoreMeta).getUsedBytesOnTiers();
+    Mockito.doReturn(usedBytesOnTiers).when(mStoreMeta).getUsedBytesOnTiers();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES_ON_TIERS),
-            NO_PARAMS, "GET", usedBytesOnTiers, mResource).run();
+    new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, usedBytesOnTiers).run();
 
-    Mockito.verify(sStoreMeta).getUsedBytesOnTiers();
+    Mockito.verify(mStoreMeta).getUsedBytesOnTiers();
   }
 
   @Test
@@ -204,42 +195,40 @@ public final class AlluxioWorkerRestApiTest {
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
-    LinkedHashMap<String, List<String>> pathsOnTiers = Maps.newLinkedHashMap();
+    LinkedHashMap<String, List<String>> pathsOnTiers = new LinkedHashMap<>();
     for (int ordinal = 0; ordinal < nTiers; ordinal++) {
-      List<String> paths = Lists.newLinkedList();
+      List<String> paths = new LinkedList<>();
       paths.add(IntegrationTestUtils.randomString());
       pathsOnTiers.put(tierAssoc.getAlias(ordinal), paths);
     }
-    Mockito.doReturn(pathsOnTiers).when(sStoreMeta).getDirectoryPathsOnTiers();
+    Mockito.doReturn(pathsOnTiers).when(mStoreMeta).getDirectoryPathsOnTiers();
 
-    TestCaseFactory.newWorkerTestCase(getEndpoint(
-        AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS, "GET",
-        pathsOnTiers, mResource).run();
+    new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, pathsOnTiers).run();
 
-    Mockito.verify(sStoreMeta).getDirectoryPathsOnTiers();
+    Mockito.verify(mStoreMeta).getDirectoryPathsOnTiers();
   }
 
   @Test
   public void getStartTimeMsTest() throws Exception {
     Random random = new Random();
     long startTime = random.nextLong();
-    Mockito.doReturn(startTime).when(sWorker).getStartTimeMs();
+    Mockito.doReturn(startTime).when(mWorker).getStartTimeMs();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS),
-            NO_PARAMS, "GET", startTime, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS),
+        NO_PARAMS, HttpMethod.GET, startTime).run();
   }
 
   @Test
   public void getUptimeMsTest() throws Exception {
     Random random = new Random();
     long uptime = random.nextLong();
-    Mockito.doReturn(uptime).when(sWorker).getUptimeMs();
+    Mockito.doReturn(uptime).when(mWorker).getUptimeMs();
 
-    TestCaseFactory
-        .newWorkerTestCase(getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS), NO_PARAMS,
-            "GET", uptime, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS),
+        NO_PARAMS, HttpMethod.GET, uptime).run();
 
-    Mockito.verify(sWorker).getUptimeMs();
+    Mockito.verify(mWorker).getUptimeMs();
   }
 }

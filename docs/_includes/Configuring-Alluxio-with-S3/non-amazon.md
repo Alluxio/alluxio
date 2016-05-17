@@ -1,0 +1,4 @@
+    -Dalluxio.underfs.s3.endpoint=<S3_ENDPOINT>
+    -Dalluxio.underfs.s3.proxy.https.only=<USE_HTTPS>
+    -Dalluxio.underfs.s3.endpoint.http.port=<HTTP_PORT>
+    -Dalluxio.underfs.s3.endpoint.https.port=<HTTPS_PORT> 

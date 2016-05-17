@@ -159,7 +159,7 @@ of this application records which machine is used to launch an Alluxio master co
 # Test Alluxio
 
 When you know the IP of Alluxio master container, you can modify the `conf/alluxio-env.sh` to set
- up environment variable `ALLUXIO_MASTER_ADDRESS` on each EC2 machine:
+ up environment variable `ALLUXIO_MASTER_HOSTNAME` on each EC2 machine:
 
 {% include Running-Alluxio-on-EC2-Yarn/environment-variable.md %}
 

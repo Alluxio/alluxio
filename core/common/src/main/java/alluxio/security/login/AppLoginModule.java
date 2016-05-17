@@ -40,6 +40,11 @@ public final class AppLoginModule implements LoginModule {
   private User mUser;
   private CallbackHandler mCallbackHandler;
 
+  /**
+   * Constructs a new {@link AppLoginModule}.
+   */
+  public AppLoginModule() {}
+
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
       Map<String, ?> sharedState, Map<String, ?> options) {
@@ -99,7 +104,7 @@ public final class AppLoginModule implements LoginModule {
    * implementation first checks if there is already Alluxio user in the subject. If not, it adds
    * the previously logged in Alluxio user into the subject.
    *
-   * @return true if an Alluxio user if found or created
+   * @return true if an Alluxio user is found or created
    * @throws LoginException not Alluxio user is found or created
    */
   @Override

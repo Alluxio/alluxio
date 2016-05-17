@@ -11,7 +11,11 @@
 
 package alluxio.master.block.meta;
 
+import alluxio.Constants;
+
 import com.google.common.base.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,10 +32,15 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterBlockInfo {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** The id of the block. */
   private final long mBlockId;
-  /** The length of the block in bytes. */
-  private final long mLength;
+  /**
+   * The length of the block in bytes. This can be updated if it was previously unknown,
+   * {@link Constants#UNKNOWN_SIZE}
+   */
+  private long mLength;
 
   /** Maps from the worker id to the tier alias the block is on. */
   private final Map<Long, String> mWorkerIdToAlias;
@@ -55,6 +64,20 @@ public final class MasterBlockInfo {
    */
   public long getLength() {
     return mLength;
+  }
+
+  /**
+   * Updates the length, if and only if the length was previously unknown.
+   *
+   * @param length the updated length
+   */
+  public synchronized void updateLength(long length) {
+    if (mLength == Constants.UNKNOWN_SIZE) {
+      mLength = length;
+    } else if (mLength != length) {
+      LOG.warn("Attempting to update block length ({}) to a different length ({}).", mLength,
+          length);
+    }
   }
 
   /**

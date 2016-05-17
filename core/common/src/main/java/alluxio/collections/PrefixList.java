@@ -47,7 +47,7 @@ public final class PrefixList {
    */
   public PrefixList(String prefixes, String separator) {
     Validate.notNull(separator);
-    List<String> prefixList = new ArrayList<String>(0);
+    List<String> prefixList = new ArrayList<>(0);
     if (prefixes != null && !prefixes.trim().isEmpty()) {
       String[] candidates = prefixes.trim().split(separator);
       for (String prefix : candidates) {
@@ -102,7 +102,7 @@ public final class PrefixList {
   /**
    * Print out all prefixes separated by ";".
    *
-   * @return the string representation like "a;b/c"
+   * @return the string representation like "a;b/c;"
    */
   @Override
   public String toString() {

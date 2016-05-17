@@ -147,7 +147,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
-        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        List<LineageInfo> result = new ArrayList<>();
         for (alluxio.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
           result.add(ThriftUtils.fromThrift(lineageInfo));
         }
