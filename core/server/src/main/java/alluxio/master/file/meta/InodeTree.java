@@ -355,14 +355,24 @@ public final class InodeTree implements JournalCheckpointStreamable {
       computePathForInode(inode, builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
 
-      try (LockedInodePath inodePath = lockFullInodePath(uri, lockMode)) {
+
+      boolean valid = false;
+      LockedInodePath inodePath = null;
+      try {
+        inodePath = lockFullInodePath(uri, lockMode);
         if (inodePath.getInode().getId() == id) {
+          // Set to true, so the path is not unlocked before returning.
+          valid = true;
           return inodePath;
         }
         // The path does not end up at the target inode id. Repeat the traversal.
       } catch (InvalidPathException e) {
         // ignore and repeat the loop
         LOG.warn("Inode lookup id {} computed path {} mismatch id. Repeating.", id, uri);
+      } finally {
+        if (!valid && inodePath != null) {
+          inodePath.close();
+        }
       }
       count++;
       if (count > PATH_TRAVERSAL_RETRIES) {
@@ -389,6 +399,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   }
 
+  /**
+   * Appends components of the path from a given inode.
+   *
+   * @param inode the inode to compute the path for
+   * @param builder a {@link StringBuilder} that is updated with the path components
+   * @throws FileDoesNotExistException if an inode in the path does not exist
+   */
   private void computePathForInode(Inode<?> inode, StringBuilder builder)
       throws FileDoesNotExistException {
     inode.lockRead();
@@ -423,6 +440,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @throws FileDoesNotExistException if the path does not exist
    */
   public AlluxioURI getPath(Inode<?> inode) throws FileDoesNotExistException {
+    Preconditions.checkState(inode.isWriteLocked() || inode.isReadLocked());
     StringBuilder builder = new StringBuilder();
     computePathForInode(inode, builder);
     return new AlluxioURI(builder.toString());
@@ -966,7 +984,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
         if (lockMode != LockMode.READ
             && getLockModeForComponent(i - 1, pathComponents.length, lockMode, lockHints)
             == LockMode.READ) {
-          // The lock mode is one of the WRITE modes, but the previous inode was READ locked.
+          // The target lock mode is one of the WRITE modes, but READ lock is already held. The
+          // READ lock cannot be upgraded atomically, it needs be released first before WRITE
+          // lock can be acquired. As a consequence, we need to recheck if the child we are
+          // looking for has not been created in the meantime.
           lockGroup.unlockLast();
           lockGroup.lockWrite(current);
           Inode recheckNext = ((InodeDirectory) current).getChild(pathComponents[i]);

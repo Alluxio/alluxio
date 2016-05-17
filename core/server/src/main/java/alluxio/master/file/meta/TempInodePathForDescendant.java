@@ -29,6 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This allows methods to operate on descendants associated with an existing
  * {@link LockedInodePath}.
  */
+// TODO(gpang): can an iterator for a LockedInodePath handle functionality for this class?
 @ThreadSafe
 public final class TempInodePathForDescendant extends LockedInodePath {
   private AlluxioURI mDescendantUri;

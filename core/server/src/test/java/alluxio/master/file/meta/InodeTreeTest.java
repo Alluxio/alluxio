@@ -451,15 +451,16 @@ public final class InodeTreeTest {
     }
 
     // test one level
-    InodeTree.CreatePathResult createResult = createPath(mTree, TEST_URI, sDirectoryOptions);
-    List<Inode<?>> created = createResult.getCreated();
-    Assert.assertEquals(new AlluxioURI("/test"), mTree.getPath(created.get(created.size() - 1)));
+    createPath(mTree, TEST_URI, sDirectoryOptions);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(TEST_URI, InodeTree.LockMode.READ)) {
+      Assert.assertEquals(new AlluxioURI("/test"), mTree.getPath(inodePath.getInode()));
+    }
 
     // test nesting
-    createResult = createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
-    created = createResult.getCreated();
-    Assert.assertEquals(new AlluxioURI("/nested/test"),
-        mTree.getPath(created.get(created.size() - 1)));
+    createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
+    try (LockedInodePath inodePath = mTree.lockFullInodePath(NESTED_URI, InodeTree.LockMode.READ)) {
+      Assert.assertEquals(new AlluxioURI("/nested/test"), mTree.getPath(inodePath.getInode()));
+    }
   }
 
   /**

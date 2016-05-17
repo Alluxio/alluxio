@@ -188,7 +188,7 @@ public final class PermissionChecker {
   /**
    * Checks whether the client user is the owner of the path.
    *
-   * @param inodePath to be checked on
+   * @param inodePath path to be checked on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
