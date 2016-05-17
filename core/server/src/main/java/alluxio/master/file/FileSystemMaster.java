@@ -898,7 +898,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws DirectoryNotEmptyException if recursive is false and the file is a nonempty directory
    */
-  long deleteAndJournal(LockedInodePath inodePath, boolean recursive)
+  private long deleteAndJournal(LockedInodePath inodePath, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException, IOException,
       DirectoryNotEmptyException {
     Inode<?> inode = inodePath.getInode();
@@ -1247,7 +1247,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  long createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options)
+  private long createDirectoryAndJournal(LockedInodePath inodePath, CreateDirectoryOptions options)
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
@@ -1270,7 +1270,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if a non-Alluxio related exception occurs
    * @throws AccessControlException if permission checking fails
    */
-  InodeTree.CreatePathResult createDirectoryInternal(LockedInodePath inodePath,
+  private InodeTree.CreatePathResult createDirectoryInternal(LockedInodePath inodePath,
       CreateDirectoryOptions options) throws InvalidPathException, FileAlreadyExistsException,
       IOException, AccessControlException, FileDoesNotExistException {
     try {
@@ -1762,7 +1762,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if permission checking fails
    * @throws IOException if an I/O error occurs
    */
-  long loadMetadataAndJournal(LockedInodePath inodePath, boolean recursive)
+  private long loadMetadataAndJournal(LockedInodePath inodePath, boolean recursive)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       BlockInfoException, FileAlreadyCompletedException, InvalidFileSizeException,
       AccessControlException, IOException {
