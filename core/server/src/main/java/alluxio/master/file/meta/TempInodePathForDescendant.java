@@ -20,28 +20,34 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a temporary {@link InodePath}. This {@link InodePath} will not unlock the
- * inodes on close. This {@link InodePath} can set any descendant (does not have to be immediate),
- * useful for operations requiring an {@link InodePath}.
+ * This class represents a temporary {@link LockedInodePath}. This {@link LockedInodePath} will
+ * not unlock the inodes on close. This {@link LockedInodePath} can set any descendant (does not
+ * have to be immediate).
+ *
+ * This is useful for being able to pass in descendant inodes to methods which require a
+ * {@link LockedInodePath}, without having to re-traverse the inode tree, and re-acquire locks.
+ * This allows methods to operate on descendants associated with an existing
+ * {@link LockedInodePath}.
  */
+// TODO(gpang): can an iterator for a LockedInodePath handle functionality for this class?
 @ThreadSafe
-public final class TempInodePathWithDescendant extends InodePath {
+public final class TempInodePathForDescendant extends LockedInodePath {
   private AlluxioURI mDescendantUri;
   private Inode<?> mDescendantInode;
 
   /**
-   * Constructs a temporary {@link InodePath} from an existing {@link InodePath}.
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}.
    *
-   * @param inodePath the {@link InodePath} to create the temporary path from
+   * @param inodePath the {@link LockedInodePath} to create the temporary path from
    */
-  public TempInodePathWithDescendant(InodePath inodePath) {
+  public TempInodePathForDescendant(LockedInodePath inodePath) {
     super(inodePath);
     mDescendantUri = new AlluxioURI(inodePath.mUri.toString());
     mDescendantInode = null;
   }
 
   /**
-   * Sets the already locked descendant inode for this temporary {@link InodePath}.
+   * Sets the already locked descendant inode for this temporary {@link LockedInodePath}.
    *
    * @param descendantInode the descendant inode, which should already be locked
    * @param uri the path of this descendant

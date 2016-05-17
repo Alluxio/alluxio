@@ -229,8 +229,17 @@ public abstract class AbstractMaster implements Master {
     return mAsyncJournalWriter.appendEntry(entry);
   }
 
+  /**
+   * Waits for the flush counter to be flushed to the journal. If the counter is
+   * {@link AsyncJournalWriter#INVALID_FLUSH_COUNTER}, this is a noop.
+   *
+   * @param counter the flush counter
+   */
   protected void waitForJournalFlush(long counter) {
     Preconditions.checkNotNull(mAsyncJournalWriter, "async journal writer is null.");
+    if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+      return;
+    }
     try {
       mAsyncJournalWriter.flush(counter);
     } catch (IOException e) {

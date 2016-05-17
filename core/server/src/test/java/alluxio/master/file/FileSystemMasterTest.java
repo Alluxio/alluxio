@@ -564,7 +564,7 @@ public final class FileSystemMasterTest {
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
-//  @Test
+  @Test
   public void createFileWithTtlTest() throws Exception {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true).setTtl(0);
@@ -804,7 +804,7 @@ public final class FileSystemMasterTest {
   @Test
   public void renameToSubpathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-//    mThrown.expectMessage("/nested/test is a prefix of /nested/test/file");
+    mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
     mFileSystemMaster.createFile(NESTED_URI, sNestedFileOptions);
     mFileSystemMaster.rename(NESTED_URI, NESTED_FILE_URI);

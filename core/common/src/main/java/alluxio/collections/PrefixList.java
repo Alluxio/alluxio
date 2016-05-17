@@ -65,7 +65,7 @@ public final class PrefixList {
    *
    * @return the list of prefixes
    */
-  public List<String> getList() {
+  public ImmutableList<String> getList() {
     return mInnerList;
   }
 

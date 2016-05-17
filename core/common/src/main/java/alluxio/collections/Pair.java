@@ -20,7 +20,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * @param <T2> the second element of the Pair
  */
 @NotThreadSafe
-public final class Pair<T1, T2> {
+public class Pair<T1, T2> {
   private T1 mFirst;
   private T2 mSecond;
 
