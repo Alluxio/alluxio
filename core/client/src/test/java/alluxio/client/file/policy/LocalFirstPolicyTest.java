@@ -11,6 +11,7 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
@@ -59,5 +60,10 @@ public final class LocalFirstPolicyTest {
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.MB, Constants.MB));
     Assert.assertEquals("worker1",
         policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(LocalFirstPolicy.class);
   }
 }
