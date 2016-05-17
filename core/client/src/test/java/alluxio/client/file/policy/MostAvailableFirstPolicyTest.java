@@ -11,6 +11,7 @@
 
 package alluxio.client.file.policy;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -42,5 +43,10 @@ public final class MostAvailableFirstPolicyTest {
     MostAvailableFirstPolicy policy = new MostAvailableFirstPolicy();
     Assert.assertEquals("worker3",
         policy.getWorkerForNextBlock(workerInfoList, Constants.MB).getHost());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(MostAvailableFirstPolicy.class);
   }
 }

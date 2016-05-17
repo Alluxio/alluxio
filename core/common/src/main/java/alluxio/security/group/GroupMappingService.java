@@ -43,15 +43,6 @@ public interface GroupMappingService {
     /**
      * Gets the groups being used to map user-to-groups.
      *
-     * @return the groups being used to map user-to-groups
-     */
-    public static GroupMappingService getUserToGroupsMappingService() {
-      return getUserToGroupsMappingService(new Configuration());
-    }
-
-    /**
-     * Gets the groups being used to map user-to-groups.
-     *
      * @param conf Alluxio configuration
      * @return the groups being used to map user-to-groups
      */
