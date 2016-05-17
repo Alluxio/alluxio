@@ -22,6 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
@@ -138,6 +139,7 @@ public final class UnderFileSystemManager {
       mUri = ufsUri.toString();
       mConfiguration = conf;
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      ufs.connectFromWorker(conf, NetworkAddressUtils.getLocalHostName(conf));
       if (!ufs.exists(mUri)) {
         throw new FileDoesNotExistException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -209,6 +211,7 @@ public final class UnderFileSystemManager {
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      ufs.connectFromWorker(conf, NetworkAddressUtils.getLocalHostName(conf));
       if (ufs.exists(mUri)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
