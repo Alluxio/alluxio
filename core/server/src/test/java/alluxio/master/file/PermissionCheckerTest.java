@@ -45,6 +45,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -128,7 +129,7 @@ public final class PermissionCheckerTest {
   }
 
   public static class FakeUserGroupsMapping implements GroupMappingService {
-    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+    private HashMap<String, String> mUserGroups = new HashMap<>();
 
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups());
@@ -143,7 +144,7 @@ public final class PermissionCheckerTest {
       if (mUserGroups.containsKey(user)) {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
-      return Lists.newArrayList();
+      return new ArrayList<>();
     }
 
     @Override

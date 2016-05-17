@@ -18,7 +18,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -31,6 +30,7 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CyclicBarrier;
@@ -261,11 +261,11 @@ public class BlockLockManagerTest {
     final int lockUnlocksPerThread = 50;
     setMaxLocks(numBlocks);
     final BlockLockManager manager = new BlockLockManager();
-    final List<Thread> threads = Lists.newArrayList();
+    final List<Thread> threads = new ArrayList<>();
     final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
     // If there are exceptions, we will store them here.
     final AtomicReference<List<Throwable>> failedThreadThrowables =
-        new AtomicReference<List<Throwable>>(Lists.<Throwable>newArrayList());
+        new AtomicReference<List<Throwable>>(new ArrayList<Throwable>());
     Thread.UncaughtExceptionHandler exceptionHandler = new Thread.UncaughtExceptionHandler() {
       public void uncaughtException(Thread th, Throwable ex) {
         failedThreadThrowables.get().add(ex);

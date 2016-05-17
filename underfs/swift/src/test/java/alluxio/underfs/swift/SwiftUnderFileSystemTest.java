@@ -103,7 +103,7 @@ public class SwiftUnderFileSystemTest {
         "dir/file",
         "swift://test-container-wrong/dir/file",
         "dir/file",
-        "/dir/file",
+        "dir/file",
     };
     for (int i = 0; i < inputs.length; i++) {
       Assert.assertEquals(results[i], Whitebox.invokeMethod(mMockSwiftUnderFileSystem,

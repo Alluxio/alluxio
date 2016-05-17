@@ -62,9 +62,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the hostname of the master
+   * @return the hostname of the cluster
    */
-  public String getMasterHostname() {
+  public String getHostname() {
     return mHostname;
   }
 
@@ -112,7 +112,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   protected void startMaster(Configuration testConf) throws IOException {
-    mMasterConf = new Configuration(testConf.getInternalProperties());
+    mMasterConf = new Configuration(testConf);
     MasterContext.reset(mMasterConf);
 
     mMaster = LocalAlluxioMaster.create(mHome);
@@ -131,7 +131,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = new Configuration(conf.getInternalProperties());
+    mWorkerConf = new Configuration(conf);
     WorkerContext.reset(mWorkerConf);
 
     runWorker();

@@ -20,10 +20,10 @@ import alluxio.master.lineage.meta.LineageStateUtils;
 import alluxio.master.lineage.meta.LineageStore;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -58,7 +58,7 @@ public class RecomputePlanner {
     List<Long> lostFiles = mFileSystemMaster.getLostFiles();
 
     // lineage to recompute
-    Set<Lineage> toRecompute = Sets.newHashSet();
+    Set<Lineage> toRecompute = new HashSet<>();
     if (!lostFiles.isEmpty()) {
       LOG.info("report lost files {}", lostFiles);
       // report lost files

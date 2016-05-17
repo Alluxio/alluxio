@@ -19,6 +19,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class ThriftUtils {
 
+  private ThriftUtils() {} // prevent instantiation
+
   /**
    * Converts a thrift type to a wire type.
    *

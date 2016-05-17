@@ -36,13 +36,7 @@ public final class GetLineageInfoListOptions {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof GetLineageInfoListOptions)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof GetLineageInfoListOptions;
   }
 
   @Override

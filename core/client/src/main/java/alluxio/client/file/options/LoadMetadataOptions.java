@@ -19,9 +19,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Method options for loading the metadata.
+ *
+ * @deprecated since version 1.1 and will be removed in version 2.0
  */
 @PublicApi
 @NotThreadSafe
+@Deprecated
 public final class LoadMetadataOptions {
   private boolean mRecursive;
 
