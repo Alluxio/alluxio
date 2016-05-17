@@ -29,13 +29,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class represents a path of locked {@link Inode}, starting from the root.
  */
 @ThreadSafe
-public abstract class InodePath implements AutoCloseable {
+public abstract class LockedInodePath implements AutoCloseable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
   protected final ArrayList<Inode<?>> mInodes;
   protected final InodeLockGroup mLockGroup;
 
-  InodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
+  LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
       throws InvalidPathException {
     Preconditions.checkArgument(!inodes.isEmpty());
     mUri = uri;
@@ -44,7 +44,7 @@ public abstract class InodePath implements AutoCloseable {
     mLockGroup = lockGroup;
   }
 
-  InodePath(InodePath inodePath) {
+  LockedInodePath(LockedInodePath inodePath) {
     Preconditions.checkArgument(!inodePath.mInodes.isEmpty());
     mUri = inodePath.mUri;
     mPathComponents = inodePath.mPathComponents;
@@ -60,8 +60,6 @@ public abstract class InodePath implements AutoCloseable {
   }
 
   /**
-   * Returns the target inode. If the target inode does not exist, an exception will be thrown.
-   *
    * @return the target inode
    * @throws FileDoesNotExistException if the target inode does not exist
    */
@@ -73,9 +71,6 @@ public abstract class InodePath implements AutoCloseable {
   }
 
   /**
-   * Returns the target inode, as an {@link InodeFile}. If the target inode does not exist, or it
-   * is not a file, an exception will be thrown.
-   *
    * @return the target inode as an {@link InodeFile}
    * @throws FileDoesNotExistException if the target inode does not exist, or it is not a file
    */
@@ -88,9 +83,6 @@ public abstract class InodePath implements AutoCloseable {
   }
 
   /**
-   * Returns the parent of the target inode. If the parent of the target inode does not exist, an
-   * exception will be thrown.
-   *
    * @return the parent of the target inode
    * @throws InvalidPathException if the parent inode is not a directory
    * @throws FileDoesNotExistException if the parent of the target does not exist
