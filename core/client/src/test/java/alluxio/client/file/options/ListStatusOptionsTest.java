@@ -1,10 +1,10 @@
 package alluxio.client.file.options;
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import alluxio.CommonTestUtils;
 import alluxio.thrift.ListStatusTOptions;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests for the {@link ListStatusOptions} class.
