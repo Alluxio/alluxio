@@ -72,7 +72,8 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests creating a file with the manager will call {@link UnderFileSystem#create}.
+   * Tests creating a file with the manager will call {@link UnderFileSystem#create} and
+   * {@link UnderFileSystem#connectFromWorker}
    */
   @Test
   public void createUfsFileTest() throws Exception {
@@ -80,6 +81,8 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
+        Mockito.anyString());
   }
 
   /**
@@ -190,8 +193,8 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests opening a file will call {@link UnderFileSystem#exists} and succeeds when the file
-   * exists.
+   * Tests opening a file will call {@link UnderFileSystem#exists} and
+   * {@link UnderFileSystem#connectFromWorker}and succeeds when the file exists.
    */
   @Test
   public void openUfsFileTest() throws Exception {
@@ -200,6 +203,8 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).exists(uniqPath);
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
+        Mockito.anyString());
   }
 
   /**
