@@ -228,7 +228,7 @@ public final class PathUtils {
   }
 
   /**
-   * Adds a trailing separator if it does not exists in path.
+   * Adds a trailing separator if it does not exist in path.
    *
    * @param path the file name
    * @param separator trailing separator to add
