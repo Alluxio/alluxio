@@ -73,7 +73,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
-      LOG.info("Connected to remote machine {}", address);
+      LOG.debug("Connected to remote machine {}", address);
       Channel channel = f.channel();
       SingleResponseListener listener = new SingleResponseListener();
       mHandler.addListener(listener);
@@ -85,7 +85,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
       switch (response.getType()) {
         case RPC_FILE_READ_RESPONSE:
           RPCFileReadResponse resp = (RPCFileReadResponse) response;
-          LOG.info("Data for ufs file id {} from machine {} received", ufsFileId, address);
+          LOG.debug("Data for ufs file id {} from machine {} received", ufsFileId, address);
 
           RPCResponse.Status status = resp.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {

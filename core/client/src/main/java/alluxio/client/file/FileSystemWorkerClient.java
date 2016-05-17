@@ -62,13 +62,13 @@ public class FileSystemWorkerClient extends AbstractClient {
   private final HeartbeatExecutor mHeartbeatExecutor;
   /** Metrics object. */
   private final ClientMetrics mClientMetrics;
+  /** Address of the data server on the worker. */
+  private final InetSocketAddress mWorkerDataServerAddress;
 
   /** Underlying thrift RPC client which executes the operations. */
   private FileSystemWorkerClientService.Client mClient;
   /** The current heartbeat thread, this will be updated each time this client connects. */
   private Future<?> mHeartbeat;
-  /** Address of the data server on the worker. */
-  private InetSocketAddress mWorkerDataServerAddress;
   /** The current session id, managed by the caller. */
   private long mSessionId;
 
@@ -92,7 +92,7 @@ public class FileSystemWorkerClient extends AbstractClient {
   }
 
   /**
-   * Creates the underying thrift client and starts the heartbeat thread, unless one is already
+   * Creates the underlying thrift client and starts the heartbeat thread, unless one is already
    * running.
    *
    * @throws IOException if the thrift client cannot be created
