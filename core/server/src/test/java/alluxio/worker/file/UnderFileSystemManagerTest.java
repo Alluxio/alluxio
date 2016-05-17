@@ -73,7 +73,7 @@ public final class UnderFileSystemManagerTest {
 
   /**
    * Tests creating a file with the manager will call {@link UnderFileSystem#create} and
-   * {@link UnderFileSystem#connectFromWorker}
+   * {@link UnderFileSystem#connectFromWorker}.
    */
   @Test
   public void createUfsFileTest() throws Exception {
