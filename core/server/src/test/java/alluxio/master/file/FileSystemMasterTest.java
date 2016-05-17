@@ -44,6 +44,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -739,17 +740,26 @@ public final class FileSystemMasterTest {
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    mThrown.expect(FileAlreadyExistsException.class);
-    mFileSystemMaster
-        .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+    boolean fileAlreadyExistsExceptionSeen = false;
+    try {
+      mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+    } catch (FileAlreadyExistsException e) {
+      fileAlreadyExistsExceptionSeen = true;
+    }
+    Assert.assertTrue(fileAlreadyExistsExceptionSeen);
+    fileAlreadyExistsExceptionSeen = false;
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    mThrown.expect(FileAlreadyExistsException.class);
-    mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+    try {
+      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+    } catch (FileAlreadyExistsException e) {
+      fileAlreadyExistsExceptionSeen = true;
+    }
+    Assert.assertTrue(fileAlreadyExistsExceptionSeen);
   }
 
   /**
