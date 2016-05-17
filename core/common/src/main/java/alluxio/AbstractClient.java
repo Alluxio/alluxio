@@ -300,7 +300,7 @@ public abstract class AbstractClient implements Closeable {
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw Throwables.propagate(AlluxioException.from(e));
+        throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -329,7 +329,7 @@ public abstract class AbstractClient implements Closeable {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        throw AlluxioException.from(e);
+        throw AlluxioException.fromThrift(e);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {

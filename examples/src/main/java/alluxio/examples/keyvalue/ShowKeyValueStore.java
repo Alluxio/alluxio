@@ -41,6 +41,8 @@ public final class ShowKeyValueStore {
     }
   }
 
+  private ShowKeyValueStore() {} // prevent instantiation
+
   /**
    * @param args two parameters, the first is the key-value store URI, the second is the scope of
    *    the store to be shown ("key" to show only keys, "value" to show only values, and "all" to

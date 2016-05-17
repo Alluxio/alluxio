@@ -752,6 +752,16 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
   }
 
+  /**
+   * Tests load root metadata. It should not fail.
+   *
+    * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void testLoadRoot() throws Exception {
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
+  }
+
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {
     mFileSystemMaster.createFile(uri, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(uri);

@@ -53,6 +53,8 @@ public final class TestRunner {
       .asList(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH, WriteType.THROUGH,
           WriteType.ASYNC_THROUGH);
 
+  private TestRunner() {} // prevent instantiation
+
   private static void usage() {
     System.out.println("Usage:");
     System.out.println("(1) To run a predefined set of read/write tests:");

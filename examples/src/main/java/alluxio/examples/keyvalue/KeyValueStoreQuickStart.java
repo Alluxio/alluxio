@@ -21,6 +21,9 @@ import alluxio.client.keyvalue.KeyValueSystem;
  * A quick start tutorial for creating a key-value store, putting and getting some key-value pairs.
  */
 public final class KeyValueStoreQuickStart {
+
+  private KeyValueStoreQuickStart() {} // prevent instantiation
+
   /**
    * The main program.
    *
