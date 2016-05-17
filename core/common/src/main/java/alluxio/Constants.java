@@ -119,11 +119,7 @@ public final class Constants {
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
-
-  // This constant is being used only in Hadoop MR job submissions where client need to pass site
-  // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
-
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";

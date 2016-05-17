@@ -12,8 +12,8 @@
 package alluxio.worker;
 
 import alluxio.IntegrationTestUtils;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.cli.Version;
 import alluxio.master.MasterContext;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
@@ -146,7 +146,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getVersionTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
-        NO_PARAMS, HttpMethod.GET, Version.VERSION).run();
+        NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
   }
 
   @Test
