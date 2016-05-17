@@ -15,13 +15,15 @@ import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.UnderFileSystem;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 
 /**
  * Implementation of {@link UnderStoreBlockInStream} which directly accesses the under storage
  * from the client.
  */
-public class DirectUnderStoreBlockInStream extends UnderStoreBlockInStream {
+@NotThreadSafe
+public final class DirectUnderStoreBlockInStream extends UnderStoreBlockInStream {
   /**
    * Constructor for a direct under store block in stream.
    *

@@ -20,6 +20,7 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
+import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -30,6 +31,7 @@ import java.nio.ByteBuffer;
  * server. This class is based off of {@link alluxio.client.block.BufferedBlockInStream}.
  */
 // TODO(calvin): See if common logic in this class and buffered block in stream can be abstracted
+@NotThreadSafe
 public class UnderFileSystemFileInStream extends InputStream {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
