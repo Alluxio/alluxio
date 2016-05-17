@@ -742,7 +742,8 @@ public final class FileSystemMasterTest {
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     boolean fileAlreadyExistsExceptionSeen = false;
     try {
-      mFileSystemMaster.createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+      mFileSystemMaster
+          .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
     } catch (FileAlreadyExistsException e) {
       fileAlreadyExistsExceptionSeen = true;
     }
