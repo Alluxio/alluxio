@@ -43,7 +43,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
    * Creates a new instance of {@link WebInterfaceDownloadLocalServlet}.
    */
   public WebInterfaceDownloadLocalServlet() {
-    mConfiguration = new Configuration();
+    mConfiguration = Configuration.createServerConf();
   }
 
   /**
