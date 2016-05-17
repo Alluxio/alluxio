@@ -70,7 +70,7 @@ public final class StorageTier {
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
     String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf).split(",");
 
-    mDirs = new ArrayList<StorageDir>(dirPaths.length);
+    mDirs = new ArrayList<>(dirPaths.length);
 
     long totalCapacity = 0;
     for (int i = 0; i < dirPaths.length; i++) {

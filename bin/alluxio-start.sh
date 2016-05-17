@@ -9,29 +9,27 @@ BIN=$(cd "$( dirname "$0" )"; pwd)
 
 #start up alluxio
 
-USAGE="Usage: alluxio-start.sh [-hNw] ACTION [MOPT] [-f]
+USAGE="Usage: alluxio-start.sh [-fhNw] ACTION [MOPT]
 Where ACTION is one of:
-  all [MOPT]\t\tStart master and all workers.
-  local [MOPT] \t\t\tStart a master and worker locally.
-  master\t\tStart the master on this node.
-  safe\t\t\tScript will run continuously and start the master if it's not running.
-  worker [MOPT]\t\tStart a worker on this node.
-  workers [MOPT]\t\tStart workers on worker nodes.
-  restart_worker\tRestart a failed worker on this node.
+  all [MOPT]     \tStart master and all workers.
+  local [MOPT]   \tStart a master and worker locally.
+  master         \tStart the master on this node.
+  safe           \tScript will run continuously and start the master if it's not running.
+  worker [MOPT]  \tStart a worker on this node.
+  workers [MOPT] \tStart workers on worker nodes.
+  restart_worker \tRestart a failed worker on this node.
   restart_workers\tRestart any failed workers on worker nodes.
-MOPT is one of:
-  Mount\t\t\tMount the configured RamFS. Notice: this will format the existing RamFS.
-  SudoMount\t\tMount the configured RamFS using sudo. Notice: this will format the existing RamFS.
-  NoMount\t\tDo not mount the configured RamFS. Notice: Use NoMount (Linux only) to use tmpFS
-  to avoid sudo requirement.
-  SudoMount is assumed if MOPT is missing.
+MOPT (Mount Option) is one of:
+  Mount    \tMount the configured RamFS. Notice: this will format the existing RamFS.
+  SudoMount\tMount the configured RamFS using sudo.
+           \tNotice: this will format the existing RamFS.
+  NoMount  \tDo not mount the configured RamFS.
+           \tNotice: Use NoMount (Linux only) to use tmpFS to avoid sudo requirement.
+  SudoMount is assumed if MOPT is specified.
 
 -f  format Journal, UnderFS Data and Workers Folder on master
-
 -N  do not try to kill prior running masters and/or workers in all or local
-
 -w  wait for processes to end before returning
-
 -h  display this help."
 
 ensure_dirs() {
@@ -47,13 +45,35 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
+# The exit status is 0 if ALLUXIO_RAM_FOLDER is mounted as tmpfs or ramfs.
+is_ram_folder_mounted() {
+  if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
+    return 1
+  fi
+  local mounted_fs=""
+  if [[ $(uname -s) == Darwin ]]; then
+    mounted_fs=$(mount -t "hfs" | grep '/Volumes/' | cut -d " " -f 3)
+  else
+    mounted_fs=$(mount -t "tmpfs,ramfs" | cut -d " " -f 3)
+  fi
+
+  for fs in ${mounted_fs}; do
+    if [[ "${ALLUXIO_RAM_FOLDER}" == "${fs}" || \
+     "${ALLUXIO_RAM_FOLDER}" =~ ^"${fs}"\/.* ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 check_mount_mode() {
   case "$1" in
     Mount);;
     SudoMount);;
     NoMount)
-      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
-      if [[ $? -ne 0 || -z ${ALLUXIO_RAM_FOLDER} ]]; then
+      is_ram_folder_mounted
+      if [[ $? -ne 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X."
@@ -105,8 +125,8 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
+  MASTER_ADDRESS=${ALLUXIO_MASTER_HOSTNAME}
+  if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
     MASTER_ADDRESS=localhost
   fi
 
@@ -120,10 +140,6 @@ start_master() {
 
   echo "Starting master @ ${MASTER_ADDRESS}. Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${JAVA} -cp ${CLASSPATH} \
-   -Dalluxio.home=${ALLUXIO_HOME} \
-   -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} \
-   -Dalluxio.logger.type="MASTER_LOGGER" \
-   -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
    ${ALLUXIO_MASTER_JAVA_OPTS} \
    alluxio.master.AlluxioMaster > ${ALLUXIO_LOGS_DIR}/master.out 2>&1) &
 }
@@ -141,10 +157,6 @@ start_worker() {
 
   echo "Starting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
   (nohup ${JAVA} -cp ${CLASSPATH} \
-   -Dalluxio.home=${ALLUXIO_HOME} \
-   -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR} \
-   -Dalluxio.logger.type="WORKER_LOGGER" \
-   -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
    ${ALLUXIO_WORKER_JAVA_OPTS} \
    alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1 ) &
 }
@@ -158,11 +170,6 @@ restart_worker() {
   if [[ ${RUN} -eq 0 ]]; then
     echo "Restarting worker @ $(hostname -f). Logging to ${ALLUXIO_LOGS_DIR}"
     (nohup ${JAVA} -cp ${CLASSPATH} \
-     -Dalluxio.home=${ALLUXIO_HOME} \
-     -Dalluxio.logs \
-     .dir=${ALLUXIO_LOGS_DIR} \
-     -Dalluxio.logger.type="WORKER_LOGGER" \
-     -Dlog4j.configuration=file:${ALLUXIO_CONF_DIR}/log4j.properties \
      ${ALLUXIO_WORKER_JAVA_OPTS} \
      alluxio.worker.AlluxioWorker > ${ALLUXIO_LOGS_DIR}/worker.out 2>&1) &
   fi
@@ -269,7 +276,7 @@ main() {
       ;;
     workers)
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
-       "${ALLUXIO_MASTER_ADDRESS}"
+       "${ALLUXIO_MASTER_HOSTNAME}"
       ;;
     restart_worker)
       restart_worker

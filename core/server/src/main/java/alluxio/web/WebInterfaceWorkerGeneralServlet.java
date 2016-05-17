@@ -11,15 +11,11 @@
 
 package alluxio.web;
 
-import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
 import alluxio.util.FormatUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
-
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -97,8 +93,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Displays information about a worker in the UI.
    */
   public static class UIWorkerInfo {
-    public static final boolean DEBUG = WorkerContext.getConf().getBoolean(Constants.DEBUG);
-    public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
 
@@ -220,7 +214,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    List<UIUsageOnTier> usageOnTiers = Lists.newArrayList();
+    List<UIUsageOnTier> usageOnTiers = new ArrayList<>();
     for (Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
       String tier = entry.getKey();
       long capacity = entry.getValue();
@@ -238,6 +232,8 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute("usedBytes", FormatUtils.getSizeFromBytes(usedBytes));
 
     request.setAttribute("usageOnTiers", usageOnTiers);
+
+    request.setAttribute("version", RuntimeConstants.VERSION);
 
     List<UIStorageDir> storageDirs =
         new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());

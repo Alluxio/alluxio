@@ -73,6 +73,7 @@ public class SwiftOutputStream extends OutputStream {
       // Status 400 and up should be read from error stream
       // Expecting here 201 Create or 202 Accepted
       if (mHttpCon.getResponseCode() >= 400) {
+        LOG.error("Failed to write data to Swift, error code: " + mHttpCon.getResponseCode());
         is = mHttpCon.getErrorStream();
       } else {
         is = mHttpCon.getInputStream();

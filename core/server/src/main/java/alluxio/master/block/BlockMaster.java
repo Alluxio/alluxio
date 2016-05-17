@@ -131,13 +131,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private StorageTierAssoc mGlobalStorageTierAssoc;
 
   /** All worker information. */
-  // This warning cannot be avoided when passing generics into varargs
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
   /** Keeps track of workers which are no longer in communication with the master. */
-  // This warning cannot be avoided when passing generics into varargs
-  @SuppressWarnings("unchecked")
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
       new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
 
@@ -170,15 +166,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
-        new BlockMasterClientService.Processor<BlockMasterClientServiceHandler>(
-        new BlockMasterClientServiceHandler(this)));
-    services.put(
-        Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
-        new BlockMasterWorkerService.Processor<BlockMasterWorkerServiceHandler>(
-            new BlockMasterWorkerServiceHandler(this)));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME,
+        new BlockMasterClientService.Processor<>(new BlockMasterClientServiceHandler(this)));
+    services.put(Constants.BLOCK_MASTER_WORKER_SERVICE_NAME,
+        new BlockMasterWorkerService.Processor<>(new BlockMasterWorkerServiceHandler(this)));
     return services;
   }
 
@@ -203,8 +195,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
-      mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
-          blockInfoEntry.getLength()));
+      if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
+        // Update the existing block info.
+        MasterBlockInfo blockInfo = mBlocks.get(blockInfoEntry.getBlockId());
+        blockInfo.updateLength(blockInfoEntry.getLength());
+      } else {
+        mBlocks.put(blockInfoEntry.getBlockId(), new MasterBlockInfo(blockInfoEntry.getBlockId(),
+            blockInfoEntry.getLength()));
+      }
     } else {
       throw new IOException(ExceptionMessage.UNEXPECTED_JOURNAL_ENTRY.getMessage(entry));
     }
@@ -392,6 +390,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
         // Lock the block metadata.
         synchronized (masterBlockInfo) {
+          boolean writeJournal = false;
           if (mustInsert) {
             if (mBlocks.putIfAbsent(blockId, masterBlockInfo) != null) {
               // Another thread already inserted the metadata for this block, so start loop over.
@@ -399,6 +398,15 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
             // Successfully added the new block metadata. Append a journal entry for the new
             // metadata.
+            writeJournal = true;
+          } else if (masterBlockInfo.getLength() != length
+              && masterBlockInfo.getLength() == Constants.UNKNOWN_SIZE) {
+            // The block size was previously unknown. Update the block size with the committed
+            // size, and append a journal entry.
+            masterBlockInfo.updateLength(length);
+            writeJournal = true;
+          }
+          if (writeJournal) {
             BlockInfoEntry blockInfo =
                 BlockInfoEntry.newBuilder().setBlockId(blockId).setLength(length).build();
             counter = appendJournalEntry(JournalEntry.newBuilder().setBlockInfo(blockInfo).build());
@@ -461,7 +469,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   public BlockInfo getBlockInfo(long blockId) throws BlockInfoException {
     MasterBlockInfo masterBlockInfo = mBlocks.get(blockId);
     if (masterBlockInfo == null) {
-      throw new BlockInfoException("Block info not found for " + blockId);
+      throw new BlockInfoException(ExceptionMessage.BLOCK_META_NOT_FOUND, blockId);
     }
     synchronized (masterBlockInfo) {
       return generateBlockInfo(masterBlockInfo);
@@ -745,6 +753,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Lost worker periodic check.
    */
   private final class LostWorkerDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostWorkerDetectionHeartbeatExecutor}.
+     */
+    public LostWorkerDetectionHeartbeatExecutor() {}
+
     @Override
     public void heartbeat() {
       int masterWorkerTimeoutMs =

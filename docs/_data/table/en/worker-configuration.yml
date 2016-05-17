@@ -40,6 +40,10 @@ alluxio.worker.evictor.lrfu.step.factor:
   LFU; and larger value makes LRFU closer to LRU."
 alluxio.worker.file.persist.pool.size:
   The size of the thread pool per worker, in which the thread persists an ASYNC_THROUGH file to under storage.
+alluxio.worker.file.persist.rate.limit.enabled:
+  Whether to enable rate limiting when performing asynchronous persistence.
+alluxio.worker.file.persist.rate.limit:
+  The rate limit of asynchronous persistence per second.
 alluxio.worker.filesystem.heartbeat.interval.ms:
   The heartbeat interval (in milliseconds) between the worker and file system master.
 alluxio.worker.hostname:

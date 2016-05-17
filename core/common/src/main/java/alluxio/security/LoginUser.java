@@ -97,7 +97,7 @@ public final class LoginUser {
       }
       return userSet.iterator().next();
     } catch (LoginException e) {
-      throw new IOException("Fail to login", e);
+      throw new IOException("Failed to login", e);
     }
   }
 

@@ -57,6 +57,7 @@ message InodeDirectoryEntry {
   optional string group_name = 9;
   optional int32 permission = 10;
   optional bool mount_point = 11;
+  optional bool direct_children_loaded = 12;
 }
 
 // next available id: 3

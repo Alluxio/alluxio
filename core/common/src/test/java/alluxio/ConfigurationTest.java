@@ -38,7 +38,7 @@ public class ConfigurationTest {
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
   private static Configuration sDefaultConfiguration;
-  private static Map<String, String> sTestProperties = new LinkedHashMap<String, String>();
+  private static Map<String, String> sTestProperties = new LinkedHashMap<>();
 
   private Configuration mCustomPropsConfiguration;
   private Configuration mSystemPropsConfiguration;
@@ -74,7 +74,7 @@ public class ConfigurationTest {
     System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
 
     // initialize
-    sDefaultConfiguration = new Configuration(false);
+    sDefaultConfiguration = Configuration.createDefaultConf();
   }
 
   /**
@@ -83,7 +83,7 @@ public class ConfigurationTest {
   @Before
   public void beforeTests() {
     // initialize Alluxio configuration
-    mCustomPropsConfiguration = new Configuration(sTestProperties);
+    mCustomPropsConfiguration = Configuration.fromMap(sTestProperties);
     mSystemPropsConfiguration = new Configuration();
   }
 
@@ -128,6 +128,9 @@ public class ConfigurationTest {
     long longBytesValue =
         sDefaultConfiguration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     Assert.assertEquals(Constants.MB * 8, longBytesValue);
+
+    longBytesValue = sDefaultConfiguration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
+    Assert.assertEquals(Constants.MB * 16, longBytesValue);
 
     int maxTry = sDefaultConfiguration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
     Assert.assertEquals(10, maxTry);
@@ -312,7 +315,7 @@ public class ConfigurationTest {
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES ,
             String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    new Configuration(mProperties);
+    Configuration.fromMap(mProperties);
   }
 
   /**
@@ -324,7 +327,7 @@ public class ConfigurationTest {
     properties.put(Constants.USER_FILE_BUFFER_BYTES ,
             String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    new Configuration(properties);
+    Configuration.fromMap(properties);
   }
 
   /**
@@ -334,7 +337,7 @@ public class ConfigurationTest {
   public void variableUserFileBufferBytesNormalCheckTest() {
     Properties mProperties = new Properties();
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
-    mCustomPropsConfiguration = new Configuration(mProperties);
+    mCustomPropsConfiguration = Configuration.fromMap(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
             (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
     mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");

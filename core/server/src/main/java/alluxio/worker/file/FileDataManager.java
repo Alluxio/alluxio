@@ -24,8 +24,10 @@ import alluxio.wire.FileInfo;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
+import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +58,8 @@ public final class FileDataManager {
   /** Block worker handler for access block info. */
   private final BlockWorker mBlockWorker;
 
-  /** The file being persisted, and the inner map tracks the block id to lock id. */
+  /** The files being persisted, keyed by fileId,
+   * and the inner map tracks the block id to lock id. */
   @GuardedBy("mLock")
   // the file being persisted,
   private final Map<Long, Map<Long, Long>> mPersistingInProgressFiles;
@@ -67,6 +70,9 @@ public final class FileDataManager {
 
   private final Configuration mConfiguration;
   private final Object mLock = new Object();
+
+  /** A per worker rate limiter to throttle async persistence. */
+  private RateLimiter mPersistenceRateLimiter;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
@@ -165,7 +171,7 @@ public final class FileDataManager {
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = new HashMap<>();
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     synchronized (mLock) {
       if (mPersistingInProgressFiles.containsKey(fileId)) {
         throw new IOException("the file " + fileId + " is already being persisted");
@@ -220,10 +226,16 @@ public final class FileDataManager {
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     try {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
+
+        if (mConfiguration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+          BlockMeta blockMeta =
+              mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
+          getRateLimiter().acquire((int) blockMeta.getBlockSize());
+        }
 
         // obtain block reader
         BlockReader reader =
@@ -309,5 +321,18 @@ public final class FileDataManager {
     synchronized (mLock) {
       mPersistedFiles.removeAll(persistedFiles);
     }
+  }
+
+  /**
+   * Gets the {@link RateLimiter} in a thread-safe manner.
+   *
+   * @return the per-worker rate limiter
+   */
+  private synchronized RateLimiter getRateLimiter() {
+    if (mPersistenceRateLimiter == null) {
+      mPersistenceRateLimiter = RateLimiter.create(
+          WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    }
+    return mPersistenceRateLimiter;
   }
 }

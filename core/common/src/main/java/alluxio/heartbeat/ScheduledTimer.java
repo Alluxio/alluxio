@@ -79,7 +79,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
    *
    * @throws InterruptedException if the thread is interrupted while waiting
    */
-  public synchronized void tick() throws InterruptedException {
+  public void tick() throws InterruptedException {
     mLock.lock();
     try {
       HeartbeatScheduler.addTimer(this);

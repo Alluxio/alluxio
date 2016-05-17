@@ -320,7 +320,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public Configuration newTestConf() throws IOException {
-    Configuration testConf = new Configuration();
+    Configuration testConf = Configuration.createDefaultConf();
     setAlluxioHome();
     setHostname();
 
@@ -394,6 +394,12 @@ public abstract class AbstractLocalAlluxioCluster {
       testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
               Joiner.on(',').join(newPaths));
     }
+
+    // For some test profiles, default properties get overwritten by system properties (e.g., s3
+    // credentials for s3Test).
+    // TODO(binfan): have one dedicated property (e.g., alluxio.test.properties) to carry on all the
+    // properties we want to overwrite in tests, rather than simply merging all system properties.
+    testConf.merge(System.getProperties());
     return testConf;
   }
 

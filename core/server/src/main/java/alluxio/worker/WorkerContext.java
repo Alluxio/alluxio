@@ -27,7 +27,7 @@ public final class WorkerContext {
    * The static configuration object. There is only one {@link Configuration} object shared within
    * the same worker process.
    */
-  private static Configuration sConf = new Configuration();
+  private static Configuration sConf = Configuration.createServerConf();
 
   /**
    * The {@link WorkerSource} for collecting worker metrics.
@@ -78,7 +78,7 @@ public final class WorkerContext {
    * TODO(binfan): consider a better way to mock test configuration
    */
   public static void reset() {
-    reset(new Configuration());
+    reset(Configuration.createServerConf());
   }
 
   /**

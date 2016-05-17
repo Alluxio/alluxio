@@ -9,23 +9,26 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.shell.command;
+package alluxio.client.file.options;
 
-import alluxio.exception.ExceptionMessage;
-import alluxio.shell.AbstractAlluxioShellTest;
+import alluxio.CommonTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Test for loadMetadata command.
+ * Tests for the {@link RenameOptions} class.
  */
-public class LoadMetadataCommandTest extends AbstractAlluxioShellTest {
+public class RenameOptionsTest {
   @Test
-  public void loadMetadataErrorMessageTest() {
-    int ret = mFsShell.run("loadMetadata", "/nonexistent");
-    Assert.assertEquals(-1, ret);
-    Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/nonexistent") + "\n",
-        mOutput.toString());
+  public void defaultsTest() {
+    RenameOptions options = RenameOptions.defaults();
+
+    Assert.assertNotNull(options);
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(RenameOptions.class);
   }
 }

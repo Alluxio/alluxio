@@ -34,7 +34,7 @@ import javax.security.auth.login.Configuration;
 @ThreadSafe
 public final class LoginModuleConfiguration extends Configuration {
 
-  private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<String, String>();
+  private static final Map<String, String> EMPTY_JAAS_OPTIONS = new HashMap<>();
 
   /** Login module that allows a user name provided by OS. */
   private static final AppConfigurationEntry OS_SPECIFIC_LOGIN =
@@ -63,6 +63,11 @@ public final class LoginModuleConfiguration extends Configuration {
 
   // TODO(dong): add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...
+
+  /**
+   * Constructs a new {@link LoginModuleConfiguration}.
+   */
+  public LoginModuleConfiguration() {}
 
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {

@@ -18,6 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.WorkerInfo;
 
 import com.google.common.base.Preconditions;
 
@@ -106,5 +107,12 @@ public final class FileSystemMasterView {
    */
   public synchronized AlluxioURI getPath(long fileId) throws FileDoesNotExistException {
     return mFileSystemMaster.getPath(fileId);
+  }
+
+  /**
+   * @return a list of {@link WorkerInfo} objects representing the workers in Alluxio
+   */
+  public synchronized List<WorkerInfo> getWorkerInfoList() {
+    return mFileSystemMaster.getWorkerInfoList();
   }
 }

@@ -19,7 +19,6 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.InputSplit;
@@ -30,6 +29,7 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -48,6 +48,11 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   /**
+   * Constructs a new {@link KeyValueInputFormat}.
+   */
+  public KeyValueInputFormat() {}
+
+  /**
    * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
    *
    * @param jobContext MapReduce job configuration
@@ -59,7 +64,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
     // The paths are MapReduce program's inputs specified in
     // {@code mapreduce.input.fileinputformat.inputdir}, each path should be a key-value store.
     Path[] paths = FileInputFormat.getInputPaths(jobContext);
-    List<InputSplit> splits = Lists.newArrayList();
+    List<InputSplit> splits = new ArrayList<>();
     try {
       for (Path path : paths) {
         List<PartitionInfo> partitionInfos =

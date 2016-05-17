@@ -13,12 +13,12 @@ package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.examples.Utils;
+import alluxio.cli.CliUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -98,12 +98,14 @@ public final class SameKeyValueStoresTest implements Callable<Boolean> {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 2) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
           + SameKeyValueStoresTest.class.getName() + " <key-value store URI 1>"
           + " <key-value store URI 2>");
       System.exit(-1);
     }
 
-    Utils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]), new AlluxioURI(args[1])));
+    boolean result = CliUtils.runExample(new SameKeyValueStoresTest(new AlluxioURI(args[0]),
+        new AlluxioURI(args[1])));
+    System.exit(result ? 0 : 1);
   }
 }

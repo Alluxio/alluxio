@@ -15,6 +15,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
 import com.google.common.base.Preconditions;
+import org.apache.commons.lang.ArrayUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -137,6 +138,24 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   /**
+   * Appends new parameters to mConfParams and applies to mTestConf.
+   *
+   * @param s string array to be added to mConfParams
+   */
+  public void addConfParams(String[] s) throws IOException {
+    ArrayUtils.addAll(mConfParams, s);
+    applyConfParams();
+  }
+
+  private void applyConfParams() throws IOException {
+    mTestConf = mLocalAlluxioCluster.newTestConf();
+    // Override the configuration parameters with mConfParams
+    for (int i = 0; i < mConfParams.length; i += 2) {
+      mTestConf.set(mConfParams[i], mConfParams[i + 1]);
+    }
+  }
+
+  /**
    * Explicitly starts the {@link LocalAlluxioCluster}.
    *
    * @throws IOException if an I/O error occurs
@@ -150,11 +169,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public Statement apply(final Statement statement, Description description) {
     mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
-      mTestConf = mLocalAlluxioCluster.newTestConf();
-      // Override the configuration parameters with mConfParams
-      for (int i = 0; i < mConfParams.length; i += 2) {
-        mTestConf.set(mConfParams[i], mConfParams[i + 1]);
-      }
+      applyConfParams();
 
       boolean startCluster = mStartCluster;
       Annotation configAnnotation = description.getAnnotation(Config.class);
