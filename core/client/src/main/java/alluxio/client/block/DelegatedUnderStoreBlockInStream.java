@@ -82,6 +82,7 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     long streamStart = mInitPos + pos;
     // The stream is at the beginning of the file, so skip to the correct absolute position.
     if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
+      mUnderStoreStream.close();
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
     // Set the current block position to the specified block position.

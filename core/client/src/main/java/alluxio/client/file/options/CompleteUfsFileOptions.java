@@ -36,6 +36,7 @@ public final class CompleteUfsFileOptions {
   /**
    * @return the default {@link CompleteUfsFileOptions}
    */
+  //TODO(calvin): Move the user group discovery to a utils method
   public static CompleteUfsFileOptions defaults() {
     String user = null;
     if (SecurityUtils.isAuthenticationEnabled(ClientContext.getConf())) {

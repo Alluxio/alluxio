@@ -32,7 +32,7 @@ import java.nio.ByteBuffer;
  */
 // TODO(calvin): See if common logic in this class and buffered block in stream can be abstracted
 @NotThreadSafe
-public class UnderFileSystemFileInStream extends InputStream {
+public final class UnderFileSystemFileInStream extends InputStream {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** If the bytes in the internal buffer are valid. */
@@ -47,9 +47,9 @@ public class UnderFileSystemFileInStream extends InputStream {
   private final long mUfsFileId;
 
   /** Internal buffer to improve small read performance. */
-  protected ByteBuffer mBuffer;
+  private ByteBuffer mBuffer;
   /** Flag indicating if the stream is closed, can only go from false to true. */
-  protected boolean mClosed;
+  private boolean mClosed;
 
   /**
    * Constructs a new input stream for the under file system file. Creates the initial buffer
