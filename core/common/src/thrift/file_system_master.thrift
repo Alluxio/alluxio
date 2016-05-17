@@ -36,7 +36,8 @@ struct ListStatusTOptions {
 struct FileBlockInfo {
   1: common.BlockInfo blockInfo
   2: i64 offset
-  3: list<string> ufsLocations
+  3: list<common.WorkerNetAddress> ufsLocations // deprecated since 1.1 will be removed in 2.0, use ufsStringLocations instead
+  4: list<string> ufsStringLocations
 }
 
 struct FileInfo {

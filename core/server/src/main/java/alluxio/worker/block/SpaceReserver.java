@@ -44,7 +44,7 @@ public class SpaceReserver implements Runnable {
   private final StorageTierAssoc mStorageTierAssoc;
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
-  private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<String, Long>();
+  private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<>();
 
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;

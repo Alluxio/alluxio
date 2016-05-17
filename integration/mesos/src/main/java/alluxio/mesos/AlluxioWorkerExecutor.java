@@ -28,6 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
+
+  /**
+   * Creates a new {@link AlluxioWorkerExecutor}.
+   */
+  public AlluxioWorkerExecutor() {}
+
   @Override
   public void disconnected(ExecutorDriver driver) {
     System.out.println("Executor has disconnected from the Mesos slave.");

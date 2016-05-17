@@ -45,6 +45,11 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   private OutputCommitter mCommitter;
 
   /**
+   * Constructs a new {@link KeyValueOutputFormat}.
+   */
+  public KeyValueOutputFormat() {}
+
+  /**
    * @param taskContext MapReduce task context
    * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
    */

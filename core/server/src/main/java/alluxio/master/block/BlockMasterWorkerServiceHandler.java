@@ -61,7 +61,7 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
       mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers,
           usedBytesOnTiers, currentBlocksOnTiers);
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 

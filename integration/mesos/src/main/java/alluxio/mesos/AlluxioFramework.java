@@ -43,6 +43,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioFramework {
+
+  /**
+   * Creates a new {@link AlluxioFramework}.
+   */
+  public AlluxioFramework() {}
+
   static class AlluxioScheduler implements Scheduler {
     private static Configuration sConf = Configuration.createServerConf();
     private boolean mMasterLaunched = false;
@@ -52,6 +58,11 @@ public class AlluxioFramework {
     private Set<String> mWorkers = new HashSet<String>();
     int mLaunchedTasks = 0;
     int mMasterCount = 0;
+
+    /**
+     * Creates a new {@link AlluxioScheduler}.
+     */
+    public AlluxioScheduler() {}
 
     @Override
     public void disconnected(SchedulerDriver driver) {
