@@ -31,6 +31,8 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
 import alluxio.util.network.NetworkAddressUtils;
+import alluxio.wire.BlockInfo;
+import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -87,7 +89,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * mShouldCache is true.
    */
   private final boolean mShouldCachePartiallyReadBlock;
-  /** Whether to cache the current block in this file into Alluxio. */
+  /** Whether to cache blocks in this file into Alluxio. */
   private final boolean mShouldCache;
 
   // The following 3 fields must be kept in sync. They are only updated in updateStreams together.
@@ -100,6 +102,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /** The read buffer size in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final long mSeekBufferSizeBytes;
+  /** The local host name. */
   private final String mLocalHostName;
 
   /**
@@ -447,6 +450,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
+    // Don't cache the block if this block is already read from a remote worker.
+    if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
+      return;
+    }
+
     // Unlike updateBlockInStream below, we never start a block cache stream if mPos is in the
     // middle of a block.
     if (mPos % mBlockSize != 0) {
@@ -456,15 +464,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
           mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
-      // Don't cache the block to somewhere that already has it.
-      // TODO(andrew,peis): Filter the workers provided to the location policy to not include
-      // workers which already contain the block. See ALLUXIO-1816.
-      if (mCurrentBlockInStream instanceof RemoteBlockInStream
-          && !address.getHost().equals(mLocalHostName)) {
-        // If the block is already on some remote worker, then we will try to cache it only on
-        // the local host if possible.
-        return;
-      }
       // If we reach here, we need to cache.
       mCurrentCacheStream =
           mContext.getAlluxioBlockStore().getOutStream(blockId, getBlockSize(mPos), address);
@@ -554,7 +553,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     updateStreams();
 
     if (mCurrentCacheStream != null) {
-      // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
+      // Cache till pos if seeking forward within the current block. Otherwise cache the whole
       // block.
       readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
