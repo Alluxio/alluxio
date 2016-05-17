@@ -33,6 +33,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.WritableByteChannel;
 
 /**
  * This class handles filesystem data server requests.
@@ -75,13 +77,9 @@ public class FileDataServerHandler {
     // TODO(calvin): This can be more efficient for sequential reads if we keep state
     try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
       int read = in.read(data);
-      if (read != length) {
-        LOG.error("Only read " + read + " bytes of data when " + length + " was requested.");
-        throw new IOException(); // Intend to catch below
-      }
       RPCFileReadResponse resp =
-          new RPCFileReadResponse(ufsFileId, offset, length, new DataByteBuffer(
-              ByteBuffer.wrap(data), length), RPCResponse.Status.SUCCESS);
+          new RPCFileReadResponse(ufsFileId, offset, read, new DataByteBuffer(
+              ByteBuffer.wrap(data), read), RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
@@ -112,7 +110,10 @@ public class FileDataServerHandler {
 
     try {
       OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
-      out.write(data.getReadOnlyByteBuffer().array());
+      // This channel will not be closed because the underlying stream should not be closed, the
+      // channel will be cleaned up when the underyling stream is closed.
+      WritableByteChannel channel = Channels.newChannel(out);
+      channel.write(data.getReadOnlyByteBuffer());
       RPCFileWriteResponse resp =
           new RPCFileWriteResponse(ufsFileId, offset, length, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
