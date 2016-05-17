@@ -420,7 +420,7 @@ public final class FileInfo {
   }
 
   /**
-   * @param persistenceState the file persistance state to use
+   * @param persistenceState the file persistence state to use
    * @return the file descriptor
    */
   public FileInfo setPersistenceState(String persistenceState) {

@@ -2451,6 +2451,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * This class represents the executor for periodic inode ttl check.
    */
   private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link MasterInodeTtlCheckExecutor}.
+     */
+    public MasterInodeTtlCheckExecutor() {}
+
     @Override
     public void heartbeat() {
       Set<TtlBucket> expiredBuckets = mTtlBuckets.getExpiredBuckets(System.currentTimeMillis());
@@ -2489,6 +2495,12 @@ public final class FileSystemMaster extends AbstractMaster {
    * Lost files periodic check.
    */
   private final class LostFilesDetectionHeartbeatExecutor implements HeartbeatExecutor {
+
+    /**
+     * Constructs a new {@link LostFilesDetectionHeartbeatExecutor}.
+     */
+    public LostFilesDetectionHeartbeatExecutor() {}
+
     @Override
     public void heartbeat() {
       for (long fileId : getLostFiles()) {

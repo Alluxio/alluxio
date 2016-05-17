@@ -34,6 +34,11 @@ public final class InStreamOptions {
   private ReadType mReadType;
   /** Cache incomplete blocks if Alluxio is configured to store blocks in Alluxio storage. */
   private boolean mCachePartiallyReadBlock;
+  /**
+   * The cache read buffer size in seek. This is only used if {@link #mCachePartiallyReadBlock}
+   * is enabled.
+   */
+  private long mSeekBufferSizeBytes;
 
   /**
    * @return the default {@link InStreamOptions}
@@ -54,6 +59,8 @@ public final class InStreamOptions {
     }
     mCachePartiallyReadBlock =
         ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+    mSeekBufferSizeBytes =
+        ClientContext.getConf().getBytes(Constants.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
   }
 
   /**
@@ -109,6 +116,23 @@ public final class InStreamOptions {
     return this;
   }
 
+  /**
+   * @return the seek buffer size in bytes
+   */
+  public long getSeekBufferSizeBytes() {
+    return mSeekBufferSizeBytes;
+  }
+
+  /**
+   * Sets {@link #mSeekBufferSizeBytes}.
+   * @param bufferSizeBytes the seek buffer size
+   * @return the updated ooptions object
+   */
+  public InStreamOptions setSeekBufferSizeBytes(long bufferSizeBytes) {
+    mSeekBufferSizeBytes = bufferSizeBytes;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -120,18 +144,20 @@ public final class InStreamOptions {
     InStreamOptions that = (InStreamOptions) o;
     return Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mReadType, that.mReadType)
-        && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock);
+        && Objects.equal(mCachePartiallyReadBlock, that.mCachePartiallyReadBlock)
+        && Objects.equal(mSeekBufferSizeBytes, that.mSeekBufferSizeBytes);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLocationPolicy, mReadType, mCachePartiallyReadBlock);
+    return Objects
+        .hashCode(mLocationPolicy, mReadType, mCachePartiallyReadBlock, mSeekBufferSizeBytes);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("locationPolicy", mLocationPolicy)
         .add("readType", mReadType).add("cachePartiallyReadBlock", mCachePartiallyReadBlock)
-        .toString();
+        .add("seekBufferSize", mSeekBufferSizeBytes).toString();
   }
 }
