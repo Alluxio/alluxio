@@ -236,7 +236,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       if (pathComponents1[i].equals(pathComponents2[i])) {
         // The two paths share a common path prefix.
         LockMode mode1 = getLockModeForComponent(i, pathComponents1.length, lockMode1, null);
-        LockMode mode2 = getLockModeForComponent(i, pathComponents2.length, lockMode1, null);
+        LockMode mode2 = getLockModeForComponent(i, pathComponents2.length, lockMode2, null);
         // If either of the modes are WRITE, lock both components as WRITE to prevent deadlock.
         // TODO(gpang): consider a combine helper method
         if (mode1 == LockMode.READ && mode2 == LockMode.READ) {
