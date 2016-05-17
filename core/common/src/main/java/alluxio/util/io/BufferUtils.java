@@ -49,7 +49,7 @@ public final class BufferUtils {
 
   /**
    * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
-   * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
+   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
    * avoid huge memory occupation caused by memory map.
    *
    * <p>
