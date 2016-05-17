@@ -24,9 +24,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
- * Tests for the {@link UnderStoreBlockInStream} class.
+ * Tests for the {@link DirectUnderStoreBlockInStream} class.
  */
-public class UnderStoreBlockInStreamTest {
+public class DirectUnderStoreBlockInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 2 * BLOCK_LENGTH;
   private static final String TEST_FILENAME = "test_filename.txt";
@@ -50,8 +50,8 @@ public class UnderStoreBlockInStreamTest {
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
     mBlockStream =
-        new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
-    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        new DirectUnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
+    mEOFBlockStream = new DirectUnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
         file.getAbsolutePath());
   }
 

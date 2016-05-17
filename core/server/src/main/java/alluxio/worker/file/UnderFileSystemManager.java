@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -21,9 +22,12 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,6 +46,8 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Consider whether the manager or the agents should contain the execution logic
 @ThreadSafe
 public final class UnderFileSystemManager {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   // Input stream agent session index
   private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
       new IndexedSet.FieldIndex<InputStreamAgent>() {
@@ -133,6 +139,8 @@ public final class UnderFileSystemManager {
       mUri = ufsUri.toString();
       mConfiguration = conf;
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      ufs.connectFromWorker(conf,
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, conf));
       if (!ufs.exists(mUri)) {
         throw new FileDoesNotExistException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -204,6 +212,8 @@ public final class UnderFileSystemManager {
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      ufs.connectFromWorker(conf,
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, conf));
       if (ufs.exists(mUri)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
@@ -226,15 +236,26 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
+     * @param user the owner of the file, null for default Alluxio user
+     * @param group the group of the file, null for default Alluxio user
+     * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private void complete() throws IOException {
+    private long complete(String user, String group) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      if (!ufs.rename(mTemporaryUri, mUri)) {
-        // TODO(calvin): Log a warning if the delete fails
+      if (ufs.rename(mTemporaryUri, mUri)) {
+        if (user != null || group != null) {
+          try {
+            ufs.setOwner(mUri, user, group);
+          } catch (Exception e) {
+            LOG.error("Failed to update the ufs user, Alluxio system user will be used.", e);
+          }
+        }
+      } else {
         ufs.delete(mTemporaryUri, false);
       }
+      return ufs.getFileSize(mUri);
     }
 
     /**
@@ -337,10 +358,13 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
+   * @param user the owner of the file, null for default Alluxio user
+   * @param group the group of the file, null for default Alluxio user
+   * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public void completeFile(long sessionId, long tempUfsFileId)
+  public long completeFile(long sessionId, long tempUfsFileId, String user, String group)
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
@@ -354,7 +378,7 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
-    agent.complete();
+    return agent.complete(user, group);
   }
 
   /**

@@ -72,7 +72,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -89,11 +89,11 @@ public final class FileSystemWorkerClientServiceHandler
   public void closeUfsFile(long sessionId, long tempUfsFileId, CloseUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.cancelUfsFile(sessionId, tempUfsFileId);
+      mWorker.closeUfsFile(sessionId, tempUfsFileId);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -103,18 +103,21 @@ public final class FileSystemWorkerClientServiceHandler
    *
    * @param tempUfsFileId the worker id of the ufs file
    * @param options the options for completing the file
+   * @return the length of the completed file
    * @throws AlluxioTException if an internal Alluxio error occurs
    * @throws ThriftIOException if an error occurs outside of Alluxio
    */
   @Override
-  public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
+  public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      mWorker.completeUfsFile(sessionId, tempUfsFileId);
+      String user = options.isSetUser() ? options.getUser() : null;
+      String group = options.isSetGroup() ? options.getGroup() : null;
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId, user, group);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -137,7 +140,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -159,7 +162,7 @@ public final class FileSystemWorkerClientServiceHandler
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 

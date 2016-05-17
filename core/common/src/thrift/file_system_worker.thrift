@@ -10,6 +10,8 @@ struct CloseUfsFileTOptions {
 }
 
 struct CompleteUfsFileTOptions {
+  1: optional string user
+  2: optional string group
 }
 
 struct CreateUfsFileTOptions {
@@ -41,7 +43,7 @@ service FileSystemWorkerClientService extends common.AlluxioService {
   /**
    * Completes a file in the under file system.
    */
-  void completeUfsFile( /** the id of the current session */ 1: i64 sessionId,
+  i64 completeUfsFile( /** the id of the current session */ 1: i64 sessionId,
       /** the worker specific file id of the ufs file */ 2: i64 tempUfsFileId,
       /** the options for completing the file */ 3: CompleteUfsFileTOptions options)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)

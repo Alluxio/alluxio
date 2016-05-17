@@ -46,8 +46,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * This class is responsible for managing all top level components of the file system worker.
  */
-// TODO(calvin): Add session concept
-// TODO(calvin): Reconsider the naming of the ufs operations
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public final class FileSystemWorker extends AbstractWorker {
   /** Logic for managing file persistence. */
@@ -150,12 +148,15 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
+   * @param user the owner of the file, null for default Alluxio user
+   * @param group the group of the file, null for default Alluxio user
+   * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void completeUfsFile(long sessionId, long tempUfsFileId)
+  public long completeUfsFile(long sessionId, long tempUfsFileId, String user, String group)
       throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId);
+    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, user, group);
   }
 
   /**
@@ -193,7 +194,7 @@ public final class FileSystemWorker extends AbstractWorker {
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
    * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long,long)}
-   * or the {@link #completeUfsFile(long,long)} methods.
+   * or the {@link #completeUfsFile(long,long, String, String)} methods.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file

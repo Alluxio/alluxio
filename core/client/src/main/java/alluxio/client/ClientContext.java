@@ -30,7 +30,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientContext {
-  private static ExecutorService sExecutorService;
+  private static ExecutorService sBlockClientExecutorService;
+  private static ExecutorService sFileClientExecutorService;
   private static Configuration sConf;
   private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
@@ -64,9 +65,12 @@ public final class ClientContext {
 
     sClientMetrics = new ClientMetrics();
 
-    sExecutorService = Executors.newFixedThreadPool(
-        sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    sBlockClientExecutorService =
+        Executors.newFixedThreadPool(sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    sFileClientExecutorService =
+        Executors.newFixedThreadPool(sConf.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
   }
 
   /**
@@ -91,10 +95,17 @@ public final class ClientContext {
   }
 
   /**
-   * @return the executor service
+   * @return the executor service for block clients
    */
-  public static ExecutorService getExecutorService() {
-    return sExecutorService;
+  public static ExecutorService getBlockClientExecutorService() {
+    return sBlockClientExecutorService;
+  }
+
+  /**
+   * @return the executor service for file clients
+   */
+  public static ExecutorService getFileClientExecutorService() {
+    return sFileClientExecutorService;
   }
 
   private ClientContext() {} // prevent instantiation
