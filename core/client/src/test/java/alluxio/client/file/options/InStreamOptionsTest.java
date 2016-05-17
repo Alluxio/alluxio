@@ -34,6 +34,7 @@ public class InStreamOptionsTest {
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getAlluxioStorageType());
+    Assert.assertEquals(128 * Constants.MB, options.getSeekBufferSizeBytes());
   }
 
   /**
@@ -47,9 +48,13 @@ public class InStreamOptionsTest {
     InStreamOptions options = InStreamOptions.defaults();
     options.setReadType(readType);
     options.setLocationPolicy(policy);
+    options.setCachePartiallyReadBlock(true);
+    options.setSeekBufferSizeBytes(Constants.MB);
 
     Assert.assertEquals(options.getAlluxioStorageType(), readType.getAlluxioStorageType());
     Assert.assertEquals(policy, options.getLocationPolicy());
+    Assert.assertTrue(options.isCachePartiallyReadBlock());
+    Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
   }
 
   /**
@@ -69,7 +74,7 @@ public class InStreamOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(InStreamOptions.class);
   }
 }

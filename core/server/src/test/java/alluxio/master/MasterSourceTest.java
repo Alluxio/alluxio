@@ -17,6 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
@@ -38,7 +39,6 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,6 +48,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -114,7 +115,7 @@ public final class MasterSourceTest {
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
 
     MasterContext.reset();
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
@@ -284,10 +285,12 @@ public final class MasterSourceTest {
    */
   @Test
   public void deletePathTest() throws Exception {
-
     // cannot delete root
-    // TODO(gpang): re-enable this assert when delete throws an exception for deleting root
-    mFileSystemMaster.delete(ROOT_URI, true);
+    try {
+      mFileSystemMaster.delete(ROOT_URI, true);
+    } catch (InvalidPathException e) {
+      // expected
+    }
 
     Assert.assertEquals(1, mCounters.get(MasterSource.DELETE_PATH_OPS).getCount());
     Assert.assertEquals(0, mCounters.get(MasterSource.PATHS_DELETED).getCount());
@@ -317,7 +320,7 @@ public final class MasterSourceTest {
   }
 
   /**
-   * Tests the {@code SetAttributeOps} counter when setting the state of a file.
+   * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */

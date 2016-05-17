@@ -26,6 +26,11 @@ import java.util.List;
 public final class IdentityUserGroupsMapping implements GroupMappingService {
 
   /**
+   * Constructs a new {@link IdentityUserGroupsMapping}.
+   */
+  public IdentityUserGroupsMapping() {}
+
+  /**
    * Returns list of groups for a user.
    *
    * @param user get groups for this user

@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +35,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class CommonUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final String ALPHANUM =
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
   private static final Random RANDOM = new Random();
 
   /**
@@ -96,7 +97,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Generates a random string of the given length.
+   * Generates a random alphanumeric string of the given length.
    *
    * @param length the length
    * @return a random string
@@ -104,7 +105,7 @@ public final class CommonUtils {
   public static String randomString(int length) {
     StringBuilder sb = new StringBuilder();
     for (int i = 0; i < length; i++) {
-      sb.append((char) (RANDOM.nextInt(96) + 32)); // generates a random printable character
+      sb.append(ALPHANUM.charAt(RANDOM.nextInt(ALPHANUM.length())));
     }
     return sb.toString();
   }
@@ -206,7 +207,7 @@ public final class CommonUtils {
    */
   public static List<String> getUnixGroups(String user) throws IOException {
     String result = "";
-    List<String> groups = Lists.newArrayList();
+    List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));
     } catch (ExitCodeException e) {

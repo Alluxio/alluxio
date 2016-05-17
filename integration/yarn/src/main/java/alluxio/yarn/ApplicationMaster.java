@@ -133,7 +133,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, new Configuration());
+    this(numWorkers, masterAddress, resourcePath, Configuration.createClientConf());
   }
 
   /**
@@ -254,7 +254,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname = NetworkAddressUtils.getLocalHostName(new Configuration());
+    String hostname = NetworkAddressUtils.getLocalHostName(
+        Configuration.createServerConf());
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }
@@ -475,7 +476,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private static Map<String, String> setupWorkerEnvironment(String masterContainerNetAddress,
       int ramdiskMemInMB) {
     Map<String, String> env = setupCommonEnvironment();
-    env.put("ALLUXIO_MASTER_ADDRESS", masterContainerNetAddress);
+    env.put("ALLUXIO_MASTER_HOSTNAME", masterContainerNetAddress);
     env.put("ALLUXIO_WORKER_MEMORY_SIZE",
         FormatUtils.getSizeFromBytes((long) ramdiskMemInMB * Constants.MB));
     return env;

@@ -30,7 +30,7 @@ public final class StorageTierView {
   /** The {@link StorageTier} this view is derived from. */
   private final StorageTier mTier;
   /** A list of {@link StorageDirView} under this StorageTierView. */
-  private final List<StorageDirView> mDirViews = new ArrayList<StorageDirView>();
+  private final List<StorageDirView> mDirViews = new ArrayList<>();
   /** The {@link BlockMetadataManagerView} this {@link StorageTierView} is under. */
   private final BlockMetadataManagerView mManagerView;
 

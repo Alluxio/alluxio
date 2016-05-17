@@ -82,6 +82,11 @@ public class WorkerSource implements Source {
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name(BYTES_WRITTEN_UFS));
 
+  /**
+   * Constructs a new {@link WorkerSource}.
+   */
+  public WorkerSource() {}
+
   @Override
   public String getName() {
     return WORKER_SOURCE_NAME;

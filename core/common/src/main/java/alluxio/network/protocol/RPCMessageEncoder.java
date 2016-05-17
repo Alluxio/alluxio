@@ -32,6 +32,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RPCMessageEncoder extends MessageToMessageEncoder<RPCMessage> {
 
+  /**
+   * Constructs a new {@link RPCMessageEncoder}.
+   */
+  public RPCMessageEncoder() {}
+
   @Override
   protected void encode(ChannelHandlerContext ctx, RPCMessage in, List<Object> out)
       throws Exception {

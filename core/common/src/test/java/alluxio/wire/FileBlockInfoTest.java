@@ -11,13 +11,15 @@
 
 package alluxio.wire;
 
+import alluxio.Constants;
 import alluxio.util.CommonUtils;
 
-import com.google.common.collect.Lists;
+import com.google.common.net.HostAndPort;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -52,10 +54,11 @@ public class FileBlockInfoTest {
 
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     long offset = random.nextLong();
-    List<String> ufsLocations = Lists.newArrayList();
+    List<String> ufsLocations = new ArrayList<>();
     long numUfsLocations = random.nextInt(10);
     for (int i = 0; i < numUfsLocations; i++) {
-      ufsLocations.add(CommonUtils.randomString(random.nextInt(10)));
+      ufsLocations.add(HostAndPort.fromParts(CommonUtils.randomString(random.nextInt(10)),
+          random.nextInt(Constants.MAX_PORT)).toString());
     }
 
     result.setBlockInfo(blockInfo);

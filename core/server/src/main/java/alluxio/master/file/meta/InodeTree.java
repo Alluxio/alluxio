@@ -40,14 +40,13 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 import com.google.protobuf.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -145,6 +144,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       mRoot = InodeDirectory
           .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
               CreateDirectoryOptions.defaults().setPermissionStatus(rootPermissionStatus));
+      mRoot.setPersistenceState(PersistenceState.PERSISTED);
       mInodes.add(mRoot);
       mCachedInode = mRoot;
     }
@@ -183,13 +183,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   /**
-   * @param path the path to get the inode for
+   * @param uri the uri to get the inode for
    * @return whether the inode exists
    */
-  public boolean inodePathExists(AlluxioURI path) {
+  public boolean inodePathExists(AlluxioURI uri) {
     try {
       TraversalResult traversalResult =
-          traverseToInode(PathUtils.getPathComponents(path.toString()), LockMode.READ, null);
+          traverseToInode(PathUtils.getPathComponents(uri.getPath()), LockMode.READ, null);
       traversalResult.getInodeLockGroup().close();
       return traversalResult.isFound();
     } catch (InvalidPathException e) {
@@ -520,12 +520,12 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     InodeDirectory currentInodeDirectory = (InodeDirectory) ancestorInode;
 
-    List<Inode<?>> createdInodes = Lists.newArrayList();
-    List<Inode<?>> modifiedInodes = Lists.newArrayList();
+    List<Inode<?>> createdInodes = new ArrayList<>();
+    List<Inode<?>> modifiedInodes = new ArrayList<>();
     // These are inodes that already exist, that should be journaled as persisted.
-    List<Inode<?>> existingNonPersisted = Lists.newArrayList();
+    List<Inode<?>> existingNonPersisted = new ArrayList<>();
     // These are inodes to mark as persisted at the end of this method.
-    List<Inode<?>> toPersistDirectories = Lists.newArrayList();
+    List<Inode<?>> toPersistDirectories = new ArrayList<>();
     if (options.isPersisted()) {
       // Directory persistence will not happen until the end of this method.
       toPersistDirectories.addAll(traversalResult.getNonPersisted());
@@ -773,7 +773,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the set of file ids which are pinned
    */
   public Set<Long> getPinIdSet() {
-    return Sets.newHashSet(mPinnedInodeFileIds);
+    return new HashSet<>(mPinnedInodeFileIds);
   }
 
   /**
@@ -895,8 +895,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private TraversalResult traverseToInode(String[] pathComponents, LockMode lockMode,
       List<LockMode> lockHints)
       throws InvalidPathException {
-    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
-    List<Inode<?>> inodes = Lists.newArrayList();
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
+    List<Inode<?>> inodes = new ArrayList<>();
     InodeLockGroup lockGroup = new InodeLockGroup();
 
     // This must be set to true before returning a valid value, otherwise all the inodes will be
@@ -961,7 +961,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     List<Inode<?>> inodes = extensibleInodePath.getInodes();
     InodeLockGroup lockGroup = extensibleInodePath.getLockGroup();
-    List<Inode<?>> nonPersistedInodes = Lists.newArrayList();
+    List<Inode<?>> nonPersistedInodes = new ArrayList<>();
     for (Inode<?> inode : inodes) {
       if (!inode.isPersisted()) {
         nonPersistedInodes.add(inode);

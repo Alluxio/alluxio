@@ -9,12 +9,12 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.examples;
+package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -38,7 +38,9 @@ import java.util.List;
  * Class to perform Journal crash test. The clients issue commands to the master, and the master
  * generates journal events. Check if the master can generate and reproduce the journal correctly.
  */
-public class JournalCrashTest {
+public final class JournalCrashTest {
+
+  private JournalCrashTest() {} // prevent instantiation
 
   /**
    * The operation types to test.
@@ -59,7 +61,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * The client thread class. Each thread hold an Alluxio Client and keep requesting to Master.
+   * The client thread class. Each thread holds an Alluxio Client and keeps requesting to Master.
    */
   static class ClientThread extends Thread {
     /** Which type of operation this thread should do. */
@@ -103,7 +105,7 @@ public class JournalCrashTest {
     }
 
     /**
-     * Keep requesting to Master until something crashes or fail to create. Record how many
+     * Keeps requesting to Master until something crashes or fail to create. Records how many
      * operations are performed successfully.
      */
     @Override
@@ -215,7 +217,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * Kill Alluxio Master by 'kill -9' command.
+   * Kills Alluxio Master by 'kill -9' command.
    */
   private static void killMaster() {
     String[] killMasterCommand = new String[]{"/usr/bin/env", "bash", "-c",
@@ -231,10 +233,6 @@ public class JournalCrashTest {
 
   /**
    * Runs the crash test.
-   *
-   * Usage:
-   * {@code java -cp
-   * alluxio-<ALLUXIO-VERSION>-jar-with-dependencies.jar alluxio.examples.JournalCrashTest}
    *
    * @param args no arguments
    */
@@ -301,7 +299,7 @@ public class JournalCrashTest {
       } catch (Exception e) {
         LOG.error("Failed to check status", e);
       }
-      Utils.printPassInfo(checkSuccess);
+      CliUtils.printPassInfo(checkSuccess);
       ret &= checkSuccess;
     }
 
@@ -310,7 +308,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * Parse the input args with a command line format, using
+   * Parses the input args with a command line format, using
    * {@link org.apache.commons.cli.CommandLineParser}. This method handles printing help information
    * if parsing fails or --help is specified.
    *
@@ -348,8 +346,8 @@ public class JournalCrashTest {
       sTestDir = cmd.getOptionValue("testDir", "/default_tests_files");
     } else {
       ret = false;
-      new HelpFormatter().printHelp("java -cp alluxio-" + Version.VERSION
-          + "-jar-with-dependencies.jar alluxio.examples.JournalCrashTest",
+      new HelpFormatter().printHelp(String.format("java -cp %s %s",
+          RuntimeConstants.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName()),
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
           + "will launch total 6 clients connecting to the Master and the Master"
@@ -359,7 +357,7 @@ public class JournalCrashTest {
   }
 
   /**
-   * Setup all the client threads.
+   * Setups all the client threads.
    */
   private static void setupClientThreads() {
     sClientThreadList = new ArrayList<ClientThread>();
@@ -381,10 +379,10 @@ public class JournalCrashTest {
   }
 
   /**
-   * Start Alluxio Master by executing the launch script.
+   * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = new Configuration().get(Constants.HOME)
+    String startMasterCommand = Configuration.createServerConf().get(Constants.HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -395,11 +393,11 @@ public class JournalCrashTest {
   }
 
   /**
-   * Stop the current Alluxio cluster. This is used for preparation and clean up.
+   * Stops the current Alluxio cluster. This is used for preparation and clean up.
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = new Configuration().get(Constants.HOME)
+    String stopClusterCommand = Configuration.createServerConf().get(Constants.HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

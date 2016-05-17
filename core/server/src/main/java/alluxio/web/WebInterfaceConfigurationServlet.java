@@ -52,7 +52,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
-    mConfiguration = new Configuration();
+    mConfiguration = Configuration.createServerConf();
   }
 
   /**
@@ -73,11 +73,11 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   }
 
   private SortedSet<Pair<String, String>> getSortedProperties() {
-    TreeSet<Pair<String, String>> rtn = new TreeSet<Pair<String, String>>();
-    for (Map.Entry<Object, Object> entry : mConfiguration.getInternalProperties().entrySet()) {
+    TreeSet<Pair<String, String>> rtn = new TreeSet<>();
+    for (Map.Entry<String, String> entry : mConfiguration.toMap().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<String, String>(key, mConfiguration.get(key)));
+        rtn.add(new ImmutablePair<>(key, mConfiguration.get(key)));
       }
     }
     return rtn;

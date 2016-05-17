@@ -62,7 +62,7 @@ public class ServiceSocketBindIntegrationTest {
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getMasterHostname(),
+        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
             mLocalAlluxioCluster.getMasterPort()), mMasterConfiguration);
     mBlockMasterClient.connect();
 
@@ -211,6 +211,7 @@ public class ServiceSocketBindIntegrationTest {
       mBlockWorkerClient = BlockStoreContext.INSTANCE
           .acquireWorkerClient(mLocalAlluxioCluster.getWorker().getNetAddress());
       mBlockMasterClient.connect();
+      Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
     }

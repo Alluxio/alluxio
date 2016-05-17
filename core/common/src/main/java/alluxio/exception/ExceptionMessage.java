@@ -93,8 +93,10 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
+  DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
@@ -138,7 +140,6 @@ public enum ExceptionMessage {
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Alluxio properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security

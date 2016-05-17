@@ -37,14 +37,8 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-    /**
-     * Gets the groups being used to map user-to-groups.
-     *
-     * @return the groups being used to map user-to-groups
-     */
-    public static GroupMappingService getUserToGroupsMappingService() {
-      return getUserToGroupsMappingService(new Configuration());
-    }
+    // prevent instantiation
+    private Factory() {}
 
     /**
      * Gets the groups being used to map user-to-groups.

@@ -131,6 +131,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
+    if (newPath.endsWith("_SUCCESS")) {
+      // when path/_SUCCESS is created, there is need to create path as
+      // an empty object. This is required by Spark in case Spark
+      // accesses path directly, bypassing Alluxio
+      String plainName = newPath.substring(0, newPath.indexOf("_SUCCESS"));
+      LOG.debug("Plain name: {}", plainName);
+      SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
+      out.close();
+    }
     SwiftOutputStream out = SwiftDirectClient.put(mAccess, newPath);
     return out;
   }
@@ -152,7 +161,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    *
    * @param path the file or folder name
    * @param recursive whether we delete folder and its children
@@ -185,6 +194,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean exists(String path) throws IOException {
     String newPath = stripPrefixIfPresent(path);
+    if (newPath.endsWith("_temporary")) {
+      // To get better performance Swift driver does not
+      // creates _temporary folder
+      // This optimization should be hidden from Spark, therefore
+      // exists _teporary will return true
+      return true;
+    }
     return isObjectExists(newPath);
   }
 
@@ -336,9 +352,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {
   }
 
+  // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
-  }
+  public void setOwner(String path, String user, String group) {}
+
+  // Not supported
+  @Override
+  public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
    * Copies an object to another name.
@@ -349,10 +369,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean copy(String src, String dst) {
     LOG.debug("copy from {} to {}", src, dst);
+    String strippedSrcPath = stripPrefixIfPresent(src);
+    String strippedDstPath = stripPrefixIfPresent(dst);
     try {
       Container container = mAccount.getContainer(mContainerName);
-      container.getObject(src).copyObject(container,
-          container.getObject(dst));
+      container.getObject(strippedSrcPath).copyObject(container,
+          container.getObject(strippedDstPath));
       return true;
     } catch (Exception e) {
       LOG.error(e.getMessage());
@@ -415,6 +437,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return stripPrefixIfPresent(path, PATH_SEPARATOR);
+    }
     return stripPrefixIfPresent(path, mContainerPrefix);
   }
 
