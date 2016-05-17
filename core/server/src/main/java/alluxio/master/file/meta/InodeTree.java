@@ -339,7 +339,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param id the inode id
    * @param lockMode the {@link LockMode} to lock the inodes with
    * @return the {@link LockedInodePath} representing the locked path of inodes
-   * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the target inode does not exist
    */
   public LockedInodePath lockFullInodePath(long id, LockMode lockMode)
@@ -354,7 +353,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
       StringBuilder builder = new StringBuilder();
       computePathForInode(inode, builder);
       AlluxioURI uri = new AlluxioURI(builder.toString());
-
 
       boolean valid = false;
       LockedInodePath inodePath = null;

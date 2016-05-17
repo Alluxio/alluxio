@@ -25,7 +25,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
