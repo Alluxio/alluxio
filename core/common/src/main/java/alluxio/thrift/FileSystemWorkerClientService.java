@@ -74,7 +74,7 @@ public class FileSystemWorkerClientService {
      * 
      * @param options the options for completing the file
      */
-    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
+    public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException;
 
     /**
      * Creates a file in the under file system.
@@ -202,10 +202,10 @@ public class FileSystemWorkerClientService {
       return;
     }
 
-    public void completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       send_completeUfsFile(sessionId, tempUfsFileId, options);
-      recv_completeUfsFile();
+      return recv_completeUfsFile();
     }
 
     public void send_completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options) throws org.apache.thrift.TException
@@ -217,17 +217,20 @@ public class FileSystemWorkerClientService {
       sendBase("completeUfsFile", args);
     }
 
-    public void recv_completeUfsFile() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
+    public long recv_completeUfsFile() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
     {
       completeUfsFile_result result = new completeUfsFile_result();
       receiveBase(result, "completeUfsFile");
+      if (result.isSetSuccess()) {
+        return result.success;
+      }
       if (result.e != null) {
         throw result.e;
       }
       if (result.ioe != null) {
         throw result.ioe;
       }
-      return;
+      throw new org.apache.thrift.TApplicationException(org.apache.thrift.TApplicationException.MISSING_RESULT, "completeUfsFile failed: unknown result");
     }
 
     public long createUfsFile(long sessionId, String ufsPath, CreateUfsFileTOptions options) throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException
@@ -435,13 +438,13 @@ public class FileSystemWorkerClientService {
         prot.writeMessageEnd();
       }
 
-      public void getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
+      public long getResult() throws alluxio.thrift.AlluxioTException, alluxio.thrift.ThriftIOException, org.apache.thrift.TException {
         if (getState() != org.apache.thrift.async.TAsyncMethodCall.State.RESPONSE_READ) {
           throw new IllegalStateException("Method call not finished!");
         }
         org.apache.thrift.transport.TMemoryInputTransport memoryTransport = new org.apache.thrift.transport.TMemoryInputTransport(getFrameBuffer().array());
         org.apache.thrift.protocol.TProtocol prot = client.getProtocolFactory().getProtocol(memoryTransport);
-        (new Client(prot)).recv_completeUfsFile();
+        return (new Client(prot)).recv_completeUfsFile();
       }
     }
 
@@ -646,7 +649,8 @@ public class FileSystemWorkerClientService {
       public completeUfsFile_result getResult(I iface, completeUfsFile_args args) throws org.apache.thrift.TException {
         completeUfsFile_result result = new completeUfsFile_result();
         try {
-          iface.completeUfsFile(args.sessionId, args.tempUfsFileId, args.options);
+          result.success = iface.completeUfsFile(args.sessionId, args.tempUfsFileId, args.options);
+          result.setSuccessIsSet(true);
         } catch (alluxio.thrift.AlluxioTException e) {
           result.e = e;
         } catch (alluxio.thrift.ThriftIOException ioe) {
@@ -874,7 +878,7 @@ public class FileSystemWorkerClientService {
       }
     }
 
-    public static class completeUfsFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, completeUfsFile_args, Void> {
+    public static class completeUfsFile<I extends AsyncIface> extends org.apache.thrift.AsyncProcessFunction<I, completeUfsFile_args, Long> {
       public completeUfsFile() {
         super("completeUfsFile");
       }
@@ -883,11 +887,13 @@ public class FileSystemWorkerClientService {
         return new completeUfsFile_args();
       }
 
-      public AsyncMethodCallback<Void> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
+      public AsyncMethodCallback<Long> getResultHandler(final AsyncFrameBuffer fb, final int seqid) {
         final org.apache.thrift.AsyncProcessFunction fcall = this;
-        return new AsyncMethodCallback<Void>() { 
-          public void onComplete(Void o) {
+        return new AsyncMethodCallback<Long>() { 
+          public void onComplete(Long o) {
             completeUfsFile_result result = new completeUfsFile_result();
+            result.success = o;
+            result.setSuccessIsSet(true);
             try {
               fcall.sendResponse(fb,result, org.apache.thrift.protocol.TMessageType.REPLY,seqid);
               return;
@@ -930,7 +936,7 @@ public class FileSystemWorkerClientService {
         return false;
       }
 
-      public void start(I iface, completeUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws TException {
+      public void start(I iface, completeUfsFile_args args, org.apache.thrift.async.AsyncMethodCallback<Long> resultHandler) throws TException {
         iface.completeUfsFile(args.sessionId, args.tempUfsFileId, args.options,resultHandler);
       }
     }
@@ -3841,6 +3847,7 @@ public class FileSystemWorkerClientService {
   public static class completeUfsFile_result implements org.apache.thrift.TBase<completeUfsFile_result, completeUfsFile_result._Fields>, java.io.Serializable, Cloneable, Comparable<completeUfsFile_result>   {
     private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("completeUfsFile_result");
 
+    private static final org.apache.thrift.protocol.TField SUCCESS_FIELD_DESC = new org.apache.thrift.protocol.TField("success", org.apache.thrift.protocol.TType.I64, (short)0);
     private static final org.apache.thrift.protocol.TField E_FIELD_DESC = new org.apache.thrift.protocol.TField("e", org.apache.thrift.protocol.TType.STRUCT, (short)1);
     private static final org.apache.thrift.protocol.TField IOE_FIELD_DESC = new org.apache.thrift.protocol.TField("ioe", org.apache.thrift.protocol.TType.STRUCT, (short)2);
 
@@ -3850,11 +3857,13 @@ public class FileSystemWorkerClientService {
       schemes.put(TupleScheme.class, new completeUfsFile_resultTupleSchemeFactory());
     }
 
+    private long success; // required
     private alluxio.thrift.AlluxioTException e; // required
     private alluxio.thrift.ThriftIOException ioe; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
+      SUCCESS((short)0, "success"),
       E((short)1, "e"),
       IOE((short)2, "ioe");
 
@@ -3871,6 +3880,8 @@ public class FileSystemWorkerClientService {
        */
       public static _Fields findByThriftId(int fieldId) {
         switch(fieldId) {
+          case 0: // SUCCESS
+            return SUCCESS;
           case 1: // E
             return E;
           case 2: // IOE
@@ -3915,9 +3926,13 @@ public class FileSystemWorkerClientService {
     }
 
     // isset id assignments
+    private static final int __SUCCESS_ISSET_ID = 0;
+    private byte __isset_bitfield = 0;
     public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
     static {
       Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
+      tmpMap.put(_Fields.SUCCESS, new org.apache.thrift.meta_data.FieldMetaData("success", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
       tmpMap.put(_Fields.E, new org.apache.thrift.meta_data.FieldMetaData("e", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRUCT)));
       tmpMap.put(_Fields.IOE, new org.apache.thrift.meta_data.FieldMetaData("ioe", org.apache.thrift.TFieldRequirementType.DEFAULT, 
@@ -3930,10 +3945,13 @@ public class FileSystemWorkerClientService {
     }
 
     public completeUfsFile_result(
+      long success,
       alluxio.thrift.AlluxioTException e,
       alluxio.thrift.ThriftIOException ioe)
     {
       this();
+      this.success = success;
+      setSuccessIsSet(true);
       this.e = e;
       this.ioe = ioe;
     }
@@ -3942,6 +3960,8 @@ public class FileSystemWorkerClientService {
      * Performs a deep copy on <i>other</i>.
      */
     public completeUfsFile_result(completeUfsFile_result other) {
+      __isset_bitfield = other.__isset_bitfield;
+      this.success = other.success;
       if (other.isSetE()) {
         this.e = new alluxio.thrift.AlluxioTException(other.e);
       }
@@ -3956,8 +3976,33 @@ public class FileSystemWorkerClientService {
 
     @Override
     public void clear() {
+      setSuccessIsSet(false);
+      this.success = 0;
       this.e = null;
       this.ioe = null;
+    }
+
+    public long getSuccess() {
+      return this.success;
+    }
+
+    public completeUfsFile_result setSuccess(long success) {
+      this.success = success;
+      setSuccessIsSet(true);
+      return this;
+    }
+
+    public void unsetSuccess() {
+      __isset_bitfield = EncodingUtils.clearBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    /** Returns true if field success is set (has been assigned a value) and false otherwise */
+    public boolean isSetSuccess() {
+      return EncodingUtils.testBit(__isset_bitfield, __SUCCESS_ISSET_ID);
+    }
+
+    public void setSuccessIsSet(boolean value) {
+      __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __SUCCESS_ISSET_ID, value);
     }
 
     public alluxio.thrift.AlluxioTException getE() {
@@ -4010,6 +4055,14 @@ public class FileSystemWorkerClientService {
 
     public void setFieldValue(_Fields field, Object value) {
       switch (field) {
+      case SUCCESS:
+        if (value == null) {
+          unsetSuccess();
+        } else {
+          setSuccess((Long)value);
+        }
+        break;
+
       case E:
         if (value == null) {
           unsetE();
@@ -4031,6 +4084,9 @@ public class FileSystemWorkerClientService {
 
     public Object getFieldValue(_Fields field) {
       switch (field) {
+      case SUCCESS:
+        return getSuccess();
+
       case E:
         return getE();
 
@@ -4048,6 +4104,8 @@ public class FileSystemWorkerClientService {
       }
 
       switch (field) {
+      case SUCCESS:
+        return isSetSuccess();
       case E:
         return isSetE();
       case IOE:
@@ -4068,6 +4126,15 @@ public class FileSystemWorkerClientService {
     public boolean equals(completeUfsFile_result that) {
       if (that == null)
         return false;
+
+      boolean this_present_success = true;
+      boolean that_present_success = true;
+      if (this_present_success || that_present_success) {
+        if (!(this_present_success && that_present_success))
+          return false;
+        if (this.success != that.success)
+          return false;
+      }
 
       boolean this_present_e = true && this.isSetE();
       boolean that_present_e = true && that.isSetE();
@@ -4094,6 +4161,11 @@ public class FileSystemWorkerClientService {
     public int hashCode() {
       List<Object> list = new ArrayList<Object>();
 
+      boolean present_success = true;
+      list.add(present_success);
+      if (present_success)
+        list.add(success);
+
       boolean present_e = true && (isSetE());
       list.add(present_e);
       if (present_e)
@@ -4115,6 +4187,16 @@ public class FileSystemWorkerClientService {
 
       int lastComparison = 0;
 
+      lastComparison = Boolean.valueOf(isSetSuccess()).compareTo(other.isSetSuccess());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetSuccess()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.success, other.success);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       lastComparison = Boolean.valueOf(isSetE()).compareTo(other.isSetE());
       if (lastComparison != 0) {
         return lastComparison;
@@ -4155,6 +4237,10 @@ public class FileSystemWorkerClientService {
       StringBuilder sb = new StringBuilder("completeUfsFile_result(");
       boolean first = true;
 
+      sb.append("success:");
+      sb.append(this.success);
+      first = false;
+      if (!first) sb.append(", ");
       sb.append("e:");
       if (this.e == null) {
         sb.append("null");
@@ -4189,6 +4275,8 @@ public class FileSystemWorkerClientService {
 
     private void readObject(java.io.ObjectInputStream in) throws java.io.IOException, ClassNotFoundException {
       try {
+        // it doesn't seem like you should have to do this, but java serialization is wacky, and doesn't call the default constructor.
+        __isset_bitfield = 0;
         read(new org.apache.thrift.protocol.TCompactProtocol(new org.apache.thrift.transport.TIOStreamTransport(in)));
       } catch (org.apache.thrift.TException te) {
         throw new java.io.IOException(te);
@@ -4213,6 +4301,14 @@ public class FileSystemWorkerClientService {
             break;
           }
           switch (schemeField.id) {
+            case 0: // SUCCESS
+              if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
+                struct.success = iprot.readI64();
+                struct.setSuccessIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
             case 1: // E
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
                 struct.e = new alluxio.thrift.AlluxioTException();
@@ -4246,6 +4342,11 @@ public class FileSystemWorkerClientService {
         struct.validate();
 
         oprot.writeStructBegin(STRUCT_DESC);
+        if (struct.isSetSuccess()) {
+          oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
+          oprot.writeI64(struct.success);
+          oprot.writeFieldEnd();
+        }
         if (struct.e != null) {
           oprot.writeFieldBegin(E_FIELD_DESC);
           struct.e.write(oprot);
@@ -4274,13 +4375,19 @@ public class FileSystemWorkerClientService {
       public void write(org.apache.thrift.protocol.TProtocol prot, completeUfsFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol oprot = (TTupleProtocol) prot;
         BitSet optionals = new BitSet();
-        if (struct.isSetE()) {
+        if (struct.isSetSuccess()) {
           optionals.set(0);
         }
-        if (struct.isSetIoe()) {
+        if (struct.isSetE()) {
           optionals.set(1);
         }
-        oprot.writeBitSet(optionals, 2);
+        if (struct.isSetIoe()) {
+          optionals.set(2);
+        }
+        oprot.writeBitSet(optionals, 3);
+        if (struct.isSetSuccess()) {
+          oprot.writeI64(struct.success);
+        }
         if (struct.isSetE()) {
           struct.e.write(oprot);
         }
@@ -4292,13 +4399,17 @@ public class FileSystemWorkerClientService {
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, completeUfsFile_result struct) throws org.apache.thrift.TException {
         TTupleProtocol iprot = (TTupleProtocol) prot;
-        BitSet incoming = iprot.readBitSet(2);
+        BitSet incoming = iprot.readBitSet(3);
         if (incoming.get(0)) {
+          struct.success = iprot.readI64();
+          struct.setSuccessIsSet(true);
+        }
+        if (incoming.get(1)) {
           struct.e = new alluxio.thrift.AlluxioTException();
           struct.e.read(iprot);
           struct.setEIsSet(true);
         }
-        if (incoming.get(1)) {
+        if (incoming.get(2)) {
           struct.ioe = new alluxio.thrift.ThriftIOException();
           struct.ioe.read(iprot);
           struct.setIoeIsSet(true);
