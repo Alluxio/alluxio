@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
-import alluxio.client.ClientContext;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
@@ -30,9 +29,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -102,8 +98,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
   /** The read buffer size in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
   private final long mSeekBufferSizeBytes;
-  /** The local host name. */
-  private final String mLocalHostName;
 
   /**
    * Creates a new file input stream.
@@ -134,7 +128,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
     mClosed = false;
-    mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
     mLocationPolicy = options.getLocationPolicy();
     if (mShouldCache) {
       Preconditions.checkNotNull(options.getLocationPolicy(),
