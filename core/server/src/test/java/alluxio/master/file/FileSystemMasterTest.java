@@ -739,15 +739,12 @@ public final class FileSystemMasterTest {
         LoadMetadataOptions.defaults().setCreateAncestors(true));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
-    boolean fileAlreadyExistsExceptionSeen = false;
     try {
       mFileSystemMaster
           .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+      Assert.fail();
     } catch (FileAlreadyExistsException e) {
-      fileAlreadyExistsExceptionSeen = true;
     }
-    Assert.assertTrue(fileAlreadyExistsExceptionSeen);
-    fileAlreadyExistsExceptionSeen = false;
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
@@ -756,10 +753,9 @@ public final class FileSystemMasterTest {
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
       mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+      Assert.fail();
     } catch (FileAlreadyExistsException e) {
-      fileAlreadyExistsExceptionSeen = true;
     }
-    Assert.assertTrue(fileAlreadyExistsExceptionSeen);
   }
 
   /**
