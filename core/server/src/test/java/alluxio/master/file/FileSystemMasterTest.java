@@ -742,7 +742,7 @@ public final class FileSystemMasterTest {
     try {
       mFileSystemMaster
           .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
-      Assert.fail();
+      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
     }
 
@@ -753,7 +753,7 @@ public final class FileSystemMasterTest {
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
       mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
-      Assert.fail();
+      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
     }
   }
