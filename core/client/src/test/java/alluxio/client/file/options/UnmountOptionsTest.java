@@ -1,9 +1,9 @@
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
-
-import alluxio.CommonTestUtils;
 
 /**
  * Tests for the {@link UnmountOptions} class.
