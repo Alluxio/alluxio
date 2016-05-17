@@ -2411,7 +2411,7 @@ public class KeyValueWorkerClientService {
      */
     public getNextKeys_result(getNextKeys_result other) {
       if (other.isSetSuccess()) {
-        List<ByteBuffer> __this__success = new ArrayList<ByteBuffer>(other.success);
+        List<ByteBuffer> __this__success = new ArrayList<>(other.success);
         this.success = __this__success;
       }
       if (other.isSetE()) {
@@ -2443,7 +2443,7 @@ public class KeyValueWorkerClientService {
 
     public void addToSuccess(ByteBuffer elem) {
       if (this.success == null) {
-        this.success = new ArrayList<ByteBuffer>();
+        this.success = new ArrayList<>();
       }
       this.success.add(elem);
     }
@@ -2774,7 +2774,7 @@ public class KeyValueWorkerClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
                   org.apache.thrift.protocol.TList _list0 = iprot.readListBegin();
-                  struct.success = new ArrayList<ByteBuffer>(_list0.size);
+                  struct.success = new ArrayList<>(_list0.size);
                   ByteBuffer _elem1;
                   for (int _i2 = 0; _i2 < _list0.size; ++_i2)
                   {
@@ -2895,7 +2895,7 @@ public class KeyValueWorkerClientService {
         if (incoming.get(0)) {
           {
             org.apache.thrift.protocol.TList _list5 = new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, iprot.readI32());
-            struct.success = new ArrayList<ByteBuffer>(_list5.size);
+            struct.success = new ArrayList<>(_list5.size);
             ByteBuffer _elem6;
             for (int _i7 = 0; _i7 < _list5.size; ++_i7)
             {
