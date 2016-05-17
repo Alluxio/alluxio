@@ -71,7 +71,7 @@ public final class NettyUnderFileSystemFileWriter {
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
-      LOG.info("Connected to remote machine {}", address);
+      LOG.debug("Connected to remote machine {}", address);
       Channel channel = f.channel();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
@@ -84,7 +84,7 @@ public final class NettyUnderFileSystemFileWriter {
         case RPC_FILE_WRITE_RESPONSE:
           RPCFileWriteResponse resp = (RPCFileWriteResponse) response;
           RPCResponse.Status status = resp.getStatus();
-          LOG.info("status: {} from remote machine {} received", status, address);
+          LOG.debug("status: {} from remote machine {} received", status, address);
 
           if (status != RPCResponse.Status.SUCCESS) {
             throw new IOException(ExceptionMessage.UNDER_FILE_WRITE_ERROR.getMessage(ufsFileId,

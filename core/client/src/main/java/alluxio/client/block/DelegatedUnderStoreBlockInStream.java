@@ -79,8 +79,9 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     }
     mUnderStoreStream =
         new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mUfsFileId);
+    long streamStart = mInitPos + pos;
     // The stream is at the beginning of the file, so skip to the correct absolute position.
-    if ((mInitPos + pos) != 0 && mInitPos + pos != mUnderStoreStream.skip(mInitPos + pos)) {
+    if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
       throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
     }
     // Set the current block position to the specified block position.
