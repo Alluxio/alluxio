@@ -399,9 +399,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return IdUtils.INVALID_FILE_ID;
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -446,9 +444,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return getFileInfoInternal(inodePath);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -545,9 +541,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return ret;
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -583,9 +577,7 @@ public final class FileSystemMaster extends AbstractMaster {
       flushCounter = completeFileAndJournal(inodePath, options);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -724,9 +716,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -811,9 +801,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return id;
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -893,9 +881,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return true;
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -1241,9 +1227,7 @@ public final class FileSystemMaster extends AbstractMaster {
       flushCounter = createDirectoryAndJournal(inodePath, options);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -1362,9 +1346,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LOG.debug("Renamed {} to {}", srcPath, dstPath);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -1759,9 +1741,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return inodePath.getInode().getId();
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -1886,9 +1866,7 @@ public final class FileSystemMaster extends AbstractMaster {
       MasterContext.getMasterSource().incPathsMounted(1);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -2038,9 +2016,7 @@ public final class FileSystemMaster extends AbstractMaster {
       return false;
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -2150,9 +2126,7 @@ public final class FileSystemMaster extends AbstractMaster {
       flushCounter = setAttributeAndJournal(inodePath, options, rootRequired, ownerRequired);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
   }
 
@@ -2246,9 +2220,7 @@ public final class FileSystemMaster extends AbstractMaster {
       flushCounter = scheduleAsyncPersistenceAndJournal(inodePath);
     } finally {
       // finally runs after resources are closed (unlocked).
-      if (flushCounter != AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
-        waitForJournalFlush(flushCounter);
-      }
+      waitForJournalFlush(flushCounter);
     }
     // NOTE: persistence is asynchronous so there is no guarantee the path will still exist
     mAsyncPersistHandler.scheduleAsyncPersistence(path);
