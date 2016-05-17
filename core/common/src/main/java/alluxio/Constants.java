@@ -52,6 +52,7 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
+  public static final long SECOND_NANO = 1000000000L;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
@@ -75,6 +76,8 @@ public final class Constants {
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
+
+  public static final int MAX_PORT = 65535;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -111,21 +114,12 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
-   * Version 2 [0.5.0] Starts to use JSON. <br>
-   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
-   */
-  public static final int JOURNAL_VERSION = 3;
+  public static final String REST_API_PREFIX = "v1/api";
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
-
-  // This constant is being used only in Hadoop MR job submissions where client need to pass site
-  // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
-
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
@@ -153,12 +147,21 @@ public final class Constants {
   public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
   public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
+  public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+  public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
+      "alluxio.underfs.s3.endpoint.http.port";
+  public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+      "alluxio.underfs.s3.endpoint.https.port";
+  public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
+      "alluxio.underfs.s3.disable.dns.buckets";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "alluxio.zookeeper.leader.inquiry.retry";
+  public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+      "alluxio.network.thrift.frame.size.bytes.max";
   public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
   public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "alluxio.keyvalue.partition.size.bytes.max";
@@ -348,6 +351,10 @@ public final class Constants {
   public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
   public static final String USER_FILE_WRITE_LOCATION_POLICY =
       "alluxio.user.file.write.location.policy.class";
+  public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

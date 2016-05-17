@@ -11,11 +11,9 @@
 
 package alluxio.web;
 
-import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
 import alluxio.util.FormatUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 
@@ -95,8 +93,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Displays information about a worker in the UI.
    */
   public static class UIWorkerInfo {
-    public static final boolean DEBUG = WorkerContext.getConf().getBoolean(Constants.DEBUG);
-    public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
 
@@ -236,6 +232,8 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     request.setAttribute("usedBytes", FormatUtils.getSizeFromBytes(usedBytes));
 
     request.setAttribute("usageOnTiers", usageOnTiers);
+
+    request.setAttribute("version", RuntimeConstants.VERSION);
 
     List<UIStorageDir> storageDirs =
         new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());

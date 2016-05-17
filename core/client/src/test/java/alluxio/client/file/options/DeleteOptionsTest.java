@@ -47,7 +47,7 @@ public class DeleteOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(DeleteOptions.class);
   }
 }

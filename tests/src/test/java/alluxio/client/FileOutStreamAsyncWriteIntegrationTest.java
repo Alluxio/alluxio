@@ -53,5 +53,22 @@ public final class FileOutStreamAsyncWriteIntegrationTest
 
     checkWrite(filePath, mWriteAsync.getUnderStorageType(), length, length);
   }
-}
 
+  @Test
+  public void asyncWriteEmptyFileTest() throws Exception {
+    AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
+    mFileSystem.createFile(filePath, mWriteAsync).close();
+
+    // check the file is completed but not persisted
+    URIStatus status = mFileSystem.getStatus(filePath);
+    Assert.assertNotEquals(PersistenceState.PERSISTED, status.getPersistenceState());
+    Assert.assertTrue(status.isCompleted());
+
+    IntegrationTestUtils.waitForPersist(mLocalAlluxioClusterResource, filePath);
+
+    status = mFileSystem.getStatus(filePath);
+    Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
+
+    checkWrite(filePath, mWriteAsync.getUnderStorageType(), 0, 0);
+  }
+}

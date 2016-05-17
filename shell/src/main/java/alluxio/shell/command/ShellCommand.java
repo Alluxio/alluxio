@@ -11,7 +11,7 @@
 
 package alluxio.shell.command;
 
-import alluxio.shell.AlluxioShell;
+import alluxio.cli.AlluxioShell;
 
 import org.apache.commons.cli.CommandLine;
 

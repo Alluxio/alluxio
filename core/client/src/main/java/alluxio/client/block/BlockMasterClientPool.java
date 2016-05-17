@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread is done using the client.
  */
 @ThreadSafe
-final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
+public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
   /**
@@ -35,6 +35,17 @@ final class BlockMasterClientPool extends ResourcePool<BlockMasterClient> {
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
+    mMasterAddress = masterAddress;
+  }
+
+  /**
+   * Creates a new block master client pool.
+   *
+   * @param masterAddress the master address
+   * @param clientThreads the number of client threads to use
+   */
+  public BlockMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
+    super(clientThreads);
     mMasterAddress = masterAddress;
   }
 
