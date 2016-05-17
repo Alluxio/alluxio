@@ -161,7 +161,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritDoc}
    *
    * @param path the file or folder name
    * @param recursive whether we delete folder and its children
@@ -352,9 +352,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {
   }
 
+  // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
-  }
+  public void setOwner(String path, String user, String group) {}
+
+  // Not supported
+  @Override
+  public void setPermission(String path, String posixPerm) throws IOException {}
 
   /**
    * Copies an object to another name.
@@ -433,6 +437,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
+    if (path.startsWith(PATH_SEPARATOR)) {
+      return stripPrefixIfPresent(path, PATH_SEPARATOR);
+    }
     return stripPrefixIfPresent(path, mContainerPrefix);
   }
 

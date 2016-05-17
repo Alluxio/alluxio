@@ -105,7 +105,7 @@ detalhes sobre os parâmetros podem ser encontrados em [Definições de Configur
 Além das configurações acima, Alluxio `masters` precisam de configurações adicionais. A variável a seguir
 deve ser definida corretamente em `conf/alluxio-env.sh`:
 
-    export ALLUXIO_MASTER_ADDRESS=[endereço externamente visível desta máquina]
+    export ALLUXIO_MASTER_HOSTNAME=[endereço externamente visível desta máquina]
 
 Também deve ser informado o diretório correto do `journal` através do parâmetro `alluxio.master.journal.folder` 
 para `ALLUXIO_JAVA_OPTS`. Por exemplo, se você está utilizando `HDFS` para o `journal`, você pode adicionar:
@@ -120,7 +120,7 @@ esperarão até o `master` atual falhe.
 
 Enquanto os parametros de configuração acima estiverem definidos corretamente, o `worker` estará apto para
 consultar com o `ZooKeeper` e encontrar o líder `master` atual para conexão. Sendo assim, a variável 
-`ALLUXIO_MASTER_ADDRESS` não deve ser configurada para os `workers`.
+`ALLUXIO_MASTER_HOSTNAME` não deve ser configurada para os `workers`.
 
 ### Configuração do Client
 

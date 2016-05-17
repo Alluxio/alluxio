@@ -31,7 +31,7 @@ import javax.security.sasl.SaslException;
 
 /**
  * If authentication type is {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}, this is the
- * default transport provider which uses Sasl transport.
+ * default transport provider which uses SASL transport.
  */
 @ThreadSafe
 public final class PlainSaslTransportProvider implements TransportProvider {

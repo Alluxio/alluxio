@@ -17,6 +17,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
@@ -284,9 +285,12 @@ public final class MasterSourceTest {
    */
   @Test
   public void deletePathTest() throws Exception {
-
     // cannot delete root
-    Assert.assertFalse(mFileSystemMaster.delete(ROOT_URI, true));
+    try {
+      mFileSystemMaster.delete(ROOT_URI, true);
+    } catch (InvalidPathException e) {
+      // expected
+    }
 
     Assert.assertEquals(1, mCounters.get(MasterSource.DELETE_PATH_OPS).getCount());
     Assert.assertEquals(0, mCounters.get(MasterSource.PATHS_DELETED).getCount());
@@ -316,7 +320,7 @@ public final class MasterSourceTest {
   }
 
   /**
-   * Tests the {@code SetAttributeOps} counter when setting the state of a file.
+   * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
    *
    * @throws Exception if a {@link FileSystemMaster} operation fails
    */

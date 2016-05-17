@@ -11,7 +11,7 @@
 
 package alluxio.mesos;
 
-import alluxio.Format;
+import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.worker.AlluxioWorker;
 
@@ -28,6 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
+
+  /**
+   * Creates a new {@link AlluxioWorkerExecutor}.
+   */
+  public AlluxioWorkerExecutor() {}
+
   @Override
   public void disconnected(ExecutorDriver driver) {
     System.out.println("Executor has disconnected from the Mesos slave.");

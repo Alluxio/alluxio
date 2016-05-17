@@ -171,7 +171,7 @@ public final class FileDataManager {
    */
   public void lockBlocks(long fileId, List<Long> blockIds) throws IOException {
     Map<Long, Long> blockIdToLockId = new HashMap<>();
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     synchronized (mLock) {
       if (mPersistingInProgressFiles.containsKey(fileId)) {
         throw new IOException("the file " + fileId + " is already being persisted");
@@ -226,7 +226,7 @@ public final class FileDataManager {
     OutputStream outputStream = mUfs.create(dstPath);
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     try {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);

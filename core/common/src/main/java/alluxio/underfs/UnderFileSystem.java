@@ -189,15 +189,15 @@ public abstract class UnderFileSystem {
           || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)
           || header.equals(Constants.HEADER_GCS)) {
         if (path.getPath().isEmpty()) {
-          return new Pair<String, String>(header + authority, AlluxioURI.SEPARATOR);
+          return new Pair<>(header + authority, AlluxioURI.SEPARATOR);
         } else {
-          return new Pair<String, String>(header + authority, path.getPath());
+          return new Pair<>(header + authority, path.getPath());
         }
       } else if (header.equals("file://")) {
-        return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
+        return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
       }
     } else if (path.isPathAbsolute()) {
-      return new Pair<String, String>(AlluxioURI.SEPARATOR, path.getPath());
+      return new Pair<>(AlluxioURI.SEPARATOR, path.getPath());
     }
 
     return null;
@@ -438,8 +438,8 @@ public abstract class UnderFileSystem {
     // Clean the path by creating a URI and turning it back to a string
     AlluxioURI uri = new AlluxioURI(path);
     path = uri.toString();
-    List<String> returnPaths = new ArrayList<String>();
-    Queue<String> pathsToProcess = new ArrayDeque<String>();
+    List<String> returnPaths = new ArrayList<>();
+    Queue<String> pathsToProcess = new ArrayDeque<>();
     // We call list initially, so we can return null if the path doesn't denote a directory
     String[] subpaths = list(path);
     if (subpaths == null) {
@@ -518,6 +518,17 @@ public abstract class UnderFileSystem {
    * @param conf the configuration object accepted by ufs
    */
   public abstract void setConf(Object conf);
+
+  /**
+   * Sets the user and group of the given path. An empty implementation should be provided if
+   * unsupported.
+   *
+   * @param path path of the file
+   * @param user the new user to set, unchanged if null
+   * @param group the new group to set, unchanged if null
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract void setOwner(String path, String user, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.

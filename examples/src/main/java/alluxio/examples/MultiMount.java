@@ -34,6 +34,8 @@ import org.apache.commons.io.IOUtils;
  */
 public final class MultiMount {
 
+  private MultiMount() {} // prevent instantiation
+
   /**
    * Entry point for the {@link MultiMount} program.
    *

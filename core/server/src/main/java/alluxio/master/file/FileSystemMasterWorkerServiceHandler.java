@@ -58,7 +58,7 @@ public final class FileSystemMasterWorkerServiceHandler
     try {
       return ThriftUtils.toThrift(mFileSystemMaster.getFileInfo(fileId));
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -73,11 +73,11 @@ public final class FileSystemMasterWorkerServiceHandler
     try {
       return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
     } catch (FileDoesNotExistException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     } catch (InvalidPathException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     } catch (AccessControlException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 }

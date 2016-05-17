@@ -11,6 +11,8 @@
 
 package alluxio.exception;
 
+import alluxio.AlluxioURI;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -59,5 +61,14 @@ public class FileDoesNotExistException extends AlluxioException {
    */
   public FileDoesNotExistException(ExceptionMessage message, Throwable cause, Object... params) {
     this(message.getMessage(params), cause);
+  }
+
+  /**
+   * Constructs a new exception stating that the given path does not exist.
+   *
+   * @param path the path which does not exist
+   */
+  public FileDoesNotExistException(AlluxioURI path) {
+    this(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
   }
 }

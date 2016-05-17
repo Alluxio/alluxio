@@ -555,9 +555,9 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     if (isFile) {
       Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
-      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path)).size());
+      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true).size());
     } else {
-      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path));
+      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true);
       if (fileInfoList.size() > 0) {
         Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
       }

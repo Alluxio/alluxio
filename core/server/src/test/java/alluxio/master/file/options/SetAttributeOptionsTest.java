@@ -55,7 +55,7 @@ public class SetAttributeOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(SetAttributeOptions.class, "mOperationTimeMs");
   }
 }

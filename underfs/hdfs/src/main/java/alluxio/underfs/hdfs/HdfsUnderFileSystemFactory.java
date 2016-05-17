@@ -39,6 +39,11 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
    */
   private Map<Path, HdfsUnderFileSystem> mHdfsUfsCache = new HashMap<>();
 
+  /**
+   * Constructs a new {@link HdfsUnderFileSystemFactory}.
+   */
+  public HdfsUnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object conf) {
     Preconditions.checkArgument(path != null, "path may not be null");

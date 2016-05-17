@@ -117,10 +117,9 @@ public final class LineageMaster extends AbstractMaster {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME,
-        new LineageMasterClientService.Processor<LineageMasterClientServiceHandler>(
-            new LineageMasterClientServiceHandler(this)));
+        new LineageMasterClientService.Processor<>(new LineageMasterClientServiceHandler(this)));
     return services;
   }
 
@@ -289,13 +288,13 @@ public final class LineageMaster extends AbstractMaster {
     FileInfo fileInfo;
     try {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
+      if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
+        LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
+      }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(
           ExceptionMessage.MISSING_REINITIALIZE_FILE.getMessage(path));
-    }
-    if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
-      LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-      return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
     }
     return -1;
   }
@@ -344,7 +343,6 @@ public final class LineageMaster extends AbstractMaster {
    * Schedules persistence for the output files of the given checkpoint plan.
    *
    * @param plan the plan for checkpointing
-   * @throws FileDoesNotExistException when a file doesn't exist
    */
   public synchronized void scheduleCheckpoint(CheckpointPlan plan) {
     for (long lineageId : plan.getLineagesToCheckpoint()) {
@@ -366,9 +364,10 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
    * @throws AccessControlException if permission checking fails
+   * @throws InvalidPathException if the path is invalid
    */
   public synchronized void reportLostFile(String path) throws FileDoesNotExistException,
-      AccessControlException {
+      AccessControlException, InvalidPathException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
     mFileSystemMaster.reportLostFile(fileId);
   }

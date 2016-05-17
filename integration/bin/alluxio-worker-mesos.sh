@@ -16,7 +16,7 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
-  -Dalluxio.master.hostname="${ALLUXIO_MASTER_ADDRESS}" \
+  -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
   -Dalluxio.worker.tieredstore.levels=1 \
   -Dalluxio.worker.tieredstore.level0.alias=MEM \
   -Dalluxio.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
