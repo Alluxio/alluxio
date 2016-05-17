@@ -194,7 +194,7 @@ public final class FileSystemWorker extends AbstractWorker {
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
    * The stream should not be closed by the caller but through the {@link #cancelUfsFile(long,long)}
-   * or the {@link #completeUfsFile(long,long, String, String)} methods.
+   * or the {@link #completeUfsFile(long, long, String, String)} methods.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @return the output stream writing the contents of the file
