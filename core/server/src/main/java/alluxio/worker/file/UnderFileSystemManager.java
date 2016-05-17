@@ -226,14 +226,19 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
+     * @param user the owner of the file, null for default Alluxio user
+     * @param group the group of the file, null for default Alluxio user
      * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private long complete() throws IOException {
+    private long complete(String user, String group) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      if (!ufs.rename(mTemporaryUri, mUri)) {
-        // TODO(calvin): Log a warning if the delete fails
+      if (ufs.rename(mTemporaryUri, mUri)) {
+        if (user != null || group != null) {
+          ufs.setOwner(mUri, user, group);
+        }
+      } else {
         ufs.delete(mTemporaryUri, false);
       }
       return ufs.getFileSize(mUri);
@@ -339,11 +344,13 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
+   * @param user the owner of the file, null for default Alluxio user
+   * @param group the group of the file, null for default Alluxio user
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long completeFile(long sessionId, long tempUfsFileId)
+  public long completeFile(long sessionId, long tempUfsFileId, String user, String group)
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
@@ -357,7 +364,7 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
     }
-    return agent.complete();
+    return agent.complete(user, group);
   }
 
   /**

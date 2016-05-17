@@ -111,7 +111,9 @@ public final class FileSystemWorkerClientServiceHandler
   public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.completeUfsFile(sessionId, tempUfsFileId);
+      String user = options.isSetUser() ? options.getUser() : null;
+      String group = options.isSetGroup() ? options.getGroup() : null;
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId, user, group);
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
