@@ -1333,9 +1333,10 @@ public final class FileSystemMaster extends AbstractMaster {
       FileDoesNotExistException, InvalidPathException, IOException, AccessControlException {
     MasterContext.getMasterSource().incRenamePathOps(1);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
     try (InodePathPair inodePathPair = mInodeTree
         .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE)) {
+            InodeTree.LockMode.WRITE_PARENT)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       mPermissionChecker.checkParentPermission(FileSystemAction.WRITE, srcInodePath);
