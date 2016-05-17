@@ -115,7 +115,7 @@ public class FileInStreamTest {
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream =
         new FileInStream(mStatus, InStreamOptions.defaults().setReadType(
-            ReadType.CACHE_PROMOTE));
+            ReadType.CACHE_PROMOTE).setCachePartiallyReadBlock(false));
   }
 
   @After
@@ -447,7 +447,8 @@ public class FileInStreamTest {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
     mStatus = new URIStatus(mInfo);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
-    mTestStream = new FileInStream(mStatus, InStreamOptions.defaults());
+    mTestStream =
+        new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(false));
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
     UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));

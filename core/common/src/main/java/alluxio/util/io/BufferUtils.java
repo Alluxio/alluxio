@@ -49,7 +49,7 @@ public final class BufferUtils {
 
   /**
    * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
-   * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
+   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
    * avoid huge memory occupation caused by memory map.
    *
    * <p>
@@ -181,8 +181,8 @@ public final class BufferUtils {
    * @param value the value to check for
    * @param len the target length of the sequence
    * @param arr the byte array to check
-   * @return true if the byte array has a prefix of length {@code len} that is an increasing
-   *         sequence of bytes starting at zero
+   * @return true if the byte array has a prefix of length {@code len} that is a constant
+   *         sequence of bytes of the given value
    */
   public static boolean equalConstantByteArray(byte value, int len, byte[] arr) {
     if (arr == null || arr.length != len) {
@@ -213,18 +213,18 @@ public final class BufferUtils {
    * Checks if the given byte array starts with an increasing sequence of bytes of the given
    * length, starting from the given value.
    *
-   * @param value the starting value to use
+   * @param start the starting value to use
    * @param len the target length of the sequence
    * @param arr the byte array to check
    * @return true if the byte array has a prefix of length {@code len} that is an increasing
    *         sequence of bytes starting at {@code start}
    */
-  public static boolean equalIncreasingByteArray(int value, int len, byte[] arr) {
+  public static boolean equalIncreasingByteArray(int start, int len, byte[] arr) {
     if (arr == null || arr.length != len) {
       return false;
     }
     for (int k = 0; k < len; k++) {
-      if (arr[k] != (byte) (value + k)) {
+      if (arr[k] != (byte) (start + k)) {
         return false;
       }
     }

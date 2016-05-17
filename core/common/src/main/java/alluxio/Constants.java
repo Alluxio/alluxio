@@ -77,6 +77,8 @@ public final class Constants {
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
 
+  public static final int MAX_PORT = 65535;
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
@@ -117,11 +119,7 @@ public final class Constants {
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
-
-  // This constant is being used only in Hadoop MR job submissions where client need to pass site
-  // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
-
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
@@ -355,6 +353,8 @@ public final class Constants {
       "alluxio.user.file.write.location.policy.class";
   public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
       "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =

@@ -39,8 +39,8 @@ public final class StorageDirView {
 
   // The below data structures are used by the evictor to mark blocks to move in/out during
   // generating an eviction plan.
-  private final Set<Long> mBlocksToMoveIn = new HashSet<Long>();
-  private final Set<Long> mBlocksToMoveOut = new HashSet<Long>();
+  private final Set<Long> mBlocksToMoveIn = new HashSet<>();
+  private final Set<Long> mBlocksToMoveOut = new HashSet<>();
   private long mBlocksToMoveInSize = 0L;
   private long mBlocksToMoveOutSize = 0L;
 
@@ -74,7 +74,7 @@ public final class StorageDirView {
    * @return a list of metadata for all evictable blocks
    */
   public List<BlockMeta> getEvictableBlocks() {
-    List<BlockMeta> filteredList = new ArrayList<BlockMeta>();
+    List<BlockMeta> filteredList = new ArrayList<>();
 
     for (BlockMeta blockMeta : mDir.getBlocks()) {
       long blockId = blockMeta.getBlockId();
