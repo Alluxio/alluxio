@@ -12,27 +12,72 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.client.ClientContext;
+import alluxio.security.LoginUser;
 import alluxio.thrift.CompleteUfsFileTOptions;
 
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.io.IOException;
 
 /**
- * Options for completing a UFS file.
+ * Options for completing a UFS file. Currently we do not allow users to set arbitrary user and
+ * group options. The user and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
+  /** The ufs user this file should be owned by. */
+  private final String mUser;
+  /** The ufs group this file should be owned by. */
+  private final String mGroup;
+
   /**
    * @return the default {@link CompleteUfsFileOptions}
    */
   public static CompleteUfsFileOptions defaults() {
-    return new CompleteUfsFileOptions();
+    String user;
+    try {
+      user = LoginUser.get(ClientContext.getConf()).getName();
+    } catch (IOException e) {
+      user = null;
+    }
+    String group = user;
+    return new CompleteUfsFileOptions(user, group);
   }
 
-  private CompleteUfsFileOptions() {
-    // No options currently
+  private CompleteUfsFileOptions(String user, String group) {
+    mUser = user;
+    mGroup = group;
+  }
+
+  /**
+   * @return the group which should own the file
+   */
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * @return the user who should own the file
+   */
+  public String getUser() {
+    return mUser;
+  }
+
+  /**
+   * @return if the group has been set
+   */
+  public boolean hasGroup() {
+    return mGroup != null;
+  }
+
+  /**
+   * @return if the user has been set
+   */
+  public boolean hasUser() {
+    return mUser != null;
   }
 
   @Override
@@ -54,6 +99,13 @@ public final class CompleteUfsFileOptions {
    * @return Thrift representation of the options
    */
   public CompleteUfsFileTOptions toThrift() {
-    return new CompleteUfsFileTOptions();
+    CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
+    if (hasGroup()) {
+      options.setGroup(mGroup);
+    }
+    if (hasUser()) {
+      options.setUser(mUser);
+    }
+    return options;
   }
 }

@@ -65,6 +65,7 @@ public final class UnderFileSystemManagerTest {
     mMockInputStream = Mockito.mock(InputStream.class);
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
+    Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     PowerMockito.mockStatic(UnderFileSystem.class);
     BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
         .willReturn(mMockUfs);
@@ -103,8 +104,24 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.completeFile(SESSION_ID, id);
+    manager.completeFile(SESSION_ID, id, null, null);
     Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
+  }
+
+  /**
+   * Tests completing a file with user and group.
+   */
+  @Test
+  public void completeUfsFileWithOwnerTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    String user = "User";
+    String group = "Group";
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    manager.completeFile(SESSION_ID, id, user, group);
+    Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
+    Mockito.verify(mMockUfs).setOwner(uniqPath, user, group);
   }
 
   /**
@@ -115,7 +132,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
-    manager.completeFile(SESSION_ID, INVALID_FILE_ID);
+    manager.completeFile(SESSION_ID, INVALID_FILE_ID, null, null);
   }
 
   /**
@@ -130,7 +147,7 @@ public final class UnderFileSystemManagerTest {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete"));
-    manager.completeFile(INVALID_SESSION_ID, id);
+    manager.completeFile(INVALID_SESSION_ID, id, null, null);
   }
 
   /**
