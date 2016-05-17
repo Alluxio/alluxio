@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
  */
 // TODO(calvin): See if common logic in this class and buffered block out stream can be abstracted
 @NotThreadSafe
-public class UnderFileSystemFileOutStream extends OutputStream {
+public final class UnderFileSystemFileOutStream extends OutputStream {
   /** Java heap buffer to buffer writes before flushing them to the worker. */
   private final ByteBuffer mBuffer;
   /** Writer to the worker, currently only implemented through Netty. */
@@ -131,7 +131,7 @@ public class UnderFileSystemFileOutStream extends OutputStream {
   /**
    * Convenience method for checking the state of the stream.
    */
-  protected void checkIfClosed() {
+  private void checkIfClosed() {
     Preconditions.checkState(!mClosed,
         PreconditionMessage.ERR_CLOSED_UNDER_FILE_SYSTEM_FILE_OUT_STREAM);
   }
