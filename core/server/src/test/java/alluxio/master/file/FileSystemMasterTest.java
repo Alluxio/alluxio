@@ -744,6 +744,9 @@ public final class FileSystemMasterTest {
           .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
       Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a")),
+          e.getMessage());
     }
 
     FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
@@ -755,6 +758,9 @@ public final class FileSystemMasterTest {
       mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
       Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f")),
+          e.getMessage());
     }
   }
 
