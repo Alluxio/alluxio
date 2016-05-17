@@ -26,7 +26,7 @@ public final class MasterContext {
    * The static configuration object. There is only one {@link Configuration} object shared within
    * the same master process.
    */
-  private static Configuration sConfiguration = new Configuration();
+  private static Configuration sConfiguration = Configuration.createServerConf();
 
   /**
    * The {@link MasterSource} for collecting master metrics.
@@ -58,7 +58,7 @@ public final class MasterContext {
    * TODO(binfan): consider a better way to mock test configuration
    */
   public static void reset() {
-    reset(new Configuration());
+    reset(Configuration.createServerConf());
   }
 
   /**

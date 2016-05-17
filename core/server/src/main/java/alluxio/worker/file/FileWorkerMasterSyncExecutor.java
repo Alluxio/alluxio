@@ -78,7 +78,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
       LOG.info("files {} persisted", persistedFiles);
     }
 
-    FileSystemCommand command = null;
+    FileSystemCommand command;
     try {
       command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
     } catch (IOException e) {

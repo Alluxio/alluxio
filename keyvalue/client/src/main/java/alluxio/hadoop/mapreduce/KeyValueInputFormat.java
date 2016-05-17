@@ -48,6 +48,11 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
       new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
 
   /**
+   * Constructs a new {@link KeyValueInputFormat}.
+   */
+  public KeyValueInputFormat() {}
+
+  /**
    * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
    *
    * @param jobContext MapReduce job configuration

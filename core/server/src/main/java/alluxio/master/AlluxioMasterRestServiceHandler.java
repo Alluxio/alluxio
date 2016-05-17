@@ -15,7 +15,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.RestUtils;
-import alluxio.cli.Version;
+import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -76,6 +76,11 @@ public final class AlluxioMasterRestServiceHandler {
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
 
   /**
+   * Constructs a new {@link AlluxioMasterRestServiceHandler}.
+   */
+  public AlluxioMasterRestServiceHandler() {}
+
+  /**
    * @summary get the configuration map, the keys are ordered alphabetically.
    * @return the response object
    */
@@ -83,9 +88,9 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<String, String>")
   public Response getConfiguration() {
-    Set<Map.Entry<Object, Object>> properties = mMasterConf.getInternalProperties().entrySet();
+    Set<Map.Entry<String, String>> properties = mMasterConf.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
-    for (Map.Entry<Object, Object> entry : properties) {
+    for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
         configuration.put(key, (String) entry.getValue());
@@ -166,7 +171,7 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    return RestUtils.createResponse(Version.VERSION);
+    return RestUtils.createResponse(RuntimeConstants.VERSION);
   }
 
   /**

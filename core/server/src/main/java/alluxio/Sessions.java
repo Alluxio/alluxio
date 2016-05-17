@@ -45,7 +45,7 @@ public class Sessions {
    * Creates a new instance of {@link Sessions}.
    */
   public Sessions() {
-    mSessions = new HashMap<Long, SessionInfo>();
+    mSessions = new HashMap<>();
   }
 
   /**
@@ -55,7 +55,7 @@ public class Sessions {
    */
   public List<Long> getTimedOutSessions() {
     LOG.debug("Worker is checking all sessions' status for timeouts.");
-    List<Long> ret = new ArrayList<Long>();
+    List<Long> ret = new ArrayList<>();
     synchronized (mSessions) {
       for (Entry<Long, SessionInfo> entry : mSessions.entrySet()) {
         if (entry.getValue().timeout()) {

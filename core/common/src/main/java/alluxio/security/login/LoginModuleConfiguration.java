@@ -64,6 +64,11 @@ public final class LoginModuleConfiguration extends Configuration {
   // TODO(dong): add Kerberos mode
   // private static final AppConfigurationEntry[] KERBEROS = ...
 
+  /**
+   * Constructs a new {@link LoginModuleConfiguration}.
+   */
+  public LoginModuleConfiguration() {}
+
   @Override
   public AppConfigurationEntry[] getAppConfigurationEntry(String appName) {
     if (appName.equalsIgnoreCase(AuthType.SIMPLE.getAuthName())
