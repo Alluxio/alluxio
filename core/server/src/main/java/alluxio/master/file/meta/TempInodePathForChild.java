@@ -16,20 +16,25 @@ import alluxio.exception.InvalidPathException;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a temporary {@link InodePath}. This {@link InodePath} will not unlock the
- * inodes on close.
+ * This class represents a temporary {@link LockedInodePath}, with a child component joined to the
+ * existing path. This {@link LockedInodePath} will not unlock the inodes on close.
+ *
+ * This is useful for being able to pass in a new child path based on an existing
+ * {@link LockedInodePath}, without having to re-traverse the inode tree, and re-acquire locks.
+ * This allows methods to operate on a child path component extending from an existing
+ * {@link LockedInodePath}.
  */
 @ThreadSafe
-public final class TempInodePathForChild extends ExtensibleInodePath {
+public final class TempInodePathForChild extends MutableLockedInodePath {
 
   /**
-   * Constructs a temporary {@link InodePath} from an existing {@link InodePath}.
+   * Constructs a temporary {@link LockedInodePath} from an existing {@link LockedInodePath}.
    *
-   * @param inodePath the {@link InodePath} to create the temporary path from
+   * @param inodePath the {@link LockedInodePath} to create the temporary path from
    * @param childComponent the child component
    * @throws InvalidPathException if the path is invalid
    */
-  public TempInodePathForChild(InodePath inodePath, String childComponent)
+  public TempInodePathForChild(LockedInodePath inodePath, String childComponent)
       throws InvalidPathException {
     super(inodePath.mUri.join(childComponent), inodePath.mInodes, inodePath.mLockGroup);
   }

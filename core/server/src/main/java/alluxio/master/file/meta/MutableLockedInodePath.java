@@ -21,18 +21,19 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents an {@link InodePath}, where the list of inodes can be extended to gather
- * additional inodes along the path.
+ * This class represents an {@link LockedInodePath}, where the list of inodes can be extended to
+ * gather additional inodes along the path.
  */
 @ThreadSafe
-public class ExtensibleInodePath extends InodePath {
-  ExtensibleInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
+public class MutableLockedInodePath extends LockedInodePath {
+  // TODO(gpang): restructure class hierarchy, rename class
+  MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockGroup lockGroup)
       throws InvalidPathException {
     super(uri, inodes, lockGroup);
   }
 
   /**
-   * Returns the closest ancestor of the target inode.
+   * Returns the closest ancestor of the target inode (last inode in the full path).
    *
    * @return the closest ancestor inode
    * @throws FileDoesNotExistException if an ancestor does not exist

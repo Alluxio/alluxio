@@ -21,14 +21,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class InodeLockGroup implements AutoCloseable {
-  private final List<Inode<?>> mReadLockedInodes;
-  private final List<Inode<?>> mWriteLockedInodes;
   private final List<Inode<?>> mInodes;
+  private final List<InodeTree.LockMode> mLockModes;
 
   InodeLockGroup() {
-    mReadLockedInodes = new ArrayList<>();
-    mWriteLockedInodes = new ArrayList<>();
     mInodes = new ArrayList<>();
+    mLockModes = new ArrayList<>();
   }
 
   /**
@@ -38,29 +36,23 @@ public final class InodeLockGroup implements AutoCloseable {
    */
   public synchronized void lockRead(Inode<?> inode) {
     inode.lockRead();
-    mReadLockedInodes.add(inode);
     mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.READ);
   }
 
   /**
    * Unlocks the last inode that was locked.
    */
-  public synchronized void unlockPrevious() {
+  public synchronized void unlockLast() {
     if (mInodes.isEmpty()) {
       return;
     }
     Inode<?> inode = mInodes.remove(mInodes.size() - 1);
-    if (mReadLockedInodes.size() > 0 && mReadLockedInodes.get(mReadLockedInodes.size() - 1)
-        .equals(inode)) {
+    InodeTree.LockMode lockMode = mLockModes.remove(mLockModes.size() - 1);
+    if (lockMode == InodeTree.LockMode.READ) {
       inode.unlockRead();
-      mReadLockedInodes.remove(mReadLockedInodes.size() - 1);
-      return;
-    }
-    if (mWriteLockedInodes.size() > 0 && mWriteLockedInodes.get(mWriteLockedInodes.size() - 1)
-        .equals(inode)) {
+    } else {
       inode.unlockWrite();
-      mWriteLockedInodes.remove(mWriteLockedInodes.size() - 1);
-      return;
     }
   }
 
@@ -71,8 +63,8 @@ public final class InodeLockGroup implements AutoCloseable {
    */
   public synchronized void lockWrite(Inode<?> inode) {
     inode.lockWrite();
-    mWriteLockedInodes.add(inode);
     mInodes.add(inode);
+    mLockModes.add(InodeTree.LockMode.WRITE);
   }
 
   /**
@@ -84,14 +76,16 @@ public final class InodeLockGroup implements AutoCloseable {
 
   @Override
   public synchronized void close() {
-    for (Inode<?> inode : mReadLockedInodes) {
-      inode.unlockRead();
+    for (int i = mInodes.size() - 1; i >= 0; i--) {
+      Inode<?> inode = mInodes.get(i);
+      InodeTree.LockMode lockMode = mLockModes.get(i);
+      if (lockMode == InodeTree.LockMode.READ) {
+        inode.unlockRead();
+      } else {
+        inode.unlockWrite();
+      }
     }
-    for (Inode<?> inode : mWriteLockedInodes) {
-      inode.unlockWrite();
-    }
-    mReadLockedInodes.clear();
-    mWriteLockedInodes.clear();
     mInodes.clear();
+    mLockModes.clear();
   }
 }

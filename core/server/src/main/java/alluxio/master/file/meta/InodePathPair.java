@@ -11,38 +11,35 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.collections.Pair;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * This class represents a pair of {@link InodePath}s.
+ * This class represents a pair of {@link LockedInodePath}s. This is threadsafe, since the
+ * elements cannot set once the pair is constructed.
  */
 @ThreadSafe
-public class InodePathPair implements AutoCloseable {
-  protected final InodePath mInodePath1;
-  protected final InodePath mInodePath2;
+public final class InodePathPair extends Pair<LockedInodePath, LockedInodePath>
+    implements AutoCloseable {
 
-  InodePathPair(InodePath inodePath1, InodePath inodePath2) {
-    mInodePath1 = inodePath1;
-    mInodePath2 = inodePath2;
+  InodePathPair(LockedInodePath inodePath1, LockedInodePath inodePath2) {
+    super(inodePath1, inodePath2);
   }
 
-  /**
-   * @return the first of two {@link InodePath}
-   */
-  public synchronized InodePath getFirst() {
-    return mInodePath1;
+  @Override
+  public void setFirst(LockedInodePath first) {
+    throw new UnsupportedOperationException();
   }
 
-  /**
-   * @return the second of two {@link InodePath}
-   */
-  public synchronized InodePath getSecond() {
-    return mInodePath2;
+  @Override
+  public void setSecond(LockedInodePath second) {
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public synchronized void close() {
-    mInodePath1.close();
-    mInodePath2.close();
+    getFirst().close();
+    getSecond().close();
   }
 }

@@ -25,7 +25,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodePath;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
@@ -623,7 +623,7 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    try (InodePath inodePath = mInodeTree
+    try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
     }
@@ -636,7 +636,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
     CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
-    try (InodePath inodePath = mInodeTree
+    try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.createFileInternal(inodePath, options);
     }
@@ -669,8 +669,8 @@ public class FileSystemMasterIntegrationTest {
     try (InodePathPair inodePathPair = mInodeTree
         .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
             new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      InodePath srcPath = inodePathPair.getFirst();
-      InodePath dstPath = inodePathPair.getSecond();
+      LockedInodePath srcPath = inodePathPair.getFirst();
+      LockedInodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
     }
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
@@ -770,7 +770,7 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 100;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    try (InodePath inodePath = mInodeTree
+    try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
       mFsMaster.createFileInternal(inodePath, options);
     }
@@ -810,8 +810,8 @@ public class FileSystemMasterIntegrationTest {
     try (InodePathPair inodePathPair = mInodeTree
         .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
             new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
-      InodePath srcPath = inodePathPair.getFirst();
-      InodePath dstPath = inodePathPair.getSecond();
+      LockedInodePath srcPath = inodePathPair.getFirst();
+      LockedInodePath dstPath = inodePathPair.getSecond();
       mFsMaster.renameInternal(srcPath, dstPath, true, TEST_CURRENT_TIME);
     }
     FileInfo folderInfo =

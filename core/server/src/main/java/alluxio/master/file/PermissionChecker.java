@@ -18,7 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.file.meta.Inode;
-import alluxio.master.file.meta.InodePath;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -77,7 +77,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkParentPermission(FileSystemAction action, InodePath inodePath)
+  public void checkParentPermission(FileSystemAction action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -112,7 +112,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkPermission(FileSystemAction action, InodePath inodePath)
+  public void checkPermission(FileSystemAction action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -137,7 +137,7 @@ public final class PermissionChecker {
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkSetAttributePermission(InodePath inodePath, boolean superuserRequired,
+  public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
       boolean ownerRequired) throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -188,11 +188,11 @@ public final class PermissionChecker {
   /**
    * Checks whether the client user is the owner of the path.
    *
-   * @param inodePath to be checked on
+   * @param inodePath path to be checked on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  private void checkOwner(InodePath inodePath)
+  private void checkOwner(LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
     List<Inode<?>> inodeList = inodePath.getInodeList();
