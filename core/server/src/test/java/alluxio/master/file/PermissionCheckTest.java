@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -175,24 +176,33 @@ public final class PermissionCheckTest {
 
     // create "/testDir" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_DIR_URI),
-        CreateDirectoryOptions.defaults()
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateDirectoryOptions.defaults()
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+    }
 
     // create "/testDir/file" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI),
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+    }
 
     // create "/testFile" for user2
     AuthenticatedClientUser.set(TEST_USER_2.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_FILE_URI),
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+    }
   }
 
   /**

@@ -21,6 +21,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
@@ -197,9 +198,13 @@ public final class PermissionCheckerTest {
   // Helper function to create a path and set the permission to what specified in option.
   private static void createAndSetPermission(String path, CreateFileOptions option)
       throws Exception {
-    InodeTree.CreatePathResult result = sTree.createPath(new AlluxioURI(path), option);
-    result.getCreated().get(result.getCreated().size() - 1)
-        .setPermissionStatus(option.getPermissionStatus());
+    try (
+        LockedInodePath inodePath = sTree
+            .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
+      InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
+      result.getCreated().get(result.getCreated().size() - 1)
+          .setPermissionStatus(option.getPermissionStatus());
+    }
   }
 
   private static void verifyInodesList(String[] expectedInodes, List<Inode<?>> inodes) {
@@ -213,14 +218,22 @@ public final class PermissionCheckerTest {
 
   @Test
   public void createFileAndDirsTest() throws Exception {
-    verifyInodesList(TEST_DIR_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_DIR_FILE_URI)));
-    verifyInodesList(TEST_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_FILE_URI)));
-    verifyInodesList(TEST_WEIRD_FILE_URI.split("/"),
-        sTree.collectInodes(new AlluxioURI(TEST_WEIRD_FILE_URI)));
-    verifyInodesList(new String[]{"", "testDir"},
-        sTree.collectInodes(new AlluxioURI(TEST_NOT_EXIST_URI)));
+    try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_DIR_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_WEIRD_FILE_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(TEST_WEIRD_FILE_URI.split("/"), inodePath.getInodeList());
+    }
+    try (LockedInodePath inodePath = sTree.lockInodePath(new AlluxioURI(TEST_NOT_EXIST_URI),
+        InodeTree.LockMode.READ)) {
+      verifyInodesList(new String[]{"", "testDir"}, inodePath.getInodeList());
+    }
   }
 
   @Test
@@ -314,7 +327,10 @@ public final class PermissionCheckerTest {
   @Test
   public void invalidPathTest() throws Exception {
     mThrown.expect(InvalidPathException.class);
-    mPermissionChecker.checkPermission(FileSystemAction.WRITE, new AlluxioURI(""));
+    try (LockedInodePath inodePath = sTree
+        .lockInodePath(new AlluxioURI(""), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(FileSystemAction.WRITE, inodePath);
+    }
   }
 
   /**
@@ -323,13 +339,19 @@ public final class PermissionCheckerTest {
   private void checkPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mPermissionChecker.checkPermission(action, new AlluxioURI(path));
+    try (LockedInodePath inodePath = sTree
+        .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkPermission(action, inodePath);
+    }
   }
 
   private void checkParentOrAncestorPermission(TestUser user, FileSystemAction action, String path)
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
-    mPermissionChecker.checkParentPermission(action, new AlluxioURI(path));
+    try (LockedInodePath inodePath = sTree
+        .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.READ)) {
+      mPermissionChecker.checkParentPermission(action, inodePath);
+    }
   }
 
   private String toExceptionMessage(String user, FileSystemAction action, String path,
