@@ -386,9 +386,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param path the path to get the file id for
    * @return the file id for a given path, or -1 if there is no file at that path
    * @throws AccessControlException if permission checking fails
-   * @throws FileDoesNotExistException if the path does not exist
    */
-  public long getFileId(AlluxioURI path) throws AccessControlException, FileDoesNotExistException {
+  public long getFileId(AlluxioURI path) throws AccessControlException {
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockInodePath(path, InodeTree.LockMode.WRITE)) {
       // This is WRITE locked, since loading metadata is possible.
@@ -604,7 +603,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyCompletedException if the file is already completed
    * @throws InvalidFileSizeException if an invalid file size is encountered
    */
-  long completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options)
+  private long completeFileAndJournal(LockedInodePath inodePath, CompleteFileOptions options)
       throws InvalidPathException, FileDoesNotExistException, BlockInfoException,
       FileAlreadyCompletedException, InvalidFileSizeException {
     long opTimeMs = System.currentTimeMillis();
@@ -746,7 +745,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if the creation fails
    */
-  long createFileAndJournal(LockedInodePath inodePath, CreateFileOptions options)
+  private long createFileAndJournal(LockedInodePath inodePath, CreateFileOptions options)
       throws FileAlreadyExistsException, BlockInfoException, FileDoesNotExistException,
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
@@ -1382,7 +1381,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws FileAlreadyExistsException if the file already exists
    * @throws IOException if an I/O error occurs
    */
-  long renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath)
+  private long renameAndJournal(LockedInodePath srcInodePath, LockedInodePath dstInodePath)
       throws InvalidPathException, FileDoesNotExistException, FileAlreadyExistsException,
       IOException {
     if (!srcInodePath.fullPathExists()) {
