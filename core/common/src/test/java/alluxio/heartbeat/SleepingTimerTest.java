@@ -31,7 +31,7 @@ import alluxio.util.CommonUtils;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SleepingTimer.class})
-public class SleepingTimerTest {
+public final class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
   private static final long INTERVAL_MS = 500;
 
