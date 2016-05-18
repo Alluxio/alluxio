@@ -24,9 +24,9 @@ import alluxio.util.CommonUtils;
 
 /**
  * Unit tests for {@link SleepingTimer}. It tests three scenarios listed below:
- * 1. Sleep more than the interval of SleepingTimer and see if the SleepingTimer warns correctly
- * 2. Tick continuously for several times and see if the time interval is correct
- * 3. Sleep less than the interval of SleepingTimer and see if the time interval is correct
+ * 1. Sleep more than the interval of SleepingTimer and see if the SleepingTimer warns correctly;
+ * 2. Tick continuously for several times and see if the time interval is correct;
+ * 3. Sleep less than the interval of SleepingTimer and see if the time interval is correct.
  */
 
 @RunWith(PowerMockRunner.class)
@@ -37,7 +37,7 @@ public class SleepingTimerTest {
 
   /**
    *  This is a test to make sure that SleepingTimer should warn when execution time
-   *  is longer than interval
+   *  is longer than interval.
    */
   @Test
   public void executeLongerThanIntervalTest() throws Exception {
@@ -55,7 +55,7 @@ public class SleepingTimerTest {
   }
 
   /**
-   *  This test ticks three times continuously and checks the correctness of the interval
+   *  This test ticks three times continuously and checks the correctness of the interval.
    */
   @Test
   public void continuousTickTest() throws Exception {
