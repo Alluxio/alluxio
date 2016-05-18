@@ -454,7 +454,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
 
     // If this block is read from a remote worker but we don't have a local worker, don't cache
     if (mCurrentBlockInStream instanceof RemoteBlockInStream
-        && BlockStoreContext.INSTANCE.hasLocalWorker()) {
+        && !BlockStoreContext.INSTANCE.hasLocalWorker()) {
       return;
     }
 
