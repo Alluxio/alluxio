@@ -15,14 +15,12 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
-import alluxio.client.ClientContext;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockOutStream;
-import alluxio.client.block.DelegatedUnderStoreBlockInStream;
-import alluxio.client.block.DirectUnderStoreBlockInStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
@@ -288,12 +286,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    boolean delegate = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
-    if (delegate) {
-      return new DelegatedUnderStoreBlockInStream(blockStart, length, mBlockSize, path);
-    } else {
-      return new DirectUnderStoreBlockInStream(blockStart, length, mBlockSize, path);
-    }
+    return UnderStoreBlockInStream.Factory.create(blockStart, length, mBlockSize, path);
   }
 
   /**

@@ -12,12 +12,14 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a fixed chunk from a file in the under storage
@@ -56,11 +58,44 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
    * @param fileBlockSize the block size for the file
    * @param ufsPath the under file system path
    */
-  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath) {
+  protected UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath) {
     mInitPos = initPos;
     mLength = length;
     mFileBlockSize = fileBlockSize;
     mUfsPath = ufsPath;
+  }
+
+  /**
+   * Factory for creating {@link UnderStoreBlockInStream}s.
+   */
+  @ThreadSafe
+  public static final class Factory {
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Creates an under store block in stream, if ufs operation delegation is enabled, the stream
+     * will read from an Alluxio worker, if not the stream will be directly from an under storage
+     * system client. The stream will be set to the beginning of the block.
+     *
+     * @param blockStart the start position of the block stream relative to the entire file
+     * @param length length of this block
+     * @param blockSize the block size of the file
+     * @param path the path of the file in the under storage
+     * @return a stream which can access data from blockStart to blockStart + length
+     * @throws IOException if an error occurs creating the stream
+     */
+    public static UnderStoreBlockInStream create(long blockStart, long length, long blockSize,
+        String path) throws IOException {
+      UnderStoreBlockInStream stream;
+      if (ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION)) {
+        stream = new DelegatedUnderStoreBlockInStream(blockStart, length, blockSize, path);
+      } else {
+        stream = new DirectUnderStoreBlockInStream(blockStart, length, blockSize, path);
+      }
+      stream.setUnderStoreStream(0);
+      return stream;
+    }
   }
 
   @Override

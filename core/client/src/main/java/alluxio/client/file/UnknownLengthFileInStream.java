@@ -14,10 +14,8 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockInStream;
-import alluxio.client.block.DelegatedUnderStoreBlockInStream;
-import alluxio.client.block.DirectUnderStoreBlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.exception.AlluxioException;
@@ -105,12 +103,7 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    boolean delegate = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
-    if (delegate) {
-      return new DelegatedUnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
-    } else {
-      return new DirectUnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length, path);
-    }
+    return UnderStoreBlockInStream.Factory.create(blockStart, Constants.UNKNOWN_SIZE, length, path);
   }
 
   @Override
