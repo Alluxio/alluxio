@@ -46,7 +46,7 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
   /** Handler for any block store requests. */
   private final BlockDataServerHandler mBlockHandler;
   /** Handler for any file system requests. */
-  private final FileDataServerHandler mFileHandler;
+  private final UnderFileSystemDataServerHandler mUnderFileSystemHandler;
 
   /**
    * Creates a new instance of {@link DataServerHandler}.
@@ -58,7 +58,8 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
     Preconditions.checkNotNull(worker);
     Preconditions.checkNotNull(configuration);
     mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
-    mFileHandler = new FileDataServerHandler(worker.getFileSystemWorker(), configuration);
+    mUnderFileSystemHandler =
+        new UnderFileSystemDataServerHandler(worker.getFileSystemWorker(), configuration);
   }
 
   @Override
@@ -75,11 +76,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
         break;
       case RPC_FILE_READ_REQUEST:
         assert msg instanceof RPCFileReadRequest;
-        mFileHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
+        mUnderFileSystemHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
         break;
       case RPC_FILE_WRITE_REQUEST:
         assert msg instanceof RPCFileWriteRequest;
-        mFileHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
+        mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);

@@ -40,7 +40,7 @@ import java.nio.channels.WritableByteChannel;
  * This class handles filesystem data server requests.
  */
 @NotThreadSafe
-public class FileDataServerHandler {
+public class UnderFileSystemDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Filesystem worker which handles file level operations for the worker. */
@@ -52,7 +52,7 @@ public class FileDataServerHandler {
    * @param worker the file system worker
    * @param configuration the configuration to use
    */
-  public FileDataServerHandler(FileSystemWorker worker, Configuration configuration) {
+  public UnderFileSystemDataServerHandler(FileSystemWorker worker, Configuration configuration) {
     mWorker = worker;
   }
 
