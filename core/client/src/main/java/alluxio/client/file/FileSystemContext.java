@@ -71,8 +71,8 @@ public enum FileSystemContext {
   }
 
   /**
-   * Acquires a file system worker client, prioritizing local workers if available. This method
-   * initializes the list of worker addresses.
+   * Creates a new file system worker client, prioritizing local workers if available. This method
+   * initializes the list of worker addresses if they have not been initialized.
    *
    * @return a file system worker client to a worker in the system
    * @throws IOException if an error occurs getting the list of workers in the system
