@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -37,7 +38,9 @@ import java.util.List;
  * Class to perform Journal crash test. The clients issue commands to the master, and the master
  * generates journal events. Check if the master can generate and reproduce the journal correctly.
  */
-public class JournalCrashTest {
+public final class JournalCrashTest {
+
+  private JournalCrashTest() {} // prevent instantiation
 
   /**
    * The operation types to test.
@@ -344,7 +347,7 @@ public class JournalCrashTest {
     } else {
       ret = false;
       new HelpFormatter().printHelp(String.format("java -cp %s %s",
-          Version.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName()),
+          RuntimeConstants.ALLUXIO_JAR, JournalCrashTest.class.getCanonicalName()),
           "Test the Master Journal System in a crash scenario", options,
           "e.g. options '-maxAlive 5 -totalTime 20 -creates 2 -deletes 2 -renames 2'"
           + "will launch total 6 clients connecting to the Master and the Master"
@@ -379,7 +382,7 @@ public class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = new Configuration().get(Constants.HOME)
+    String startMasterCommand = Configuration.createServerConf().get(Constants.HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -394,7 +397,7 @@ public class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = new Configuration().get(Constants.HOME)
+    String stopClusterCommand = Configuration.createServerConf().get(Constants.HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

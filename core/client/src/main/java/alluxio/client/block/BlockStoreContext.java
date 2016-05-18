@@ -227,6 +227,14 @@ public enum BlockStoreContext {
   }
 
   /**
+   * @return if there is a local worker running the same machine
+   */
+  public boolean hasLocalWorker() {
+    initializeLocalBlockWorkerClientPool();
+    return !mLocalBlockWorkerClientPoolMap.isEmpty();
+  }
+
+  /**
    * Re-initializes the {@link BlockStoreContext}. This method should only be used in
    * {@link ClientContext}.
    */

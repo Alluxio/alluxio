@@ -31,6 +31,7 @@ import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
@@ -39,6 +40,7 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -60,6 +62,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +87,8 @@ public final class FileSystemMasterTest {
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
+
+  private String mUnderFS;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -134,8 +139,10 @@ public final class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
-        String.valueOf(TTLCHECKER_INTERVAL_MS));
+    mUnderFS = mTestFolder.newFolder().getAbsolutePath();
+    MasterContext.getConf()
+        .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
+    MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
@@ -146,14 +153,14 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.start(true);
 
     // set up workers
-    mWorkerId1 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost")
-        .setRpcPort(80).setDataPort(81).setWebPort(82));
+    mWorkerId1 = mBlockMaster.getWorkerId(
+        new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId1, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         new HashMap<String, List<Long>>());
-    mWorkerId2 = mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("remote")
-        .setRpcPort(80).setDataPort(81).setWebPort(82));
+    mWorkerId2 = mBlockMaster.getWorkerId(
+        new WorkerNetAddress().setHost("remote").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId2, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
@@ -183,9 +190,9 @@ public final class FileSystemMasterTest {
     mBlockMaster.getBlockInfo(blockId);
 
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat1 = mBlockMaster.workerHeartbeat(mWorkerId1,
-        ImmutableMap.of("MEM", Constants.KB * 1L),
-        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartBeat1 = mBlockMaster
+        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat1);
     Assert.assertFalse(mBlockMaster.getLostBlocks().contains(blockId));
@@ -247,14 +254,14 @@ public final class FileSystemMasterTest {
 
   private void executeTtlCheckOnce() throws Exception {
     // Wait for the TTL check executor to be ready to execute its heartbeat.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
-        TimeUnit.SECONDS));
+    Assert.assertTrue(
+        HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1, TimeUnit.SECONDS));
     // Execute the TTL check executor heartbeat.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
     // Wait for the TLL check executor to be ready to execute its heartbeat again. This is needed to
     // avoid a race between the subsequent test logic and the heartbeat thread.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1,
-        TimeUnit.SECONDS));
+    Assert.assertTrue(
+        HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 1, TimeUnit.SECONDS));
   }
 
   /**
@@ -516,9 +523,9 @@ public final class FileSystemMasterTest {
     // free the file
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI, false));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat2 = mBlockMaster.workerHeartbeat(mWorkerId1,
-        ImmutableMap.of("MEM", Constants.KB * 1L),
-        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartBeat2 = mBlockMaster
+        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat2);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -537,9 +544,9 @@ public final class FileSystemMasterTest {
     // free the dir
     Assert.assertTrue(mFileSystemMaster.free(NESTED_FILE_URI.getParent(), true));
     // Update the heartbeat of removedBlockId received from worker 1
-    Command heartBeat3 = mBlockMaster.workerHeartbeat(mWorkerId1,
-        ImmutableMap.of("MEM", Constants.KB * 1L),
-        ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    Command heartBeat3 = mBlockMaster
+        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
     // Verify the muted Free command on worker1
     Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat3);
     Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -684,13 +691,13 @@ public final class FileSystemMasterTest {
     FileSystemCommand command =
         mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
     Assert.assertEquals(CommandType.Persist, command.getCommandType());
-    Assert.assertEquals(1, command.getCommandOptions().getPersistOptions().getPersistFiles()
-            .size());
+    Assert
+        .assertEquals(1, command.getCommandOptions().getPersistOptions().getPersistFiles().size());
     Assert.assertEquals(fileId,
         command.getCommandOptions().getPersistOptions().getPersistFiles().get(0).getFileId());
     Assert.assertEquals(blockId,
         (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
-                .getBlockIds().get(0));
+            .getBlockIds().get(0));
   }
 
   /**
@@ -711,11 +718,60 @@ public final class FileSystemMasterTest {
 
     // run the detector
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
-        TimeUnit.SECONDS));
+    Assert.assertTrue(HeartbeatScheduler
+        .await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS));
 
     fileInfo = mFileSystemMaster.getFileInfo(fileId);
     Assert.assertEquals(PersistenceState.LOST.name(), fileInfo.getPersistenceState());
+  }
+
+  /**
+   * Tests load metadata logic.
+   *
+   * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void testLoadMetadataTest() throws Exception {
+    FileUtils.createDir(Paths.get(mUnderFS).resolve("a").toString());
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+
+    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
+    try {
+      mFileSystemMaster
+          .createDirectory(new AlluxioURI("alluxio:/a"), CreateDirectoryOptions.defaults());
+      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a")),
+          e.getMessage());
+    }
+
+    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
+
+    // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
+    try {
+      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+      Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f")),
+          e.getMessage());
+    }
+  }
+
+  /**
+   * Tests load root metadata. It should not fail.
+   *
+    * @throws Exception if a {@link FileSystemMaster} operation fails
+   */
+  @Test
+  public void testLoadRoot() throws Exception {
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
   }
 
   private long createFileWithSingleBlock(AlluxioURI uri) throws Exception {

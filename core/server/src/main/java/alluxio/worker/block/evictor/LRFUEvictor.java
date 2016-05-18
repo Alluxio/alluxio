@@ -52,9 +52,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LRFUEvictor extends AbstractEvictor {
   // Map from block id to the last updated logic time count
-  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<Long, Long>();
+  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<>();
   // Map from block id to the CRF value of the block
-  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<Long, Double>();
+  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<>();
   // In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU
   private final double mStepFactor;
   // In the range of [2, INF]
@@ -111,9 +111,8 @@ public final class LRFUEvictor extends AbstractEvictor {
       updateCRFValue();
       mManagerView = view;
 
-      List<BlockTransferInfo> toMove = new ArrayList<BlockTransferInfo>();
-      List<Pair<Long, BlockStoreLocation>> toEvict =
-          new ArrayList<Pair<Long, BlockStoreLocation>>();
+      List<BlockTransferInfo> toMove = new ArrayList<>();
+      List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
       EvictionPlan plan = new EvictionPlan(toMove, toEvict);
       StorageDirView candidateDir = cascadingEvict(bytesToBeAvailable, location, plan);
 
@@ -143,8 +142,7 @@ public final class LRFUEvictor extends AbstractEvictor {
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF() {
-    List<Map.Entry<Long, Double>> sortedCRF =
-        new ArrayList<Map.Entry<Long, Double>>(mBlockIdToCRFValue.entrySet());
+    List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(mBlockIdToCRFValue.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
       @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {

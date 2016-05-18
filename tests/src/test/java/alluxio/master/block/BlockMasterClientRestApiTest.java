@@ -19,7 +19,6 @@ import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -38,8 +37,7 @@ import javax.ws.rs.HttpMethod;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
-@Ignore("ALLUXIO-1888")
-public class BlockMasterClientRestApiTest extends RestApiTest {
+public final class BlockMasterClientRestApiTest extends RestApiTest {
   private BlockMaster mBlockMaster;
 
   @Before
