@@ -36,7 +36,7 @@ public class SleepingTimerTest {
   private static final long INTERVAL_MS = 500;
 
   @Test
-  public void test() throws Exception {
+  public void sleepingTimerTest() throws Exception {
     SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
 
     Logger logger = Mockito.mock(Logger.class);
