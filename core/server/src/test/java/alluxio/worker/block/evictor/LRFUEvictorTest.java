@@ -101,8 +101,7 @@ public class LRFUEvictorTest {
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF(Map<Long, Double> crfMap) {
-    List<Map.Entry<Long, Double>> sortedCRF =
-        new ArrayList<Map.Entry<Long, Double>>(crfMap.entrySet());
+    List<Map.Entry<Long, Double>> sortedCRF = new ArrayList<>(crfMap.entrySet());
     Collections.sort(sortedCRF, new Comparator<Map.Entry<Long, Double>>() {
       @Override
       public int compare(Entry<Long, Double> o1, Entry<Long, Double> o2) {
@@ -128,7 +127,7 @@ public class LRFUEvictorTest {
   public void evictInBottomTierTest() throws Exception {
     int bottomTierOrdinal = TieredBlockStoreTestUtils
         .TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     // capacity increases with index
     long[] bottomTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[bottomTierOrdinal];
     int nDir = bottomTierDirCapacity.length;
@@ -190,7 +189,7 @@ public class LRFUEvictorTest {
     int firstTierOrdinal = TieredBlockStoreTestUtils.TIER_ORDINAL[0];
     long[] firstTierDirCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0];
     int nDir = firstTierDirCapacity.length;
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     for (int i = 0; i < nDir; i++) {
       cache(SESSION_ID, BLOCK_ID + i, firstTierDirCapacity[i], firstTierOrdinal, i);
       // update CRF of blocks when blocks are committed
@@ -251,7 +250,7 @@ public class LRFUEvictorTest {
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       totalBlocks += TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal].length;
     }
-    Map<Long, Double> blockIdToCRF = new HashMap<Long, Double>();
+    Map<Long, Double> blockIdToCRF = new HashMap<>();
     for (int tierOrdinal : TieredBlockStoreTestUtils.TIER_ORDINAL) {
       long[] tierCapacity = TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[tierOrdinal];
       for (int dirIdx = 0; dirIdx < tierCapacity.length; dirIdx++) {
@@ -281,9 +280,9 @@ public class LRFUEvictorTest {
 
     List<Map.Entry<Long, Double>> blockCRF = getSortedCRF(blockIdToCRF);
     // sorted blocks in the first tier
-    List<Long> blocksInFirstTier = new ArrayList<Long>();
+    List<Long> blocksInFirstTier = new ArrayList<>();
     // sorted blocks in the second tier
-    List<Long> blocksInSecondTier = new ArrayList<Long>();
+    List<Long> blocksInSecondTier = new ArrayList<>();
     for (int i = 0; i < blockCRF.size(); i++) {
       long block = blockCRF.get(i).getKey();
       if (block - BLOCK_ID < TieredBlockStoreTestUtils.TIER_CAPACITY_BYTES[0].length) {
