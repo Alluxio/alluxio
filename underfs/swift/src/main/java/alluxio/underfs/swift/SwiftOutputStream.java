@@ -24,7 +24,7 @@ import java.net.HttpURLConnection;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * A stream for writing data to Swift.
+ * A stream for writing data to Swift API based object store.
  */
 @NotThreadSafe
 public class SwiftOutputStream extends OutputStream {
