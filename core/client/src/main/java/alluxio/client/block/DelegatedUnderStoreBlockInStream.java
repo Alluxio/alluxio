@@ -19,6 +19,9 @@ import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
+
+import com.google.common.base.Preconditions;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -47,10 +50,10 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
   public DelegatedUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       String ufsPath) throws IOException {
     super(initPos, length, fileBlockSize, ufsPath);
-    mClient = FileSystemContext.INSTANCE.acquireWorkerClient();
+    mClient = FileSystemContext.INSTANCE.createWorkerClient();
     try {
       mUfsFileId = mClient.openUfsFile(new AlluxioURI(ufsPath), OpenUfsFileOptions.defaults());
-    } catch (AlluxioException e) {
+    } catch (AlluxioException | IOException e) {
       mClient.close();
       throw new IOException(e);
     }
@@ -74,9 +77,8 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    if (pos < 0 || pos > mLength) {
-      throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
-    }
+    Preconditions.checkArgument(pos > 0, PreconditionMessage.ERR_SEEK_NEGATIVE);
+    Preconditions.checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK);
     mUnderStoreStream =
         new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mUfsFileId);
     long streamStart = mInitPos + pos;

@@ -36,7 +36,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
   /** Current position of the stream, relative to the start of the block. */
   private long mPos;
   /** If the bytes in the internal buffer are valid. */
-  private boolean mBufferIsValid;
+  private boolean mIsBufferValid;
   /** Flag indicating EOF has been reached. */
   private boolean mEOF;
   /** Reader to the worker, currently only implemented through Netty. */
@@ -63,7 +63,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
     mUfsFileId = ufsFileId;
     mReader = new NettyUnderFileSystemFileReader();
     mBuffer = allocateBuffer();
-    mBufferIsValid = false; // No data in buffer
+    mIsBufferValid = false; // No data in buffer
     mEOF = false;
     mClosed = false;
   }
@@ -80,7 +80,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
   @Override
   public int read() throws IOException {
     checkIfClosed();
-    if (!mEOF && (!mBufferIsValid || mBuffer.remaining() == 0)) {
+    if (!mEOF && (!mIsBufferValid || mBuffer.remaining() == 0)) {
       updateBuffer();
     }
     if (mEOF) {
@@ -107,14 +107,14 @@ public final class UnderFileSystemFileInStream extends InputStream {
       return -1;
     }
 
-    if (mBufferIsValid && mBuffer.remaining() > len) { // data is fully contained in the buffer
+    if (mIsBufferValid && mBuffer.remaining() > len) { // data is fully contained in the buffer
       mBuffer.get(b, off, len);
       mPos += len;
       return len;
     }
 
     if (len > mBuffer.capacity() / 2) { // directly read if request is > one-half buffer size
-      mBufferIsValid = false;
+      mIsBufferValid = false;
       int bytesRead = directRead(b, off, len);
       if (bytesRead != -1) {
         mPos += bytesRead;
@@ -137,7 +137,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
       return 0;
     }
 
-    mBufferIsValid = false;
+    mIsBufferValid = false;
     mPos += n;
     return n;
   }

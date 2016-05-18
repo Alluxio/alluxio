@@ -99,7 +99,7 @@ public class FileOutStream extends AbstractOutStream {
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
         updateUfsPath();
-        mFileSystemWorkerClient = mContext.acquireWorkerClient();
+        mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),

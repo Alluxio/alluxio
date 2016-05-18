@@ -77,7 +77,7 @@ public enum FileSystemContext {
    * @return a file system worker client to a worker in the system
    * @throws IOException if an error occurs getting the list of workers in the system
    */
-  public FileSystemWorkerClient acquireWorkerClient() throws IOException {
+  public FileSystemWorkerClient createWorkerClient() throws IOException {
     WorkerNetAddress address;
     synchronized (mWorkerAddressesLock) {
       if (mWorkerAddresses == null) {
