@@ -1798,7 +1798,6 @@ public final class FileSystemMaster extends AbstractMaster {
           LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
-          // TODO(gpang): fix this
           for (String file : files) {
             if (PathUtils.isTemporaryFileName(file)) {
               continue;

@@ -104,8 +104,8 @@ public enum ExceptionMessage {
 
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
-  INODE_DOES_NOT_EXIST("Inode id {} does not exist"),
-  INODE_DOES_NOT_EXIST_RETRIES("Inode id {} does not exist; too many retries"),
+  INODE_DOES_NOT_EXIST("Inode id {0} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0} does not exist; too many retries"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
   PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
