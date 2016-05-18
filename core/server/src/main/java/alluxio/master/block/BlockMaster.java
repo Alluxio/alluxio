@@ -76,6 +76,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1664)
 public final class BlockMaster extends AbstractMaster implements ContainerIdGenerable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /**
+   * The number of container ids to 'reserve' before having to journal container id state. This
+   * allows the master to return container ids within the reservation, without having to write to
+   * the journal.
+   */
+  private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
 
   /**
    * Concurrency and locking in the BlockMaster
@@ -103,6 +109,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>();
 
   /** This state must be journaled. */
+  @GuardedBy("itself")
   private final BlockContainerIdGenerator mBlockContainerIdGenerator =
       new BlockContainerIdGenerator();
 
@@ -146,6 +153,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   /** The next worker id to use. This state must be journaled. */
   private final AtomicLong mNextWorkerId = new AtomicLong(1);
+
+  /** The value of the 'next container id' last journaled. */
+  @GuardedBy("mBlockContainerIdGenerator")
+  private long mJournaledNextContainerId = 0;
 
   /**
    * @param baseDirectory the base journal directory
@@ -191,8 +202,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     Message innerEntry = JournalProtoUtils.unwrap(entry);
     // TODO(gene): A better way to process entries besides a huge switch?
     if (innerEntry instanceof BlockContainerIdGeneratorEntry) {
-      mBlockContainerIdGenerator
-          .setNextContainerId(((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId());
+      mJournaledNextContainerId =
+          ((BlockContainerIdGeneratorEntry) innerEntry).getNextContainerId();
+      mBlockContainerIdGenerator.setNextContainerId((mJournaledNextContainerId));
     } else if (innerEntry instanceof BlockInfoEntry) {
       BlockInfoEntry blockInfoEntry = (BlockInfoEntry) innerEntry;
       if (mBlocks.containsKey(blockInfoEntry.getBlockId())) {
@@ -210,7 +222,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    outputStream.writeEntry(mBlockContainerIdGenerator.toJournalEntry());
+    outputStream.writeEntry(getContainerIdJournalEntry());
     for (MasterBlockInfo blockInfo : mBlocks.values()) {
       BlockInfoEntry blockInfoEntry =
           BlockInfoEntry.newBuilder().setBlockId(blockInfo.getBlockId())
@@ -347,14 +359,40 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   @Override
   public long getNewContainerId() {
-    long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-    long containerId;
     synchronized (mBlockContainerIdGenerator) {
-      containerId = mBlockContainerIdGenerator.getNewContainerId();
-      counter = appendJournalEntry(mBlockContainerIdGenerator.toJournalEntry());
+      long containerId = mBlockContainerIdGenerator.getNewContainerId();
+      if (containerId < mJournaledNextContainerId) {
+        // This container id is within the reserved container ids, so it is safe to return the id
+        // without having to write anything to the journal.
+        return containerId;
+      }
+      // This container id is not safe with respect to the last journaled container id.
+      // Therefore, journal the new state of the container id. This implies that when a master
+      // crashes, the container ids within the reservation which have not been used yet will
+      // never be used. This is a tradeoff between fully utilizing the container id space, vs.
+      // improving master scalability.
+      // TODO(gpang): investigate if dynamic reservation sizes could be effective
+
+      // Set the next id to journal with a reservation of container ids, to avoid having to write
+      // to the journal for ids within the reservation.
+      mJournaledNextContainerId = containerId + CONTAINER_ID_RESERVATION_SIZE;
+      long counter = appendJournalEntry(getContainerIdJournalEntry());
+      // This must be flushed while holding the lock on mBlockContainerIdGenerator, in order to
+      // prevent subsequent calls to return container ids that have not been journaled and flushed.
+      waitForJournalFlush(counter);
+      return containerId;
     }
-    waitForJournalFlush(counter);
-    return containerId;
+  }
+
+  /**
+   * @return a {@link JournalEntry} representing the state of the container id generator
+   */
+  private JournalEntry getContainerIdJournalEntry() {
+    BlockContainerIdGeneratorEntry blockContainerIdGenerator =
+        BlockContainerIdGeneratorEntry.newBuilder().setNextContainerId(mJournaledNextContainerId)
+            .build();
+    return JournalEntry.newBuilder().setBlockContainerIdGenerator(blockContainerIdGenerator)
+        .build();
   }
 
   /**
