@@ -17,14 +17,14 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Manages the locks for a group of {@link Inode}.
+ * Manages the locks for a list of {@link Inode}.
  */
 @ThreadSafe
-public final class InodeLockGroup implements AutoCloseable {
+public final class InodeLockList implements AutoCloseable {
   private final List<Inode<?>> mInodes;
   private final List<InodeTree.LockMode> mLockModes;
 
-  InodeLockGroup() {
+  InodeLockList() {
     mInodes = new ArrayList<>();
     mLockModes = new ArrayList<>();
   }

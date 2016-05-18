@@ -491,7 +491,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     LOG.debug("createPath {}", path);
 
     TraversalResult traversalResult = traverseToInode(inodePath, LockMode.WRITE_PARENT);
-    InodeLockGroup lockGroup = traversalResult.getInodeLockGroup();
+    InodeLockList lockGroup = traversalResult.getInodeLockGroup();
 
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     String[] pathComponents = extensibleInodePath.getPathComponents();
@@ -659,21 +659,21 @@ public final class InodeTree implements JournalCheckpointStreamable {
    *
    * @param inodePath the root {@link LockedInodePath} to retrieve all descendants from
    * @param lockMode the lock type to use
-   * @return an {@link InodeLockGroup} representing the list of all descendants
+   * @return an {@link InodeLockList} representing the list of all descendants
    * @throws FileDoesNotExistException if inode does not exist
    */
-  public InodeLockGroup lockDescendants(LockedInodePath inodePath, LockMode lockMode)
+  public InodeLockList lockDescendants(LockedInodePath inodePath, LockMode lockMode)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
-    InodeLockGroup inodeGroup = new InodeLockGroup();
+    InodeLockList inodeGroup = new InodeLockList();
     if (!inode.isDirectory()) {
       return inodeGroup;
     }
     return lockDescendantsInternal((InodeDirectory) inode, lockMode, inodeGroup);
   }
 
-  private InodeLockGroup lockDescendantsInternal(InodeDirectory inodeDirectory,
-      LockMode lockMode, InodeLockGroup inodeGroup) {
+  private InodeLockList lockDescendantsInternal(InodeDirectory inodeDirectory,
+      LockMode lockMode, InodeLockList inodeGroup) {
     for (Inode<?> child : inodeDirectory.getChildren()) {
       if (lockMode == LockMode.READ) {
         inodeGroup.lockRead(child);
@@ -897,7 +897,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws InvalidPathException {
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
     List<Inode<?>> inodes = new ArrayList<>();
-    InodeLockGroup lockGroup = new InodeLockGroup();
+    InodeLockList lockGroup = new InodeLockList();
 
     // This must be set to true before returning a valid value, otherwise all the inodes will be
     // unlocked.
@@ -960,7 +960,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     List<Inode<?>> inodes = extensibleInodePath.getInodes();
-    InodeLockGroup lockGroup = extensibleInodePath.getLockGroup();
+    InodeLockList lockGroup = extensibleInodePath.getLockGroup();
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
     for (Inode<?> inode : inodes) {
       if (!inode.isPersisted()) {
@@ -972,7 +972,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   }
 
   private TraversalResult traverseToInodeInternal(String[] pathComponents, List<Inode<?>> inodes,
-      List<Inode<?>> nonPersistedInodes, InodeLockGroup lockGroup, LockMode lockMode,
+      List<Inode<?>> nonPersistedInodes, InodeLockList lockGroup, LockMode lockMode,
       List<LockMode> lockHints)
       throws InvalidPathException {
     Inode<?> current = inodes.get(inodes.size() - 1);
@@ -1054,22 +1054,22 @@ public final class InodeTree implements JournalCheckpointStreamable {
      */
     private final List<Inode<?>> mInodes;
 
-    /** The {@link InodeLockGroup} managing the locks for the inodes. */
-    private final InodeLockGroup mLockGroup;
+    /** The {@link InodeLockList} managing the locks for the inodes. */
+    private final InodeLockList mLockGroup;
 
     // TODO(gpang): consider a builder paradigm to iteratively build the traversal result.
     static TraversalResult createFoundResult(List<Inode<?>> nonPersisted, List<Inode<?>> inodes,
-        InodeLockGroup lockGroup) {
+        InodeLockList lockGroup) {
       return new TraversalResult(true, -1, nonPersisted, inodes, lockGroup);
     }
 
     static TraversalResult createNotFoundResult(int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes, InodeLockGroup lockGroup) {
+        List<Inode<?>> inodes, InodeLockList lockGroup) {
       return new TraversalResult(false, index, nonPersisted, inodes, lockGroup);
     }
 
     private TraversalResult(boolean found, int index, List<Inode<?>> nonPersisted,
-        List<Inode<?>> inodes, InodeLockGroup lockGroup) {
+        List<Inode<?>> inodes, InodeLockList lockGroup) {
       mFound = found;
       mNonexistentIndex = index;
       mInode = inodes.get(inodes.size() - 1);
@@ -1108,9 +1108,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
 
     /**
-     * @return the {@link InodeLockGroup} managing the locks for all the inodes
+     * @return the {@link InodeLockList} managing the locks for all the inodes
      */
-    InodeLockGroup getInodeLockGroup() {
+    InodeLockList getInodeLockGroup() {
       return mLockGroup;
     }
   }

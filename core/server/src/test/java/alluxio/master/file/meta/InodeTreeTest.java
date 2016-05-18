@@ -477,7 +477,7 @@ public final class InodeTreeTest {
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ);
-         InodeLockGroup inodeGroup = mTree
+         InodeLockList inodeGroup = mTree
              .lockDescendants(inodePath, InodeTree.LockMode.READ)) {
       List<Inode<?>> inodes = inodeGroup.getInodes();
       // /test, /nested, /nested/test, /nested/test/file
@@ -498,7 +498,7 @@ public final class InodeTreeTest {
 
     // all inodes under root
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.WRITE)) {
-      try (InodeLockGroup inodeGroup = mTree.lockDescendants(inodePath,
+      try (InodeLockList inodeGroup = mTree.lockDescendants(inodePath,
           InodeTree.LockMode.WRITE)) {
         List<Inode<?>> inodes = inodeGroup.getInodes();
         // /nested, /nested/test
@@ -507,7 +507,7 @@ public final class InodeTreeTest {
       // delete the nested inode
       deleteInodeByPath(mTree, NESTED_URI);
 
-      try (InodeLockGroup inodeGroup = mTree.lockDescendants(inodePath,
+      try (InodeLockList inodeGroup = mTree.lockDescendants(inodePath,
           InodeTree.LockMode.WRITE)) {
         List<Inode<?>> inodes = inodeGroup.getInodes();
         // only /nested left
@@ -597,7 +597,7 @@ public final class InodeTreeTest {
     try (
         LockedInodePath inodePath = mTree
             .lockFullInodePath(new AlluxioURI("/"), InodeTree.LockMode.READ)) {
-      try (InodeLockGroup inodeGroup = mTree
+      try (InodeLockList inodeGroup = mTree
           .lockDescendants(inodePath, InodeTree.LockMode.READ)) {
         Assert.assertEquals(0, inodeGroup.getInodes().size());
       }
@@ -700,7 +700,7 @@ public final class InodeTreeTest {
   // verify that the tree has the given children
   private static void verifyChildrenNames(InodeTree tree, LockedInodePath inodePath,
       Set<String> childNames) throws Exception {
-    try (InodeLockGroup inodeGroup = tree
+    try (InodeLockList inodeGroup = tree
         .lockDescendants(inodePath, InodeTree.LockMode.READ)) {
       List<Inode<?>> children = inodeGroup.getInodes();
       Assert.assertEquals(childNames.size(), children.size());
