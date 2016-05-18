@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
@@ -225,7 +226,7 @@ public abstract class AbstractMaster implements Master {
   }
 
   protected long appendJournalEntry(JournalEntry entry) {
-    Preconditions.checkNotNull(mAsyncJournalWriter, "async journal writer is null.");
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     return mAsyncJournalWriter.appendEntry(entry);
   }
 
@@ -236,7 +237,7 @@ public abstract class AbstractMaster implements Master {
    * @param counter the flush counter
    */
   protected void waitForJournalFlush(long counter) {
-    Preconditions.checkNotNull(mAsyncJournalWriter, "async journal writer is null.");
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
       return;
     }
