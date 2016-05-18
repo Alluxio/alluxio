@@ -21,6 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class PreconditionMessage {
 
+  public static final String ASYNC_JOURNAL_WRITER_NULL = "AsyncJournalWriter cannot be null";
   public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";
   public static final String COMMAND_LINE_LINEAGE_ONLY =
