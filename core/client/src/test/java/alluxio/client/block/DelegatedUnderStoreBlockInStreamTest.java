@@ -68,7 +68,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
     os.close();
     FileSystemContext context = PowerMockito.mock(FileSystemContext.class);
     FileSystemWorkerClient client = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(context.acquireWorkerClient()).thenReturn(client);
+    Mockito.when(context.createWorkerClient()).thenReturn(client);
     Mockito.when(
         client.openUfsFile(Mockito.any(AlluxioURI.class), Mockito.any(OpenUfsFileOptions.class)))
         .thenReturn(1L);

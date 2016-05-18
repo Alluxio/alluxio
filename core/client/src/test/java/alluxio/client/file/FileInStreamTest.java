@@ -124,7 +124,7 @@ public class FileInStreamTest {
 
     // Worker file client mocking
     mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(mContext.acquireWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(mContext.createWorkerClient()).thenReturn(mWorkerClient);
     Mockito.when(
         mWorkerClient.openUfsFile(Mockito.any(AlluxioURI.class),
             Mockito.any(OpenUfsFileOptions.class))).thenReturn(1L);
