@@ -1799,8 +1799,11 @@ public final class FileSystemMaster extends AbstractMaster {
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
           // TODO(gpang): fix this
-          for (int i = 0; i < files.length; i++) {
-            TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, files[i]);
+          for (String file : files) {
+            if (PathUtils.isTemporaryFileName(file)) {
+              continue;
+            }
+            TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, file);
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
           inode.isDirectChildrenLoaded();
