@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -47,6 +48,7 @@ public final class MountTable {
   private final Lock mWriteLock;
 
   /** Maps from Alluxio path string, to {@link MountInfo}. */
+  @GuardedBy("mLock")
   private Map<String, MountInfo> mMountTable;
 
   /**
@@ -72,10 +74,11 @@ public final class MountTable {
    */
   public void add(AlluxioURI alluxioUri, AlluxioURI ufsUri, MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException {
+    String alluxioPath = alluxioUri.getPath();
+    LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
+
     mWriteLock.lock();
     try {
-      String alluxioPath = alluxioUri.getPath();
-      LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
       if (mMountTable.containsKey(alluxioPath)) {
         throw new FileAlreadyExistsException(
             ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
@@ -90,16 +93,17 @@ public final class MountTable {
             && PathUtils.hasPrefix(alluxioPath, mountedAlluxioPath)) {
           throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER.getMessage(
               mountedAlluxioPath, alluxioPath));
-        } else if ((ufsUri.getScheme() == null || ufsUri.getScheme()
-            .equals(mountedUfsUri.getScheme()))
-            && (ufsUri.getAuthority() == null || ufsUri.getAuthority().equals(
-            mountedUfsUri.getAuthority()))) {
+        }
+        if ((ufsUri.getScheme() == null || ufsUri.getScheme().equals(mountedUfsUri.getScheme()))
+            && (ufsUri.getAuthority() == null || ufsUri.getAuthority()
+            .equals(mountedUfsUri.getAuthority()))) {
           String ufsPath = ufsUri.getPath();
           String mountedUfsPath = mountedUfsUri.getPath();
           if (PathUtils.hasPrefix(ufsPath, mountedUfsPath)) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(mountedUfsUri.toString(), ufsUri.toString()));
-          } else if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
+          }
+          if (PathUtils.hasPrefix(mountedUfsPath, ufsPath)) {
             throw new InvalidPathException(ExceptionMessage.MOUNT_POINT_PREFIX_OF_ANOTHER
                 .getMessage(ufsUri.toString(), mountedUfsUri.toString()));
           }
@@ -118,14 +122,15 @@ public final class MountTable {
    * @return whether the operation succeeded or not
    */
   public boolean delete(AlluxioURI uri) {
+    String path = uri.getPath();
+    LOG.info("Unmounting {}", path);
+    if (path.equals(ROOT)) {
+      LOG.warn("Cannot unmount the root mount point.");
+      return false;
+    }
+
     mWriteLock.lock();
     try {
-      String path = uri.getPath();
-      LOG.info("Unmounting {}", path);
-      if (path.equals(ROOT)) {
-        LOG.warn("Cannot unmount the root mount point.");
-        return false;
-      }
       if (mMountTable.containsKey(path)) {
         mMountTable.remove(path);
         return true;
@@ -145,10 +150,11 @@ public final class MountTable {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public String getMountPoint(AlluxioURI uri) throws InvalidPathException {
+    String path = uri.getPath();
+    String mountPoint = null;
+
     mReadLock.lock();
     try {
-      String path = uri.getPath();
-      String mountPoint = null;
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String alluxioPath = entry.getKey();
         if (PathUtils.hasPrefix(path, alluxioPath)
@@ -189,6 +195,7 @@ public final class MountTable {
     try {
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
+      // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(uri);
       if (mountPoint != null) {
         MountInfo info = mMountTable.get(mountPoint);
@@ -217,6 +224,7 @@ public final class MountTable {
       throws InvalidPathException, AccessControlException {
     mReadLock.lock();
     try {
+      // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(alluxioUri);
       MountInfo mountInfo = mMountTable.get(mountPoint);
       if (mountInfo.getOptions().isReadOnly()) {
