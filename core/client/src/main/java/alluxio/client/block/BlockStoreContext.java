@@ -196,7 +196,7 @@ public enum BlockStoreContext {
         !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(address, ClientContext.getExecutorService(),
+    return new BlockWorkerClient(address, ClientContext.getBlockClientExecutorService(),
         ClientContext.getConf(), clientId, false, new ClientMetrics());
   }
 
@@ -224,6 +224,14 @@ public enum BlockStoreContext {
       // Destroy remote worker client.
       blockWorkerClient.close();
     }
+  }
+
+  /**
+   * @return if there is a local worker running the same machine
+   */
+  public boolean hasLocalWorker() {
+    initializeLocalBlockWorkerClientPool();
+    return !mLocalBlockWorkerClientPoolMap.isEmpty();
   }
 
   /**
