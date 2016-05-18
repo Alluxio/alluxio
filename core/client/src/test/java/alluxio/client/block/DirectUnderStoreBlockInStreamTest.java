@@ -11,8 +11,12 @@
 
 package alluxio.client.block;
 
+import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,15 +48,27 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws IOException {
+    ClientContext.getConf().set(Constants.USER_UFS_OPERATION_DELEGATION, "false");
+
     File file = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(file);
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
     mBlockStream =
-        new DirectUnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH, file.getAbsolutePath());
-    mEOFBlockStream = new DirectUnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
-        file.getAbsolutePath());
+        UnderStoreBlockInStream.Factory.create(0, BLOCK_LENGTH, BLOCK_LENGTH,
+            file.getAbsolutePath());
+    mEOFBlockStream =
+        UnderStoreBlockInStream.Factory.create(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+            file.getAbsolutePath());
+  }
+
+  /**
+   * Reset the client context.
+   */
+  @After
+  public void after() {
+    ClientTestUtils.resetClientContext();
   }
 
   /**

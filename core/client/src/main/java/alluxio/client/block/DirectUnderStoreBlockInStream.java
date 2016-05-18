@@ -33,10 +33,9 @@ public final class DirectUnderStoreBlockInStream extends UnderStoreBlockInStream
    * @param ufsPath path in the ufs
    * @throws IOException if an error occurs initializing the stream to the ufs file
    */
-  public DirectUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+  protected DirectUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       String ufsPath) throws IOException {
     super(initPos, length, fileBlockSize, ufsPath);
-    setUnderStoreStream(0);
   }
 
   @Override

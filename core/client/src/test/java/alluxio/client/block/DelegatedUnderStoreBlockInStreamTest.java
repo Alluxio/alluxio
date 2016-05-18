@@ -12,12 +12,16 @@
 package alluxio.client.block;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.FileSystemWorkerClient;
 import alluxio.client.file.options.OpenUfsFileOptions;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -61,6 +65,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws Exception {
+    ClientContext.getConf().set(Constants.USER_UFS_OPERATION_DELEGATION, "true");
     mFile = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(mFile);
     // Create a file of 2 block sizes.
@@ -73,13 +78,22 @@ public class DelegatedUnderStoreBlockInStreamTest {
         client.openUfsFile(Mockito.any(AlluxioURI.class), Mockito.any(OpenUfsFileOptions.class)))
         .thenReturn(1L);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", context);
-    mBlockStream = new DelegatedUnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH,
-        mFile.getAbsolutePath());
+    mBlockStream =
+        UnderStoreBlockInStream.Factory.create(0, BLOCK_LENGTH, BLOCK_LENGTH,
+            mFile.getAbsolutePath());
     setUnderStorageStream(mBlockStream, 0);
     mEOFBlockStream =
-        new DelegatedUnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        UnderStoreBlockInStream.Factory.create(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
             mFile.getAbsolutePath());
     setUnderStorageStream(mEOFBlockStream, 0);
+  }
+
+  /**
+   * Reset the client context.
+   */
+  @After
+  public void after() {
+    ClientTestUtils.resetClientContext();
   }
 
   /**

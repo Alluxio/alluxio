@@ -47,7 +47,7 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
    * @param ufsPath path in the ufs
    * @throws IOException if an error occurs initializing the stream to the ufs file
    */
-  public DelegatedUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+  protected DelegatedUnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       String ufsPath) throws IOException {
     super(initPos, length, fileBlockSize, ufsPath);
     mClient = FileSystemContext.INSTANCE.createWorkerClient();
@@ -57,7 +57,6 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
       mClient.close();
       throw new IOException(e);
     }
-    setUnderStoreStream(0);
   }
 
   @Override
@@ -77,8 +76,9 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    Preconditions.checkArgument(pos > 0, PreconditionMessage.ERR_SEEK_NEGATIVE);
-    Preconditions.checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
+    Preconditions
+        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK, pos);
     mUnderStoreStream =
         new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mUfsFileId);
     long streamStart = mInitPos + pos;
