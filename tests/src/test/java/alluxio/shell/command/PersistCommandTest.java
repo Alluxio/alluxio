@@ -86,8 +86,14 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI(filePath3), 30);
   }
 
+  /**
+   * Tests persisting several files and directories together in one persist command.
+   *
+   * @throws IOException
+   * @throws AlluxioException
+   */
   @Test
-  public void persistFilesAndDirectoriesTest() throws IOException, AlluxioException {
+  public void persistMultiFilesAndDirsTest() throws IOException, AlluxioException {
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
