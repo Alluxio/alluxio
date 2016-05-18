@@ -14,8 +14,8 @@ package alluxio.examples.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
-import alluxio.cli.Version;
 import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
@@ -127,9 +127,8 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println(
-          "Usage: java -cp " + Version.ALLUXIO_JAR + " " + KeyValueStoreOperations.class.getName()
-              + " <key-value store URI>");
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
+          + KeyValueStoreOperations.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }
 

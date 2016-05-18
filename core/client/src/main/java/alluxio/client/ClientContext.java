@@ -45,7 +45,7 @@ public final class ClientContext {
    * This method is useful for undoing changes to {@link Configuration} made by unit tests.
    */
   private static void reset() {
-    sConf = new Configuration();
+    sConf = Configuration.createClientConf();
     init();
   }
 

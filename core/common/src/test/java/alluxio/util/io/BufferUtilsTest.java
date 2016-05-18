@@ -46,7 +46,7 @@ public class BufferUtilsTest {
   public void cloneByteBufferListTest() {
     final int bufferSize = 10;
     final int listLength = 10;
-    ArrayList<ByteBuffer> bufList = new ArrayList<ByteBuffer>(listLength);
+    ArrayList<ByteBuffer> bufList = new ArrayList<>(listLength);
     for (int k = 0; k < listLength; k++) {
       ByteBuffer buf = ByteBuffer.allocate(bufferSize);
       for (byte i = 0; i < bufferSize; i++) {
@@ -85,7 +85,7 @@ public class BufferUtilsTest {
   public void cloneDirectByteBufferListTest() {
     final int bufferSize = 10;
     final int listLength = 10;
-    ArrayList<ByteBuffer> bufDirectList = new ArrayList<ByteBuffer>(listLength);
+    ArrayList<ByteBuffer> bufDirectList = new ArrayList<>(listLength);
     for (int k = 0; k < listLength; k++) {
       ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
       for (byte i = 0; i < bufferSize; i++) {

@@ -26,6 +26,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class LocalUnderFileSystemFactory implements UnderFileSystemFactory {
 
+  /**
+   * Constructs a new {@link LocalUnderFileSystemFactory}.
+   */
+  public LocalUnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");

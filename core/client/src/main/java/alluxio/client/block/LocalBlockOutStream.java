@@ -81,9 +81,9 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       mBlockWorkerClient.cancelBlock(mBlockId);
     } catch (AlluxioException e) {
       throw new IOException(e);
+    } finally {
+      releaseAndClose();
     }
-    mContext.releaseWorkerClient(mBlockWorkerClient);
-    mClosed = true;
   }
 
   @Override
@@ -98,11 +98,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
         mBlockWorkerClient.cacheBlock(mBlockId);
       } catch (AlluxioException e) {
         throw new IOException(e);
+      } finally {
+        releaseAndClose();
       }
       ClientContext.getClientMetrics().incBlocksWrittenLocal(1);
+    } else {
+      releaseAndClose();
     }
-    mContext.releaseWorkerClient(mBlockWorkerClient);
-    mClosed = true;
   }
 
   @Override
@@ -135,5 +137,13 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
       throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage());
     }
     return requestBytes;
+  }
+
+  /**
+   * Releases {@link #mBlockWorkerClient} and sets {@link #mClosed} to true.
+   */
+  private void releaseAndClose() {
+    mContext.releaseWorkerClient(mBlockWorkerClient);
+    mClosed = true;
   }
 }

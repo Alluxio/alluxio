@@ -14,8 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.cli.ValidateConf;
-import alluxio.cli.Version;
+import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -23,6 +22,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -71,12 +71,13 @@ public class AlluxioMaster {
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} {}", Version.ALLUXIO_JAR, AlluxioMaster.class.getCanonicalName());
+      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
+          AlluxioMaster.class.getCanonicalName());
       System.exit(-1);
     }
 
     // validate the conf
-    if (!ValidateConf.validate()) {
+    if (!ConfigurationUtils.validateConf(Configuration.createServerConf())) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
@@ -452,10 +453,10 @@ public class AlluxioMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Alluxio master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} started @ {} {}", RuntimeConstants.VERSION, mMasterAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Alluxio master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} ended @ {} {}", RuntimeConstants.VERSION, mMasterAddress,
         stopMessage);
   }
 

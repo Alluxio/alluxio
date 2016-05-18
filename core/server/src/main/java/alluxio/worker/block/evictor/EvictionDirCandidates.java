@@ -44,6 +44,11 @@ class EvictionDirCandidates {
   private StorageDirView mDirWithMaxBytes = null;
 
   /**
+   * Constructs a new {@link EvictionDirCandidates}.
+   */
+  public EvictionDirCandidates() {}
+
+  /**
    * Adds the block in the directory to this collection.
    *
    * @param dir the dir where the block resides

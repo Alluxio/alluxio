@@ -20,7 +20,7 @@ import org.apache.mesos.Protos;
  * Mesos framework offer utils.
  */
 public final class OfferUtils {
-  private static final Configuration CONF = new Configuration();
+  private static final Configuration CONF = Configuration.createClientConf();
 
   private OfferUtils() {
 
