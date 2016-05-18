@@ -11,6 +11,9 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BufferedBlockInStream;
@@ -18,11 +21,13 @@ import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockInStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
@@ -60,12 +65,15 @@ public class FileInStreamTest {
 
   private AlluxioBlockStore mBlockStore;
   private FileSystemContext mContext;
+  private FileSystemWorkerClient mWorkerClient;
   private FileInfo mInfo;
   private URIStatus mStatus;
 
   private List<TestBufferedBlockOutStream> mCacheStreams;
 
   private FileInStream mTestStream;
+
+  private boolean mDelegateUfsOps;
 
   private long getBlockLength(int streamId) {
     return streamId == NUM_STREAMS - 1 ? 50 : BLOCK_LENGTH;
@@ -74,11 +82,13 @@ public class FileInStreamTest {
   /**
    * Sets up the context and streams before a test runs.
    *
+   * @throws AlluxioException when the worker ufs operations fail
    * @throws IOException when the read and write streams fail
    */
   @Before
-  public void before() throws IOException {
+  public void before() throws AlluxioException, IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
+    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -111,6 +121,13 @@ public class FileInStreamTest {
     }
     mInfo.setBlockIds(blockIds);
     mStatus = new URIStatus(mInfo);
+
+    // Worker file client mocking
+    mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
+    Mockito.when(mContext.createWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(
+        mWorkerClient.openUfsFile(Mockito.any(AlluxioURI.class),
+            Mockito.any(OpenUfsFileOptions.class))).thenReturn(1L);
 
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream =
@@ -443,7 +460,7 @@ public class FileInStreamTest {
    * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void failToUnderFsTest() throws IOException {
+  public void failToUnderFsTest() throws AlluxioException, IOException {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
     mStatus = new URIStatus(mInfo);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
@@ -451,16 +468,22 @@ public class FileInStreamTest {
         new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(false));
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
-    UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
-    InputStream stream = Mockito.mock(InputStream.class);
-    Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
-    Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
-    Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
+    if (mDelegateUfsOps) {
+      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+      Mockito.verify(mWorkerClient).openUfsFile(new AlluxioURI(mStatus.getUfsPath()),
+          OpenUfsFileOptions.defaults());
+    } else {
+      UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
+      InputStream stream = Mockito.mock(InputStream.class);
+      Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
+      Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
+      Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
 
-    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-    Mockito.verify(ufs).open("testUfsPath");
-    Mockito.verify(stream).skip(100);
-    Mockito.verify(stream).skip(50);
+      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+      Mockito.verify(ufs).open("testUfsPath");
+      Mockito.verify(stream).skip(100);
+      Mockito.verify(stream).skip(50);
+    }
   }
 
   /**
