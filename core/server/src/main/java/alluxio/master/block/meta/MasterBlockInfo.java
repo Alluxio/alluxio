@@ -27,7 +27,8 @@ import java.util.Set;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * The metadata for an Alluxio block, managed by the block master.
+ * The metadata for an Alluxio block, managed by the block master. This class is not thread safe,
+ * so external locking is required.
  */
 @NotThreadSafe
 public final class MasterBlockInfo {
@@ -92,7 +93,7 @@ public final class MasterBlockInfo {
    * @param workerId The id of the worker
    * @param tierAlias The alias of the storage tier that this block is on
    */
-  public synchronized void addWorker(long workerId, String tierAlias) {
+  public void addWorker(long workerId, String tierAlias) {
     mWorkerIdToAlias.put(workerId, tierAlias);
   }
 
@@ -125,7 +126,7 @@ public final class MasterBlockInfo {
    *
    * @return the net addresses of the locations
    */
-  public synchronized List<MasterBlockLocation> getBlockLocations() {
+  public List<MasterBlockLocation> getBlockLocations() {
     List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
     for (Map.Entry<Long, String> entry : mWorkerIdToAlias.entrySet()) {
       ret.add(new MasterBlockLocation(entry.getKey(), entry.getValue()));
@@ -137,7 +138,7 @@ public final class MasterBlockInfo {
    * @param targetTierAlias the tier alias to target
    * @return true if the block is in the given tier
    */
-  public synchronized boolean isInTier(String targetTierAlias) {
+  public boolean isInTier(String targetTierAlias) {
     for (String tierAlias : mWorkerIdToAlias.values()) {
       if (tierAlias.equals(targetTierAlias)) {
         return true;
@@ -147,7 +148,7 @@ public final class MasterBlockInfo {
   }
 
   @Override
-  public synchronized String toString() {
+  public String toString() {
     return Objects.toStringHelper(this).add("blockId", mBlockId).add("length", mLength).toString();
   }
 }

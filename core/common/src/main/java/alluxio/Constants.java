@@ -201,6 +201,8 @@ public final class Constants {
       "alluxio.integration.worker.resource.mem";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
+  public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
+      "alluxio.master.journal.flush.batch.time.ms";
   public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
   public static final String MASTER_JOURNAL_FORMATTER_CLASS =
       "alluxio.master.journal.formatter.class";
