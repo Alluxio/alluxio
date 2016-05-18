@@ -105,7 +105,7 @@ public enum ExceptionMessage {
   // file system master
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
   NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
-  PATH_COMPONENTS_INVALID("parameter pathComponents is {0}"),
+  PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
   PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
   PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),

@@ -39,7 +39,7 @@ import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectory;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
 import alluxio.master.file.meta.InodeFile;
-import alluxio.master.file.meta.InodeLockGroup;
+import alluxio.master.file.meta.InodeLockList;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -1003,7 +1003,7 @@ public final class FileSystemMaster extends AbstractMaster {
     List<Inode<?>> delInodes = new ArrayList<Inode<?>>();
     delInodes.add(inode);
 
-    try (InodeLockGroup lockGroup = mInodeTree
+    try (InodeLockList lockGroup = mInodeTree
         .lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
       delInodes.addAll(lockGroup.getInodes());
 
@@ -1625,7 +1625,7 @@ public final class FileSystemMaster extends AbstractMaster {
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
 
-    try (InodeLockGroup lockGroup = mInodeTree
+    try (InodeLockList lockGroup = mInodeTree
         .lockDescendants(inodePath, InodeTree.LockMode.READ)) {
       freeInodes.addAll(lockGroup.getInodes());
 
@@ -2223,7 +2223,7 @@ public final class FileSystemMaster extends AbstractMaster {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
-      try (InodeLockGroup lockGroup = mInodeTree
+      try (InodeLockList lockGroup = mInodeTree
           .lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
         List<Inode<?>> inodeChildren = lockGroup.getInodes();
         for (Inode<?> inode : inodeChildren) {
