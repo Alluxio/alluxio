@@ -17,6 +17,7 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
 import alluxio.client.Seekable;
 import alluxio.client.block.BlockInStream;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
@@ -29,8 +30,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.block.BlockId;
-import alluxio.wire.BlockInfo;
-import alluxio.wire.BlockLocation;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.base.Preconditions;
@@ -419,9 +418,17 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   /**
-   * Updates {@link #mCurrentCacheStream}. The following preconditions are checked inside:
-   *   1. {@link #mCurrentCacheStream} is either done or null.
-   *   2. EOF is reached or {@link #mCurrentBlockInStream} must be valid.
+   * Updates {@link #mCurrentCacheStream}. When {@code mShouldCache} is true, {@code FileInStream}
+   * will create an {@code BlockOutStream} to cache the data read only if
+   * <ol>
+   *   <li>the file is read from under storage, or</li>
+   *   <li>the file is read from a remote worker and we have an available local worker.</li>
+   * </ol>
+   * The following preconditions are checked inside:
+   * <ol>
+   *   <li>{@link #mCurrentCacheStream} is either done or null.</li>
+   *   <li>EOF is reached or {@link #mCurrentBlockInStream} must be valid.</li>
+   * </ol>
    * After this call, {@link #mCurrentCacheStream} is either null or freshly created.
    * {@link #mCurrentCacheStream} is created only if the block is not cached in a chosen machine
    * and mPos is at the beginning of a block.
@@ -445,6 +452,12 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
+    // If this block is read from a remote worker but we don't have a local worker, don't cache
+    if (mCurrentBlockInStream instanceof RemoteBlockInStream
+        && !BlockStoreContext.INSTANCE.hasLocalWorker()) {
+      return;
+    }
+
     // Unlike updateBlockInStream below, we never start a block cache stream if mPos is in the
     // middle of a block.
     if (mPos % mBlockSize != 0) {
@@ -454,23 +467,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     try {
       WorkerNetAddress address = mLocationPolicy.getWorkerForNextBlock(
           mContext.getAlluxioBlockStore().getWorkerInfoList(), getBlockSizeAllocation(mPos));
-      // Don't cache the block to somewhere that already has it.
-      // TODO(andrew,peis): Filter the workers provided to the location policy to not include
-      // workers which already contain the block. See ALLUXIO-1816.
-      if (mCurrentBlockInStream instanceof RemoteBlockInStream) {
-        WorkerNetAddress readAddress =
-            ((RemoteBlockInStream) mCurrentBlockInStream).getWorkerNetAddress();
-        // Try to avoid an RPC.
-        if (readAddress.equals(address)) {
-          return;
-        }
-        BlockInfo blockInfo = mContext.getAlluxioBlockStore().getInfo(blockId);
-        for (BlockLocation location : blockInfo.getLocations()) {
-          if (address.equals(location.getWorkerAddress())) {
-            return;
-          }
-        }
-      }
       // If we reach here, we need to cache.
       mCurrentCacheStream =
           mContext.getAlluxioBlockStore().getOutStream(blockId, getBlockSize(mPos), address);
@@ -560,7 +556,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     updateStreams();
 
     if (mCurrentCacheStream != null) {
-      // Cache till pos if seeking forward within the current block. Otheriwse cache the whole
+      // Cache till pos if seeking forward within the current block. Otherwise cache the whole
       // block.
       readCurrentBlockToPos(pos > mPos ? pos : Long.MAX_VALUE);
 
