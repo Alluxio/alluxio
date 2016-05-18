@@ -21,8 +21,6 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.apache.commons.io.FilenameUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -215,12 +213,7 @@ public final class PathUtils {
    * @return a deterministic temporary file name
    */
   public static String temporaryFileName(long nonce, String path) {
-    try {
-      return path + ".alluxio." + URLEncoder.encode(String.format("0x%16X", nonce),
-          "UTF-8") + ".tmp";
-    } catch (UnsupportedEncodingException e) {
-      return path + ".alluxio." + String.format("0x%16X", nonce) + ".tmp";
-    }
+    return path + ".alluxio." + String.format("0x%016X", nonce) + ".tmp";
   }
 
   /**
