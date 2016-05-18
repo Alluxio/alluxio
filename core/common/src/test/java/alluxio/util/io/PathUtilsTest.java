@@ -281,6 +281,18 @@ public class PathUtilsTest {
   }
 
   /**
+   * Test the {@link PathUtils#isTemporaryFileName(String)} method.
+   */
+  @Test
+  public void isTemporaryFileNameTest() {
+    Assert.assertTrue(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEF.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEFG.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDE.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.0x0123456789ABCDEFG.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("alluxio.0x0123456789ABCDEFG"));
+  }
+
+  /**
    * Tests the {@link PathUtils#uniqPath()} method.
    */
   @Test
