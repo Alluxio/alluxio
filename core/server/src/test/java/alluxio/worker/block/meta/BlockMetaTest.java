@@ -35,7 +35,6 @@ public class BlockMetaTest {
   private static final int TEST_TIER_ORDINAL = 0;
   private static final String TEST_TIER_ALIAS = "MEM";
   private static final long[] TEST_TIER_CAPACITY_BYTES = {100};
-  private StorageDir mDir;
   private BlockMeta mBlockMeta;
   private TempBlockMeta mTempBlockMeta;
   private String mTestDirPath;
@@ -57,8 +56,8 @@ public class BlockMetaTest {
         TEST_TIER_ALIAS, new String[] {mTestDirPath}, TEST_TIER_CAPACITY_BYTES, "");
 
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
-    mDir = tier.getDir(0);
-    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, mDir);
+    StorageDir dir = tier.getDir(0);
+    mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
   }
 
   /**
