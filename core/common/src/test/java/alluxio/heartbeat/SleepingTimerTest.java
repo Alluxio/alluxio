@@ -35,37 +35,86 @@ public class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
   private static final long INTERVAL_MS = 500;
 
+  /**
+   *  This is a test to make sure that SleepingTimer should warn when execution time
+   *  is longer than interval
+   */
   @Test
-  public void sleepingTimerTest() throws Exception {
+  public void executeLongerThanIntervalTest() throws Exception {
     SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
 
     Logger logger = Mockito.mock(Logger.class);
-    long PreTickMs = 0;
+    long previousTickMs = 0;
 
     Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
-    Whitebox.setInternalState(stimer, "mPreviousTickMs", PreTickMs);
-
-    //first case, SleepingTimer should warn when excution time is longer than interval
+    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
+    
     stimer.tick();
     CommonUtils.sleepMs(5 * INTERVAL_MS);
     stimer.tick();
 
     Mockito.verify(logger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
         Mockito.anyLong());
+    
+  }
 
-    //second case, tick three times and check the interval correctness
-    long timeBeforeMs = PreTickMs;
+  /**
+   *  This test ticks three times continuously and checks the correctness of the interval
+   */
+  @Test
+  public void continuousTickTest() throws Exception {
+    SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
+
+    Logger logger = Mockito.mock(Logger.class);
+    long previousTickMs = 0;
+
+    Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
+    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
+
+    // first case, SleepingTimer should warn when execution time is longer than interval
+    stimer.tick();
+    CommonUtils.sleepMs(5 * INTERVAL_MS);
+    stimer.tick();
+
+    Mockito.verify(logger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
+            Mockito.anyLong());
+
+    // second case, tick three times and check the interval correctness
+    long timeBeforeMs = previousTickMs;
     stimer.tick();
     stimer.tick();
     stimer.tick();
     long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
     Assert.assertTrue(timeIntervalMs >= 3 * INTERVAL_MS);
 
-    //third case, sleep less than interval and check theinterval correctness
-    timeBeforeMs = PreTickMs;
+    // third case,
+    timeBeforeMs = previousTickMs;
     CommonUtils.sleepMs(INTERVAL_MS / 2);
     stimer.tick();
     timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
+    Assert.assertTrue(timeIntervalMs >= INTERVAL_MS);
+  }
+
+  /**
+   *  This test sleeps for a time period shorter than the interval of SleepingTimer, and checks
+   *  whether the SleepingTimer works correctly after that.
+   */
+  @Test
+  public void executeShorterThanIntervalTest() throws Exception {
+    SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
+
+    Logger logger = Mockito.mock(Logger.class);
+    long previousTickMs = 0;
+
+    Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
+    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
+
+    stimer.tick();
+
+    long timeBeforeMs = previousTickMs;
+    CommonUtils.sleepMs(INTERVAL_MS / 2);
+    stimer.tick();
+    long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
     Assert.assertTrue(timeIntervalMs >= INTERVAL_MS);
   }
 }
