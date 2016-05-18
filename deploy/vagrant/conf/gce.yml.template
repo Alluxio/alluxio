@@ -64,6 +64,10 @@ Prefix:
 # See documentation (https://cloud.google.com/compute/docs/networking#addingafirewall) for more details.
 Network: "default"
 
+#The name of the Instance Group to which workers will be deployed. If empty, instance groups are not used.
+# If provided and the instance group exists it will be used, otherwise a new group is created.
+Instance_Group:
+
 ##################################################
 # Advanced Configurations
 # 

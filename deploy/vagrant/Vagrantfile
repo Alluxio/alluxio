@@ -139,6 +139,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
           IMAGE = @gce['Image']
           MACHINE_TYPE = @gce['Machine_Type']
           PREEMPTIBLE = @gce['Preemptible']
+          INSTANCE_GROUP = @gce['Instance_Group']
           SCOPES = @gce['Scopes']
           DISK_SIZE = @gce['Disk_Size']
           PREFIX = @gce['Prefix']
