@@ -33,15 +33,15 @@ public abstract class LockedInodePath implements AutoCloseable {
   protected final AlluxioURI mUri;
   protected final String[] mPathComponents;
   protected final ArrayList<Inode<?>> mInodes;
-  protected final InodeLockList mLockGroup;
+  protected final InodeLockList mLockList;
 
-  LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockGroup)
+  LockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList)
       throws InvalidPathException {
     Preconditions.checkArgument(!inodes.isEmpty());
     mUri = uri;
     mPathComponents = PathUtils.getPathComponents(mUri.getPath());
     mInodes = new ArrayList<>(inodes);
-    mLockGroup = lockGroup;
+    mLockList = lockList;
   }
 
   LockedInodePath(LockedInodePath inodePath) {
@@ -49,7 +49,7 @@ public abstract class LockedInodePath implements AutoCloseable {
     mUri = inodePath.mUri;
     mPathComponents = inodePath.mPathComponents;
     mInodes = inodePath.mInodes;
-    mLockGroup = inodePath.mLockGroup;
+    mLockList = inodePath.mLockList;
   }
 
   /**
@@ -117,6 +117,6 @@ public abstract class LockedInodePath implements AutoCloseable {
 
   @Override
   public synchronized void close() {
-    mLockGroup.close();
+    mLockList.close();
   }
 }

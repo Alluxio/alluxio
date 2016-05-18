@@ -27,9 +27,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class MutableLockedInodePath extends LockedInodePath {
   // TODO(gpang): restructure class hierarchy, rename class
-  MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockGroup)
+  MutableLockedInodePath(AlluxioURI uri, List<Inode<?>> inodes, InodeLockList lockList)
       throws InvalidPathException {
-    super(uri, inodes, lockGroup);
+    super(uri, inodes, lockList);
   }
 
   /**
@@ -56,6 +56,6 @@ public class MutableLockedInodePath extends LockedInodePath {
   }
 
   InodeLockList getLockGroup() {
-    return mLockGroup;
+    return mLockList;
   }
 }

@@ -1003,9 +1003,8 @@ public final class FileSystemMaster extends AbstractMaster {
     List<Inode<?>> delInodes = new ArrayList<Inode<?>>();
     delInodes.add(inode);
 
-    try (InodeLockList lockGroup = mInodeTree
-        .lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-      delInodes.addAll(lockGroup.getInodes());
+    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
+      delInodes.addAll(lockList.getInodes());
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
       // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
@@ -1625,9 +1624,8 @@ public final class FileSystemMaster extends AbstractMaster {
     List<Inode<?>> freeInodes = new ArrayList<>();
     freeInodes.add(inode);
 
-    try (InodeLockList lockGroup = mInodeTree
-        .lockDescendants(inodePath, InodeTree.LockMode.READ)) {
-      freeInodes.addAll(lockGroup.getInodes());
+    try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.READ)) {
+      freeInodes.addAll(lockList.getInodes());
 
       // We go through each inode.
       for (int i = freeInodes.size() - 1; i >= 0; i--) {
@@ -2222,9 +2220,9 @@ public final class FileSystemMaster extends AbstractMaster {
     Inode<?> targetInode = inodePath.getInode();
     long opTimeMs = System.currentTimeMillis();
     if (options.isRecursive() && targetInode.isDirectory()) {
-      try (InodeLockList lockGroup = mInodeTree
+      try (InodeLockList lockList = mInodeTree
           .lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
-        List<Inode<?>> inodeChildren = lockGroup.getInodes();
+        List<Inode<?>> inodeChildren = lockList.getInodes();
         for (Inode<?> inode : inodeChildren) {
           // the path to inode for getPath should already be locked.
           try (LockedInodePath childPath = mInodeTree.lockFullInodePath(mInodeTree.getPath(inode),
