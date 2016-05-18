@@ -43,7 +43,7 @@ public class EvictorTestUtils {
     Preconditions.checkNotNull(plan);
 
     StorageDir dir = null;
-    List<Long> blockIds = new ArrayList<Long>();
+    List<Long> blockIds = new ArrayList<>();
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }
@@ -106,7 +106,7 @@ public class EvictorTestUtils {
 
     // Map from dir to a pair of bytes to be available in this dir and bytes to move into this dir
     // after the plan taking action
-    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<StorageDir, Pair<Long, Long>>();
+    Map<StorageDir, Pair<Long, Long>> spaceInfoInDir = new HashMap<>();
 
     for (Pair<Long, BlockStoreLocation> blockInfo : plan.toEvict()) {
       BlockMeta block = metaManager.getBlockMeta(blockInfo.getFirst());
@@ -115,8 +115,7 @@ public class EvictorTestUtils {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(dir);
         spaceInfo.setFirst(spaceInfo.getFirst() + block.getBlockSize());
       } else {
-        spaceInfoInDir.put(dir, new Pair<Long, Long>(
-            dir.getAvailableBytes() + block.getBlockSize(), 0L));
+        spaceInfoInDir.put(dir, new Pair<>(dir.getAvailableBytes() + block.getBlockSize(), 0L));
       }
     }
 
@@ -131,15 +130,14 @@ public class EvictorTestUtils {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(srcDir);
         spaceInfo.setFirst(spaceInfo.getFirst() + blockSize);
       } else {
-        spaceInfoInDir
-            .put(srcDir, new Pair<Long, Long>(srcDir.getAvailableBytes() + blockSize, 0L));
+        spaceInfoInDir.put(srcDir, new Pair<>(srcDir.getAvailableBytes() + blockSize, 0L));
       }
 
       if (spaceInfoInDir.containsKey(destDir)) {
         Pair<Long, Long> spaceInfo = spaceInfoInDir.get(destDir);
         spaceInfo.setSecond(spaceInfo.getSecond() + blockSize);
       } else {
-        spaceInfoInDir.put(destDir, new Pair<Long, Long>(destDir.getAvailableBytes(), blockSize));
+        spaceInfoInDir.put(destDir, new Pair<>(destDir.getAvailableBytes(), blockSize));
       }
     }
 
@@ -204,7 +202,7 @@ public class EvictorTestUtils {
       BlockMetadataManager meta) throws BlockDoesNotExistException {
     Preconditions.checkNotNull(plan);
 
-    List<Long> blockIds = new ArrayList<Long>();
+    List<Long> blockIds = new ArrayList<>();
     for (Pair<Long, BlockStoreLocation> evict : plan.toEvict()) {
       blockIds.add(evict.getFirst());
     }

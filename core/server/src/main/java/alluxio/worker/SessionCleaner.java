@@ -9,11 +9,10 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.worker.block;
+package alluxio.worker;
 
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
-import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +27,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class SessionCleaner implements Runnable {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  /** Block worker handler responsible for interacting with Alluxio and UFS storage. */
-  private final BlockWorker mBlockWorker;
+  /** The object which supports cleaning up sessions. */
+  private final SessionCleanupCallback mSessionCleanupCallback;
   /** Milliseconds between each check. */
   private final int mCheckIntervalMs;
 
@@ -39,10 +38,10 @@ public final class SessionCleaner implements Runnable {
   /**
    * Creates a new instance of {@link SessionCleaner}.
    *
-   * @param blockWorker the block worker handle
+   * @param sessionCleanupCallback the session clean up callback which will periodically be invoked
    */
-  public SessionCleaner(BlockWorker blockWorker) {
-    mBlockWorker = blockWorker;
+  public SessionCleaner(SessionCleanupCallback sessionCleanupCallback) {
+    mSessionCleanupCallback = sessionCleanupCallback;
     mCheckIntervalMs =
         WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
@@ -67,7 +66,7 @@ public final class SessionCleaner implements Runnable {
 
       // Check if any sessions have become zombies, if so clean them up
       lastCheckMs = System.currentTimeMillis();
-      mBlockWorker.cleanupSessions();
+      mSessionCleanupCallback.cleanupSessions();
     }
   }
 
