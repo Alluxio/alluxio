@@ -390,6 +390,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
    */
   public void ensureFullInodePath(LockedInodePath inodePath, LockMode lockMode)
       throws InvalidPathException, FileDoesNotExistException {
+    if (inodePath.fullPathExists()) {
+      return;
+    }
     TraversalResult traversalResult = traverseToInode(inodePath, lockMode);
     if (!traversalResult.isFound()) {
       throw new FileDoesNotExistException(
