@@ -25,7 +25,7 @@ import alluxio.util.CommonUtils;
 /**
  * Unit tests for {@link SleepingTimer}. It tests three scenarios listed below:
  * 1. Sleep more than the interval of SleepingTimer and see if the SleepingTimer warns correctly
- * 2. Tick continuously for several time and see if the time interval is correct
+ * 2. Tick continuously for several times and see if the time interval is correct
  * 3. Sleep less than the interval of SleepingTimer and see if the time interval is correct
  */
 
@@ -44,10 +44,7 @@ public class SleepingTimerTest {
     SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
 
     Logger logger = Mockito.mock(Logger.class);
-    long previousTickMs = 0;
-
     Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
-    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
     
     stimer.tick();
     CommonUtils.sleepMs(5 * INTERVAL_MS);
@@ -55,7 +52,6 @@ public class SleepingTimerTest {
 
     Mockito.verify(logger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
         Mockito.anyLong());
-    
   }
 
   /**
@@ -71,28 +67,12 @@ public class SleepingTimerTest {
     Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
     Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
 
-    // first case, SleepingTimer should warn when execution time is longer than interval
-    stimer.tick();
-    CommonUtils.sleepMs(5 * INTERVAL_MS);
-    stimer.tick();
-
-    Mockito.verify(logger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
-            Mockito.anyLong());
-
-    // second case, tick three times and check the interval correctness
     long timeBeforeMs = previousTickMs;
     stimer.tick();
     stimer.tick();
     stimer.tick();
     long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
     Assert.assertTrue(timeIntervalMs >= 3 * INTERVAL_MS);
-
-    // third case,
-    timeBeforeMs = previousTickMs;
-    CommonUtils.sleepMs(INTERVAL_MS / 2);
-    stimer.tick();
-    timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
-    Assert.assertTrue(timeIntervalMs >= INTERVAL_MS);
   }
 
   /**
