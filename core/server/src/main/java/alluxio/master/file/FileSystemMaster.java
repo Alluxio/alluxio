@@ -1556,6 +1556,10 @@ public final class FileSystemMaster extends AbstractMaster {
             LoadMetadataOptions loadMetadataOptions = LoadMetadataOptions.defaults();
             loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
             for (int i = 0; i < files.length; i++) {
+              // exclude any temporary Alluxio files
+              if (PathUtils.isTemporaryFileName(files[i])) {
+                continue;
+              }
               loadMetadata(path.join(files[i]), loadMetadataOptions);
             }
             inode.isDirectChildrenLoaded();
