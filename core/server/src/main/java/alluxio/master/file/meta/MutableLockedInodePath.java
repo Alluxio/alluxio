@@ -55,7 +55,7 @@ public class MutableLockedInodePath extends LockedInodePath {
     return mInodes;
   }
 
-  InodeLockList getLockGroup() {
+  InodeLockList getLockList() {
     return mLockList;
   }
 }
