@@ -967,7 +967,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     MutableLockedInodePath extensibleInodePath = (MutableLockedInodePath) inodePath;
     List<Inode<?>> inodes = extensibleInodePath.getInodes();
-    InodeLockList lockList = extensibleInodePath.getLockGroup();
+    InodeLockList lockList = extensibleInodePath.getLockList();
     List<Inode<?>> nonPersistedInodes = new ArrayList<>();
     for (Inode<?> inode : inodes) {
       if (!inode.isPersisted()) {
