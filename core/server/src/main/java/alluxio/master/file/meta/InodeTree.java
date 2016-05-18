@@ -347,7 +347,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     while (true) {
       Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
       if (inode == null) {
-        throw new FileDoesNotExistException("Inode id " + id + " does not exist.");
+        throw new FileDoesNotExistException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
       }
       // Compute the path given the target inode.
       StringBuilder builder = new StringBuilder();
@@ -374,7 +374,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
       }
       count++;
       if (count > PATH_TRAVERSAL_RETRIES) {
-        throw new FileDoesNotExistException("Too many retries to get inode id " + id);
+        throw new FileDoesNotExistException(
+            ExceptionMessage.INODE_DOES_NOT_EXIST_RETRIES.getMessage(id));
       }
     }
   }
@@ -423,7 +424,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     } else {
       Inode<?> parentInode = mInodes.getFirstByField(mIdIndex, parentId);
       if (parentInode == null) {
-        throw new FileDoesNotExistException("Inode id " + parentId + " does not exist.");
+        throw new FileDoesNotExistException(
+            ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
       }
 
       computePathForInode(parentInode, builder);
@@ -702,7 +704,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
     if (parent == null) {
-      throw new FileDoesNotExistException("Inode id " + inode.getParentId() + " does not exist.");
+      throw new FileDoesNotExistException(
+          ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
     }
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
@@ -913,7 +916,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
             ExceptionMessage.PATH_COMPONENTS_INVALID.getMessage("empty"));
       } else if (pathComponents.length == 1) {
         if (pathComponents[0].equals("")) {
-          if (lockMode == LockMode.READ) {
+          if (getLockModeForComponent(0, pathComponents.length, lockMode, lockHints)
+              == LockMode.READ) {
             lockGroup.lockRead(mRoot);
           } else {
             lockGroup.lockWrite(mRoot);
