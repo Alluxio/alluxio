@@ -40,6 +40,7 @@ public final class AsyncJournalWriter {
   private final ConcurrentLinkedQueue<JournalEntry> mQueue;
   private final AtomicLong mCounter;
   private final AtomicLong mFlushCounter;
+  /** Maximum number of nanoseconds for a batch flush. */
   private final long mFlushBatchTime;
 
   /**
@@ -58,7 +59,9 @@ public final class AsyncJournalWriter {
     mQueue = new ConcurrentLinkedQueue<>();
     mCounter = new AtomicLong(0);
     mFlushCounter = new AtomicLong(0);
-    mFlushBatchTime = MasterContext.getConf().getLong(Constants.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+    // convert milliseconds to nanoseconds.
+    mFlushBatchTime =
+        1000000L * MasterContext.getConf().getLong(Constants.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**
@@ -106,7 +109,7 @@ public final class AsyncJournalWriter {
     // Using reentrant lock, since it seems to result in higher throughput than using 'synchronized'
     mFlushLock.lock();
     try {
-      long startTime = System.currentTimeMillis();
+      long startTime = System.nanoTime();
       long flushCounter = mFlushCounter.get();
       if (counter <= flushCounter) {
         // The specified counter is already flushed, so just return.
@@ -123,7 +126,7 @@ public final class AsyncJournalWriter {
           flushCounter++;
 
           if (flushCounter >= counter) {
-            if ((System.currentTimeMillis() - startTime) >= mFlushBatchTime) {
+            if ((System.nanoTime() - startTime) >= mFlushBatchTime) {
               // This thread has been writing to the journal for enough time. Break out of the
               // infinite for-loop.
               break;
