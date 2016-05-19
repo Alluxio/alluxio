@@ -118,6 +118,8 @@ public final class UnderFileSystemFileInStream extends InputStream {
       int bytesRead = directRead(b, off, len);
       if (bytesRead != -1) {
         mPos += bytesRead;
+      } else { // Hit end of file, set flag
+        mEOF = true;
       }
       return bytesRead;
     }
@@ -164,9 +166,10 @@ public final class UnderFileSystemFileInStream extends InputStream {
   private void bufferedRead(int len) throws IOException {
     mBuffer.clear();
     int bytesRead = directRead(mBuffer.array(), 0, len);
-    if (bytesRead >= 0) {
+    if (bytesRead != -1) {
       mBuffer.limit(bytesRead);
-      mBuffer.position(0);
+    } else {
+      mEOF = true;
     }
   }
 
@@ -198,7 +201,6 @@ public final class UnderFileSystemFileInStream extends InputStream {
       ByteBuffer data = mReader.read(mAddress, mUfsFileId, currentPosition, bytesLeft);
       if (data == null) { // No more data
         if (bytesRead == 0) { // Did not read any bytes, at EOF
-          mEOF = true;
           return -1;
         }
         break;
