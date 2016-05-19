@@ -25,6 +25,7 @@ import alluxio.master.journal.JournalOutputStream;
 import alluxio.proto.journal.File;
 import alluxio.proto.journal.File.AddMountPointEntry;
 import alluxio.proto.journal.Journal;
+import alluxio.resource.LockResource;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -64,7 +65,7 @@ public final class MountTable implements JournalCheckpointStreamable {
    */
   public MountTable() {
     final int initialCapacity = 10;
-    mMountTable = new HashMap<String, MountInfo>(initialCapacity);
+    mMountTable = new HashMap<>(initialCapacity);
     mLock = new ReentrantReadWriteLock();
     mReadLock = mLock.readLock();
     mWriteLock = mLock.writeLock();
@@ -109,8 +110,7 @@ public final class MountTable implements JournalCheckpointStreamable {
     String alluxioPath = alluxioUri.getPath();
     LOG.info("Mounting {} at {}", ufsUri, alluxioPath);
 
-    mWriteLock.lock();
-    try {
+    try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(alluxioPath)) {
         throw new FileAlreadyExistsException(
             ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(alluxioPath));
@@ -142,8 +142,6 @@ public final class MountTable implements JournalCheckpointStreamable {
         }
       }
       mMountTable.put(alluxioPath, new MountInfo(ufsUri, options));
-    } finally {
-      mWriteLock.unlock();
     }
   }
 
@@ -161,16 +159,13 @@ public final class MountTable implements JournalCheckpointStreamable {
       return false;
     }
 
-    mWriteLock.lock();
-    try {
+    try (LockResource r = new LockResource(mWriteLock)) {
       if (mMountTable.containsKey(path)) {
         mMountTable.remove(path);
         return true;
       }
       LOG.warn("Mount point {} does not exist.", path);
       return false;
-    } finally {
-      mWriteLock.unlock();
     }
   }
 
@@ -185,8 +180,7 @@ public final class MountTable implements JournalCheckpointStreamable {
     String path = uri.getPath();
     String mountPoint = null;
 
-    mReadLock.lock();
-    try {
+    try (LockResource r = new LockResource(mReadLock)) {
       for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
         String alluxioPath = entry.getKey();
         if (PathUtils.hasPrefix(path, alluxioPath)
@@ -195,8 +189,6 @@ public final class MountTable implements JournalCheckpointStreamable {
         }
       }
       return mountPoint;
-    } finally {
-      mReadLock.unlock();
     }
   }
 
@@ -205,11 +197,8 @@ public final class MountTable implements JournalCheckpointStreamable {
    * @return whether the given uri is a mount point
    */
   public boolean isMountPoint(AlluxioURI uri) {
-    mReadLock.lock();
-    try {
+    try (LockResource r = new LockResource(mReadLock)) {
       return mMountTable.containsKey(uri.getPath());
-    } finally {
-      mReadLock.unlock();
     }
   }
 
@@ -223,8 +212,7 @@ public final class MountTable implements JournalCheckpointStreamable {
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
-    mReadLock.lock();
-    try {
+    try (LockResource r = new LockResource(mReadLock)) {
       String path = uri.getPath();
       LOG.debug("Resolving {}", path);
       // This will re-acquire the read lock, but that is allowed.
@@ -239,8 +227,6 @@ public final class MountTable implements JournalCheckpointStreamable {
         return new Resolution(resolvedUri, ufs);
       }
       return new Resolution(uri, null);
-    } finally {
-      mReadLock.unlock();
     }
   }
 
@@ -254,16 +240,13 @@ public final class MountTable implements JournalCheckpointStreamable {
    */
   public void checkUnderWritableMountPoint(AlluxioURI alluxioUri)
       throws InvalidPathException, AccessControlException {
-    mReadLock.lock();
-    try {
+    try (LockResource r = new LockResource(mReadLock)) {
       // This will re-acquire the read lock, but that is allowed.
       String mountPoint = getMountPoint(alluxioUri);
       MountInfo mountInfo = mMountTable.get(mountPoint);
       if (mountInfo.getOptions().isReadOnly()) {
         throw new AccessControlException(ExceptionMessage.MOUNT_READONLY, alluxioUri, mountPoint);
       }
-    } finally {
-      mReadLock.unlock();
     }
   }
 
