@@ -21,20 +21,17 @@ import alluxio.security.LoginUser;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Preconditions;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -464,41 +461,13 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Creates a temporary directory and assigns it to mHome.
-   *
-   * Also registers a shutdown hook to delete the created directory and cleans up any such
-   * pre-existing directories.
+   * Sets alluxio home.
    *
    * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() throws IOException {
-    Preconditions.checkState(mHome == null);
-    // Delete folders leftover from previous runs.
-    String homePrefix = "Alluxio-Test-Cluster-Home";
-    removeTemporaryFilesWithPrefix(homePrefix);
-    mHome = File.createTempFile(homePrefix, "").getAbsolutePath();
-
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      public void run() {
-        try {
-          FileUtils.deletePathRecursively(mHome);
-        } catch (IOException e) {
-          // This was probably removed by another test's cleanup.
-        }
-      }
-    }));
+    mHome =
+        File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
   }
 
-  private void removeTemporaryFilesWithPrefix(final String prefix) throws IOException {
-    String tmpDir = System.getProperty("java.io.tmpdir");
-    File[] toDelete = new File(tmpDir).listFiles(new FilenameFilter() {
-      @Override
-      public boolean accept(File dir, String name) {
-        return name.startsWith(prefix);
-      }
-    });
-    for (File file : toDelete) {
-      FileUtils.deletePathRecursively(file.getAbsolutePath());
-    }
-  }
 }
