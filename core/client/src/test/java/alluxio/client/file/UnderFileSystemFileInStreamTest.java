@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.util.io.BufferUtils;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,8 +35,8 @@ import java.nio.ByteBuffer;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(NettyUnderFileSystemFileReader.class)
 public class UnderFileSystemFileInStreamTest {
-  private static long FILE_ID = 1L;
-  private static int FILE_SIZE = 1000;
+  private static final long FILE_ID = 1L;
+  private static final int FILE_SIZE = 1000;
 
   private byte[] mData;
   private NettyUnderFileSystemFileReader mMockReader;
@@ -47,8 +48,7 @@ public class UnderFileSystemFileInStreamTest {
     mMockReader = PowerMockito.mock(NettyUnderFileSystemFileReader.class);
     InetSocketAddress mockAddr = Mockito.mock(InetSocketAddress.class);
     Mockito.when(mMockReader.read(Mockito.any(InetSocketAddress.class), Mockito.anyLong(),
-        Mockito.anyLong(), Mockito.anyLong())).thenAnswer(
-        new Answer<ByteBuffer>() {
+        Mockito.anyLong(), Mockito.anyLong())).thenAnswer(new Answer<ByteBuffer>() {
           @Override
           public ByteBuffer answer(InvocationOnMock invocation) throws Throwable {
             Object[] args = invocation.getArguments();
