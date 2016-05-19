@@ -60,14 +60,8 @@ public final class SleepingTimerTest {
   @Test
   public void continuousTickTest() throws Exception {
     SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
-
-    Logger logger = Mockito.mock(Logger.class);
-    long previousTickMs = 0;
-
-    Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
-    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
-
-    long timeBeforeMs = previousTickMs;
+    stimer.tick();
+    long timeBeforeMs = Whitebox.getInternalState(stimer, "mPreviousTickMs");
     stimer.tick();
     stimer.tick();
     stimer.tick();
@@ -83,15 +77,9 @@ public final class SleepingTimerTest {
   public void executeShorterThanIntervalTest() throws Exception {
     SleepingTimer stimer = new SleepingTimer(THREAD_NAME, INTERVAL_MS);
 
-    Logger logger = Mockito.mock(Logger.class);
-    long previousTickMs = 0;
-
-    Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
-    Whitebox.setInternalState(stimer, "mPreviousTickMs", previousTickMs);
-
     stimer.tick();
+    long timeBeforeMs = Whitebox.getInternalState(stimer, "mPreviousTickMs");
 
-    long timeBeforeMs = previousTickMs;
     CommonUtils.sleepMs(INTERVAL_MS / 2);
     stimer.tick();
     long timeIntervalMs = System.currentTimeMillis() - timeBeforeMs;
