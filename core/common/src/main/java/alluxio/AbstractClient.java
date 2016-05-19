@@ -194,18 +194,13 @@ public abstract class AbstractClient implements Closeable {
    * if the client has not connected with the remote for a while, for example.
    */
   public synchronized void disconnect() {
-    if (mConnected) {
+    beforeDisconnect();
+    if (mConnected && mProtocol != null) {
       LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
+      mProtocol.getTransport().close();
       mConnected = false;
     }
-    try {
-      beforeDisconnect();
-      if (mProtocol != null) {
-        mProtocol.getTransport().close();
-      }
-    } finally {
-      afterDisconnect();
-    }
+    afterDisconnect();
   }
 
   /**
