@@ -12,8 +12,6 @@
 package alluxio.master.block.meta;
 
 import alluxio.master.block.BlockContainerIdGenerator;
-import alluxio.proto.journal.Block;
-import alluxio.proto.journal.Journal;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,19 +53,5 @@ public final class BlockContainerIdGeneratorTest {
     Assert.assertEquals(TEST_ID, mGenerator.getNewContainerId());
     Assert.assertEquals(TEST_ID + 1, mGenerator.getNewContainerId());
     Assert.assertEquals(TEST_ID + 2, mGenerator.getNewContainerId());
-  }
-
-  /**
-   * Tests the {@link BlockContainerIdGenerator#toJournalEntry()} method.
-   */
-  @Test
-  public void toJournalEntryTest() {
-    mGenerator.setNextContainerId(TEST_ID);
-    Journal.JournalEntry entry = mGenerator.toJournalEntry();
-    Assert.assertNotNull(entry);
-    Assert.assertTrue(entry.hasBlockContainerIdGenerator());
-    Block.BlockContainerIdGeneratorEntry generatorEntry = entry.getBlockContainerIdGenerator();
-    Assert.assertNotNull(generatorEntry);
-    Assert.assertEquals(TEST_ID, generatorEntry.getNextContainerId());
   }
 }

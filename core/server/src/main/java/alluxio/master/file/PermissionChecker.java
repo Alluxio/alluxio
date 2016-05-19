@@ -11,7 +11,6 @@
 
 package alluxio.master.file;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -19,6 +18,7 @@ import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.MasterContext;
 import alluxio.master.file.meta.Inode;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -32,7 +32,6 @@ import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -74,38 +73,34 @@ public final class PermissionChecker {
    * has no parent (e.g., root).
    *
    * @param action requested {@link FileSystemAction} by user
-   * @param path the path to check permission on
+   * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
-  public void checkParentPermission(FileSystemAction action, AlluxioURI path)
+  public void checkParentPermission(FileSystemAction action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
 
     // root "/" has no parent, so return without checking
-    if (PathUtils.isRoot(path.getPath())) {
+    if (PathUtils.isRoot(inodePath.getUri().getPath())) {
       return;
     }
 
     // collects existing inodes info on the path. Note that, not all the components of the path have
     // corresponding inodes.
-    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+    List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
-    // perform permission check
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-
     // remove the last element if all components of the path exist, since we only check the parent.
-    if (pathComponents.length == inodeList.size()) {
+    if (inodePath.fullPathExists()) {
       inodeList.remove(inodeList.size() - 1);
     }
-    checkInodeList(user, groups, action, path.getPath(), inodeList, false);
+    checkInodeList(user, groups, action, inodePath.getUri().getPath(), inodeList, false);
   }
 
   /**
@@ -113,43 +108,36 @@ public final class PermissionChecker {
    * pass if the path is invalid.
    *
    * @param action requested {@link FileSystemAction} by user
-   * @param path the path to check permission on
+   * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
-  public void checkPermission(FileSystemAction action, AlluxioURI path)
+  public void checkPermission(FileSystemAction action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
     }
 
     // collects inodes info on the path
-    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+    List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
-    // Checks requested permission and basic permission on the path.
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-    for (int i = inodeList.size(); i < pathComponents.length; i++) {
-      inodeList.add(null);
-    }
-    checkInodeList(user, groups, action, path.getPath(), inodeList, false);
+    checkInodeList(user, groups, action, inodePath.getUri().getPath(), inodeList, false);
   }
 
   /**
    * Checks whether a user has permission to edit the attribute of a given path.
    *
-   * @param path the path to check permission on
+   * @param inodePath the path to check permission on
    * @param superuserRequired indicates whether it requires to be the superuser
    * @param ownerRequired indicates whether it requires to be the owner of this path
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
-  public void checkSetAttributePermission(AlluxioURI path, boolean superuserRequired,
+  public void checkSetAttributePermission(LockedInodePath inodePath, boolean superuserRequired,
       boolean ownerRequired) throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -161,9 +149,9 @@ public final class PermissionChecker {
     }
     // For chgrp or chmod, owner or superuser (supergroup) is required
     if (ownerRequired) {
-      checkOwner(path);
+      checkOwner(inodePath);
     }
-    checkPermission(FileSystemAction.WRITE, path);
+    checkPermission(FileSystemAction.WRITE, inodePath);
   }
 
   /**
@@ -200,14 +188,14 @@ public final class PermissionChecker {
   /**
    * Checks whether the client user is the owner of the path.
    *
-   * @param path to be checked on
+   * @param inodePath path to be checked on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  @GuardedBy("mInodeTree")
-  private void checkOwner(AlluxioURI path) throws AccessControlException, InvalidPathException {
+  private void checkOwner(LockedInodePath inodePath)
+      throws AccessControlException, InvalidPathException {
     // collects inodes info on the path
-    List<Inode<?>> inodeList = mInodeTree.collectInodes(path);
+    List<Inode<?>> inodeList = inodePath.getInodeList();
 
     // collects user and groups
     String user = getClientUser();
@@ -217,13 +205,7 @@ public final class PermissionChecker {
       return;
     }
 
-    // checks the owner
-    String[] pathComponents = PathUtils.getPathComponents(path.getPath());
-
-    for (int i = inodeList.size(); i < pathComponents.length; i++) {
-      inodeList.add(null);
-    }
-    checkInodeList(user, groups, null, path.getPath(), inodeList, true);
+    checkInodeList(user, groups, null, inodePath.getUri().getPath(), inodeList, true);
   }
 
   /**
