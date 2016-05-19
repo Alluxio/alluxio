@@ -18,7 +18,7 @@ echo "Formatting Alluxio Worker"
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  alluxio.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
+  alluxio.cli.Format WORKER > "${YARN_LOG_DIR}"/worker.out 2>&1
 
 echo "Starting Alluxio Worker"
 
@@ -27,5 +27,5 @@ echo "Starting Alluxio Worker"
   -Dalluxio.home="${ALLUXIO_HOME}" \
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
-  -Dalluxio.master.hostname="${ALLUXIO_MASTER_ADDRESS}" \
+  -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
   alluxio.worker.AlluxioWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1

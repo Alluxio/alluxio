@@ -26,6 +26,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ProtoBufJournalFormatter implements JournalFormatter {
+
+  /**
+   * Constructs a new {@link ProtoBufJournalFormatter}.
+   */
+  public ProtoBufJournalFormatter() {}
+
   @Override
   public void serialize(JournalEntry entry, OutputStream outputStream) throws IOException {
     entry.writeDelimitedTo(outputStream);

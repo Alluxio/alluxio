@@ -539,7 +539,7 @@
             <exclude>**/logs/*</exclude>
             <exclude>**/deploy/**/*</exclude>
             <exclude>**/bin/*</exclude>
-            <exclude>**/conf/*</exclude>
+            <exclude>**/conf/**/*</exclude>
             <exclude>**/conf/testsuite/*</exclude>
             <exclude>**/libexec/*</exclude>
             <exclude>**/src/main/findbugs/*</exclude>

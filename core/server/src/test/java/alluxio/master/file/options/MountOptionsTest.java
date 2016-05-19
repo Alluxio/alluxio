@@ -116,7 +116,7 @@ public class MountOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(MountOptions.class, "mOperationTimeMs");
   }
 }

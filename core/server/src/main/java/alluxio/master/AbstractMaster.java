@@ -12,6 +12,8 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.exception.PreconditionMessage;
+import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalInputStream;
 import alluxio.master.journal.JournalOutputStream;
@@ -60,6 +62,8 @@ public abstract class AbstractMaster implements Master {
   private JournalTailerThread mStandbyJournalTailer = null;
   /** The journal writer for when the master is the leader. */
   private JournalWriter mJournalWriter = null;
+  /** The {@link AsyncJournalWriter} for async journal writes. */
+  private AsyncJournalWriter mAsyncJournalWriter = null;
 
   /**
    * @param journal the journal to use for tracking master operations
@@ -148,6 +152,8 @@ public abstract class AbstractMaster implements Master {
           mJournalWriter.getCheckpointOutputStream(latestSequenceNumber);
       streamToJournalCheckpoint(checkpointStream);
       checkpointStream.close();
+
+      mAsyncJournalWriter = new AsyncJournalWriter(mJournalWriter);
     } else {
       // This master is in standby mode. Start the journal tailer thread. Since the master is in
       // standby mode, its RPC server is NOT serving. Therefore, the only thread modifying the
@@ -214,6 +220,30 @@ public abstract class AbstractMaster implements Master {
     Preconditions.checkNotNull(mJournalWriter, "Cannot flush journal: journal writer is null.");
     try {
       mJournalWriter.getEntryOutputStream().flush();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  protected long appendJournalEntry(JournalEntry entry) {
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
+    return mAsyncJournalWriter.appendEntry(entry);
+  }
+
+  /**
+   * Waits for the flush counter to be flushed to the journal. If the counter is
+   * {@link AsyncJournalWriter#INVALID_FLUSH_COUNTER}, this is a noop.
+   *
+   * @param counter the flush counter
+   */
+  protected void waitForJournalFlush(long counter) {
+    if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+      // Check this before the precondition.
+      return;
+    }
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
+    try {
+      mAsyncJournalWriter.flush(counter);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

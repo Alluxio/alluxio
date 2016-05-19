@@ -607,7 +607,7 @@ public final class TieredBlockStore implements BlockStore {
     try {
       TempBlockMeta tempBlockMeta = mMetaManager.getTempBlockMeta(blockId);
       if (tempBlockMeta.getParentDir().getAvailableBytes() < additionalBytes) {
-        return new Pair<Boolean, BlockStoreLocation>(false, tempBlockMeta.getBlockLocation());
+        return new Pair<>(false, tempBlockMeta.getBlockLocation());
       }
       // Increase the size of this temp block
       try {
@@ -616,7 +616,7 @@ public final class TieredBlockStore implements BlockStore {
       } catch (InvalidWorkerStateException e) {
         throw Throwables.propagate(e); // we shall never reach here
       }
-      return new Pair<Boolean, BlockStoreLocation>(true, null);
+      return new Pair<>(true, null);
     } finally {
       mMetadataWriteLock.unlock();
     }
@@ -666,8 +666,7 @@ public final class TieredBlockStore implements BlockStore {
     }
     // 2. transfer blocks among tiers.
     // 2.1. group blocks move plan by the destination tier.
-    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier =
-        new HashMap<String, Set<BlockTransferInfo>>();
+    Map<String, Set<BlockTransferInfo>> blocksGroupedByDestTier = new HashMap<>();
     for (BlockTransferInfo entry : plan.toMove()) {
       String alias = entry.getDstLocation().tierAlias();
       if (!blocksGroupedByDestTier.containsKey(alias)) {
@@ -680,7 +679,7 @@ public final class TieredBlockStore implements BlockStore {
       Set<BlockTransferInfo> toMove =
           blocksGroupedByDestTier.get(mStorageTierAssoc.getAlias(tierOrdinal));
       if (toMove == null) {
-        toMove = new HashSet<BlockTransferInfo>();
+        toMove = new HashSet<>();
       }
       for (BlockTransferInfo entry : toMove) {
         long blockId = entry.getBlockId();

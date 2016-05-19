@@ -30,6 +30,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.SessionCleaner;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -74,7 +76,7 @@ public final class BlockWorker extends AbstractWorker {
   private PinListSync mPinListSync;
 
   /** Runnable responsible for clean up potential zombie sessions. */
-  private SessionCleaner mSessionCleanerThread;
+  private SessionCleaner mSessionCleaner;
 
   /** Logic for handling RPC requests. */
   private final BlockWorkerClientServiceHandler mServiceHandler;
@@ -180,7 +182,7 @@ public final class BlockWorker extends AbstractWorker {
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(this);
+    setupSessionCleaner();
 
     // Setup space reserver
     if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
@@ -197,7 +199,7 @@ public final class BlockWorker extends AbstractWorker {
             WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleanerThread);
+    getExecutorService().submit(mSessionCleaner);
 
     // Start the space reserver
     if (mSpaceReserver != null) {
@@ -212,7 +214,7 @@ public final class BlockWorker extends AbstractWorker {
    */
   @Override
   public void stop() throws IOException {
-    mSessionCleanerThread.stop();
+    mSessionCleaner.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
       mSpaceReserver.stop();
@@ -251,17 +253,6 @@ public final class BlockWorker extends AbstractWorker {
   }
 
   /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
-   */
-  public void cleanupSessions() {
-    for (long session : mSessions.getTimedOutSessions()) {
-      mSessions.removeSession(session);
-      mBlockStore.cleanupSession(session);
-    }
-  }
-
-  /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
    * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
@@ -290,9 +281,7 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException e) {
+    } catch (IOException | ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
@@ -599,6 +588,24 @@ public final class BlockWorker extends AbstractWorker {
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {
     mSessions.sessionHeartbeat(sessionId);
     mMetricsReporter.updateClientMetrics(metrics);
+  }
+
+  /**
+   * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
+   */
+  private void setupSessionCleaner() {
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding local resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mBlockStore.cleanupSession(session);
+        }
+      }
+    });
   }
 
   /**

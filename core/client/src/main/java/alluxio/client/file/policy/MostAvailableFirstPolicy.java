@@ -28,6 +28,11 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
+  /**
+   * Constructs a new {@link MostAvailableFirstPolicy}.
+   */
+  public MostAvailableFirstPolicy() {}
+
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
@@ -45,13 +50,7 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof MostAvailableFirstPolicy)) {
-      return false;
-    }
-    return true;
+    return this == o || o instanceof MostAvailableFirstPolicy;
   }
 
   @Override

@@ -35,6 +35,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /**
+   * Constructs a new {@link S3UnderFileSystemFactory}.
+   */
+  public S3UnderFileSystemFactory() {}
+
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
     Preconditions.checkNotNull(path);

@@ -21,17 +21,20 @@ import alluxio.security.LoginUser;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -320,7 +323,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public Configuration newTestConf() throws IOException {
-    Configuration testConf = new Configuration();
+    Configuration testConf = Configuration.createDefaultConf();
     setAlluxioHome();
     setHostname();
 
@@ -394,6 +397,12 @@ public abstract class AbstractLocalAlluxioCluster {
       testConf.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
               Joiner.on(',').join(newPaths));
     }
+
+    // For some test profiles, default properties get overwritten by system properties (e.g., s3
+    // credentials for s3Test).
+    // TODO(binfan): have one dedicated property (e.g., alluxio.test.properties) to carry on all the
+    // properties we want to overwrite in tests, rather than simply merging all system properties.
+    testConf.merge(System.getProperties());
     return testConf;
   }
 
@@ -455,13 +464,41 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Sets alluxio home.
+   * Creates a temporary directory and assigns it to mHome.
+   *
+   * Also registers a shutdown hook to delete the created directory and cleans up any such
+   * pre-existing directories.
    *
    * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() throws IOException {
-    mHome =
-        File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
+    Preconditions.checkState(mHome == null);
+    // Delete folders leftover from previous runs.
+    String homePrefix = "Alluxio-Test-Cluster-Home";
+    removeTemporaryFilesWithPrefix(homePrefix);
+    mHome = File.createTempFile(homePrefix, "").getAbsolutePath();
+
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+      public void run() {
+        try {
+          FileUtils.deletePathRecursively(mHome);
+        } catch (IOException e) {
+          // This was probably removed by another test's cleanup.
+        }
+      }
+    }));
   }
 
+  private void removeTemporaryFilesWithPrefix(final String prefix) throws IOException {
+    String tmpDir = System.getProperty("java.io.tmpdir");
+    File[] toDelete = new File(tmpDir).listFiles(new FilenameFilter() {
+      @Override
+      public boolean accept(File dir, String name) {
+        return name.startsWith(prefix);
+      }
+    });
+    for (File file : toDelete) {
+      FileUtils.deletePathRecursively(file.getAbsolutePath());
+    }
+  }
 }

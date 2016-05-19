@@ -62,7 +62,7 @@ public class ServiceSocketBindIntegrationTest {
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
     mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getMasterHostname(),
+        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
             mLocalAlluxioCluster.getMasterPort()), mMasterConfiguration);
     mBlockMasterClient.connect();
 
