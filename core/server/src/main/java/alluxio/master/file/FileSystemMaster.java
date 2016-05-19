@@ -344,8 +344,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
-    mInodeTree.streamToJournalCheckpoint(outputStream);
     mMountTable.streamToJournalCheckpoint(outputStream);
+    mInodeTree.streamToJournalCheckpoint(outputStream);
     outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
@@ -1964,7 +1964,7 @@ public final class FileSystemMaster extends AbstractMaster {
           ExceptionMessage.MOUNT_POINT_ALREADY_EXISTS.getMessage(inodePath.getUri()));
     }
 
-    mountInternal(inodePath, ufsPath, options);
+    mountInternal(inodePath, ufsPath, false /* not replayed */, options);
     boolean loadMetadataSuceeded = false;
     try {
       // This will create the directory at alluxioPath
@@ -2010,7 +2010,7 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI ufsURI = new AlluxioURI(entry.getUfsPath());
     try (LockedInodePath inodePath = mInodeTree
         .lockInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      mountInternal(inodePath, ufsURI, new MountOptions(entry));
+      mountInternal(inodePath, ufsURI, true /* replayed */, new MountOptions(entry));
     }
   }
 
@@ -2020,43 +2020,45 @@ public final class FileSystemMaster extends AbstractMaster {
    *
    * @param inodePath the Alluxio mount point
    * @param ufsPath the UFS endpoint to mount
+   * @param replayed whether the operation is a result of replaying the journal
    * @param options the mount options (may be updated)
    * @throws FileAlreadyExistsException if the mount point already exists
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O exception occurs
    */
-  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, MountOptions options)
+  private void mountInternal(LockedInodePath inodePath, AlluxioURI ufsPath, boolean replayed,
+      MountOptions options)
       throws FileAlreadyExistsException, InvalidPathException, IOException {
     AlluxioURI alluxioPath = inodePath.getUri();
-    // Check that the ufsPath exists and is a directory
-    UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
-    ufs.setProperties(options.getProperties());
-    if (!ufs.exists(ufsPath.toString())) {
-      throw new IOException(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
-    }
-    if (ufs.isFile(ufsPath.toString())) {
-      throw new IOException(ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
-    }
-    // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-    String defaultUfsPath = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-    UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath, MasterContext.getConf());
-    if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
-      throw new IOException(
-          ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
-    }
-    // This should check that we are not mounting a prefix of an existing mount, and that no
-    // existing mount is a prefix of this mount.
-    mMountTable.add(alluxioPath, ufsPath, options);
 
-    try {
+    if (!replayed) {
+      // Check that the ufsPath exists and is a directory
+      UnderFileSystem ufs = UnderFileSystem.get(ufsPath.toString(), MasterContext.getConf());
+      ufs.setProperties(options.getProperties());
+      if (!ufs.exists(ufsPath.toString())) {
+        throw new IOException(
+            ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(ufsPath.getPath()));
+      }
+      if (ufs.isFile(ufsPath.toString())) {
+        throw new IOException(
+            ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
+      }
+      // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
+      String defaultUfsPath = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
+      UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath, MasterContext.getConf());
+      if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
+        throw new IOException(
+            ExceptionMessage.MOUNT_PATH_SHADOWS_DEFAULT_UFS.getMessage(alluxioPath));
+      }
+
       // Configure the ufs properties, and update the mount options with the configured properties.
       ufs.configureProperties();
       options.setProperties(ufs.getProperties());
-    } catch (IOException e) {
-      // remove the mount point if the UFS failed to configure properties.
-      mMountTable.delete(alluxioPath);
-      throw e;
     }
+
+    // Add the mount point. This will only succeed if we are not mounting a prefix of an existing
+    // mount and no existing mount is a prefix of this mount.
+    mMountTable.add(alluxioPath, ufsPath, options);
   }
 
   /**
