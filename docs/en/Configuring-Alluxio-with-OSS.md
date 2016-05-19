@@ -12,7 +12,12 @@ This guide describes how to configure Alluxio with [Aliyun OSS](http://www.aliyu
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines.You can either [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
-Then if you haven't already done so, create your configuration file from the template:
+Then, if you haven't already done so, create your configuration file with `bootstrap-conf` command.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-OSS/bootstrap-conf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
