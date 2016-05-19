@@ -11,6 +11,8 @@
 
 package alluxio.heartbeat;
 
+import alluxio.util.CommonUtils;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,8 +21,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
-
-import alluxio.util.CommonUtils;
 
 /**
  * Unit tests for {@link SleepingTimer}. It tests three scenarios listed below:
@@ -45,13 +45,13 @@ public final class SleepingTimerTest {
 
     Logger logger = Mockito.mock(Logger.class);
     Whitebox.setInternalState(SleepingTimer.class, "LOG", logger);
-    
+
     stimer.tick();
     CommonUtils.sleepMs(5 * INTERVAL_MS);
     stimer.tick();
 
-    Mockito.verify(logger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
-        Mockito.anyLong());
+    Mockito.verify(logger)
+        .warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong());
   }
 
   /**
