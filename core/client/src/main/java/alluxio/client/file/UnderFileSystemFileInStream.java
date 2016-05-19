@@ -173,6 +173,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * @return the number of bytes successfully read, -1 if at EOF before reading
    * @throws IOException if an error occurs reading the data
    */
+  // TODO(calvin): This may be better implemented with a Bytebuffer instead of byte array parameter
   private int directRead(byte[] b, int off, int len) throws IOException {
     int bytesLeft = len;
     int bytesRead = 0;
