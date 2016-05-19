@@ -15,14 +15,14 @@ First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
-Then, if you haven't already done so, create your configuration file from the template:
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+Then, if you haven't already done so, create your configuration file with `bootstrap-conf` command.
 For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
 
 {% include Configuring-Alluxio-with-GlusterFS/bootstrap-conf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
+
+{% include Common-Commands/copy-alluxio-env.md %}
 
 # Configuring Alluxio
 

@@ -12,14 +12,14 @@ This guide describes how to configure Alluxio with [Aliyun OSS](http://www.aliyu
 
 To run an Alluxio cluster on a set of machines, you must deploy Alluxio binaries to each of these machines.You can either [compile the binaries from Alluxio source code](http://alluxio.org/documentation/master/Building-Alluxio-Master-Branch.html), or [download the precompiled binaries directly](http://alluxio.org/documentation/master/Running-Alluxio-Locally.html).
 
-Then if you haven't already done so, create your configuration file from the template:
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+Then, if you haven't already done so, create your configuration file with `bootstrap-conf` command.
 For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
 
 {% include Configuring-Alluxio-with-OSS/bootstrap-conf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
+
+{% include Common-Commands/copy-alluxio-env.md %}
 
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an oss endpoint to specify which range your bucket is on. The endpoint here is called OSS_ENDPOINT, and to learn more about the endpoints for special range you can see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). For more information about OSS Bucket, Please see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
