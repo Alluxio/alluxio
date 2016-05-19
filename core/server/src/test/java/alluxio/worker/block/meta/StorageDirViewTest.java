@@ -42,7 +42,6 @@ public class StorageDirViewTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private StorageDir mTestDir;
   private StorageDirView mTestDirView;
-  private StorageTier mTestTier;
   private StorageTierView mTestTierView;
   private BlockMetadataManagerView mMetaManagerView;
 
@@ -63,9 +62,9 @@ public class StorageDirViewTest {
     mMetaManagerView =
         Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
           new HashSet<Long>()));
-    mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestDir = mTestTier.getDir(TEST_DIR);
-    mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);
+    StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
+    mTestDir = testTier.getDir(TEST_DIR);
+    mTestTierView = new StorageTierView(testTier, mMetaManagerView);
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
   }
 
