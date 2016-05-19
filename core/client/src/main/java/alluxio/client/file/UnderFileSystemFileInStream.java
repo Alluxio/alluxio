@@ -157,23 +157,6 @@ public final class UnderFileSystemFileInStream extends InputStream {
   }
 
   /**
-   * Reads from the data source into the buffer. The buffer's position will be at 0 and have an
-   * appropriate limit set.
-   *
-   * @param len length of data to fill in the buffer, must always be <= buffer size
-   * @throws IOException if the read failed to buffer the requested number of bytes
-   */
-  private void bufferedRead(int len) throws IOException {
-    mBuffer.clear();
-    int bytesRead = directRead(mBuffer.array(), 0, len);
-    if (bytesRead != -1) {
-      mBuffer.limit(bytesRead);
-    } else {
-      mEOF = true;
-    }
-  }
-
-  /**
    * Convenience method to ensure the stream is not closed.
    */
   private void checkIfClosed() {
@@ -221,7 +204,13 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * @throws IOException if an error occurs reading the data
    */
   private void updateBuffer() throws IOException {
-    bufferedRead(mBuffer.capacity());
-    mIsBufferValid = true;
+    mBuffer.clear();
+    int bytesRead = directRead(mBuffer.array(), 0, mBuffer.capacity());
+    if (bytesRead != -1) {
+      mBuffer.limit(bytesRead);
+      mIsBufferValid = true;
+    } else {
+      mEOF = true;
+    }
   }
 }
