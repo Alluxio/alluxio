@@ -20,13 +20,21 @@ import alluxio.exception.InvalidPathException;
 import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
+import alluxio.master.journal.JournalCheckpointStreamable;
+import alluxio.master.journal.JournalOutputStream;
+import alluxio.proto.journal.File;
+import alluxio.proto.journal.File.AddMountPointEntry;
+import alluxio.proto.journal.Journal;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -38,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class is used for keeping track of Alluxio mount points.
  */
 @ThreadSafe
-public final class MountTable {
+public final class MountTable implements JournalCheckpointStreamable {
   public static final String ROOT = "/";
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -60,6 +68,30 @@ public final class MountTable {
     mLock = new ReentrantReadWriteLock();
     mReadLock = mLock.readLock();
     mWriteLock = mLock.writeLock();
+  }
+
+  @Override
+  public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
+    for (Map.Entry<String, MountInfo> entry : mMountTable.entrySet()) {
+      String alluxioPath = entry.getKey();
+      MountInfo info = entry.getValue();
+
+      Map<String, String> properties = info.getOptions().getProperties();
+      List<File.StringPairEntry> protoProperties = new ArrayList<>(properties.size());
+      for (Map.Entry<String, String> property : properties.entrySet()) {
+        protoProperties.add(File.StringPairEntry.newBuilder()
+            .setKey(property.getKey())
+            .setValue(property.getValue())
+            .build());
+      }
+
+      AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
+          .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
+          .addAllProperties(protoProperties).build();
+      Journal.JournalEntry journalEntry =
+          Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
+      outputStream.writeEntry(journalEntry);
+    }
   }
 
   /**
