@@ -112,6 +112,10 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("s3service.disable-dns-buckets",
           conf.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
+    if (conf.containsKey(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION)) {
+      props.setProperty("s3service.server-side-encryption",
+          conf.get(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION));
+    }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
