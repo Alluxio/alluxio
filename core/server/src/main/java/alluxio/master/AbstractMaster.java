@@ -237,10 +237,11 @@ public abstract class AbstractMaster implements Master {
    * @param counter the flush counter
    */
   protected void waitForJournalFlush(long counter) {
-    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     if (counter == AsyncJournalWriter.INVALID_FLUSH_COUNTER) {
+      // Check this before the precondition.
       return;
     }
+    Preconditions.checkNotNull(mAsyncJournalWriter, PreconditionMessage.ASYNC_JOURNAL_WRITER_NULL);
     try {
       mAsyncJournalWriter.flush(counter);
     } catch (IOException e) {
