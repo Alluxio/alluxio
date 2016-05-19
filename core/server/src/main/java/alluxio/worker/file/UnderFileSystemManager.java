@@ -250,7 +250,7 @@ public final class UnderFileSystemManager {
             ufs.setOwner(mUri, user, group);
           } catch (Exception e) {
             LOG.warn("Failed to update the ufs user, Alluxio system defaults will be used. Error: "
-                + e.getMessage());
+                + e);
           }
         }
       } else {
