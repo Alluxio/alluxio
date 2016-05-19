@@ -77,9 +77,9 @@ public class UnderFileSystemDataServerHandler {
     // TODO(calvin): This can be more efficient for sequential reads if we keep state
     try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
       int read = in.read(data);
+      DataBuffer buf = read != -1 ? new DataByteBuffer(ByteBuffer.wrap(data, 0, read), read) : null;
       RPCFileReadResponse resp =
-          new RPCFileReadResponse(ufsFileId, offset, read, new DataByteBuffer(
-              ByteBuffer.wrap(data), read), RPCResponse.Status.SUCCESS);
+          new RPCFileReadResponse(ufsFileId, offset, read, buf, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
@@ -111,7 +111,7 @@ public class UnderFileSystemDataServerHandler {
     try {
       OutputStream out = mWorker.getUfsOutputStream(ufsFileId);
       // This channel will not be closed because the underlying stream should not be closed, the
-      // channel will be cleaned up when the underyling stream is closed.
+      // channel will be cleaned up when the underlying stream is closed.
       WritableByteChannel channel = Channels.newChannel(out);
       channel.write(data.getReadOnlyByteBuffer());
       RPCFileWriteResponse resp =

@@ -86,16 +86,15 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
         case RPC_FILE_READ_RESPONSE:
           RPCFileReadResponse resp = (RPCFileReadResponse) response;
           LOG.debug("Data for ufs file id {} from machine {} received", ufsFileId, address);
-
           RPCResponse.Status status = resp.getStatus();
           if (status == RPCResponse.Status.SUCCESS) {
             // always clear the previous response before reading another one
             cleanup();
-            mReadResponse = resp;
             // End of file reached
             if (resp.getLength() == -1) {
               return null;
             }
+            mReadResponse = resp;
             return resp.getPayloadDataBuffer().getReadOnlyByteBuffer();
           }
           throw new IOException(status.getMessage() + " response: " + resp);
