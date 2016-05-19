@@ -11,6 +11,8 @@
 
 package alluxio.heartbeat;
 
+import alluxio.resource.LockResource;
+
 import com.google.common.base.Preconditions;
 
 import java.util.concurrent.locks.Condition;
@@ -64,13 +66,10 @@ public final class ScheduledTimer implements HeartbeatTimer {
    * Schedules execution of the heartbeat.
    */
   protected void schedule() {
-    mLock.lock();
-    try {
+    try (LockResource r = new LockResource(mLock)) {
       Preconditions.checkState(!mScheduled, "Called schedule twice without waiting for any ticks");
       mScheduled = true;
       mCondition.signal();
-    } finally {
-      mLock.unlock();
     }
   }
 
@@ -80,16 +79,13 @@ public final class ScheduledTimer implements HeartbeatTimer {
    * @throws InterruptedException if the thread is interrupted while waiting
    */
   public void tick() throws InterruptedException {
-    mLock.lock();
-    try {
+    try (LockResource r = new LockResource(mLock)) {
       HeartbeatScheduler.addTimer(this);
       // Wait in a loop to handle spurious wakeups
       while (!mScheduled) {
         mCondition.await();
       }
       mScheduled = false;
-    } finally {
-      mLock.unlock();
     }
   }
 }
