@@ -140,7 +140,7 @@ public final class NetworkAddressUtils {
     /**
      * Gets the key of bind hostname.
      *
-     * @return key of bindhostname
+     * @return key of bind hostname
      */
     public String getBindHostKey() {
       return mBindHostKey;
@@ -451,7 +451,7 @@ public final class NetworkAddressUtils {
       return null;
     }
 
-    if (path.hasAuthority() && path.getPort() != -1) {
+    if (path.hasAuthority()) {
       String authority = resolveHostName(path.getHost());
       if (path.getPort() != -1) {
         authority += ":" + path.getPort();

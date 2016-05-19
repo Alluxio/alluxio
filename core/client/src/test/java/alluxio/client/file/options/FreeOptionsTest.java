@@ -47,7 +47,7 @@ public class FreeOptionsTest {
   }
 
   @Test
-  public void testEquals() throws Exception {
+  public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(FreeOptions.class);
   }
 }

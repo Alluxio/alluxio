@@ -21,6 +21,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class PreconditionMessage {
 
+  public static final String ASYNC_JOURNAL_WRITER_NULL = "AsyncJournalWriter cannot be null";
   public static final String CANNOT_READ_FOLDER = "Cannot read from a folder";
   public static final String CLIENT_CONTEXT_NOT_INITIALIZED = "Client Context not initialized";
   public static final String COMMAND_LINE_LINEAGE_ONLY =
@@ -35,6 +36,8 @@ public final class PreconditionMessage {
       "Cannot do operations on a closed BlockInStream";
   public static final String ERR_CLOSED_BLOCK_OUT_STREAM =
       "Cannot do operations on a closed BlockOutStream";
+  public static final String ERR_CLOSED_UNDER_FILE_SYSTEM_FILE_OUT_STREAM =
+      "Cannot do operations on a closed UnderFileSystemFileOutStraem";
   public static final String ERR_END_OF_BLOCK = "Cannot write past end of block";
   public static final String ERR_READ_BUFFER_NULL = "Read buffer cannot be null";
   public static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
@@ -76,6 +79,13 @@ public final class PreconditionMessage {
   public static final String ERR_PUT_EMPTY_VALUE = "Cannot put an empty buffer as a value";
   public static final String ERR_PUT_NULL_KEY = "Cannot put a null key";
   public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
+  public static final String ERR_UNEXPECTED_EOF = "Reached EOF unepxectedly.";
+
+  // UnderFileSystemManager
+  public static final String ERR_UFS_MANAGER_OPERATION_INVALID_SESSION =
+      "Attempted to %s ufs file with invalid session id.";
+  public static final String ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT =
+      "Failed to remove agent %s from ufs manager's internal state.";
 
   private PreconditionMessage() {} // to prevent initialization
 }

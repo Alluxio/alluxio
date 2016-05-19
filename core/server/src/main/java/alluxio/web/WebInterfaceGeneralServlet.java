@@ -13,8 +13,8 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.StorageTierAssoc;
-import alluxio.Version;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.MasterContext;
 import alluxio.underfs.UnderFileSystem;
@@ -177,7 +177,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
 
     request.setAttribute("startTime", WebUtils.convertMsToDate(mMaster.getStartTimeMs()));
 
-    request.setAttribute("version", Version.VERSION);
+    request.setAttribute("version", RuntimeConstants.VERSION);
 
     request.setAttribute("liveWorkerNodes",
         Integer.toString(mMaster.getBlockMaster().getWorkerCount()));
@@ -193,7 +193,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
             FormatUtils.getSizeFromBytes(mMaster.getBlockMaster().getCapacityBytes()
                 - mMaster.getBlockMaster().getUsedBytes()));
 
-    Configuration conf = new Configuration();
+    Configuration conf = Configuration.createServerConf();
     String ufsRoot = conf.get(Constants.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, conf);
 

@@ -67,6 +67,7 @@ public enum ExceptionMessage {
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
   WRITER_ALREADY_OPEN("This writer is already open for address: {0}, blockId: {1}, sessionId: {2}"),
+  UNDER_FILE_WRITE_ERROR("Error writing to under file system fileId: {0}, addr: {1}, msg: {3}"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
@@ -93,17 +94,24 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
+  DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
-  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
+  INODE_DOES_NOT_EXIST("Inode id {0} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0} does not exist; too many retries"),
+  NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
+  PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
+  PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
+  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
@@ -111,6 +119,10 @@ public enum ExceptionMessage {
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
+
+  // file system worker
+  BAD_WORKER_FILE_ID("Worker file id {0} is invalid. The worker may have crashed or cleaned up "
+      + "the client state due to a timeout."),
 
   // shell
   DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
@@ -135,7 +147,6 @@ public enum ExceptionMessage {
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Alluxio properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security

@@ -34,7 +34,6 @@ import alluxio.util.CommonUtils;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,15 +43,18 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Integration tests for the lineage module.
  */
-public final class LineageMasterIntegrationTest {
-  private static final int BLOCK_SIZE_BYTES = 128;
-  private static final long WORKER_CAPACITY_BYTES = Constants.GB;
-  private static final int BUFFER_BYTES = 100;
+public class LineageMasterIntegrationTest {
+  protected static final int BLOCK_SIZE_BYTES = 128;
+  protected static final long WORKER_CAPACITY_BYTES = Constants.GB;
+  protected static final int BUFFER_BYTES = 100;
+  protected static final String OUT_FILE = "/test";
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -67,9 +69,8 @@ public final class LineageMasterIntegrationTest {
       Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
       );
 
-  private static final String OUT_FILE = "/test";
-  private Configuration mTestConf;
-  private CommandLineJob mJob;
+  protected Configuration mTestConf;
+  protected CommandLineJob mJob;
 
   @Before
   public void before() throws Exception {
@@ -82,8 +83,9 @@ public final class LineageMasterIntegrationTest {
     LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
     try {
-      lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
-          mJob);
+      ArrayList<String> outFiles = new ArrayList<>();
+      Collections.addAll(outFiles, OUT_FILE);
+      lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
 
       List<LineageInfo> infos = lineageMasterClient.getLineageInfoList();
       Assert.assertEquals(1, infos.size());
@@ -101,8 +103,9 @@ public final class LineageMasterIntegrationTest {
     LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
     try {
-      lineageMasterClient.createLineage(Lists.<String>newArrayList(), Lists.newArrayList(OUT_FILE),
-          mJob);
+      ArrayList<String> outFiles = new ArrayList<>();
+      Collections.addAll(outFiles, OUT_FILE);
+      lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
 
       CreateFileOptions options =
           CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
@@ -182,10 +185,12 @@ public final class LineageMasterIntegrationTest {
     // input file paths
     AlluxioURI input1 = new AlluxioURI("/inputFile1");
     AlluxioURI input2 = new AlluxioURI("/inputFile2");
-    List<AlluxioURI> inputFiles = Lists.newArrayList(input1, input2);
+    ArrayList<AlluxioURI> inputFiles = new ArrayList<>();
+    Collections.addAll(inputFiles, input1, input2);
     // output file paths
     AlluxioURI output = new AlluxioURI("/outputFile");
-    List<AlluxioURI> outputFiles = Lists.newArrayList(output);
+    ArrayList<AlluxioURI> outputFiles = new ArrayList<>();
+    Collections.addAll(outputFiles, output);
     // command-line job
     JobConf conf = new JobConf("/tmp/recompute.log");
     CommandLineJob job = new CommandLineJob("my-spark-job.sh", conf);
@@ -202,12 +207,12 @@ public final class LineageMasterIntegrationTest {
     tl.deleteLineage(lineageId, options);
   }
 
-  private LineageMasterClient getLineageMasterClient() {
+  protected LineageMasterClient getLineageMasterClient() {
     return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
         mTestConf);
   }
 
-  private FileSystemMasterClient getFileSystemMasterClient() {
+  protected FileSystemMasterClient getFileSystemMasterClient() {
     return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
         mTestConf);
   }

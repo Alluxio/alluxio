@@ -19,6 +19,8 @@ alluxio.user.file.master.client.threads:
   The number of threads used by a file master client to talk to the file master.
 alluxio.user.file.waitcompleted.poll.ms:
   The time interval to poll a file for its completion status when using waitCompleted.
+alluxio.user.file.worker.client.threads:
+  How many threads to use for file worker clients to read from workers.
 alluxio.user.file.write.location.policy.class:
   The default location policy for choosing workers for writing a file's blocks
 alluxio.user.file.readtype.default:
@@ -33,6 +35,11 @@ alluxio.user.file.writetype.default:
   Valid options are `MUST_CACHE` (write will only go to Alluxio and must be stored in Alluxio),
   `CACHE_THROUGH` (try to cache, write to UnderFS synchronously), `THROUGH` (no cache, write to
   UnderFS synchronously).
+alluxio.user.file.cache.partially.read.block:
+  When read type is CACHE_PROMOTE or CACHE and this property is set to true, the entire block will be cached by Alluxio
+  space even if the client only reads a part of this block.
+alluxio.user.file.seek.buffer.size.bytes:
+  The file seek buffer size. This is only used when alluxio.user.file.cache.partially.read.block is enabled.
 alluxio.user.heartbeat.interval.ms:
   The interval (in milliseconds) between Alluxio worker's heartbeats
 alluxio.user.lineage.enabled:
@@ -44,3 +51,6 @@ alluxio.user.network.netty.timeout.ms:
   wait for a response from the data server.
 alluxio.user.network.netty.worker.threads:
   How many threads to use for remote block worker client to read from remote block workers.
+alluxio.user.ufs.operation.delegation:
+  Flag for delegating ufs data operations to the worker. Set this to false to use client to directly
+  communicate with the ufs. Setting this to true is currently experimental.

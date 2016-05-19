@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
 
@@ -28,38 +27,11 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UnderFileSystemCluster {
-  class ShutdownHook extends Thread {
-    UnderFileSystemCluster mUFSCluster = null;
-
-    public ShutdownHook(UnderFileSystemCluster ufsCluster) {
-      mUFSCluster = ufsCluster;
-    }
-
-    @Override
-    public void run() {
-      if (mUFSCluster != null) {
-        try {
-          mUFSCluster.shutdown();
-        } catch (IOException e) {
-          System.out.println("Failed to shutdown underfs cluster: " + e);
-        }
-      }
-    }
-  }
-
   private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
 
   private static String sUnderFSClass;
 
   private static UnderFileSystemCluster sUnderFSCluster = null;
-
-  /**
-   * @return the existing underfs, throwing IllegalStateException if it hasn't been initialized yet
-   */
-  public static synchronized UnderFileSystemCluster get() {
-    Preconditions.checkNotNull(sUnderFSCluster, "sUnderFSCluster has not been initialized yet");
-    return sUnderFSCluster;
-  }
 
   /**
    * Creates an underfs test bed and register the shutdown hook.
@@ -71,7 +43,10 @@ public abstract class UnderFileSystemCluster {
    */
   public static synchronized UnderFileSystemCluster get(String baseDir, Configuration configuration)
       throws IOException {
-    if (sUnderFSCluster == null) {
+    if (sUnderFSCluster == null || !baseDir.equals(sUnderFSCluster.mBaseDir)) {
+      if (sUnderFSCluster != null) {
+        sUnderFSCluster.shutdown();
+      }
       sUnderFSCluster = getUnderFilesystemCluster(baseDir, configuration);
     }
 
@@ -147,6 +122,25 @@ public abstract class UnderFileSystemCluster {
       UnderFileSystem ufs = UnderFileSystem.get(path, mConfiguration);
       for (String p : ufs.list(path)) {
         ufs.delete(PathUtils.concatPath(path, p), true);
+      }
+    }
+  }
+
+  private class ShutdownHook extends Thread {
+    UnderFileSystemCluster mUFSCluster = null;
+
+    public ShutdownHook(UnderFileSystemCluster ufsCluster) {
+      mUFSCluster = ufsCluster;
+    }
+
+    @Override
+    public void run() {
+      if (mUFSCluster != null) {
+        try {
+          mUFSCluster.shutdown();
+        } catch (IOException e) {
+          System.out.println("Failed to shutdown underfs cluster: " + e);
+        }
       }
     }
   }

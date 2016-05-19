@@ -26,6 +26,7 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.mockito.Mockito;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,7 +54,7 @@ public final class LineageStoreTest {
    */
   @Test
   public void createLineageTest() {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     long l3 = mLineageStore.createLineage(Lists.newArrayList(2L), Lists.newArrayList(3L), mJob);
     List<Lineage> lineages = mLineageStore.getAllInTopologicalOrder();
@@ -70,7 +71,7 @@ public final class LineageStoreTest {
    */
   @Test
   public void deleteLineageTest() throws Exception {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     // delete the root
     mLineageStore.deleteLineage(l1);
@@ -101,9 +102,9 @@ public final class LineageStoreTest {
    */
   @Test
   public void journalEntrySerializationTest() throws Exception {
-    long l1 = mLineageStore.createLineage(Lists.<Long>newArrayList(), Lists.newArrayList(1L), mJob);
-    long l2 =
-        mLineageStore.createLineage(Lists.<Long>newArrayList(1L), Lists.newArrayList(2L), mJob);
+    long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
+    long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L),
+        mJob);
 
     JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
     mLineageStore.streamToJournalCheckpoint(outputStream);

@@ -19,17 +19,31 @@ import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.ThreadSafe;
 
+/**
+ * A fixed pool of FileSystemMasterClient instances.
+ */
 @ThreadSafe
-final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
+public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
   /**
-   * Creates a new file stream master client pool.
+   * Creates a new file system master client pool.
    *
    * @param masterAddress the master address
    */
   public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
     super(ClientContext.getConf().getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS));
+    mMasterAddress = masterAddress;
+  }
+
+  /**
+   * Creates a new file system master client pool.
+   *
+   * @param masterAddress the master address
+   * @param clientThreads the number of client threads to use
+   */
+  public FileSystemMasterClientPool(InetSocketAddress masterAddress, int clientThreads) {
+    super(clientThreads);
     mMasterAddress = masterAddress;
   }
 

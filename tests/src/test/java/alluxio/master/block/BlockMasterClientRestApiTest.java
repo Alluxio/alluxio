@@ -12,15 +12,13 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.AlluxioMaster;
-import alluxio.rest.TestCaseFactory;
+import alluxio.rest.RestApiTest;
+import alluxio.rest.TestCase;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockInfoTest;
 
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -32,18 +30,15 @@ import org.powermock.reflect.Whitebox;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.HttpMethod;
+
 /**
  * Test cases for {@link BlockMasterClientRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(BlockMaster.class)
-@Ignore("ALLUXIO-1888")
-public class BlockMasterClientRestApiTest {
-  private static final Map<String, String> NO_PARAMS = new HashMap<>();
+public final class BlockMasterClientRestApiTest extends RestApiTest {
   private BlockMaster mBlockMaster;
-
-  @Rule
-  private LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   @Before
   public void before() throws Exception {
@@ -53,24 +48,21 @@ public class BlockMasterClientRestApiTest {
     BlockMaster blockMaster = Whitebox.getInternalState(alluxioMaster, "mBlockMaster");
     blockMaster.stop();
     Whitebox.setInternalState(alluxioMaster, "mBlockMaster", mBlockMaster);
-  }
-
-  private String getEndpoint(String suffix) {
-    return BlockMasterClientRestServiceHandler.SERVICE_PREFIX + "/" + suffix;
+    mHostname = mResource.get().getHostname();
+    mPort = mResource.get().getMaster().getWebLocalPort();
+    mServicePrefix = BlockMasterClientRestServiceHandler.SERVICE_PREFIX;
   }
 
   @Test
   public void serviceNameTest() throws Exception {
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME), NO_PARAMS,
-            "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME),
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
   public void serviceVersionTest() throws Exception {
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
-            NO_PARAMS, "GET", Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
+        NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
@@ -81,9 +73,8 @@ public class BlockMasterClientRestApiTest {
     BlockInfo blockInfo = BlockInfoTest.createRandom();
     Mockito.doReturn(blockInfo).when(mBlockMaster).getBlockInfo(Mockito.anyLong());
 
-    TestCaseFactory
-        .newMasterTestCase(getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO), params,
-            "GET", blockInfo, mResource).run();
+    new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.GET_BLOCK_INFO),
+        params, HttpMethod.GET, blockInfo).run();
 
     Mockito.verify(mBlockMaster).getBlockInfo(Mockito.anyLong());
   }

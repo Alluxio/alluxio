@@ -45,13 +45,35 @@ get_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 }
 
+# The exit status is 0 if ALLUXIO_RAM_FOLDER is mounted as tmpfs or ramfs.
+is_ram_folder_mounted() {
+  if [[ -z ${ALLUXIO_RAM_FOLDER} ]]; then
+    return 1
+  fi
+  local mounted_fs=""
+  if [[ $(uname -s) == Darwin ]]; then
+    mounted_fs=$(mount -t "hfs" | grep '/Volumes/' | cut -d " " -f 3)
+  else
+    mounted_fs=$(mount -t "tmpfs,ramfs" | cut -d " " -f 3)
+  fi
+
+  for fs in ${mounted_fs}; do
+    if [[ "${ALLUXIO_RAM_FOLDER}" == "${fs}" || \
+     "${ALLUXIO_RAM_FOLDER}" =~ ^"${fs}"\/.* ]]; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
 check_mount_mode() {
   case "$1" in
     Mount);;
     SudoMount);;
     NoMount)
-      mount | grep "${ALLUXIO_RAM_FOLDER}" > /dev/null
-      if [[ $? -ne 0 || -z ${ALLUXIO_RAM_FOLDER} ]]; then
+      is_ram_folder_mounted
+      if [[ $? -ne 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
           echo "ERROR: NoMount is not supported on Mac OS X."
@@ -103,8 +125,8 @@ stop() {
 
 
 start_master() {
-  MASTER_ADDRESS=${ALLUXIO_MASTER_ADDRESS}
-  if [[ -z ${ALLUXIO_MASTER_ADDRESS} ]]; then
+  MASTER_ADDRESS=${ALLUXIO_MASTER_HOSTNAME}
+  if [[ -z ${ALLUXIO_MASTER_HOSTNAME} ]]; then
     MASTER_ADDRESS=localhost
   fi
 
@@ -254,7 +276,7 @@ main() {
       ;;
     workers)
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" "worker" "${MOPT}" \
-       "${ALLUXIO_MASTER_ADDRESS}"
+       "${ALLUXIO_MASTER_HOSTNAME}"
       ;;
     restart_worker)
       restart_worker

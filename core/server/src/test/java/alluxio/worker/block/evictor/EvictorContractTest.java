@@ -58,15 +58,15 @@ public final class EvictorContractTest extends EvictorTestBase {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // Run this test against all types of Evictors
-    List<Object[]> list = new ArrayList<Object[]>();
+    List<Object[]> list = new ArrayList<>();
     try {
       String packageName = Reflection.getPackageName(Evictor.class);
       ClassPath path = ClassPath.from(Thread.currentThread().getContextClassLoader());
       List<ClassPath.ClassInfo> clazzInPackage =
-          new ArrayList<ClassPath.ClassInfo>(path.getTopLevelClassesRecursive(packageName));
+          new ArrayList<>(path.getTopLevelClassesRecursive(packageName));
       for (ClassPath.ClassInfo clazz : clazzInPackage) {
         Set<Class<?>> interfaces =
-            new HashSet<Class<?>>(Arrays.asList(clazz.load().getInterfaces()));
+            new HashSet<>(Arrays.asList(clazz.load().getInterfaces()));
         if (!Modifier.isAbstract(clazz.load().getModifiers()) && interfaces.size() > 0
             && interfaces.contains(Evictor.class)) {
           list.add(new Object[] {clazz.getName()});

@@ -52,7 +52,7 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
-  public static final int SECOND_NANO = 1000000000;
+  public static final long SECOND_NANO = 1000000000L;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
@@ -77,6 +77,8 @@ public final class Constants {
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
 
+  public static final int MAX_PORT = 65535;
+
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
   public static final int DEFAULT_WORKER_PORT = 29998;
@@ -91,6 +93,7 @@ public final class Constants {
   public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
@@ -109,6 +112,7 @@ public final class Constants {
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
+  public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
@@ -117,11 +121,7 @@ public final class Constants {
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
-
-  // This constant is being used only in Hadoop MR job submissions where client need to pass site
-  // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
-
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
@@ -162,6 +162,8 @@ public final class Constants {
   public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "alluxio.zookeeper.leader.inquiry.retry";
+  public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+      "alluxio.network.thrift.frame.size.bytes.max";
   public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
   public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "alluxio.keyvalue.partition.size.bytes.max";
@@ -199,6 +201,8 @@ public final class Constants {
       "alluxio.integration.worker.resource.mem";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
+  public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
+      "alluxio.master.journal.flush.batch.time.ms";
   public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
   public static final String MASTER_JOURNAL_FORMATTER_CLASS =
       "alluxio.master.journal.formatter.class";
@@ -351,6 +355,10 @@ public final class Constants {
   public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
   public static final String USER_FILE_WRITE_LOCATION_POLICY =
       "alluxio.user.file.write.location.policy.class";
+  public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
@@ -359,14 +367,17 @@ public final class Constants {
       "alluxio.user.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "alluxio.user.block.master.client.threads";
+  public static final String USER_FILE_WORKER_CLIENT_THREADS =
+      "alluxio.user.file.worker.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "alluxio.user.file.master.client.threads";
   public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
       "alluxio.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
-
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "alluxio.user.file.waitcompleted.poll.ms";
+  public static final String USER_UFS_OPERATION_DELEGATION =
+      "alluxio.user.ufs.operation.delegation";
 
   /** alluxio-fuse related conf keys */
 

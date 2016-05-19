@@ -11,7 +11,7 @@
 
 package alluxio.web;
 
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
 import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
@@ -233,7 +233,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usageOnTiers", usageOnTiers);
 
-    request.setAttribute("version", Version.VERSION);
+    request.setAttribute("version", RuntimeConstants.VERSION);
 
     List<UIStorageDir> storageDirs =
         new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());

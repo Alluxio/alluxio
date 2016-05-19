@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCErrorResponse;
+import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
@@ -41,18 +43,23 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Handler for any block store requests. */
   private final BlockDataServerHandler mBlockHandler;
+  /** Handler for any file system requests. */
+  private final UnderFileSystemDataServerHandler mUnderFileSystemHandler;
 
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param worker the block worker handle
+   * @param worker the Alluxio worker handle
    * @param configuration Alluxio configuration
    */
   public DataServerHandler(final AlluxioWorker worker, Configuration configuration) {
     Preconditions.checkNotNull(worker);
     Preconditions.checkNotNull(configuration);
     mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
+    mUnderFileSystemHandler =
+        new UnderFileSystemDataServerHandler(worker.getFileSystemWorker(), configuration);
   }
 
   @Override
@@ -66,6 +73,14 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       case RPC_BLOCK_WRITE_REQUEST:
         assert msg instanceof RPCBlockWriteRequest;
         mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
+        break;
+      case RPC_FILE_READ_REQUEST:
+        assert msg instanceof RPCFileReadRequest;
+        mUnderFileSystemHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
+        break;
+      case RPC_FILE_WRITE_REQUEST:
+        assert msg instanceof RPCFileWriteRequest;
+        mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);
