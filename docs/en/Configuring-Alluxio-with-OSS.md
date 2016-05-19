@@ -16,6 +16,11 @@ Then if you haven't already done so, create your configuration file from the tem
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
+Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-OSS/bootstrap-conf.md %}
+
 Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an oss endpoint to specify which range your bucket is on. The endpoint here is called OSS_ENDPOINT, and to learn more about the endpoints for special range you can see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). For more information about OSS Bucket, Please see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
 
 ## Confugurating Alluxio
