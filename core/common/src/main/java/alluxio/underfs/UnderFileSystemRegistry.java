@@ -111,7 +111,7 @@ public final class UnderFileSystemRegistry {
       throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System
