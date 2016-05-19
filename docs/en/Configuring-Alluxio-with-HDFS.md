@@ -44,6 +44,11 @@ template:
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
+Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-HDFS/bootstrap-conf.md %}
+
 Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
 (e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
 
