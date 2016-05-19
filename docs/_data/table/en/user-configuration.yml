@@ -1,7 +1,9 @@
 alluxio.user.block.master.client.threads:
-  The number of threads used by a block master client to talk to the block master.
+  The number of threads used by a block master client pool to talk to the block master.
 alluxio.user.block.worker.client.threads:
-  How many threads to use for block worker client pool to read from a local block worker.
+  The number of threads used by a block worker client pool to talk to a remote block worker. It
+  determines the maximum number of Thrift connections between an Alluxio client and an Alluxio
+  worker.
 alluxio.user.block.remote.read.buffer.size.bytes:
   The size of the file buffer to read data from remote Alluxio worker.
 alluxio.user.block.remote.reader.class:
