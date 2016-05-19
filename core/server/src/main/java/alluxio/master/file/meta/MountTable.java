@@ -77,6 +77,11 @@ public final class MountTable implements JournalCheckpointStreamable {
       String alluxioPath = entry.getKey();
       MountInfo info = entry.getValue();
 
+      // do not journal the root mount point
+      if (alluxioPath.equals(ROOT)) {
+        continue;
+      }
+
       Map<String, String> properties = info.getOptions().getProperties();
       List<File.StringPairEntry> protoProperties = new ArrayList<>(properties.size());
       for (Map.Entry<String, String> property : properties.entrySet()) {
