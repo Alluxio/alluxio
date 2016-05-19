@@ -164,7 +164,10 @@ public final class UnderFileSystemFileInStream extends InputStream {
   private void bufferedRead(int len) throws IOException {
     mBuffer.clear();
     int bytesRead = directRead(mBuffer.array(), 0, len);
-    mBuffer.limit(bytesRead);
+    if (bytesRead >= 0) {
+      mBuffer.limit(bytesRead);
+      mBuffer.position(0);
+    }
   }
 
   /**
@@ -186,20 +189,27 @@ public final class UnderFileSystemFileInStream extends InputStream {
    */
   private int directRead(byte[] b, int off, int len) throws IOException {
     int bytesLeft = len;
+    int bytesRead = 0;
+    int offset = off;
     while (bytesLeft > 0) {
-      ByteBuffer data = mReader.read(mAddress, mUfsFileId, mPos, bytesLeft);
+      // mPos shouldn't be modified, so keep track of our updated position
+      long currentPosition = mPos + bytesRead;
+
+      ByteBuffer data = mReader.read(mAddress, mUfsFileId, currentPosition, bytesLeft);
       if (data == null) { // No more data
-        if (bytesLeft == len) { // Did not read any bytes, at EOF
+        if (bytesRead == 0) { // Did not read any bytes, at EOF
           mEOF = true;
           return -1;
         }
         break;
       }
-      int bytesRead = data.remaining();
-      data.get(b, off, bytesRead);
-      bytesLeft -= bytesRead;
+      int read = data.remaining();
+      data.get(b, offset, read);
+      offset += read;
+      bytesRead += read;
+      bytesLeft -= read;
     }
-    return len - bytesLeft;
+    return bytesRead;
   }
 
   /**
@@ -210,5 +220,6 @@ public final class UnderFileSystemFileInStream extends InputStream {
    */
   private void updateBuffer() throws IOException {
     bufferedRead(mBuffer.capacity());
+    mIsBufferValid = true;
   }
 }
