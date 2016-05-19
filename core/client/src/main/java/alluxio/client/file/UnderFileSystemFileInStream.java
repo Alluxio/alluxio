@@ -118,6 +118,8 @@ public final class UnderFileSystemFileInStream extends InputStream {
       int bytesRead = directRead(b, off, len);
       if (bytesRead != -1) {
         mPos += bytesRead;
+      } else { // Hit end of file, set flag
+        mEOF = true;
       }
       return bytesRead;
     }
@@ -155,19 +157,6 @@ public final class UnderFileSystemFileInStream extends InputStream {
   }
 
   /**
-   * Reads from the data source into the buffer. The buffer's position will be at 0 and have an
-   * appropriate limit set.
-   *
-   * @param len length of data to fill in the buffer, must always be <= buffer size
-   * @throws IOException if the read failed to buffer the requested number of bytes
-   */
-  private void bufferedRead(int len) throws IOException {
-    mBuffer.clear();
-    int bytesRead = directRead(mBuffer.array(), 0, len);
-    mBuffer.limit(bytesRead);
-  }
-
-  /**
    * Convenience method to ensure the stream is not closed.
    */
   private void checkIfClosed() {
@@ -184,22 +173,29 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * @return the number of bytes successfully read, -1 if at EOF before reading
    * @throws IOException if an error occurs reading the data
    */
+  // TODO(calvin): This may be better implemented with a Bytebuffer instead of byte array parameter
   private int directRead(byte[] b, int off, int len) throws IOException {
     int bytesLeft = len;
+    int bytesRead = 0;
+    int offset = off;
     while (bytesLeft > 0) {
-      ByteBuffer data = mReader.read(mAddress, mUfsFileId, mPos, bytesLeft);
+      // mPos shouldn't be modified, so keep track of our updated position
+      long currentPosition = mPos + bytesRead;
+
+      ByteBuffer data = mReader.read(mAddress, mUfsFileId, currentPosition, bytesLeft);
       if (data == null) { // No more data
-        if (bytesLeft == len) { // Did not read any bytes, at EOF
-          mEOF = true;
+        if (bytesRead == 0) { // Did not read any bytes, at EOF
           return -1;
         }
         break;
       }
-      int bytesRead = data.remaining();
-      data.get(b, off, bytesRead);
-      bytesLeft -= bytesRead;
+      int read = data.remaining();
+      data.get(b, offset, read);
+      offset += read;
+      bytesRead += read;
+      bytesLeft -= read;
     }
-    return len - bytesLeft;
+    return bytesRead;
   }
 
   /**
@@ -209,6 +205,13 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * @throws IOException if an error occurs reading the data
    */
   private void updateBuffer() throws IOException {
-    bufferedRead(mBuffer.capacity());
+    mBuffer.clear();
+    int bytesRead = directRead(mBuffer.array(), 0, mBuffer.capacity());
+    if (bytesRead != -1) {
+      mBuffer.limit(bytesRead);
+      mIsBufferValid = true;
+    } else {
+      mEOF = true;
+    }
   }
 }
