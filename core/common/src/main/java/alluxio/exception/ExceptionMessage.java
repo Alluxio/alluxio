@@ -103,10 +103,15 @@ public enum ExceptionMessage {
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
-  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
+  INODE_DOES_NOT_EXIST("Inode id {0} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0} does not exist; too many retries"),
+  NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
+  PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
+  PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
+  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
