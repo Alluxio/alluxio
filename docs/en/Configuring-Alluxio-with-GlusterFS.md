@@ -19,6 +19,11 @@ Then, if you haven't already done so, create your configuration file from the te
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
+Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-GlusterFS/bootstrap-conf.md %}
+
 # Configuring Alluxio
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
