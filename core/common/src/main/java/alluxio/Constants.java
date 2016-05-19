@@ -156,6 +156,8 @@ public final class Constants {
       "alluxio.underfs.s3.endpoint.https.port";
   public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
       "alluxio.underfs.s3.disable.dns.buckets";
+  public static final String UNDERFS_S3_SERVER_SIDE_ENCRYPTION =
+      "alluxio.underfs.s3.server.side.encryption";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
