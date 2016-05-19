@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
@@ -64,6 +65,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar2"), 20);
     checkFilePersisted(new AlluxioURI("/testWildCards/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI("/testWildCards/foobar4"), 40);
+    ClientTestUtils.resetClientContext();
   }
 
   @Test
@@ -87,16 +89,12 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   /**
-   * Tests persisting several files and directories together in one persist command.
-   *
-   * @throws IOException
-   * @throws AlluxioException
+   * Tests persisting files and directories together in one persist command.
    */
   @Test
   public void persistMultiFilesAndDirsTest() throws IOException, AlluxioException {
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
     Assert.assertFalse(
@@ -114,6 +112,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar1"), 10);
     checkFilePersisted(new AlluxioURI("/testWildCards/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI("/testWildCards/foobar4"), 40);
+    ClientTestUtils.resetClientContext();
   }
 
   @Test

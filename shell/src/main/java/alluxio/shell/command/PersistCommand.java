@@ -28,7 +28,7 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Persists several files or directories currently stored only in Alluxio to the UnderFileSystem.
+ * Persists files or directories currently stored only in Alluxio to the UnderFileSystem.
  */
 @ThreadSafe
 public final class PersistCommand extends AbstractShellCommand {
@@ -110,7 +110,7 @@ public final class PersistCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Persists several files or directories currently stored only in Alluxio to the "
+    return "Persists files or directories currently stored only in Alluxio to the "
         + "UnderFileSystem.";
   }
 }
