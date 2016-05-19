@@ -39,15 +39,14 @@ If everything succeeds, you should see
 
 # Configuring Alluxio
 
-To run Alluxio binary, we must setup configuration files. Create your configuration file from the
-template:
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-Alternatively, you can also create the configuration file with `bootstrap-conf` cmd.
+To run Alluxio binary, we must setup configuration files. Create your configuration file with `bootstrap-conf` command:
 For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
 
 {% include Configuring-Alluxio-with-HDFS/bootstrap-conf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
+
+{% include Common-Commands/copy-alluxio-env.md %}
 
 Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
 (e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
