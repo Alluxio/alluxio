@@ -345,6 +345,7 @@ public final class FileSystemMaster extends AbstractMaster {
   @Override
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mInodeTree.streamToJournalCheckpoint(outputStream);
+    mMountTable.streamToJournalCheckpoint(outputStream);
     outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
   }
 
