@@ -100,7 +100,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
   };
   @SuppressWarnings("unchecked")
-  private final IndexedSet<Inode<?>> mInodes = new IndexedSet<Inode<?>>(mIdIndex);
+  private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>();
 
@@ -795,7 +795,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     // Write tree via breadth-first traversal, so that during deserialization, it may be more
     // efficient than depth-first during deserialization due to parent directory's locality.
-    Queue<Inode<?>> inodes = new LinkedList<Inode<?>>();
+    Queue<Inode<?>> inodes = new LinkedList<>();
     inodes.add(mRoot);
     while (!inodes.isEmpty()) {
       Inode<?> inode = inodes.poll();
