@@ -30,7 +30,7 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in read mode, and adds it to this lock group.
+   * Locks the given inode in read mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
    */
@@ -57,7 +57,7 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * Locks the given inode in write mode, and adds it to this lock group.
+   * Locks the given inode in write mode, and adds it to this lock list.
    *
    * @param inode the inode to lock
    */
@@ -68,7 +68,7 @@ public final class InodeLockList implements AutoCloseable {
   }
 
   /**
-   * @return the list of inodes locked in this lock group, in order of when the inodes were locked
+   * @return the list of inodes locked in this lock list, in order of when the inodes were locked
    */
   public synchronized List<Inode<?>> getInodes() {
     return mInodes;
