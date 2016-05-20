@@ -167,22 +167,18 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void resetContextTest() throws Exception {
-    // Create system with master at localhost:19998
-    URI uri = URI.create(Constants.HEADER + "localhost:19998/");
-    Configuration conf = getConf();
-    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
     // Change to otherhost:410
-    URI newUri = URI.create(Constants.HEADER + "otherhost:410/");
-    fs.initialize(newUri, conf);
+    URI uri = URI.create(Constants.HEADER + "otherhost:410/");
+    org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
 
     // Make sure all contexts are using the new address
     InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
     Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.INSTANCE,
         "mBlockMasterClientPool", "mMasterAddress"));
-    // Once from calling FileSystem.get, once from calling initialize.
-    Mockito.verify(mMockFileSystemContext, Mockito.times(2)).reset();
+    // Once from calling FileSystem.get
+    Mockito.verify(mMockFileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
         "mLineageMasterClientPool", "mMasterAddress"));
   }
