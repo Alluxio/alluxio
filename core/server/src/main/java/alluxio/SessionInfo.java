@@ -17,7 +17,7 @@ import com.google.common.base.Preconditions;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Represent one session in the worker daemon.
+ * Represents one session in the worker daemon.
  */
 @ThreadSafe
 public class SessionInfo {
