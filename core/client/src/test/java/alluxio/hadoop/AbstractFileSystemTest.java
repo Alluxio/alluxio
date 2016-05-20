@@ -70,6 +70,7 @@ public class AbstractFileSystemTest {
    */
   @Before
   public void setup() throws Exception {
+    ClientTestUtils.resetClientContext();
     mockUserGroupInformation();
     mockMasterClient();
 

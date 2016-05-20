@@ -36,6 +36,7 @@ import alluxio.wire.FileBlockInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.hadoop.fs.BlockLocation;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -73,7 +74,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   /** Flag for if the contexts have been initialized. */
   @GuardedBy("INIT_LOCK")
-  private static boolean sInitialized = false;
+  private static volatile boolean sInitialized = false;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -389,6 +390,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    *
    * Initialize is guaranteed to only be called once per process.
    */
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
