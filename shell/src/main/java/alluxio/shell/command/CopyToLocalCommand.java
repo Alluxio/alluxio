@@ -98,7 +98,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         System.out.println("Create directory: " + dstFile.getPath());
       }
     }
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI srcPath : srcPaths) {
       try {
         copyToLocal(srcPath, new File(dstFile.getAbsoluteFile(), srcPath.getName()));
@@ -136,14 +136,14 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         }
       }
 
-      List<URIStatus> statuses = null;
+      List<URIStatus> statuses;
       try {
         statuses = mFileSystem.listStatus(srcPath);
       } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
       }
 
-      List<String> errorMessages = new ArrayList<String>();
+      List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
         try {
           copyToLocal(
