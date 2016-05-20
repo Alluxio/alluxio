@@ -8,31 +8,75 @@ priority: 1
 * Table of Contents
 {:toc}
 
-There are two types of configuration parameters for Alluxio:
+This page explains the configuration system of Alluxio and also provides recommendation on how customize the configuration
+for Alluxio users in different contexts.
 
-1. [Configuration properties](#configuration-properties) are used to configure the runtime settings
-of Alluxio system, and
-2. [System environment properties](#system-environment-properties) control the Java VM options to
-run Alluxio as well as some basic very setting.
+# Configuration in Alluxio
 
-# Configuration properties
+Alluxio runtime respects two sources of configuration settings:
 
-On startup, Alluxio loads the default (and optionally a site specific) configuration properties file
-to set the configuration properties.
+1. [Environment variables](#Environment-variables). This is a convenient way for beginner users or shell scripts to set
+a few basic properties when running Alluxio.
+2. [Configuration properties](#configuration-properties). This provides a way to customize any
+[supported Alluxio configure properties](#appendix).
 
-1. The default values of configuration properties of Alluxio are defined in
-`alluxio-default.properties`. This file can be found in Alluxio source tree and is typically
-distributed with Alluxio binaries. We do not recommend beginner users to edit this file directly.
+## Environment variables
 
-2. Each site deployment and application client can also override the default property values via
-`alluxio-site.properties` file. Note that, this file **must be in the classpath** of the Java VM in
-which Alluxio is running. The easiest way is to copy the site properties template in directory
+There are a few basic but very frequently used Alluxio configuration properties that can be set via the
+following environment variables:
+
+<table class="table table-striped">
+<tr><th>Environment Variable</th><th>Meaning</th></tr>
+<tr><td>`$ALLUXIO_MASTER_HOSTNAME`</td><td>hostname of Alluxio master, default to localhost.</td></tr>
+<tr><td>`$ALLUXIO_MASTER_ADDRESS`</td><td>Same as `ALLUXIO_MASTER_HOSTNAME`, deprecated since version 1.1 and
+will be remove in version 2.0.</td></tr>
+<tr><td>`$ALLUXIO_UNDERFS_ADDRESS`</td><td>under storage system address, default to
+`${ALLUXIO_HOME}/underFSStorage` which is a local file system.</td></tr>
+<tr><td>`$ALLUXIO_RAM_FOLDER`</td><td>The directory where a worker stores in-memory data, default to /mnt/ramdisk.</td></tr>
+<tr><td>`$ALLUXIO_JAVA_OPTS`</td><td>Java VM options for both Master and Worker.</td></tr>
+<tr><td>`$ALLUXIO_MASTER_JAVA_OPTS`</td><td>additional Java VM options for Master configuration.</td></tr>
+<tr><td>`$ALLUXIO_WORKER_JAVA_OPTS`</td><td>additional Java VM options for Worker configuration. Note that, by
+default `ALLUXIO_JAVA_OPTS` is included in both `ALLUXIO_MASTER_JAVA_OPTS` and
+`ALLUXIO_WORKER_JAVA_OPTS`.</td></tr>
+</table>
+
+For example, if you would like to setup a Alluxio master at `localhost` that talks to a HDFS also running at `localhost`, and enable Java
+remote debugging at port 7001, you can do so using:
+
+{% include Configuration-Settings/more-conf.md %}
+
+One can either set these variables through shell or set them in `conf/alluxio-env.sh`. If this file does not exist yet,
+you can create one from a template we provided in the source code using:
+
+{% include Common-Commands/copy-alluxio-env.md %}
+
+Alternatively, Alluxio can help users bootstrap the `conf/alluxio-env.sh` file by running
+
+{% include Common-Commands/bootstrap-conf.md %}
+
+
+## Configuration properties
+
+In addition to these environment variables that provide very basic setting, Alluxio also provides a
+more general approach for users to customize all supported configuration properties via property files.
+On startup, Alluxio optionally loads configuration properties file to set the configuration properties:
+
+1. For each Alluxio site deployment, both servers or application clients can override the default property values via
+`alluxio-site.properties` file.
+
+2. Alluxio master and workers will load `alluxio-server.properties` file; Alluxio clients (e.g., Jobs reading from or writing to
+Alluxio) will load `alluxio-client.properties` file.
+
+Note that, these property files are searched in `${HOME}/.alluxio/`, `/etc/conf/` and the classpath of the Java VM in
+which Alluxio is running in order. The easiest way is to copy the site properties template in directory
 `$ALLUXIO_HOME/conf` and edit it to fit your configuration tuning needs.
 
 ```bash
-$ cp $ALLUXIO_HOME/conf/alluxio-site.properties.template $ALLUXIO_HOME/conf/alluxio-site.properties
+$ cp $ALLUXIO_HOME/conf/alluxio-site.properties.template ~/.alluxio/alluxio-site.properties
 ```
 
+
+# Appendix
 All Alluxio configuration properties fall into one of the six categories:
 [Common](#common-configuration) (shared by Master and Worker),
 [Master specific](#master-configuration), [Worker specific](#worker-configuration),
@@ -144,31 +188,3 @@ than one NICs and you want your Alluxio master to listen on all NICs, you can sp
 `alluxio.master.bind.host` to be `0.0.0.0`. As a result, Alluxio clients can reach the master node
 from connecting to any of its NIC. This is also the same case for other properties suffixed with
 `bind.host`.
-
-# System environment properties
-
-To run Alluxio, it also requires some system environment variables being set which by default are
-configured in file `conf/alluxio-env.sh`. If this file does not exist yet, you can create one from a
-template we provided in the source code using:
-
-{% include Common-Commands/copy-alluxio-env.md %}
-
-There are a few frequently used Alluxio configuration properties that can be set via environment
-variables. One can either set these variables through shell or modify their default values specified
-in `conf/alluxio-env.sh`.
-
-* `$ALLUXIO_MASTER_HOSTNAME`: Alluxio master hostname, default to localhost.
-* `$ALLUXIO_MASTER_ADDRESS`: Same as `ALLUXIO_MASTER_HOSTNAME`, deprecated since version 1.1 and
-will be remove in version 2.0.
-* `$ALLUXIO_UNDERFS_ADDRESS`: under storage system address, default to
-`${ALLUXIO_HOME}/underFSStorage` which is a local file system.
-* `$ALLUXIO_JAVA_OPTS`: Java VM options for both Master and Worker.
-* `$ALLUXIO_MASTER_JAVA_OPTS`: additional Java VM options for Master configuration.
-* `$ALLUXIO_WORKER_JAVA_OPTS`: additional Java VM options for Worker configuration. Note that, by
-default `ALLUXIO_JAVA_OPTS` is included in both `ALLUXIO_MASTER_JAVA_OPTS` and
-`ALLUXIO_WORKER_JAVA_OPTS`.
-
-For example, if you would like to connect Alluxio to HDFS running at localhost and enable Java
-remote debugging at port 7001, you can do so using:
-
-{% include Configuration-Settings/more-conf.md %}
