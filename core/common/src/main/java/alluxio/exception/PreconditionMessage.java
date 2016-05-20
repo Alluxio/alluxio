@@ -11,6 +11,10 @@
 
 package alluxio.exception;
 
+import com.google.common.base.Preconditions;
+
+import java.text.MessageFormat;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -26,7 +30,7 @@ public enum PreconditionMessage {
       "The passed-in file info list can not be empty when checking permission"),
   ERR_BLOCK_INDEX("Current block index exceeds max index"),
   ERR_BLOCK_REMAINING("The current block still has space left, no need to get new block"),
-  ERR_BUFFER_STATE("Buffer length: %s, offset: %s, len: %s"),
+  ERR_BUFFER_STATE("Buffer length: {0}, offset: {1}, len: {2}"),
   ERR_CLOSED_BLOCK_IN_STREAM("Cannot do operations on a closed BlockInStream"),
   ERR_CLOSED_BLOCK_OUT_STREAM("Cannot do operations on a closed BlockOutStream"),
   ERR_CLOSED_UNDER_FILE_SYSTEM_FILE_OUT_STREAM(
@@ -37,18 +41,18 @@ public enum PreconditionMessage {
   ERR_PUT_EMPTY_VALUE("Cannot put an empty buffer as a value"),
   ERR_PUT_NULL_KEY("Cannot put a null key"),
   ERR_PUT_NULL_VALUE("Cannot put a null value"),
-  ERR_SEEK_NEGATIVE("Seek position is negative: %s"),
-  ERR_SEEK_PAST_END_OF_BLOCK("Seek position past end of block: %s"),
-  ERR_SEEK_PAST_END_OF_FILE("Seek position past end of file: %s"),
+  ERR_SEEK_NEGATIVE("Seek position is negative: {0}"),
+  ERR_SEEK_PAST_END_OF_BLOCK("Seek position past end of block: {0}"),
+  ERR_SEEK_PAST_END_OF_FILE("Seek position past end of file: {0}"),
   ERR_SET_STATE_UNPERSIST("Cannot set the state of a file to not-persisted"),
   ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
-  ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
+  ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to {0} ufs file with invalid session id."),
   ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT(
-      "Failed to remove agent %s from ufs manager's internal state."),
+      "Failed to remove agent {0} from ufs manager's internal state."),
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
   FILE_TO_PERSIST_MUST_BE_COMPLETE("File being persisted must be complete"),
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
-  GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),
+  GCS_BUCKET_MUST_BE_SET("The {0} system property must be set to use the GCSUnderStorageCluster"),
   INODE_TREE_UNINITIALIZED_IS_ROOT_ID("Cannot call isRootId() before initializeRoot()"),
   MUST_SET_PINNED("The pinned flag must be set"),
   MUST_SET_TTL("The TTL value must be set"),
@@ -61,7 +65,7 @@ public enum PreconditionMessage {
       "The client protocol should never be null when the client is connected"),
   REMOTE_CLIENT_BUT_LOCAL_HOSTNAME(
       "Acquire Remote Worker Client cannot not be called with local hostname"),
-  S3_BUCKET_MUST_BE_SET("The %s system property must be set to use the S3UnderStorageCluster"),
+  S3_BUCKET_MUST_BE_SET("The {0} system property must be set to use the S3UnderStorageCluster"),
   TTL_ONLY_FOR_FILE("TTL can only be set for files"),
   URI_HOST_NULL("URI hostname must not be null"),
   URI_PORT_NULL("URI port must not be null"),
@@ -70,14 +74,29 @@ public enum PreconditionMessage {
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
-  private String mMessage;
+  private final MessageFormat mMessage;
 
   PreconditionMessage(String message) {
-    mMessage = message;
+    mMessage = new MessageFormat(message);
+  }
+
+  /**
+   * Formats the message of the precondition.
+   *
+   * @param params the parameters for the precondition message
+   * @return the formatted message
+   */
+  public String format(Object... params) {
+    Preconditions.checkArgument(mMessage.getFormats().length == params.length, "The message takes "
+        + mMessage.getFormats().length + " arguments, but is given " + params.length);
+    // MessageFormat is not thread-safe, so guard it
+    synchronized (mMessage) {
+      return mMessage.format(params);
+    }
   }
 
   @Override
   public String toString() {
-    return mMessage;
+    return format();
   }
 }

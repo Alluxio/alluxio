@@ -26,7 +26,7 @@ import org.junit.Test;
 public final class JournalProtoUtilsTest {
 
   /**
-   * Tests that getMessage returns the sub-message contained in a JournalEntry.
+   * Tests that format returns the sub-message contained in a JournalEntry.
    */
   @Test
   public void getMessageTest() {
@@ -51,7 +51,7 @@ public final class JournalProtoUtilsTest {
         .build();
     try {
       JournalProtoUtils.unwrap(unknownEntry);
-      Assert.fail("getMessage() should fail when no messages is set");
+      Assert.fail("format() should fail when no messages is set");
     } catch (RuntimeException e) {
       Assert.assertEquals(ExceptionMessage.NO_ENTRY_TYPE.getMessage("[46264]"), e.getMessage());
     }
