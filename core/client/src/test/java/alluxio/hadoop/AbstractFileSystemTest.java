@@ -42,6 +42,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Unit tests for {@link FileSystem}.
@@ -167,7 +169,6 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void resetContextTest() throws Exception {
-
     // Change to otherhost:410
     URI uri = URI.create(Constants.HEADER + "otherhost:410/");
     org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, getConf());
@@ -181,6 +182,34 @@ public class AbstractFileSystemTest {
     Mockito.verify(mMockFileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,
         "mLineageMasterClientPool", "mMasterAddress"));
+  }
+
+  @Test
+  public void concurrentInitializeTest() throws Exception {
+    final List<Thread> threads = new ArrayList<Thread>();
+    final Configuration conf = getConf();
+    for (int i = 0; i < 100; i++) {
+      final int id = i;
+      Thread t = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          URI uri = URI.create(Constants.HEADER + "randomhost" + id + ":410/");
+          try {
+            org.apache.hadoop.fs.FileSystem.get(uri, conf);
+          } catch (IOException e) {
+            Assert.fail();
+          }
+        }
+      });
+      threads.add(t);
+    }
+    for (Thread t : threads) {
+      t.start();
+    }
+    for (Thread t : threads) {
+      t.join();
+    }
+    Mockito.verify(mMockFileSystemContext).reset();
   }
 
   private boolean isHadoop1x() {
