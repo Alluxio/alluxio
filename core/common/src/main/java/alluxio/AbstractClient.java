@@ -197,7 +197,10 @@ public abstract class AbstractClient implements Closeable {
     if (mConnected) {
       LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
       beforeDisconnect();
-      mProtocol.getTransport().close();
+      if (mProtocol != null) {
+        mProtocol.getTransport().close();
+      }
+      mConnected = false;
       afterDisconnect();
     }
   }
