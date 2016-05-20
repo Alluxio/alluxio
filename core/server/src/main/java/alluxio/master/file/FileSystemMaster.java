@@ -1900,7 +1900,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
-    if (!inodePath.fullPathExists()) {
+    if (!inodePath.fullPathExists() || options.isLoadDirectChildren()) {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
