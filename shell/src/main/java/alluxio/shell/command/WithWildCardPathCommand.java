@@ -65,7 +65,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
     }
     Collections.sort(paths, createAlluxioURIComparator());
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
       try {
         runCommand(path, cl);
