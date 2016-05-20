@@ -30,8 +30,6 @@ public final class ByteBufferKeyValuePartitionReaderTest {
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
-  private static ByteArrayOutStream sOutStream;
-  private static BaseKeyValuePartitionWriter sWriter;
   private static ByteBuffer sBuffer;
   private ByteBufferKeyValuePartitionReader mReader;
 
@@ -40,12 +38,12 @@ public final class ByteBufferKeyValuePartitionReaderTest {
 
   @BeforeClass
   public static void beforeClass() throws Exception {
-    sOutStream = new ByteArrayOutStream();
-    sWriter = new BaseKeyValuePartitionWriter(sOutStream);
-    sWriter.put(KEY1, VALUE1);
-    sWriter.put(KEY2, VALUE2);
-    sWriter.close();
-    sBuffer = ByteBuffer.wrap(sOutStream.toByteArray());
+    ByteArrayOutStream outStream = new ByteArrayOutStream();
+    BaseKeyValuePartitionWriter writer = new BaseKeyValuePartitionWriter(outStream);
+    writer.put(KEY1, VALUE1);
+    writer.put(KEY2, VALUE2);
+    writer.close();
+    sBuffer = ByteBuffer.wrap(outStream.toByteArray());
   }
 
   @Before
