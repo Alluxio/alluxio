@@ -73,7 +73,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(2);
+    List<CreateFileOptions> ret = new ArrayList<>(2);
     ret.add(sWriteBoth);
     ret.add(sWriteAlluxio);
     return ret;
