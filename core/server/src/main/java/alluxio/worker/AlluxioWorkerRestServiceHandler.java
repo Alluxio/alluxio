@@ -122,7 +122,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getCapacityBytesOnTiers() {
     SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
     for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
@@ -138,7 +138,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getUsedBytesOnTiers() {
     SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
     for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
@@ -153,7 +153,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, java.util.List<String>>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   public Response getDirectoryPathsOnTiers() {
     SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
     tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
@@ -199,7 +199,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getMetrics() {
     MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
