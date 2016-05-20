@@ -16,8 +16,8 @@ import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
-
 import alluxio.hadoop.HadoopClientTestUtils;
+
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
 
