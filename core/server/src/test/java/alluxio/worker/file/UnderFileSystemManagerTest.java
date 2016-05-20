@@ -148,8 +148,8 @@ public final class UnderFileSystemManagerTest {
     long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(
-        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "complete"));
+    mThrown.expectMessage(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("complete"));
     manager.completeFile(INVALID_SESSION_ID, id, null, null);
   }
 
@@ -187,8 +187,8 @@ public final class UnderFileSystemManagerTest {
     long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
     Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(
-        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "cancel"));
+    mThrown.expectMessage(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("cancel"));
     manager.cancelFile(INVALID_SESSION_ID, id);
   }
 
@@ -256,8 +256,8 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(
-        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "close"));
+    mThrown.expectMessage(
+        PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("close"));
     manager.closeFile(INVALID_SESSION_ID, id);
   }
 

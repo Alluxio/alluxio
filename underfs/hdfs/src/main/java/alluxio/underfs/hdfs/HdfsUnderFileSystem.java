@@ -174,7 +174,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // return mFileSystem.create(new Path(path), true, 4096, replication, blockSizeBytes);
     // } catch (IOException e) {
     // cnt++;
-    // LOG.error("{} : {}", cnt, e.getMessage(), e);
+    // LOG.error("{} : {}", cnt, e.format(), e);
     // te = e;
     // continue;
     // }
