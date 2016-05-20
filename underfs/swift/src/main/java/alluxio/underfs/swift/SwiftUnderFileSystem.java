@@ -140,8 +140,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
       out.close();
     }
-    SwiftOutputStream out = SwiftDirectClient.put(mAccess, newPath);
-    return out;
+    return SwiftDirectClient.put(mAccess, newPath);
   }
 
   @Override
@@ -212,8 +211,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean isObjectExists(String path) {
     LOG.debug("Checking if {} exists", path);
-    boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
-    return res;
+    return mAccount.getContainer(mContainerName).getObject(path).exists();
   }
 
   /**
@@ -297,8 +295,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     path = stripPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     StoredObject so = container.getObject(path);
-    InputStream  is = so.downloadObjectAsInputStream();
-    return is;
+    return so.downloadObjectAsInputStream();
   }
 
   /**
@@ -399,10 +396,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       Directory directory = new Directory(path, '/');
       Container c = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> res = c.listDirectory(directory);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       Iterator<DirectoryOrObject> iter = res.iterator();
       while (iter.hasNext()) {
-        DirectoryOrObject dirobj = (DirectoryOrObject) iter.next();
+        DirectoryOrObject dirobj = iter.next();
         String child = stripFolderSuffixIfPresent(dirobj.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
@@ -454,8 +451,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private String stripPrefixIfPresent(String path, String prefix) {
     if (path.startsWith(prefix)) {
-      String res =  path.substring(prefix.length());
-      return res;
+      return path.substring(prefix.length());
     }
     return path;
   }
