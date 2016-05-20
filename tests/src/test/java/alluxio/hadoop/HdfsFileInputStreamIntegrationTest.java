@@ -45,7 +45,6 @@ public final class HdfsFileInputStreamIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource();
-  private static FileSystem sFileSystem = null;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
 
@@ -54,10 +53,10 @@ public final class HdfsFileInputStreamIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sFileSystem = sLocalAlluxioClusterResource.get().getClient();
+    FileSystem fileSystem = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile2", WriteType.THROUGH, FILE_LEN);
+        .createByteFile(fileSystem, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
+    FileSystemTestUtils.createByteFile(fileSystem, "/testFile2", WriteType.THROUGH, FILE_LEN);
   }
 
   @After
