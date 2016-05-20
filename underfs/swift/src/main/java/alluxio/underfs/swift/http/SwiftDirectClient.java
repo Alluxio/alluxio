@@ -66,9 +66,7 @@ public class SwiftDirectClient {
         httpCon.setDoOutput(true);
         httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
         httpCon.connect();
-        SwiftOutputStream outStream = new SwiftOutputStream(
-            httpCon);
-        return outStream;
+        return new SwiftOutputStream(httpCon);
       }
       LOG.debug("Not an instance of HTTP URL Connection");
     } catch (MalformedURLException e) {
