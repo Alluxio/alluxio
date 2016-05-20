@@ -245,7 +245,7 @@ public class ReadOnlyMountIntegrationTest {
 //      Assert.fail("File should not exist before loading metadata.");
 //    } catch (FileDoesNotExistException e) {
 //      Assert
-//        .assertEquals(e.format(), ExceptionMessage.PATH_DOES_NOT_EXIST.format(FILE_PATH));
+//        .assertEquals(e.getMessage(), ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(FILE_PATH));
 //    }
     mFileSystem.loadMetadata(fileUri);
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
@@ -256,8 +256,8 @@ public class ReadOnlyMountIntegrationTest {
 //      mFileSystem.getStatus(fileUri);
 //      Assert.fail("File should not exist before loading metadata.");
 //    } catch (FileDoesNotExistException e) {
-//      Assert.assertEquals(e.format(),
-//          ExceptionMessage.PATH_DOES_NOT_EXIST.format(SUB_FILE_PATH));
+//      Assert.assertEquals(e.getMessage(),
+//          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(SUB_FILE_PATH));
 //    }
     mFileSystem.loadMetadata(fileUri, LoadMetadataOptions.defaults().setRecursive(true));
     Assert.assertNotNull(mFileSystem.getStatus(fileUri));
