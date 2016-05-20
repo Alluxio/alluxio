@@ -1514,9 +1514,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     AlluxioURI dstPath = new AlluxioURI(entry.getDstPath());
 
+    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
     try (InodePathPair inodePathPair = mInodeTree
         .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE)) {
+            InodeTree.LockMode.WRITE_PARENT)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       renameInternal(srcInodePath, dstInodePath, true, entry.getOpTimeMs());
