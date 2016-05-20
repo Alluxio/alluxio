@@ -1893,7 +1893,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Loads the metadata for the path, if it doesn't exist.
+   * Loads the metadata for the path, if it doesn't exist or we need to load the direct children.
    *
    * @param inodePath the {@link LockedInodePath} to load the metadata for
    * @param options the load metadata options
