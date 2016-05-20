@@ -40,12 +40,23 @@ public final class PreconditionMessage {
       "Cannot do operations on a closed UnderFileSystemFileOutStraem";
   public static final String ERR_END_OF_BLOCK = "Cannot write past end of block";
   public static final String ERR_READ_BUFFER_NULL = "Read buffer cannot be null";
+  public static final String ERR_PUT_EMPTY_KEY = "Cannot put an empty buffer as a key";
+  public static final String ERR_PUT_EMPTY_VALUE = "Cannot put an empty buffer as a value";
+  public static final String ERR_PUT_NULL_KEY = "Cannot put a null key";
+  public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
   public static final String ERR_SEEK_NEGATIVE = "Seek position is negative: %s";
   public static final String ERR_SEEK_PAST_END_OF_BLOCK = "Seek position past end of block: %s";
   public static final String ERR_SEEK_PAST_END_OF_FILE = "Seek position past end of file: %s";
+  public static final String ERR_SET_STATE_UNPERSIST =
+      "Cannot set the state of a file to not-persisted";
   public static final String ERR_WRITE_BUFFER_NULL = "Cannot write a null input buffer";
+  public static final String ERR_UNEXPECTED_EOF = "Reached EOF unepxectedly.";
+  public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
+      "File being persisted must be complete";
   public static final String FILE_WRITE_LOCATION_POLICY_UNSPECIFIED =
       "The location policy is not specified";
+  public static final String GCS_BUCKET_MUST_BE_SET =
+      "The %s system property must be set to use the GCSUnderStorageCluster";
   public static final String INODE_TREE_UNINITIALIZED_IS_ROOT_ID =
       "Cannot call isRootId() before initializeRoot()";
   public static final String INVALID_SET_ACL_OPTIONS =
@@ -60,26 +71,17 @@ public final class PreconditionMessage {
   public static final String MUST_SET_GROUP = "The group must be set";
   public static final String MUST_SET_PERMISSION = "The permission must be set";
   public static final String MUST_SET_RECURSIVE = "The recursive must be set";
+  public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
+  public static final String PROTOCOL_NULL_WHEN_CONNECTED =
+      "The client protocol should never be null when the client is connected";
   public static final String REMOTE_CLIENT_BUT_LOCAL_HOSTNAME =
       "Acquire Remote Worker Client cannot not be called with local hostname";
   public static final String S3_BUCKET_MUST_BE_SET =
       "The %s system property must be set to use the S3UnderStorageCluster";
-  public static final String GCS_BUCKET_MUST_BE_SET =
-      "The %s system property must be set to use the GCSUnderStorageCluster";
   public static final String TTL_ONLY_FOR_FILE = "TTL can only be set for files";
-  public static final String PERSIST_ONLY_FOR_FILE = "Only files can be persisted";
-  public static final String FILE_TO_PERSIST_MUST_BE_COMPLETE =
-      "File being persisted must be complete";
-  public static final String ERR_SET_STATE_UNPERSIST =
-      "Cannot set the state of a file to not-persisted";
   public static final String URI_HOST_NULL = "URI hostname must not be null";
   public static final String URI_PORT_NULL = "URI port must not be null";
   public static final String URI_KEY_VALUE_STORE_NULL = "URI of key-value store must not be null";
-  public static final String ERR_PUT_EMPTY_KEY = "Cannot put an empty buffer as a key";
-  public static final String ERR_PUT_EMPTY_VALUE = "Cannot put an empty buffer as a value";
-  public static final String ERR_PUT_NULL_KEY = "Cannot put a null key";
-  public static final String ERR_PUT_NULL_VALUE = "Cannot put a null value";
-  public static final String ERR_UNEXPECTED_EOF = "Reached EOF unepxectedly.";
 
   // UnderFileSystemManager
   public static final String ERR_UFS_MANAGER_OPERATION_INVALID_SESSION =

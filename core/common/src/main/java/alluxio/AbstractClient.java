@@ -14,6 +14,7 @@ package alluxio;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.retry.ExponentialBackoffRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authentication.TransportProvider;
@@ -195,7 +196,7 @@ public abstract class AbstractClient implements Closeable {
    */
   public synchronized void disconnect() {
     if (mConnected) {
-      Preconditions.checkNotNull(mProtocol);
+      Preconditions.checkNotNull(mProtocol, PreconditionMessage.PROTOCOL_NULL_WHEN_CONNECTED);
       LOG.debug("Disconnecting from the {} {} {}", getServiceName(), mMode, mAddress);
       beforeDisconnect();
       mProtocol.getTransport().close();
