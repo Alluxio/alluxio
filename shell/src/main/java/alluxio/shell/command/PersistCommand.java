@@ -80,7 +80,7 @@ public final class PersistCommand extends AbstractShellCommand {
       URIStatus status = mFileSystem.getStatus(filePath);
       if (status.isFolder()) {
         List<URIStatus> statuses = mFileSystem.listStatus(filePath);
-        List<String> errorMessages = new ArrayList<String>();
+        List<String> errorMessages = new ArrayList<>();
         for (URIStatus uriStatus : statuses) {
           AlluxioURI newPath = new AlluxioURI(uriStatus.getPath());
           try {
