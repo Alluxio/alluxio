@@ -509,7 +509,7 @@ public class FileInStreamTest {
       mTestStream.read(new byte[10], 5, 6);
       Assert.fail("the buffer read of invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
           e.getMessage());
     }
   }
@@ -525,7 +525,8 @@ public class FileInStreamTest {
       mTestStream.seek(-1);
       Assert.fail("seeking negative position should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1), e.getMessage());
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1),
+          e.getMessage());
     }
   }
 
@@ -541,7 +542,7 @@ public class FileInStreamTest {
       Assert.fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
       Assert.assertEquals(
-          String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1),
+          String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), FILE_LENGTH + 1),
           e.getMessage());
     }
   }
