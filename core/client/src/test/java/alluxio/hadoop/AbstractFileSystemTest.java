@@ -185,6 +185,10 @@ public class AbstractFileSystemTest {
         "mLineageMasterClientPool", "mMasterAddress"));
   }
 
+  /**
+   * Verifies that the initialize method is only called once even when there are many concurrent
+   * initializers during the initialization phase.
+   */
   @Test
   public void concurrentInitializeTest() throws Exception {
     final List<Thread> threads = new ArrayList<Thread>();
