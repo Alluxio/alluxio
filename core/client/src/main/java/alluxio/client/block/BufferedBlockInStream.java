@@ -102,7 +102,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
     if (len == 0) {
       return 0;
     } else if (remaining() == 0) { // End of block
@@ -142,9 +142,9 @@ public abstract class BufferedBlockInStream extends BlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     checkIfClosed();
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions.checkArgument(pos <= mBlockSize, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK,
-        mBlockSize);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mBlockSize,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), mBlockSize);
     mBufferIsValid = false;
     mPos = pos;
   }

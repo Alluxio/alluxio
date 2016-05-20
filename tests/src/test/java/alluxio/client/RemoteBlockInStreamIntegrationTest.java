@@ -351,7 +351,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest1() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -376,7 +376,8 @@ public class RemoteBlockInStreamIntegrationTest {
   @Test
   public void seekExceptionTest2() throws IOException, AlluxioException {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
+    mThrown
+        .expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), 1));
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
