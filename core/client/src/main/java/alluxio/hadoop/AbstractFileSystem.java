@@ -52,6 +52,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -64,10 +65,15 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "alluxio_dep/";
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
+  /** Lock for initializing the contexts, currently only one set of contexts is supported. */
+  private static final Object INIT_LOCK = new Object();
+
+  /** Flag for if the contexts have been initialized. */
+  @GuardedBy("INIT_LOCK")
+  private static boolean sInitialized = false;
 
   private URI mUri = null;
   private Path mWorkingDir = new Path(AlluxioURI.SEPARATOR);
@@ -376,43 +382,58 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   /**
    * {@inheritDoc}
    *
-   * Sets up a lazy connection to Alluxio through mFileSystem.
+   * Sets up a lazy connection to Alluxio through mFileSystem. This method will override and
+   * invalidate the current contexts. This must be called before client operations in order to
+   * guarantee the integrity of the contexts, meaning users should not alternate between using the
+   * Hadoop compatible API and native Alluxio API in the same process.
+   *
+   * Initialize is guaranteed to only be called once per process.
    */
   @Override
   public void initialize(URI uri, org.apache.hadoop.conf.Configuration conf) throws IOException {
     Preconditions.checkNotNull(uri.getHost(), PreconditionMessage.URI_HOST_NULL);
     Preconditions.checkNotNull(uri.getPort(), PreconditionMessage.URI_PORT_NULL);
-    super.initialize(uri, conf);
-    LOG.info("initialize({}, {}). Connecting to Alluxio: {}", uri, conf, uri.toString());
-    HadoopUtils.addS3Credentials(conf);
-    HadoopUtils.addSwiftCredentials(conf);
-    setConf(conf);
-    mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
-
-    // Set the statistics member. Use mStatistics instead of the parent class's variable.
-    mStatistics = statistics;
-
-    // Load Alluxio configuration if any and merge to the one in Alluxio file system
-    Configuration siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
-    // These modifications to ClientContext are global, affecting every Alluxio client in this JVM.
-    // We assume here that this client is the only client.
-    if (siteConf != null) {
-      ClientContext.getConf().merge(siteConf);
+    if (sInitialized) {
+      return;
     }
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+    synchronized (INIT_LOCK) {
+      // If someone has initialized the object since the last check, return
+      if (sInitialized) {
+        return;
+      }
+      super.initialize(uri, conf);
+      LOG.info("initialize({}, {}). Connecting to Alluxio: {}", uri, conf, uri.toString());
+      HadoopUtils.addS3Credentials(conf);
+      HadoopUtils.addSwiftCredentials(conf);
+      setConf(conf);
+      mAlluxioHeader = getScheme() + "://" + uri.getHost() + ":" + uri.getPort();
 
-    // These must be reset to pick up the change to the master address.
-    // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
-    ClientContext.init();
-    FileSystemContext.INSTANCE.reset();
-    BlockStoreContext.INSTANCE.reset();
-    LineageContext.INSTANCE.reset();
+      // Set the statistics member. Use mStatistics instead of the parent class's variable.
+      mStatistics = statistics;
 
-    mFileSystem = FileSystem.Factory.get();
-    mUri = URI.create(mAlluxioHeader);
-    LOG.info("{} {}", mAlluxioHeader, mUri);
+      // Load Alluxio configuration if any and merge to the one in Alluxio file system
+      Configuration siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
+      // These modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
+      // We assume here that this client is the only client.
+      if (siteConf != null) {
+        ClientContext.getConf().merge(siteConf);
+      }
+      ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
+      ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+      ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+
+      // These must be reset to pick up the change to the master address.
+      // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
+      ClientContext.init();
+      FileSystemContext.INSTANCE.reset();
+      BlockStoreContext.INSTANCE.reset();
+      LineageContext.INSTANCE.reset();
+
+      mFileSystem = FileSystem.Factory.get();
+      mUri = URI.create(mAlluxioHeader);
+      LOG.info("{} {}", mAlluxioHeader, mUri);
+      sInitialized = true;
+    }
   }
 
   /**
