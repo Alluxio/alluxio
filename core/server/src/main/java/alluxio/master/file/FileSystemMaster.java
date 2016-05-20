@@ -320,7 +320,7 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof DeleteMountPointEntry) {
       try {
         unmountFromEntry((DeleteMountPointEntry) innerEntry);
-      } catch (InvalidPathException | FileDoesNotExistException e) {
+      } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof AsyncPersistRequestEntry) {
@@ -1023,7 +1023,7 @@ public final class FileSystemMaster extends AbstractMaster {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
             if (mMountTable.isMountPoint(alluxioUriToDel)) {
-              unmountInternal(tempInodePath);
+              unmountInternal(alluxioUriToDel);
             } else {
               // Delete the file in the under file system.
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
@@ -1976,7 +1976,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throw Throwables.propagate(e);
     } finally {
       if (!loadMetadataSuceeded) {
-        unmountInternal(inodePath);
+        unmountInternal(inodePath.getUri());
       }
       // Exception will be propagated from loadDirectoryMetadataAndJournal
     }
@@ -2107,7 +2107,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long unmountAndJournal(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (unmountInternal(inodePath)) {
+    if (unmountInternal(inodePath.getUri())) {
       Inode<?> inode = inodePath.getInode();
       // Use the internal delete API, setting {@code replayed} to true to prevent the delete
       // operations from being persisted in the UFS.
@@ -2129,26 +2129,21 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileDoesNotExistException if path does not exist
    */
-  private void unmountFromEntry(DeleteMountPointEntry entry)
-      throws InvalidPathException, FileDoesNotExistException {
+  private void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      if (!unmountInternal(inodePath)) {
-        LOG.error("Failed to unmount {}", alluxioURI);
-      }
+    if (!unmountInternal(alluxioURI)) {
+      LOG.error("Failed to unmount {}", alluxioURI);
     }
   }
 
   /**
-   * @param inodePath the Alluxio mount point to unmount
+   * @param uri the Alluxio mount point to remove from the mount table
    * @return true if successful, false otherwise
    * @throws InvalidPathException if an invalied path is encountered
    */
-  private boolean unmountInternal(LockedInodePath inodePath) throws InvalidPathException {
-    return mMountTable.delete(inodePath.getUri());
+  private boolean unmountInternal(AlluxioURI uri) throws InvalidPathException {
+    return mMountTable.delete(uri);
   }
 
   /**
