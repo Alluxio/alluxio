@@ -20,6 +20,8 @@ alluxio.network.host.resolution.&#8203;timeout.ms:
   is resolvable over the network.
 alluxio.network.thrift.frame.&#8203;size.bytes.max:
   (Experimental) The largest allowable frame size used for Thrift RPC communication.
+alluxio.site.conf.dir:
+  Default search path for configuration files to read
 alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
