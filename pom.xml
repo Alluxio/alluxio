@@ -542,14 +542,14 @@
             <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
-            <exclude>**/docs/**/*</exclude>
+            <exclude>docs/**/*</exclude>
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
 
             <!-- Default Local File System Exclusions -->
-            <exclude>**/logs/*</exclude>
-            <exclude>**/journal/**</exclude>
-            <exclude>**/underFSStorage/**</exclude>
+            <exclude>logs/*</exclude>
+            <exclude>journal/**/*</exclude>
+            <exclude>underFSStorage/**/*</exclude>
           </excludes>
           <mapping>
             <alluxio>SCRIPT_STYLE</alluxio>
