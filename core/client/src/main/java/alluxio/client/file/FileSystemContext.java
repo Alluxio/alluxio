@@ -16,6 +16,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.resource.CloseableResource;
 import alluxio.util.IdUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -131,6 +132,9 @@ public enum FileSystemContext {
       infos = masterClientResource.get().getWorkerInfoList();
     } catch (AlluxioException e) {
       throw new IOException(e);
+    }
+    if (infos.isEmpty()) {
+      throw new IOException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
 
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
