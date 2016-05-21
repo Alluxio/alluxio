@@ -44,5 +44,6 @@
  * is called. The eviction plan will return two block lists, one is the blocks to be removed
  * directly and another is the blocks to be moved to lower tier views.
  */
+
 package alluxio.worker.block.evictor;
 

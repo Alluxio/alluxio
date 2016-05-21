@@ -24,5 +24,6 @@
  * }
  * </pre>
  */
+
 package alluxio.retry;
 

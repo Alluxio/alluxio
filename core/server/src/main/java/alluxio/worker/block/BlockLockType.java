@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.worker.block;
 
 import javax.annotation.concurrent.ThreadSafe;
