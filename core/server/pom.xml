@@ -212,6 +212,7 @@
           <failBuildOnCriticalError>true</failBuildOnCriticalError>
           <output>
             <html>
+              <intro>${project.basedir}/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
             </html>
           </output>
