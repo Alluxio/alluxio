@@ -20,6 +20,7 @@ alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,No default
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
+alluxio.zookeeper.address,No default
 alluxio.zookeeper.election.path,/election
 alluxio.zookeeper.enabled,false
 alluxio.zookeeper.leader.path,/leader
