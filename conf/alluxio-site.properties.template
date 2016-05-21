@@ -12,7 +12,6 @@
 # Site specific configuration properties for Alluxio
 # Details about all configuration properties http://www.alluxio.org/documentation/en/Configuration-Settings.html
 
-
 # Common properties
 alluxio.debug=false
 alluxio.home=/mnt/alluxio_default_home
