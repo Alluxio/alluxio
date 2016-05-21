@@ -58,11 +58,13 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   @Override
   public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length, long lockId, long sessionId) throws IOException {
-    SingleResponseListener listener = new SingleResponseListener();
+    SingleResponseListener listener = null;
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
+
       LOG.info("Connected to remote machine {}", address);
       Channel channel = f.channel();
+      listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
 
@@ -92,7 +94,9 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      mHandler.removeListener(listener);
+      if (listener != null) {
+        mHandler.removeListener(listener);
+      }
     }
   }
 
