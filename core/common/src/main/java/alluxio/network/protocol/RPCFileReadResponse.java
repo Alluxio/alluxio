@@ -157,7 +157,7 @@ public final class RPCFileReadResponse extends RPCResponse {
   }
 
   /**
-   * @return if the message indicates the reader has reached the end of the file.
+   * @return if the message indicates the reader has reached the end of the file
    */
   public boolean isEOF() {
     return mLength == 0;
