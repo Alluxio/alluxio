@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.fuse;
 
 import static jnr.constants.platform.OpenFlags.O_RDONLY;

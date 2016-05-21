@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package alluxio.master.lineage.checkpoint;
 
 import com.google.common.base.Objects;

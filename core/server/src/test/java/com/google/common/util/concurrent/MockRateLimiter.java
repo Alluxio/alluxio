@@ -8,6 +8,7 @@
  *
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
+
 package com.google.common.util.concurrent;
 
 import static java.util.concurrent.TimeUnit.MICROSECONDS;
