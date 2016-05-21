@@ -86,7 +86,7 @@ public final class RPCFileReadResponse extends RPCResponse {
     short status = in.readShort();
 
     DataBuffer data = null;
-    if (length >= 0) {
+    if (length > 0) {
       //TODO(calvin): use DataNettyBuffer instead of DataByteBuffer to avoid copying
       ByteBuffer buffer = ByteBuffer.allocate((int) length);
       in.readBytes(buffer);
@@ -125,8 +125,7 @@ public final class RPCFileReadResponse extends RPCResponse {
   @Override
   public void validate() {
     Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
-    Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length cannot be negative (except for -1): %s", mLength);
+    Preconditions.checkState(mLength >= 0, "Length cannot be negative: %s", mLength);
   }
 
   /**
@@ -155,5 +154,12 @@ public final class RPCFileReadResponse extends RPCResponse {
    */
   public Status getStatus() {
     return mStatus;
+  }
+
+  /**
+   * @return if the message indicates the reader has reached the end of the file
+   */
+  public boolean isEOF() {
+    return mLength == 0;
   }
 }
