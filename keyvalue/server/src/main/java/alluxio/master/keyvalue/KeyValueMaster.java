@@ -92,10 +92,9 @@ public final class KeyValueMaster extends AbstractMaster {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-        new KeyValueMasterClientService.Processor<KeyValueMasterClientServiceHandler>(
-            new KeyValueMasterClientServiceHandler(this)));
+        new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 
