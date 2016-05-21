@@ -1,14 +1,15 @@
 <!--
-  ~ The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
-  ~ (the “License”). You may not use this work except in compliance with the License, which is
-  ~ available at www.apache.org/licenses/LICENSE-2.0
-  ~
-  ~ This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
-  ~ either express or implied, as more fully set forth in the License.
-  ~
-  ~ See the NOTICE file distributed with this work for information regarding copyright ownership.
-  -->
 
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the “License”). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -521,29 +522,23 @@
           <failIfMissing>true</failIfMissing>
           <aggregate>false</aggregate>
           <excludes>
+
             <!-- Code Exclusions -->
             <exclude>**/src/main/java/alluxio/thrift/*</exclude>
             <exclude>**/src/main/java/alluxio/proto/**</exclude>
             <exclude>**/src/main/java/alluxio/perf/thrift/*</exclude>
-            <exclude>**/src/main/webapp/**/*</exclude>
+            <exclude>**/src/main/resources/*</exclude>
+            <exclude>**/src/main/webapp/css/*</exclude>
+            <exclude>**/src/main/webapp/js/*</exclude>
             <exclude>**/src/thrift/*</exclude>
             <exclude>**/src/proto/**</exclude>
             <exclude>**/src/deb/**/*</exclude>
             <exclude>**/src/test/resources/**</exclude>
-            <exclude>**/package-info.java</exclude>
-            <exclude>**/src/main/resources/alluxio-default.properties</exclude>
+            <exclude>**/vagrant/**/*</exclude>
 
             <!-- Build and Packaging Exclusions -->
             <exclude>build/**/*</exclude>
-            <exclude>**/pom.xml</exclude>
-            <exclude>**/logs/*</exclude>
-            <exclude>**/deploy/**/*</exclude>
-            <exclude>**/bin/*</exclude>
-            <exclude>**/conf/**/*</exclude>
-            <exclude>**/conf/testsuite/*</exclude>
-            <exclude>**/libexec/*</exclude>
-            <exclude>**/src/main/findbugs/*</exclude>
-            <exclude>**/src/main/resources/alluxio_checks*</exclude>
+            <exclude>**/.checkstyle</exclude>
             <exclude>**/src/main/assembly/*</exclude>
 
             <!-- Documentation Exclusions -->
@@ -551,12 +546,18 @@
             <exclude>LICENSE</exclude>
             <exclude>NOTICE</exclude>
 
-            <!-- Default local file Exclusions -->
-            <exclude>**/underFSStorage/**</exclude>
+            <!-- Default Local File System Exclusions -->
+            <exclude>**/logs/*</exclude>
             <exclude>**/journal/**</exclude>
+            <exclude>**/underFSStorage/**</exclude>
           </excludes>
           <mapping>
+            <alluxio>SCRIPT_STYLE</alluxio>
             <java>SLASHSTAR_STYLE</java>
+            <properties.template>SCRIPT_STYLE</properties.template>
+            <sh.template>SCRIPT_STYLE</sh.template>
+            <workers>SCRIPT_STYLE</workers>
+            <xml.template>XML_STYLE</xml.template>
           </mapping>
           <useDefaultMapping>true</useDefaultMapping>
           <strictCheck>true</strictCheck>
