@@ -91,7 +91,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
             // always clear the previous response before reading another one
             cleanup();
             // End of file reached
-            if (resp.getLength() == -1) {
+            if (resp.getLength() == 0) {
               return null;
             }
             mReadResponse = resp;
