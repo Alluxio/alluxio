@@ -70,6 +70,10 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
    */
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
       throws IOException {
+    // For a zero length read, directly return without trying the Netty call.
+    if (length == 0) {
+      return ByteBuffer.allocate(0);
+    }
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
@@ -91,7 +95,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
             // always clear the previous response before reading another one
             cleanup();
             // End of file reached
-            if (resp.getLength() == 0) {
+            if (resp.isEOF()) {
               return null;
             }
             mReadResponse = resp;
