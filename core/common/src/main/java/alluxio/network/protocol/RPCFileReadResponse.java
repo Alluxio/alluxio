@@ -86,7 +86,7 @@ public final class RPCFileReadResponse extends RPCResponse {
     short status = in.readShort();
 
     DataBuffer data = null;
-    if (length >= 0) {
+    if (length > 0) {
       //TODO(calvin): use DataNettyBuffer instead of DataByteBuffer to avoid copying
       ByteBuffer buffer = ByteBuffer.allocate((int) length);
       in.readBytes(buffer);
