@@ -4,5 +4,7 @@ ALLUXIO_JAVA_OPTS="
     alluxio.master.principal=hdfs/<_HOST>@<REALM>
     alluxio.worker.keytab.file=<YOUR_HDFS_KEYTAB_FILE_PATH>
     alluxio.worker.principal=hdfs/<_HOST>@<REALM>
+    java.security.krb5.realm=<YOUR_KERBEROS_REALM>
+    java.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>
 "
 ```

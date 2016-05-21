@@ -307,9 +307,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "cancel");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("cancel"));
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
     agent.cancel();
   }
@@ -347,9 +347,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "close");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("close"));
       Preconditions.checkState(mInputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
   }
 
@@ -375,9 +375,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("complete"));
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
     return agent.complete(user, group);
   }
