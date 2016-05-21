@@ -75,8 +75,7 @@ public final class RPCFileReadRequest extends RPCRequest {
   @Override
   public void validate() {
     Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
-    Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length cannot be negative (except for -1): %s", mLength);
+    Preconditions.checkState(mLength >= 0, "Length cannot be negative: %s", mLength);
   }
 
   @Override

@@ -67,12 +67,13 @@ public final class NettyUnderFileSystemFileWriter {
    */
   public void write(InetSocketAddress address, long ufsFileId, long fileOffset, byte[] bytes,
       int offset, int length) throws IOException {
-    SingleResponseListener listener = new SingleResponseListener();
+    SingleResponseListener listener = null;
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
       LOG.debug("Connected to remote machine {}", address);
       Channel channel = f.channel();
+      listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCFileWriteRequest(ufsFileId, fileOffset, length,
           new DataByteArrayChannel(bytes, offset, length)));
@@ -101,7 +102,9 @@ public final class NettyUnderFileSystemFileWriter {
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      mHandler.removeListener(listener);
+      if (listener != null) {
+        mHandler.removeListener(listener);
+      }
     }
   }
 }

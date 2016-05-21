@@ -98,7 +98,7 @@ public class RPCFileReadRequestTest {
    */
   @Test
   public void validLengthTest() {
-    RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, -1);
+    RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
     assertValid(req);
     req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, 0);
     assertValid(req);
