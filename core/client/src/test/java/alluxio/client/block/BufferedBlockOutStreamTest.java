@@ -122,7 +122,7 @@ public class BufferedBlockOutStreamTest {
   public void writeToClosed() throws Exception {
     mTestStream.close();
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
+    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM.toString());
     mTestStream.write(0);
   }
 
@@ -135,7 +135,7 @@ public class BufferedBlockOutStreamTest {
   public void writePastBlock() throws Exception {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK);
+    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK.toString());
     mTestStream.write(0);
   }
 

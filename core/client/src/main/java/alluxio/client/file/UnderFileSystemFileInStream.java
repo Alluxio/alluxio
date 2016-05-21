@@ -100,7 +100,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
     checkIfClosed();
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.format(b.length, off, len));
     if (len == 0) {
       return 0;
     } else if (mEOF) { // At end of file

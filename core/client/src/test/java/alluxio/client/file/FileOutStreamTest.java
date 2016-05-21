@@ -349,8 +349,7 @@ public class FileOutStreamTest {
       mTestStream.write(new byte[10], 5, 6);
       Assert.fail("buffer write with invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
-          e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_BUFFER_STATE.format(10, 5, 6), e.getMessage());
     }
   }
 
@@ -365,7 +364,7 @@ public class FileOutStreamTest {
       mTestStream.write(null);
       Assert.fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
     }
   }
 
@@ -380,7 +379,7 @@ public class FileOutStreamTest {
       mTestStream.write(null, 0, 0);
       Assert.fail("writing null should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL, e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_WRITE_BUFFER_NULL.toString(), e.getMessage());
     }
   }
 
@@ -442,7 +441,7 @@ public class FileOutStreamTest {
       mTestStream = createTestStream(FILE_NAME, options);
       Assert.fail("missing location policy should fail");
     } catch (NullPointerException e) {
-      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
           e.getMessage());
     }
   }

@@ -269,7 +269,7 @@ public class FileOutStream extends AbstractOutStream {
   public void write(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.format(b.length, off, len));
 
     if (mShouldCacheCurrentBlock) {
       try {
