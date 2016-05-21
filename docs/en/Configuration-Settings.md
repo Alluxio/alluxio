@@ -50,7 +50,7 @@ will be remove in version 2.0.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code></td>
-  <td>Java VM options for both Master and Worker.</td>
+  <td>Java VM options for both Master and Worker configuration.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code></td>

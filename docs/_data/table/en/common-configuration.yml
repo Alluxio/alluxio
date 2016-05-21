@@ -47,6 +47,8 @@ alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:
   How many threads to use for the web server.
+alluxio.zookeeper.address:
+  Address of ZooKeeper
 alluxio.zookeeper.election.path:
   Election folder in ZooKeeper.
 alluxio.zookeeper.enabled:
