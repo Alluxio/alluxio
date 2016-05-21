@@ -76,9 +76,9 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     if (mUnderStoreStream != null) {
       mUnderStoreStream.close();
     }
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.format(pos));
     Preconditions
-        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK, pos);
+        .checkArgument(pos <= mLength, PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.format(pos));
     mUnderStoreStream =
         new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mUfsFileId);
     long streamStart = mInitPos + pos;
