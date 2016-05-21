@@ -70,12 +70,13 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
    */
   public ByteBuffer read(InetSocketAddress address, long ufsFileId, long offset, long length)
       throws IOException {
+    SingleResponseListener listener = null;
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
       LOG.debug("Connected to remote machine {}", address);
       Channel channel = f.channel();
-      SingleResponseListener listener = new SingleResponseListener();
+      listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCFileReadRequest(ufsFileId, offset, length));
 
@@ -107,6 +108,10 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
       }
     } catch (Exception e) {
       throw new IOException(e);
+    } finally {
+      if (listener != null) {
+        mHandler.removeListener(listener);
+      }
     }
   }
 
