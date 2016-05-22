@@ -1,5 +1,5 @@
 ```bash
-ALLUXIO_JAVA_OPTS="
+ALLUXIO_JAVA_OPTS+="
     -Dfs.swift.user=<swift-user>
     -Dfs.swift.tenant=<swift-tenant>
     -Dfs.swift.password=<swift-user-password>
