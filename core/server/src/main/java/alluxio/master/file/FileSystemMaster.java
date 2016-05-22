@@ -1799,13 +1799,13 @@ public final class FileSystemMaster extends AbstractMaster {
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
           for (String file : files) {
-            if (PathUtils.isTemporaryFileName(file)) {
+            if (PathUtils.isTemporaryFileName(file) || inode.getChild(file) != null) {
               continue;
             }
             TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, file);
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
-          inode.isDirectChildrenLoaded();
+          inode.setDirectChildrenLoaded(true);
         }
         return counter;
       }
