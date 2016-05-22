@@ -29,7 +29,9 @@ public final class FileSystem extends AbstractFileSystem {
   /**
    * Constructs a new {@link FileSystem}.
    */
-  public FileSystem() {}
+  public FileSystem() {
+    super();
+  }
 
   @Override
   public String getScheme() {
