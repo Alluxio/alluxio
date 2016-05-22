@@ -77,12 +77,14 @@ public class UnderFileSystemDataServerHandler {
     // TODO(calvin): This can be more efficient for sequential reads if we keep state
     try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
       int bytesRead = 0;
-      while (bytesRead < length) {
-        int read = in.read(data, bytesRead, (int) length - bytesRead);
-        if (read == -1) {
-          break;
+      if (in != null) { // if we have not reached the end of the file
+        while (bytesRead < length) {
+          int read = in.read(data, bytesRead, (int) length - bytesRead);
+          if (read == -1) {
+            break;
+          }
+          bytesRead += read;
         }
-        bytesRead += read;
       }
       DataBuffer buf =
           bytesRead != 0 ? new DataByteBuffer(ByteBuffer.wrap(data, 0, bytesRead), bytesRead)
