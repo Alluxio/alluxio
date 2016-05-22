@@ -44,6 +44,8 @@ public final class UnderFileSystemManagerTest {
   private static final long INVALID_FILE_ID = -2L;
   /** The testing session id. */
   private static final long SESSION_ID = 1L;
+  /** Mock length of the file. */
+  private static final long FILE_LENGTH = 1000L;
 
   /**
    * The exception expected to be thrown.
@@ -66,6 +68,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
+    Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
     BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
         .willReturn(mMockUfs);
@@ -306,7 +309,7 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void getInputStreamAtPositionTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
-    long position = 100L;
+    long position = FILE_LENGTH - 1;
     Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
     Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
     UnderFileSystemManager manager = new UnderFileSystemManager();
@@ -315,6 +318,22 @@ public final class UnderFileSystemManagerTest {
     Assert.assertEquals(mMockInputStream, in);
     Mockito.verify(mMockInputStream).skip(position);
     in.close();
+  }
+
+  /**
+   * Tests getting an input stream at EOF returns null.
+   */
+  @Test
+  public void getInputStreamAtEOFTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    long position = FILE_LENGTH;
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    Mockito.when(mMockInputStream.skip(position)).thenReturn(position);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(null, in);
+    Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
   }
 
   /**
