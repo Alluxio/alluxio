@@ -1070,6 +1070,9 @@ public final class FileSystemMasterTest {
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f")),
           e.getMessage());
     }
+
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setCreateAncestors(true));
   }
 
   /**
