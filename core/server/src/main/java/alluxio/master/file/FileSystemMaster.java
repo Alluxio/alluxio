@@ -436,7 +436,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Returns a list {@link FileInfo} for a given path. If the given path is a file, the list only
+   * Returns a list of {@link FileInfo} for a given path. If the given path is a file, the list only
    * contains a single object. If it is a directory, the resulting list contains all direct children
    * of the directory.
    * <p>
@@ -603,7 +603,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the file id of the create file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
-   * @throws BlockInfoException if an invalid block information in encountered
+   * @throws BlockInfoException if an invalid block information is encountered
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
@@ -852,7 +852,7 @@ public final class FileSystemMaster extends AbstractMaster {
       delInodes.addAll(mInodeTree.getInodeChildrenRecursive((InodeDirectory) inode));
     }
 
-    // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
+    // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
     // file, we deal with the checkpoints and blocks as well.
     for (int i = delInodes.size() - 1; i >= 0; i--) {
       Inode<?> delInode = delInodes.get(i);
@@ -1222,7 +1222,7 @@ public final class FileSystemMaster extends AbstractMaster {
             ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstPath));
       }
 
-      // Now we remove srcInode from it's parent and insert it into dstPath's parent
+      // Now we remove srcInode from its parent and insert it into dstPath's parent
       long opTimeMs = System.currentTimeMillis();
       renameInternal(srcInode.getId(), dstPath, false, opTimeMs);
 
@@ -1242,7 +1242,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Implements renaming.
    *
    * @param fileId the file id of the rename source
-   * @param dstPath the path to the rename destionation
+   * @param dstPath the path to the rename destination
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @throws FileDoesNotExistException if a non-existent file is encountered
