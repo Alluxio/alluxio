@@ -386,7 +386,7 @@ public abstract class AbstractLocalAlluxioCluster {
       String tierLevelDirPath =
           String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = testConf.get(tierLevelDirPath).split(",");
-      List<String> newPaths = new ArrayList<String>();
+      List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
         String newPath = mHome + dirPath;
         newPaths.add(newPath);
