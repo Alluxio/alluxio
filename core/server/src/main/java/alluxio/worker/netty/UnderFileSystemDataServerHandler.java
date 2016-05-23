@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -76,10 +76,21 @@ public class UnderFileSystemDataServerHandler {
 
     // TODO(calvin): This can be more efficient for sequential reads if we keep state
     try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
-      int read = in.read(data);
-      DataBuffer buf = read != -1 ? new DataByteBuffer(ByteBuffer.wrap(data, 0, read), read) : null;
+      int bytesRead = 0;
+      if (in != null) { // if we have not reached the end of the file
+        while (bytesRead < length) {
+          int read = in.read(data, bytesRead, (int) length - bytesRead);
+          if (read == -1) {
+            break;
+          }
+          bytesRead += read;
+        }
+      }
+      DataBuffer buf =
+          bytesRead != 0 ? new DataByteBuffer(ByteBuffer.wrap(data, 0, bytesRead), bytesRead)
+              : null;
       RPCFileReadResponse resp =
-          new RPCFileReadResponse(ufsFileId, offset, read, buf, RPCResponse.Status.SUCCESS);
+          new RPCFileReadResponse(ufsFileId, offset, bytesRead, buf, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
