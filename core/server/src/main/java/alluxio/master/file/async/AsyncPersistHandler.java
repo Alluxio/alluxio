@@ -35,13 +35,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * file.
  */
 public interface AsyncPersistHandler {
-  public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Factory for {@link AsyncPersistHandler}.
    */
   @ThreadSafe
   class Factory {
+    public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
     private Factory() {} // prevent instantiation
 
