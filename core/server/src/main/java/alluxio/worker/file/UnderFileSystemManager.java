@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -116,6 +116,8 @@ public final class UnderFileSystemManager {
     private final long mSessionId;
     /** Id referencing this agent, used as an index. */
     private final long mAgentId;
+    /** The length of the file in the under storage. */
+    private final long mLength;
     /** Configuration to use for this stream. */
     private final Configuration mConfiguration;
     /** The string form of the uri to the file in the under file system. */
@@ -145,6 +147,7 @@ public final class UnderFileSystemManager {
         throw new FileDoesNotExistException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
       }
+      mLength = ufs.getFileSize(mUri);
     }
 
     /**
@@ -153,10 +156,14 @@ public final class UnderFileSystemManager {
      * closing the stream.
      *
      * @param position the absolute position in the file to start the stream at
-     * @return an input stream to the file starting at the specified position
+     * @return an input stream to the file starting at the specified position, null if the position
+     *         is past the end of the file
      * @throws IOException if an error occurs when interacting with the UFS
      */
     private InputStream openAtPosition(long position) throws IOException {
+      if (position >= mLength) {
+        return null;
+      }
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       InputStream stream = ufs.open(mUri);
       if (position != stream.skip(position)) {
@@ -307,9 +314,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "cancel");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("cancel"));
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
     agent.cancel();
   }
@@ -347,9 +354,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "close");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("close"));
       Preconditions.checkState(mInputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
   }
 
@@ -375,9 +382,9 @@ public final class UnderFileSystemManager {
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
       }
       Preconditions.checkArgument(agent.mSessionId == sessionId,
-          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION, "complete");
+          PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.format("complete"));
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
-          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT, tempUfsFileId);
+          PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.format(tempUfsFileId));
     }
     return agent.complete(user, group);
   }
@@ -385,7 +392,8 @@ public final class UnderFileSystemManager {
   /**
    * @param tempUfsFileId the temporary ufs file id
    * @param position the absolute position in the file to start the stream at
-   * @return the input stream to read from this file
+   * @return the input stream to read from this file, null if the position is past the end of the
+   *         file
    * @throws FileDoesNotExistException if the worker file id not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
