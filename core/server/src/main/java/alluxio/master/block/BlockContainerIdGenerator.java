@@ -11,10 +11,6 @@
 
 package alluxio.master.block;
 
-import alluxio.master.journal.JournalEntryRepresentable;
-import alluxio.proto.journal.Block.BlockContainerIdGeneratorEntry;
-import alluxio.proto.journal.Journal.JournalEntry;
-
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -23,8 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class generates unique block container ids.
  */
 @ThreadSafe
-public final class BlockContainerIdGenerator
-    implements JournalEntryRepresentable, ContainerIdGenerable {
+public final class BlockContainerIdGenerator implements ContainerIdGenerable {
 
   private final AtomicLong mNextContainerId;
 
@@ -36,25 +31,14 @@ public final class BlockContainerIdGenerator
   }
 
   @Override
-  public synchronized long getNewContainerId() {
+  public long getNewContainerId() {
     return mNextContainerId.getAndIncrement();
   }
 
   /**
    * @param id the next container id to use
    */
-  public synchronized void setNextContainerId(long id) {
+  public void setNextContainerId(long id) {
     mNextContainerId.set(id);
-  }
-
-  @Override
-  public synchronized JournalEntry toJournalEntry() {
-    BlockContainerIdGeneratorEntry blockContainerIdGenerator =
-        BlockContainerIdGeneratorEntry.newBuilder()
-        .setNextContainerId(mNextContainerId.get())
-        .build();
-    return JournalEntry.newBuilder()
-        .setBlockContainerIdGenerator(blockContainerIdGenerator)
-        .build();
   }
 }

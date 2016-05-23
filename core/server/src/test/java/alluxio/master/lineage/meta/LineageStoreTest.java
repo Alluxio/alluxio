@@ -103,8 +103,8 @@ public final class LineageStoreTest {
   @Test
   public void journalEntrySerializationTest() throws Exception {
     long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
-    long l2 =
-        mLineageStore.createLineage(Lists.<Long>newArrayList(1L), Lists.newArrayList(2L), mJob);
+    long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L),
+        mJob);
 
     JournalOutputStream outputStream = Mockito.mock(JournalOutputStream.class);
     mLineageStore.streamToJournalCheckpoint(outputStream);

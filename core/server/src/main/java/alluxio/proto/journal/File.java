@@ -45,6 +45,7 @@ public final class File {
    *
    * <pre>
    * A pair of strings, useful for maps.
+   * next available id: 3
    * </pre>
    */
   public static final class StringPairEntry extends
@@ -355,6 +356,7 @@ public final class File {
      *
      * <pre>
      * A pair of strings, useful for maps.
+     * next available id: 3
      * </pre>
      */
     public static final class Builder extends
@@ -4016,6 +4018,15 @@ public final class File {
      * <code>optional bool mount_point = 11;</code>
      */
     boolean getMountPoint();
+
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    boolean hasDirectChildrenLoaded();
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    boolean getDirectChildrenLoaded();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -4130,6 +4141,11 @@ public final class File {
             case 88: {
               bitField0_ |= 0x00000400;
               mountPoint_ = input.readBool();
+              break;
+            }
+            case 96: {
+              bitField0_ |= 0x00000800;
+              directChildrenLoaded_ = input.readBool();
               break;
             }
           }
@@ -4445,6 +4461,21 @@ public final class File {
       return mountPoint_;
     }
 
+    public static final int DIRECT_CHILDREN_LOADED_FIELD_NUMBER = 12;
+    private boolean directChildrenLoaded_;
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    public boolean hasDirectChildrenLoaded() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    public boolean getDirectChildrenLoaded() {
+      return directChildrenLoaded_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -4457,6 +4488,7 @@ public final class File {
       groupName_ = "";
       permission_ = 0;
       mountPoint_ = false;
+      directChildrenLoaded_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4503,6 +4535,9 @@ public final class File {
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         output.writeBool(11, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeBool(12, directChildrenLoaded_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4556,6 +4591,10 @@ public final class File {
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(11, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(12, directChildrenLoaded_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4700,6 +4739,8 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000200);
         mountPoint_ = false;
         bitField0_ = (bitField0_ & ~0x00000400);
+        directChildrenLoaded_ = false;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -4772,6 +4813,10 @@ public final class File {
           to_bitField0_ |= 0x00000400;
         }
         result.mountPoint_ = mountPoint_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.directChildrenLoaded_ = directChildrenLoaded_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4828,6 +4873,9 @@ public final class File {
         }
         if (other.hasMountPoint()) {
           setMountPoint(other.getMountPoint());
+        }
+        if (other.hasDirectChildrenLoaded()) {
+          setDirectChildrenLoaded(other.getDirectChildrenLoaded());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5380,6 +5428,38 @@ public final class File {
       public Builder clearMountPoint() {
         bitField0_ = (bitField0_ & ~0x00000400);
         mountPoint_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean directChildrenLoaded_ ;
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public boolean hasDirectChildrenLoaded() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public boolean getDirectChildrenLoaded() {
+        return directChildrenLoaded_;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public Builder setDirectChildrenLoaded(boolean value) {
+        bitField0_ |= 0x00000800;
+        directChildrenLoaded_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public Builder clearDirectChildrenLoaded() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        directChildrenLoaded_ = false;
         onChanged();
         return this;
       }
@@ -11779,36 +11859,37 @@ public final class File {
       "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
       "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
       "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
-      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\372\001\n\023In" +
+      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\232\002\n\023In" +
       "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
       "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
       "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
       "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
       "\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030" +
       "\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n\013mount_point" +
-      "\030\013 \001(\010\"O\n\036InodeDirectoryIdGeneratorEntry" +
-      "\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence_numbe",
-      "r\030\002 \001(\003\"\315\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021" +
-      "\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persi" +
-      "stence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020cr" +
-      "eation_time_ms\030\006 \001(\003\022!\n\031last_modificatio" +
-      "n_time_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(" +
-      "\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\t" +
-      "cacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r" +
-      " \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 " +
-      "\001(\t\022\022\n\npermission\030\020 \001(\005\"O\n\036InodeLastModi" +
-      "ficationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mo",
-      "dification_time_ms\030\002 \001(\003\"#\n\025PersistDirec" +
-      "toryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time" +
-      "_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004pa" +
-      "th\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003tt" +
-      "l\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010ds" +
-      "t_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021Set" +
-      "AttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms" +
-      "\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tp" +
-      "ersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007",
-      " \001(\t\022\022\n\npermission\030\010 \001(\005"
+      "\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\"O" +
+      "\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014cont",
+      "ainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"" +
+      "\315\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent" +
+      "_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_s" +
+      "tate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
+      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
+      "s\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006len" +
+      "gth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheabl" +
+      "e\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\t" +
+      "user_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 \001(\t\022\022\n\np" +
+      "ermission\030\020 \001(\005\"O\n\036InodeLastModification",
+      "TimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modificati" +
+      "on_time_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntr" +
+      "y\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(" +
+      "\003\"L\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(\t" +
+      "\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"" +
+      "?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002" +
+      " \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021SetAttribut" +
+      "eEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016" +
+      "\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted",
+      "\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\n" +
+      "permission\030\010 \001(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -11863,7 +11944,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", "DirectChildrenLoaded", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new

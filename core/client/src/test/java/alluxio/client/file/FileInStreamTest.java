@@ -11,19 +11,23 @@
 
 package alluxio.client.file;
 
+import alluxio.AlluxioURI;
+import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockInStream;
 import alluxio.client.block.BufferedBlockInStream;
+import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockInStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
 import alluxio.client.file.options.InStreamOptions;
+import alluxio.client.file.options.OpenUfsFileOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.ExceptionMessage;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
@@ -61,6 +65,7 @@ public class FileInStreamTest {
 
   private AlluxioBlockStore mBlockStore;
   private FileSystemContext mContext;
+  private FileSystemWorkerClient mWorkerClient;
   private FileInfo mInfo;
   private URIStatus mStatus;
 
@@ -68,14 +73,22 @@ public class FileInStreamTest {
 
   private FileInStream mTestStream;
 
+  private boolean mDelegateUfsOps;
+
+  private long getBlockLength(int streamId) {
+    return streamId == NUM_STREAMS - 1 ? 50 : BLOCK_LENGTH;
+  }
+
   /**
    * Sets up the context and streams before a test runs.
    *
+   * @throws AlluxioException when the worker ufs operations fail
    * @throws IOException when the read and write streams fail
    */
   @Before
-  public void before() throws IOException {
+  public void before() throws AlluxioException, IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
+    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -88,25 +101,38 @@ public class FileInStreamTest {
     List<Long> blockIds = new ArrayList<>();
     for (int i = 0; i < NUM_STREAMS; i++) {
       blockIds.add((long) i);
-      mCacheStreams.add(new TestBufferedBlockOutStream(i, BLOCK_LENGTH));
+      mCacheStreams.add(new TestBufferedBlockOutStream(i, getBlockLength(i)));
       Mockito.when(mBlockStore.getInStream(i)).thenAnswer(new Answer<BufferedBlockInStream>() {
         @Override
         public BufferedBlockInStream answer(InvocationOnMock invocation) throws Throwable {
           long i = (Long) invocation.getArguments()[0];
-          return new TestBufferedBlockInStream(i, (int) (i * BLOCK_LENGTH), BLOCK_LENGTH);
+          return new TestBufferedBlockInStream(i, (int) (i * BLOCK_LENGTH),
+              getBlockLength((int) i));
         }
       });
-
       Mockito.when(mBlockStore.getOutStream(Mockito.eq((long) i), Mockito.anyLong(),
-          Mockito.any(WorkerNetAddress.class))).thenReturn(mCacheStreams.get(i));
+          Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+            @Override
+            public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
+              long i = (Long) invocation.getArguments()[0];
+              return mCacheStreams.get((int) i).isClosed() ? null : mCacheStreams.get((int) i);
+            }
+          });
     }
     mInfo.setBlockIds(blockIds);
     mStatus = new URIStatus(mInfo);
 
+    // Worker file client mocking
+    mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
+    Mockito.when(mContext.createWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(
+        mWorkerClient.openUfsFile(Mockito.any(AlluxioURI.class),
+            Mockito.any(OpenUfsFileOptions.class))).thenReturn(1L);
+
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
     mTestStream =
         new FileInStream(mStatus, InStreamOptions.defaults().setReadType(
-            ReadType.CACHE_PROMOTE));
+            ReadType.CACHE_PROMOTE).setCachePartiallyReadBlock(false));
   }
 
   @After
@@ -244,7 +270,7 @@ public class FileInStreamTest {
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(seekAmount, readAmount), buffer);
     // First block should not be cached since we skipped over it, but the second should be
-    Assert.assertTrue(mCacheStreams.get(0).isCanceled());
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getWrittenData());
@@ -254,6 +280,7 @@ public class FileInStreamTest {
     // Seek a short way past start of block 3
     mTestStream.seek((long) (BLOCK_LENGTH * 3.1));
     Assert.assertEquals((byte) (BLOCK_LENGTH * 3.1), mTestStream.read());
+    mTestStream.seek(FILE_LENGTH);
   }
 
   /**
@@ -331,6 +358,7 @@ public class FileInStreamTest {
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH / 4 * 3),
         mCacheStreams.get(1).getWrittenData());
+    mTestStream.seek(FILE_LENGTH);
   }
 
   /**
@@ -368,7 +396,7 @@ public class FileInStreamTest {
    * cancels the existing cache stream.
    *
    * @throws IOException when an operation on the stream fails
-   */
+  */
   @Test
   public void testSkip() throws IOException {
     int skipAmount = (int) (BLOCK_LENGTH / 2);
@@ -380,7 +408,7 @@ public class FileInStreamTest {
     mTestStream.read(buffer);
     Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(skipAmount, readAmount), buffer);
     // First block should not be cached since we skipped into it, but the second should be
-    Assert.assertTrue(mCacheStreams.get(0).isCanceled());
+    Assert.assertEquals(0, mCacheStreams.get(0).getWrittenData().length);
     Assert.assertArrayEquals(
         BufferUtils.getIncreasingByteArray((int) BLOCK_LENGTH, (int) BLOCK_LENGTH),
         mCacheStreams.get(1).getWrittenData());
@@ -432,36 +460,30 @@ public class FileInStreamTest {
    * @throws IOException when an operation on the stream fails
    */
   @Test
-  public void failToUnderFsTest() throws IOException {
+  public void failToUnderFsTest() throws AlluxioException, IOException {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
     mStatus = new URIStatus(mInfo);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mContext);
-    mTestStream = new FileInStream(mStatus, InStreamOptions.defaults());
+    mTestStream =
+        new FileInStream(mStatus, InStreamOptions.defaults().setCachePartiallyReadBlock(false));
 
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
-    UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
-    InputStream stream = Mockito.mock(InputStream.class);
-    Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
-    Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
-    Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
+    if (mDelegateUfsOps) {
+      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+      Mockito.verify(mWorkerClient).openUfsFile(new AlluxioURI(mStatus.getUfsPath()),
+          OpenUfsFileOptions.defaults());
+    } else {
+      UnderFileSystem ufs = ClientMockUtils.mockUnderFileSystem(Mockito.eq("testUfsPath"));
+      InputStream stream = Mockito.mock(InputStream.class);
+      Mockito.when(ufs.open("testUfsPath")).thenReturn(stream);
+      Mockito.when(stream.skip(BLOCK_LENGTH)).thenReturn(BLOCK_LENGTH);
+      Mockito.when(stream.skip(BLOCK_LENGTH / 2)).thenReturn(BLOCK_LENGTH / 2);
 
-    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-    Mockito.verify(ufs).open("testUfsPath");
-    Mockito.verify(stream).skip(100);
-    Mockito.verify(stream).skip(50);
-  }
-
-  /**
-   * Tests that seeking into the middle of a block will invalidate caching for that block.
-   *
-   * @throws IOException when seeking from the stream fails
-   */
-  @Test
-  public void dontCacheMidBlockSeekTest() throws IOException {
-    mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
-    // Shouldn't cache the current block when we skipped its beginning
-    Assert
-        .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
+      mTestStream.seek(BLOCK_LENGTH + (BLOCK_LENGTH / 2));
+      Mockito.verify(ufs).open("testUfsPath");
+      Mockito.verify(stream).skip(100);
+      Mockito.verify(stream).skip(50);
+    }
   }
 
   /**
@@ -535,29 +557,6 @@ public class FileInStreamTest {
   }
 
   /**
-   * Tests that an {@link IOException} thrown by a {@link BlockInStream} during a skip will be
-   * handled correctly.
-   *
-   * @throws IOException when an operation on the stream fails
-   */
-  @Test
-  public void skipInstreamExceptionTest() throws IOException {
-    long skipSize = BLOCK_LENGTH / 2;
-    BlockInStream blockInStream = Mockito.mock(BlockInStream.class);
-    Whitebox.setInternalState(mTestStream, "mCurrentBlockInStream", blockInStream);
-    Mockito.when(blockInStream.skip(skipSize)).thenReturn(0L);
-    Mockito.when(blockInStream.remaining()).thenReturn(BLOCK_LENGTH);
-
-    try {
-      mTestStream.skip(skipSize);
-      Assert.fail("skip in instream should fail");
-    } catch (IOException e) {
-      Assert.assertEquals(ExceptionMessage.INSTREAM_CANNOT_SKIP.getMessage(skipSize),
-          e.getMessage());
-    }
-  }
-
-  /**
    * Tests the location policy created with different options.
    */
   @Test
@@ -590,23 +589,6 @@ public class FileInStreamTest {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
           e.getMessage());
     }
-  }
-
-  /**
-   * Tests cache streams are created with the proper block sizes when the file size is smaller
-   * than block size and we skip before reading.
-   */
-  @Test
-  public void cacheStreamBlockSizeTest() throws Exception {
-    long smallSize = BLOCK_LENGTH / 2;
-    mInfo.setLength(smallSize);
-    mTestStream =
-        new FileInStream(new URIStatus(mInfo), InStreamOptions.defaults().setReadType(
-            ReadType.CACHE));
-    mTestStream.skip(smallSize / 2);
-    mTestStream.read(new byte[1]);
-    Mockito.verify(mBlockStore).getOutStream(Mockito.anyLong(),
-        Mockito.eq(smallSize), Mockito.any(WorkerNetAddress.class));
   }
 
   /**

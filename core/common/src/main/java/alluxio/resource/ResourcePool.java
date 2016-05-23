@@ -146,11 +146,8 @@ public abstract class ResourcePool<T> {
    */
   public void release(T resource) {
     mResources.add(resource);
-    mTakeLock.lock();
-    try {
+    try (LockResource r = new LockResource(mTakeLock)) {
       mNotEmpty.signal();
-    } finally {
-      mTakeLock.unlock();
     }
   }
 

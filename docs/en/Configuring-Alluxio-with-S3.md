@@ -15,7 +15,12 @@ First, the Alluxio binaries must be on your machine. You can either
 [compile Alluxio](Building-Alluxio-Master-Branch.html), or
 [download the binaries locally](Running-Alluxio-Locally.html).
 
-Then, if you haven't already done so, create your configuration file from the template:
+Then, if you haven't already done so, create your configuration file with `bootstrap-conf` command.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-S3/bootstrap-conf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -77,6 +82,12 @@ used to communicate with the proxy.
 These configuration parameters may also need to be set for the Alluxio client if it is running in
 a separate JVM from the Alluxio Master and Workers. See
 [Configuring Distributed Applications](#configuring-distributed-applications)
+
+## Enabling S3 server side encryption
+To enable S3 [server side encryption](http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingServerSideEncryption.html),
+modify the `ALLUXIO_JAVA_OPTS` section of `conf/alluxio-env.sh` to include:
+
+{% include Configuring-Alluxio-with-S3/server-side-encryption.md %}
 
 # Configuring Your Application
 

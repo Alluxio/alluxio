@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.cli.Version;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
@@ -164,8 +163,8 @@ public abstract class AbstractClient implements Closeable {
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);
     while (!mClosed) {
       mAddress = getAddress();
-      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}", Version.VERSION,
-              getServiceName(), mMode, mAddress);
+      LOG.info("Alluxio client (version {}) is trying to connect with {} {} @ {}",
+          RuntimeConstants.VERSION, getServiceName(), mMode, mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
@@ -301,7 +300,7 @@ public abstract class AbstractClient implements Closeable {
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (AlluxioTException e) {
-        throw Throwables.propagate(AlluxioException.from(e));
+        throw Throwables.propagate(AlluxioException.fromThrift(e));
       } catch (TException e) {
         LOG.error(e.getMessage(), e);
         mConnected = false;
@@ -330,7 +329,7 @@ public abstract class AbstractClient implements Closeable {
       try {
         return rpc.call();
       } catch (AlluxioTException e) {
-        throw AlluxioException.from(e);
+        throw AlluxioException.fromThrift(e);
       } catch (ThriftIOException e) {
         throw new IOException(e);
       } catch (TException e) {

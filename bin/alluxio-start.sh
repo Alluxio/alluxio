@@ -51,14 +51,14 @@ is_ram_folder_mounted() {
     return 1
   fi
   local mounted_fs=""
-  if [[ $(uname -s) = Darwin ]]; then
+  if [[ $(uname -s) == Darwin ]]; then
     mounted_fs=$(mount -t "hfs" | grep '/Volumes/' | cut -d " " -f 3)
   else
     mounted_fs=$(mount -t "tmpfs,ramfs" | cut -d " " -f 3)
   fi
 
   for fs in ${mounted_fs}; do
-    if [[ "${ALLUXIO_RAM_FOLDER}" = "${fs}" || \
+    if [[ "${ALLUXIO_RAM_FOLDER}" == "${fs}" || \
      "${ALLUXIO_RAM_FOLDER}" =~ ^"${fs}"\/.* ]]; then
       return 0
     fi

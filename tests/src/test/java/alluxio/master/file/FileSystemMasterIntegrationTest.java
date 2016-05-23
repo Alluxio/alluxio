@@ -25,6 +25,9 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.InodePathPair;
+import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -41,6 +44,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
+import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -327,11 +331,13 @@ public class FileSystemMasterIntegrationTest {
 
   private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
+  private InodeTree mInodeTree;
 
   @Before
   public final void before() throws Exception {
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
+    mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
     mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
 
     TtlBucketPrivateAccess
@@ -389,7 +395,7 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"))) {
+      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"), true)) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -415,7 +421,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test
@@ -435,14 +441,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH).size();
+    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH, true).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(ROOT_PATH2).size());
+        mFsMaster.getFileInfoList(ROOT_PATH2, true).size());
   }
 
   @Test
@@ -617,7 +623,10 @@ public class FileSystemMasterIntegrationTest {
   public void lastModificationTimeCompleteFileTest() throws Exception {
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.completeFileInternal(new ArrayList<Long>(), fileId, 0, opTimeMs);
+    try (LockedInodePath inodePath = mInodeTree
+        .lockFullInodePath(new AlluxioURI("/testFile"), InodeTree.LockMode.WRITE)) {
+      mFsMaster.completeFileInternal(new ArrayList<Long>(), inodePath, 0, opTimeMs);
+    }
     FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
     Assert.assertEquals(opTimeMs, fileInfo.getLastModificationTimeMs());
   }
@@ -627,7 +636,10 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
     CreateFileOptions options = CreateFileOptions.defaults().setOperationTimeMs(opTimeMs);
-    mFsMaster.createFileInternal(new AlluxioURI("/testFolder/testFile"), options);
+    try (LockedInodePath inodePath = mInodeTree
+        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
+      mFsMaster.createFileInternal(inodePath, options);
+    }
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
@@ -653,7 +665,14 @@ public class FileSystemMasterIntegrationTest {
     long fileId =
         mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), CreateFileOptions.defaults());
     long opTimeMs = TEST_CURRENT_TIME;
-    mFsMaster.renameInternal(fileId, new AlluxioURI("/testFolder/testFile2"), true, opTimeMs);
+
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+      LockedInodePath srcPath = inodePathPair.getFirst();
+      LockedInodePath dstPath = inodePathPair.getSecond();
+      mFsMaster.renameInternal(srcPath, dstPath, true, opTimeMs);
+    }
     FileInfo folderInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertEquals(opTimeMs, folderInfo.getLastModificationTimeMs());
   }
@@ -674,11 +693,11 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = new HashSet<>();
     HashSet<Long> listedDirIds = new HashSet<>();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"));
+    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"), true);
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()))) {
+      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()), true)) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -698,13 +717,13 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0"), true).size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i)).size());
+          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i), true).size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new AlluxioURI("/")).size());
+        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
   }
 
   @Test
@@ -751,7 +770,10 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     long ttl = 100;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
-    mFsMaster.createFileInternal(new AlluxioURI("/testFolder/testFile"), options);
+    try (LockedInodePath inodePath = mInodeTree
+        .lockInodePath(new AlluxioURI("/testFolder/testFile"), InodeTree.LockMode.WRITE)) {
+      mFsMaster.createFileInternal(inodePath, options);
+    }
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile")));
     Assert.assertEquals(ttl, folderInfo.getTtl());
@@ -784,8 +806,14 @@ public class FileSystemMasterIntegrationTest {
     long ttl = 1;
     CreateFileOptions options = CreateFileOptions.defaults().setTtl(ttl);
     long fileId = mFsMaster.createFile(new AlluxioURI("/testFolder/testFile1"), options);
-    mFsMaster.renameInternal(fileId, new AlluxioURI("/testFolder/testFile2"), true,
-        TEST_CURRENT_TIME);
+
+    try (InodePathPair inodePathPair = mInodeTree
+        .lockInodePathPair(new AlluxioURI("/testFolder/testFile1"), InodeTree.LockMode.WRITE_PARENT,
+            new AlluxioURI("/testFolder/testFile2"), InodeTree.LockMode.WRITE)) {
+      LockedInodePath srcPath = inodePathPair.getFirst();
+      LockedInodePath dstPath = inodePathPair.getSecond();
+      mFsMaster.renameInternal(srcPath, dstPath, true, TEST_CURRENT_TIME);
+    }
     FileInfo folderInfo =
         mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder/testFile2")));
     Assert.assertEquals(ttl, folderInfo.getTtl());

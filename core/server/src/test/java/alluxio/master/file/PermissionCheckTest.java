@@ -19,6 +19,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -111,7 +112,7 @@ public final class PermissionCheckTest {
   }
 
   public static class FakeUserGroupsMapping implements GroupMappingService {
-    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+    private HashMap<String, String> mUserGroups = new HashMap<>();
 
     public FakeUserGroupsMapping() {
       mUserGroups.put(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups());
@@ -176,24 +177,33 @@ public final class PermissionCheckTest {
 
     // create "/testDir" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_DIR_URI),
-        CreateDirectoryOptions.defaults()
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateDirectoryOptions.defaults()
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+    }
 
     // create "/testDir/file" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_DIR_FILE_URI),
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+    }
 
     // create "/testFile" for user2
     AuthenticatedClientUser.set(TEST_USER_2.getUser());
-    inodeTree.createPath(new AlluxioURI(TEST_FILE_URI),
-        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(
-                new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
+        InodeTree.LockMode.WRITE)) {
+      inodeTree.createPath(inodePath,
+          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+              .setPermissionStatus(
+                  new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+    }
   }
 
   /**
@@ -555,9 +565,9 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     if (isFile) {
       Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
-      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path)).size());
+      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true).size());
     } else {
-      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path));
+      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true);
       if (fileInfoList.size() > 0) {
         Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
       }

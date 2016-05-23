@@ -14,8 +14,8 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.cli.Version;
 import alluxio.master.block.BlockMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.rest.RestApiTest;
@@ -28,8 +28,8 @@ import alluxio.wire.WorkerInfoTest;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -56,7 +56,6 @@ import javax.ws.rs.HttpMethod;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AlluxioMaster.class, BlockMaster.class, Configuration.class, MasterContext.class,
     MetricRegistry.class, UnderFileSystem.class})
-@Ignore("ALLUXIO-1888")
 public final class AlluxioMasterRestApiTest extends RestApiTest {
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
   private static final String NOT_ALLUXIO_CONF_PREFIX = "_alluxio_";
@@ -158,12 +157,12 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         CommonUtils.randomString(10));
 
     Configuration configuration = mockConfiguration();
-    Mockito.doReturn(properties).when(configuration).getInternalProperties();
+    Mockito.doReturn(ImmutableMap.copyOf(properties)).when(configuration).toMap();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION),
         NO_PARAMS, HttpMethod.GET, propertyMap).run();
 
-    Mockito.verify(configuration).getInternalProperties();
+    Mockito.verify(configuration).toMap();
   }
 
   @Test
@@ -246,7 +245,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getVersionTest() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_VERSION),
-        NO_PARAMS, HttpMethod.GET, Version.VERSION).run();
+        NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
   }
 
   private UnderFileSystem mockUfs() {
