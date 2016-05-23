@@ -89,7 +89,7 @@ public final class MasterWorkerInfo {
    * Marks the worker as registered, while updating all of its metadata.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
-   * @param storageTierAliases list of storage tier alises in order of their position in the
+   * @param storageTierAliases list of storage tier aliases in order of their position in the
    *        hierarchy
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used byes
