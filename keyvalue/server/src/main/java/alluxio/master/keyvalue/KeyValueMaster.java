@@ -92,10 +92,9 @@ public final class KeyValueMaster extends AbstractMaster {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.KEY_VALUE_MASTER_CLIENT_SERVICE_NAME,
-        new KeyValueMasterClientService.Processor<KeyValueMasterClientServiceHandler>(
-            new KeyValueMasterClientServiceHandler(this)));
+        new KeyValueMasterClientService.Processor<>(new KeyValueMasterClientServiceHandler(this)));
     return services;
   }
 
@@ -255,13 +254,7 @@ public final class KeyValueMaster extends AbstractMaster {
       // This should be impossible since we pass the recursive option into mkdir
       throw Throwables.propagate(e);
     }
-    long fileId;
-    try {
-      fileId = mFileSystemMaster.getFileId(path);
-    } catch (FileDoesNotExistException e) {
-      // This is unexpected since we just successfully created this directory
-      throw Throwables.propagate(e);
-    }
+    long fileId = mFileSystemMaster.getFileId(path);
     Preconditions.checkState(fileId != IdUtils.INVALID_FILE_ID);
 
     createStoreInternal(fileId);

@@ -75,6 +75,11 @@ public final class UnderFileSystemRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
 
+  /**
+   * Constructs a new {@link UnderFileSystemRegistry}.
+   */
+  public UnderFileSystemRegistry() {}
+
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes
     init();
@@ -106,7 +111,7 @@ public final class UnderFileSystemRegistry {
       throw new IllegalArgumentException("No Under File System Factory found for: " + path);
     }
 
-    List<Throwable> errors = new ArrayList<Throwable>();
+    List<Throwable> errors = new ArrayList<>();
     for (UnderFileSystemFactory factory : factories) {
       try {
         // Use the factory to create the actual client for the Under File System

@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -21,7 +22,9 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
+import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
@@ -65,10 +68,13 @@ public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;
   private static final AlluxioURI FILE_NAME = new AlluxioURI("/file");
+  /** Used if ufs operation delegation is enabled. */
+  private static final long UFS_FILE_ID = 1L;
 
   private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
   private FileSystemMasterClient mFileSystemMasterClient;
+  private FileSystemWorkerClient mWorkerClient;
   private UnderFileSystem mUnderFileSystem;
 
   private Map<Long, TestBufferedBlockOutStream> mAlluxioOutStreamMap;
@@ -76,6 +82,7 @@ public class FileOutStreamTest {
   private AtomicBoolean mUnderStorageFlushed;
 
   private FileOutStream mTestStream;
+  private boolean mDelegateUfsOps;
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -85,6 +92,7 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
+    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
@@ -96,6 +104,13 @@ public class FileOutStreamTest {
     Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
     Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
+
+    // Worker file client mocking
+    mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
+    Mockito.when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
+    Mockito.when(
+        mWorkerClient.createUfsFile(Mockito.any(AlluxioURI.class),
+            Mockito.any(CreateUfsFileOptions.class))).thenReturn(UFS_FILE_ID);
 
     // Return sequentially increasing numbers for new block ids
     Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
@@ -245,7 +260,11 @@ public class FileOutStreamTest {
     Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
 
-    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
+    if (mDelegateUfsOps) {
+      Mockito.verify(mWorkerClient).cancelUfsFile(UFS_FILE_ID, CancelUfsFileOptions.defaults());
+    } else {
+      Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
+    }
   }
 
   /**
@@ -478,6 +497,11 @@ public class FileOutStreamTest {
       throws IOException {
     Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    return new FileOutStream(path, options);
+    FileOutStream stream = new FileOutStream(path, options);
+    // Set up under file storage for delegated ufs operations if enabled
+    if (mDelegateUfsOps) {
+      Whitebox.setInternalState(stream, "mUnderStorageOutputStream", mUnderStorageOutputStream);
+    }
+    return stream;
   }
 }

@@ -12,6 +12,9 @@ alluxio.worker.block.heartbeat.timeout.ms:
 alluxio.worker.block.threads.max:
   The maximum number of incoming RPC requests to block worker that can be handled.
   This value is used to configure maximum number of threads in Thrift thread pool with block worker.
+  This value should be greater than the sum of `alluxio.user.block.worker.client.threads` across
+  concurrent Alluxio clients. Otherwise, the worker connection pool can be drained, preventing new
+  connections from being established.
 alluxio.worker.block.threads.min:
   The minimum number of threads used to handle incoming RPC requests to block worker.
   This value is used to configure minimum number of threads in Thrift thread pool with block worker.

@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.cli.Version;
+import alluxio.RuntimeConstants;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.UnderFileSystemUtils;
@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class Format {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String USAGE = String.format("java -cp %s %s <MASTER/WORKER>",
-      Version.ALLUXIO_JAR, Format.class.getCanonicalName());
+      RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
   private static boolean formatFolder(String name, String folder, Configuration configuration)
       throws IOException {
@@ -65,10 +65,8 @@ public final class Format {
       System.exit(-1);
     }
 
-    Configuration configuration = new Configuration();
-
+    Configuration configuration = Configuration.createServerConf();
     if ("MASTER".equalsIgnoreCase(args[0])) {
-
       String masterJournal =
           configuration.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal, configuration)) {

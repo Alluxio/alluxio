@@ -1,14 +1,16 @@
 propertyName,defaultValue
 alluxio.user.block.master.client.threads,10
-alluxio.user.block.worker.client.threads,10000
+alluxio.user.block.worker.client.threads,128
 alluxio.user.block.remote.read.buffer.size.bytes,8 MB
 alluxio.user.block.remote.reader.class,alluxio.client.netty.&#8203;NettyRemoteBlockReader
 alluxio.user.block.remote.writer.class,alluxio.client.netty.&#8203;NettyRemoteBlockWriter
 alluxio.user.block.size.bytes.default,512MB
 alluxio.user.failed.space.request.limits,3
 alluxio.user.file.buffer.bytes,1 MB
+alluxio.user.file.cache.partially.read.block,true
 alluxio.user.file.master.client.threads,10
 alluxio.user.file.waitcompleted.poll.ms,1000
+alluxio.user.file.worker.client.threads,10
 alluxio.user.file.write.location.policy.class,alluxio.client.file.policy.LocalFirstPolicy
 alluxio.user.file.readtype.default,CACHE_PROMOTE
 alluxio.user.file.writetype.default,MUST_CACHE
@@ -17,3 +19,4 @@ alluxio.user.lineage.enabled,false
 alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,3000
 alluxio.user.network.netty.worker.threads,0
+alluxio.user.ufs.operation.delegation,true

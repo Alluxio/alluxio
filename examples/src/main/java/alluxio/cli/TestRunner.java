@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.AlluxioURI;
+import alluxio.RuntimeConstants;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -52,14 +53,16 @@ public final class TestRunner {
       .asList(WriteType.MUST_CACHE, WriteType.CACHE_THROUGH, WriteType.THROUGH,
           WriteType.ASYNC_THROUGH);
 
+  private TestRunner() {} // prevent instantiation
+
   private static void usage() {
     System.out.println("Usage:");
     System.out.println("(1) To run a predefined set of read/write tests:");
-    System.out.println(String.format("java -cp %s %s <master address>", Version.ALLUXIO_JAR,
-        TestRunner.class.getCanonicalName()));
+    System.out.println(String.format("java -cp %s %s <master address>",
+        RuntimeConstants.ALLUXIO_JAR, TestRunner.class.getCanonicalName()));
     System.out.println("(2) To run a single test:");
     System.out.println(String
-        .format("java -cp %s %s <master address> <%s> <%s> <%s>", Version.ALLUXIO_JAR,
+        .format("java -cp %s %s <master address> <%s> <%s> <%s>", RuntimeConstants.ALLUXIO_JAR,
             TestRunner.class.getCanonicalName(), OperationType.class.getSimpleName(),
             ReadType.class.getSimpleName(), WriteType.class.getSimpleName()));
     System.out.println(String.format("\t <%s>: one of %s", OperationType.class.getSimpleName(),
