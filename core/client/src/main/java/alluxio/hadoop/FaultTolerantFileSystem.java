@@ -32,7 +32,9 @@ public final class FaultTolerantFileSystem extends AbstractFileSystem {
   /**
    * Constructs a new {@link FaultTolerantFileSystem}.
    */
-  public FaultTolerantFileSystem() {}
+  public FaultTolerantFileSystem() {
+    super();
+  }
 
   @Override
   public String getScheme() {
