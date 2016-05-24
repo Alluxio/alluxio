@@ -193,27 +193,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    String newPath = stripPrefixIfPresent(path);
-    if (newPath.endsWith("_temporary")) {
-      // To get better performance Swift driver does not
-      // creates _temporary folder
-      // This optimization should be hidden from Spark, therefore
-      // exists _teporary will return true
-      return true;
-    }
-    return isObjectExists(newPath);
-  }
-
-  /**
-   * Checks if the object exists.
-   *
-   * @param path the key to get the object details of
-   * @return boolean indicating if the object exists
-   */
-  private boolean isObjectExists(String path) {
-    LOG.debug("Checking if {} exists", path);
-    boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
-    return res;
+    return isFile(path) || isDirectory(path);
   }
 
   /**
@@ -269,7 +249,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path);
+    String normalizedPath = stripPrefixIfPresent(path);
+    // To get better performance Swift driver does not create a _temporary folder.
+    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
+    return normalizedPath.endsWith("_temporary")
+        || mAccount.getContainer(mContainerName).getObject(normalizedPath).exists();
   }
 
   @Override
@@ -380,6 +364,19 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error(e.getMessage());
       return false;
     }
+  }
+
+  /**
+   * Check if the path is a prefix of at least one object in Swift.
+   *
+   * @param path the path to check
+   * @return boolean indicating if the path is a directory
+   * @throws IOException if an error occurs listing the directory
+   */
+  private boolean isDirectory(String path) throws IOException {
+    String strippedPath = stripPrefixIfPresent(path);
+    String[] children = listInternal(strippedPath, true);
+    return children != null && children.length > 0;
   }
 
   /**
