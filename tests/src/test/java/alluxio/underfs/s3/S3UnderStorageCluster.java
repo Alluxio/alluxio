@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -43,7 +43,7 @@ public class S3UnderStorageCluster extends UnderFileSystemCluster {
     super(baseDir, configuration);
     mS3Bucket = PathUtils.concatPath(System.getProperty(INTEGRATION_S3_BUCKET), UUID.randomUUID());
     Preconditions.checkState(mS3Bucket != null && mS3Bucket != "",
-        PreconditionMessage.S3_BUCKET_MUST_BE_SET, INTEGRATION_S3_BUCKET);
+        PreconditionMessage.S3_BUCKET_MUST_BE_SET.format(INTEGRATION_S3_BUCKET));
     mBaseDir = PathUtils.concatPath(mS3Bucket, UUID.randomUUID());
     mStarted = false;
   }

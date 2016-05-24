@@ -1,4 +1,14 @@
 #!/usr/bin/env bash
+#
+# The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+# (the "License"). You may not use this work except in compliance with the License, which is
+# available at www.apache.org/licenses/LICENSE-2.0
+#
+# This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+# either express or implied, as more fully set forth in the License.
+#
+# See the NOTICE file distributed with this work for information regarding copyright ownership.
+#
 
 # Included in all the Alluxio scripts with source command should not be executable directly also
 # should not be passed any arguments, since we need original $*
@@ -21,7 +31,7 @@ this="$config_bin/$script"
 # This will set the default installation for a tarball installation while os distributors can create
 # their own alluxio-layout.sh file to set system installation locations.
 if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
-  VERSION=1.1.0-RC1
+  VERSION=1.1.0-RC2
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
   ALLUXIO_CONF_DIR="${ALLUXIO_HOME}/conf"
   ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"

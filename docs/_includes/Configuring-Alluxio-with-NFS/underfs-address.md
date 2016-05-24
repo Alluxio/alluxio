@@ -1,3 +1,3 @@
 ```bash
-export ALLUXIO_UNDERFS_ADDRESS=/alluxio_vol
+ALLUXIO_UNDERFS_ADDRESS=/alluxio_vol
 ```
