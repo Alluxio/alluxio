@@ -12,7 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBuffer;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -21,7 +21,6 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.nio.ByteBuffer;
 
 /**
  * This represents the response of a {@link RPCFileReadRequest}.
@@ -87,10 +86,7 @@ public final class RPCFileReadResponse extends RPCResponse {
 
     DataBuffer data = null;
     if (length > 0) {
-      //TODO(calvin): use DataNettyBuffer instead of DataByteBuffer to avoid copying
-      ByteBuffer buffer = ByteBuffer.allocate((int) length);
-      in.readBytes(buffer);
-      data = new DataByteBuffer(buffer, (int) length);
+      data = new DataNettyBuffer(in, (int) length);
     }
     return new RPCFileReadResponse(tempUfsFileId, offset, length, data, Status.fromShort(status));
   }
