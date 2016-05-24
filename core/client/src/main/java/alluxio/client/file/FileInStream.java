@@ -610,7 +610,6 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
-    // Do not set the buffer size too small to avoid slowing down seek by too much.
     byte[] buffer = new byte[Math.min((int) mSeekBufferSizeBytes, (int) len)];
     do {
       // Account for the last read which might be less than mSeekBufferSizeBytes bytes.
