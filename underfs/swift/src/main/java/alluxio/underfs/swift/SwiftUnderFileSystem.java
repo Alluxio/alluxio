@@ -45,8 +45,12 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library. This
+ * implementation does not support the concept of directories due to Swift being an object store.
+ * All mkdir operations will no-op and return true and empty directories will not exist.
+ * Directories with objects inside will be inferred through the prefix.
  */
+//TODO(calvin): Reconsider the directory limitations of this class.
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
