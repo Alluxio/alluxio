@@ -18,6 +18,7 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 
@@ -84,7 +85,7 @@ public final class AlluxioShellUtilsTest {
      *                                └── foobar4
      */
     if (fs.exists(new AlluxioURI("/testWildCards"))) {
-      fs.delete(new AlluxioURI("/testWildCards"));
+      fs.delete(new AlluxioURI("/testWildCards"), DeleteOptions.defaults().setRecursive(true));
     }
     fs.createDirectory(new AlluxioURI("/testWildCards"));
     fs.createDirectory(new AlluxioURI("/testWildCards/foo"));
