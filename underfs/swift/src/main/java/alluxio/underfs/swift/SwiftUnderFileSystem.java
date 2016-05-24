@@ -366,7 +366,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Check if the path is a prefix of at least one object in Swift.
+   * Checks if the path is a prefix of at least one object in Swift.
    *
    * @param path the path to check
    * @return boolean indicating if the path is a directory
