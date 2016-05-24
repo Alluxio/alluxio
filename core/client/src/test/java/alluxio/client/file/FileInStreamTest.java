@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -509,8 +509,7 @@ public class FileInStreamTest {
       mTestStream.read(new byte[10], 5, 6);
       Assert.fail("the buffer read of invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
-          e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_BUFFER_STATE.format(10, 5, 6), e.getMessage());
     }
   }
 
@@ -525,7 +524,7 @@ public class FileInStreamTest {
       mTestStream.seek(-1);
       Assert.fail("seeking negative position should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1), e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_SEEK_NEGATIVE.format(-1), e.getMessage());
     }
   }
 
@@ -540,8 +539,7 @@ public class FileInStreamTest {
       mTestStream.seek(FILE_LENGTH + 1);
       Assert.fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(
-          String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1),
+      Assert.assertEquals(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.format(FILE_LENGTH + 1),
           e.getMessage());
     }
   }
@@ -586,7 +584,7 @@ public class FileInStreamTest {
           new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE)
               .setLocationPolicy(null));
     } catch (NullPointerException e) {
-      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
           e.getMessage());
     }
   }
