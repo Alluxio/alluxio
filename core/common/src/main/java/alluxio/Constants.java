@@ -380,6 +380,10 @@ public final class Constants {
       "alluxio.user.file.waitcompleted.poll.ms";
   public static final String USER_UFS_OPERATION_DELEGATION =
       "alluxio.user.ufs.operation.delegation";
+  public static final String USER_UFS_READ_BUFFER_SIZE =
+      "alluxio.user.ufs.read.buffer.size";
+  public static final String USER_UFS_WRITE_BUFFER_SIZE =
+      "alluxio.user.ufs.write.buffer.size";
 
   /** alluxio-fuse related conf keys */
 
