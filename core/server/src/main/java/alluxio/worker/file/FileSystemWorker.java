@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -182,7 +182,8 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @param position the absolute position in the file to position the stream at before returning
-   * @return an input stream to the ufs file positioned at the given position
+   * @return an input stream to the ufs file positioned at the given position, null if the
+   *         position is past the end of the file.
    * @throws FileDoesNotExistException if the worker file id is invalid
    * @throws IOException if an error occurs interacting with the under file system
    */
