@@ -98,7 +98,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   private long mStreamBlockId;
 
   /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
-  private byte[] mSeekBuffer = null;
+  private byte[] mSeekBuffer;
 
   /**
    * Creates a new file input stream.
@@ -134,10 +134,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
-    int seekBufferSizeBytes = (int) options.getSeekBufferSizeBytes();
-    if (seekBufferSizeBytes > 0) {
-      mSeekBuffer = new byte[seekBufferSizeBytes];
-    }
+    int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), Constants.KB);
+    mSeekBuffer = new byte[seekBufferSizeBytes];
     LOG.debug(options.toString());
   }
 
