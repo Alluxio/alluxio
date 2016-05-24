@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -189,7 +189,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.format(b.length, off, len));
     if (len == 0) {
       return 0;
     } else if (remaining() <= 0) {
@@ -237,10 +237,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mPos == pos) {
       return;
     }
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions
-        .checkArgument(pos <= maxSeekPosition(), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
-            pos);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.format(pos));
+    Preconditions.checkArgument(pos <= maxSeekPosition(),
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.format(pos));
     if (!mShouldCachePartiallyReadBlock) {
       seekInternal(pos);
     } else {

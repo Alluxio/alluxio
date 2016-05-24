@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -122,7 +122,7 @@ public class BufferedBlockOutStreamTest {
   public void writeToClosed() throws Exception {
     mTestStream.close();
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM);
+    mThrown.expectMessage(PreconditionMessage.ERR_CLOSED_BLOCK_OUT_STREAM.toString());
     mTestStream.write(0);
   }
 
@@ -135,7 +135,7 @@ public class BufferedBlockOutStreamTest {
   public void writePastBlock() throws Exception {
     mTestStream.setWrittenBytes(BLOCK_LENGTH);
     mThrown.expect(IllegalStateException.class);
-    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK);
+    mThrown.expectMessage(PreconditionMessage.ERR_END_OF_BLOCK.toString());
     mTestStream.write(0);
   }
 
