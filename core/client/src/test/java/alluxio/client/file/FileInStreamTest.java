@@ -392,6 +392,27 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests skipping backwards when the seek buffer size is smaller than block size.
+   *
+   * @throws IOException when an operation on the stream fails
+   */
+  @Test
+  public void seekBackwardSmallSeekBuffer() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setCachePartiallyReadBlock(true)
+            .setReadType(ReadType.CACHE_PROMOTE).setSeekBufferSizeBytes(7));
+    int readAmount = (int) (BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    mTestStream.seek(readAmount - 1);
+
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH),
+        mCacheStreams.get(0).getWrittenData());
+    Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
+  }
+
+  /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
    *
