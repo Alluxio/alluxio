@@ -379,7 +379,7 @@ public final class Constants {
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "alluxio.user.file.waitcompleted.poll.ms";
   public static final String USER_UFS_OPERATION_DELEGATION =
-      "alluxio.user.ufs.operation.delegation";
+      "alluxio.user.ufs.delegation.enabled";
   public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE =
       "alluxio.user.ufs.delegation.read.buffer.size";
   public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE =
