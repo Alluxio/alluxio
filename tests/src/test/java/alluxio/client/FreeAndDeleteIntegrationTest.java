@@ -32,10 +32,8 @@ import alluxio.worker.block.BlockWorker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public final class FreeAndDeleteIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
@@ -52,10 +49,6 @@ public final class FreeAndDeleteIntegrationTest {
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.WORKER_BLOCK_SYNC,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
-  /** The exception expected to be thrown. */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
@@ -128,9 +121,14 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertTrue(bm.getLostBlocks().contains(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
-    // File is immediately gone after delete.
-    mThrown.expect(FileDoesNotExistException.class);
-    mFileSystem.getStatus(filePath);
+
+    try {
+      // File is immediately gone after delete.
+      mFileSystem.getStatus(filePath);
+      Assert.fail();
+    } catch (FileDoesNotExistException e) {
+      // expected
+    }
 
     // Execute the lost files detection.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
