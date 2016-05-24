@@ -38,7 +38,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   private TestingServer mCuratorServer = null;
   private int mNumOfMasters = 0;
 
-  private final List<LocalAlluxioMaster> mMasters = new ArrayList<LocalAlluxioMaster>();
+  private final List<LocalAlluxioMaster> mMasters = new ArrayList<>();
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
