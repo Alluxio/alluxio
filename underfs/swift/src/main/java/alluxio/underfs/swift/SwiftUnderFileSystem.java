@@ -193,7 +193,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    return isFile(path) || isDirectory(path);
+    // To get better performance Swift driver does not create a _temporary folder.
+    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
+    return path.endsWith("_temporary") || isFile(path) || isDirectory(path);
   }
 
   /**
@@ -250,10 +252,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean isFile(String path) throws IOException {
     String strippedPath = stripPrefixIfPresent(path);
-    // To get better performance Swift driver does not create a _temporary folder.
-    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    return strippedPath.endsWith("_temporary")
-        || mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
+    return mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
   }
 
   @Override
@@ -375,11 +374,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean isDirectory(String path) throws IOException {
     String strippedPath = stripPrefixIfPresent(path);
-    // To get better performance Swift driver does not create a _temporary folder.
-    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    if (strippedPath.endsWith("_temporary")) {
-      return true;
-    }
     String[] children = listInternal(strippedPath, true);
     return children != null && children.length > 0;
   }
