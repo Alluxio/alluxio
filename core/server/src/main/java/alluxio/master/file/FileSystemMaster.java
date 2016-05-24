@@ -532,7 +532,8 @@ public final class FileSystemMaster extends AbstractMaster {
       Inode<?> inode = null;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
-        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+        if ((inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) || inode
+            .isFile()) {
           loadMetadataOptions.setLoadDirectChildren(false);
         }
       }
