@@ -210,7 +210,6 @@
           <license>
             cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTgtMDQtMjh8dHJ1ZXwtMSNNQ3dDRkFFM0JGSnAwZ1FRNFFaNDd5SnlRd0x3ZGhmQUFoUU1ZMkJpWWVOamhOZndvQmU3UldMRVFzZnNGUT09
           </license>
-          <!-- <failBuildOnCriticalError>true</failBuildOnCriticalError> -->
           <output>
             <html>
               <intro>${project.basedir}/intro.html</intro>
