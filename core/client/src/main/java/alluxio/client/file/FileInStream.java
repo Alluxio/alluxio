@@ -134,7 +134,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
-    int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), Constants.KB);
+    int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
     LOG.debug(options.toString());
   }
