@@ -212,7 +212,7 @@
           </license>
           <output>
             <html>
-              <intro>${project.basedir}/intro.html</intro>
+              <intro>${project.basedir}/src/main/resources/intro.html</intro>
               <title>Alluxio ${project.version} REST API</title>
             </html>
           </output>
