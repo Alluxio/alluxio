@@ -45,8 +45,12 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library. This
+ * implementation does not support the concept of directories due to Swift being an object store.
+ * All mkdir operations will no-op and return true and empty directories will not exist.
+ * Directories with objects inside will be inferred through the prefix.
  */
+//TODO(calvin): Reconsider the directory limitations of this class.
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -193,27 +197,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    String newPath = stripPrefixIfPresent(path);
-    if (newPath.endsWith("_temporary")) {
-      // To get better performance Swift driver does not
-      // creates _temporary folder
-      // This optimization should be hidden from Spark, therefore
-      // exists _teporary will return true
-      return true;
-    }
-    return isObjectExists(newPath);
-  }
-
-  /**
-   * Checks if the object exists.
-   *
-   * @param path the key to get the object details of
-   * @return boolean indicating if the object exists
-   */
-  private boolean isObjectExists(String path) {
-    LOG.debug("Checking if {} exists", path);
-    boolean res =  mAccount.getContainer(mContainerName).getObject(path).exists();
-    return res;
+    // To get better performance Swift driver does not create a _temporary folder.
+    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
+    return path.endsWith("_temporary") || isFile(path) || isDirectory(path);
   }
 
   /**
@@ -269,7 +255,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path);
+    String strippedPath = stripPrefixIfPresent(path);
+    return mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
   }
 
   @Override
@@ -380,6 +367,19 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error(e.getMessage());
       return false;
     }
+  }
+
+  /**
+   * Checks if the path is a prefix of at least one object in Swift.
+   *
+   * @param path the path to check
+   * @return boolean indicating if the path is a directory
+   * @throws IOException if an error occurs listing the directory
+   */
+  private boolean isDirectory(String path) throws IOException {
+    String strippedPath = stripPrefixIfPresent(path);
+    String[] children = listInternal(strippedPath, true);
+    return children != null && children.length > 0;
   }
 
   /**
