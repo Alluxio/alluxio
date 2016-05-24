@@ -249,11 +249,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    String normalizedPath = stripPrefixIfPresent(path);
+    String strippedPath = stripPrefixIfPresent(path);
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    return normalizedPath.endsWith("_temporary")
-        || mAccount.getContainer(mContainerName).getObject(normalizedPath).exists();
+    return strippedPath.endsWith("_temporary")
+        || mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
   }
 
   @Override
@@ -375,6 +375,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean isDirectory(String path) throws IOException {
     String strippedPath = stripPrefixIfPresent(path);
+    // To get better performance Swift driver does not create a _temporary folder.
+    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
+    if (strippedPath.endsWith("_temporary")) {
+      return true;
+    }
     String[] children = listInternal(strippedPath, true);
     return children != null && children.length > 0;
   }
