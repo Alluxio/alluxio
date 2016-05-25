@@ -20,5 +20,5 @@ alluxio.user.lineage.master.client.threads,10
 alluxio.user.network.netty.timeout.ms,3000
 alluxio.user.network.netty.worker.threads,0
 alluxio.user.ufs.delegation.enabled,true
-alluxio.user.ufs.delegation.read.buffer.size,2MB
-alluxio.user.ufs.delegation.write.buffer.size,2MB
+alluxio.user.ufs.delegation.read.buffer.size.bytes,2MB
+alluxio.user.ufs.delegation.write.buffer.size.bytes,2MB
