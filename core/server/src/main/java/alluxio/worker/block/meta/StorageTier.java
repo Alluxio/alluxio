@@ -84,7 +84,9 @@ public final class StorageTier {
       try {
         FileUtils.deletePathRecursively(tmpDirPath);
       } catch (IOException e) {
-        LOG.error("Failed to clean up temporary directory: {}.", tmpDirPath);
+        if (FileUtils.exists(tmpDirPath)) {
+          LOG.error("Failed to clean up temporary directory: {}.", tmpDirPath);
+        }
       }
     }
     mCapacityBytes = totalCapacity;
