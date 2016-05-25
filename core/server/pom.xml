@@ -210,6 +210,12 @@
           <license>
             cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTgtMDQtMjh8dHJ1ZXwtMSNNQ3dDRkFFM0JGSnAwZ1FRNFFaNDd5SnlRd0x3ZGhmQUFoUU1ZMkJpWWVOamhOZndvQmU3UldMRVFzZnNGUT09
           </license>
+          <output>
+            <html>
+              <intro>${project.basedir}/src/main/resources/intro.html</intro>
+              <title>Alluxio ${project.version} REST API</title>
+            </html>
+          </output>
           <restModel>
             <httpStatusCodes>
               <httpStatusCode>
