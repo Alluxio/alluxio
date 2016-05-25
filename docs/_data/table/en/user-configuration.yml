@@ -53,6 +53,15 @@ alluxio.user.network.netty.timeout.ms:
   wait for a response from the data server.
 alluxio.user.network.netty.worker.threads:
   How many threads to use for remote block worker client to read from remote block workers.
-alluxio.user.ufs.operation.delegation:
+alluxio.user.ufs.delegation.enabled:
   Flag for delegating ufs data operations to the worker. Set this to false to use client to directly
-  communicate with the ufs. Setting this to true is currently experimental.
+  communicate with the ufs. Setting this to true is currently experimental and may have an impact
+  on performance for certain workloads.
+alluxio.user.ufs.delegation.read.buffer.size.bytes:
+  Size of the read buffer when reading from the ufs through the Alluxio worker. Each read request
+  will fetch at least this many bytes. This property has no effect if the delegation flag is turned
+  off.
+alluxio.user.ufs.delegation.write.buffer.size.bytes:
+  Size of the write buffer when writing to the ufs through the Alluxio worker. Each write request
+  will write at least this many bytes, unless the write is at the end of the file. This property
+  has no effect if the delegation flag is turned off.

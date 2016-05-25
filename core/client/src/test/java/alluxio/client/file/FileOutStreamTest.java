@@ -92,7 +92,7 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
-    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
+    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
