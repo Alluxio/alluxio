@@ -125,7 +125,7 @@ public final class FreeAndDeleteIntegrationTest {
     try {
       // File is immediately gone after delete.
       mFileSystem.getStatus(filePath);
-      Assert.fail();
+      Assert.fail(String.format("Expected file %s being deleted but it was not.", filePath));
     } catch (FileDoesNotExistException e) {
       // expected
     }
