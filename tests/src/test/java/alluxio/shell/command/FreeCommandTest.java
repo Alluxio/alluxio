@@ -12,6 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.CommonTestUtils;
+import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
@@ -20,8 +22,8 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
-import alluxio.util.CommonUtils;
 
+import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -86,10 +88,13 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
 
       // Waiting for the removal of blockMeta from worker.
-      for (long blockId : blockIds) {
-        while (mLocalAlluxioCluster.getWorker().getBlockWorker().hasBlockMeta(blockId)) {
-          CommonUtils.sleepMs(50);
-        }
+      for (final long blockId : blockIds) {
+        CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+          @Override
+          public Boolean apply(Void input) {
+            return !mLocalAlluxioCluster.getWorker().getBlockWorker().hasBlockMeta(blockId);
+          }
+        }, 100 * Constants.SECOND_MS);
       }
 
       // Schedule 2nd heartbeat from worker.
