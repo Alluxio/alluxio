@@ -1902,7 +1902,17 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
-    if (!inodePath.fullPathExists() || options.isLoadDirectChildren()) {
+    boolean inodeExists = inodePath.fullPathExists();
+    boolean loadDirectChildren = false;
+    if (inodeExists) {
+      try {
+        loadDirectChildren = inodePath.getInode().isDirectory() && options.isLoadDirectChildren();
+      } catch (FileDoesNotExistException e) {
+        // This should never happen.
+        throw new RuntimeException(e);
+      }
+    }
+    if (!inodeExists || loadDirectChildren) {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
