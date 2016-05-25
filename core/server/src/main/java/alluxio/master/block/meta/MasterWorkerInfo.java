@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -89,7 +89,7 @@ public final class MasterWorkerInfo {
    * Marks the worker as registered, while updating all of its metadata.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
-   * @param storageTierAliases list of storage tier alises in order of their position in the
+   * @param storageTierAliases list of storage tier aliases in order of their position in the
    *        hierarchy
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used byes

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -684,8 +684,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo block = mBlocks.get(removedBlockId);
       if (block == null) {
-        LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
-            + " on Master!", workerInfo.getId(), removedBlockId);
+        LOG.warn("Worker {} reported that block {} is removed, but the block's metadata does not"
+            + " exist on Master!", workerInfo.getId(), removedBlockId);
         // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
         // Ideally, the delete/free I/O flow should never reach this point. Because Master may
         // update the block metadata only after receiving the acknowledgement from Workers.
