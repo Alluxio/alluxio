@@ -1908,6 +1908,7 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         loadDirectChildren = inodePath.getInode().isDirectory() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
+        // This should never happen.
         throw new RuntimeException(e);
       }
     }
