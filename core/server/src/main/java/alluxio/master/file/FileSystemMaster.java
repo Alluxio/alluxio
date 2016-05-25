@@ -532,8 +532,7 @@ public final class FileSystemMaster extends AbstractMaster {
       Inode<?> inode = null;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
-        if ((inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) || inode
-            .isFile()) {
+        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
           loadMetadataOptions.setLoadDirectChildren(false);
         }
       }
@@ -1903,7 +1902,8 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
-    if (!inodePath.fullPathExists() || options.isLoadDirectChildren()) {
+    if (!inodePath.fullPathExists() || (inodePath.getInodeNoException().isDirectory() && options
+        .isLoadDirectChildren())) {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
