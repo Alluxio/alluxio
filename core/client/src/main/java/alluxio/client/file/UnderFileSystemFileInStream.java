@@ -152,7 +152,8 @@ public final class UnderFileSystemFileInStream extends InputStream {
    */
   private ByteBuffer allocateBuffer() {
     Configuration conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE));
+    return ByteBuffer.allocate(
+        (int) conf.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

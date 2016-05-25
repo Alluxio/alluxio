@@ -95,7 +95,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
-    mUfsDelegation = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
+    mUfsDelegation = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
         updateUfsPath();
