@@ -65,7 +65,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws Exception {
-    ClientContext.getConf().set(Constants.USER_UFS_OPERATION_DELEGATION, "true");
+    ClientContext.getConf().set(Constants.USER_UFS_DELEGATION_ENABLED, "true");
     mFile = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(mFile);
     // Create a file of 2 block sizes.
