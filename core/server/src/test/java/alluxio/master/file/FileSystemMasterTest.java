@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -1057,19 +1057,28 @@ public final class FileSystemMasterTest {
           e.getMessage());
     }
 
-    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f").toString());
+    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f1").toString());
+    FileUtils.createFile(Paths.get(mUnderFS).resolve("a/f2").toString());
+
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a/f1"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true));
+
+    // This should not throw file exists exception those a/f1 is loaded.
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
         LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
 
     // TODO(peis): Avoid this hack by adding an option in getFileInfo to skip loading metadata.
     try {
-      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f"), CreateFileOptions.defaults());
+      mFileSystemMaster.createFile(new AlluxioURI("alluxio:/a/f2"), CreateFileOptions.defaults());
       Assert.fail("createDirectory was expected to fail with FileAlreadyExistsException");
     } catch (FileAlreadyExistsException e) {
       Assert.assertEquals(
-          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f")),
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(new AlluxioURI("alluxio:/a/f2")),
           e.getMessage());
     }
+
+    mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/a"),
+        LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(true));
   }
 
   /**

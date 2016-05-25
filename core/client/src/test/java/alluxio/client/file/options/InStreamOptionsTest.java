@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -34,7 +34,7 @@ public class InStreamOptionsTest {
   public void defaultsTest() {
     InStreamOptions options = InStreamOptions.defaults();
     Assert.assertEquals(AlluxioStorageType.PROMOTE, options.getAlluxioStorageType());
-    Assert.assertEquals(128 * Constants.MB, options.getSeekBufferSizeBytes());
+    Assert.assertEquals(Constants.MB, options.getSeekBufferSizeBytes());
   }
 
   /**

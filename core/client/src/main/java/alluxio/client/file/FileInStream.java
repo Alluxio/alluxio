@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -97,8 +97,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   /** The blockId used in the block streams. */
   private long mStreamBlockId;
 
-  /** The read buffer size in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
-  private final long mSeekBufferSizeBytes;
+  /** The read buffer in file seek. This is used in {@link #readCurrentBlockToEnd()}. */
+  private byte[] mSeekBuffer;
 
   /**
    * Creates a new file input stream.
@@ -134,7 +134,8 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       Preconditions.checkNotNull(options.getLocationPolicy(),
           PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED);
     }
-    mSeekBufferSizeBytes = options.getSeekBufferSizeBytes();
+    int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
+    mSeekBuffer = new byte[seekBufferSizeBytes];
     LOG.debug(options.toString());
   }
 
@@ -189,7 +190,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   public int read(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_READ_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.format(b.length, off, len));
     if (len == 0) {
       return 0;
     } else if (remaining() <= 0) {
@@ -237,10 +238,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     if (mPos == pos) {
       return;
     }
-    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE, pos);
-    Preconditions
-        .checkArgument(pos <= maxSeekPosition(), PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE,
-            pos);
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.format(pos));
+    Preconditions.checkArgument(pos <= maxSeekPosition(),
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.format(pos));
     if (!mShouldCachePartiallyReadBlock) {
       seekInternal(pos);
     } else {
@@ -611,10 +611,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       return;
     }
 
-    // Do not set the buffer size too small to avoid slowing down seek by too much.
-    byte[] buffer = new byte[Math.min((int) mSeekBufferSizeBytes, (int) len)];
     do {
-      int bytesRead = read(buffer);
+      // Account for the last read which might be less than mSeekBufferSizeBytes bytes.
+      int bytesRead = read(mSeekBuffer, 0, (int) Math.min(mSeekBuffer.length, len));
       Preconditions.checkState(bytesRead > 0, PreconditionMessage.ERR_UNEXPECTED_EOF);
       len -= bytesRead;
     } while (len > 0);

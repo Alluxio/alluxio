@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -16,6 +16,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
+import alluxio.hadoop.HadoopClientTestUtils;
 
 import com.google.common.base.Throwables;
 import org.powermock.reflect.Whitebox;
@@ -35,13 +36,14 @@ public final class ClientTestUtils {
 
   /**
    * Reverts the client context configuration to the default value, and reinitializes all contexts
-   * while rely on this configuration.
+   * while rely on this configuration. Resets the initialization flag in AbstractFileSystem.
    *
    * This method should only be used as a cleanup mechanism between tests. It should not be used
    * while any object may be using the {@link ClientContext}.
    */
   public static void resetClientContext() {
     try {
+      HadoopClientTestUtils.resetHadoopClientContext();
       Whitebox.invokeMethod(ClientContext.class, "reset");
       resetContexts();
     } catch (Exception e) {

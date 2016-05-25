@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -320,7 +320,7 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof DeleteMountPointEntry) {
       try {
         unmountFromEntry((DeleteMountPointEntry) innerEntry);
-      } catch (InvalidPathException | FileDoesNotExistException e) {
+      } catch (InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof AsyncPersistRequestEntry) {
@@ -501,7 +501,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Returns a list {@link FileInfo} for a given path. If the given path is a file, the list only
+   * Returns a list of {@link FileInfo} for a given path. If the given path is a file, the list only
    * contains a single object. If it is a directory, the resulting list contains all direct children
    * of the directory.
    * <p>
@@ -719,7 +719,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the file id of the create file
    * @throws InvalidPathException if an invalid path is encountered
    * @throws FileAlreadyExistsException if the file already exists
-   * @throws BlockInfoException if an invalid block information in encountered
+   * @throws BlockInfoException if an invalid block information is encountered
    * @throws IOException if the creation fails
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the parent of the path does not exist and the recursive
@@ -1008,7 +1008,7 @@ public final class FileSystemMaster extends AbstractMaster {
       delInodes.addAll(lockList.getInodes());
 
       TempInodePathForDescendant tempInodePath = new TempInodePathForDescendant(inodePath);
-      // We go through each inode, removing it from it's parent set and from mDelInodes. If it's a
+      // We go through each inode, removing it from its parent set and from mDelInodes. If it's a
       // file, we deal with the checkpoints and blocks as well.
       for (int i = delInodes.size() - 1; i >= 0; i--) {
         Inode<?> delInode = delInodes.get(i);
@@ -1023,7 +1023,7 @@ public final class FileSystemMaster extends AbstractMaster {
             // If this is a mount point, we have deleted all the children and can unmount it
             // TODO(calvin): Add tests (ALLUXIO-1831)
             if (mMountTable.isMountPoint(alluxioUriToDel)) {
-              unmountInternal(tempInodePath);
+              unmountInternal(alluxioUriToDel);
             } else {
               // Delete the file in the under file system.
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
@@ -1437,7 +1437,7 @@ public final class FileSystemMaster extends AbstractMaster {
           ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(dstInodePath.getUri()));
     }
 
-    // Now we remove srcInode from it's parent and insert it into dstPath's parent
+    // Now we remove srcInode from its parent and insert it into dstPath's parent
     long opTimeMs = System.currentTimeMillis();
     renameInternal(srcInodePath, dstInodePath, false, opTimeMs);
     List<Inode<?>> persistedInodes = propagatePersistedInternal(srcInodePath, false);
@@ -1455,7 +1455,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Implements renaming.
    *
    * @param srcInodePath the path of the rename source
-   * @param dstInodePath the path to the rename destionation
+   * @param dstInodePath the path to the rename destination
    * @param replayed whether the operation is a result of replaying the journal
    * @param opTimeMs the time of the operation
    * @throws FileDoesNotExistException if a non-existent file is encountered
@@ -1514,9 +1514,10 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     AlluxioURI dstPath = new AlluxioURI(entry.getDstPath());
 
+    // Both src and dst paths should lock WRITE_PARENT, to modify the parent inodes for both paths.
     try (InodePathPair inodePathPair = mInodeTree
         .lockInodePathPair(srcPath, InodeTree.LockMode.WRITE_PARENT, dstPath,
-            InodeTree.LockMode.WRITE)) {
+            InodeTree.LockMode.WRITE_PARENT)) {
       LockedInodePath srcInodePath = inodePathPair.getFirst();
       LockedInodePath dstInodePath = inodePathPair.getSecond();
       renameInternal(srcInodePath, dstInodePath, true, entry.getOpTimeMs());
@@ -1729,7 +1730,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * Loads metadata for the object identified by the given path from UFS into Alluxio.
    * <p>
    * This operation requires users to have {@link FileSystemAction#WRITE} permission on the path
-   * and its parent path if path is a file, or @link FileSystemAction#WRITE} permission on the
+   * and its parent path if path is a file, or {@link FileSystemAction#WRITE} permission on the
    * parent path if path is a directory.
    *
    * @param path the path for which metadata should be loaded
@@ -1798,13 +1799,13 @@ public final class FileSystemMaster extends AbstractMaster {
           loadMetadataOptions.setLoadDirectChildren(false).setCreateAncestors(false);
 
           for (String file : files) {
-            if (PathUtils.isTemporaryFileName(file)) {
+            if (PathUtils.isTemporaryFileName(file) || inode.getChild(file) != null) {
               continue;
             }
             TempInodePathForChild tempInodePath = new TempInodePathForChild(inodePath, file);
             counter = loadMetadataAndJournal(tempInodePath, loadMetadataOptions);
           }
-          inode.isDirectChildrenLoaded();
+          inode.setDirectChildrenLoaded(true);
         }
         return counter;
       }
@@ -1868,7 +1869,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options the load metadata options
    * @return the flush counter for journaling
    * @throws InvalidPathException if invalid path is encountered
-   * @throws IOException if an I/O error occurs   *
+   * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
@@ -1965,18 +1966,18 @@ public final class FileSystemMaster extends AbstractMaster {
     }
 
     mountInternal(inodePath, ufsPath, false /* not replayed */, options);
-    boolean loadMetadataSuceeded = false;
+    boolean loadMetadataSucceeded = false;
     try {
       // This will create the directory at alluxioPath
       loadDirectoryMetadataAndJournal(inodePath,
           LoadMetadataOptions.defaults().setCreateAncestors(false));
-      loadMetadataSuceeded = true;
+      loadMetadataSucceeded = true;
     } catch (FileDoesNotExistException e) {
       // This exception should be impossible since we just mounted this path
       throw Throwables.propagate(e);
     } finally {
-      if (!loadMetadataSuceeded) {
-        unmountInternal(inodePath);
+      if (!loadMetadataSucceeded) {
+        unmountInternal(inodePath.getUri());
       }
       // Exception will be propagated from loadDirectoryMetadataAndJournal
     }
@@ -2062,7 +2063,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Unmounts a UFS path previously mounted path onto an Alluxio path.
+   * Unmounts a UFS path previously mounted onto an Alluxio path.
    * <p>
    * This operation requires users to have {@link FileSystemAction#WRITE} permission on the parent
    * of the Alluxio path.
@@ -2095,7 +2096,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Unmounts a UFS path previously mounted path onto an Alluxio path.
+   * Unmounts a UFS path previously mounted onto an Alluxio path.
    * <p>
    * Writes to the journal.
    *
@@ -2107,7 +2108,7 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   private long unmountAndJournal(LockedInodePath inodePath)
       throws InvalidPathException, FileDoesNotExistException, IOException {
-    if (unmountInternal(inodePath)) {
+    if (unmountInternal(inodePath.getUri())) {
       Inode<?> inode = inodePath.getInode();
       // Use the internal delete API, setting {@code replayed} to true to prevent the delete
       // operations from being persisted in the UFS.
@@ -2129,26 +2130,21 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileDoesNotExistException if path does not exist
    */
-  private void unmountFromEntry(DeleteMountPointEntry entry)
-      throws InvalidPathException, FileDoesNotExistException {
+  private void unmountFromEntry(DeleteMountPointEntry entry) throws InvalidPathException {
     AlluxioURI alluxioURI = new AlluxioURI(entry.getAlluxioPath());
-    try (LockedInodePath inodePath = mInodeTree
-        .lockFullInodePath(alluxioURI, InodeTree.LockMode.WRITE)) {
-      if (!unmountInternal(inodePath)) {
-        LOG.error("Failed to unmount {}", alluxioURI);
-      }
+    if (!unmountInternal(alluxioURI)) {
+      LOG.error("Failed to unmount {}", alluxioURI);
     }
   }
 
   /**
-   * @param inodePath the Alluxio mount point to unmount
+   * @param uri the Alluxio mount point to remove from the mount table
    * @return true if successful, false otherwise
-   * @throws InvalidPathException if an invalied path is encountered
+   * @throws InvalidPathException if an invalid path is encountered
    */
-  private boolean unmountInternal(LockedInodePath inodePath) throws InvalidPathException {
-    return mMountTable.delete(inodePath.getUri());
+  private boolean unmountInternal(AlluxioURI uri) throws InvalidPathException {
+    return mMountTable.delete(uri);
   }
 
   /**
@@ -2285,7 +2281,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Schedules a file for async persistence.
    *
-   * @param path the id of the file for persistence
+   * @param path the path of the file for persistence
    * @throws AlluxioException if scheduling fails
    */
   public void scheduleAsyncPersistence(AlluxioURI path) throws AlluxioException {
