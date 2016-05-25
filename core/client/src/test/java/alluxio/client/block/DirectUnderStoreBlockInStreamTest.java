@@ -48,7 +48,7 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    ClientContext.getConf().set(Constants.USER_UFS_OPERATION_DELEGATION, "false");
+    ClientContext.getConf().set(Constants.USER_UFS_DELEGATION_ENABLED, "false");
 
     File file = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(file);

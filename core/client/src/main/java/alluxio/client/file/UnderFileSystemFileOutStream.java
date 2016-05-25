@@ -167,6 +167,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    */
   private ByteBuffer allocateBuffer() {
     Configuration conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    return ByteBuffer.allocate(
+        (int) conf.getBytes(Constants.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES));
   }
 }
