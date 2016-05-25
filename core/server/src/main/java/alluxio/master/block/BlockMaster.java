@@ -683,9 +683,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo block = mBlocks.get(removedBlockId);
+      // TODO(calvin): Investigate if this branching logic can be simplified.
       if (block == null) {
-        LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
-            + " on Master!", workerInfo.getId(), removedBlockId);
+        // LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
+        //    + " on Master!", workerInfo.getId(), removedBlockId);
         // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
         // Ideally, the delete/free I/O flow should never reach this point. Because Master may
         // update the block metadata only after receiving the acknowledgement from Workers.
