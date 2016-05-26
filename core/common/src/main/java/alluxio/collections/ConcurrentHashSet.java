@@ -29,13 +29,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class ConcurrentHashSet<T> extends AbstractSet<T> {
   private final Map<T, Boolean> mMap;
-  private final Set<T> mKeySet;
 
   /**
    * Creates a new {@link ConcurrentHashSet}.
    */
   public ConcurrentHashSet() {
-    this(8, 0.75f, 32);
+    this(2, 0.95f, 1);
   }
 
   /**
@@ -47,12 +46,11 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    */
   public ConcurrentHashSet(int initialCapacity, float loadFactor, int concurrencyLevel) {
     mMap = new ConcurrentHashMap<>(initialCapacity, loadFactor, concurrencyLevel);
-    mKeySet = mMap.keySet();
   }
 
   @Override
   public Iterator<T> iterator() {
-    return mKeySet.iterator();
+    return mMap.keySet().iterator();
   }
 
   @Override
@@ -88,7 +86,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
 
   @Override
   public boolean containsAll(Collection<?> c) {
-    return mKeySet.containsAll(c);
+    return mMap.keySet().containsAll(c);
   }
 
   @Override
@@ -97,12 +95,12 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
       return true;
     }
     // allow equality with any Set.
-    return mKeySet.equals(o);
+    return mMap.keySet().equals(o);
   }
 
   @Override
   public int hashCode() {
-    return mKeySet.hashCode();
+    return mMap.keySet().hashCode();
   }
 
   @Override
@@ -117,26 +115,26 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
 
   @Override
   public boolean removeAll(Collection<?> c) {
-    return mKeySet.removeAll(c);
+    return mMap.keySet().removeAll(c);
   }
 
   @Override
   public boolean retainAll(Collection<?> c) {
-    return mKeySet.retainAll(c);
+    return mMap.keySet().retainAll(c);
   }
 
   @Override
   public Object[] toArray() {
-    return mKeySet.toArray();
+    return mMap.keySet().toArray();
   }
 
   @Override
   public <T> T[] toArray(T[] a) {
-    return mKeySet.toArray(a);
+    return mMap.keySet().toArray(a);
   }
 
   @Override
   public String toString() {
-    return mKeySet.toString();
+    return mMap.keySet().toString();
   }
 }
