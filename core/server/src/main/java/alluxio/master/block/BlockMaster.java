@@ -104,9 +104,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   // Block metadata management.
   /** Blocks on all workers, including active and lost blocks. This state must be journaled. */
   private final ConcurrentHashMap<Long, MasterBlockInfo>
-      mBlocks = new ConcurrentHashMap<>(8192, 0.75f, 64);
+      mBlocks = new ConcurrentHashMap<>(8192, 0.90f, 64);
   /** Keeps track of block which are no longer in Alluxio storage. */
-  private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>();
+  private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>(64, 0.90f, 64);
 
   /** This state must be journaled. */
   @GuardedBy("itself")
