@@ -378,17 +378,24 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {
-    try {
-      src = stripPrefixIfPresent(src);
-      dst = stripPrefixIfPresent(dst);
-      LOG.info("Copying {} to {}", src, dst);
-      S3Object obj = new S3Object(dst);
-      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to rename file {} to {}", src, dst, e);
-      return false;
+    src = stripPrefixIfPresent(src);
+    dst = stripPrefixIfPresent(dst);
+    LOG.info("Copying {} to {}", src, dst);
+    S3Object obj = new S3Object(dst);
+    int retries = 3;
+    for (int i = 0; i < retries; ++i) {
+      try {
+        mClient.copyObject(mBucketName, src, mBucketName, obj, false);
+        return true;
+      } catch (ServiceException e) {
+        LOG.error("Failed to rename file {} to {}", src, dst, e);
+        if (i != retries - 1) {
+          LOG.error("Retrying renaming file {} to {}", src, dst);
+        }
+      }
     }
+    LOG.error("Failed to rename file {} to {}, after {} retries", src, dst, retries);
+    return false;
   }
 
   /**
