@@ -358,15 +358,22 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("copy from {} to {}", src, dst);
     String strippedSrcPath = stripPrefixIfPresent(src);
     String strippedDstPath = stripPrefixIfPresent(dst);
-    try {
-      Container container = mAccount.getContainer(mContainerName);
-      container.getObject(strippedSrcPath).copyObject(container,
-          container.getObject(strippedDstPath));
-      return true;
-    } catch (Exception e) {
-      LOG.error(e.getMessage());
-      return false;
+    // Retry copy for a few times, in case some Swift internal errors happened during copy.
+    int retries = 3;
+    for (int i = 0; i < retries; i++)
+      try {
+        Container container = mAccount.getContainer(mContainerName);
+        container.getObject(strippedSrcPath).copyObject(container,
+            container.getObject(strippedDstPath));
+        return true;
+      } catch (Exception e) {
+        LOG.error("Failed to rename file {} to {}", src, dst, e.getMessage());
+        if (i != retries - 1) {
+          LOG.error("Retrying renaming file {} to {}", src, dst);
+      }
     }
+    LOG.error("Failed to rename file {} to {}, after {} retries", src, dst, retries);
+    return false;
   }
 
   /**

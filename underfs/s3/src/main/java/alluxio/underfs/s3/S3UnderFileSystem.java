@@ -382,6 +382,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     dst = stripPrefixIfPresent(dst);
     LOG.info("Copying {} to {}", src, dst);
     S3Object obj = new S3Object(dst);
+    // Retry copy for a few times, in case some Jets3t or AWS internal errors happened during copy.
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {

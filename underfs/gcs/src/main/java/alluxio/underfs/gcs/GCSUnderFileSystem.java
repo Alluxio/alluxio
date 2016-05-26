@@ -354,6 +354,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
     dst = stripPrefixIfPresent(dst);
     LOG.info("Copying {} to {}", src, dst);
     GSObject obj = new GSObject(dst);
+    // Retry copy for a few times, in case some Jets3t or GCS internal errors happened during copy.
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
