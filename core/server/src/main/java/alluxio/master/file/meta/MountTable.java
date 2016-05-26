@@ -213,7 +213,7 @@ public final class MountTable implements JournalCheckpointStreamable {
    * no-op.
    *
    * @param uri an Alluxio path URI
-   * @return the {@link Resolution} respresenting the UFS path
+   * @return the {@link Resolution} representing the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
