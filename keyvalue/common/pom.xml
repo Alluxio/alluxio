@@ -15,7 +15,7 @@
   <parent>
     <groupId>org.alluxio</groupId>
     <artifactId>alluxio-keyvalue</artifactId>
-    <version>1.1.0-RC3</version>
+    <version>1.1.0-RC4</version>
   </parent>
   <artifactId>alluxio-keyvalue-common</artifactId>
   <name>Alluxio Key Value - Common Utilities</name>
