@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -231,7 +231,8 @@ public class BlockLockManagerTest {
    * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
    * hang.
    *
-   * @param the block id to try locking
+   * @param manager the manager to call lock on
+   * @param blockId block id to try locking
    */
   private void lockExpectingHang(final BlockLockManager manager, final long blockId)
       throws Exception {

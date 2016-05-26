@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -88,7 +88,7 @@ public class FileInStreamTest {
   @Before
   public void before() throws AlluxioException, IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
-    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_OPERATION_DELEGATION);
+    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -392,6 +392,27 @@ public class FileInStreamTest {
   }
 
   /**
+   * Tests skipping backwards when the seek buffer size is smaller than block size.
+   *
+   * @throws IOException when an operation on the stream fails
+   */
+  @Test
+  public void seekBackwardSmallSeekBuffer() throws IOException {
+    mTestStream = new FileInStream(mStatus,
+        InStreamOptions.defaults().setCachePartiallyReadBlock(true)
+            .setReadType(ReadType.CACHE_PROMOTE).setSeekBufferSizeBytes(7));
+    int readAmount = (int) (BLOCK_LENGTH / 2);
+    byte[] buffer = new byte[readAmount];
+    mTestStream.read(buffer);
+
+    mTestStream.seek(readAmount - 1);
+
+    Assert.assertArrayEquals(BufferUtils.getIncreasingByteArray(0, (int) BLOCK_LENGTH),
+        mCacheStreams.get(0).getWrittenData());
+    Assert.assertEquals(0, mCacheStreams.get(1).getWrittenData().length);
+  }
+
+  /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
    *
@@ -509,8 +530,7 @@ public class FileInStreamTest {
       mTestStream.read(new byte[10], 5, 6);
       Assert.fail("the buffer read of invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE, 10, 5, 6),
-          e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_BUFFER_STATE.format(10, 5, 6), e.getMessage());
     }
   }
 
@@ -525,7 +545,7 @@ public class FileInStreamTest {
       mTestStream.seek(-1);
       Assert.fail("seeking negative position should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1), e.getMessage());
+      Assert.assertEquals(PreconditionMessage.ERR_SEEK_NEGATIVE.format(-1), e.getMessage());
     }
   }
 
@@ -540,8 +560,7 @@ public class FileInStreamTest {
       mTestStream.seek(FILE_LENGTH + 1);
       Assert.fail("seeking past the end of the stream should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(
-          String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, FILE_LENGTH + 1),
+      Assert.assertEquals(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.format(FILE_LENGTH + 1),
           e.getMessage());
     }
   }
@@ -586,7 +605,7 @@ public class FileInStreamTest {
           new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE)
               .setLocationPolicy(null));
     } catch (NullPointerException e) {
-      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED,
+      Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
           e.getMessage());
     }
   }

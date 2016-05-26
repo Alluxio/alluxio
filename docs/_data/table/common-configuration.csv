@@ -7,6 +7,7 @@ alluxio.keyvalue.partition.size.bytes.max,512MB
 alluxio.metrics.conf.file,${alluxio.home}/conf/metrics.properties
 alluxio.network.host.resolution.&#8203;timeout.ms,5000
 alluxio.network.thrift.frame.&#8203;size.bytes.max,16MB
+alluxio.site.conf.dir,"${user.home}/.alluxio/,/etc/alluxio/"
 alluxio.test.mode,false
 alluxio.underfs.address,${alluxio.home}/underFSStorage
 alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
@@ -19,6 +20,7 @@ alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,No default
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
+alluxio.zookeeper.address,No default
 alluxio.zookeeper.election.path,/election
 alluxio.zookeeper.enabled,false
 alluxio.zookeeper.leader.path,/leader

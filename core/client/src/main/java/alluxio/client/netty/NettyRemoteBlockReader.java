@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -58,13 +58,13 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
   @Override
   public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length, long lockId, long sessionId) throws IOException {
-
+    SingleResponseListener listener = null;
     try {
       ChannelFuture f = mClientBootstrap.connect(address).sync();
 
       LOG.info("Connected to remote machine {}", address);
       Channel channel = f.channel();
-      SingleResponseListener listener = new SingleResponseListener();
+      listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
 
@@ -93,6 +93,10 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
       }
     } catch (Exception e) {
       throw new IOException(e);
+    } finally {
+      if (listener != null) {
+        mHandler.removeListener(listener);
+      }
     }
   }
 
