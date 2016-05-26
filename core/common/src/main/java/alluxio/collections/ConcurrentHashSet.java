@@ -14,6 +14,7 @@ package alluxio.collections;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,7 +28,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class ConcurrentHashSet<T> extends AbstractSet<T> {
-  private final ConcurrentHashMap<T, Boolean> mMap;
+  private final Map<T, Boolean> mMap;
   private final Set<T> mKeySet;
 
   /**
@@ -71,7 +72,8 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    * @return true if this set did not already contain the specified element
    */
   public boolean addIfAbsent(T element) {
-    return mMap.putIfAbsent(element, Boolean.TRUE) == null;
+    // Cast map as ConcurrentHashMap because Map does not have putIfAbsent in Java 7.
+    return ((ConcurrentHashMap<T, Boolean>) mMap).putIfAbsent(element, Boolean.TRUE) == null;
   }
 
   @Override
