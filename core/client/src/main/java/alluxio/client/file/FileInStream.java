@@ -358,8 +358,9 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
         // server unreachable due to network partition, server busy due to alluxio worker is
         // busy, timeout due to congested network etc). But we want to proceed since we want
         // the user to continue reading when one Alluxio worker is having trouble.
-        LOG.warn("Cache stream close or cancel throws IOExecption {}, read continues.",
-            e.getMessage());
+        LOG.info(
+            "Closing or cancelling the cache stream encountered IOExecption {}, reading from the "
+                + "regular stream won't be affected.", e.getMessage());
       }
     }
     mCurrentCacheStream = null;

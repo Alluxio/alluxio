@@ -317,13 +317,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param delete whether to delete blocks metadata in Master
    */
   public void removeBlocks(List<Long> blockIds, boolean delete) {
-    HashSet<Long> workerIds = new HashSet<>();
     for (long blockId : blockIds) {
       MasterBlockInfo block = mBlocks.get(blockId);
       if (block == null) {
         continue;
       }
-      workerIds.clear();
+      HashSet<Long> workerIds = new HashSet<>();
       synchronized (block) {
         // Technically, 'block' should be confirmed to still be in the data structure. A
         // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
