@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.network.protocol;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
-import alluxio.network.protocol.databuffer.DataByteBuffer;
+import alluxio.network.protocol.databuffer.DataNettyBuffer;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
@@ -21,7 +21,6 @@ import com.google.common.primitives.Shorts;
 import io.netty.buffer.ByteBuf;
 
 import javax.annotation.concurrent.ThreadSafe;
-import java.nio.ByteBuffer;
 
 /**
  * This represents the response of a {@link RPCFileReadRequest}.
@@ -86,11 +85,8 @@ public final class RPCFileReadResponse extends RPCResponse {
     short status = in.readShort();
 
     DataBuffer data = null;
-    if (length >= 0) {
-      //TODO(calvin): use DataNettyBuffer instead of DataByteBuffer to avoid copying
-      ByteBuffer buffer = ByteBuffer.allocate((int) length);
-      in.readBytes(buffer);
-      data = new DataByteBuffer(buffer, (int) length);
+    if (length > 0) {
+      data = new DataNettyBuffer(in, (int) length);
     }
     return new RPCFileReadResponse(tempUfsFileId, offset, length, data, Status.fromShort(status));
   }
@@ -125,8 +121,7 @@ public final class RPCFileReadResponse extends RPCResponse {
   @Override
   public void validate() {
     Preconditions.checkState(mOffset >= 0, "Offset cannot be negative: %s", mOffset);
-    Preconditions.checkState(mLength >= 0 || mLength == -1,
-        "Length cannot be negative (except for -1): %s", mLength);
+    Preconditions.checkState(mLength >= 0, "Length cannot be negative: %s", mLength);
   }
 
   /**
@@ -155,5 +150,12 @@ public final class RPCFileReadResponse extends RPCResponse {
    */
   public Status getStatus() {
     return mStatus;
+  }
+
+  /**
+   * @return if the message indicates the reader has reached the end of the file
+   */
+  public boolean isEOF() {
+    return mLength == 0;
   }
 }

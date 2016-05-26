@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -57,11 +57,10 @@ public final class KeyValueWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
+    Map<String, TProcessor> services = new HashMap<>();
     services.put(
         Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
-        new KeyValueWorkerClientService.Processor<KeyValueWorkerClientServiceHandler>(
-            mKeyValueServiceHandler));
+        new KeyValueWorkerClientService.Processor<>(mKeyValueServiceHandler));
     return services;
   }
 

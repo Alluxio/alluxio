@@ -15,7 +15,7 @@ The prerequisite for this part is that you have [Java](Java-Setup.html). We also
 have set up Alluxio and Hadoop in accordance to these guides
 [Local Mode](Running-Alluxio-Locally.html) or [Cluster Mode](Running-Alluxio-on-a-Cluster.html).
 In order to run some simple map-reduce examples, we also recommend you download the
-[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1),
+[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1) based on your hadoop version,
 or if you are using Hadoop 1, this [examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1).
 
 # Compiling the Alluxio Client
@@ -93,7 +93,7 @@ First, compile Alluxio with the appropriate Hadoop version:
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop-test.md %}
 
-For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running:
+For simplicity, we will assume a pseudo-distributed Hadoop cluster, started by running (depends on the hadoop version, you might need to replace `./bin` with `./sbin`.):
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 

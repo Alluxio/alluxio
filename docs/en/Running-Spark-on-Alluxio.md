@@ -68,8 +68,13 @@ should be an output file `LICENSE2` which doubles each line in the file `LICENSE
 ### Use Data from HDFS
 
 Alluxio supports transparently fetching the data from the under storage system, given the exact
-path. Put a file `LICENSE` into HDFS, assuming the namenode is running on `localhost` and the
-Alluxio project directory is `/alluxio`:
+path. Put a file `LICENSE` into HDFS under the folder Alluxio is mounted to, by default this is
+/alluxio, meaning any files in hdfs under this folder will be discoverable by Alluxio. You can
+modify this setting by changing the `ALLUXIO_UNDERFS_ADDRESS` property in alluxio-env.sh on the
+server.
+
+Assuming the namenode is running on `localhost` and you are using the default mount directory
+`/alluxio`:
 
 {% include Running-Spark-on-Alluxio/license-hdfs.md %}
 
@@ -82,7 +87,8 @@ Open your browser and check [http://localhost:19999/browse](http://localhost:199
 should be an output file `LICENSE2` which doubles each line in the file `LICENSE`. Also, the
 `LICENSE` file now appears in the Alluxio file system space.
 
-NOTE: It is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
+NOTE: Block caching on partial reads is enabled by default, but if you have turned off the option,
+it is possible that the `LICENSE` file is not in Alluxio storage (Not In-Memory). This is
 because Alluxio only stores fully read blocks, and if the file is too small, the Spark job will
 have each executor read a partial block. To avoid this behavior, you can specify the partition
 count in Spark. For this example, we would set it to 1 as there is only 1 block.
