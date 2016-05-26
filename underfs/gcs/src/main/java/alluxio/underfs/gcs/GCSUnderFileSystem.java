@@ -355,7 +355,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
     LOG.info("Copying {} to {}", src, dst);
     GSObject obj = new GSObject(dst);
     int retries = 3;
-    for (int i = 0; i < retries; ++i) {
+    for (int i = 0; i < retries; i++) {
       try {
         mClient.copyObject(mBucketName, src, mBucketName, obj, false);
         return true;

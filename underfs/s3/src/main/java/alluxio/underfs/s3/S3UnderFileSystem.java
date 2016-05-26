@@ -383,7 +383,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
     LOG.info("Copying {} to {}", src, dst);
     S3Object obj = new S3Object(dst);
     int retries = 3;
-    for (int i = 0; i < retries; ++i) {
+    for (int i = 0; i < retries; i++) {
       try {
         mClient.copyObject(mBucketName, src, mBucketName, obj, false);
         return true;
