@@ -44,8 +44,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private String mUserName;
 
   private final ReentrantReadWriteLock mLock;
-  private final Lock mReadLock;
-  private final Lock mWriteLock;
 
   protected Inode(long id) {
     mCreationTimeMs = System.currentTimeMillis();
@@ -61,8 +59,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mPinned = false;
     mUserName = "";
     mLock = new ReentrantReadWriteLock();
-    mReadLock = mLock.readLock();
-    mWriteLock = mLock.writeLock();
   }
 
   /**
@@ -274,28 +270,28 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    * Acquires the read lock for this inode.
    */
   public void lockRead() {
-    mReadLock.lock();
+    mLock.readLock().lock();
   }
 
   /**
    * Releases the read lock for this inode.
    */
   public void unlockRead() {
-    mReadLock.unlock();
+    mLock.readLock().unlock();
   }
 
   /**
    * Acquires the write lock for this inode.
    */
   public void lockWrite() {
-    mWriteLock.lock();
+    mLock.writeLock().lock();
   }
 
   /**
    * Releases the write lock for this inode.
    */
   public void unlockWrite() {
-    mWriteLock.unlock();
+    mLock.writeLock().unlock();
   }
 
   /**
