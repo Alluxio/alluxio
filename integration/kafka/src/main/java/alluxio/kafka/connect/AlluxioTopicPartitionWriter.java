@@ -20,16 +20,17 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.kafka.connect.format.AlluxioFormat;
 
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.connect.errors.RetriableException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTaskContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.UUID;
-import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * This class writes kafka's specific topic partition data to alluxio filesystem.
@@ -42,6 +43,8 @@ public class AlluxioTopicPartitionWriter {
   private FileOutStream mFileOutStream;
   private FileSystem mFs;
   private long mRecordNum;
+  private long mFailureTime;
+  private long mTimeout;
   private String mFileTempPath;
   private String mTopicPartitionPath;
   private String mTmpTopicPartitionPath;
@@ -51,7 +54,8 @@ public class AlluxioTopicPartitionWriter {
   private long mLastRotationTime;
   private long mRotationRecordNum;
   private long mRotationTimeInterval;
-  private Queue<SinkRecord> mRecordQueue = new LinkedBlockingQueue<>();
+  private AlluxioTopicPartitionWriter.State mState;
+  private Queue<SinkRecord> mRecordQueue = new LinkedList<>();
 
   /**
    * AlluxioTopicPartitionWriter Constructor.
@@ -75,8 +79,10 @@ public class AlluxioTopicPartitionWriter {
     mTmpTopicPartitionPath = "";
     mRecordNum = 0;
     mOffset = -1;
+    mFailureTime = -1;
+    mTimeout = mConfig.getLong(AlluxioSinkConnectorConfig.RETRY_TIME_INTERVAL_MS);
     mRotationRecordNum = mConfig.getLong(AlluxioSinkConnectorConfig.ROTATION_RECORD_NUM);
-    mRotationTimeInterval = mConfig.getLong(AlluxioSinkConnectorConfig.ROTATION_TIME_INTERVAL);
+    mRotationTimeInterval = mConfig.getLong(AlluxioSinkConnectorConfig.ROTATION_TIME_INTERVAL_MS);
     mLastRotationTime = System.currentTimeMillis();
   }
 
@@ -128,8 +134,25 @@ public class AlluxioTopicPartitionWriter {
       LOG.info("Delete unComplete file" + unClosedUriStatus.getPath());
       mFs.delete(new AlluxioURI(mConfig.getString("alluxio.url") + unClosedUriStatus.getPath()));
     }
-
     //Retrieve max offset by parsing file name
+    long logOffsetBegin = retrieveOffset(topicParitionDirPath);
+    if (logOffsetBegin != -1) {
+      mOffset = logOffsetBegin + 1;
+      mContext.offset(mTopicPartition, mOffset);
+    }
+    mState = State.WRITE_STARTED;
+  }
+
+  /**
+   * Retrieves current offset from alluxio filename.
+   *
+   * @param topicParitionDirPath  TopicPartition Uri Path
+   * @return current offset of topic partition
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException  if a non-Alluxio exception occurs
+   */
+  private long retrieveOffset(AlluxioURI topicParitionDirPath)
+    throws AlluxioException, IOException {
     long logOffsetBegin = -1;
     List<URIStatus> lstUriStatus = mFs.listStatus(topicParitionDirPath);
     for (URIStatus closedUriStatus : lstUriStatus) {
@@ -140,8 +163,7 @@ public class AlluxioTopicPartitionWriter {
         logOffsetBegin = lEndOffset;
       }
     }
-    mOffset = logOffsetBegin;
-    mContext.offset(mTopicPartition, mOffset + 1);
+    return logOffsetBegin;
   }
 
   /**
@@ -160,36 +182,138 @@ public class AlluxioTopicPartitionWriter {
    * @throws IOException               if a non-Alluxio exception occurs
    * @throws AlluxioException          if an unexpected Alluxio exception is thrown
    */
-  public void writeRecord() throws FileDoesNotExistException, IOException, AlluxioException {
+  public void writeRecord() {
     long now = System.currentTimeMillis();
+    boolean bResetOffset = false;
     while (!mRecordQueue.isEmpty()) {
-      if (mFileOutStream == null) {
-        createTmpFile();
-      }
-
-      SinkRecord record = mRecordQueue.peek();
-      mFormat.writeRecord(mFileOutStream, record);
-      mRecordNum++;
-      mRecordQueue.poll();
-
-      if (isFileRotated(now)) {
-        long beginOffset = mOffset + 1;
-        long endOffset = mOffset + mRecordNum;
-        String strFormat = "%0" + Integer.toString(AlluxioSinkConnectorConfig.OFFSET_LENGTH) + "d";
-        String strFileName =
-            mTopicPartition.topic() + "+" + mTopicPartition.partition() + "+" + String
-                .format(strFormat, beginOffset) + "+" + String.format(strFormat, endOffset)
-                + mFormat.getExtension();
-        String strNewFilePath = mTopicPartitionPath + "/" + strFileName;
-        mFileOutStream.close();
-        mFs.rename(new AlluxioURI(mFileTempPath), new AlluxioURI(strNewFilePath));
-        mFileOutStream = null;
-        mRecordNum = 0;
-        mFileTempPath = "";
-        mOffset = endOffset;
-        mLastRotationTime = System.currentTimeMillis();
+      try {
+        switch (mState.ordinal()) {
+          case 0:
+            mContext.pause(new TopicPartition[] {mTopicPartition});
+            mState = State.WRITE_PARTITION_PAUSED;
+            /*fall through*/
+          case 1:
+            SinkRecord record = mRecordQueue.peek();
+            writeToAlluxio(record);
+            mRecordQueue.poll();
+            if (!isFileRotated(now)) {
+              break;
+            }
+            mState = State.SHOULD_ROTATE;
+            /*fall through*/
+          case 2:
+            closeTmpFile();
+            mState = State.TEMPFILE_CLOSED;
+            /*fall through*/
+          case 3:
+            commitTmpFile();
+            mState = State.FILE_COMMITTED;
+            /*fall through*/
+          case 4:
+            mState = State.WRITE_PARTITION_PAUSED;
+            break;
+          default:
+            LOG.error("{} is not a valid state when writing record to topic partition {}.",
+                mState, this.getTopicPartition());
+        }
+      } catch (AlluxioException | IOException e) {
+        LOG.error("Exception is {}", e.getMessage());
+        if (mFailureTime != -1) {
+          mFailureTime = System.currentTimeMillis();
+          mRecordQueue.clear();
+          mRecordNum = 0;
+          mFileOutStream = null;
+          mContext.offset(mTopicPartition, mOffset);
+          bResetOffset = true;
+          mContext.resume(new TopicPartition[] {mTopicPartition});
+          mState = State.WRITE_STARTED;
+          break;
+        } else {
+          mFailureTime = System.currentTimeMillis();
+          mContext.timeout(mTimeout);
+          throw new RetriableException("Attempt to retry...");
+        }
       }
     }
+    if (!bResetOffset) {
+      mFailureTime = -1;
+      if (mRecordQueue.isEmpty()) {
+        mContext.resume(new TopicPartition[] {mTopicPartition});
+        mState = State.WRITE_STARTED;
+      }
+    }
+  }
+
+  /**
+   * Writes record to Alluxio file.
+   * @param record SinkRecord form Kafka connect
+   * @throws IOException   if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   */
+  private void writeToAlluxio(SinkRecord record) throws IOException, AlluxioException {
+    if (mFileOutStream == null) {
+      createTmpFile();
+    }
+    long recordOffset = record.kafkaOffset();
+    boolean bOutOfOrder = false;
+    if (mOffset == -1) {
+      mOffset = recordOffset;
+    } else {
+      long nextOffset = mOffset + mRecordNum;
+      if (recordOffset != nextOffset) {
+        LOG.info("Ingoring the received record offset {},which is not expected offset {}!!",
+            Long.toString(recordOffset), Long.toString(nextOffset));
+        bOutOfOrder = true;
+      }
+    }
+
+    if (!bOutOfOrder) {
+      mFormat.writeRecord(mFileOutStream, record);
+      mRecordNum++;
+    }
+  }
+
+  /**
+   * Closes temporary file on Alluxio.
+   * @throws IOException  if a non-Alluxio exception occurs
+   */
+  private void closeTmpFile() throws IOException {
+    if (mFileOutStream != null) {
+      mFileOutStream.close();
+    }
+  }
+
+  /**
+   * Deletes temporary file which is not committed.
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException  if a non-Alluxio exception occurs
+   */
+  private void deleteTmpFile() throws AlluxioException, IOException {
+    if (!mFileTempPath.equals("")) {
+      mFs.delete(new AlluxioURI(mFileTempPath));
+    }
+  }
+
+  /**
+   * Commits temporary file by transferring file from temporary dir to data dir.
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   * @throws IOException  if a non-Alluxio exception occurs
+   */
+  private void commitTmpFile() throws AlluxioException, IOException {
+    long beginOffset = mOffset;
+    long endOffset = mOffset + mRecordNum - 1;
+    String strFormat = "%0" + Integer.toString(AlluxioSinkConnectorConfig.OFFSET_LENGTH) + "d";
+    String strFileName =
+        mTopicPartition.topic() + "+" + mTopicPartition.partition() + "+" + String
+          .format(strFormat, beginOffset) + "+" + String.format(strFormat, endOffset)
+          + mFormat.getExtension();
+    String strNewFilePath = mTopicPartitionPath + "/" + strFileName;
+    mFs.rename(new AlluxioURI(mFileTempPath), new AlluxioURI(strNewFilePath));
+    mFileOutStream = null;
+    mFileTempPath = "";
+    mOffset += mRecordNum;
+    mRecordNum = 0;
+    mLastRotationTime = System.currentTimeMillis();
   }
 
   /**
@@ -207,7 +331,6 @@ public class AlluxioTopicPartitionWriter {
         isRotated = true;
       }
     }
-
     return isRotated;
   }
 
@@ -230,5 +353,23 @@ public class AlluxioTopicPartitionWriter {
    */
   public TopicPartition getTopicPartition() {
     return mTopicPartition;
+  }
+
+  /**
+   * Closes current topic partition writer.
+   * @throws IOException  if a non-Alluxio exception occurs
+   * @throws AlluxioException if an unexpected Alluxio exception is thrown
+   */
+  public void close() throws IOException, AlluxioException {
+    closeTmpFile();
+    deleteTmpFile();
+  }
+
+  private static enum State {
+    WRITE_STARTED,
+    WRITE_PARTITION_PAUSED,
+    SHOULD_ROTATE,
+    TEMPFILE_CLOSED,
+    FILE_COMMITTED
   }
 }

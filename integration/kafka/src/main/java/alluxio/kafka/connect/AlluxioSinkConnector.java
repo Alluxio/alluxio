@@ -11,6 +11,7 @@
 
 package alluxio.kafka.connect;
 
+import org.apache.kafka.common.config.ConfigDef;
 import org.apache.kafka.connect.connector.Connector;
 import org.apache.kafka.connect.connector.Task;
 
@@ -54,5 +55,10 @@ public final class AlluxioSinkConnector extends Connector {
 
   @Override
   public void stop() {
+  }
+
+  @Override
+  public ConfigDef config() {
+    return AlluxioSinkConnectorConfig.getConfig();
   }
 }

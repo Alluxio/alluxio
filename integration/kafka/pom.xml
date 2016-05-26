@@ -18,8 +18,8 @@
     <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
     <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
     <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
-    <kafka.version>0.9.0.1</kafka.version>
-    <confluent.version>2.0.1</confluent.version>
+    <kafka.version>0.10.0.0-cp1</kafka.version>
+    <confluent.version>3.0.0</confluent.version>
     <confluent.maven.repo>http://packages.confluent.io/maven/</confluent.maven.repo>
   </properties>
 
@@ -43,6 +43,12 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-minicluster</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.apache.kafka</groupId>
       <artifactId>connect-api</artifactId>
       <version>${kafka.version}</version>
@@ -62,9 +68,10 @@
         <version>2.3</version>
         <configuration>
           <skipAssembly>false</skipAssembly>
-          <descriptorRefs>
-            <descriptorRef>jar-with-dependencies</descriptorRef>
-          </descriptorRefs>
+          <descriptors>
+            <descriptor>src/main/assembly/development.xml</descriptor>
+            <descriptor>src/main/assembly/package.xml</descriptor>
+          </descriptors>
         </configuration>
         <executions>
           <execution>

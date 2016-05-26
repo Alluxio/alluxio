@@ -12,7 +12,12 @@
     <Class name="alluxio.yarn.ApplicationMaster"/>
     <Bug code="VO"/>
   </Match>
-
+  
+  <Match>
+    <Package name="alluxio.kafka.connect"/>
+    <Bug code="SF"/>
+  </Match>
+  
   <Match>
     <!--
 	DC: Possible double check of field

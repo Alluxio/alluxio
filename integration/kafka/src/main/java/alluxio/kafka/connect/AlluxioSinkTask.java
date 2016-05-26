@@ -18,6 +18,7 @@ import alluxio.kafka.connect.format.AlluxioFormat;
 
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.connect.errors.ConnectException;
 import org.apache.kafka.connect.sink.SinkRecord;
 import org.apache.kafka.connect.sink.SinkTask;
 import org.slf4j.Logger;
@@ -42,17 +43,17 @@ public final class AlluxioSinkTask extends SinkTask {
   /**
    * Parses the alluxio connector configuration.
    *
-   * @param map configuration parameters
+   * @param props configuration parameters
    */
   @Override
-  public void start(Map<String, String> map) {
-    mConfig = new AlluxioSinkConnectorConfig(map);
+  public void start(Map<String, String> props) {
+    mConfig = new AlluxioSinkConnectorConfig(props);
     String formatClassName = mConfig.getString(AlluxioSinkConnectorConfig.ALLUXIO_FORMAT);
     try {
       mFormat = (AlluxioFormat) Class.forName(formatClassName).newInstance();
     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-      LOG.error("Exception is {}", e);
-      throw new RuntimeException("Failed to initiate class" + formatClassName);
+      LOG.error("Exception is {}", e.getMessage());
+      throw new ConnectException("Failed to initiate class" + formatClassName);
     }
 
     String alluxioUrl = mConfig.getString(AlluxioSinkConnectorConfig.ALLUXIO_URL);
@@ -71,21 +72,21 @@ public final class AlluxioSinkTask extends SinkTask {
         mFs.createDirectory(tmpTopicsDirPath);
       }
     } catch (IOException | AlluxioException e) {
-      LOG.error("Exception is {}", e);
-      throw new RuntimeException("Failed to create " + topDir + " dir");
+      LOG.error("Exception is {}", e.getMessage());
+      throw new ConnectException("Failed to create " + topDir + " dir");
     }
 
     Collection<TopicPartition> assignments = context.assignment();
     try {
       initializeTopicPartitionWriter(assignments);
     } catch (IOException | AlluxioException e) {
-      LOG.error("Exception is {}", e);
-      throw new RuntimeException("Failed to initialize TopicPartitionWriter");
+      LOG.error("Exception is {}", e.getMessage());
+      throw new ConnectException("Failed to initialize TopicPartitionWriter");
     }
   }
 
   /**
-   * Initialize AlluxioTopicPartitionWriter according to task assignments.
+   * Initialize {@link AlluxioTopicPartitionWriter} according to task assignments.
    * One TopicPartition corresponds to one stream.
    *
    * @param assignments assigned TopicPartitions for this task
@@ -115,12 +116,7 @@ public final class AlluxioSinkTask extends SinkTask {
     }
 
     for (AlluxioTopicPartitionWriter writer : mTpWriters.values()) {
-      try {
-        writer.writeRecord();
-      } catch (IOException | AlluxioException e) {
-        LOG.error("Failed to write record to " + writer.getTopicPartition().toString());
-        LOG.error("Exception is {}", e);
-      }
+      writer.writeRecord();
     }
   }
 
@@ -143,8 +139,21 @@ public final class AlluxioSinkTask extends SinkTask {
    *                   partitions previously assigned to the task)
    */
   @Override
-  public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-    //TODO(GuangHui): Create writers for newly assigned partitions in case of partition rebalance
+  public void open(Collection<TopicPartition> partitions) {
+    for (TopicPartition tp : partitions) {
+      AlluxioTopicPartitionWriter writer = mTpWriters.get(tp);
+      if (writer == null) {
+        AlluxioTopicPartitionWriter tpWriter =
+            new AlluxioTopicPartitionWriter(mConfig, context, mFormat, mFs, tp);
+        try {
+          tpWriter.initialize();
+        } catch (IOException | AlluxioException e) {
+          LOG.error("Exception is {}", e.getMessage());
+          throw new ConnectException("Failed to initialize TopicPartitionWriter");
+        }
+        mTpWriters.put(tp, tpWriter);
+      }
+    }
   }
 
   /**
@@ -154,8 +163,22 @@ public final class AlluxioSinkTask extends SinkTask {
    * @param partitions The list of partitions that should be closed
    */
   @Override
-  public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-    //TODO(GuangHui): Close writers for partitions that are no longer assigned to the SinkTask
+  public void close(Collection<TopicPartition> partitions) {
+    for (TopicPartition tp : partitions) {
+      AlluxioTopicPartitionWriter writer = mTpWriters.get(tp);
+      if (writer != null) {
+        try {
+          writer.close();
+        } catch (IOException | AlluxioException e) {
+          LOG.error("Failed to close writer for {}", tp.toString());
+          LOG.error("Exception is {}", e.getMessage());
+        } finally {
+          mTpWriters.remove(tp);
+        }
+      } else {
+        LOG.error("Failed to get writer of " + tp.toString());
+      }
+    }
   }
 
   /**
