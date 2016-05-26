@@ -28,6 +28,13 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class ConcurrentHashSet<T> extends AbstractSet<T> {
+  // COMPATIBILITY: This field needs to declared as Map (as opposed to ConcurrentHashMap). The
+  // reason is that the return type of ConcurrentHashMap#keySet() has changed from Set<K> to
+  // KeySetView<K,V> between Java 7 and Java 8 and this can result in a NoSuchMethod runtime
+  // exception when using Java 7 to run byte code compiled with Java 8 (even if the compiler is
+  // told to compile for Java 7).
+  //
+  // See: https://gist.github.com/AlainODea/1375759b8720a3f9f094
   private final Map<T, Boolean> mMap;
 
   /**
@@ -70,7 +77,8 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    * @return true if this set did not already contain the specified element
    */
   public boolean addIfAbsent(T element) {
-    // Cast map as ConcurrentHashMap because Map does not have putIfAbsent in Java 7.
+    // COMPATIBILITY: We need to cast mMap to ConcurrentHashMap to make sure the code can compile
+    // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
     return ((ConcurrentHashMap<T, Boolean>) mMap).putIfAbsent(element, Boolean.TRUE) == null;
   }
 
