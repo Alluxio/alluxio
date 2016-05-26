@@ -101,7 +101,7 @@ Confluent Connector and Worker configuration details can be seen [Kafka connecto
 ##Distributed Deployment
 To run Kafka Connect in distributed mode, modify the worker configuration, and then execute ` connect-distributed ` command.
 
-    ./bin/connect-distributed etc/kafka-connect-alluxio/alluxio-worker-distributed.properties
+    .$CONFLUENT_HOME/bin/connect-distributed etc/kafka-connect-alluxio/alluxio-worker-distributed.properties
 
 In distributed mode, You can use the [REST API](http://docs.confluent.io/3.0.0/connect/userguide.html#rest-interface) to manage the connectors running in the cluster. You can read [Connectors Configuration](http://docs.confluent.io/3.0.0/connect/userguide.html#configuring-connectors) for more details. Here is an example.
 
