@@ -51,7 +51,7 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   private InodeFile(long id) {
     super(0);
-    mBlocks = new ArrayList<Long>(3);
+    mBlocks = new ArrayList<Long>(1);
     mBlockContainerId = id;
     mBlockSizeBytes = 0;
     mCacheable = false;
