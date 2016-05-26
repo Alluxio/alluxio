@@ -349,7 +349,8 @@ public class FileOutStreamTest {
       mTestStream.write(new byte[10], 5, 6);
       Assert.fail("buffer write with invalid offset/length should fail");
     } catch (IllegalArgumentException e) {
-      Assert.assertEquals(PreconditionMessage.ERR_BUFFER_STATE.format(10, 5, 6), e.getMessage());
+      Assert.assertEquals(String.format(PreconditionMessage.ERR_BUFFER_STATE.toString(), 10, 5, 6),
+          e.getMessage());
     }
   }
 
