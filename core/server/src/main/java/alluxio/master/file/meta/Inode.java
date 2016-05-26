@@ -17,7 +17,6 @@ import alluxio.wire.FileInfo;
 
 import com.google.common.base.Objects;
 
-import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.annotation.concurrent.NotThreadSafe;
