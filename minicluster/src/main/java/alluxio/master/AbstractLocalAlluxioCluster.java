@@ -21,6 +21,7 @@ import alluxio.security.LoginUser;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
@@ -468,6 +469,16 @@ public abstract class AbstractLocalAlluxioCluster {
   protected void setAlluxioHome() throws IOException {
     mHome =
         File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
+    // Make a copy of mHome.
+    final String home = mHome;
+    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+      public void run() {
+        try {
+          FileUtils.deletePathRecursively(home);
+        } catch (IOException e) {
+          // The directory is already cleaned up.
+        }
+      }
+    }));
   }
-
 }
