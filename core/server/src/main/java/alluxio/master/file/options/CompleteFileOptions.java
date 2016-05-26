@@ -33,7 +33,7 @@ public final class CompleteFileOptions {
   }
 
   /**
-   * Creates a new instance of {@link CompleteFileOptions} from {@link CompleteFileOptions}.
+   * Creates a new instance of {@link CompleteFileOptions} from {@link CompleteFileTOptions}.
    *
    * @param options Thrift options
    */
