@@ -380,7 +380,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   private boolean copy(String src, String dst) {
     src = stripPrefixIfPresent(src);
     dst = stripPrefixIfPresent(dst);
-    LOG.info("Copying {} to {}", src, dst);
+    LOG.debug("Copying {} to {}", src, dst);
     S3Object obj = new S3Object(dst);
     // Retry copy for a few times, in case some Jets3t or AWS internal errors happened during copy.
     int retries = 3;
@@ -389,13 +389,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
         mClient.copyObject(mBucketName, src, mBucketName, obj, false);
         return true;
       } catch (ServiceException e) {
-        LOG.error("Failed to rename file {} to {}", src, dst, e);
+        LOG.error("Failed to copy file {} to {}", src, dst, e);
         if (i != retries - 1) {
-          LOG.error("Retrying renaming file {} to {}", src, dst);
+          LOG.error("Retrying copying file {} to {}", src, dst);
         }
       }
     }
-    LOG.error("Failed to rename file {} to {}, after {} retries", src, dst, retries);
+    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
     return false;
   }
 
