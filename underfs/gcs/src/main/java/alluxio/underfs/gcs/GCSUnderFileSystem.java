@@ -350,17 +350,25 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String src, String dst) {
-    try {
-      src = stripPrefixIfPresent(src);
-      dst = stripPrefixIfPresent(dst);
-      LOG.info("Copying {} to {}", src, dst);
-      GSObject obj = new GSObject(dst);
-      mClient.copyObject(mBucketName, src, mBucketName, obj, false);
-      return true;
-    } catch (ServiceException e) {
-      LOG.error("Failed to rename file {} to {}", src, dst, e);
-      return false;
+    src = stripPrefixIfPresent(src);
+    dst = stripPrefixIfPresent(dst);
+    LOG.debug("Copying {} to {}", src, dst);
+    GSObject obj = new GSObject(dst);
+    // Retry copy for a few times, in case some Jets3t or GCS internal errors happened during copy.
+    int retries = 3;
+    for (int i = 0; i < retries; i++) {
+      try {
+        mClient.copyObject(mBucketName, src, mBucketName, obj, false);
+        return true;
+      } catch (ServiceException e) {
+        LOG.error("Failed to copy file {} to {}", src, dst, e);
+        if (i != retries - 1) {
+          LOG.error("Retrying copying file {} to {}", src, dst);
+        }
+      }
     }
+    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
+    return false;
   }
 
   /**
