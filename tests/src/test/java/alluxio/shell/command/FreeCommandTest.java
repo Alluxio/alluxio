@@ -12,24 +12,20 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
-import alluxio.Constants;
+import alluxio.IntegrationTestUtils;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
-import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for free command.
@@ -46,7 +42,8 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
 
     mFsShell.run("free", fileName);
-    triggerWorkerHeartbeats(blockId);
+    IntegrationTestUtils.waitForBlocksToBeRemoved(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId);
     Assert.assertFalse(isInMemoryTest(fileName));
   }
 
@@ -60,7 +57,8 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
 
-    triggerWorkerHeartbeats(blockId1, blockId2);
+    IntegrationTestUtils.waitForBlocksToBeRemoved(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
@@ -73,40 +71,11 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
         mFileSystem.getStatus(new AlluxioURI("/testWildCards/foobar4")).getBlockIds().get(0);
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    triggerWorkerHeartbeats(blockId1, blockId2);
+    IntegrationTestUtils.waitForBlocksToBeRemoved(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
   }
 
-  // Execution of the blocks free needs two heartbeats.
-  private void triggerWorkerHeartbeats(long... blockIds) {
-    try {
-      // Schedule 1st heartbeat from worker.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Waiting for the removal of blockMeta from worker.
-      for (final long blockId : blockIds) {
-        CommonTestUtils.waitFor(new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            return !mLocalAlluxioCluster.getWorker().getBlockWorker().hasBlockMeta(blockId);
-          }
-        }, 100 * Constants.SECOND_MS);
-      }
-
-      // Schedule 2nd heartbeat from worker.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Ensure the 2nd heartbeat is finished.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
 }
