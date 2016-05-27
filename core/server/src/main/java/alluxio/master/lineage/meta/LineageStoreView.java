@@ -47,7 +47,7 @@ public final class LineageStoreView {
   }
 
   /**
-   * @param lineage the lineage to get the childrens from
+   * @param lineage the lineage to get the children from
    * @return the children lineages of a given lineage in the store
    * @throws LineageDoesNotExistException if the lineage does not exist
    */
