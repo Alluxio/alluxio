@@ -120,6 +120,13 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("threaded-service.max-thread-count",
           conf.get(Constants.UNDERFS_S3_MAX_UPLOAD_THREADS));
     }
+    if (conf.containsKey(Constants.UNDERFS_S3_MAX_ADMIN_THREADS)) {
+      props.setProperty("threaded-service.admin-max-thread-count",
+          conf.get(Constants.UNDERFS_S3_MAX_ADMIN_THREADS));
+    }
+    if (conf.containsKey(Constants.UNDERFS_S3_MAX_THREADS)) {
+      props.setProperty("httpclient.max-connections", conf.get(Constants.UNDERFS_S3_MAX_THREADS));
+    }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
