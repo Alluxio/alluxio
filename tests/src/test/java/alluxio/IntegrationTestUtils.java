@@ -90,8 +90,8 @@ public final class IntegrationTestUtils {
    * worker.
    * Blocks until the master and block are in sync with the state of the blocks.
    *
-   * @param bw the block worker that will remove the blocks.
-   * @param blockIds a list of blockIds to be removed.
+   * @param bw the block worker that will remove the blocks
+   * @param blockIds a list of blockIds to be removed
    */
   public static void waitForBlocksToBeRemoved(final BlockWorker bw, long... blockIds) {
     try {
