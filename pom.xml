@@ -451,6 +451,12 @@
                 <requireJavaVersion>
                   <version>${java.version}</version>
                 </requireJavaVersion>
+                <bannedDependencies>
+                  <excludes>
+                    <!-- @see http://www.geekinasuit.com/2016/03/apache-commons-collections-321.html -->
+                    <exclude>commons-collections:commons-collections:[3.2.1]</exclude>
+                  </excludes>
+                </bannedDependencies>
               </rules>
             </configuration>
           </execution>
