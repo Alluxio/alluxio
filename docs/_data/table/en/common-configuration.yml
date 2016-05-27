@@ -43,6 +43,14 @@ alluxio.underfs.s3.proxy.https.only:
   If using a proxy to communicate with S3, determine whether to talk to the proxy using https.
 alluxio.underfs.s3.proxy.port:
   Optionally, specify a proxy port for communicating with S3.
+alluxio.underfs.s3.max.threads:
+  The maximum number of threads to use for communicating with S3. Includes both threads for data
+  upload and metadata operations. This number should be at least as large as the max admin threads
+  plus max upload threads.
+alluxio.underfs.s3.max.admin.threads:
+  The maximum number of threads to use for metadata operations when communicating with S3.
+alluxio.underfs.s3.max.upload.threads:
+  The maximum number of threads to use for uploading data to S3 for multipart uploads.
 alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:
