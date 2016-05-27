@@ -18,6 +18,9 @@ alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
 alluxio.underfs.s3.proxy.host,No default
 alluxio.underfs.s3.proxy.https.only,true
 alluxio.underfs.s3.proxy.port,No default
+alluxio.underfs.s3.max.threads,30
+alluxio.underfs.s3.max.admin.threads,20
+alluxio.underfs.s3.max.upload.threads,10
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
 alluxio.zookeeper.address,No default
