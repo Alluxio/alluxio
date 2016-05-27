@@ -41,14 +41,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static AlluxioBlockStore sClient = null;
+  private static volatile AlluxioBlockStore sClient = null;
 
   /**
    * @return a new instance of Alluxio block store
    */
-  public static synchronized AlluxioBlockStore get() {
+  public static AlluxioBlockStore get() {
     if (sClient == null) {
-      sClient = new AlluxioBlockStore();
+      synchronized (AlluxioBlockStore.class) {
+        if (sClient == null) {
+          sClient = new AlluxioBlockStore();
+        }
+      }
     }
     return sClient;
   }
