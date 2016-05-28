@@ -63,7 +63,7 @@ public enum BlockStoreContext {
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
-  private boolean mLocalBlockWorkerClientPoolInitialized = false;
+  private volatile boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
    * Creates a new block store context.
@@ -76,14 +76,18 @@ public enum BlockStoreContext {
    * Initializes {@link #mLocalBlockWorkerClientPoolMap}. This method is supposed be called in a
    * lazy manner.
    */
-  private synchronized void initializeLocalBlockWorkerClientPool() {
+  private void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
-      for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
-          NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
-        mLocalBlockWorkerClientPoolMap.put(localWorkerAddress,
-            new BlockWorkerClientPool(localWorkerAddress));
+      synchronized (this) {
+        if (!mLocalBlockWorkerClientPoolInitialized) {
+          for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
+              NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+            mLocalBlockWorkerClientPoolMap.put(localWorkerAddress,
+                new BlockWorkerClientPool(localWorkerAddress));
+          }
+          mLocalBlockWorkerClientPoolInitialized = true;
+        }
       }
-      mLocalBlockWorkerClientPoolInitialized = true;
     }
   }
 
@@ -239,7 +243,7 @@ public enum BlockStoreContext {
    * {@link ClientContext}.
    */
   @SuppressFBWarnings
-  public void reset() {
+  public synchronized void reset() {
     if (mBlockMasterClientPool != null) {
       mBlockMasterClientPool.close();
     }
