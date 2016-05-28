@@ -35,7 +35,7 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
 import alluxio.master.lineage.checkpoint.CheckpointPlan;
-import alluxio.master.lineage.checkpoint.CheckpointSchedulingExcecutor;
+import alluxio.master.lineage.checkpoint.CheckpointSchedulingExecutor;
 import alluxio.master.lineage.meta.Lineage;
 import alluxio.master.lineage.meta.LineageIdGenerator;
 import alluxio.master.lineage.meta.LineageStore;
@@ -148,7 +148,7 @@ public final class LineageMaster extends AbstractMaster {
     if (isLeader) {
       mCheckpointExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
-              new CheckpointSchedulingExcecutor(this, mFileSystemMaster),
+              new CheckpointSchedulingExecutor(this, mFileSystemMaster),
               mConfiguration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
@@ -359,7 +359,7 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   /**
-   * Polls the files to send to the given worker for checkpoint.
+   * Reports a file as lost.
    *
    * @param path the path to the file
    * @throws FileDoesNotExistException if the file does not exist
