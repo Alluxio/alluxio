@@ -23,6 +23,29 @@ Depending on the total size and block size specified by the user, a single key-v
 store may consist of one or multiple partitions, but the internal is managed by Alluxio and thus
 transparent to users.
 
+
+# Configuration Parameters For Key-Value System
+
+Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
+`alluxio.keyvalue.enabled` to true (see [configuration parameters](Configuration-Settings.html))
+
+<table class="table table-striped">
+<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
+{% for item in site.data.table.key-value-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.en.key-value-configuration.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+# Quick Test
+
+After enabling Key-Value support in Alluxio, you can run `./bin/alluxio runKVTest` to test whether
+the Key-Value system is running. You should see `Passed the test!` at the bottom of the output if
+the Key-Value system is correctly started.
+
 # Accessing Key-Value System in Java Application
 
 ### Getting a Key-Value System Client
@@ -75,19 +98,3 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
 
 {% include Key-Value-Store-API/set-output-format.md %}
 
-
-# Configuration Parameters For Key-Value System
-
-Key-Value support in Alluxio is disabled by default, and it can be enabled in Alluxio by setting
-`alluxio.keyvalue.enabled` to true (see [configuration parameters](Configuration-Settings.html))
-
-<table class="table table-striped">
-<tr><th>Property Name</th><th>Default</th><th>Meaning</th></tr>
-{% for item in site.data.table.key-value-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.en.key-value-configuration.[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
