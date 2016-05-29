@@ -14,7 +14,7 @@ package alluxio;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
-import alluxio.worker.block.BlockMasterSync;
+import alluxio.worker.block.BlockHeartbeatReporter;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Function;
@@ -22,7 +22,8 @@ import com.google.common.base.Throwables;
 import org.junit.Assert;
 import org.powermock.reflect.Whitebox;
 
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -93,33 +94,23 @@ public final class IntegrationTestUtils {
    * @param bw the block worker that will remove the blocks
    * @param blockIds a list of blockIds to be removed
    */
-  public static void waitForBlocksToBeRemoved(final BlockWorker bw, long... blockIds) {
+  public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds) {
     try {
       // Schedule 1st heartbeat from worker.
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
           TimeUnit.SECONDS));
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
 
-      // Waiting for the removal of blockMeta from worker.
-      for (final long blockId : blockIds) {
-        CommonTestUtils.waitFor(new Function<Void, Boolean>() {
-          @Override
-          public Boolean apply(Void input) {
-            boolean hasBlockMeta = bw.hasBlockMeta(blockId);
-            // Need to wait for the remover actually finishes
-            if (!hasBlockMeta) {
-              BlockMasterSync sync = Whitebox.getInternalState(bw, "mBlockMasterSync");
-              Map<Long, Boolean> blockMap =
-                  Whitebox.getInternalState(sync, "mRemovingBlockIdToFinished");
-              synchronized (blockMap) {
-                Boolean blockState = blockMap.get(blockId);
-                return blockState == null || blockState == true;
-              }
-            }
-            return false;
-          }
-        }, 100 * Constants.SECOND_MS);
-      }
+      // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
+      // removed from master in the next heartbeat.
+      CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+        @Override
+        public Boolean apply(Void input) {
+          BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
+          List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
+          return blocksToRemove.containsAll(Arrays.asList(blockIds));
+        }
+      }, 100 * Constants.SECOND_MS);
 
       // Schedule 2nd heartbeat from worker.
       Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,

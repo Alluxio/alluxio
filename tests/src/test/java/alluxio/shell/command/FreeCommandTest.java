@@ -42,7 +42,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
 
     mFsShell.run("free", fileName);
-    IntegrationTestUtils.waitForBlocksToBeRemoved(
+    IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId);
     Assert.assertFalse(isInMemoryTest(fileName));
   }
@@ -57,7 +57,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
 
-    IntegrationTestUtils.waitForBlocksToBeRemoved(
+    IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
@@ -71,7 +71,7 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
         mFileSystem.getStatus(new AlluxioURI("/testWildCards/foobar4")).getBlockIds().get(0);
 
     ret = mFsShell.run("free", "/testWild*/*/");
-    IntegrationTestUtils.waitForBlocksToBeRemoved(
+    IntegrationTestUtils.waitForBlocksToBeFreed(
         mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));

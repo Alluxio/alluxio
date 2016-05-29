@@ -93,7 +93,7 @@ public final class FreeAndDeleteIntegrationTest {
 
     mFileSystem.free(filePath);
 
-    IntegrationTestUtils.waitForBlocksToBeRemoved(bw, blockId);
+    IntegrationTestUtils.waitForBlocksToBeFreed(bw, blockId);
 
     status = mFileSystem.getStatus(filePath);
     // Verify block metadata in master is still present after block freed.
