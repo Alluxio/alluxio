@@ -25,6 +25,8 @@ getCapacityBytes:
   Get the capacity of the AlluxioFS.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
+leader:
+  Prints the current Alluxio master leader host name.
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:

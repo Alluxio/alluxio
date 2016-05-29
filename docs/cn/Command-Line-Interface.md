@@ -163,6 +163,14 @@ fs命令中的所有“路径”都应该以以下开头：
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
+## leader
+
+`leader`命令返回当前Alluxio的master leader节点主机名。
+
+使用举例：使用`leader`命令打印当前master leader节点主机名。
+
+{% include Command-Line-Interface/leader.md %}
+
 ## load
 
 `load` 命令将底层文件系统中的数据载入到Alluxio中。如果运行该命令的机器上正在运行一个Alluxio worker，那么数据将移动到该worker上，否则，数据会被随机移动到一个worker上。如果该文件已经存在在Alluxio中，该命令不进行任何操作。如果该命令的目标是一个文件夹，那么其子文件和子文件夹会被递归载入。
