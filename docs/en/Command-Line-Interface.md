@@ -188,9 +188,9 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 {% include Command-Line-Interface/getUsedBytes.md %}
 
 ## leader
-The `leader` command returns the current Alluxio master leader host name.
+The `leader` command returns the current Alluxio leader master host name.
 
-For example, `leader` can be used to print the current master leader host name.
+For example, `leader` can be used to print the current leader master host name.
 
 {% include Command-Line-Interface/leader.md %}
 
