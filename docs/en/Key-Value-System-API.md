@@ -80,6 +80,10 @@ a reader to retrieve value by the key. For example:
 
 {% include Key-Value-Store-API/iterate-key-values.md %}
 
+## Examples
+
+See more [examples](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/keyvalue) in the codebase.
+
 # Accessing Key-Value System in Hadoop MapReduce
 
 ## MapReduce InputFormat
@@ -98,3 +102,11 @@ Similarly, Alluxio also provides implementations of `OutputFormat` and `OutputCo
 
 {% include Key-Value-Store-API/set-output-format.md %}
 
+## Examples
+
+See an [example](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java) in the codebase.
+
+If you have [configured Alluxio to use HDFS as under storage](Configuring-Alluxio-with-HDFS.md), and have enabled
+Key-Value system, you can run the example via
+
+{% include Key-Value-Store-API/run-mapreduce-example.md %}
