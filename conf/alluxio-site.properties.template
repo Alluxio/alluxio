@@ -80,4 +80,4 @@ alluxio.user.file.write.location.policy.class=alluxio.client.file.policy.LocalFi
 alluxio.user.file.writetype.default=MUST_CACHE
 alluxio.user.lineage.enabled=false
 alluxio.user.lineage.master.client.threads=10
-alluxio.user.ufs.operation.delegation=true
+alluxio.user.ufs.delegation.enabled=true
