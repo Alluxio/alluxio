@@ -18,9 +18,12 @@ import alluxio.client.file.FileSystemMasterClient;
 
 import org.apache.commons.cli.CommandLine;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
- * Shows the current master leader.
+ * Prints the current master leader host name.
  */
+@ThreadSafe
 public final class LeaderCommand extends AbstractShellCommand {
   /**
    * @param conf the configuration of Alluxio
@@ -62,6 +65,6 @@ public final class LeaderCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Returns the current master leader address.";
+    return "Prints the current master leader host name.";
   }
 }

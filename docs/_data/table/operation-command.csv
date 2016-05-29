@@ -11,6 +11,7 @@ fileInfo,"fileInfo ""path"""
 free,"free ""path"""
 getCapacityBytes,getCapacityBytes
 getUsedBytes,getUsedBytes
+leader,leader
 load,"load ""path"""
 loadMetadata,"loadMetadata ""path"""
 location,"location ""path"""

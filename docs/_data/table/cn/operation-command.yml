@@ -23,6 +23,8 @@ getCapacityBytes:
   获取Alluxio文件系统的容量
 getUsedBytes:
   获取Alluxio文件系统已使用的字节数
+leader:
+  打印当前Alluxio master leader节点主机名
 load:
   将底层文件系统的文件或者目录加载到Alluxio中
 loadMetadata:
