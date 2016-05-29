@@ -78,6 +78,11 @@ Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyv
 
 {% include Key-Value-Store-API/iterate-key-values.md %}
 
+## 样例
+
+从代码库中的[样例](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/keyvalue)
+ 可以了解更多。
+
 # 在Hadoop MapReduce内访问键值存储库
 
 ## MapReduce InputFormat
@@ -94,3 +99,13 @@ key-value URI作为参数把键值对放入键值存储库内。
 
 {% include Key-Value-Store-API/set-output-format.md %}
 
+
+## 样例
+
+从代码库中的[样例](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java)
+ 可以了解更多。
+
+如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.md), 并且已经启用了键值存储，
+那么可以按照如下方式运行上面的样例:
+
+{% include Key-Value-Store-API/run-mapreduce-example.md %}
