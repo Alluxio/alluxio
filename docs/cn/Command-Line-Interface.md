@@ -165,9 +165,9 @@ fs命令中的所有“路径”都应该以以下开头：
 
 ## leader
 
-`leader`命令返回当前Alluxio的master leader节点主机名。
+`leader`命令返回当前Alluxio的leader master节点主机名。
 
-使用举例：使用`leader`命令打印当前master leader节点主机名。
+使用举例：使用`leader`命令打印当前leader master节点主机名。
 
 {% include Command-Line-Interface/leader.md %}
 

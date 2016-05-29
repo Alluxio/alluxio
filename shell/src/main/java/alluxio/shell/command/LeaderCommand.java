@@ -21,7 +21,7 @@ import org.apache.commons.cli.CommandLine;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Prints the current master leader host name.
+ * Prints the current leader master host name.
  */
 @ThreadSafe
 public final class LeaderCommand extends AbstractShellCommand {
@@ -51,7 +51,7 @@ public final class LeaderCommand extends AbstractShellCommand {
       if (hostName != null) {
         System.out.println(hostName);
       } else {
-        System.out.println("Failed to get the master leader.");
+        System.out.println("Failed to get the leader master.");
       }
     } finally {
       FileSystemContext.INSTANCE.releaseMasterClient(client);
@@ -65,6 +65,6 @@ public final class LeaderCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Prints the current master leader host name.";
+    return "Prints the current leader master host name.";
   }
 }
