@@ -11,24 +11,19 @@
 
 package alluxio.hadoop.mapreduce;
 
-import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
-import com.google.common.collect.Lists;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -58,35 +53,32 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     super(outputPath, taskContext);
   }
 
-  private List<AlluxioURI> getTaskTemporaryStores(TaskAttemptContext taskContext)
-      throws IOException {
-    AlluxioURI taskOutputURI = KeyValueOutputFormat.getTaskOutputURI(taskContext);
-    Path taskOutputPath = new Path(taskOutputURI.toString());
+  /**
+   * @param taskContext MapReduce task configuration
+   * @return true if the task output directory exists, otherwise false
+   * @throws IOException if fails to determine whether the output directory exists
+   */
+  @Override
+  public boolean needsTaskCommit(TaskAttemptContext taskContext) throws IOException {
+    Path taskOutputPath = new Path(KeyValueOutputFormat.getTaskOutputURI(taskContext).toString());
     FileSystem fs = taskOutputPath.getFileSystem(taskContext.getConfiguration());
-    FileStatus[] subDirs = fs.listStatus(taskOutputPath);
-    List<AlluxioURI> temporaryStores = Lists.newArrayListWithExpectedSize(subDirs.length);
-    for (FileStatus subDir : subDirs) {
-      temporaryStores.add(taskOutputURI.join(subDir.getPath().getName()));
-    }
-    return temporaryStores;
+    return fs.exists(taskOutputPath);
   }
 
   /**
    * {@inheritDoc}
    * <p/>
-   * Merges the completed key-value stores under the task's temporary output directory to the
-   * key-value store created in {@link #setupJob(JobContext)}, then calls {@link
+   * Merges the completed key-value store under the task's temporary output directory to the
+   * key-value store at job output directory, then calls {@link
    * FileOutputCommitter#commitTask(TaskAttemptContext)}.
    */
   @Override
   public void commitTask(TaskAttemptContext taskContext) throws IOException {
-    AlluxioURI jobOutputURI = KeyValueOutputFormat.getJobOutputURI(taskContext);
-    for (AlluxioURI tempStoreUri : getTaskTemporaryStores(taskContext)) {
-      try {
-        KEY_VALUE_SYSTEM.mergeStore(tempStoreUri, jobOutputURI);
-      } catch (AlluxioException e) {
-        throw new IOException(e);
-      }
+    try {
+      KEY_VALUE_SYSTEM.mergeStore(KeyValueOutputFormat.getTaskOutputURI(taskContext),
+          KeyValueOutputFormat.getJobOutputURI(taskContext));
+    } catch (AlluxioException e) {
+      throw new IOException(e);
     }
     super.commitTask(taskContext);
   }
@@ -102,12 +94,10 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
     // TODO(binfan): in Hadoop 1.x FileOutputCommitter#abortTask doesn't throw IOException. To
     // keep the code compile with early Hadoop versions, we catch this exception.
     try {
-      for (AlluxioURI tempStoreUri : getTaskTemporaryStores(taskContext)) {
-        try {
-          KEY_VALUE_SYSTEM.deleteStore(tempStoreUri);
-        } catch (AlluxioException e) {
-          throw new IOException(e);
-        }
+      try {
+        KEY_VALUE_SYSTEM.deleteStore(KeyValueOutputFormat.getTaskOutputURI(taskContext));
+      } catch (AlluxioException e) {
+        throw new IOException(e);
       }
       super.abortTask(taskContext);
     } catch (IOException e) {
