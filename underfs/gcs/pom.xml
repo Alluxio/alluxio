@@ -46,6 +46,7 @@
     <dependency>
       <groupId>net.java.dev.jets3t</groupId>
       <artifactId>jets3t</artifactId>
+      <version>0.9.4</version>
     </dependency>
 
     <!-- The following are jets3t dependencies
