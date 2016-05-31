@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
+import javax.management.relation.RoleUnresolved;
 
 /**
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
@@ -107,6 +108,7 @@ public abstract class UnderFileSystem {
       synchronized (this) {
         UnderFileSystem oldFs = mUnderFileSystemMap.get(key);
         if (oldFs != null) {
+          // This close is actually a no-op since none of the
           fs.close();
           return oldFs;
         }
@@ -179,7 +181,8 @@ public abstract class UnderFileSystem {
    * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) throws IOException {
+  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration)
+      throws IOException {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
 
