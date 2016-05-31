@@ -28,6 +28,7 @@ getUsedBytes:
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
+  The loadMetadata command is deprecated since Alluxio version 1.1. Please use "alluxio fs ls &lt;path&gt;" command instead.
   Load the metadata of a file or a directory from under storage into Alluxio.
 location:
   Display a list of hosts that have the file data.

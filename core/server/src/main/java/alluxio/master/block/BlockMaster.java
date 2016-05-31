@@ -104,9 +104,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   // Block metadata management.
   /** Blocks on all workers, including active and lost blocks. This state must be journaled. */
   private final ConcurrentHashMap<Long, MasterBlockInfo>
-      mBlocks = new ConcurrentHashMap<>(8192, 0.75f, 64);
+      mBlocks = new ConcurrentHashMap<>(8192, 0.90f, 64);
   /** Keeps track of block which are no longer in Alluxio storage. */
-  private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>();
+  private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>(64, 0.90f, 64);
 
   /** This state must be journaled. */
   @GuardedBy("itself")
@@ -682,9 +682,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       Collection<Long> removedBlockIds) {
     for (long removedBlockId : removedBlockIds) {
       MasterBlockInfo block = mBlocks.get(removedBlockId);
+      // TODO(calvin): Investigate if this branching logic can be simplified.
       if (block == null) {
-        LOG.warn("Worker {} reported that block {} is removed, but the block's metadata does not"
-            + " exist on Master!", workerInfo.getId(), removedBlockId);
+        // LOG.warn("Worker {} informs the removed block {}, but block metadata does not exist"
+        //    + " on Master!", workerInfo.getId(), removedBlockId);
         // TODO(pfxuan): [ALLUXIO-1804] should find a better way to handle the removed blocks.
         // Ideally, the delete/free I/O flow should never reach this point. Because Master may
         // update the block metadata only after receiving the acknowledgement from Workers.
