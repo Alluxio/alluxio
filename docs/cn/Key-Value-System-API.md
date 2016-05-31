@@ -20,6 +20,29 @@ Alluxio除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 键值存储库可以用AlluxioURI来表示路径，比如`alluxio://path/my-kvstore`.
 根据总容量和用户指定的数据块大小，单个键值存储库可能有一个以上的分区，分区是由Alluxio内部来管理，对用户透明。
 
+# 键值存储库配置参数
+
+Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyvalue.enabled`为true来启用 (see
+[configuration parameters](Configuration-Settings.html))
+
+以下是键值存储库的配置参数：
+
+<table class="table table-striped">
+<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
+{% for item in site.data.table.key-value-configuration %}
+  <tr>
+    <td>{{ item.propertyName }}</td>
+    <td>{{ item.defaultValue }}</td>
+    <td>{{ site.data.table.cn.key-value-configuration.[item.propertyName] }}</td>
+  </tr>
+{% endfor %}
+</table>
+
+# 快速测试
+
+当启动Alluxio键值存储库后，可以运行`./bin/alluxio runKVTest`来快速测试键值存储库是否正常运行，如果运行
+正常，应该在最后的输出结果中看到`Passed the test!`。
+
 # 通过Java应用程序来访问键值存储库
 
 ### 获取一个键值存储库的客户端
@@ -55,6 +78,11 @@ Alluxio除了提供[Filesystem API](File-System-API.html) 让应用程序来读�
 
 {% include Key-Value-Store-API/iterate-key-values.md %}
 
+## 样例
+
+从代码库中的[样例](https://github.com/Alluxio/alluxio/tree/master/examples/src/main/java/alluxio/examples/keyvalue)
+ 可以了解更多。
+
 # 在Hadoop MapReduce内访问键值存储库
 
 ## MapReduce InputFormat
@@ -71,20 +99,13 @@ key-value URI作为参数把键值对放入键值存储库内。
 
 {% include Key-Value-Store-API/set-output-format.md %}
 
-# 键值存储库配置参数
 
-Alluxio默认配置是禁用键值存储库的，可以通过配置`alluxio.keyvalue.enabled`为true来启用 (see
-[configuration parameters](Configuration-Settings.html))
+## 样例
 
-以下是键值存储库的配置参数：
+从代码库中的[样例](https://github.com/Alluxio/alluxio/blob/master/examples/src/main/java/alluxio/examples/keyvalue/hadoop/CloneStoreMapReduce.java)
+ 可以了解更多。
 
-<table class="table table-striped">
-<tr><th>属性名</th><th>默认值</th><th>意义</th></tr>
-{% for item in site.data.table.key-value-configuration %}
-  <tr>
-    <td>{{ item.propertyName }}</td>
-    <td>{{ item.defaultValue }}</td>
-    <td>{{ site.data.table.cn.key-value-configuration.[item.propertyName] }}</td>
-  </tr>
-{% endfor %}
-</table>
+如果你已经[将HDFS配置为Alluxio的底层存储](Configuring-Alluxio-with-HDFS.md), 并且已经启用了键值存储，
+那么可以按照如下方式运行上面的样例:
+
+{% include Key-Value-Store-API/run-mapreduce-example.md %}
