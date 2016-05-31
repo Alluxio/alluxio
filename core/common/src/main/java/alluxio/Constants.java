@@ -158,6 +158,10 @@ public final class Constants {
       "alluxio.underfs.s3.disable.dns.buckets";
   public static final String UNDERFS_S3_SERVER_SIDE_ENCRYPTION =
       "alluxio.underfs.s3.server.side.encryption";
+  public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
+  public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
+  public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
+      "alluxio.underfs.s3.upload.threads.max";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
