@@ -248,6 +248,7 @@ public final class Constants {
       "alluxio.master.tieredstore.global.levels";
   public static final String MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT =
       "alluxio.master.tieredstore.global.level%d.alias";
+  public static final String UFS_DISABLE_CACHE = "alluxio.master.disable.cache";
 
   public static final String WORKER_MEMORY_SIZE = "alluxio.worker.memory.size";
   public static final String WORKER_HOSTNAME = "alluxio.worker.hostname";

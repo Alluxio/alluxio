@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -51,6 +52,8 @@ public abstract class UnderFileSystem {
    * provide storage, but a dummyFS for example does not.
    */
   private boolean mProvidesStorage = true;
+
+  private static final Cache mCache = new Cache();
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -87,6 +90,76 @@ public abstract class UnderFileSystem {
     }
   }
 
+  static class Cache {
+    private Map<Key, UnderFileSystem> mUnderFileSystemMap;
+
+    UnderFileSystem get(String path, Object ufsConf, Configuration configuration)
+        throws IOException {
+      UnderFileSystem fs;
+      Key key = new Key(new AlluxioURI(path));
+      synchronized (this) {
+        fs = mUnderFileSystemMap.get(key);
+      }
+      if (fs != null) {
+        return fs;
+      }
+      fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
+      synchronized (this) {
+        UnderFileSystem oldFs = mUnderFileSystemMap.get(key);
+        if (oldFs != null) {
+          fs.close();
+          return oldFs;
+        }
+        mUnderFileSystemMap.put(key, fs);
+        return fs;
+      }
+    }
+
+    synchronized void remove(Key key, UnderFileSystem fs) {
+      if (mUnderFileSystemMap.containsKey(key) && mUnderFileSystemMap.get(key) == fs) {
+        mUnderFileSystemMap.remove(key);
+      }
+    }
+  }
+
+  static class Key {
+    final String mScheme;
+    final String mAuthority;
+    // TODO(peis): Add UGI information.
+
+    Key(String scheme, String authority) {
+      mScheme = scheme;
+      mAuthority = authority;
+    }
+
+    Key(AlluxioURI uri) {
+      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+    }
+
+    @Override
+    public int hashCode() {
+      return mScheme.hashCode() ^ mAuthority.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+      if (object == this) {
+        return true;
+      }
+
+      if (object != null && object instanceof Key) {
+        Key that = (Key) object;
+        return that.mScheme.equals(mScheme) && that.mAuthority.equals(mAuthority);
+      }
+      return false;
+    }
+
+    @Override
+    public String toString() {
+      return mScheme + "://" + mAuthority;
+    }
+  }
   /**
    * Gets the UnderFileSystem instance according to its schema.
    *
@@ -94,7 +167,7 @@ public abstract class UnderFileSystem {
    * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Configuration configuration) {
+  public static UnderFileSystem get(String path, Configuration configuration) throws IOException {
     return get(path, null, configuration);
   }
 
@@ -106,12 +179,16 @@ public abstract class UnderFileSystem {
    * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) throws IOException {
+    Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
 
-    // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, configuration, ufsConf);
+    if (configuration.getBoolean(Constants.UFS_DISABLE_CACHE)) {
+      // Use the registry to determine the factory to use to create the client
+      return UnderFileSystemRegistry.create(path, configuration, ufsConf);
+    } else {
+      return mCache.get(path, ufsConf, configuration);
+    }
   }
 
   /**
@@ -169,7 +246,7 @@ public abstract class UnderFileSystem {
   /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir into a
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   * ("hdfs://host:port", "/"), ("/", "/dir") and ("/", "/dir") respectively.
    *
    * @param path the input path string
    * @param configuration the configuration for Alluxio
