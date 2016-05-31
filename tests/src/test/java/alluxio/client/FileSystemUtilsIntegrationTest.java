@@ -64,9 +64,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           for (int i = 0; i < numWrites; i++) {
@@ -116,9 +115,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           // four writes that will take > 600ms due to the sleeps
