@@ -199,6 +199,9 @@ For example, `load` can be used to prefetch data for analytics jobs.
 {% include Command-Line-Interface/load.md %}
 
 ## loadMetadata
+The `loadMetadata` command is deprecated since Alluxio version 1.1.
+Please use `alluxio fs ls <path>` command instead.
+
 The `loadMetadata` command queries the under storage system for any file or directory matching the
 given path and then creates a mirror of the file in Alluxio backed by that file. Only the metadata,
 such as the file name and size are loaded this way and no data transfer occurs.
@@ -225,6 +228,11 @@ information for that specific file.
 
 Adding `-R` option also recursively lists child directories, displaying the entire subtree starting
 from the input path.
+
+The `ls` command will also load the metadata any file or directory from the under storage system to Alluxio namespace, if
+it does not exist in Alluxio yet. `ls` queries the under storage system for any file or directory matching the given path and
+then creates a mirror of the file in Alluxio backed by that file. Only the metadata, such as the file name and size are
+loaded this way and no data transfer occurs.
 
 For example, `ls` can be used to browse the file system.
 
