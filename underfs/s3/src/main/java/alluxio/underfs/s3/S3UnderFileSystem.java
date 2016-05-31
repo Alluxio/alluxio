@@ -112,10 +112,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("s3service.disable-dns-buckets",
           conf.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION)) {
-      props.setProperty("s3service.server-side-encryption",
-          conf.get(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION));
-    }
     if (conf.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
       props.setProperty("threaded-service.max-thread-count",
           conf.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));

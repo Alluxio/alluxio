@@ -156,8 +156,6 @@ public final class Constants {
       "alluxio.underfs.s3.endpoint.https.port";
   public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
       "alluxio.underfs.s3.disable.dns.buckets";
-  public static final String UNDERFS_S3_SERVER_SIDE_ENCRYPTION =
-      "alluxio.underfs.s3.server.side.encryption";
   public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
   public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
   public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
