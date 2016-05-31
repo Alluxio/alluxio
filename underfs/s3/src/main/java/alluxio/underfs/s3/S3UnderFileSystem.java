@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -79,13 +80,18 @@ public class S3UnderFileSystem extends UnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
-   * @param awsCredentials AWS Credentials configuration for S3 Access
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri, Configuration conf, AWSCredentials awsCredentials)
-          throws ServiceException {
+  public S3UnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
     super(uri, conf);
     String bucketName = uri.getHost();
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
+        "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
+        "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
+    AWSCredentials awsCredentials =
+        new AWSCredentials(conf.get(Constants.S3_ACCESS_KEY), conf.get(
+            Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
