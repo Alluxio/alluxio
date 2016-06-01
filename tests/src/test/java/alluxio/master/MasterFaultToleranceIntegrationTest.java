@@ -73,14 +73,13 @@ public class MasterFaultToleranceIntegrationTest {
   private void faultTestDataCreation(AlluxioURI folderName, List<Pair<Long, AlluxioURI>> answer)
       throws IOException, AlluxioException {
     mFileSystem.createDirectory(folderName);
-    answer
-        .add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
+    answer.add(new Pair<>(mFileSystem.getStatus(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k++) {
       AlluxioURI path =
           new AlluxioURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
       mFileSystem.createFile(path).close();
-      answer.add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(path).getFileId(), path));
+      answer.add(new Pair<>(mFileSystem.getStatus(path).getFileId(), path));
     }
   }
 
