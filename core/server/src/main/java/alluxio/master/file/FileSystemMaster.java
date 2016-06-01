@@ -1784,7 +1784,8 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     try {
       if (!ufs.exists(ufsUri.toString())) {
-        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+        throw new FileDoesNotExistException(
+            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
       if (ufs.isFile(ufsUri.toString())) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
@@ -1905,7 +1906,9 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean loadDirectChildren = false;
     if (inodeExists) {
       try {
-        loadDirectChildren = inodePath.getInode().isDirectory() && options.isLoadDirectChildren();
+        Inode inode = inodePath.getInode();
+        loadDirectChildren =
+            inode.isDirectory() && inode.isPersisted() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
