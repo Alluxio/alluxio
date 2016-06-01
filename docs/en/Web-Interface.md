@@ -73,6 +73,8 @@ Files in the current folder are listed, with the file name, file size, size for 
 percentage of in-memory data, creation time, and the modification time. To view the content of a
 file, click on that file.
 
+![viewFile]({{site.data.img.screenshot_viewFile}})
+
 ## Browse In-Memory Files Page
 
 To browse all in-memory files, click on the "In-Memory Files" tab in the navigation bar.

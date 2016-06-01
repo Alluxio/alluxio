@@ -22,6 +22,9 @@ backing it. Depending on the production environment, different under storage wil
 Alluxio can be integrated with any under storage, provided an under storage connector is implemented.
 Currently, [Amazon S3](Configuring-Alluxio-with-S3.html),
 [OpenStack Swift](Configuring-Alluxio-with-Swift.html),
+[Google Cloud Storage](Configuring-Alluxio-with-GCS.md),
+[NFS](Configuring-Alluxio-with-NFS.md),
+[Alibaba OSS](Configuring-Alluxio-with-OSS.md),
 [GlusterFS](Configuring-Alluxio-with-GlusterFS.html), and
 [Apache HDFS](Configuring-Alluxio-with-HDFS.html), are supported.
 
