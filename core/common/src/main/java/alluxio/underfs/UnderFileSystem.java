@@ -109,7 +109,7 @@ public abstract class UnderFileSystem {
     Cache() {}
 
     /**
-     * Get a UFS instance from the cache if exists. Otherwise, creates a new instance and and add
+     * Get a UFS instance from the cache if exists. Otherwise, creates a new instance and add
      * that to the cache.
      *
      * @param path the UFS path
