@@ -53,7 +53,7 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
-  private static final Cache CACHE = new Cache();
+  private static final Cache UFS_CACHE = new Cache();
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -187,7 +187,7 @@ public abstract class UnderFileSystem {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
 
-    return CACHE.get(path, ufsConf, configuration);
+    return UFS_CACHE.get(path, ufsConf, configuration);
   }
 
   /**
