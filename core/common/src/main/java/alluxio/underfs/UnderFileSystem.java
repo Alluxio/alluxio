@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -51,6 +52,18 @@ public abstract class UnderFileSystem {
    * provide storage, but a dummyFS for example does not.
    */
   private boolean mProvidesStorage = true;
+
+  private static final Cache CACHE = new Cache();
+
+  /**
+   * This interger represents 3 states:
+   * -1: Uninitialized.
+   * 0: False.
+   * 1: True.
+   *
+   * TODO(peis): Remove this hack by making Configuration more efficient.
+   */
+  // private static AtomicInteger mUfsCacheDisabled = new AtomicInteger(-1);
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -88,6 +101,87 @@ public abstract class UnderFileSystem {
   }
 
   /**
+   * A class used to cache UnderFileSystem.
+   */
+  private static class Cache {
+    private Map<Key, UnderFileSystem> mUnderFileSystemMap = new ConcurrentHashMap<>();
+
+    Cache() {}
+
+    /**
+     * Get a UFS instance from the cache if exists. Otherwise, creates a new instance and and add
+     * that to the cache.
+     *
+     * @param path the UFS path
+     * @param ufsConf the ufs configuration
+     * @param configuration the alluxio configuration
+     * @return the UFS instance
+     */
+    UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
+      UnderFileSystem fs;
+      Key key = new Key(new AlluxioURI(path));
+      fs = mUnderFileSystemMap.get(key);
+      if (fs != null) {
+        return fs;
+      }
+      fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
+      // COMPATIBILITY: We need to cast mMap to ConcurrentHashMap to make sure the code can compile
+      // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
+      UnderFileSystem oldFs =
+          ((ConcurrentHashMap<Key, UnderFileSystem>) mUnderFileSystemMap).putIfAbsent(key, fs);
+      if (oldFs == null) {
+        return fs;
+      } else {
+        try {
+          // This is actually a no-op since none of the alluxio UFS implementation has a real
+          // close implementation.
+          fs.close();
+        } catch (IOException e) {
+          // Should never happen for now.
+          throw new RuntimeException(e);
+        }
+        return oldFs;
+      }
+    }
+  }
+
+  /**
+   * The key of the UFS cache.
+   */
+  private static class Key {
+    private final String mScheme;
+    private final String mAuthority;
+    // TODO(peis): Add UGI information.
+
+    Key(AlluxioURI uri) {
+      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+    }
+
+    @Override
+    public int hashCode() {
+      return mScheme.hashCode() ^ mAuthority.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object object) {
+      if (object == this) {
+        return true;
+      }
+
+      if (object != null && object instanceof Key) {
+        Key that = (Key) object;
+        return that.mScheme.equals(mScheme) && that.mAuthority.equals(mAuthority);
+      }
+      return false;
+    }
+
+    @Override
+    public String toString() {
+      return mScheme + "://" + mAuthority;
+    }
+  }
+  /**
    * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path file path storing over the ufs
@@ -107,11 +201,10 @@ public abstract class UnderFileSystem {
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+    Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
 
-    // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, configuration, ufsConf);
+    return CACHE.get(path, ufsConf, configuration);
   }
 
   /**
@@ -169,7 +262,7 @@ public abstract class UnderFileSystem {
   /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir into a
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   * ("hdfs://host:port", "/"), ("/", "/dir") and ("/", "/dir") respectively.
    *
    * @param path the input path string
    * @param configuration the configuration for Alluxio
