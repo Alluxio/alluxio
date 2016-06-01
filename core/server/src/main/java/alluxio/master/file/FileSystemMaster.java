@@ -761,8 +761,7 @@ public final class FileSystemMaster extends AbstractMaster {
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
 
-    long counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-    counter = AsyncJournalWriter.getFlushCounter(counter, journalCreatePathResult(createResult));
+    long counter = journalCreatePathResult(createResult);
     return counter;
   }
 
@@ -1266,8 +1265,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
-    long counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-    counter = AsyncJournalWriter.getFlushCounter(counter, journalCreatePathResult(createResult));
+    long counter = journalCreatePathResult(createResult);
     MasterContext.getMasterSource().incDirectoriesCreated(1);
     return counter;
   }
@@ -1316,8 +1314,16 @@ public final class FileSystemMaster extends AbstractMaster {
       counter = appendJournalEntry(JournalEntry.newBuilder()
           .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
+    boolean createdDir = false;
     for (Inode<?> inode : createResult.getCreated()) {
       counter = appendJournalEntry(inode.toJournalEntry());
+      if (inode.isDirectory()) {
+        createdDir = true;
+      }
+    }
+    if (createdDir) {
+      // At least one directory was created, so journal the state of the directory id generator.
+      counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
     }
     for (Inode<?> inode : createResult.getPersisted()) {
       PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
