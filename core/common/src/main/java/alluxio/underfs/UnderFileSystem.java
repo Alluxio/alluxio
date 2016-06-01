@@ -91,35 +91,32 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * A class used to cache UnderFileSystem.
+   * A class used to cache UnderFileSystems.
    */
   private static class Cache {
-    private Map<Key, UnderFileSystem> mUnderFileSystemMap = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap = new ConcurrentHashMap<>();
 
     Cache() {}
 
     /**
-     * Get a UFS instance from the cache if exists. Otherwise, creates a new instance and add
+     * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
      * that to the cache.
      *
      * @param path the UFS path
-     * @param ufsConf the ufs configuration
-     * @param configuration the alluxio configuration
+     * @param ufsConf the UFS configuration
+     * @param configuration the Alluxio configuration
      * @return the UFS instance
      */
     UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
-      UnderFileSystem fs;
+      UnderFileSystem cachedFs = null;
       Key key = new Key(new AlluxioURI(path));
-      fs = mUnderFileSystemMap.get(key);
-      if (fs != null) {
-        return fs;
+      cachedFs = mUnderFileSystemMap.get(key);
+      if (cachedFs != null) {
+        return cachedFs;
       }
-      fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
-      // COMPATIBILITY: We need to cast mMap to ConcurrentHashMap to make sure the code can compile
-      // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
-      UnderFileSystem oldFs =
-          ((ConcurrentHashMap<Key, UnderFileSystem>) mUnderFileSystemMap).putIfAbsent(key, fs);
-      if (oldFs == null) {
+      UnderFileSystem fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
+      cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+      if (cachedFs == null) {
         return fs;
       } else {
         try {
@@ -130,7 +127,7 @@ public abstract class UnderFileSystem {
           // Should never happen for now.
           throw new RuntimeException(e);
         }
-        return oldFs;
+        return cachedFs;
       }
     }
   }
