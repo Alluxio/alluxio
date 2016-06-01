@@ -135,9 +135,12 @@ public abstract class UnderFileSystem {
     }
   }
 
+  /**
+   * The key the UFS cache.
+   */
   private static class Key {
-    final String mScheme;
-    final String mAuthority;
+    private final String mScheme;
+    private final String mAuthority;
     // TODO(peis): Add UGI information.
 
     Key(AlluxioURI uri) {
