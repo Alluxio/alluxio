@@ -193,13 +193,7 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
-
-    if (configuration.getBoolean(Constants.UFS_DISABLE_CACHE)) {
-      // Use the registry to determine the factory to use to create the client
-      return UnderFileSystemRegistry.create(path, configuration, ufsConf);
-    } else {
-      return CACHE.get(path, ufsConf, configuration);
-    }
+    return CACHE.get(path, ufsConf, configuration);
   }
 
   /**
