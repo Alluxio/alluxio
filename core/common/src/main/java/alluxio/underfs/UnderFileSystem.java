@@ -191,7 +191,7 @@ public abstract class UnderFileSystem {
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
-    Preconditions.checkNotNull(path);
+    Preconditions.checkArgument(path != null, "path may not be null");
     Preconditions.checkNotNull(configuration);
 
     return UFS_CACHE.get(path, ufsConf, configuration);
@@ -262,7 +262,7 @@ public abstract class UnderFileSystem {
    *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(AlluxioURI path, Configuration configuration) {
-    Preconditions.checkNotNull(path);
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
