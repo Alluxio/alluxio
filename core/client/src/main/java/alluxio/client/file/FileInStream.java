@@ -136,7 +136,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
     }
     int seekBufferSizeBytes = Math.max((int) options.getSeekBufferSizeBytes(), 1);
     mSeekBuffer = new byte[seekBufferSizeBytes];
-    LOG.debug(options.toString());
+    LOG.debug("Init FileInStream with options {}", options);
   }
 
   @Override
