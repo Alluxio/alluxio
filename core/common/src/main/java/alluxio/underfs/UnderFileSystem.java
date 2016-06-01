@@ -56,16 +56,6 @@ public abstract class UnderFileSystem {
   private static final Cache CACHE = new Cache();
 
   /**
-   * This interger represents 3 states:
-   * -1: Uninitialized.
-   * 0: False.
-   * 1: True.
-   *
-   * TODO(peis): Remove this hack by making Configuration more efficient.
-   */
-  // private static AtomicInteger mUfsCacheDisabled = new AtomicInteger(-1);
-
-  /**
    * The different types of space indicate the total space, the free space and the space used in the
    * under file system.
    */
