@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -53,6 +54,16 @@ public abstract class UnderFileSystem {
   private boolean mProvidesStorage = true;
 
   private static final Cache CACHE = new Cache();
+
+  /**
+   * This interger represents 3 states:
+   * -1: Uninitialized.
+   * 0: False.
+   * 1: True.
+   *
+   * TODO(peis): Remove this hack by making Configuration more efficient.
+   */
+  // private static AtomicInteger mUfsCacheDisabled = new AtomicInteger(-1);
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -93,7 +104,7 @@ public abstract class UnderFileSystem {
    * A class used to cache UnderFileSystem.
    */
   private static class Cache {
-    private Map<Key, UnderFileSystem> mUnderFileSystemMap = new HashMap<>();
+    private Map<Key, UnderFileSystem> mUnderFileSystemMap = new ConcurrentHashMap<>();
 
     Cache() {}
 
@@ -109,34 +120,33 @@ public abstract class UnderFileSystem {
     UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
       UnderFileSystem fs;
       Key key = new Key(new AlluxioURI(path));
-      synchronized (this) {
-        fs = mUnderFileSystemMap.get(key);
-      }
+      fs = mUnderFileSystemMap.get(key);
       if (fs != null) {
         return fs;
       }
       fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
-      synchronized (this) {
-        UnderFileSystem oldFs = mUnderFileSystemMap.get(key);
-        if (oldFs != null) {
-          try {
-            // This is actually a no-op since none of the alluxio UFS implementation has a real
-            // close implementation.
-            fs.close();
-          } catch (IOException e) {
-            // Should never happen for now.
-            throw new RuntimeException(e);
-          }
-          return oldFs;
-        }
-        mUnderFileSystemMap.put(key, fs);
+      // COMPATIBILITY: We need to cast mMap to ConcurrentHashMap to make sure the code can compile
+      // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
+      UnderFileSystem oldFs =
+          ((ConcurrentHashMap<Key, UnderFileSystem>) mUnderFileSystemMap).putIfAbsent(key, fs);
+      if (oldFs == null) {
         return fs;
+      } else {
+        try {
+          // This is actually a no-op since none of the alluxio UFS implementation has a real
+          // close implementation.
+          fs.close();
+        } catch (IOException e) {
+          // Should never happen for now.
+          throw new RuntimeException(e);
+        }
+        return oldFs;
       }
     }
   }
 
   /**
-   * The key the UFS cache.
+   * The key of the UFS cache.
    */
   private static class Key {
     private final String mScheme;
@@ -193,6 +203,7 @@ public abstract class UnderFileSystem {
   public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
+
     return CACHE.get(path, ufsConf, configuration);
   }
 
