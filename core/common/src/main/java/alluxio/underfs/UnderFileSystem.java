@@ -158,7 +158,7 @@ public abstract class UnderFileSystem {
         return true;
       }
 
-      if (object == null || !(object instanceof Key)) {
+      if (!(object instanceof Key)) {
         return false;
       }
 
