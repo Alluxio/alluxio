@@ -1899,18 +1899,22 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Loads the metadata for the path, if it doesn't exist or we need to load the direct children.
+   * Loads metadata for the path if it is (non-existing || (persisted && load direct children is
+   * set).
    *
    * @param inodePath the {@link LockedInodePath} to load the metadata for
    * @param options the load metadata options
    */
+  // TODO(peis): Add a unit test for this function.
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
     boolean inodeExists = inodePath.fullPathExists();
     boolean loadDirectChildren = false;
     if (inodeExists) {
       try {
-        loadDirectChildren = inodePath.getInode().isDirectory() && options.isLoadDirectChildren();
+        Inode inode = inodePath.getInode();
+        loadDirectChildren =
+            inode.isDirectory() && inode.isPersisted() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
