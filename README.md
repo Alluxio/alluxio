@@ -45,7 +45,7 @@ compile 'org.alluxio:alluxio-core-client:1.0.1'
 libraryDependencies += "org.alluxio" % "alluxio-core-client" % "1.0.1"
 ```
 
-## Contributing to Alluxio
+## Contributing
 
 Contributions via GitHub pull requests are gladly accepted from their original author. Along with
 any pull requests, please state that the contribution is your original work and that you license the
