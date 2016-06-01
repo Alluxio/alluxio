@@ -1836,10 +1836,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    */
-  // TODO(gpang): InodePath parameter, update method, return counter
   private long loadFileMetadataAndJournal(LockedInodePath inodePath,
-      MountTable.Resolution resolution,
-      LoadMetadataOptions options)
+      MountTable.Resolution resolution, LoadMetadataOptions options)
       throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException {
     if (inodePath.fullPathExists()) {
