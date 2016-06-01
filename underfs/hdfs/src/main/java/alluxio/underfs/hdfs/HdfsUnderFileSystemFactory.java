@@ -46,7 +46,7 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
 
   @Override
   public UnderFileSystem create(String path, Configuration configuration, Object conf) {
-    Preconditions.checkArgument(path != null, "path may not be null");
+    Preconditions.checkArgument(path != null);
 
     // Normalize the path to just its root. This is all that's needed to identify which FileSystem
     // the Path belongs to.
