@@ -118,17 +118,13 @@ public abstract class UnderFileSystem {
       cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
       if (cachedFs == null) {
         return fs;
-      } else {
-        try {
-          // This is actually a no-op since none of the alluxio UFS implementation has a real
-          // close implementation.
-          fs.close();
-        } catch (IOException e) {
-          // Should never happen for now.
-          throw new RuntimeException(e);
-        }
-        return cachedFs;
       }
+      try {
+        fs.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return cachedFs;
     }
   }
 
