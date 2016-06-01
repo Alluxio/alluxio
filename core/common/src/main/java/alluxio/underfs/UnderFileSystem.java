@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -93,8 +94,13 @@ public abstract class UnderFileSystem {
   /**
    * A class used to cache UnderFileSystems.
    */
+  @ThreadSafe
   private static class Cache {
-    private ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap = new ConcurrentHashMap<>();
+    /**
+     * Maps from {@link Key} to {@link UnderFileSystem} instances.
+     */
+    private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+        new ConcurrentHashMap<>();
 
     Cache() {}
 
@@ -143,7 +149,7 @@ public abstract class UnderFileSystem {
 
     @Override
     public int hashCode() {
-      return mScheme.hashCode() ^ mAuthority.hashCode();
+      return Objects.hashCode(mScheme, mAuthority);
     }
 
     @Override
@@ -152,11 +158,12 @@ public abstract class UnderFileSystem {
         return true;
       }
 
-      if (object != null && object instanceof Key) {
-        Key that = (Key) object;
-        return that.mScheme.equals(mScheme) && that.mAuthority.equals(mAuthority);
+      if (object == null || !(object instanceof Key)) {
+        return false;
       }
-      return false;
+
+      Key that = (Key) object;
+      return Objects.equal(mScheme, that.mScheme) && Objects.equal(mAuthority, that.mAuthority);
     }
 
     @Override
