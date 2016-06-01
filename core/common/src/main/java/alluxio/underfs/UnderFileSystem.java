@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -32,7 +31,6 @@ import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.concurrent.ThreadSafe;
-import javax.management.relation.RoleUnresolved;
 
 /**
  * Alluxio stores data into an under layer file system. Any file system implementing this interface
@@ -54,7 +52,7 @@ public abstract class UnderFileSystem {
    */
   private boolean mProvidesStorage = true;
 
-  private static final Cache mCache = new Cache();
+  private static final Cache CACHE = new Cache();
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -91,11 +89,24 @@ public abstract class UnderFileSystem {
     }
   }
 
-  static class Cache {
-    private Map<Key, UnderFileSystem> mUnderFileSystemMap;
+  /**
+   * A class used to cache UnderFileSystem.
+   */
+  private static class Cache {
+    private Map<Key, UnderFileSystem> mUnderFileSystemMap = new HashMap<>();
 
-    UnderFileSystem get(String path, Object ufsConf, Configuration configuration)
-        throws IOException {
+    Cache() {}
+
+    /**
+     * Get a UFS instance from the cache if exists. Otherwise, creates a new instance and and add
+     * that to the cache.
+     *
+     * @param path the UFS path
+     * @param ufsConf the ufs configuration
+     * @param configuration the alluxio configuration
+     * @return the UFS instance
+     */
+    UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
       UnderFileSystem fs;
       Key key = new Key(new AlluxioURI(path));
       synchronized (this) {
@@ -108,31 +119,26 @@ public abstract class UnderFileSystem {
       synchronized (this) {
         UnderFileSystem oldFs = mUnderFileSystemMap.get(key);
         if (oldFs != null) {
-          // This close is actually a no-op since none of the
-          fs.close();
+          try {
+            // This is actually a no-op since none of the alluxio UFS implementation has a real
+            // close implementation.
+            fs.close();
+          } catch (IOException e) {
+            // Should never happen for now.
+            throw new RuntimeException(e);
+          }
           return oldFs;
         }
         mUnderFileSystemMap.put(key, fs);
         return fs;
       }
     }
-
-    synchronized void remove(Key key, UnderFileSystem fs) {
-      if (mUnderFileSystemMap.containsKey(key) && mUnderFileSystemMap.get(key) == fs) {
-        mUnderFileSystemMap.remove(key);
-      }
-    }
   }
 
-  static class Key {
+  private static class Key {
     final String mScheme;
     final String mAuthority;
     // TODO(peis): Add UGI information.
-
-    Key(String scheme, String authority) {
-      mScheme = scheme;
-      mAuthority = authority;
-    }
 
     Key(AlluxioURI uri) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
@@ -169,7 +175,7 @@ public abstract class UnderFileSystem {
    * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Configuration configuration) throws IOException {
+  public static UnderFileSystem get(String path, Configuration configuration) {
     return get(path, null, configuration);
   }
 
@@ -181,8 +187,7 @@ public abstract class UnderFileSystem {
    * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration)
-      throws IOException {
+  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
     Preconditions.checkNotNull(path);
     Preconditions.checkNotNull(configuration);
 
@@ -190,7 +195,7 @@ public abstract class UnderFileSystem {
       // Use the registry to determine the factory to use to create the client
       return UnderFileSystemRegistry.create(path, configuration, ufsConf);
     } else {
-      return mCache.get(path, ufsConf, configuration);
+      return CACHE.get(path, ufsConf, configuration);
     }
   }
 
