@@ -295,6 +295,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    */
   public InputStream openAtPosition(String path, long pos) throws IOException {
     try {
+      path = stripPrefixIfPresent(path);
       GSObject obj = mClient.getObject(mBucketName, path, null, null, null, null, pos, null);
       return obj.getDataInputStream();
     } catch (ServiceException e) {
