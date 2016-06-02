@@ -327,7 +327,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Opens a S3 object at position and returns the input stream.
+   * Opens a S3 object at given position and returns the opened input stream.
    *
    * @param path the S3 object path
    * @param pos the position to open at

@@ -286,7 +286,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Opens a GCS object at position and returns the input stream.
+   * Opens a GCS object at given position and returns the opened input stream.
    *
    * @param path the GCS object path
    * @param pos the position to open at
