@@ -1924,7 +1924,9 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
-        LOG.error("Failed to load metadata for path: {}", inodePath.getUri());
+        // NOTE, this may be expected when client tries to get info (e.g. exisits()) for a file
+        // existing neither in Alluxio nor UFS.
+        LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }
     }
     return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
