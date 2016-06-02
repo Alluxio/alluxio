@@ -496,7 +496,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
       // Non recursive, so set the delimiter, let the listObjects only get the files in the folder
       listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       ObjectListing listing = mOssClient.listObjects(listObjectsRequest);
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
