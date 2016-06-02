@@ -529,7 +529,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDirectChildren(loadDirectChildren);
-      Inode<?> inode = null;
+      Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
@@ -761,8 +761,7 @@ public final class FileSystemMaster extends AbstractMaster {
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
 
-    long counter = journalCreatePathResult(createResult);
-    return counter;
+    return journalCreatePathResult(createResult);
   }
 
   /**
@@ -1000,7 +999,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Inode<?>> delInodes = new ArrayList<Inode<?>>();
+    List<Inode<?>> delInodes = new ArrayList<>();
     delInodes.add(inode);
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
@@ -1148,7 +1147,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return absolute paths of all in memory files
    */
   public List<AlluxioURI> getInMemoryFiles() {
-    List<AlluxioURI> ret = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> ret = new ArrayList<>();
     getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
     return ret;
   }
