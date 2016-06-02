@@ -20,6 +20,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -169,6 +170,9 @@ public final class UnderFileSystemManager {
       // Special handing for S3 and GCS to save redundant ufs open and close in S3/GCS skip.
       if (ufs instanceof S3UnderFileSystem) {
         return ((S3UnderFileSystem) ufs).openAtPosition(mUri, position);
+      }
+      if (ufs instanceof GCSUnderFileSystem) {
+        return ((GCSUnderFileSystem) ufs).openAtPosition(mUri, position);
       }
       InputStream stream = ufs.open(mUri);
       if (position != stream.skip(position)) {
