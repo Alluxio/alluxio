@@ -646,7 +646,7 @@ public class DFSIOIntegrationTest implements Tool {
   // fileSize is in Bytes
   private void sequentialTest(org.apache.hadoop.fs.FileSystem fs, TestType testType, long fileSize,
       int nrFiles) throws IOException {
-    IOStatMapper ioer = null;
+    IOStatMapper ioer;
     switch (testType) {
       case TEST_TYPE_READ:
         ioer = new ReadMapper();
@@ -673,7 +673,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   public static void main(String[] args) {
     DFSIOIntegrationTest bench = new DFSIOIntegrationTest();
-    int res = -1;
+    int res;
     try {
       res = ToolRunner.run(bench, args);
     } catch (Exception e) {
@@ -691,7 +691,7 @@ public class DFSIOIntegrationTest implements Tool {
   public int run(String[] args) throws IOException {
     TestType testType = null;
     int bufferSize = DEFAULT_BUFFER_SIZE;
-    long nrBytes = 1 * MEGA;
+    long nrBytes = MEGA;
     int nrFiles = 1;
     long skipSize = 0;
     String resFileName = DEFAULT_RES_FILE_NAME;
