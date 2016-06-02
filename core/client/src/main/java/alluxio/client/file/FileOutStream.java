@@ -94,7 +94,7 @@ public class FileOutStream extends AbstractOutStream {
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
-    mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
+    mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
