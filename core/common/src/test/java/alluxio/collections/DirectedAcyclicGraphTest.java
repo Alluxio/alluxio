@@ -44,10 +44,10 @@ public final class DirectedAcyclicGraphTest {
     Assert.assertTrue(mGraph.sortTopologically(new HashSet<Integer>()).isEmpty());
 
     // One node.
-    mGraph.add((Integer) (1), new ArrayList<Integer>());
+    mGraph.add(1, new ArrayList<Integer>());
     Assert.assertEquals(1, mGraph.getRoots().size());
     Assert.assertEquals((Integer) (1), mGraph.getRoots().get(0));
-    mGraph.deleteLeaf((Integer) (1));
+    mGraph.deleteLeaf(1);
     Assert.assertTrue(mGraph.getRoots().isEmpty());
   }
 
@@ -59,20 +59,20 @@ public final class DirectedAcyclicGraphTest {
   public void topologicalSortTest() {
     // Construct a graph.
     // 1->2, 3->2, 4->2, 5->1, 6
-    List<Integer> parents = new ArrayList<Integer>();
+    List<Integer> parents = new ArrayList<>();
 
-    mGraph.add((Integer) (5), parents);
-    parents.add((Integer) (5));
-    mGraph.add((Integer) (1), parents);
+    mGraph.add(5, parents);
+    parents.add(5);
+    mGraph.add(1, parents);
     parents.clear();
-    mGraph.add((Integer) (3), parents);
-    mGraph.add((Integer) (4), parents);
-    parents.add((Integer) (1));
-    parents.add((Integer) (3));
-    parents.add((Integer) (4));
-    mGraph.add((Integer) (2), parents);
+    mGraph.add(3, parents);
+    mGraph.add(4, parents);
+    parents.add(1);
+    parents.add(3);
+    parents.add(4);
+    mGraph.add(2, parents);
     parents.clear();
-    mGraph.add((Integer) (6), parents);
+    mGraph.add(6, parents);
 
     // Sort the whole graph.
     Set<Integer> toSort = new HashSet<>();
@@ -86,11 +86,11 @@ public final class DirectedAcyclicGraphTest {
     result = mGraph.sortTopologically(toSort);
     for (Integer i : result) {
       if (i == 1) {
-        Assert.assertTrue(seen.contains((Integer) (5)));
+        Assert.assertTrue(seen.contains(5));
       } else if (i == 2) {
-        Assert.assertTrue(seen.contains((Integer) (1)));
-        Assert.assertTrue(seen.contains((Integer) (3)));
-        Assert.assertTrue(seen.contains((Integer) (4)));
+        Assert.assertTrue(seen.contains(1));
+        Assert.assertTrue(seen.contains(3));
+        Assert.assertTrue(seen.contains(4));
       }
       seen.add(i);
     }
@@ -98,14 +98,14 @@ public final class DirectedAcyclicGraphTest {
 
     // Sort part of the graph.
     toSort.clear();
-    toSort.add((Integer) (1));
-    toSort.add((Integer) (2));
+    toSort.add(1);
+    toSort.add(2);
     seen.clear();
 
     result = mGraph.sortTopologically(toSort);
     for (Integer i : result) {
       if (i == 2) {
-        Assert.assertTrue(seen.contains((Integer) (1)));
+        Assert.assertTrue(seen.contains(1));
       }
       seen.add(i);
     }
