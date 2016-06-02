@@ -65,14 +65,12 @@ public class OSSInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    int ret = mInputStream.read();
-    return ret;
+    return mInputStream.read();
   }
 
   @Override
   public int read(byte[] b, int off, int len) throws IOException {
-    int ret = mInputStream.read(b, off, len);
-    return ret;
+    return mInputStream.read(b, off, len);
   }
 
   @Override
