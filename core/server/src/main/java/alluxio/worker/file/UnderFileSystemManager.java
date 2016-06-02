@@ -167,7 +167,8 @@ public final class UnderFileSystemManager {
         return null;
       }
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      // Special handing for S3 and GCS to save redundant ufs open and close in S3/GCS skip.
+      // Special handling for S3/GCS with open object at position to save redundant ufs stream
+      // close and reopen in S3InputStream/GCSInputStream skip.
       if (ufs instanceof S3UnderFileSystem) {
         return ((S3UnderFileSystem) ufs).openAtPosition(mUri, position);
       }
