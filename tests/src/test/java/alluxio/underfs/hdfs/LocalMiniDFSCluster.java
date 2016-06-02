@@ -232,7 +232,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
       // For HDFS of earlier versions, getFileSystem() returns an instance of type
       // {@link org.apache.hadoop.fs.FileSystem} rather than {@link DistributedFileSystem}
-      mDfsClient = mDfsCluster.getFileSystem();
+      mDfsClient = (DistributedFileSystem) mDfsCluster.getFileSystem();
       mIsStarted = true;
     }
   }
