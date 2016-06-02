@@ -49,7 +49,6 @@ public class LRFUEvictorTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
   private Evictor mEvictor;
-  private Allocator mAllocator;
 
   private double mStepFactor;
   private double mAttenuationFactor;
@@ -73,11 +72,11 @@ public class LRFUEvictorTest {
     Configuration conf = WorkerContext.getConf();
     conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
     conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(conf, mManagerView);
     mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
         conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(conf, mManagerView, allocator);
   }
 
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)
