@@ -139,10 +139,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   /** All worker information. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
