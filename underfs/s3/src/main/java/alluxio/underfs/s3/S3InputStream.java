@@ -63,6 +63,24 @@ public class S3InputStream extends InputStream {
     mInputStream = new BufferedInputStream(mObject.getDataInputStream());
   }
 
+  /**
+   * Creates a new instance of {@link S3InputStream}, at a specific position.
+   *
+   * @param bucketName the name of the bucket
+   * @param key the key of the file
+   * @param client the client for S3
+   * @param pos the position to start
+   * @throws ServiceException if a service exception occurs
+   */
+  S3InputStream(String bucketName, String key, S3Service client, long pos) throws ServiceException {
+    mBucketName = bucketName;
+    mKey = key;
+    mClient = client;
+    mPos = pos;
+    mObject = mClient.getObject(mBucketName, mKey, null, null, null, null, mPos, null);
+    mInputStream = new BufferedInputStream(mObject.getDataInputStream());
+  }
+
   @Override
   public void close() throws IOException {
     mInputStream.close();
