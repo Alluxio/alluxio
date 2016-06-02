@@ -337,8 +337,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   public InputStream openAtPosition(String path, long pos) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      S3Object obj = mClient.getObject(mBucketName, path, null, null, null, null, pos, null);
-      return obj.getDataInputStream();
+      return new S3InputStream(mBucketName, path, mClient, pos);
     } catch (ServiceException e) {
       LOG.error("Failed to open file {} at position {}:", path, pos, e);
       return null;
