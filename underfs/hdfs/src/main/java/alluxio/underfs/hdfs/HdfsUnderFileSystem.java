@@ -236,7 +236,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    List<String> ret = new ArrayList<String>();
+    List<String> ret = new ArrayList<>();
     try {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
       BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
@@ -368,7 +368,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         }
         // Create directories one by one with explicit permissions to ensure no umask is applied,
         // using mkdirs will apply the permission only to the last directory
-        Stack<Path> dirsToMake = new Stack<Path>();
+        Stack<Path> dirsToMake = new Stack<>();
         dirsToMake.push(hdfsPath);
         Path parent = hdfsPath.getParent();
         while (!mFileSystem.exists(parent)) {

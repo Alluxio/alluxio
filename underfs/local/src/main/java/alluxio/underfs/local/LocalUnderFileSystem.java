@@ -131,7 +131,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    List<String> ret = new ArrayList<String>();
+    List<String> ret = new ArrayList<>();
     ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mConfiguration));
     return ret;
   }
@@ -208,7 +208,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
       return false;
     }
     // Create parent directories one by one and set their permissions to rwxrwxrwx.
-    Stack<File> dirsToMake = new Stack<File>();
+    Stack<File> dirsToMake = new Stack<>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
     while (!parent.exists()) {
