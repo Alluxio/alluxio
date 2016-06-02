@@ -62,8 +62,7 @@ public class IndexedSetTest {
         return o.longValue();
       }
     };
-    IndexedSet<Pair> set = new IndexedSet<Pair>(mIntIndex, mLongIndex);
-    mSet = set;
+    mSet = new IndexedSet<>(mIntIndex, mLongIndex);
     for (int i = 0; i < 3; i++) {
       for (long l = 0; l < 3; l++) {
         mSet.add(new Pair(i, l));
@@ -94,7 +93,7 @@ public class IndexedSetTest {
     for (int i = 0; i < 3; i++) {
       Set<Pair> set = mSet.getByField(mIntIndex, i);
       Assert.assertEquals(3, set.size());
-      List<Long> longs = new ArrayList<Long>(set.size());
+      List<Long> longs = new ArrayList<>(set.size());
       for (Pair o : set) {
         longs.add(o.longValue());
       }
@@ -107,7 +106,7 @@ public class IndexedSetTest {
       Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
       set = mSet.getByField(mLongIndex, (long) i);
       Assert.assertEquals(3, set.size());
-      List<Integer> ints = new ArrayList<Integer>(set.size());
+      List<Integer> ints = new ArrayList<>(set.size());
       for (Pair o : set) {
         ints.add(o.intValue());
       }

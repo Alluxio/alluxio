@@ -191,7 +191,7 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void concurrentInitializeTest() throws Exception {
-    final List<Thread> threads = new ArrayList<Thread>();
+    final List<Thread> threads = new ArrayList<>();
     final Configuration conf = getConf();
     for (int i = 0; i < 100; i++) {
       final int id = i;
