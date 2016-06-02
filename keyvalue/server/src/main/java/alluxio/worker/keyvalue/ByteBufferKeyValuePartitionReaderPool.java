@@ -40,7 +40,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * A pool to store ByteBufferKeyValuePartitionReader, BlockReader and the associated lockId.This
  * pool has a fixed size and uses the access order to evict when the pool is full.
  */
-public class ByteBufferKeyValuePartitionReaderPool {
+public final class ByteBufferKeyValuePartitionReaderPool {
   private final int mSize;
   /** Queue of blockIds for evicting. */
   private final Queue<Long> mReaderQueue = new LinkedList<>();
