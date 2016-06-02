@@ -66,21 +66,20 @@ public class BlockServiceHandlerIntegrationTest {
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
   private Configuration mMasterConfiguration;
-  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
     mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
+    Configuration workerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterPort()),
-        mWorkerConfiguration);
+            workerConfiguration);
   }
 
   @After
