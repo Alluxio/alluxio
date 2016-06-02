@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -51,6 +53,8 @@ public abstract class UnderFileSystem {
    * provide storage, but a dummyFS for example does not.
    */
   private boolean mProvidesStorage = true;
+
+  private static final Cache UFS_CACHE = new Cache();
 
   /**
    * The different types of space indicate the total space, the free space and the space used in the
@@ -88,6 +92,86 @@ public abstract class UnderFileSystem {
   }
 
   /**
+   * A class used to cache UnderFileSystems.
+   */
+  @ThreadSafe
+  private static class Cache {
+    /**
+     * Maps from {@link Key} to {@link UnderFileSystem} instances.
+     */
+    private final ConcurrentHashMap<Key, UnderFileSystem> mUnderFileSystemMap =
+        new ConcurrentHashMap<>();
+
+    Cache() {}
+
+    /**
+     * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
+     * that to the cache.
+     *
+     * @param path the UFS path
+     * @param ufsConf the UFS configuration
+     * @param configuration the Alluxio configuration
+     * @return the UFS instance
+     */
+    UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
+      UnderFileSystem cachedFs = null;
+      Key key = new Key(new AlluxioURI(path));
+      cachedFs = mUnderFileSystemMap.get(key);
+      if (cachedFs != null) {
+        return cachedFs;
+      }
+      UnderFileSystem fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
+      cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
+      if (cachedFs == null) {
+        return fs;
+      }
+      try {
+        fs.close();
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      return cachedFs;
+    }
+  }
+
+  /**
+   * The key of the UFS cache.
+   */
+  private static class Key {
+    private final String mScheme;
+    private final String mAuthority;
+    // TODO(peis): Add UGI information.
+
+    Key(AlluxioURI uri) {
+      mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
+      mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(mScheme, mAuthority);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+      if (object == this) {
+        return true;
+      }
+
+      if (!(object instanceof Key)) {
+        return false;
+      }
+
+      Key that = (Key) object;
+      return Objects.equal(mScheme, that.mScheme) && Objects.equal(mAuthority, that.mAuthority);
+    }
+
+    @Override
+    public String toString() {
+      return mScheme + "://" + mAuthority;
+    }
+  }
+  /**
    * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path file path storing over the ufs
@@ -110,8 +194,7 @@ public abstract class UnderFileSystem {
     Preconditions.checkArgument(path != null, "path may not be null");
     Preconditions.checkNotNull(configuration);
 
-    // Use the registry to determine the factory to use to create the client
-    return UnderFileSystemRegistry.create(path, configuration, ufsConf);
+    return UFS_CACHE.get(path, ufsConf, configuration);
   }
 
   /**
@@ -169,7 +252,7 @@ public abstract class UnderFileSystem {
   /**
    * Transform an input string like hdfs://host:port/dir, hdfs://host:port, file:///dir, /dir into a
    * pair of address and path. The returned pairs are ("hdfs://host:port", "/dir"),
-   * ("hdfs://host:port", "/"), and ("/", "/dir"), respectively.
+   * ("hdfs://host:port", "/"), ("/", "/dir") and ("/", "/dir") respectively.
    *
    * @param path the input path string
    * @param configuration the configuration for Alluxio
@@ -179,7 +262,7 @@ public abstract class UnderFileSystem {
    *         address is "/" and the path starts with "/".
    */
   public static Pair<String, String> parse(AlluxioURI path, Configuration configuration) {
-    Preconditions.checkNotNull(path);
+    Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
