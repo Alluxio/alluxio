@@ -187,6 +187,11 @@ For example, `getUsedBytes` can be used to monitor the health of your cluster.
 
 {% include Command-Line-Interface/getUsedBytes.md %}
 
+## leader
+The `leader` command prints the current Alluxio leader master host name.
+
+{% include Command-Line-Interface/leader.md %}
+
 ## load
 The `load` command moves data from the under storage system into Alluxio storage. If there is a
 Alluxio worker on the machine this command is run from, the data will be loaded to that worker.
