@@ -127,14 +127,6 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Resets the {@link MasterContext} after a test ran.
-   */
-  @After
-  public void after() {
-    MasterContext.reset();
-  }
-
-  /**
    * Sets up the dependencies before a test runs.
    *
    * @throws Exception if creating the temporary folder, starting the masters or register the
@@ -168,6 +160,16 @@ public final class FileSystemMasterTest {
         ImmutableMap.of("MEM", Constants.MB * 1L, "SSD", Constants.MB * 1L),
         ImmutableMap.of("MEM", Constants.KB * 1L, "SSD", Constants.KB * 1L),
         new HashMap<String, List<Long>>());
+  }
+
+  /**
+   * Resets global state after each test run.
+   */
+  @After
+  public void after() throws Exception {
+    mFileSystemMaster.stop();
+    mBlockMaster.stop();
+    MasterContext.reset();
   }
 
   /**
@@ -1010,7 +1012,8 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void lostFilesDetectionTest() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
 
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
