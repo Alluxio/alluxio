@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mFiles = new HashSet<InodeFile>();
+    mFiles = new HashSet<>();
   }
 
   /**
