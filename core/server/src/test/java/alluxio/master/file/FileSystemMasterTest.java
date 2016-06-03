@@ -142,7 +142,9 @@ public final class FileSystemMasterTest {
    */
   @Before
   public void before() throws Exception {
-    mUnderFS = mTestFolder.newFolder().getAbsolutePath();
+    // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
+    // doesn't exist by default (helps loadRootTest).
+    mUnderFS = mTestFolder.newFolder().getAbsolutePath() + "/underFs";
     MasterContext.getConf()
         .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
     MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, mUnderFS);
@@ -1087,7 +1089,7 @@ public final class FileSystemMasterTest {
     * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
-  public void testLoadRoot() throws Exception {
+  public void loadRootTest() throws Exception {
     mFileSystemMaster.loadMetadata(new AlluxioURI("alluxio:/"), LoadMetadataOptions.defaults());
   }
 
