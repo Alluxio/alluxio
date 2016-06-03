@@ -28,7 +28,7 @@ public class ShellUtilsTest {
   public void execCommandTest() throws Throwable {
     String testString = "alluxio";
     // Execute echo for testing command execution.
-    String result = ShellUtils.execCommand(new String[] {"bash", "-c", "echo " + testString});
+    String result = ShellUtils.execCommand("bash", "-c", "echo " + testString);
     Assert.assertEquals(testString + "\n", result);
   }
 
