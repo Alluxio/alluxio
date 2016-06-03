@@ -66,7 +66,9 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * @param name the name of a timer to remove from the scheduler
+   * Removes a timer name from the scheduler if it exists.
+   *
+   * @param name the name to remove
    */
   public static void removeTimer(String name) {
     try (LockResource r = new LockResource(sLock)) {
@@ -75,11 +77,20 @@ public final class HeartbeatScheduler {
   }
 
   /**
-   * @param timer a timer to remove from the scheduler
+   * Removes a timer from the scheduler.
+   *
+   * This method will fail if the timer is not in the scheduler.
+   *
+   * @param timer the timer to remove
    */
   public static void removeTimer(ScheduledTimer timer) {
-    Preconditions.checkNotNull(timer);
-    removeTimer(timer.getThreadName());
+    Preconditions.checkNotNull(timer, "timer");
+    try (LockResource r = new LockResource(sLock)) {
+      ScheduledTimer removedTimer = sTimers.remove(timer.getThreadName());
+      Preconditions.checkNotNull(removedTimer, "sTimers should contain %s", timer.getThreadName());
+      Preconditions.checkState(removedTimer == timer,
+          "sTimers should contain the timer being removed");
+    }
   }
 
   /**
