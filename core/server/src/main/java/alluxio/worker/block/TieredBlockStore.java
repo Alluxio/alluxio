@@ -492,8 +492,8 @@ public final class TieredBlockStore implements BlockStore {
 
       try (LockResource r = new LockResource(mMetadataWriteLock)) {
         mMetaManager.commitTempBlockMeta(tempBlockMeta);
-      } catch (BlockAlreadyExistsException | BlockDoesNotExistException |
-          WorkerOutOfSpaceException e) {
+      } catch (BlockAlreadyExistsException | BlockDoesNotExistException
+          | WorkerOutOfSpaceException e) {
         throw Throwables.propagate(e); // we shall never reach here
       }
       return loc;
