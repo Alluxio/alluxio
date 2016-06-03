@@ -93,7 +93,7 @@ public final class JournalTool {
    */
   private static boolean parseInputArgs(String[] args) {
     CommandLineParser parser = new BasicParser();
-    CommandLine cmd = null;
+    CommandLine cmd;
     try {
       cmd = parser.parse(OPTIONS, args);
     } catch (ParseException e) {

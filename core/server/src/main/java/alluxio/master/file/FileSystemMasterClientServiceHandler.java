@@ -127,7 +127,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(new RpcCallable<List<FileBlockInfo>>() {
       @Override
       public List<FileBlockInfo> call() throws AlluxioException {
-        List<FileBlockInfo> result = new ArrayList<FileBlockInfo>();
+        List<FileBlockInfo> result = new ArrayList<>();
         for (alluxio.wire.FileBlockInfo fileBlockInfo :
             mFileSystemMaster.getFileBlockInfoList(new AlluxioURI(path))) {
           result.add(ThriftUtils.toThrift(fileBlockInfo));
@@ -190,7 +190,7 @@ public final class FileSystemMasterClientServiceHandler implements
     return RpcUtils.call(new RpcCallable<List<FileInfo>>() {
       @Override
       public List<FileInfo> call() throws AlluxioException {
-        List<FileInfo> result = new ArrayList<FileInfo>();
+        List<FileInfo> result = new ArrayList<>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
             .getFileInfoList(new AlluxioURI(path), options.isLoadDirectChildren())) {
           result.add(ThriftUtils.toThrift(fileInfo));
