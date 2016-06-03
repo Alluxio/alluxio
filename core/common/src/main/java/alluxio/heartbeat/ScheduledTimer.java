@@ -38,7 +38,8 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ScheduledTimer implements HeartbeatTimer {
   private final String mThreadName;
   private final Lock mLock;
-  private final Condition mCondition;
+  /** This condition is signaled to tell the heartbeat thread to do a run. */
+  private final Condition mTickCondition;
   /** True when schedule() has been called, but tick() hasn't finished. **/
   private volatile boolean mScheduled;
 
@@ -51,8 +52,10 @@ public final class ScheduledTimer implements HeartbeatTimer {
   public ScheduledTimer(String threadName, long intervalMs) {
     mThreadName = threadName;
     mLock = new ReentrantLock();
-    mCondition = mLock.newCondition();
+    mTickCondition = mLock.newCondition();
     mScheduled = false;
+    // There should never be more than one scheduled timer with the same name.
+    HeartbeatScheduler.removeTimer(mThreadName);
   }
 
   /**
@@ -69,7 +72,8 @@ public final class ScheduledTimer implements HeartbeatTimer {
     try (LockResource r = new LockResource(mLock)) {
       Preconditions.checkState(!mScheduled, "Called schedule twice without waiting for any ticks");
       mScheduled = true;
-      mCondition.signal();
+      mTickCondition.signal();
+      HeartbeatScheduler.removeTimer(this);
     }
   }
 
@@ -83,8 +87,9 @@ public final class ScheduledTimer implements HeartbeatTimer {
       HeartbeatScheduler.addTimer(this);
       // Wait in a loop to handle spurious wakeups
       while (!mScheduled) {
-        mCondition.await();
+        mTickCondition.await();
       }
+
       mScheduled = false;
     }
   }
