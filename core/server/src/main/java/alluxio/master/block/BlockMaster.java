@@ -19,7 +19,6 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
-import alluxio.exception.WorkerDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -404,6 +403,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
+   * @throws NoWorkerException if the workerId is not active
    */
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) throws NoWorkerException {
