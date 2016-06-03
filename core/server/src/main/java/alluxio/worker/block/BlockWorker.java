@@ -22,6 +22,7 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
@@ -281,7 +282,7 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException | ConnectionFailedException e) {
+    } catch (AlluxioTException | IOException | ConnectionFailedException e) {
       throw new IOException("Failed to commit block to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
