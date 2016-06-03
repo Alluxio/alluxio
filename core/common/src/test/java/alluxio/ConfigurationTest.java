@@ -184,7 +184,7 @@ public class ConfigurationTest {
     Assert.assertEquals(512, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
+    Assert.assertEquals(300 * Constants.SECOND_MS, intValue);
   }
 
   /**
