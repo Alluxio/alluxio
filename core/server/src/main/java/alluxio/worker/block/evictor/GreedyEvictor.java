@@ -106,8 +106,7 @@ public final class GreedyEvictor implements Evictor {
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
         // Not possible to transfer
-        toEvict.add(new Pair<>(block.getBlockId(),
-            block.getBlockLocation()));
+        toEvict.add(new Pair<>(block.getBlockId(), block.getBlockLocation()));
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),

@@ -125,8 +125,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           BlockMeta block = mManagerView.getBlockMeta(blockId);
           if (block != null) {
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
-            plan.toEvict().add(new Pair<>(blockId,
-                candidateDirView.toBlockStoreLocation()));
+            plan.toEvict().add(new Pair<>(blockId, candidateDirView.toBlockStoreLocation()));
           }
         } catch (BlockDoesNotExistException e) {
           continue;
@@ -149,8 +148,7 @@ public abstract class AbstractEvictor extends AbstractBlockStoreEventListener im
           if (nextDirView == null) {
             // If we failed to find a dir in the next tier to move this block, evict it and
             // continue. Normally this should not happen.
-            plan.toEvict().add(new Pair<>(blockId,
-                block.getBlockLocation()));
+            plan.toEvict().add(new Pair<>(blockId, block.getBlockLocation()));
             candidateDirView.markBlockMoveOut(blockId, block.getBlockSize());
             continue;
           }
