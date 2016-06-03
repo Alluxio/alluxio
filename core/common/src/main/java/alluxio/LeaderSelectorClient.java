@@ -107,9 +107,8 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
    */
   public List<String> getParticipants() {
     try {
-      List<Participant> participants =
-          new ArrayList<Participant>(mLeaderSelector.getParticipants());
-      List<String> results = new ArrayList<String>();
+      List<Participant> participants = new ArrayList<>(mLeaderSelector.getParticipants());
+      List<String> results = new ArrayList<>();
       for (Participant part : participants) {
         results.add(part.getId());
       }

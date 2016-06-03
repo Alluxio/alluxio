@@ -33,8 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class LeaderInquireClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static HashMap<String, LeaderInquireClient> sCreatedClients =
-      new HashMap<String, LeaderInquireClient>();
+  private static HashMap<String, LeaderInquireClient> sCreatedClients = new HashMap<>();
 
   /**
    * Gets the client.
