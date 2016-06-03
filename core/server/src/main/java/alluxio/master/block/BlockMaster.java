@@ -415,8 +415,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
-      throw new NoWorkerException(
-          String.format("The worker (%d) doesn't exist in active worker set.", workerId));
+      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Lock the worker metadata first.
@@ -623,7 +622,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
     if (worker == null) {
-      throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
+      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Gather all blocks on this worker.
