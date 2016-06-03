@@ -58,8 +58,8 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers,
       Map<String, List<Long>> currentBlocksOnTiers) throws AlluxioTException {
     try {
-      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers, usedBytesOnTiers,
-          currentBlocksOnTiers);
+      mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers,
+          usedBytesOnTiers, currentBlocksOnTiers);
     } catch (AlluxioException e) {
       throw e.toThrift();
     }
@@ -68,8 +68,8 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   @Override
   public Command heartbeat(long workerId, Map<String, Long> usedBytesOnTiers,
       List<Long> removedBlockIds, Map<String, List<Long>> addedBlocksOnTiers) {
-    return mBlockMaster
-        .workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds, addedBlocksOnTiers);
+    return mBlockMaster.workerHeartbeat(workerId, usedBytesOnTiers, removedBlockIds,
+        addedBlocksOnTiers);
   }
 
   @Override
