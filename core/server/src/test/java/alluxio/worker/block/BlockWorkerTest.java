@@ -214,9 +214,8 @@ public class BlockWorkerTest {
     PowerMockito.mockStatic(WorkerIdRegistry.class);
     when(WorkerIdRegistry.getWorkerId()).thenReturn(Long.valueOf(1));
 
-    PowerMockito.doThrow(new IOException("Server RPC failure")).when(mBlockMasterClient)
+    PowerMockito.doThrow(new IOException("Master failure")).when(mBlockMasterClient)
         .commitBlock(anyLong(), anyLong(), anyString(), anyLong(), anyLong());
-
 
     String blockPath = mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
     LocalFileBlockWriter writer = new LocalFileBlockWriter(blockPath);
