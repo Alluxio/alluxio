@@ -19,6 +19,7 @@ import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.NoWorkerException;
+import alluxio.exception.WorkerDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
@@ -405,13 +406,19 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param length the length of the block
    */
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
-      long length) {
+      long length) throws NoWorkerException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
     long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
+    // TODO(peis): Check lost workers as well.
+    if (worker == null) {
+      throw new NoWorkerException(
+          String.format("The worker (%x) doesn't exist in active worker set.", workerId));
+    }
+
     // Lock the worker metadata first.
     synchronized (worker) {
       // Loop until block metadata is successfully locked.
