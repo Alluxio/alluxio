@@ -645,6 +645,6 @@ public final class BlockWorker extends AbstractWorker {
     FileUtils.createBlockPath(blockPath);
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
-    LOG.info("Created new file block, block path: {}", blockPath);
+    LOG.debug("Created new file block, block path: {}", blockPath);
   }
 }
