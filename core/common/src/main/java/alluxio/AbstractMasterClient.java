@@ -50,7 +50,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * @return the {@link InetSocketAddress} of the master
    */
   @Override
-  protected synchronized InetSocketAddress getAddress() {
+  public synchronized InetSocketAddress getAddress() {
     if (!mUseZookeeper) {
       return super.getAddress();
     }
