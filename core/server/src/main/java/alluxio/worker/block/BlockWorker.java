@@ -268,7 +268,14 @@ public final class BlockWorker extends AbstractWorker {
   public void commitBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    mBlockStore.commitBlock(sessionId, blockId);
+    // NOTE: this may be invoked multiple times due to retry on client side.
+    // TODO(binfan): find a better way to handle retry logic
+    try {
+      mBlockStore.commitBlock(sessionId, blockId);
+    } catch (BlockAlreadyExistsException e) {
+      LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
+          + "failure, therefore ignore the exception", blockId, e);
+    }
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
@@ -282,7 +289,7 @@ public final class BlockWorker extends AbstractWorker {
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
     } catch (IOException | ConnectionFailedException e) {
-      throw new IOException("Failed to commit block to master.", e);
+      throw new IOException("Failed to commit block " + blockId + " to master.", e);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }
