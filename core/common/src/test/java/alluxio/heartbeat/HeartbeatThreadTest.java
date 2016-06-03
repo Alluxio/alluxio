@@ -91,7 +91,7 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void concurrentHeartbeatThreadTest() throws Exception {
-    List<Thread> mThreads = new LinkedList<Thread>();
+    List<Thread> mThreads = new LinkedList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
