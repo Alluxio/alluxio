@@ -33,6 +33,7 @@ import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -222,6 +223,7 @@ public class BlockWorkerTest {
     writer.close();
     try {
       mBlockWorker.commitBlock(sessionId, blockId);
+      Assert.fail();
     } catch (IOException e) {
       // expect an IOException thrown
     }
