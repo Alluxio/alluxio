@@ -416,7 +416,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
     // TODO(peis): Check lost workers as well.
     if (worker == null) {
       throw new NoWorkerException(
-          String.format("The worker (%x) doesn't exist in active worker set.", workerId));
+          String.format("The worker (%d) doesn't exist in active worker set.", workerId));
     }
 
     // Lock the worker metadata first.
