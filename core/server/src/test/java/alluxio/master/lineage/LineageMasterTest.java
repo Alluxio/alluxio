@@ -27,6 +27,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,6 +70,11 @@ public final class LineageMasterTest {
     mLineageMaster = new LineageMaster(mFileSystemMaster, journal);
     mLineageMaster.start(true);
     mJob = new CommandLineJob("test", new JobConf("output"));
+  }
+
+  @After
+  public void after() throws Exception {
+    mLineageMaster.stop();
   }
 
   /**

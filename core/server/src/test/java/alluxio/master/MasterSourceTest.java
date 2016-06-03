@@ -39,6 +39,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -121,6 +122,12 @@ public final class MasterSourceTest {
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
 
     mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR, MasterContext.getConf());
+  }
+
+  @After
+  public void after() throws Exception {
+    mBlockMaster.stop();
+    mFileSystemMaster.stop();
   }
 
   /**
