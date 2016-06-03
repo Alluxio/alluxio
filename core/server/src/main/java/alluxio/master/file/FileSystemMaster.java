@@ -1792,6 +1792,7 @@ public final class FileSystemMaster extends AbstractMaster {
       if (!ufs.exists(ufsUri.toString())) {
         // The root is special as it is considered as PERSISTED by default in order.
         // We try to load root once. If it doesn't exist, do not try it again.
+        // TODO(peis): Add a unit test for this.
         if (path.isRoot()) {
           InodeDirectory inode = (InodeDirectory) inodePath.getInode();
           inode.setDirectChildrenLoaded(true);
