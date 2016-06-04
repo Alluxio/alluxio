@@ -45,7 +45,7 @@ The home page gives an overview of the system status. It includes the following 
 
 ## Configuration Page
 
-To check the current system configuration information, click "System Configuration" in the 
+To check the current system configuration information, click "Configuration" in the 
 navigation bar on the top of the screen.
 
 ![configurations]({{site.data.img.screenshot_systemConfiguration}})
