@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * corresponding lineages to execute.
  *
  * TODO(yupeng): in this version it simply returns a list of jobs to execute in sequence. In the
- * future, we will explore the possibility of executing jobs in in parallel.
+ * future, we will explore the possibility of executing jobs in parallel.
  */
 @ThreadSafe
 public class RecomputePlan {
