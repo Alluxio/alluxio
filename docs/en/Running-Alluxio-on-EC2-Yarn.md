@@ -168,7 +168,7 @@ You can run tests against Alluxio to check its health:
 {% include Running-Alluxio-on-EC2-Yarn/runTests.md %}
 
 After the tests finish, visit Alluxio web UI at `http://ALLUXIO_MASTER_IP:19999` again. Click
-`Browse File System` in the navigation bar, and you should see the files written to Alluxio by the above
+`Browse` in the navigation bar, and you should see the files written to Alluxio by the above
 tests.
 
 
