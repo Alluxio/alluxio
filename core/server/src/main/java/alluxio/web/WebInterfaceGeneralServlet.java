@@ -143,7 +143,7 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
    */
   private StorageTierInfo[] generateOrderedStorageTierInfo() {
     StorageTierAssoc globalStorageTierAssoc = mMaster.getBlockMaster().getGlobalStorageTierAssoc();
-    List<StorageTierInfo> infos = new ArrayList<StorageTierInfo>();
+    List<StorageTierInfo> infos = new ArrayList<>();
     Map<String, Long> totalBytesOnTiers = mMaster.getBlockMaster().getTotalBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = mMaster.getBlockMaster().getUsedBytesOnTiers();
 
@@ -156,9 +156,8 @@ public final class WebInterfaceGeneralServlet extends HttpServlet {
         infos.add(info);
       }
     }
-    StorageTierInfo[] ret = infos.toArray(new StorageTierInfo[infos.size()]);
 
-    return ret;
+    return infos.toArray(new StorageTierInfo[infos.size()]);
   }
 
   /**

@@ -71,7 +71,7 @@ public final class TailCommand extends WithWildCardPathCommand {
       try {
         is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[numOfBytes];
-        long bytesToRead = 0L;
+        long bytesToRead;
         if (status.getLength() > numOfBytes) {
           bytesToRead = numOfBytes;
         } else {

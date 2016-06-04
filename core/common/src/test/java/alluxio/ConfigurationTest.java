@@ -323,7 +323,7 @@ public class ConfigurationTest {
    */
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest1() {
-    Map<String, String> properties = new LinkedHashMap<String, String>();
+    Map<String, String> properties = new LinkedHashMap<>();
     properties.put(Constants.USER_FILE_BUFFER_BYTES ,
             String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);

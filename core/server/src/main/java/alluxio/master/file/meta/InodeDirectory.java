@@ -48,7 +48,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<Inode<?>>(mIdIndex, mNameIndex);
+  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mIdIndex, mNameIndex);
 
   private boolean mMountPoint;
 
@@ -113,7 +113,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the ids of the children
    */
   public Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<Long>(mChildren.size());
+    Set<Long> ret = new HashSet<>(mChildren.size());
     for (Inode<?> child : mChildren) {
       ret.add(child.getId());
     }
@@ -223,17 +223,15 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
     PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
-    InodeDirectory inode =
-        new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
-            .setName(entry.getName())
-            .setParentId(entry.getParentId())
-            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
-            .setPinned(entry.getPinned())
-            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-            .setPermissionStatus(permissionStatus)
-            .setMountPoint(entry.getMountPoint())
-            .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
-    return inode;
+    return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
+        .setName(entry.getName())
+        .setParentId(entry.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+        .setPinned(entry.getPinned())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setPermissionStatus(permissionStatus)
+        .setMountPoint(entry.getMountPoint())
+        .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
   }
 
   /**
@@ -249,12 +247,11 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
       CreateDirectoryOptions directoryOptions) {
     PermissionStatus permissionStatus = new PermissionStatus(directoryOptions.getPermissionStatus())
         .applyDirectoryUMask(MasterContext.getConf());
-    InodeDirectory inode = new InodeDirectory(id)
+    return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
         .setPermissionStatus(permissionStatus)
         .setMountPoint(directoryOptions.isMountPoint());
-    return inode;
   }
 
   @Override

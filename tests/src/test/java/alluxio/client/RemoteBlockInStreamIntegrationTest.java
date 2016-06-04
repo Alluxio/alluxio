@@ -72,7 +72,7 @@ public class RemoteBlockInStreamIntegrationTest {
   @Parameterized.Parameters
   public static Collection<Object[]> data() {
     // creates a new instance of RemoteBlockInStreamTest for each network type
-    List<Object[]> list = new ArrayList<Object[]>();
+    List<Object[]> list = new ArrayList<>();
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,
         IntegrationTestConstants.MAPPED_TRANSFER, IntegrationTestConstants.NETTY_BLOCK_READER});
     list.add(new Object[] {IntegrationTestConstants.NETTY_DATA_SERVER,

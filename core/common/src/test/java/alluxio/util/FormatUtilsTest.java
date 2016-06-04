@@ -42,7 +42,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("()", null));
     testCases.add(new TestCase("(null)", new Object[] {null}));
     testCases.add(new TestCase("()", new Object[] {""}));
@@ -74,7 +74,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0})));
@@ -115,7 +115,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ms.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ms.$", "Task B"));
 
@@ -145,7 +145,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ns.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ns.$", "Task B"));
 
@@ -175,7 +175,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("4.00B", 1L << 2));
     testCases.add(new TestCase("8.00B", 1L << 3));
     testCases.add(new TestCase("4096.00B", 1L << 12));

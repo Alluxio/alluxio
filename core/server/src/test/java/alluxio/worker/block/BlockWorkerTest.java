@@ -12,6 +12,8 @@
 package alluxio.worker.block;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -24,12 +26,14 @@ import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
+import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,7 +62,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class})
+    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -148,7 +152,7 @@ public class BlockWorkerTest {
   @Test
   public void cleanupSessionsTest() throws Exception {
     long sessionId = 1;
-    LinkedList<Long> sessions = new LinkedList<Long>();
+    LinkedList<Long> sessions = new LinkedList<>();
     sessions.add(sessionId);
 
     when(mSessions.getTimedOutSessions()).thenReturn(sessions);
@@ -174,7 +178,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long usedBytes = mRandom.nextLong();
     String tierAlias = "MEM";
-    HashMap<String, Long> usedBytesOnTiers = new HashMap<String, Long>();
+    HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
@@ -194,6 +198,40 @@ public class BlockWorkerTest {
     verify(mBlockMasterClient).commitBlock(mWorkerId, usedBytes,
         tierAlias, blockId, length);
     verify(mBlockStore).unlockBlock(lockId);
+  }
+
+  /**
+   * Tests commitBlock, the master-side RPC failed for the first time, expecting retry to succeed.
+   */
+  @Test
+  public void commitBlockOnRetryTest() throws Exception {
+    mBlockWorker = new BlockWorker();
+    long blockId = mRandom.nextLong();
+    long sessionId = mRandom.nextLong();
+    String tierAlias = "MEM";
+    long initialBytes = 1;
+
+    Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
+    PowerMockito.mockStatic(WorkerIdRegistry.class);
+    when(WorkerIdRegistry.getWorkerId()).thenReturn(Long.valueOf(1));
+
+    PowerMockito.doThrow(new IOException("Master failure")).when(mBlockMasterClient)
+        .commitBlock(anyLong(), anyLong(), anyString(), anyLong(), anyLong());
+
+    String blockPath = mBlockWorker.createBlock(sessionId, blockId, tierAlias, initialBytes);
+    LocalFileBlockWriter writer = new LocalFileBlockWriter(blockPath);
+    writer.close();
+    try {
+      mBlockWorker.commitBlock(sessionId, blockId);
+      Assert.fail();
+    } catch (IOException e) {
+      // expect an IOException thrown
+    }
+
+    // Let's retry commitBlock
+    PowerMockito.doNothing().when(mBlockMasterClient)
+        .commitBlock(anyLong(), anyLong(), anyString(), anyLong(), anyLong());
+    mBlockWorker.commitBlock(sessionId, blockId);
   }
 
   /**
@@ -306,7 +344,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#getBlockMeta(long)} method.
+   * Tests the {@link BlockWorker#getBlockMeta(long, long, long)} method.
    *
    * @throws Exception if the getVolatileBlockMeta check fails
    */
@@ -475,7 +513,7 @@ public class BlockWorkerTest {
   @Test
   public void sessionHeartbeatTest() {
     long sessionId = mRandom.nextLong();
-    List<Long> metrics = new ArrayList<Long>();
+    List<Long> metrics = new ArrayList<>();
     metrics.add(mRandom.nextLong());
 
     mBlockWorker.sessionHeartbeat(sessionId, metrics);
@@ -489,7 +527,7 @@ public class BlockWorkerTest {
    */
   @Test
   public void updatePinListTest() {
-    Set<Long> pinnedInodes = new HashSet<Long>();
+    Set<Long> pinnedInodes = new HashSet<>();
     pinnedInodes.add(mRandom.nextLong());
 
     mBlockWorker.updatePinList(pinnedInodes);

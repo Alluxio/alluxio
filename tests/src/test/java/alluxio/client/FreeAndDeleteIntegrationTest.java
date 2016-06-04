@@ -13,6 +13,7 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -24,7 +25,6 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
@@ -32,10 +32,8 @@ import alluxio.worker.block.BlockWorker;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.util.concurrent.TimeUnit;
 
@@ -43,7 +41,6 @@ import java.util.concurrent.TimeUnit;
  * Integration tests for file free and delete with under storage persisted.
  *
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public final class FreeAndDeleteIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 200 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
@@ -52,10 +49,6 @@ public final class FreeAndDeleteIntegrationTest {
   public static ManuallyScheduleHeartbeat sManuallySchedule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.WORKER_BLOCK_SYNC,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-
-  /** The exception expected to be thrown. */
-  @Rule
-  public ExpectedException mThrown = ExpectedException.none();
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
@@ -86,35 +79,21 @@ public final class FreeAndDeleteIntegrationTest {
     URIStatus status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    Long blockId = status.getBlockIds().get(0);
+    final Long blockId = status.getBlockIds().get(0);
     BlockMaster bm = alluxio.master.PrivateAccess.getBlockMaster(
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster());
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
     Assert.assertEquals(2, blockInfo.getLength());
     Assert.assertFalse(blockInfo.getLocations().isEmpty());
 
-    BlockWorker bw = alluxio.worker.PrivateAccess.getBlockWorker(
+    final BlockWorker bw = alluxio.worker.PrivateAccess.getBlockWorker(
         mLocalAlluxioClusterResource.get().getWorker());
     Assert.assertTrue(bw.hasBlockMeta(blockId));
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 
     mFileSystem.free(filePath);
 
-    // Schedule 1st heartbeat from worker.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    // Waiting for the removal of blockMeta from worker.
-    while (bw.hasBlockMeta(blockId)) {
-      CommonUtils.sleepMs(50);
-    }
-    // Schedule 2nd heartbeat from worker.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    // Ensure the 2nd heartbeat is finished.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    IntegrationTestUtils.waitForBlocksToBeFreed(bw, blockId);
 
     status = mFileSystem.getStatus(filePath);
     // Verify block metadata in master is still present after block freed.
@@ -128,9 +107,14 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertTrue(bm.getLostBlocks().contains(blockInfo.getBlockId()));
 
     mFileSystem.delete(filePath);
-    // File is immediately gone after delete.
-    mThrown.expect(FileDoesNotExistException.class);
-    mFileSystem.getStatus(filePath);
+
+    try {
+      // File is immediately gone after delete.
+      mFileSystem.getStatus(filePath);
+      Assert.fail(String.format("Expected file %s being deleted but it was not.", filePath));
+    } catch (FileDoesNotExistException e) {
+      // expected
+    }
 
     // Execute the lost files detection.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);

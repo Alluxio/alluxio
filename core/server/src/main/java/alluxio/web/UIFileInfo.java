@@ -96,9 +96,8 @@ public final class UIFileInfo {
   private final String mPersistenceState;
   private final List<String> mFileLocations;
 
-  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier =
-      new HashMap<String, List<UIFileBlockInfo>>();
-  private final Map<String, Long> mSizeOnTier = new HashMap<String, Long>();
+  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier = new HashMap<>();
+  private final Map<String, Long> mSizeOnTier = new HashMap<>();
 
   /**
    * Creates a new instance of {@link UIFileInfo}.
@@ -154,10 +153,10 @@ public final class UIFileInfo {
     mUserName = "";
     mGroupName = "";
     mPermission =
-        FormatUtils.formatPermission((short) FileSystemPermission.getNoneFsPermission()
+        FormatUtils.formatPermission(FileSystemPermission.getNoneFsPermission()
             .toShort(), true);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
-    mFileLocations = new ArrayList<String>();
+    mFileLocations = new ArrayList<>();
   }
 
   /**
@@ -173,7 +172,7 @@ public final class UIFileInfo {
         new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
     List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
     if (blocksOnTier == null) {
-      blocksOnTier = new ArrayList<UIFileBlockInfo>();
+      blocksOnTier = new ArrayList<>();
       mBlocksOnTier.put(tierAlias, blocksOnTier);
     }
     blocksOnTier.add(block);

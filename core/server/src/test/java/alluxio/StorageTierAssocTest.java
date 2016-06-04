@@ -27,7 +27,7 @@ public class StorageTierAssocTest {
     int size = conf.getInt(levelsProperty);
     Assert.assertEquals(size, assoc.size());
 
-    List<String> expectedOrderedAliases = new ArrayList<String>();
+    List<String> expectedOrderedAliases = new ArrayList<>();
 
     for (int i = 0; i < size; i++) {
       String alias = conf.get(String.format(aliasFormat, i));

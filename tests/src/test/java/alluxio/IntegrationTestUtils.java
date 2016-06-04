@@ -12,11 +12,20 @@
 package alluxio;
 
 import alluxio.client.file.FileSystemMasterClient;
+import alluxio.heartbeat.HeartbeatContext;
+import alluxio.heartbeat.HeartbeatScheduler;
+import alluxio.worker.block.BlockHeartbeatReporter;
+import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
+import org.junit.Assert;
+import org.powermock.reflect.Whitebox;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Util methods for writing integration tests.
@@ -75,6 +84,46 @@ public final class IntegrationTestUtils {
       sb.append((char) (random.nextInt(26) + 97));
     }
     return sb.toString();
+  }
+
+  /**
+   * Triggers two heartbeats to wait for a given list of blocks to be removed from both master and
+   * worker.
+   * Blocks until the master and block are in sync with the state of the blocks.
+   *
+   * @param bw the block worker that will remove the blocks
+   * @param blockIds a list of blockIds to be removed
+   */
+  public static void waitForBlocksToBeFreed(final BlockWorker bw, final Long... blockIds) {
+    try {
+      // Schedule 1st heartbeat from worker.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+      // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
+      // removed from master in the next heartbeat.
+      CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+        @Override
+        public Boolean apply(Void input) {
+          BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");
+          List<Long> blocksToRemove = Whitebox.getInternalState(reporter, "mRemovedBlocks");
+          return blocksToRemove.containsAll(Arrays.asList(blockIds));
+        }
+      }, 100 * Constants.SECOND_MS);
+
+      // Schedule 2nd heartbeat from worker.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
+
+      // Ensure the 2nd heartbeat is finished.
+      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
+          TimeUnit.SECONDS));
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
   }
 
   private IntegrationTestUtils() {} // This is a utils class not intended for instantiation
