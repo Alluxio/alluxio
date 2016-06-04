@@ -12,7 +12,8 @@ priority: 0
 
 首先，在你的机器上必须安装Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有生成配置文件，可以由template文件创建配置文件：
+接着，如果还没有配置，请用‘bootstrap-conf'命令创建自己的配置。
+例如，如果你在本地机器运行Alluxio，就需要将`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -22,9 +23,7 @@ priority: 0
 
 # 配置Alluxio
 
-接着，如果还没有配置，请用‘bootstrap-conf'命令创建自己的配置。
 为了配置Alluxio以使用GCS作为其底层文件系统，需要修改`conf/alluxio-env.sh`文件。第一个需要修改的地方就是指定一个已有的bucket以及bucket中的目录作为底层文件系统。你可以通过向`conf/alluxio-env.sh`文件添加以下代码来指定：
-例如，如果你在本地机器运行Alluxio，就需要将`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
 
 {% include Configuring-Alluxio-with-GCS/underfs-address.md %}
 
