@@ -462,6 +462,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           mLostBlocks.remove(blockId);
 
           // Update the worker information for this new block.
+          // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
+          // double counted.
           worker.addBlock(blockId);
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
           worker.updateLastUpdatedTimeMs();
