@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 在GlusterFS上配置Alluxio 
+title: 在GlusterFS上配置Alluxio
 nickname: Alluxio使用GlusterFS
 group: Under Store
 priority: 2
@@ -12,7 +12,11 @@ priority: 2
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有生成配置文件，可以由template文件创建配置文件：
+然后，如果你还没有去配置，你可以通过 `bootstrap-conf` 命令进行配置。例如：如果你在本地运行 Alluxio ，你要把 `ALLUXIO_MASTER_HOSTNAME` 设置为 `localhost`。
+
+{% include Configuring-Alluxio-with-GlusterFS/bootstrap-conf.md %}
+
+或者，如果你还没有生成配置文件，可以由template文件创建配置文件：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -22,7 +26,7 @@ priority: 2
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}
 
-# 使用GlusterFS在本地运行Alluxio 
+# 使用GlusterFS在本地运行Alluxio
 
 配置完成后，你可以在本地启动Alluxio，观察是否一切运行正常
 
