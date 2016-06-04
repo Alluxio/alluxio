@@ -102,7 +102,7 @@ public final class LeaderInquireClient {
             return leader;
           }
         } else {
-          LOG.info("{} does not exist ({})", mLeaderPath, (++tried));
+          LOG.info("{} does not exist ({})", mLeaderPath, ++tried);
         }
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
