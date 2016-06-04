@@ -188,7 +188,7 @@ public class WorkerSource implements Source {
   }
 
   /**
-   * Increments the counter of bytes read remotelly.
+   * Increments the counter of bytes read remotely.
    *
    * @param n the increment
    */
