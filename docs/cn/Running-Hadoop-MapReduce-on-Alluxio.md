@@ -62,7 +62,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop-test.md %}
 
-为了方便，我们假设是伪分布式的集群，通过运行如下命令启动：
+为了方便，我们假设是伪分布式的集群，通过运行如下命令启动(根据hadoop的版本，你可能需要把`./bin`换成`./sbin`)：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 
