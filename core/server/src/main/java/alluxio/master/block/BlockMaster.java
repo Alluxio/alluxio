@@ -405,6 +405,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param length the length of the block
    * @throws NoWorkerException if the workerId is not active
    */
+  // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) throws NoWorkerException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
@@ -461,6 +462,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
           mLostBlocks.remove(blockId);
 
           // Update the worker information for this new block.
+          // TODO(binfan): when retry commitBlock on master is expected, make sure metrics are not
+          // double counted.
           worker.addBlock(blockId);
           worker.updateUsedBytes(tierAlias, usedBytesOnTier);
           worker.updateLastUpdatedTimeMs();
