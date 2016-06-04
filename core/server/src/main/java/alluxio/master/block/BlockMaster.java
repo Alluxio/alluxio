@@ -404,6 +404,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param blockId the committing block id
    * @param length the length of the block
    */
+  // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
       long length) {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
