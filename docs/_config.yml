@@ -5,8 +5,8 @@ kramdown:
   syntax_highlighter: rouge
 
 # These allow the documentation to be updated with new releases of Alluxio.
-ALLUXIO_RELEASED_VERSION: 1.1.0-RC5
-ALLUXIO_MASTER_VERSION_SHORT: 1.1.0-RC5
+ALLUXIO_RELEASED_VERSION: 1.1.0
+ALLUXIO_MASTER_VERSION_SHORT: 1.1.0
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
