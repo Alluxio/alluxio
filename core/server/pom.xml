@@ -158,7 +158,7 @@
       <artifactId>annotations</artifactId>
     </dependency>
 
-    <!--- Dependency for REST annotations -->
+    <!-- Dependency for REST annotations -->
     <dependency>
       <groupId>com.qmino</groupId>
       <artifactId>miredot-annotations</artifactId>
@@ -206,7 +206,7 @@
           </execution>
         </executions>
         <configuration>
-          <!--- This following license only works for groupId org.alluxio and artifactId alluxio-core-server, it expires on 2018/04/24 -->
+          <!-- This following license only works for groupId org.alluxio and artifactId alluxio-core-server, it expires on 2018/04/24 -->
           <license>
             cHJvamVjdHxvcmcuYWxsdXhpby5hbGx1eGlvLWNvcmUtc2VydmVyfDIwMTgtMDQtMjh8dHJ1ZXwtMSNNQ3dDRkFFM0JGSnAwZ1FRNFFaNDd5SnlRd0x3ZGhmQUFoUU1ZMkJpWWVOamhOZndvQmU3UldMRVFzZnNGUT09
           </license>
