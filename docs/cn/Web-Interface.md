@@ -43,7 +43,7 @@ Alluxio master 主页如下所示:
 
 查看当前系统的配置信息，点击屏幕上方导航栏的"Configuration"。
 
-![configurations]({{site.data.img.screenshot_systemConfiguration}})
+![configurations]({{site.data.img.screenshot_Configuration}})
 
 配置页面包含两部分:
 
