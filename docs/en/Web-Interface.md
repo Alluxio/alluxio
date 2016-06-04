@@ -64,7 +64,7 @@ The configuration page has two sections:
 
 ## Browse File System Page
 
-You can browse the Alluxio file system through the UI. When selecting the "Browse File System" tab
+You can browse the Alluxio file system through the UI. When selecting the "Browse" tab
 in the navigation bar, you will see something like this:
 
 ![browse]({{site.data.img.screenshot_browseFileSystem}})
