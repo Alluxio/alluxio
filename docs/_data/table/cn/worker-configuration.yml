@@ -31,6 +31,8 @@ alluxio.worker.evictor.lrfu.attenuation.factor:
   在[2, INF)之间的一个衰减因子，用于控制LRFU策略行为。
 alluxio.worker.evictor.lrfu.step.factor:
   在[0, 1]之间的一个因子，用于控制LRFU策略行为：较小值使LRFU更接近于LFU，较大值更接近于LRU。
+alluxio.worker.evictor.lirs.hir.percent:
+  HIR缓存空间占总存储空间的比例。LIRS策略将每一个存储层分为HIR缓存和LIR缓存，HIR缓存用来存放访问间隔较长的冷数据，LIR缓存存放访问间隔较短的热数据。
 alluxio.worker.file.persist.pool.size:
   在worker上用于异步存储ASYNC_THROUGH类型文件的线程池大小。每个线程会存储一个文件。
 alluxio.worker.file.persist.rate.limit.enabled:

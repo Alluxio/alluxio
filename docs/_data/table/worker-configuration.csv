@@ -12,6 +12,7 @@ alluxio.worker.data.server.class,alluxio.worker.netty.&#8203;NettyDataServer
 alluxio.worker.evictor.class,alluxio.worker.block.&#8203;evictor.LRUEvictor
 alluxio.worker.evictor.lrfu.attenuation.factor,2.0
 alluxio.worker.evictor.lrfu.step.factor,0.25
+alluxio.worker.evictor.lirs.hir.percent,0.25
 alluxio.worker.file.persist.pool.size, 2
 alluxio.worker.filesystem.heartbeat.interval.ms,1000
 alluxio.worker.hostname,localhost

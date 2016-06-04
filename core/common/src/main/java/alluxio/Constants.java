@@ -295,6 +295,8 @@ public final class Constants {
       "alluxio.worker.evictor.lrfu.step.factor";
   public static final String WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR =
       "alluxio.worker.evictor.lrfu.attenuation.factor";
+  public static final String WORKER_EVICTOR_LIRS_HIR_PERCENT =
+      "alluxio.worker.evictor.lirs.hir.percent";
   public static final String WORKER_TIERED_STORE_LEVELS =
       "alluxio.worker.tieredstore.levels";
   public static final String WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS =
