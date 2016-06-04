@@ -127,7 +127,7 @@ public class ConfigurationTest {
 
     long longBytesValue =
         sDefaultConfiguration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
-    Assert.assertEquals(Constants.KB * 4, longBytesValue);
+    Assert.assertEquals(Constants.MB * 8, longBytesValue);
 
     longBytesValue = sDefaultConfiguration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
     Assert.assertEquals(Constants.MB * 16, longBytesValue);
@@ -184,7 +184,7 @@ public class ConfigurationTest {
     Assert.assertEquals(512, intValue);
 
     intValue = sDefaultConfiguration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
+    Assert.assertEquals(300 * Constants.SECOND_MS, intValue);
   }
 
   /**
@@ -254,7 +254,7 @@ public class ConfigurationTest {
     Assert.assertEquals(Constants.MB, longValue);
 
     longValue = sDefaultConfiguration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
-    Assert.assertEquals(4 * Constants.KB, longValue);
+    Assert.assertEquals(8 * Constants.MB, longValue);
   }
 
   /**

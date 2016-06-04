@@ -73,8 +73,13 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
-      long blockId, long length) {
-    mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
+      long length) throws AlluxioTException {
+    try {
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+    } catch (AlluxioException e) {
+      throw e.toThrift();
+    }
   }
 }
+
