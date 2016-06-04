@@ -62,7 +62,7 @@ The configuration page has two sections:
     made to a file not prefixed by a path in the white list. Only whitelisted files will be stored
     in Alluxio.
 
-## Browse File System Page
+## Browse
 
 You can browse the Alluxio file system through the UI. When selecting the "Browse File System" tab
 in the navigation bar, you will see something like this:
