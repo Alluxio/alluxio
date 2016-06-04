@@ -41,7 +41,7 @@ Alluxio master 主页如下所示:
 
 ## 配置页面
 
-查看当前系统的配置信息，点击屏幕上方导航栏的"System Configuration"。
+查看当前系统的配置信息，点击屏幕上方导航栏的"Configuration"。
 
 ![configurations]({{site.data.img.screenshot_systemConfiguration}})
 
