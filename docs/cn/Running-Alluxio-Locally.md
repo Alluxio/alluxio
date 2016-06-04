@@ -41,7 +41,7 @@ Alluxio会要求用户输入root密码。如果不想重复输入root密码，�
 {% include Running-Alluxio-Locally/first-sample-output.md %}
 
 再次访问Alluxio Web UI **[http://localhost:19999](http://localhost:19999)**。点击导航栏
-`Browse`可以看见样例程序写入Alluxio的文件。
+`Browse File System`可以看见样例程序写入Alluxio的文件。
 
 
 运行一个更全面的系统完整性检查：
