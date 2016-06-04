@@ -17,7 +17,7 @@ priority: 0
 
 {% include Configuring-Alluxio-with-s3/bootstrap.md %}
 
-然后，如果你还没有配置文件，由template文件创建配置文件：
+或者，你也可以由template文件创建配置文件并手动设置配置内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
