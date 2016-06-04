@@ -1,7 +1,7 @@
 propertyName,defaultValue
 alluxio.user.block.master.client.threads,10
 alluxio.user.block.worker.client.threads,128
-alluxio.user.block.remote.read.buffer.size.bytes,4KB
+alluxio.user.block.remote.read.buffer.size.bytes,8 MB
 alluxio.user.block.remote.reader.class,alluxio.client.netty.&#8203;NettyRemoteBlockReader
 alluxio.user.block.remote.writer.class,alluxio.client.netty.&#8203;NettyRemoteBlockWriter
 alluxio.user.block.size.bytes.default,512MB

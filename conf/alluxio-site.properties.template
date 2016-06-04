@@ -40,7 +40,7 @@ alluxio.master.web.port=19999
 alluxio.master.whitelist=/
 alluxio.master.worker.threads.max=2048
 alluxio.master.worker.threads.min=512
-alluxio.master.worker.timeout.ms=10000
+alluxio.master.worker.timeout.ms=300000
 alluxio.master.tieredstore.global.levels=3
 alluxio.master.tieredstore.global.level0.alias=MEM
 alluxio.master.tieredstore.global.level1.alias=SSD
@@ -68,7 +68,7 @@ alluxio.worker.web.port=30000
 # User properties
 alluxio.user.block.master.client.threads=10
 alluxio.user.block.worker.client.threads=128
-alluxio.user.block.remote.read.buffer.size.bytes=4KB
+alluxio.user.block.remote.read.buffer.size.bytes=8MB
 alluxio.user.block.size.bytes.default=512MB
 alluxio.user.failed.space.request.limits=3
 alluxio.user.file.buffer.bytes=1MB
