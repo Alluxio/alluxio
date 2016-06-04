@@ -46,7 +46,7 @@ For the first sample program, you should be able to see something similar to the
 {% include Running-Alluxio-Locally/first-sample-output.md %}
 
 And you can visit Alluxio web UI at **[http://localhost:19999](http://localhost:19999)** again.
-Click `Browse File System` in the navigation bar and you should see the files written to Alluxio by
+Click `Browse` in the navigation bar and you should see the files written to Alluxio by
 the above test.
 
 To run a more comprehensive sanity check:
