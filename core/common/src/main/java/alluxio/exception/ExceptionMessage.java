@@ -177,6 +177,9 @@ public enum ExceptionMessage {
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
 
+  // block worker
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block {0} to master."),
+
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;
 
