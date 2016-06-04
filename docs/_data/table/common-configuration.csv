@@ -1,0 +1,30 @@
+propertyName,defaultValue
+alluxio.debug,false
+alluxio.home,/mnt/alluxio_default_home
+alluxio.logs.dir,${alluxio.home}/logs
+alluxio.keyvalue.enabled,false
+alluxio.keyvalue.partition.size.bytes.max,512MB
+alluxio.metrics.conf.file,${alluxio.home}/conf/metrics.properties
+alluxio.network.host.resolution.&#8203;timeout.ms,5000
+alluxio.network.thrift.frame.&#8203;size.bytes.max,16MB
+alluxio.site.conf.dir,"${user.home}/.alluxio/,/etc/alluxio/"
+alluxio.test.mode,false
+alluxio.underfs.address,${alluxio.home}/underFSStorage
+alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
+alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
+alluxio.underfs.hdfs.configuration,${alluxio.home}/conf/core-site.xml
+alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
+alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
+alluxio.underfs.s3.proxy.host,No default
+alluxio.underfs.s3.proxy.https.only,true
+alluxio.underfs.s3.proxy.port,No default
+alluxio.underfs.s3.threads.max,22
+alluxio.underfs.s3.admin.threads.max,20
+alluxio.underfs.s3.upload.threads.max,2
+alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
+alluxio.web.threads,1
+alluxio.zookeeper.address,No default
+alluxio.zookeeper.election.path,/election
+alluxio.zookeeper.enabled,false
+alluxio.zookeeper.leader.path,/leader
+alluxio.zookeeper.leader.inquiry.retry,10

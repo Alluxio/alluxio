@@ -1,0 +1,54 @@
+<FindBugsFilter>
+
+  <Match>
+    <Or>
+      <Package name="org.apache.thrift"/>
+      <Package name="alluxio.thrift"/>
+      <Package name="alluxio.proto.journal.*"/>
+    </Or>
+  </Match>
+
+  <Match>
+    <Class name="alluxio.yarn.ApplicationMaster"/>
+    <Bug code="VO"/>
+  </Match>
+
+  <Match>
+    <!--
+	DC: Possible double check of field
+	DE: Method might ignore exception
+	DLS: Dead store to local variable
+	Dm: Reliance on default encoding
+	DP: Method invoked that should be only be invoked inside a doPrivileged block
+	EI: May expose internal representation by returning reference to mutable object
+	Eq: Class defines compareTo(...) and uses Object.equals()
+	JLM: Synchronization performed on util.concurrent instance
+	LI: Incorrect lazy initialization of static field
+	Nm: Very confusing method names
+	NP: Load of known null value
+	PT: Absolute path traversal in servlet
+	PZLA: Consider returning a zero length array rather than null
+	RCN: Redundant nullcheck of value known to be null
+	REC: Exception is caught when Exception is not thrown
+	RR: Method ignores results of InputStream.skip()
+	RV: Method ignores exceptional return value
+	SBSC: Method concatenates strings using + in a loop
+	Se: Transient field of class that isn't Serializable
+	SIC: Could be refactored into a named static inner class
+	UC: Useless non-empty void method
+	UPM: Private method is never called
+      -->
+    <Bug code="DC,DE,DLS,Dm,DP,EI,Eq,JLM,LI,Nm,NP,PT,PZLA,RCN,REC,RR,RV,SBSC,Se,SIC,UC,UPM"/>
+  </Match>
+
+  <Match>
+    <!-- This Match uses the BUG_PATTERN for matching.
+
+        URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD: allow unread public/protected variables, but not private ones
+        UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD: allow unused public/protected variables, but not private ones
+
+      -->
+    <Bug pattern="URF_UNREAD_PUBLIC_OR_PROTECTED_FIELD,UUF_UNUSED_PUBLIC_OR_PROTECTED_FIELD"/>
+  </Match>
+
+</FindBugsFilter>

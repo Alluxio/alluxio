@@ -1,0 +1,71 @@
+alluxio.master.bind.host:
+  The hostname that Alluxio master binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+alluxio.master.heartbeat.interval.ms:
+  The interval (in milliseconds) between Alluxio master's heartbeats
+alluxio.master.hostname:
+  The hostname of Alluxio master.
+alluxio.master.file.async.persist.handler:
+  The handler for processing the async persistence requests.
+alluxio.master.format.file_prefix:
+  The file prefix of the file generated in the journal directory when the journal is
+  formatted. The master will search for a file with this prefix when determining of the journal
+  was once formatted.
+alluxio.master.journal.folder:
+  The path to store master journal logs.
+alluxio.master.journal.formatter.class:
+  The class to serialize the journal in a specified format.
+alluxio.master.journal.log.size.bytes.max:
+  If a log file is bigger than this value, it will rotate to next file
+alluxio.master.journal.tailer.&#8203;shutdown.quiet.wait.time.ms:
+  Before the standby master shuts down its tailer thread, there should be no update to the
+  leader master's journal in this specified time period (in milliseconds).
+alluxio.master.journal.tailer.sleep.time.ms:
+  Time (in milliseconds) the standby master sleeps for when it cannot find anything new in leader
+  master's journal.
+alluxio.master.lineage.checkpoint.interval.ms:
+  The interval (in milliseconds) between Alluxio's checkpoint scheduling.
+alluxio.master.lineage.checkpoint.class:
+  The class name of the checkpoint strategy for lineage output files. The default strategy is to
+  checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
+alluxio.master.lineage.recompute.interval.ms:
+  The interval (in milliseconds) between Alluxio's recompute execution. The executor scans the
+  all the lost files tracked by lineage, and re-executes the corresponding jobs.
+  every 10 minutes.
+alluxio.master.lineage.recompute.log.path:
+  The path to the log that the recompute executor redirects the job's stdout into.
+alluxio.master.port:
+  The port that Alluxio master node runs on.
+alluxio.master.retry:
+  The number of retries that the client connects to master
+alluxio.master.ttl.checker.interval.ms:
+  Time interval (in milliseconds) to periodically delete the files with expired ttl value.
+alluxio.master.web.bind.host:
+  The hostname Alluxio master web UI binds to. See <a href="#configure-multihomed-networks">multi-homed networks</a>
+alluxio.master.web.hostname:
+  The hostname of Alluxio Master web UI.
+alluxio.master.web.port:
+  The port Alluxio web UI runs on.
+alluxio.master.whitelist:
+  A comma-separated list of prefixes of the paths which are cacheable, separated by
+  semi-colons. Alluxio will try to cache the cacheable file when it is read for the first
+  time.
+alluxio.master.worker.threads.max:
+  The maximum number of incoming RPC requests to master that can be handled.
+  This value is used to configure maximum number of threads in Thrift thread pool with master.
+alluxio.master.worker.threads.min:
+  The minimum number of threads used to handle incoming RPC requests to master.
+  This value is used to configure minimum number of threads in Thrift thread pool with master.
+alluxio.master.worker.timeout.ms:
+  Timeout (in milliseconds) between master and worker indicating a lost worker.
+alluxio.master.tieredstore.global.levels:
+  The total number of storage tiers in the system
+alluxio.master.tieredstore.global.level0.alias:
+  The name of the highest storage tier in the entire system
+alluxio.master.tieredstore.global.level1.alias:
+  The name of the second highest storage tier in the entire system
+alluxio.master.tieredstore.global.level2.alias:
+  The name of the third highest storage tier in the entire system
+alluxio.master.keytab.file:
+  Kerberos keytab file for Alluxio master.
+alluxio.master.principal:
+  Kerberos principal for Alluxio master.

@@ -1,0 +1,11 @@
+alluxio.master.lineage.checkpoint.interval.ms:
+  The interval (in milliseconds) between Alluxio's checkpoint scheduling.
+alluxio.master.lineage.checkpoint.class:
+  The class name of the checkpoint strategy for lineage output files. The default strategy is to
+  checkpoint the latest completed lineage, i.e. the lineage whose output files are completed.
+alluxio.master.lineage.recompute.interval.ms:
+  The interval (in milliseconds) between Alluxio's recompute execution. The executor scans all the lost files tracked by lineage, and re-executes the corresponding jobs every 5 minutes.
+alluxio.master.lineage.recompute.log.path:
+  The path to the log that the recompute executor redirects the job's stdout into.
+alluxio.user.lineage.enabled:
+  Flag to enable lineage feature.

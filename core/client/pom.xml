@@ -1,0 +1,266 @@
+<!--
+
+    The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
+    (the "License"). You may not use this work except in compliance with the License, which is
+    available at www.apache.org/licenses/LICENSE-2.0
+
+    This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
+    either express or implied, as more fully set forth in the License.
+
+    See the NOTICE file distributed with this work for information regarding copyright ownership.
+
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.alluxio</groupId>
+    <artifactId>alluxio-core</artifactId>
+    <version>1.1.0-SNAPSHOT</version>
+  </parent>
+  <artifactId>alluxio-core-client</artifactId>
+  <packaging>jar</packaging>
+  <name>Alluxio Core - Client</name>
+  <description>Client of Alluxio core</description>
+
+  <properties>
+    <!-- These need to be defined here as well as in the parent pom so that mvn can run
+         properly from sub-project directories -->
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
+    <failIfNoTests>false</failIfNoTests>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.0.28.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+
+    <!-- Other Alluxio dependencies -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <!--Add Alluxio underfs modules so by including the client uber jar, application can talk to different underfs.-->
+    <!-- module alluxio-underfs-glusterfs depends on
+     hadoop library of 2.3.0, which may have problem when using with
+     hadoop 2.4 and later. Please check instructions in
+     http://alluxio.org/documentation/Configuring-Alluxio-with-GlusterFS.html
+     for how to use glusterfs with Alluxio. -->
+    <!-- <dependency> -->
+    <!--   <groupId>org.alluxio</groupId> -->
+    <!--   <artifactId>alluxio-underfs-glusterfs</artifactId> -->
+    <!--   <version>${project.version}</version> -->
+    <!-- </dependency> -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-hdfs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-local</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-s3</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-gcs</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+   <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-underfs-swift</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+
+    <!-- Dependency for findbugs (SuppressFBWarnings) -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
+
+    <!-- Test Dependencies -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava-testlib</artifactId>
+      <version>19.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <!-- Other projects' test-jars -->
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+    <!-- build profile for Apache flink -->
+    <!-- Profile used to build alluxio client jar used for Apache Flink. This will be activated by using -Pflink -->
+    <!-- in the maven command line. -->
+    <profile>
+      <id>flink</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+      </activation>
+      <!-- The dependencies are the same as the default dependencies, except jboss netty is excluded as it is provided by Apache Flink runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+      </dependencies>
+    </profile>
+
+    <!-- build profile for Apache Spark -->
+    <!-- Profile used to build alluxio client jar used for Apache Spark. This will be activated by using -Pspark-->
+    <!-- in the maven command line. -->
+    <profile>
+      <id>spark</id>
+      <!-- The dependencies are the same as the default dependencies, except that curator-client, curator-framework, -->
+      <!-- curator-recipies and hadoop-client are in scope provided, as they are provided by Apache Spark runtime. -->
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-framework</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-client</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.curator</groupId>
+          <artifactId>curator-recipes</artifactId>
+          <version>${apache.curator.version}</version>
+          <scope>provided</scope>
+          <exclusions>
+            <exclusion>
+              <groupId>org.jboss.netty</groupId>
+              <artifactId>netty</artifactId>
+            </exclusion>
+            <exclusion>
+              <groupId>com.google.guava</groupId>
+              <artifactId>guava</artifactId>
+            </exclusion>
+          </exclusions>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-client</artifactId>
+          <scope>provided</scope>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
+
+
+  <build>
+    <plugins>
+      <!-- Export test classes in a test-jar so that other projects can use them for testing -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>2.4</version>
+        <executions>
+          <execution>
+            <goals>
+              <goal>test-jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>2.2</version>
+        <executions>
+          <execution>
+            <id>uber-jar</id>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-jar-with-dependencies</finalName>
+              <relocations>
+                <relocation>
+                  <pattern>org.apache.thrift</pattern>
+                  <shadedPattern>alluxio.org.apache.thrift</shadedPattern>
+                </relocation>
+              </relocations>
+              <transformers>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+              </transformers>
+              <filters>
+                <filter>
+                  <artifact>*:*</artifact>
+                  <excludes>
+                    <exclude>LICENSE</exclude>
+                    <exclude>META-INF/LICENSE</exclude>
+                    <exclude>META-INF/*.SF</exclude>
+                    <exclude>META-INF/*.DSA</exclude>
+                    <exclude>META-INF/*.RSA</exclude>
+                  </excludes>
+                </filter>
+              </filters>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

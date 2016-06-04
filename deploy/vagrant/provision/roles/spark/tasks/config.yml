@@ -1,0 +1,14 @@
+- name: include alluxio jar in SPARK_CLASSPATH
+  script: classpath.sh
+  when: spark_version_lessthan_1
+
+- name: set spark/conf/slaves and set spark-env.sh
+  script: spark_env.sh
+
+- name: set spark/conf/spark-defaults.conf
+  script: spark-defaults.sh
+
+- name: set ufs related configurations
+  script: roles/ufs_{{ ufs }}/files/config_spark.sh
+
+# vim :set filetype=ansible.yaml:

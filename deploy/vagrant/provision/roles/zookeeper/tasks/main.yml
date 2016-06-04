@@ -1,0 +1,8 @@
+# Entry point for roles/zookeeper
+---
+
+- include: download_release.yml
+- include: config.yml
+- include: start.yml
+
+# vim: set filetype=ansible.yaml:

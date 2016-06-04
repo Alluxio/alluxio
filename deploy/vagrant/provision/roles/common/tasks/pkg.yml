@@ -1,0 +1,23 @@
+# Install necessary packages
+---
+
+- name: install libselinux-python
+  yum: name=libselinux-python
+  sudo: yes
+
+- name: install git
+  yum: name=git
+  sudo: yes
+
+- name: install rsync
+  yum: name=rsync
+  sudo: yes
+
+- name: install wget
+  yum: name=wget
+  sudo: yes
+
+- name: install java
+  script: java.sh
+
+# vim: set filetype=ansible.yaml:

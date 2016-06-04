@@ -1,0 +1,10 @@
+alluxio.master.lineage.checkpoint.interval.ms:
+  Alluxio备份（checkpoint）操作的时间间隔（单位：毫秒）。
+alluxio.master.lineage.checkpoint.class:
+  世系关系输出文件的备份（checkpoint）策略的类名。默认策略是备份最新完成的世系关系，如：该世系关系的输出文件已经完成。
+alluxio.master.lineage.recompute.interval.ms:
+  Alluxio重计算任务的时间间隔（单位：毫秒）。执行器会沿着世系关系扫描所有丢失的文件，且每5分钟就会重新执行相关的作业。
+alluxio.master.lineage.recompute.log.path:
+  重计算执行器进行重定位作业时，输出日志的路径。
+alluxio.user.lineage.enabled:
+  使世系关系生效的标志。

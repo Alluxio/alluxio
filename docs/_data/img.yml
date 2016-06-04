@@ -1,0 +1,34 @@
+glyphicons-halflings:
+  ../img/glyphicons-halflings.png
+glyphicons-halflings-white:
+  ../img/glyphicons-halflings-white.png
+logo:
+  ../img/logo.png
+logo-white:
+  ../img/logo-white.png
+screenshot_browseFileSystem:
+  ../img/screenshot_browseFileSystem.png
+screenshot_datalocality_sparkwebui:
+  ../img/screenshot_datalocality_sparkwebui.png
+screenshot_datalocality_tasklocality:
+  ../img/screenshot_datalocality_tasklocality.png
+screenshot_inMemoryFiles:
+  ../img/screenshot_inMemoryFiles.png
+screenshot_overview:
+  ../img/screenshot_overview.png
+screenshot_systemConfiguration:
+  ../img/screenshot_systemConfiguration.png
+screenshot_transparent:
+  ../img/screenshot_transparent.png
+screenshot_unified:
+  ../img/screenshot_unified.png
+screenshot_viewFile:
+  ../img/screenshot_viewFile.png
+screenshot_workers:
+  ../img/screenshot_workers.png
+stack:
+  ../img/stack.png
+screenshot_masterMetrics:
+  ../img/screenshot_masterMetrics.png
+screenshot_workerMetrics:
+  ../img/screenshot_workerMetrics.png

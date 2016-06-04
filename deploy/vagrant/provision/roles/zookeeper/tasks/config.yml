@@ -1,0 +1,4 @@
+- name: create conf/zoo.cfg from template
+  shell: cp /zookeeper/conf/zoo_sample.cfg /zookeeper/conf/zoo.cfg
+
+# vim :set filetype=ansible.yaml:

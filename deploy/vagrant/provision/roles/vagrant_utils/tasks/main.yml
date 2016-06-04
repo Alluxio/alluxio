@@ -1,0 +1,10 @@
+# Put utility scripts in ~/vagrant-utils
+---
+
+- name: copy local scripts in provision/roles/vagrant_utils/files to remote ~/vagrant-utils
+  copy: src="{{ item }}" dest=~/vagrant-utils/ mode=0755
+  with_items:
+    - copy-dir
+    - remount
+
+# vim: set filetype=ansible.yaml:

@@ -1,0 +1,15 @@
+# Compile Mesos.
+---
+
+- include: install_deps.yml
+
+- copy: >
+    src=roles/mesos/files/compile.sh
+    dest=/tmp/compile_mesos.sh
+
+- name: compile mesos
+  shell: bash /tmp/compile_mesos.sh
+  async: 1800
+  poll: 60
+
+# vim :set filetype=ansible.yaml:

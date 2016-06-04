@@ -1,0 +1,18 @@
+# Clone remote git repo, like github
+#  can specify version, which is either branch or commit hash
+---
+
+- name: install git
+  yum: name=git
+  sudo: yes
+
+- name: mkdir /alluxio
+  script: mkdir.sh
+
+- name: clone alluxio from {{ alluxio_repo }} {{ alluxio_version }}
+  git: >
+    repo={{ alluxio_repo }}
+    dest=/alluxio
+    version={{ alluxio_version }}
+
+# vim :set filetype=ansible.yaml:

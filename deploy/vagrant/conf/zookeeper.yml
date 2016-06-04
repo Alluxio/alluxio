@@ -1,0 +1,8 @@
+# Release means using binary distribution from http://archive.apache.org/dist/zookeeper.
+# Note that zookeeper will only be downloaded and set up when "Masters" in alluxio.yml is larger than 1.
+# {Release}
+Type: Release
+
+Release:
+  # Version will substitute {version} in http://archive.apache.org/dist/zookeeper/zookeeper-{version}/zookeeper-{version}.tar.gz
+  Version: 3.4.6

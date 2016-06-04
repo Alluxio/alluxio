@@ -1,6 +1,58 @@
-pygments: true
 markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
 
-# These allow the documentation to be updated with new releases of Tachyon.
-TACHYON_RELEASED_VERSION: 0.4.1-thrift
-TACHYON_MASTER_VERSION_SHORT: 0.4.1-thrift
+# These allow the documentation to be updated with new releases of Alluxio.
+ALLUXIO_RELEASED_VERSION: 1.0.1
+ALLUXIO_MASTER_VERSION_SHORT: 1.1.0-SNAPSHOT
+
+# These attach the pages of different languages with different 'lang' attributes
+defaults:
+  -
+    scope:
+      path: en
+    values:
+      lang: en
+      languageName: English
+      languagePriority: 0
+  -
+    scope:
+      path: cn
+    values:
+      lang: cn
+      languageName: 中文
+      languagePriority: 1
+  -
+    scope:
+      path: pt
+    values:
+      lang: pt
+      languageName: Português
+      languagePriority: 2
+
+# Each language has a particular version of category names
+# When supporting a new language version, do not change the 'group' attribute in .md page files
+# Instead, just add the group name of that language below
+categories:
+  User Guide:
+    en: User Guides
+    cn: 用户指南
+    pt: Guias do Usuário
+  Features:
+    en: Features
+    cn: 特性
+    pt: Features
+  Frameworks:
+    en: Frameworks
+    cn: 计算框架
+    pt: Frameworks
+  Under Store:
+    en: Under Stores
+    cn: 底层存储系统
+    pt: Under Stores
+  Resources:
+    en: Resources
+    cn: 开发者资源
+    pt: Recursos

@@ -1,0 +1,18 @@
+# Clone remote git repo, like github
+#  can specify version, which is either branch or commit hash
+---
+
+- name: install git
+  yum: name=git
+  sudo: yes
+
+- name: mkdir /mesos
+  script: mkdir.sh
+
+- name: clone mesos from {{ mesos_repo }} {{ mesos_version }}
+  git: >
+    repo={{ mesos_repo }}
+    dest=/mesos
+    version={{ mesos_version }}
+
+# vim :set filetype=ansible.yaml:

@@ -1,0 +1,8 @@
+# special case: glusterfs won't sync distribution from master
+#  but to keep the file structure, duplicate download_release.yml and config.yml here
+---
+
+- include: download_release.yml
+- include: config.yml
+
+# vim :set filetype=ansible.yaml:

@@ -1,0 +1,27 @@
+alluxio.security.authentication.type:
+  "The authentication mode. Currently three modes are supported: NOSASL, SIMPLE,
+  CUSTOM. The default value NOSASL indicates that authentication is not enabled."
+alluxio.security.authentication.socket.timeout.ms:
+  The maximum amount of time (in milliseconds) for a user to create a Thrift socket which
+  will connect to the master.
+alluxio.security.authentication.custom.provider.class:
+  The class to provide customized authentication implementation, when
+  alluxio.security.authentication.type is set to CUSTOM. It must implement the
+  interface 'alluxio.security.authentication.AuthenticationProvider'.
+alluxio.security.login.username:
+  When alluxio.security.authentication.type is set to SIMPLE or CUSTOM, user application uses
+  this property to indicate the user requesting Alluxio service. If it is not set explicitly,
+  the OS login user will be used.
+alluxio.security.authorization.permission.enabled:
+  Whether to enable access control based on file permission.
+alluxio.security.authorization.permission.umask:
+  The umask of creating file and directory. The initial creation permission is 777, and
+  the difference between directory and file is 111. So for default umask value 022,
+  the created directory has permission 755 and file has permission 644.
+alluxio.security.authorization.permission.supergroup:
+  The super group of Alluxio file system. All users in this group have super permission.
+alluxio.security.group.mapping.class:
+  The class to provide user-to-groups mapping service. Master could get the various group
+  memberships of a given user.  It must implement the interface
+  'alluxio.security.group.GroupMappingService'. The default implementation execute the 'groups'
+  shell command to fetch the group memberships of a given user.

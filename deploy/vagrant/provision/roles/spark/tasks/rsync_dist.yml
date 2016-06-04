@@ -1,0 +1,10 @@
+# Only one node will compile spark(e.x. Master), other nodes should rsync compiled distribution from it
+---
+
+- name: make sure /spark exists
+  script: mkdir.sh
+
+- name: rsync spark runtime from AlluxioMaster
+  shell: rsync -avz AlluxioMaster:/spark/* /spark
+
+# vim :set filetype=ansible.yaml:
