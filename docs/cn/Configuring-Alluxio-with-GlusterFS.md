@@ -16,7 +16,7 @@ priority: 2
 
 {% include Configuring-Alluxio-with-GlusterFS/bootstrap-conf.md %}
 
-或者，如果你还没有生成配置文件，可以由template文件创建配置文件：
+或者，你也可以利用template文件创建配置文件并且手动设置配置内容。
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
