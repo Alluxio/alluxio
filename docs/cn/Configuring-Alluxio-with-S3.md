@@ -14,7 +14,7 @@ priority: 0
 
 然后，如果你还没有进行这项配置，那么用`bootstrap-conf`命令创建你的配置文件
 
-例如，如果你在本地机器上运行Alluxio，ALLUXIO_MASTER_HOSTNAME’应该设置为`localhost`。
+例如，如果你在本地机器上运行Alluxio，`ALLUXIO_MASTER_HOSTNAME`应该设置为`localhost`。
 
 {% include Configuring-Alluxio-with-s3/bootstrap.md %}
 
