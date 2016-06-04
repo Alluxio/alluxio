@@ -521,7 +521,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
         return ret;
       }
       // Non recursive list
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       for (GSObject obj : objs) {
         // Remove parent portion of the key
         String child = getChildName(obj.getKey(), path);

@@ -320,7 +320,7 @@ public class PathUtilsTest {
     PathUtils.validatePath("/foo/../bar/");
 
     // check invalid paths
-    LinkedList<String> invalidPaths = new LinkedList<String>();
+    LinkedList<String> invalidPaths = new LinkedList<>();
     invalidPaths.add(null);
     invalidPaths.add("");
     invalidPaths.add(" /");

@@ -56,7 +56,7 @@ public final class MasterBlockInfo {
     mBlockId = blockId;
     mLength = length;
 
-    mWorkerIdToAlias = new HashMap<Long, String>();
+    mWorkerIdToAlias = new HashMap<>();
   }
 
   /**
@@ -127,7 +127,7 @@ public final class MasterBlockInfo {
    * @return the net addresses of the locations
    */
   public List<MasterBlockLocation> getBlockLocations() {
-    List<MasterBlockLocation> ret = new ArrayList<MasterBlockLocation>(mWorkerIdToAlias.size());
+    List<MasterBlockLocation> ret = new ArrayList<>(mWorkerIdToAlias.size());
     for (Map.Entry<Long, String> entry : mWorkerIdToAlias.entrySet()) {
       ret.add(new MasterBlockLocation(entry.getKey(), entry.getValue()));
     }

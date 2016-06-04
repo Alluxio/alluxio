@@ -12,28 +12,24 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.IntegrationTestUtils;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.exception.AlluxioException;
 import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
-import alluxio.util.CommonUtils;
 
 import org.junit.Assert;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for free command.
  */
-@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1907")
 public class FreeCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -41,62 +37,45 @@ public class FreeCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void freeTest() throws IOException, AlluxioException {
-    FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
-    long blockId = mFileSystem.getStatus(new AlluxioURI("/testFile")).getBlockIds().get(0);
+    String fileName = "/testFile";
+    FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
+    long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
 
-    mFsShell.run("free", "/testFile");
-    triggerWorkerHeartbeats(blockId);
-    Assert.assertFalse(
-        mFileSystem.getStatus(new AlluxioURI("/testFile")).getInMemoryPercentage() == 100);
+    mFsShell.run("free", fileName);
+    IntegrationTestUtils.waitForBlocksToBeFreed(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId);
+    Assert.assertFalse(isInMemoryTest(fileName));
   }
 
   @Test
   public void freeWildCardTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    long blockId =
+    long blockId1 =
         mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo/foobar1")).getBlockIds().get(0);
+    long blockId2 =
+        mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo/foobar2")).getBlockIds().get(0);
 
     int ret = mFsShell.run("free", "/testWild*/foo/*");
 
-    triggerWorkerHeartbeats(blockId);
+    IntegrationTestUtils.waitForBlocksToBeFreed(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar1"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foo/foobar2"));
     Assert.assertTrue(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertTrue(isInMemoryTest("/testWildCards/foobar4"));
 
-    blockId =
+    blockId1 =
         mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar/foobar3")).getBlockIds().get(0);
+    blockId2 =
+        mFileSystem.getStatus(new AlluxioURI("/testWildCards/foobar4")).getBlockIds().get(0);
+
     ret = mFsShell.run("free", "/testWild*/*/");
-    triggerWorkerHeartbeats(blockId);
+    IntegrationTestUtils.waitForBlocksToBeFreed(
+        mLocalAlluxioCluster.getWorker().getBlockWorker(), blockId1, blockId2);
     Assert.assertEquals(0, ret);
     Assert.assertFalse(isInMemoryTest("/testWildCards/bar/foobar3"));
     Assert.assertFalse(isInMemoryTest("/testWildCards/foobar4"));
   }
 
-  // Execution of the blocks free needs two heartbeats.
-  private void triggerWorkerHeartbeats(long blockId) {
-    try {
-      // Schedule 1st heartbeat from worker.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Waiting for the removal of blockMeta from worker.
-      while (mLocalAlluxioCluster.getWorker().getBlockWorker().hasBlockMeta(blockId)) {
-        CommonUtils.sleepMs(50);
-      }
-
-      // Schedule 2nd heartbeat from worker.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-      HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-      // Ensure the 2nd heartbeat is finished.
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-          TimeUnit.SECONDS));
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-  }
 }

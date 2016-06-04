@@ -107,7 +107,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
       }
     });
 
-    Map<String, Metric> operations = new TreeMap<String, Metric>();
+    Map<String, Metric> operations = new TreeMap<>();
     operations.putAll(counters);
     String blockCachedProperty =
         CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);

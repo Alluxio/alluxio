@@ -65,7 +65,7 @@ public interface KeyValueSystem {
   KeyValueStoreWriter createStore(AlluxioURI uri) throws IOException, AlluxioException;
 
   /**
-   * Rename a compelted key-value store.
+   * Rename a completed key-value store.
    *
    * @param oldUri the old {@link AlluxioURI} to the store
    * @param newUri the new {@link AlluxioURI} to the store

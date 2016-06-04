@@ -581,7 +581,7 @@ public class JournalIntegrationTest {
     public static final String FULL_CLASS_NAME =
         "alluxio.master.JournalIntegrationTest$FakeUserGroupsMapping";
 
-    private HashMap<String, String> mUserGroups = new HashMap<String, String>();
+    private HashMap<String, String> mUserGroups = new HashMap<>();
 
     public FakeUserGroupsMapping() {
       mUserGroups.put("alluxio", "supergroup");

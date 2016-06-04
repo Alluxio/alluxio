@@ -636,7 +636,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
     // Extend the inodePath with the created inodes.
     extensibleInodePath.getInodes().addAll(createdInodes);
-    LOG.debug("createFile: File Created: {} parent: ", lastInode, currentInodeDirectory);
+    LOG.debug("createFile: File Created: {} parent: {}", lastInode, currentInodeDirectory);
     return new CreatePathResult(modifiedInodes, createdInodes, existingNonPersisted);
   }
 

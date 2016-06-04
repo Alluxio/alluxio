@@ -28,7 +28,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * Schedules a checkpoint plan.
  */
 @NotThreadSafe
-public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
+public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final Configuration mConfiguration;
@@ -40,7 +40,7 @@ public final class CheckpointSchedulingExcecutor implements HeartbeatExecutor {
    * @param lineageMaster the master for lineage
    * @param fileSystemMaster the master for the file system
    */
-  public CheckpointSchedulingExcecutor(LineageMaster lineageMaster,
+  public CheckpointSchedulingExecutor(LineageMaster lineageMaster,
       FileSystemMaster fileSystemMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);

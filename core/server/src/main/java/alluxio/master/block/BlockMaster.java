@@ -139,10 +139,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   /** All worker information. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -317,13 +317,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param delete whether to delete blocks metadata in Master
    */
   public void removeBlocks(List<Long> blockIds, boolean delete) {
-    HashSet<Long> workerIds = new HashSet<>();
     for (long blockId : blockIds) {
       MasterBlockInfo block = mBlocks.get(blockId);
       if (block == null) {
         continue;
       }
-      workerIds.clear();
+      HashSet<Long> workerIds = new HashSet<>();
       synchronized (block) {
         // Technically, 'block' should be confirmed to still be in the data structure. A
         // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
@@ -403,16 +402,22 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param tierAlias the alias of the storage tier where the worker is committing the block to
    * @param blockId the committing block id
    * @param length the length of the block
+   * @throws NoWorkerException if the workerId is not active
    */
   // TODO(binfan): check the logic is correct or not when commitBlock is a retry
   public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
-      long length) {
+      long length) throws NoWorkerException {
     LOG.debug("Commit block from workerId: {}, usedBytesOnTier: {}, blockId: {}, length: {}",
         workerId, usedBytesOnTier, blockId, length);
 
     long counter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
 
     MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
+    // TODO(peis): Check lost workers as well.
+    if (worker == null) {
+      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
+    }
+
     // Lock the worker metadata first.
     synchronized (worker) {
       // Loop until block metadata is successfully locked.
@@ -617,7 +622,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       Map<String, List<Long>> currentBlocksOnTiers) throws NoWorkerException {
     MasterWorkerInfo worker = mWorkers.getFirstByField(mIdIndex, workerId);
     if (worker == null) {
-      throw new NoWorkerException("Could not find worker id: " + workerId + " to register.");
+      throw new NoWorkerException(ExceptionMessage.NO_WORKER_FOUND.getMessage(workerId));
     }
 
     // Gather all blocks on this worker.

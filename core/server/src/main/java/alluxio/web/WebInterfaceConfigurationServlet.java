@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<String>(
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
   private final transient FileSystemMaster mFsMaster;

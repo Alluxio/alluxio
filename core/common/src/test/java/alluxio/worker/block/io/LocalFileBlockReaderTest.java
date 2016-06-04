@@ -30,7 +30,6 @@ import java.nio.channels.ReadableByteChannel;
 public class LocalFileBlockReaderTest {
   private static final long TEST_BLOCK_SIZE = 1024;
   private LocalFileBlockReader mReader;
-  private String mTestFilePath;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -47,10 +46,10 @@ public class LocalFileBlockReaderTest {
    */
   @Before
   public void before() throws Exception {
-    mTestFilePath = mFolder.newFile().getAbsolutePath();
+    String testFilePath = mFolder.newFile().getAbsolutePath();
     byte[] buffer = BufferUtils.getIncreasingByteArray((int) TEST_BLOCK_SIZE);
-    BufferUtils.writeBufferToFile(mTestFilePath, buffer);
-    mReader = new LocalFileBlockReader(mTestFilePath);
+    BufferUtils.writeBufferToFile(testFilePath, buffer);
+    mReader = new LocalFileBlockReader(testFilePath);
   }
 
   /**

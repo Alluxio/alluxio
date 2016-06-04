@@ -158,7 +158,7 @@ public class FileSystemMasterIntegrationTest {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
-            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
             for (int i = 0; i < FILES_PER_NODE; i++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
@@ -215,7 +215,7 @@ public class FileSystemMasterIntegrationTest {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
-            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
             for (int i = 0; i < FILES_PER_NODE; i++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
@@ -284,7 +284,7 @@ public class FileSystemMasterIntegrationTest {
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
                 mRootPath2, path.join(Integer.toString(i))));
@@ -681,8 +681,8 @@ public class FileSystemMasterIntegrationTest {
   public void listFilesTest() throws Exception {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
-    HashSet<Long> ids = new HashSet<Long>();
-    HashSet<Long> dirIds = new HashSet<Long>();
+    HashSet<Long> ids = new HashSet<>();
+    HashSet<Long> dirIds = new HashSet<>();
     for (int i = 0; i < 10; i++) {
       AlluxioURI dir = new AlluxioURI("/i" + i);
       mFsMaster.createDirectory(dir, CreateDirectoryOptions.defaults());

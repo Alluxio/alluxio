@@ -71,7 +71,7 @@ public class Sessions {
    *
    * @param sessionId the id of the session to be removed
    */
-  public synchronized void removeSession(long sessionId) {
+  public void removeSession(long sessionId) {
     LOG.debug("Cleaning up session {}", sessionId);
     synchronized (mSessions) {
       mSessions.remove(sessionId);

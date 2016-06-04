@@ -126,7 +126,7 @@ public final class AlluxioShell implements Closeable {
    */
   private void printUsage() {
     System.out.println("Usage: java AlluxioShell");
-    SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
+    SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
       System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
           mCommands.get(cmd).getDescription());
