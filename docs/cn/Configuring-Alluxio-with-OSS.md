@@ -12,7 +12,7 @@ priority: 4
 
 要在许多机器上运行Alluxio集群，需要在这些机器上部署二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-如果,你还没有这么做,那么那么'bootstrap-conf'命令来创建你的配置文件,比如,你在本机上运行Alluxio,'ALLUXIO_MASTER_HOSTNAME'应该被动设置为'localhost'
+如果,你还没有这么做,那么那么`bootstrap-conf`命令来创建你的配置文件,比如,你在本机上运行Alluxio,`ALLUXIO_MASTER_HOSTNAME`应该被动设置为`localhost`
 
 {% include Configuring-Alluxio-with-OSS/bootstrap-conf.md %}
 
