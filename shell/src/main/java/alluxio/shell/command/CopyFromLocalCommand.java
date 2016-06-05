@@ -230,7 +230,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
             buf.flip();
             os.write(buf.array(), 0, buf.limit());
           }
-        } catch (IOException e) {
+        } catch (IOException | RuntimeException e) {
           // Close the out stream and delete the file, so we don't have an incomplete file lying
           // around.
           if (os != null) {
