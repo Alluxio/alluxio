@@ -215,8 +215,8 @@ function main {
   COMMAND=$1
   shift
 
-  # bootstrap to create bin/alluxio-env.sh. This commands needs to be processed
-  # before sourcing libexec/alluxio-conf.sh which requires bin/alluxio-env.sh
+  # bootstrap to create conf/alluxio-env.sh. This commands needs to be processed
+  # before sourcing libexec/alluxio-conf.sh which requires conf/alluxio-env.sh
   if [[ "${COMMAND}" == "bootstrap-conf" ]]; then
     bootstrapConf "$@"
     exit 0
