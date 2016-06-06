@@ -34,9 +34,6 @@ public final class MasterContext {
   private static MasterSource sMasterSource = new MasterSource();
 
   /**
-   * Returns the one and only static {@link Configuration} object which is shared among all classes
-   * within the master process.
-   *
    * @return the {@link Configuration} for the master process
    */
   public static Configuration getConf() {
@@ -44,9 +41,6 @@ public final class MasterContext {
   }
 
   /**
-   * Returns the one and only static {@link MasterSource} object which is shared among all classes
-   * within the master process.
-   *
    * @return the {@link MasterSource} for the master process
    */
   public static MasterSource getMasterSource() {
