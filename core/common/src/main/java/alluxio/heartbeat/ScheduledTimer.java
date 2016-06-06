@@ -55,7 +55,7 @@ public final class ScheduledTimer implements HeartbeatTimer {
     mTickCondition = mLock.newCondition();
     mScheduled = false;
     // There should never be more than one scheduled timer with the same name.
-    HeartbeatScheduler.removeTimer(mThreadName);
+    HeartbeatScheduler.clearTimer(mThreadName);
   }
 
   /**

@@ -68,9 +68,9 @@ public final class HeartbeatScheduler {
   /**
    * Removes a timer name from the scheduler if it exists.
    *
-   * @param name the name to remove
+   * @param name the name to clear
    */
-  public static void removeTimer(String name) {
+  public static void clearTimer(String name) {
     try (LockResource r = new LockResource(sLock)) {
       sTimers.remove(name);
     }
