@@ -57,8 +57,6 @@ public class BlockLockManagerTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -86,8 +84,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to unlock a block via
    * {@link BlockLockManager#unlockBlock(long)} which is not locked.
-   *
-   * @throws Exception if unlocking the block fails
    */
   @Test
   public void unlockNonExistingLockTest() throws Exception {
@@ -101,8 +97,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} which is not locked.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithNoRecordTest() throws Exception {
@@ -116,8 +110,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect session ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithWrongSessionIdTest() throws Exception {
@@ -133,8 +125,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect block ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithWrongBlockIdTest() throws Exception {
@@ -150,8 +140,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} after the session was cleaned up.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void cleanupSessionTest() throws Exception {

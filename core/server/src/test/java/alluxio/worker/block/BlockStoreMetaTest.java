@@ -49,8 +49,6 @@ public class BlockStoreMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {

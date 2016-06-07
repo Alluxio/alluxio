@@ -38,8 +38,6 @@ public class AllocatorFactoryTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the dependencies fails
    */
   @Before
   public void before() throws Exception {

@@ -65,8 +65,6 @@ public class SpaceReserverTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -95,8 +93,6 @@ public class SpaceReserverTest {
 
   /**
    * Tests that the reserver works as expected.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void reserveTest() throws Exception {

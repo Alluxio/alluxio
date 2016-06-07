@@ -54,7 +54,6 @@ public class EvictorTestBase {
    * @param bytes length of the block in bytes
    * @param tierLevel tier level for the block in the tiered storage
    * @param dirIndex directory index in tierLevel for the block in the tiered storage
-   * @throws Exception when anything goes wrong, should not happen in unit tests
    */
   protected void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIndex)
       throws Exception {
@@ -68,7 +67,6 @@ public class EvictorTestBase {
    * {@link TieredBlockStoreTestUtils#defaultMetadataManagerView(String)}.
    *
    * @param evictorClassName class name of the specific evictor to be tested
-   * @throws Exception when anything goes wrong, should not happen in unit tests
    */
   protected void init(String evictorClassName) throws Exception {
     File tempFolder = mTestFolder.newFolder();
