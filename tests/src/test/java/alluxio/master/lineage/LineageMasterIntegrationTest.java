@@ -165,7 +165,7 @@ public class LineageMasterIntegrationTest {
         }
         try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
           String line = reader.readLine();
-          return line != null && line.equals("hello wofrld");
+          return line != null && line.equals("hello world");
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
