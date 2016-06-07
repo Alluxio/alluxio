@@ -306,8 +306,6 @@ public final class Constants {
   public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
       "alluxio.worker.file.persist.rate.limit";
 
-  public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
-      "alluxio.worker.tieredstore.block.locks";
   /**
    * This format is used as a template to generate the property name for a given level. e.g.,
    * {@code String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, level)}
