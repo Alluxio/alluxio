@@ -178,6 +178,7 @@ public class BlockLockManagerTest {
     for (int i = 0; i < maxLocks; i++) {
       manager.lockBlock(i, i, BlockLockType.WRITE);
     }
+    lockExpectingHang(manager, 101, false);
   }
 
   /**
@@ -197,18 +198,19 @@ public class BlockLockManagerTest {
   public void readBlocksWriteTest() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
-    lockExpectingHang(manager, TEST_BLOCK_ID);
+    lockExpectingHang(manager, TEST_BLOCK_ID, true);
   }
 
   /**
-   * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
-   * hang.
+   * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and checks whether it
+   * hangs.
    *
    * @param manager the manager to call lock on
    * @param blockId block id to try locking
+   * @param hang whether it should hang
    */
-  private void lockExpectingHang(final BlockLockManager manager, final long blockId)
-      throws Exception {
+  private void lockExpectingHang(final BlockLockManager manager, final long blockId,
+      final boolean hang) throws Exception {
     Thread thread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -218,7 +220,7 @@ public class BlockLockManagerTest {
     thread.start();
     thread.join(200);
     // Locking should not take 200ms unless there is a hang.
-    Assert.assertTrue(thread.isAlive());
+    Assert.assertEquals(hang, thread.isAlive());
   }
 
   /**
