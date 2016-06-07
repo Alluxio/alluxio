@@ -174,12 +174,10 @@ public class BlockLockManagerTest {
   @Test(timeout = 10000)
   public void grabManyLocksTest() throws Exception {
     int maxLocks = 100;
-    setMaxLocks(maxLocks);
     BlockLockManager manager = new BlockLockManager();
     for (int i = 0; i < maxLocks; i++) {
       manager.lockBlock(i, i, BlockLockType.WRITE);
     }
-    lockExpectingHang(manager, 101);
   }
 
   /**
@@ -200,31 +198,6 @@ public class BlockLockManagerTest {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
     lockExpectingHang(manager, TEST_BLOCK_ID);
-  }
-
-  /**
-   * Tests that block locks are returned to the pool when they are no longer in use.
-   */
-  @Test(timeout = 10000)
-  public void reuseLockTest() throws Exception {
-    setMaxLocks(1);
-    BlockLockManager manager = new BlockLockManager();
-    long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
-    manager.unlockBlock(lockId1); // Without this line the next lock would hang.
-    manager.lockBlock(TEST_SESSION_ID, 2, BlockLockType.WRITE);
-  }
-
-  /**
-   * Tests that block locks are not returned to the pool when they are still in use.
-   */
-  @Test(timeout = 10000)
-  public void dontReuseLockTest() throws Exception {
-    setMaxLocks(1);
-    final BlockLockManager manager = new BlockLockManager();
-    long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    manager.unlockBlock(lockId1);
-    lockExpectingHang(manager, 2);
   }
 
   /**
@@ -260,7 +233,6 @@ public class BlockLockManagerTest {
     final int numBlocks = 2;
     final int threadsPerBlock = 100;
     final int lockUnlocksPerThread = 50;
-    setMaxLocks(numBlocks);
     final BlockLockManager manager = new BlockLockManager();
     final List<Thread> threads = new ArrayList<>();
     final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
@@ -315,10 +287,5 @@ public class BlockLockManagerTest {
       Assert.fail(sb.toString());
     }
     manager.validate();
-  }
-
-  private void setMaxLocks(int maxLocks) {
-    WorkerContext.getConf().set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
   }
 }

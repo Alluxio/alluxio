@@ -61,8 +61,6 @@ alluxio.worker.port:
   Alluxio worker节点运行端口。
 alluxio.worker.session.timeout.ms:
   worker和client连接的超时时间（单位：毫秒），超时后表明该会话失效。
-alluxio.worker.tieredstore.block.locks:
-  一个Alluxio数据块worker的数据块锁数目。较大值会达到更好的锁粒度，但会使用更多空间。
 alluxio.worker.tieredstore.levels:
   worker上的存储层数目。
 alluxio.worker.tieredstore.level0.alias:
