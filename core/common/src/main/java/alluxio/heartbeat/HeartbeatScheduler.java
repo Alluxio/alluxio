@@ -42,6 +42,10 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeartbeatScheduler {
+  /**
+   * A map from thread name to active timer for that thread. A timer is active when its thread is
+   * waiting to be scheduled.
+   */
   private static Map<String, ScheduledTimer> sTimers = new HashMap<>();
   private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
@@ -54,25 +58,45 @@ public final class HeartbeatScheduler {
   public static void addTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
     try (LockResource r = new LockResource(sLock)) {
+      Preconditions.checkState(!sTimers.containsKey(timer.getThreadName()),
+          "The timer for thread %s is already waiting to be scheduled", timer.getThreadName());
       sTimers.put(timer.getThreadName(), timer);
       sCondition.signalAll();
     }
   }
 
   /**
-   * @param timer a timer to remove from the scheduler
+   * Removes a timer name from the scheduler if it exists.
+   *
+   * @param name the name to clear
    */
-  public static synchronized void removeTimer(ScheduledTimer timer) {
-    Preconditions.checkNotNull(timer);
+  public static void clearTimer(String name) {
     try (LockResource r = new LockResource(sLock)) {
-      sTimers.remove(timer.getThreadName());
+      sTimers.remove(name);
+    }
+  }
+
+  /**
+   * Removes a timer from the scheduler.
+   *
+   * This method will fail if the timer is not in the scheduler.
+   *
+   * @param timer the timer to remove
+   */
+  public static void removeTimer(ScheduledTimer timer) {
+    Preconditions.checkNotNull(timer, "timer");
+    try (LockResource r = new LockResource(sLock)) {
+      ScheduledTimer removedTimer = sTimers.remove(timer.getThreadName());
+      Preconditions.checkNotNull(removedTimer, "sTimers should contain %s", timer.getThreadName());
+      Preconditions.checkState(removedTimer == timer,
+          "sTimers should contain the timer being removed");
     }
   }
 
   /**
    * @return the set of threads present in the scheduler
    */
-  public static synchronized Set<String> getThreadNames() {
+  public static Set<String> getThreadNames() {
     try (LockResource r = new LockResource(sLock)) {
       return sTimers.keySet();
     }
@@ -90,7 +114,6 @@ public final class HeartbeatScheduler {
         throw new RuntimeException("Timer for thread " + threadName + " not found.");
       }
       timer.schedule();
-      sTimers.remove(threadName);
     }
   }
 
