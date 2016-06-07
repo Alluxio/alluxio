@@ -33,7 +33,8 @@ public class BufferedBlockInStreamTest {
   @Before
   public void before() {
     mBufferSize =
-        Configuration.createDefaultConf().getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+        Configuration.createDefaultConf().getBytes(
+            Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     mBlockSize = mBufferSize * 10;
     mTestStream = new TestBufferedBlockInStream(1L, 0, mBlockSize);
   }
@@ -97,11 +98,11 @@ public class BufferedBlockInStreamTest {
     int size = (int) mBlockSize / 10;
     byte[] readBytes = new byte[size];
 
-    // Read first 10th bytes
+    // Read first 1/10th bytes
     Assert.assertEquals(size, mTestStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(0, size, readBytes));
 
-    // Read next 10th bytes
+    // Read next 1/10th bytes
     Assert.assertEquals(size, mTestStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, size, readBytes));
 

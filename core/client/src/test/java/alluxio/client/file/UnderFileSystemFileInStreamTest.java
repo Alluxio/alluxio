@@ -63,6 +63,7 @@ public class UnderFileSystemFileInStreamTest {
         });
     mTestStream = new UnderFileSystemFileInStream(mockAddr, FILE_ID);
     Whitebox.setInternalState(mTestStream, "mReader", mMockReader);
+    Whitebox.setInternalState(mTestStream, "mBuffer", ByteBuffer.allocate(FILE_SIZE));
   }
 
   /**
@@ -80,12 +81,25 @@ public class UnderFileSystemFileInStreamTest {
    */
   @Test
   public void readByteBufferedTest() throws Exception {
-    for (int i = 0; i < FILE_SIZE; i++) {
+    for (int i = 0; i < FILE_SIZE; i ++) {
       Assert.assertEquals((byte) mTestStream.read(), mData[i]);
     }
-    // One call to get the data, second call to verify end of file
-    Mockito.verify(mMockReader, Mockito.times(2)).read(Mockito.any(InetSocketAddress.class),
-        Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    // One call to get the data since buffer size == file size
+    Mockito.verify(mMockReader).read(Mockito.any(InetSocketAddress.class), Mockito.anyLong(),
+        Mockito.anyLong(), Mockito.anyLong());
+  }
+
+  /**
+   * Tests the internal buffering of the class.
+   */
+  @Test
+  public void readBulkBufferedTest() throws Exception {
+    byte[] b = new byte[FILE_SIZE / 2];
+    Assert.assertEquals(FILE_SIZE / 2, mTestStream.read(b));
+    Assert.assertEquals(FILE_SIZE / 2, mTestStream.read(b));
+    // One call to get the data since buffer size == file size
+    Mockito.verify(mMockReader).read(Mockito.any(InetSocketAddress.class), Mockito.anyLong(),
+        Mockito.anyLong(), Mockito.anyLong());
   }
 
   /**
