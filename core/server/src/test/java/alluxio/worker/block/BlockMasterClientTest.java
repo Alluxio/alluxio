@@ -36,8 +36,6 @@ public class BlockMasterClientTest {
 
   /**
    * Tests for an unsupported version.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void unsupportedVersionTest() throws Exception {

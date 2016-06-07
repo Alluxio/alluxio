@@ -41,8 +41,6 @@ public class TempBlockMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
