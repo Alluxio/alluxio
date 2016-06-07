@@ -48,7 +48,7 @@ public class BufferedBlockInStreamTest {
   @Test
   public void singleByteReadTest() throws Exception {
     for (int i = 0; i < mBlockSize; i++) {
-      Assert.assertEquals(i, mTestStream.read());
+      Assert.assertEquals(i & 0xFF, mTestStream.read());
     }
   }
 
@@ -108,7 +108,7 @@ public class BufferedBlockInStreamTest {
 
     // Read with offset and length
     Assert.assertEquals(1, mTestStream.read(readBytes, size - 1, 1));
-    Assert.assertEquals(size * 2, readBytes[size - 1]);
+    Assert.assertEquals(size * 2 & 0xFF, readBytes[size - 1]);
   }
 
   /**
