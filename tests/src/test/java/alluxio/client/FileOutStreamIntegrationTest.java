@@ -15,13 +15,10 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Integration tests for {@link alluxio.client.file.FileOutStream}.
@@ -83,8 +80,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     }
   }
 
-  private void writeTest3Util(AlluxioURI filePath, int len, CreateFileOptions op)
-      throws IOException, AlluxioException {
+  private void writeTest3Util(AlluxioURI filePath, int len, CreateFileOptions op) throws Exception {
     FileOutStream os = mFileSystem.createFile(filePath, op);
     os.write(BufferUtils.getIncreasingByteArray(0, len / 2), 0, len / 2);
     os.write(BufferUtils.getIncreasingByteArray(len / 2, len / 2), 0, len / 2);
