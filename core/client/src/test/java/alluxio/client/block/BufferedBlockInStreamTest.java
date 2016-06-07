@@ -11,6 +11,8 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -21,16 +23,19 @@ import org.junit.Test;
  * Tests for the {@link BufferedBlockInStream} class.
  */
 public class BufferedBlockInStreamTest {
-  private static final long BLOCK_LENGTH = 100L;
-
   private TestBufferedBlockInStream mTestStream;
+  private long mBlockSize;
+  private long mBufferSize;
 
   /**
    * Sets up the stream before a test runs.
    */
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockInStream(1L, 0, BLOCK_LENGTH);
+    mBufferSize =
+        Configuration.createDefaultConf().getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+    mBlockSize = mBufferSize * 10;
+    mTestStream = new TestBufferedBlockInStream(1L, 0, mBlockSize);
   }
 
   /**
@@ -41,7 +46,7 @@ public class BufferedBlockInStreamTest {
    */
   @Test
   public void singleByteReadTest() throws Exception {
-    for (int i = 0; i < BLOCK_LENGTH; i++) {
+    for (int i = 0; i < mBlockSize; i++) {
       Assert.assertEquals(i, mTestStream.read());
     }
   }
@@ -78,7 +83,7 @@ public class BufferedBlockInStreamTest {
     Assert.assertEquals(2, mTestStream.read());
 
     // Seek to end
-    mTestStream.seek(BLOCK_LENGTH);
+    mTestStream.seek(mBlockSize);
     Assert.assertEquals(-1, mTestStream.read());
   }
 
@@ -89,19 +94,54 @@ public class BufferedBlockInStreamTest {
    */
   @Test
   public void bulkReadTest() throws Exception {
-    int size = (int) BLOCK_LENGTH / 10;
+    int size = (int) mBlockSize / 10;
     byte[] readBytes = new byte[size];
 
-    // Read first 10 bytes
+    // Read first 10th bytes
     Assert.assertEquals(size, mTestStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(0, size, readBytes));
 
-    // Read next 10 bytes
+    // Read next 10th bytes
     Assert.assertEquals(size, mTestStream.read(readBytes));
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(size, size, readBytes));
 
     // Read with offset and length
     Assert.assertEquals(1, mTestStream.read(readBytes, size - 1, 1));
     Assert.assertEquals(size * 2, readBytes[size - 1]);
+  }
+
+  /**
+   * Tests that {@link BufferedBlockInStream#read(byte[], int, int)} buffering logic.
+   *
+   * @throws Exception when reading from the stream fails
+   */
+  @Test
+  public void bufferReadTest() throws Exception {
+    int position = 0;
+    int size = (int) mBufferSize / 2;
+    byte[] readBytes = new byte[size];
+    long shouldRemain = mBufferSize - size;
+
+    // Read half buffer, should be from buffer
+    Assert.assertEquals(size, mTestStream.read(readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(position, size, readBytes));
+    Assert.assertEquals(shouldRemain, mTestStream.mBuffer.remaining());
+
+    position += size;
+    shouldRemain -= size;
+
+    // Read next half buffer, should be from buffer
+    Assert.assertEquals(size, mTestStream.read(readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(position, size, readBytes));
+    Assert.assertEquals(shouldRemain, mTestStream.mBuffer.remaining());
+
+    position += size;
+    size = (int) mBufferSize;
+    readBytes = new byte[size];
+
+    // Read buffer size bytes, should not be from buffer
+    Assert.assertEquals(size, mTestStream.read(readBytes));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(position, size, readBytes));
+    Assert.assertEquals(shouldRemain, mTestStream.mBuffer.remaining());
   }
 }
