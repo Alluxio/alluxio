@@ -94,9 +94,12 @@ public class UnderFileSystemFileInStreamTest {
    */
   @Test
   public void readBulkBufferedTest() throws Exception {
-    byte[] b = new byte[FILE_SIZE / 2];
-    Assert.assertEquals(FILE_SIZE / 2, mTestStream.read(b));
-    Assert.assertEquals(FILE_SIZE / 2, mTestStream.read(b));
+    int readLen = FILE_SIZE / 2;
+    byte[] b = new byte[readLen];
+    Assert.assertEquals(readLen, mTestStream.read(b));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(0, readLen, b));
+    Assert.assertEquals(readLen, mTestStream.read(b));
+    Assert.assertTrue(BufferUtils.equalIncreasingByteArray(readLen, readLen, b));
     // One call to get the data since buffer size == file size
     Mockito.verify(mMockReader).read(Mockito.any(InetSocketAddress.class), Mockito.anyLong(),
         Mockito.anyLong(), Mockito.anyLong());
