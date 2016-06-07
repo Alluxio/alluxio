@@ -41,11 +41,12 @@ public enum PreconditionMessage {
   ERR_SEEK_PAST_END_OF_BLOCK("Seek position past end of block: %s"),
   ERR_SEEK_PAST_END_OF_FILE("Seek position past end of file: %s"),
   ERR_SET_STATE_UNPERSIST("Cannot set the state of a file to not-persisted"),
-  ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
+  ERR_TIER_QUOTA_BLANK("Tier capacity configuration should not be blank"),
   ERR_UFS_MANAGER_OPERATION_INVALID_SESSION("Attempted to %s ufs file with invalid session id."),
   ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT(
       "Failed to remove agent %d from ufs manager's internal state."),
   ERR_UNEXPECTED_EOF("Reached EOF unexpectedly."),
+  ERR_WRITE_BUFFER_NULL("Cannot write a null input buffer"),
   FILE_TO_PERSIST_MUST_BE_COMPLETE("File being persisted must be complete"),
   FILE_WRITE_LOCATION_POLICY_UNSPECIFIED("The location policy is not specified"),
   GCS_BUCKET_MUST_BE_SET("The %s system property must be set to use the GCSUnderStorageCluster"),

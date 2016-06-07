@@ -14,12 +14,14 @@ package alluxio.worker.block.meta;
 import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
+import alluxio.exception.PreconditionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +70,9 @@ public final class StorageTier {
 
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
-    String[] dirQuotas = WorkerContext.getConf().get(tierDirCapacityConf).split(",");
+    String rawDirQuota = WorkerContext.getConf().get(tierDirCapacityConf);
+    Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
+    String[] dirQuotas = rawDirQuota.split(",");
 
     mDirs = new ArrayList<>(dirPaths.length);
 
