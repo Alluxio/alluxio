@@ -87,11 +87,11 @@ public final class CommonTestUtils {
    * @param condition the condition to wait on
    * @param timeoutMs the number of milliseconds to wait before giving up and throwing an exception
    */
-  public static void waitFor(Function<Void, Boolean> condition, int timeoutMs) {
+  public static void waitFor(String conditionName, Function<Void, Boolean> condition, int timeoutMs) {
     long start = System.currentTimeMillis();
     while (!condition.apply(null)) {
       if (System.currentTimeMillis() - start > timeoutMs) {
-        throw new RuntimeException("Timed out waiting for condition " + condition);
+        throw new RuntimeException("Timed out waiting for " + conditionName);
       }
       CommonUtils.sleepMs(20);
     }

@@ -12,6 +12,7 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
@@ -30,9 +31,10 @@ import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.util.CommonUtils;
 import alluxio.wire.LineageInfo;
 
+import com.google.common.base.Function;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import org.junit.Assert;
 import org.junit.Before;
@@ -137,7 +139,7 @@ public class LineageMasterIntegrationTest {
    */
   @Test(timeout = 20000)
   public void lineageRecoveryTest() throws Exception {
-    File logFile = mFolder.newFile();
+    final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the
     // lineage recompute job
     logFile.delete();
@@ -150,21 +152,25 @@ public class LineageMasterIntegrationTest {
       out.write("foo".getBytes());
       out.close();
       lineageClient.reportLostFile("/testFile");
-      // Wait for the log file to be created by the recompute job
-      while (!logFile.exists()) {
-        CommonUtils.sleepMs(20);
-      }
-      // Wait for the output to be written (this should be very fast)
-      CommonUtils.sleepMs(10);
-      BufferedReader reader = new BufferedReader(new FileReader(logFile));
-      try {
-        Assert.assertEquals("hello world", reader.readLine());
-      } finally {
-        reader.close();
-      }
     } finally {
       lineageClient.close();
     }
+
+    // Wait for the log file to be created by the recompute job
+    CommonTestUtils.waitFor("the log file to be written", new Function<Void, Boolean>() {
+      @Override
+      public Boolean apply(Void input) {
+        if (!logFile.exists()) {
+          return false;
+        }
+        try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
+          String line = reader.readLine();
+          return line != null && line.equals("hello wofrld");
+        } catch (Exception e) {
+          throw Throwables.propagate(e);
+        }
+      }
+    }, 10 * Constants.SECOND_MS);
   }
 
   /**
