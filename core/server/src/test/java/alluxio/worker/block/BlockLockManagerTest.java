@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
