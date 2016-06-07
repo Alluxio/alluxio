@@ -81,7 +81,7 @@ public class UnderFileSystemFileInStreamTest {
    */
   @Test
   public void readByteBufferedTest() throws Exception {
-    for (int i = 0; i < FILE_SIZE; i ++) {
+    for (int i = 0; i < FILE_SIZE; i++) {
       Assert.assertEquals((byte) mTestStream.read(), mData[i]);
     }
     // One call to get the data since buffer size == file size
