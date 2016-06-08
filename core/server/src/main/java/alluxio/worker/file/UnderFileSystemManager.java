@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -376,12 +377,34 @@ public final class UnderFileSystemManager {
    * @param sessionId the session id to clean up
    */
   public void cleanupSession(long sessionId) {
+    Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
+      toClose = mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId);
       mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
     }
+    // close is done outside of the synchronized block as it may be expensive
+    for (InputStreamAgent agent : toClose) {
+      try {
+        agent.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close input stream agent for file: " + agent.mUri);
+      }
+    }
+
+    Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
+      toCancel = mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId);
       mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
     }
+    // cancel is done outside of the synchronized block as it may be expensive
+    for (OutputStreamAgent agent : toCancel) {
+      try {
+        agent.cancel();
+      } catch (IOException e) {
+        LOG.warn("Failed to cancel output stream agent for file: " + agent.mUri);
+      }
+    }
+
   }
 
   /**
