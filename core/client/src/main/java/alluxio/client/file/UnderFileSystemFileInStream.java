@@ -107,7 +107,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
       return -1;
     }
 
-    if (mIsBufferValid && mBuffer.remaining() > len) { // data is fully contained in the buffer
+    if (mIsBufferValid && mBuffer.remaining() >= len) { // data is fully contained in the buffer
       mBuffer.get(b, off, len);
       mPos += len;
       return len;
