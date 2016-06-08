@@ -86,8 +86,8 @@ check_mount_mode() {
       if [[ $? -ne 0 ]]; then
         if [[ $(uname -s) == Darwin ]]; then
           # Assuming Mac OS X
-          echo "ERROR: NoMount is not supported on Mac OS X."
-          echo -e "${USAGE}"
+          echo "ERROR: NoMount is not supported on Mac OS X." >&2
+          echo -e "${USAGE}" >&2
           exit 1
         else
           echo "WARNING: Overriding ALLUXIO_RAM_FOLDER to /dev/shm to use tmpFS now."
@@ -103,11 +103,11 @@ check_mount_mode() {
     ;;
     *)
       if [[ -z $1 ]]; then
-        echo "This command requires a mount mode be specified"
+        echo "This command requires a mount mode be specified" >&2
       else
-        echo "Invalid mount mode: $1"
+        echo "Invalid mount mode: $1" >&2
       fi
-      echo -e "${USAGE}"
+      echo -e "${USAGE}" >&2
       exit 1
   esac
 }
@@ -123,8 +123,8 @@ do_mount() {
     NoMount)
       ;;
     *)
-      echo "This command requires a mount mode be specified"
-      echo -e "${USAGE}"
+      echo "This command requires a mount mode be specified" >&2
+      echo -e "${USAGE}" >&2
       exit 1
   esac
 }
@@ -157,7 +157,7 @@ start_master() {
 start_worker() {
   do_mount $1
   if  [ ${MOUNT_FAILED} -ne 0 ] ; then
-    echo "Mount failed, not starting worker"
+    echo "Mount failed, not starting worker" >&2
     exit 1
   fi
 
@@ -218,7 +218,7 @@ main() {
         wait="true"
         ;;
       *)
-        echo -e "${USAGE}"
+        echo -e "${USAGE}" >&2
         exit 1
         ;;
     esac
@@ -228,8 +228,8 @@ main() {
 
   ACTION=$1
   if [[ -z "${ACTION}" ]]; then
-    echo "Error: no ACTION specified"
-    echo -e "${USAGE}"
+    echo "Error: no ACTION specified" >&2
+    echo -e "${USAGE}" >&2
     exit 1
   fi
   shift
@@ -252,7 +252,7 @@ main() {
 
   FORMAT=$1
   if [[ ! -z "${FORMAT}" && "${FORMAT}" != "-f" ]]; then
-    echo -e "${USAGE}"
+    echo -e "${USAGE}" >&2
     exit 1
   fi
 
@@ -295,8 +295,8 @@ main() {
       ${LAUNCHER} "${BIN}/alluxio-workers.sh" "${BIN}/alluxio-start.sh" restart_worker
       ;;
     *)
-    echo "Error: Invalid ACTION: ${ACTION}"
-    echo -e "${USAGE}"
+    echo "Error: Invalid ACTION: ${ACTION}" >&2
+    echo -e "${USAGE}" >&2
     exit 1
   esac
   sleep 2
