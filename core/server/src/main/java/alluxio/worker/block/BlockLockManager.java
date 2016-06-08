@@ -15,8 +15,6 @@ import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.resource.ResourcePool;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
@@ -31,7 +29,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
@@ -48,18 +45,6 @@ public final class BlockLockManager {
 
   /** The unique id of each lock. */
   private static final AtomicLong LOCK_ID_GEN = new AtomicLong(0);
-
-  /** A pool of read write locks. */
-  private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      WorkerContext.getConf().getInt(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
-    @Override
-    public void close() {}
-
-    @Override
-    protected ClientRWLock createNewResource() {
-      return new ClientRWLock();
-    }
-  };
 
   /** A map from block id to the read write lock used to guard that block. */
   @GuardedBy("mSharedMapsLock")
@@ -85,10 +70,6 @@ public final class BlockLockManager {
 
   /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
-   *
-   * If all {@link Constants#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
-   * been allocated for the specified block, this method will need to wait until a lock can be
-   * acquired from the lock pool.
    *
    * @param sessionId the session id
    * @param blockId the block id
@@ -132,36 +113,16 @@ public final class BlockLockManager {
    * @return the block lock
    */
   private ClientRWLock getBlockLock(long blockId) {
-    // Loop until we either find the block lock in the mLocks map, or successfully acquire a new
-    // block lock from the lock pool.
-    while (true) {
-      ClientRWLock blockLock;
-      // Check whether a lock has already been allocated for the block id.
-      synchronized (mSharedMapsLock) {
-        blockLock = mLocks.get(blockId);
-        if (blockLock != null) {
-          blockLock.addReference();
-          return blockLock;
-        }
+    ClientRWLock blockLock;
+    // Check whether a lock has already been allocated for the block id.
+    synchronized (mSharedMapsLock) {
+      blockLock = mLocks.get(blockId);
+      if (blockLock == null) {
+        blockLock = new ClientRWLock();
+        mLocks.put(blockId, blockLock);
       }
-      // Since a block lock hasn't already been allocated, try to acquire a new one from the pool.
-      // Acquire the lock outside the synchronized section because #acquire might need to block.
-      // We shouldn't wait indefinitely in acquire because the another lock for this block could be
-      // allocated to another thread, in which case we could just use that lock.
-      blockLock = mLockPool.acquire(1, TimeUnit.SECONDS);
-      if (blockLock != null) {
-        synchronized (mSharedMapsLock) {
-          // Check if someone else acquired a block lock for blockId while we were acquiring one.
-          if (mLocks.containsKey(blockId)) {
-            mLockPool.release(blockLock);
-            blockLock = mLocks.get(blockId);
-          } else {
-            mLocks.put(blockId, blockLock);
-          }
-          blockLock.addReference();
-          return blockLock;
-        }
-      }
+      blockLock.addReference();
+      return blockLock;
     }
   }
 
@@ -327,7 +288,6 @@ public final class BlockLockManager {
       // If we were the last worker with a reference to the lock, clean it up.
       if (lock.dropReference() == 0) {
         mLocks.remove(blockId);
-        mLockPool.release(lock);
       }
     }
   }

@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -168,21 +167,7 @@ public class BlockLockManagerTest {
     mLockManager.validateLock(sessionId2, TEST_BLOCK_ID, lockId2);
   }
 
-  /**
-   * Tests that up to WORKER_TIERED_STORE_BLOCK_LOCKS block locks can be grabbed simultaneously.
-   */
-  @Test(timeout = 10000)
-  public void grabManyLocksTest() throws Exception {
-    int maxLocks = 100;
-    setMaxLocks(maxLocks);
-    BlockLockManager manager = new BlockLockManager();
-    for (int i = 0; i < maxLocks; i++) {
-      manager.lockBlock(i, i, BlockLockType.WRITE);
-    }
-    lockExpectingHang(manager, 101);
-  }
-
-  /**
+ /**
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
@@ -199,43 +184,19 @@ public class BlockLockManagerTest {
   public void readBlocksWriteTest() throws Exception {
     BlockLockManager manager = new BlockLockManager();
     manager.lockBlock(TEST_SESSION_ID, TEST_BLOCK_ID, BlockLockType.READ);
-    lockExpectingHang(manager, TEST_BLOCK_ID);
+    lockExpectingHang(manager, TEST_BLOCK_ID, true);
   }
 
   /**
-   * Tests that block locks are returned to the pool when they are no longer in use.
-   */
-  @Test(timeout = 10000)
-  public void reuseLockTest() throws Exception {
-    setMaxLocks(1);
-    BlockLockManager manager = new BlockLockManager();
-    long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.WRITE);
-    manager.unlockBlock(lockId1); // Without this line the next lock would hang.
-    manager.lockBlock(TEST_SESSION_ID, 2, BlockLockType.WRITE);
-  }
-
-  /**
-   * Tests that block locks are not returned to the pool when they are still in use.
-   */
-  @Test(timeout = 10000)
-  public void dontReuseLockTest() throws Exception {
-    setMaxLocks(1);
-    final BlockLockManager manager = new BlockLockManager();
-    long lockId1 = manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    manager.lockBlock(TEST_SESSION_ID, 1, BlockLockType.READ);
-    manager.unlockBlock(lockId1);
-    lockExpectingHang(manager, 2);
-  }
-
-  /**
-   * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
-   * hang.
+   * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and checks whether it
+   * hangs.
    *
    * @param manager the manager to call lock on
    * @param blockId block id to try locking
+   * @param hang whether it should hang
    */
-  private void lockExpectingHang(final BlockLockManager manager, final long blockId)
-      throws Exception {
+  private void lockExpectingHang(final BlockLockManager manager, final long blockId,
+      final boolean hang) throws Exception {
     Thread thread = new Thread(new Runnable() {
       @Override
       public void run() {
@@ -245,7 +206,7 @@ public class BlockLockManagerTest {
     thread.start();
     thread.join(200);
     // Locking should not take 200ms unless there is a hang.
-    Assert.assertTrue(thread.isAlive());
+    Assert.assertEquals(hang, thread.isAlive());
   }
 
   /**
@@ -260,7 +221,6 @@ public class BlockLockManagerTest {
     final int numBlocks = 2;
     final int threadsPerBlock = 100;
     final int lockUnlocksPerThread = 50;
-    setMaxLocks(numBlocks);
     final BlockLockManager manager = new BlockLockManager();
     final List<Thread> threads = new ArrayList<>();
     final CyclicBarrier barrier = new CyclicBarrier(numBlocks * threadsPerBlock);
@@ -315,10 +275,5 @@ public class BlockLockManagerTest {
       Assert.fail(sb.toString());
     }
     manager.validate();
-  }
-
-  private void setMaxLocks(int maxLocks) {
-    WorkerContext.getConf().set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
   }
 }
