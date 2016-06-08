@@ -103,19 +103,9 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     for (PersistFile persistFile : command.getCommandOptions().getPersistOptions()
             .getPersistFiles()) {
-      long fileId = persistFile.getFileId();
-      if (mFileDataManager.needPersistence(fileId)) {
-        // lock all the blocks of the file to prevent eviction
-        try {
-          mFileDataManager.lockBlocks(fileId, persistFile.getBlockIds());
-        } catch (IOException e) {
-          LOG.error("Failed to lock the blocks for file {}", fileId, e);
-        }
-
-        // enqueue the persist request
-        mPersistFileService
-            .execute(new FilePersister(mFileDataManager, fileId, persistFile.getBlockIds()));
-      }
+      // Enqueue the persist request.
+      mPersistFileService.execute(
+          new FilePersister(mFileDataManager, persistFile.getFileId(), persistFile.getBlockIds()));
     }
   }
 
@@ -147,11 +137,19 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     @Override
     public void run() {
-      try {
+      if (mFileDataManager.needPersistence(mFileId)) {
+        // lock all the blocks of the file to prevent eviction
+        try {
+          mFileDataManager.lockBlocks(mFileId, mBlockIds);
+        } catch (IOException e) {
+          LOG.error("Failed to lock the blocks for file {}", mFileId, e);
+        }
         LOG.info("persist file {} of blocks {}", mFileId, mBlockIds);
-        mFileDataManager.persistFile(mFileId, mBlockIds);
-      } catch (IOException e) {
-        LOG.error("Failed to persist file {}", mFileId, e);
+        try {
+          mFileDataManager.persistFile(mFileId, mBlockIds);
+        } catch (IOException e) {
+          LOG.error("Failed to persist file {}", mFileId, e);
+        }
       }
     }
   }
