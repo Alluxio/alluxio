@@ -167,20 +167,7 @@ public class BlockLockManagerTest {
     mLockManager.validateLock(sessionId2, TEST_BLOCK_ID, lockId2);
   }
 
-  /**
-   * Tests that up to WORKER_TIERED_STORE_BLOCK_LOCKS block locks can be grabbed simultaneously.
-   */
-  @Test(timeout = 10000)
-  public void grabManyLocksTest() throws Exception {
-    int maxLocks = 100;
-    BlockLockManager manager = new BlockLockManager();
-    for (int i = 0; i < maxLocks; i++) {
-      manager.lockBlock(i, i, BlockLockType.WRITE);
-    }
-    lockExpectingHang(manager, 101, false);
-  }
-
-  /**
+ /**
    * Tests that two sessions can both take a read lock on the same block.
    */
   @Test(timeout = 10000)
