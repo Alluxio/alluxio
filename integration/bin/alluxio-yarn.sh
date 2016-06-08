@@ -54,6 +54,7 @@ JAR_LOCAL=${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with
 
 echo "Uploading files to HDFS to distribute alluxio runtime"
 
+${HADOOP_HOME}/bin/hadoop fs -mkdir -p ${HDFS_PATH}
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${ALLUXIO_TARFILE} ${HDFS_PATH}/$ALLUXIO_TARFILE
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${JAR_LOCAL} ${HDFS_PATH}/alluxio.jar
 ${HADOOP_HOME}/bin/hadoop fs -put -f ${SCRIPT_DIR}/alluxio-yarn-setup.sh ${HDFS_PATH}/alluxio-yarn-setup.sh
