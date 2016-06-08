@@ -35,6 +35,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -379,10 +380,11 @@ public final class UnderFileSystemManager {
   public void cleanupSession(long sessionId) {
     Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
-      toClose = mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId);
+      toClose =
+          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
       mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
     }
-    // close is done outside of the synchronized block as it may be expensive
+    // close is done outside of the synchronized block since it may be expensive
     for (InputStreamAgent agent : toClose) {
       try {
         agent.close();
@@ -393,10 +395,11 @@ public final class UnderFileSystemManager {
 
     Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
-      toCancel = mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId);
+      toCancel =
+          new HashSet<>(mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId));
       mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
     }
-    // cancel is done outside of the synchronized block as it may be expensive
+    // cancel is done outside of the synchronized block since it may be expensive
     for (OutputStreamAgent agent : toCancel) {
       try {
         agent.cancel();
@@ -404,7 +407,6 @@ public final class UnderFileSystemManager {
         LOG.warn("Failed to cancel output stream agent for file: " + agent.mUri);
       }
     }
-
   }
 
   /**
