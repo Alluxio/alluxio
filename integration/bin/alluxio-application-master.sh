@@ -24,5 +24,6 @@ echo "Launching Application Master"
 
 "${JAVA}" -cp "${CLASSPATH}" \
   ${ALLUXIO_JAVA_OPTS} \
+  -Dalluxio.logger.type=Console \
   -Xmx256M \
   alluxio.yarn.ApplicationMaster $@
