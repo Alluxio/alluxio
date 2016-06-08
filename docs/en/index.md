@@ -4,46 +4,48 @@ title: Overview
 group: Home
 ---
 
-Alluxio, formerly known as Tachyon, the world’s first memory-centric virtual distributed storage system, unifies data access
-and bridges computation frameworks and underlying storage systems. Applications only need to connect
-with Alluxio to access data stored in any underlying storage systems. Additionally, Alluxio’s
-memory-centric architecture enables data access orders of magnitude faster than existing solutions.
+Alluxio, formerly known as Tachyon, the world’s first memory speed virtual distributed storage
+system, unifies data access and bridges computation frameworks and underlying storage systems.
+Applications only need to connect with Alluxio to access data stored in any underlying storage
+systems. Additionally, Alluxio’s memory-centric architecture enables data access orders of magnitude
+faster than existing solutions.
 
 In the big data ecosystem, Alluxio lies between computation frameworks or jobs, such as Apache
 Spark, Apache MapReduce, or Apache Flink, and various kinds of storage systems, such as Amazon S3,
-OpenStack Swift, GlusterFS, HDFS, Ceph, or OSS. Alluxio brings significant performance improvement
-to the ecosystem; for example, [Baidu](https://www.baidu.com) uses Alluxio to improve speedup the
-throughput of their data analytics pipeline
-[30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf).
-Barclays makes the impossible possible with Alluxio to accelerate jobs from
+Google Cloud Storage, OpenStack Swift, GlusterFS, HDFS, Ceph, or Alibaba OSS. Alluxio brings
+significant performance improvement to the ecosystem; for example, [Baidu](https://www.baidu.com)
+uses Alluxio to improve speedup the throughput of their data analytics pipeline
+[30 times](http://www.alluxio.com/assets/uploads/2016/02/Baidu-Case-Study.pdf). Barclays makes the
+impossible possible with Alluxio to accelerate jobs from
 [hours to seconds](https://dzone.com/articles/Accelerate-In-Memory-Processing-with-Spark-from-Hours-to-Seconds-With-Tachyon).
-Beyond performance, Alluxio bridges new workloads with data stored in traditional storage systems.
-Users can run Alluxio using its standalone cluster mode, for example on Amazon EC2, or launch
-Alluxio with Apache Mesos or Apache Yarn.
+Beyond performance, Alluxio bridges new workloads with data stored in
+traditional storage systems. Users can run Alluxio using its standalone cluster mode, for example on
+Amazon EC2, Google Cloud, or launch Alluxio with Apache Mesos or Apache Yarn.
 
 Alluxio is Hadoop compatible. This means that existing Spark and MapReduce programs can run on top
 of Alluxio without any code changes. The project is open source
 ([Apache License 2.0](https://github.com/alluxio/alluxio/blob/master/LICENSE)) and is deployed at
 multiple companies. It is one of the fastest growing open source projects. With less than three
 years of open source history, Alluxio has attracted more than
-[200 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 50
+[250 contributors](https://github.com/alluxio/alluxio/graphs/contributors) from over 100
 institutions, including [Alibaba](http://www.alibaba.com), [Alluxio](http://www.alluxio.com/),
-[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [IBM](https://www.ibm.com),
-[Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/), [Red Hat](https://www.redhat.com/),
-[UC Berkeley](https://amplab.cs.berkeley.edu/), and [Yahoo](https://www.yahoo.com/).
+[Baidu](https://www.baidu.com), [CMU](https://www.cmu.edu/), [Google](www.google.com),
+[IBM](https://www.ibm.com), [Intel](http://www.intel.com/), [NJU](http://www.nju.edu.cn/english/),
+[Red Hat](https://www.redhat.com/), [UC Berkeley](https://amplab.cs.berkeley.edu/), and
+[Yahoo](https://www.yahoo.com/).
 The project is the storage layer of the Berkeley Data Analytics Stack
 ([BDAS](https://amplab.cs.berkeley.edu/bdas/)) and also part of the
 [Fedora distribution](https://fedoraproject.org/wiki/SIGs/bigdata/packaging).
 
-[Github](https://github.com/alluxio/alluxio/) |
-[Releases](http://alluxio.org/releases/) |
 [Downloads](http://alluxio.org/download/) |
-[User Document](Getting-Started.html) |
-[Developer Document](Contributing-to-Alluxio.html) |
+[User Guide](Getting-Started.html) |
+[Developer Guide](Contributing-to-Alluxio.html) |
 [Meetup Group](https://www.meetup.com/Alluxio/) |
-[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO) |
+[Issue Tracking](https://alluxio.atlassian.net/browse/ALLUXIO) |
 [User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users) |
-[Powered By](Powered-By-Alluxio.html)
+[Powered By](Powered-By-Alluxio.html) |
+[Github](https://github.com/alluxio/alluxio/) |
+[Releases](http://alluxio.org/releases/)
 
 # Current Features
 
@@ -83,11 +85,17 @@ information of each file, including locations, checkpoint path, etc. Users can a
 
 To quickly get Alluxio up and running, take a look at our [Getting Started](Getting-Started.html)
 page which will go through how to deploy Alluxio and run some basic examples in a local environment.
+See a list of [companies](Powered-By-Alluxio.html) that are using Alluxio.
 
-# Downloads
+# Downloads and More
 
 You can get the released versions of Alluxio from the
 [Project Downloads Page](http://alluxio.org/download). Each release comes with prebuilt
 binaries compatibile with various Hadoop versions. If you would like to build the project from the
 source code, check out the
-[Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html).
+[Building From Master Branch Documentation](Building-Alluxio-Master-Branch.html). If you have any 
+questions, please feel free to ask at our
+[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users). For users
+can not access Google Group, please use its
+[mirror](http://alluxio-users.85194.x6.nabble.com/) (notes: the mirror does not have infomation
+before May 2016).

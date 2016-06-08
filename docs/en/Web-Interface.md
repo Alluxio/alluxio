@@ -45,7 +45,7 @@ The home page gives an overview of the system status. It includes the following 
 
 ## Configuration Page
 
-To check the current system configuration information, click "System Configuration" in the 
+To check the current system configuration information, click "Configuration" in the 
 navigation bar on the top of the screen.
 
 ![configurations]({{site.data.img.screenshot_systemConfiguration}})
@@ -62,9 +62,9 @@ The configuration page has two sections:
     made to a file not prefixed by a path in the white list. Only whitelisted files will be stored
     in Alluxio.
 
-## Browse File System Page
+## Browse File System
 
-You can browse the Alluxio file system through the UI. When selecting the "Browse File System" tab
+You can browse the Alluxio file system through the UI. When selecting the "Browse" tab
 in the navigation bar, you will see something like this:
 
 ![browse]({{site.data.img.screenshot_browseFileSystem}})
@@ -72,6 +72,8 @@ in the navigation bar, you will see something like this:
 Files in the current folder are listed, with the file name, file size, size for each block, the
 percentage of in-memory data, creation time, and the modification time. To view the content of a
 file, click on that file.
+
+![viewFile]({{site.data.img.screenshot_viewFile}})
 
 ## Browse In-Memory Files Page
 

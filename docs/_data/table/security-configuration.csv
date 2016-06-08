@@ -1,6 +1,6 @@
 propertyName,defaultValue
 alluxio.security.authentication.type,NOSASL
-alluxio.security.authentication.socket.timeout.ms,60000
+alluxio.security.authentication.socket.timeout.ms,600000
 alluxio.security.authentication.custom.provider.class,
 alluxio.security.login.username,
 alluxio.security.authorization.permission.enabled,false

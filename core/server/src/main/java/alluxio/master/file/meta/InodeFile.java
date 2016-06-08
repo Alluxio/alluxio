@@ -51,7 +51,7 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   private InodeFile(long id) {
     super(0);
-    mBlocks = new ArrayList<Long>(1);
+    mBlocks = new ArrayList<>(1);
     mBlockContainerId = id;
     mBlockSizeBytes = 0;
     mCacheable = false;
@@ -113,7 +113,7 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return a duplication of all the block ids of the file
    */
   public List<Long> getBlockIds() {
-    return new ArrayList<Long>(mBlocks);
+    return new ArrayList<>(mBlocks);
   }
 
   /**
@@ -277,21 +277,19 @@ public final class InodeFile extends Inode<InodeFile> {
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
     PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
-    InodeFile inode =
-        new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
-            .setName(entry.getName())
-            .setBlockIds(entry.getBlocksList())
-            .setBlockSizeBytes(entry.getBlockSizeBytes())
-            .setCacheable(entry.getCacheable())
-            .setCompleted(entry.getCompleted())
-            .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-            .setLength(entry.getLength())
-            .setParentId(entry.getParentId())
-            .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
-            .setPinned(entry.getPinned())
-            .setTtl(entry.getTtl())
-            .setPermissionStatus(permissionStatus);
-    return inode;
+    return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
+        .setName(entry.getName())
+        .setBlockIds(entry.getBlocksList())
+        .setBlockSizeBytes(entry.getBlockSizeBytes())
+        .setCacheable(entry.getCacheable())
+        .setCompleted(entry.getCompleted())
+        .setLastModificationTimeMs(entry.getLastModificationTimeMs())
+        .setLength(entry.getLength())
+        .setParentId(entry.getParentId())
+        .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
+        .setPinned(entry.getPinned())
+        .setTtl(entry.getTtl())
+        .setPermissionStatus(permissionStatus);
   }
 
   /**
@@ -307,16 +305,14 @@ public final class InodeFile extends Inode<InodeFile> {
       CreateFileOptions fileOptions) {
     PermissionStatus permissionStatus = new PermissionStatus(fileOptions.getPermissionStatus())
         .applyFileUMask(MasterContext.getConf());
-    InodeFile inode =
-        new InodeFile(id)
-            .setParentId(parentId)
-            .setName(name)
-            .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
-            .setTtl(fileOptions.getTtl())
-            .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-                PersistenceState.NOT_PERSISTED)
-            .setPermissionStatus(permissionStatus);
-    return inode;
+    return new InodeFile(id)
+        .setParentId(parentId)
+        .setName(name)
+        .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+        .setTtl(fileOptions.getTtl())
+        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
+            PersistenceState.NOT_PERSISTED)
+        .setPermissionStatus(permissionStatus);
   }
 
   @Override

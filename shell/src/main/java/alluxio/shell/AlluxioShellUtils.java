@@ -130,8 +130,8 @@ public final class AlluxioShellUtils {
    */
   private static List<AlluxioURI> getAlluxioURIs(FileSystem alluxioClient, AlluxioURI inputURI,
       AlluxioURI parentDir) throws IOException {
-    List<AlluxioURI> res = new LinkedList<AlluxioURI>();
-    List<URIStatus> statuses = null;
+    List<AlluxioURI> res = new LinkedList<>();
+    List<URIStatus> statuses;
     try {
       statuses = alluxioClient.listStatus(parentDir);
     } catch (AlluxioException e) {
@@ -167,7 +167,7 @@ public final class AlluxioShellUtils {
   public static List<File> getFiles(String inputPath) {
     File file = new File(inputPath);
     if (!inputPath.contains("*")) {
-      List<File> res = new LinkedList<File>();
+      List<File> res = new LinkedList<>();
       if (file.exists()) {
         res.add(file);
       }
@@ -188,7 +188,7 @@ public final class AlluxioShellUtils {
    * @return a list of files that matches the input path in the parent directory
    */
   private static List<File> getFiles(String inputPath, String parent) {
-    List<File> res = new LinkedList<File>();
+    List<File> res = new LinkedList<>();
     File pFile = new File(parent);
     if (!pFile.exists() || !pFile.isDirectory()) {
       return res;

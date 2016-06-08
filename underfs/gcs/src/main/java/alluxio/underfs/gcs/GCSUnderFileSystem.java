@@ -285,6 +285,24 @@ public class GCSUnderFileSystem extends UnderFileSystem {
     }
   }
 
+  /**
+   * Opens a GCS object at given position and returns the opened input stream.
+   *
+   * @param path the GCS object path
+   * @param pos the position to open at
+   * @return the opened input stream
+   * @throws IOException if failed to open file at position
+   */
+  public InputStream openAtPosition(String path, long pos) throws IOException {
+    try {
+      path = stripPrefixIfPresent(path);
+      return new GCSInputStream(mBucketName, path, mClient, pos);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file {} at position {}:", path, pos, e);
+      return null;
+    }
+  }
+
   @Override
   public boolean rename(String src, String dst) throws IOException {
     if (!exists(src)) {
@@ -503,7 +521,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
         return ret;
       }
       // Non recursive list
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       for (GSObject obj : objs) {
         // Remove parent portion of the key
         String child = getChildName(obj.getKey(), path);

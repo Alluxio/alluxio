@@ -11,7 +11,7 @@ priority: 1
 # 初始化设置
 
 这部分的先决条件是你已安装了[Java](Java-Setup.html)。我们也假设你已经按照文档[本地模式](Running-Alluxio-Locally.html)或[集群](Running-Alluxio-on-a-Cluster.html)安装了Alluxio和Hadoop。
-为了运行一些简单的map-reduce实例，我们也推荐你下载[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
+为了运行一些简单的map-reduce实例，我们也推荐你下载根据你的hadoop版本对应的[map-reduce examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-mapreduce-examples/2.4.1)，或者如果你正在使用Hadoop 1，下载这个[examples jar](http://mvnrepository.com/artifact/org.apache.hadoop/hadoop-examples/1.2.1)。
 
 # 编译Alluxio客户端
 
@@ -62,7 +62,7 @@ priority: 1
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/compile-Alluxio-Hadoop-test.md %}
 
-为了方便，我们假设是伪分布式的集群，通过运行如下命令启动：
+为了方便，我们假设是伪分布式的集群，通过运行如下命令启动(根据hadoop的版本，你可能需要把`./bin`换成`./sbin`)：
 
 {% include Running-Hadoop-MapReduce-on-Alluxio/start-cluster.md %}
 

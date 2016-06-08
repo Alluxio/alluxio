@@ -199,7 +199,7 @@ public class FileUtilsTest {
     // which implies the host should support "chmod".
     if (tempFolder.getAbsolutePath().startsWith(AlluxioURI.SEPARATOR)) {
       FileUtils.setLocalDirStickyBit(tempFolder.getAbsolutePath());
-      List<String> commands = new ArrayList<String>();
+      List<String> commands = new ArrayList<>();
       commands.add("/bin/ls");
       commands.add("-ld");
       commands.add(tempFolder.getAbsolutePath());

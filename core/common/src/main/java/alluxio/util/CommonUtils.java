@@ -206,7 +206,7 @@ public final class CommonUtils {
    * @throws IOException if encounter any error when running the command
    */
   public static List<String> getUnixGroups(String user) throws IOException {
-    String result = "";
+    String result;
     List<String> groups = new ArrayList<>();
     try {
       result = ShellUtils.execCommand(ShellUtils.getGroupsForUserCommand(user));

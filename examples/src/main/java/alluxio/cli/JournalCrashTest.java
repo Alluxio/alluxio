@@ -360,7 +360,7 @@ public final class JournalCrashTest {
    * Setups all the client threads.
    */
   private static void setupClientThreads() {
-    sClientThreadList = new ArrayList<ClientThread>();
+    sClientThreadList = new ArrayList<>();
     for (int i = 0; i < sCreateFileClientNum; i++) {
       ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
           ClientOpType.CREATE_FILE);

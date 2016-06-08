@@ -27,7 +27,6 @@ import org.junit.Test;
  * Unit tests for {@link GlusterFSUnderFileSystem}.
  */
 public class GlusterFSUnderFileSystemFactoryTest {
-  private UnderFileSystem mGfs = null;
   private String mMount = null;
   private String mVolume = null;
   private Configuration mConfiguration;
@@ -58,8 +57,8 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    mGfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
-    Assert.assertNotNull(mGfs.create("alluxio_test"));
+    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
+    Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 
   /**

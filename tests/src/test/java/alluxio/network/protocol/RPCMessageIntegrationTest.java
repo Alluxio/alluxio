@@ -211,8 +211,7 @@ public class RPCMessageIntegrationTest {
     // Write the message to the outgoing channel.
     mOutgoingChannel.writeAndFlush(msg);
     // Read the decoded message from the incoming side.
-    RPCMessage outputMessage = sIncomingHandler.getMessage();
-    return outputMessage;
+    return sIncomingHandler.getMessage();
   }
 
   @Test

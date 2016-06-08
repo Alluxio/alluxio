@@ -29,8 +29,8 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UIFileBlockInfo {
-  private final List<String> mLocations = new ArrayList<String>();
-  private final Set<String> mTierAliases = new HashSet<String>();
+  private final List<String> mLocations = new ArrayList<>();
+  private final Set<String> mTierAliases = new HashSet<>();
   private final long mId;
   private final long mBlockLength;
   private final long mLastAccessTimeMs;

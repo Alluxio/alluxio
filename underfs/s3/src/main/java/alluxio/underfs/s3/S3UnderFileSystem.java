@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
+import com.google.common.base.Preconditions;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -79,13 +80,18 @@ public class S3UnderFileSystem extends UnderFileSystem {
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
-   * @param awsCredentials AWS Credentials configuration for S3 Access
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri, Configuration conf, AWSCredentials awsCredentials)
-      throws ServiceException {
+  public S3UnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
     super(uri, conf);
     String bucketName = uri.getHost();
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
+        "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
+    Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
+        "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
+    AWSCredentials awsCredentials =
+        new AWSCredentials(conf.get(Constants.S3_ACCESS_KEY), conf.get(
+            Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
@@ -112,9 +118,16 @@ public class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("s3service.disable-dns-buckets",
           conf.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION)) {
-      props.setProperty("s3service.server-side-encryption",
-          conf.get(Constants.UNDERFS_S3_SERVER_SIDE_ENCRYPTION));
+    if (conf.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
+      props.setProperty("threaded-service.max-thread-count",
+          conf.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));
+    }
+    if (conf.containsKey(Constants.UNDERFS_S3_ADMIN_THREADS_MAX)) {
+      props.setProperty("threaded-service.admin-max-thread-count",
+          conf.get(Constants.UNDERFS_S3_ADMIN_THREADS_MAX));
+    }
+    if (conf.containsKey(Constants.UNDERFS_S3_THREADS_MAX)) {
+      props.setProperty("httpclient.max-connections", conf.get(Constants.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
@@ -309,6 +322,24 @@ public class S3UnderFileSystem extends UnderFileSystem {
       return new S3InputStream(mBucketName, path, mClient);
     } catch (ServiceException e) {
       LOG.error("Failed to open file: {}", path, e);
+      return null;
+    }
+  }
+
+  /**
+   * Opens a S3 object at given position and returns the opened input stream.
+   *
+   * @param path the S3 object path
+   * @param pos the position to open at
+   * @return the opened input stream
+   * @throws IOException if failed to open file at position
+   */
+  public InputStream openAtPosition(String path, long pos) throws IOException {
+    try {
+      path = stripPrefixIfPresent(path);
+      return new S3InputStream(mBucketName, path, mClient, pos);
+    } catch (ServiceException e) {
+      LOG.error("Failed to open file {} at position {}:", path, pos, e);
       return null;
     }
   }

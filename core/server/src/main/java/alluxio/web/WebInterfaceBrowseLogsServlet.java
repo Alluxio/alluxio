@@ -127,7 +127,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     if (requestFile == null || requestFile.isEmpty()) {
       // List all log files in the log/ directory.
 
-      List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>();
+      List<UIFileInfo> fileInfos = new ArrayList<>();
       File[] logFiles = logsDir.listFiles(LOG_FILE_FILTER);
       if (logFiles != null) {
         for (File logFile : logFiles) {

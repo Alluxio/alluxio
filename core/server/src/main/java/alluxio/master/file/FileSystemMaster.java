@@ -529,7 +529,7 @@ public final class FileSystemMaster extends AbstractMaster {
       LoadMetadataOptions loadMetadataOptions =
           LoadMetadataOptions.defaults().setCreateAncestors(true)
               .setLoadDirectChildren(loadDirectChildren);
-      Inode<?> inode = null;
+      Inode<?> inode;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
         if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
@@ -761,9 +761,7 @@ public final class FileSystemMaster extends AbstractMaster {
       InvalidPathException, IOException {
     InodeTree.CreatePathResult createResult = createFileInternal(inodePath, options);
 
-    long counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-    counter = AsyncJournalWriter.getFlushCounter(counter, journalCreatePathResult(createResult));
-    return counter;
+    return journalCreatePathResult(createResult);
   }
 
   /**
@@ -1001,7 +999,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throw new InvalidPathException(ExceptionMessage.DELETE_ROOT_DIRECTORY.getMessage());
     }
 
-    List<Inode<?>> delInodes = new ArrayList<Inode<?>>();
+    List<Inode<?>> delInodes = new ArrayList<>();
     delInodes.add(inode);
 
     try (InodeLockList lockList = mInodeTree.lockDescendants(inodePath, InodeTree.LockMode.WRITE)) {
@@ -1149,7 +1147,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return absolute paths of all in memory files
    */
   public List<AlluxioURI> getInMemoryFiles() {
-    List<AlluxioURI> ret = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> ret = new ArrayList<>();
     getInMemoryFilesInternal(mInodeTree.getRoot(), new AlluxioURI(AlluxioURI.SEPARATOR), ret);
     return ret;
   }
@@ -1266,8 +1264,7 @@ public final class FileSystemMaster extends AbstractMaster {
       throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, IOException {
     InodeTree.CreatePathResult createResult = createDirectoryInternal(inodePath, options);
-    long counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
-    counter = AsyncJournalWriter.getFlushCounter(counter, journalCreatePathResult(createResult));
+    long counter = journalCreatePathResult(createResult);
     MasterContext.getMasterSource().incDirectoriesCreated(1);
     return counter;
   }
@@ -1316,8 +1313,16 @@ public final class FileSystemMaster extends AbstractMaster {
       counter = appendJournalEntry(JournalEntry.newBuilder()
           .setInodeLastModificationTime(inodeLastModificationTime).build());
     }
+    boolean createdDir = false;
     for (Inode<?> inode : createResult.getCreated()) {
       counter = appendJournalEntry(inode.toJournalEntry());
+      if (inode.isDirectory()) {
+        createdDir = true;
+      }
+    }
+    if (createdDir) {
+      // At least one directory was created, so journal the state of the directory id generator.
+      counter = appendJournalEntry(mDirectoryIdGenerator.toJournalEntry());
     }
     for (Inode<?> inode : createResult.getPersisted()) {
       PersistDirectoryEntry persistDirectory = PersistDirectoryEntry.newBuilder()
@@ -1784,6 +1789,13 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     try {
       if (!ufs.exists(ufsUri.toString())) {
+        // The root is special as it is considered as PERSISTED by default.
+        // We try to load root once. If it doesn't exist, do not try it again.
+        if (path.isRoot()) {
+          InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+          inode.setDirectChildrenLoaded(true);
+          return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
+        }
         throw new FileDoesNotExistException(
             ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
       }
@@ -1830,10 +1842,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if permission checking fails
    */
-  // TODO(gpang): InodePath parameter, update method, return counter
   private long loadFileMetadataAndJournal(LockedInodePath inodePath,
-      MountTable.Resolution resolution,
-      LoadMetadataOptions options)
+      MountTable.Resolution resolution, LoadMetadataOptions options)
       throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
       AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException {
     if (inodePath.fullPathExists()) {
@@ -1895,18 +1905,22 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Loads the metadata for the path, if it doesn't exist or we need to load the direct children.
+   * Loads metadata for the path if it is (non-existing || (persisted && load direct children is
+   * set).
    *
    * @param inodePath the {@link LockedInodePath} to load the metadata for
    * @param options the load metadata options
    */
+  // TODO(peis): Add a unit test for this function.
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
     boolean inodeExists = inodePath.fullPathExists();
     boolean loadDirectChildren = false;
     if (inodeExists) {
       try {
-        loadDirectChildren = inodePath.getInode().isDirectory() && options.isLoadDirectChildren();
+        Inode inode = inodePath.getInode();
+        loadDirectChildren =
+            inode.isDirectory() && inode.isPersisted() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
@@ -1916,7 +1930,9 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         return loadMetadataAndJournal(inodePath, options);
       } catch (Exception e) {
-        LOG.error("Failed to load metadata for path: {}", inodePath.getUri());
+        // NOTE, this may be expected when client tries to get info (e.g. exisits()) for a file
+        // existing neither in Alluxio nor UFS.
+        LOG.debug("Failed to load metadata for path from UFS: {}", inodePath.getUri());
       }
     }
     return AsyncJournalWriter.INVALID_FLUSH_COUNTER;

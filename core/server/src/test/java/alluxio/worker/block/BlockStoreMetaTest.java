@@ -80,9 +80,9 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getBlockListTest() {
-    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
+    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
+      List<Long> blockIdsOnTier = new ArrayList<>();
       for (StorageDir dir : tier.getStorageDirs()) {
         blockIdsOnTier.addAll(dir.getBlockIds());
       }
@@ -107,10 +107,10 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getCapacityBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<Pair<String, String>, Long>();
+    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToCapacityBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToCapacityBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes());
       }
     }
@@ -150,10 +150,10 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getUsedBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<Pair<String, String>, Long>();
+    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToUsedBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToUsedBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes() - dir.getAvailableBytes());
       }
     }

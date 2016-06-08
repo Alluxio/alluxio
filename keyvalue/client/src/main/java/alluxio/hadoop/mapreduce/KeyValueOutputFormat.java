@@ -16,13 +16,13 @@ import alluxio.annotation.PublicApi;
 import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.mapreduce.JobContext;
 import org.apache.hadoop.mapreduce.OutputCommitter;
 import org.apache.hadoop.mapreduce.OutputFormat;
 import org.apache.hadoop.mapreduce.RecordWriter;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
-import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.IOException;
@@ -51,12 +51,11 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
 
   /**
    * @param taskContext MapReduce task context
-   * @return the task's temporary output path ${mapred.out.dir}/_temporary/_${taskid}
+   * @return the task's temporary output path ${job output directory}/_temporary/${task attempt id}
    */
   public static AlluxioURI getTaskOutputURI(TaskAttemptContext taskContext) {
-    int taskId = taskContext.getTaskAttemptID().getTaskID().getId();
-    return getJobOutputURI(taskContext).join(KeyValueOutputCommitter.getPendingDirName())
-        .join("_" + TaskAttemptID.forName(String.valueOf(taskId)));
+    return getJobOutputURI(taskContext).join(KeyValueOutputCommitter.getPendingDirName()).join(
+        taskContext.getTaskAttemptID().toString());
   }
 
   /**
@@ -76,11 +75,9 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
   /**
    * {@inheritDoc}
    * <p>
-   * {@link KeyValueOutputCommitter} is forced to be used. If the output path exists, an exception
-   * is thrown, otherwise, an empty key-value store is created at the output path.
-   * <p>
-   * NOTE: This method is called immediately when job is submitted, so that modifications to the
-   * {@link JobContext} are reflected in the whole job.
+   * This method is called immediately when job is submitted, a key-value store is created at the
+   * job's output directory, key-value stores created by MapReduce tasks will be merged into this
+   * store when task is submitted.
    */
   @Override
   public void checkOutputSpecs(JobContext jobContext) throws IOException {
@@ -93,11 +90,16 @@ public final class KeyValueOutputFormat extends FileOutputFormat<BytesWritable, 
     }
   }
 
+  /**
+   * @param taskContext MapReduce task configuration
+   * @return a {@link KeyValueOutputCommitter}
+   * @throws IOException when committer fails to be created
+   */
   @Override
   public OutputCommitter getOutputCommitter(TaskAttemptContext taskContext) throws IOException {
     if (mCommitter == null) {
-      mCommitter =
-          new KeyValueOutputCommitter(FileOutputFormat.getOutputPath(taskContext), taskContext);
+      mCommitter = new KeyValueOutputCommitter(new Path(KeyValueOutputFormat.getJobOutputURI(
+          taskContext).toString()), taskContext);
     }
     return mCommitter;
   }

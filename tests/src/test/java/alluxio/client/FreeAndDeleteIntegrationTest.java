@@ -12,8 +12,8 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
+import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -29,7 +29,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.worker.block.BlockWorker;
 
-import com.google.common.base.Function;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -94,26 +93,7 @@ public final class FreeAndDeleteIntegrationTest {
 
     mFileSystem.free(filePath);
 
-    // Schedule 1st heartbeat from worker.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-
-    // Waiting for the removal of blockMeta from worker.
-    CommonTestUtils.waitFor(new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        return !bw.hasBlockMeta(blockId);
-      }
-    }, 100 * Constants.SECOND_MS);
-
-    // Schedule 2nd heartbeat from worker.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    // Ensure the 2nd heartbeat is finished.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    IntegrationTestUtils.waitForBlocksToBeFreed(bw, blockId);
 
     status = mFileSystem.getStatus(filePath);
     // Verify block metadata in master is still present after block freed.

@@ -11,54 +11,60 @@
 
 package alluxio.shell.command;
 
-import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
-import alluxio.client.lineage.LineageFileSystem;
-import alluxio.exception.AlluxioException;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.FileSystemMasterClient;
 
 import org.apache.commons.cli.CommandLine;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * Reports to the master that a file is lost.
+ * Prints the current leader master host name.
  */
 @ThreadSafe
-public final class ReportCommand extends WithWildCardPathCommand {
-
+public final class LeaderCommand extends AbstractShellCommand {
   /**
-   * @param conf the configuration for Alluxio
+   * @param conf the configuration of Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public ReportCommand(Configuration conf, FileSystem fs) {
+  public LeaderCommand(Configuration conf, FileSystem fs) {
     super(conf, fs);
   }
 
   @Override
   public String getCommandName() {
-    return "report";
+    return "leader";
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  public int getNumOfArgs() {
+    return 0;
+  }
+
+  @Override
+  public void run(CommandLine cl) {
+    FileSystemMasterClient client = FileSystemContext.INSTANCE.acquireMasterClient();
     try {
-      LineageFileSystem.get().reportLostFile(path);
-      System.out.println(path + " has been reported as lost.");
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
+      String hostName = client.getAddress().getHostName();
+      if (hostName != null) {
+        System.out.println(hostName);
+      } else {
+        System.out.println("Failed to get the leader master.");
+      }
+    } finally {
+      FileSystemContext.INSTANCE.releaseMasterClient(client);
     }
   }
 
   @Override
   public String getUsage() {
-    return "report <path>";
+    return "leader";
   }
 
   @Override
   public String getDescription() {
-    return "Reports to the master that a file is lost.";
+    return "Prints the current leader master host name.";
   }
 }

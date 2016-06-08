@@ -47,8 +47,8 @@ public class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   private String mInstance;
-  private List<Sink> mSinks = new ArrayList<Sink>();
-  private List<Source> mSources = new ArrayList<Source>();
+  private List<Sink> mSinks = new ArrayList<>();
+  private List<Source> mSources = new ArrayList<>();
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
@@ -98,8 +98,7 @@ public class MetricsSystem {
   public MetricsSystem(String instance, Configuration configuration) {
     mInstance = instance;
     mConfiguration = configuration;
-    String metricsConfFile = null;
-    metricsConfFile = mConfiguration.get(Constants.METRICS_CONF_FILE);
+    String metricsConfFile = mConfiguration.get(Constants.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 

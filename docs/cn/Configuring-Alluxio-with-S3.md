@@ -12,7 +12,13 @@ priority: 0
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，由template文件创建配置文件：
+然后，如果你还没有进行这项配置，那么用`bootstrap-conf`命令创建你的配置文件
+
+例如，如果你在本地机器上运行Alluxio，`ALLUXIO_MASTER_HOSTNAME`应该设置为`localhost`。
+
+{% include Configuring-Alluxio-with-s3/bootstrap.md %}
+
+或者，你也可以由template文件创建配置文件并手动设置配置内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -37,12 +43,6 @@ priority: 0
 当`<DISABLE_DNS>`设置为`false`（默认情况）时，定向到名称为"mybucket"的bucket会被发送到名称为"mybucket.s3.amazonaws.com"的主机。当当`<DISABLE_DNS>`设置为`true`时，JetS3t会在HTTP消息请求路径中设定bucket名称，例如"http://s3.amazonaws.com/mybucket"，而不是在主机头部设定。如果不设置该参数，系统将默认设置为`false`.更多的详情请参考http://www.jets3t.org/toolkit/configuration.html。
 
 更改完成后，Alluxio应该能够将S3作为底层文件系统运行，你可以尝试[使用S3在本地运行Alluxio](#running-alluxio-locally-with-s3)
-
-## 使用EC2实例配置文件和IAM角色访问S3
-
-如果你不设置指明`<AWS_ACCESS_KEY_ID>`和`<AWS_SECRET_ACCESS_KEY>`，那么系统假定你在CE2中以一个IAM角色运行Alluxio，并且该IAM角色拥有给定S3 bucket的完整访问权限。
-
-{% include Configuring-Alluxio-with-S3/s3-access.md %}
 
 ## 通过代理访问S3
 

@@ -123,7 +123,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
       }
     });
 
-    Map<String, Metric> operations = new TreeMap<String, Metric>();
+    Map<String, Metric> operations = new TreeMap<>();
     operations.putAll(counters);
     String filesPinnedProperty =
         CommonUtils.argsToString(".", masterSource.getName(), MasterSource.FILES_PINNED);

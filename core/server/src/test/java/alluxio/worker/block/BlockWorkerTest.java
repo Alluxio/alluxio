@@ -148,7 +148,7 @@ public class BlockWorkerTest {
   @Test
   public void cleanupSessionsTest() throws Exception {
     long sessionId = 1;
-    LinkedList<Long> sessions = new LinkedList<Long>();
+    LinkedList<Long> sessions = new LinkedList<>();
     sessions.add(sessionId);
 
     when(mSessions.getTimedOutSessions()).thenReturn(sessions);
@@ -174,7 +174,7 @@ public class BlockWorkerTest {
     long sessionId = mRandom.nextLong();
     long usedBytes = mRandom.nextLong();
     String tierAlias = "MEM";
-    HashMap<String, Long> usedBytesOnTiers = new HashMap<String, Long>();
+    HashMap<String, Long> usedBytesOnTiers = new HashMap<>();
     usedBytesOnTiers.put(tierAlias, usedBytes);
     BlockMeta blockMeta = PowerMockito.mock(BlockMeta.class);
     BlockStoreLocation blockStoreLocation = PowerMockito.mock(BlockStoreLocation.class);
@@ -306,7 +306,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#getBlockMeta(long)} method.
+   * Tests the {@link BlockWorker#getBlockMeta(long, long, long)} method.
    *
    * @throws Exception if the getVolatileBlockMeta check fails
    */
@@ -475,7 +475,7 @@ public class BlockWorkerTest {
   @Test
   public void sessionHeartbeatTest() {
     long sessionId = mRandom.nextLong();
-    List<Long> metrics = new ArrayList<Long>();
+    List<Long> metrics = new ArrayList<>();
     metrics.add(mRandom.nextLong());
 
     mBlockWorker.sessionHeartbeat(sessionId, metrics);
@@ -489,7 +489,7 @@ public class BlockWorkerTest {
    */
   @Test
   public void updatePinListTest() {
-    Set<Long> pinnedInodes = new HashSet<Long>();
+    Set<Long> pinnedInodes = new HashSet<>();
     pinnedInodes.add(mRandom.nextLong());
 
     mBlockWorker.updatePinList(pinnedInodes);

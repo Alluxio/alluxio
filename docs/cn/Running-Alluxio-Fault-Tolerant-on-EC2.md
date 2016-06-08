@@ -119,7 +119,7 @@ worker进程。
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/runTests.md %}
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击
-`Browse File System`，你应该能看到测试过程中写入到Alluxio的文件。
+`Browse`，你应该能看到测试过程中写入到Alluxio的文件。
 
 通过ssh可以登陆到当前Alluxio master leader，并查找AlluxioMaster进程的进程ID：
 
@@ -143,7 +143,7 @@ worker进程。
 查询其公共IP。
 
 在浏览器中输入`http://{NEW_LEADER_MASTER_IP}:19999`地址访问Alluxio web UI，在选项卡中点击
-`Browse File System`，可以看到所有文件依然存在。
+`Browse`，可以看到所有文件依然存在。
 
 在集群中的某个节点上，可以通过ssh免密码登陆到集群中的其他节点：
 
