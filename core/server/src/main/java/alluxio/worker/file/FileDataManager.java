@@ -298,7 +298,10 @@ public final class FileDataManager {
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
     if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
-      throw new IOException("Failed to create " + parentPath);
+      // The parentPath can be created between the exists check and mkdirs call by other threads.
+      if (!mUfs.exists(parentPath)) {
+        throw new IOException("Failed to create " + parentPath);
+      }
     }
     return dstPath;
   }
