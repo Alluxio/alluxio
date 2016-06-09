@@ -127,7 +127,7 @@ public final class UnderFileSystemManager {
     /** The string form of the uri to the file in the under file system. */
     private final String mUri;
 
-    /** The initial position of the stream, valid if mStream != null. */
+    /** The initial position of the stream, only valid if mStream != null. */
     private long mInitPos;
     /** The underlying stream to read data from. */
     private CountingInputStream mStream;
@@ -172,10 +172,12 @@ public final class UnderFileSystemManager {
     }
 
     /**
-     * Checks if the current stream can be reused to serve the request. If so, the current
-     * stream is returned. Otherwise, opens a new input stream to the file this agent references
-     * and closes the previous stream. The new stream will be at the specified position when it
-     * is returned to the caller.
+     * Checks if the current stream can be reused to serve the request. If so, the current stream is
+     * updated to the specified position and returned. Otherwise, opens a new input stream to the
+     * file this agent references and closes the previous stream. The new stream will be at the
+     * specified position when it is returned to the caller. This stream should not be closed by
+     * the caller and will be automatically closed by the agent as long as the agent's close
+     * method is called.
      *
      * @param position the absolute position in the file to start the stream at
      * @return an input stream to the file starting at the specified position, null if the position
@@ -187,7 +189,7 @@ public final class UnderFileSystemManager {
         return null;
       }
 
-      // If no stream has been created or if we need to go backward, make a new cached stream.
+      // If no stream has been created or if we need to go backward, make a new stream and cache it.
       if (mStream == null || mInitPos + mStream.getCount() > position) {
         if (mStream != null) { // Close the existing stream if needed
           mStream.close();

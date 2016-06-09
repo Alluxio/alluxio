@@ -94,7 +94,7 @@ public class UnderFileSystemDataServerHandler {
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
-      LOG.error("Failed to read ufs file, may have been closed due to the client timing out.", e);
+      LOG.error("Failed to read ufs file, may have been closed due to a client timeout.", e);
       RPCFileReadResponse resp =
           RPCFileReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
       ChannelFuture future = ctx.writeAndFlush(resp);

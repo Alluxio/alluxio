@@ -299,7 +299,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
     Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
     in.close();
   }
@@ -316,7 +316,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
     Mockito.verify(mMockInputStream).skip(position);
     in.close();
   }
@@ -333,7 +333,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
     long nextPosition = 100;
     Mockito.when(mMockInputStream.skip(nextPosition)).thenReturn(nextPosition);
     in.skip(nextPosition - position);
@@ -355,7 +355,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
     long nextPosition = 100;
     Mockito.when(mMockInputStream.skip(nextPosition)).thenReturn(nextPosition);
     in.skip(nextPosition - position);
@@ -407,20 +407,30 @@ public final class UnderFileSystemManagerTest {
     long id2 = manager.openFile(secondSessionId, new AlluxioURI(uniqPath2));
     // Both files should be accessible
     InputStream in1 = manager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in1, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in1));
     InputStream in2 = manager.getInputStreamAtPosition(id2, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in2, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in2));
     in1.close();
     in2.close();
     // Clean up second session
     manager.cleanupSession(secondSessionId);
     // First file should still be available
     in1 = manager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in1, "in"));
+    Assert.assertEquals(mMockInputStream, getInternalInputStream(in1));
     in1.close();
     // Second file should no longer be available
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(id2));
     manager.getInputStreamAtPosition(id2, position);
+  }
+
+  /**
+   * Used to enable equality checks on the underlying stream.
+   *
+   * @param in the wrapper stream
+   * @return the internal input stream of a wrapper input stream.
+   */
+  private InputStream getInternalInputStream(InputStream in) {
+    return (InputStream) Whitebox.getInternalState(in, "in");
   }
 }
