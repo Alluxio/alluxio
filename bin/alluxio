@@ -16,7 +16,7 @@ function printUsage {
   echo "COMMAND is one of:"
   echo -e "  format [-s]   \t Format Alluxio master and all workers (if -s specified, only format if underfs is local and doesn't already exist)"
   echo -e "  formatWorker  \t Format Alluxio worker storage"
-  echo -e "  bootstrap-conf\t Generate a config file if one doesn't exist"
+  echo -e "  bootstrapConf \t Generate a config file if one doesn't exist"
   echo -e "  fs            \t Command line input for generic filesystem user client."
   echo -e "  loadufs       \t Load existing files in underlayer filesystem into Alluxio."
   echo -e "  runClass      \t Run an Alluxio class with main method."
@@ -42,7 +42,7 @@ function printUsage {
 }
 
 function bootstrapConf {
-  local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
+  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
   if [[ $# -lt 1 ]]; then
     echo ${usage} >&2
     exit 1
@@ -217,7 +217,7 @@ function main {
 
   # bootstrap to create conf/alluxio-env.sh. This commands needs to be processed
   # before sourcing libexec/alluxio-conf.sh which requires conf/alluxio-env.sh
-  if [[ "${COMMAND}" == "bootstrap-conf" ]]; then
+  if [[ "${COMMAND}" == "bootstrapConf" || "${COMMAND}" == "bootstrap-conf" ]]; then
     bootstrapConf "$@"
     exit 0
   fi
