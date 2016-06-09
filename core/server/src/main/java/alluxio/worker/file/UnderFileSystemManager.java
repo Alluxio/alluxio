@@ -181,16 +181,12 @@ public final class UnderFileSystemManager {
      * @throws IOException if an error occurs when interacting with the UFS
      */
     private InputStream openAtPosition(long position) throws IOException {
-      if (position >= mLength) {
+      if (position >= mLength) { // Position is at EOF
         return null;
       }
 
-      LOG.info("Open at position {}", position);
-
       // If no stream has been created or if we need to go backward, make a new cached stream.
       if (mStream == null || mInitPos + mStream.getCount() > position) {
-        LOG.info("Creating new stream at position {}", position);
-
         if (mStream != null) { // Close the existing stream if needed
           mStream.close();
         }
@@ -219,7 +215,6 @@ public final class UnderFileSystemManager {
           throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
         }
       }
-      LOG.info("Returning stream, possibly cached");
       return mStream;
     }
   }
