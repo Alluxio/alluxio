@@ -56,7 +56,7 @@ public final class UnderFileSystemManagerTest {
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
-  /** The manager object to test */
+  /** The manager object to test. */
   private UnderFileSystemManager mManager;
   /** The mock input stream returned whenever a ufs file is read. */
   private InputStream mMockInputStream;
