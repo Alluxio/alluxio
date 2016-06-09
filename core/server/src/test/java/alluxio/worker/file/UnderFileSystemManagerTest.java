@@ -28,6 +28,7 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -298,8 +299,8 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, in);
-    Mockito.verify(mMockInputStream).skip(position);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
     in.close();
   }
 
@@ -315,9 +316,53 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
     InputStream in = manager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, in);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
     Mockito.verify(mMockInputStream).skip(position);
     in.close();
+  }
+
+  /**
+   * Tests getting an input stream to a valid file at a position returns the correct input
+   * stream, then reading and getting the next position returns the same stream.
+   */
+  @Test
+  public void getInputStreamAtPositionCacheTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    long position = 0;
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    long nextPosition = 100;
+    Mockito.when(mMockInputStream.skip(nextPosition)).thenReturn(nextPosition);
+    in.skip(nextPosition - position);
+    InputStream in2 = manager.getInputStreamAtPosition(id, nextPosition);
+    Assert.assertEquals(in, in2);
+    Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
+    in.close();
+  }
+
+  /**
+   * Tests getting an input stream to a valid file at a position returns the correct input
+   * stream, then reading a backward position gets another input stream.
+   */
+  @Test
+  public void getInputStreamAtPositionInvalidCacheTest() throws Exception {
+    String uniqPath = PathUtils.uniqPath();
+    long position = 0;
+    Mockito.when(mMockUfs.exists(uniqPath)).thenReturn(true);
+    UnderFileSystemManager manager = new UnderFileSystemManager();
+    long id = manager.openFile(SESSION_ID, new AlluxioURI(uniqPath));
+    InputStream in = manager.getInputStreamAtPosition(id, position);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in, "in"));
+    long nextPosition = 100;
+    Mockito.when(mMockInputStream.skip(nextPosition)).thenReturn(nextPosition);
+    in.skip(nextPosition - position);
+    InputStream in2 = manager.getInputStreamAtPosition(id, position);
+    Assert.assertNotEquals(in, in2);
+    in.close();
+    in2.close();
   }
 
   /**
@@ -362,16 +407,16 @@ public final class UnderFileSystemManagerTest {
     long id2 = manager.openFile(secondSessionId, new AlluxioURI(uniqPath2));
     // Both files should be accessible
     InputStream in1 = manager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, in1);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in1, "in"));
     InputStream in2 = manager.getInputStreamAtPosition(id2, position);
-    Assert.assertEquals(mMockInputStream, in2);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in2, "in"));
     in1.close();
     in2.close();
     // Clean up second session
     manager.cleanupSession(secondSessionId);
     // First file should still be available
     in1 = manager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, in1);
+    Assert.assertEquals(mMockInputStream, Whitebox.getInternalState(in1, "in"));
     in1.close();
     // Second file should no longer be available
     mThrown.expect(FileDoesNotExistException.class);

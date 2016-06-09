@@ -165,8 +165,10 @@ public final class UnderFileSystemManager {
      * @throws IOException if an error occurs when interacting with the UFS
      */
     private void close() throws IOException {
-      mStream.close();
-      mStream = null;
+      if (mStream != null) {
+        mStream.close();
+        mStream = null;
+      }
     }
 
     /**
