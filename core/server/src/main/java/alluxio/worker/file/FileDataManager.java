@@ -297,11 +297,17 @@ public final class FileDataManager {
     LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
-    if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
-      // The parentPath can be created between the exists check and mkdirs call by other threads.
-      if (!mUfs.exists(parentPath)) {
-        throw new IOException("Failed to create " + parentPath);
-      }
+    if (!mUfs.exists(parentPath)) {
+      int numRetry = 10;
+      do {
+        if (mUfs.mkdirs(parentPath, true)) {
+          break;
+        } else {
+          // The parentPath can be created between the exists check and mkdirs call by other threads.
+          LOG.error("Failed to create dir: {}", parentPath);
+        }
+        numRetry--;
+      } while(numRetry > 0);
     }
     return dstPath;
   }
