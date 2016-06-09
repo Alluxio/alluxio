@@ -36,7 +36,7 @@ while getopts "hw" o; do
       wait="true"
       ;;
     *)
-      echo -e "${Usage}"
+      echo -e "${Usage}" >&2
       exit 1
       ;;
   esac
@@ -46,7 +46,7 @@ shift $((OPTIND-1))
 
 MESOS_MASTER_ADDRESS="$1"
 if [[ ! "${MESOS_MASTER_ADDRESS}" ]]; then
-  echo -e "${Usage}"
+  echo -e "${Usage}" >&2
   exit 1
 fi
 

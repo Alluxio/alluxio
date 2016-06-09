@@ -26,6 +26,6 @@ elif [[ $CONTAINER_TYPE == 'alluxio-worker' ]]; then
 elif [[ $CONTAINER_TYPE == 'application-master' ]]; then
   ./integration/bin/alluxio-application-master.sh $@
 else
-  echo "Unrecognized container type: $CONTAINER_TYPE"
+  echo "Unrecognized container type: $CONTAINER_TYPE" >&2
   exit 1
 fi
