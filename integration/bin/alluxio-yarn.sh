@@ -15,14 +15,15 @@
 #  alluxio-yarn.sh <numWorkers> <pathHdfs>
 
 function printUsage {
-  echo "Usage: alluxio-yarn.sh <numWorkers> <pathHdfs>"
+  echo "Usage: alluxio-yarn.sh <numWorkers> <pathHdfs> [masterAddress]"
   echo -e "  numWorkers        \tNumber of Alluxio workers to launch"
   echo -e "  pathHdfs          \tPath on HDFS to put alluxio jar and distribute it to YARN"
+  echo -e "  masterAddress     \tYarn node to launch the Alluxio master on, defaults to ALLUXIO_MASTER_HOSTNAME"
   echo
-  echo "Example: ./alluxio-yarn.sh 10 hdfs://localhost:9000/tmp/"
+  echo "Example: ./alluxio-yarn.sh 10 hdfs://localhost:9000/tmp/ ip-172-31-5-205.ec2.internal"
 }
 
-if [[ "$#" != 2 ]]; then
+if [[ "$#" -lt 2 ]] || [[ "$#" -gt 3 ]]; then
   printUsage
   exit 1
 fi
@@ -41,6 +42,8 @@ source "${SCRIPT_DIR}/common.sh"
 
 NUM_WORKERS=$1
 HDFS_PATH=$2
+MASTER_ADDRESS=$3
+
 ALLUXIO_TARFILE="alluxio.tar.gz"
 rm -rf $ALLUXIO_TARFILE
 tar -C $ALLUXIO_HOME -zcf $ALLUXIO_TARFILE \
@@ -69,5 +72,5 @@ export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address ${ALLUXIO_MASTER_HOSTNAME:-localhost} \
+    -master_address ${MASTER_ADDRESS:-${ALLUXIO_MASTER_HOSTNAME}} \
     -resource_path ${HDFS_PATH}
