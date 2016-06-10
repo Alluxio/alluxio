@@ -111,7 +111,7 @@ public final class LineageFileSystemTest {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
-    Assert.assertTrue(outStream instanceof FileOutStream);
+    Assert.assertTrue(outStream != null);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);
     // verify client is released
