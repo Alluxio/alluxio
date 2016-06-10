@@ -300,6 +300,7 @@ public final class FileDataManager {
     if (!mUfs.exists(parentPath)) {
       final int maxRetry = 10;
       int numRetry = 0;
+      // TODO(peis): Retry only if we are making progress.
       for (; numRetry < maxRetry; numRetry++) {
         if (mUfs.mkdirs(parentPath, true) || mUfs.exists(parentPath)) {
           break;
