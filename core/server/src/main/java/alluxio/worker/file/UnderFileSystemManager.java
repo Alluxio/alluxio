@@ -28,12 +28,15 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
+import com.google.common.io.CountingInputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.GuardedBy;
@@ -108,9 +111,8 @@ public final class UnderFileSystemManager {
   }
 
   /**
-   * An object which generates input streams to under file system files given a position. This
-   * class does not manage the life cycles of the generated streams and it is up to the caller to
-   * close the streams when appropriate.
+   * An object which generates input streams to under file system files given a position. Input
+   * stream agents should be closed after the user is done reading data from the file.
    */
   @ThreadSafe
   private final class InputStreamAgent {
@@ -124,6 +126,11 @@ public final class UnderFileSystemManager {
     private final Configuration mConfiguration;
     /** The string form of the uri to the file in the under file system. */
     private final String mUri;
+
+    /** The initial position of the stream, only valid if mStream != null. */
+    private long mInitPos;
+    /** The underlying stream to read data from. */
+    private CountingInputStream mStream;
 
     /**
      * Constructor for an input stream agent for a UFS file. The file must exist when this is
@@ -153,9 +160,24 @@ public final class UnderFileSystemManager {
     }
 
     /**
-     * Opens a new input stream to the file this agent references. The new stream will be at the
-     * specified position when it is returned to the caller. The caller is responsible for
-     * closing the stream.
+     * Closes the internal stream of the input stream agent.
+     *
+     * @throws IOException if an error occurs when interacting with the UFS
+     */
+    private void close() throws IOException {
+      if (mStream != null) {
+        mStream.close();
+        mStream = null;
+      }
+    }
+
+    /**
+     * Checks if the current stream can be reused to serve the request. If so, the current stream is
+     * updated to the specified position and returned. Otherwise, opens a new input stream to the
+     * file this agent references and closes the previous stream. The new stream will be at the
+     * specified position when it is returned to the caller. This stream should not be closed by
+     * the caller and will be automatically closed by the agent as long as the agent's close
+     * method is called.
      *
      * @param position the absolute position in the file to start the stream at
      * @return an input stream to the file starting at the specified position, null if the position
@@ -163,23 +185,41 @@ public final class UnderFileSystemManager {
      * @throws IOException if an error occurs when interacting with the UFS
      */
     private InputStream openAtPosition(long position) throws IOException {
-      if (position >= mLength) {
+      if (position >= mLength) { // Position is at EOF
         return null;
       }
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      // Special handling for S3/GCS with open object at position to save redundant ufs stream
-      // close and reopen in S3InputStream/GCSInputStream skip.
-      if (ufs instanceof S3UnderFileSystem) {
-        return ((S3UnderFileSystem) ufs).openAtPosition(mUri, position);
+
+      // If no stream has been created or if we need to go backward, make a new stream and cache it.
+      if (mStream == null || mInitPos + mStream.getCount() > position) {
+        if (mStream != null) { // Close the existing stream if needed
+          mStream.close();
+        }
+        UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+        // TODO(calvin): Consider making openAtPosition part of the UFS API
+        if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
+          mStream =
+              new CountingInputStream(((S3UnderFileSystem) ufs).openAtPosition(mUri, position));
+          mInitPos = position;
+        } else if (ufs instanceof GCSUnderFileSystem) { // Optimization for GCS UFS
+          mStream =
+              new CountingInputStream(((GCSUnderFileSystem) ufs).openAtPosition(mUri, position));
+          mInitPos = position;
+        } else { // Other UFSs can skip efficiently, so open at start of the file
+          mStream = new CountingInputStream(ufs.open(mUri));
+          mInitPos = 0;
+        }
       }
-      if (ufs instanceof GCSUnderFileSystem) {
-        return ((GCSUnderFileSystem) ufs).openAtPosition(mUri, position);
+
+      // We are guaranteed mStream has been created and the initial position has been set.
+      // Guaranteed by the previous code block that currentPos <= position.
+      long currentPos = mInitPos + mStream.getCount();
+      if (position > currentPos) { // Can skip to next position with the same stream
+        long toSkip = position - currentPos;
+        if (toSkip != mStream.skip(toSkip)) {
+          throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(toSkip));
+        }
       }
-      InputStream stream = ufs.open(mUri);
-      if (position != stream.skip(position)) {
-        throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(position));
-      }
-      return stream;
+      return mStream;
     }
   }
 
@@ -337,11 +377,34 @@ public final class UnderFileSystemManager {
    * @param sessionId the session id to clean up
    */
   public void cleanupSession(long sessionId) {
+    Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
+      toClose =
+          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
       mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
     }
+    // close is done outside of the synchronized block since it may be expensive
+    for (InputStreamAgent agent : toClose) {
+      try {
+        agent.close();
+      } catch (IOException e) {
+        LOG.warn("Failed to close input stream agent for file: " + agent.mUri);
+      }
+    }
+
+    Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
+      toCancel =
+          new HashSet<>(mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId));
       mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
+    }
+    // cancel is done outside of the synchronized block since it may be expensive
+    for (OutputStreamAgent agent : toCancel) {
+      try {
+        agent.cancel();
+      } catch (IOException e) {
+        LOG.warn("Failed to cancel output stream agent for file: " + agent.mUri);
+      }
     }
   }
 
@@ -356,9 +419,9 @@ public final class UnderFileSystemManager {
    */
   public void closeFile(long sessionId, long tempUfsFileId)
       throws FileDoesNotExistException, IOException {
+    InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      InputStreamAgent agent =
-          mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -368,6 +431,8 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mInputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.toString(), tempUfsFileId);
     }
+    // Close is done outside of the synchronized block since it may be expensive.
+    agent.close();
   }
 
   /**

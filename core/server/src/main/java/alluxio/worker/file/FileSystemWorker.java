@@ -178,7 +178,8 @@ public final class FileSystemWorker extends AbstractWorker {
   /**
    * Opens a stream to the under file system file denoted by the temporary file id. This call
    * will skip to the position specified in the file before returning the stream. The caller of
-   * this method is required to close the stream after they have finished operations on it.
+   * this method should not close this stream. Resources will automatically be cleaned up when
+   * {@link #closeUfsFile(long, long)} is called.
    *
    * @param tempUfsFileId the worker specific temporary file id for the file in the under storage
    * @param position the absolute position in the file to position the stream at before returning
