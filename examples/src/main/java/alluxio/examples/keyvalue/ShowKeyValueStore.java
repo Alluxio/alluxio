@@ -40,8 +40,8 @@ public final class ShowKeyValueStore {
         System.out.printf("%s %s%n", key, value);
         break;
       default:
-        throw new RuntimeException(String.format("Unknown scope: %s, should be one of key/value/all",
-                scope));
+        throw new RuntimeException(
+                String.format("Unknown scope: %s, should be one of key/value/all", scope));
     }
   }
 
