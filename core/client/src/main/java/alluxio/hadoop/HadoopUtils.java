@@ -103,7 +103,8 @@ public final class HadoopUtils {
     StringBuilder sb = new StringBuilder();
     sb.append("HadoopFileStatus: Path: ").append(fs.getPath());
     sb.append(" , Length: ").append(fs.getLen());
-    sb.append(" , IsDir: ").append(fs.isDirectory());
+    // Use isDir instead of isDirectory for compatibility with hadoop 1.
+    sb.append(" , IsDir: ").append(fs.isDir());
     sb.append(" , BlockReplication: ").append(fs.getReplication());
     sb.append(" , BlockSize: ").append(fs.getBlockSize());
     sb.append(" , ModificationTime: ").append(fs.getModificationTime());
