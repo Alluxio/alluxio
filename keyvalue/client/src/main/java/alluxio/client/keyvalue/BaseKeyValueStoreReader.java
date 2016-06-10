@@ -88,12 +88,8 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
       } else {
         // The key is either in this partition or not in the kv store
         long blockId = partition.getBlockId();
-        KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId);
-        try {
-          ByteBuffer value = reader.get(key);
-          return value;
-        } finally {
-          reader.close();
+        try (KeyValuePartitionReader reader = KeyValuePartitionReader.Factory.create(blockId)) {
+          return reader.get(key);
         }
       }
     }

@@ -109,6 +109,6 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    * @return the temp directory name
    */
   public static String getPendingDirName() {
-    return FileOutputCommitter.TEMP_DIR_NAME;
+    return FileOutputCommitter.PENDING_DIR_NAME;
   }
 }
