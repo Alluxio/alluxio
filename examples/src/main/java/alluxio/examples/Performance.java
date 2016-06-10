@@ -47,7 +47,6 @@ public final class Performance {
   private static final String FOLDER = "/mnt/ramdisk/";
 
   private static FileSystem sFileSystem = null;
-  private static HostAndPort sMasterAddress = null;
   private static String sFileName = null;
   private static int sBlockSizeBytes = -1;
   private static long sBlocksPerFile = -1;
@@ -606,7 +605,7 @@ public final class Performance {
       System.exit(-1);
     }
 
-    sMasterAddress = HostAndPort.fromString(args[0]);
+    HostAndPort masterAddress = HostAndPort.fromString(args[0]);
     sFileName = args[1];
     sBlockSizeBytes = Integer.parseInt(args[2]);
     sBlocksPerFile = Long.parseLong(args[3]);
@@ -617,7 +616,7 @@ public final class Performance {
     sBaseFileNumber = Integer.parseInt(args[8]);
 
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
-    sFilesBytes = 1L * sFileBytes * sFiles;
+    sFilesBytes = sFileBytes * sFiles;
 
     Configuration configuration = ClientContext.getConf();
 
@@ -631,8 +630,8 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    configuration.set(Constants.MASTER_HOSTNAME, sMasterAddress.getHostText());
-    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(sMasterAddress.getPort()));
+    configuration.set(Constants.MASTER_HOSTNAME, masterAddress.getHostText());
+    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;
