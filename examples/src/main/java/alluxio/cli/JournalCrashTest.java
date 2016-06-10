@@ -22,7 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
 
-import org.apache.commons.cli.BasicParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -129,8 +129,6 @@ public final class JournalCrashTest {
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
-            } catch (Exception e) {
-              throw e;
             }
             sFileSystem.delete(testURI);
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
@@ -141,8 +139,6 @@ public final class JournalCrashTest {
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
-            } catch (Exception e) {
-              throw e;
             }
             sFileSystem.rename(testURI, new AlluxioURI(testURI + "-rename"));
           }
@@ -328,7 +324,7 @@ public final class JournalCrashTest {
     options.addOption("renames", true,
         "Number of Client Threads to request create/rename operations");
     options.addOption("testDir", true, "Test Directory on Alluxio");
-    CommandLineParser parser = new BasicParser();
+    CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     boolean ret = true;
     try {
