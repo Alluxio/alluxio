@@ -306,7 +306,7 @@ public final class FileDataManager {
           break;
         }
         // The parentPath can be created between the exists check and mkdirs call by other threads.
-        LOG.error("Failed to create dir: {}, retrying", parentPath);
+        LOG.warn("Failed to create dir: {}, retrying", parentPath);
       }
       if (numRetry == maxRetry && !mUfs.exists(parentPath)) {
         throw new IOException(
