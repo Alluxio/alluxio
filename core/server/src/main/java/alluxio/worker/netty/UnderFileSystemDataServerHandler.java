@@ -74,8 +74,8 @@ public class UnderFileSystemDataServerHandler {
     long length = req.getLength();
     byte[] data = new byte[(int) length];
 
-    // TODO(calvin): This can be more efficient for sequential reads if we keep state
-    try (InputStream in = mWorker.getUfsInputStream(ufsFileId, offset)) {
+    try {
+      InputStream in = mWorker.getUfsInputStream(ufsFileId, offset);
       int bytesRead = 0;
       if (in != null) { // if we have not reached the end of the file
         while (bytesRead < length) {
@@ -94,7 +94,7 @@ public class UnderFileSystemDataServerHandler {
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
     } catch (Exception e) {
-      LOG.error("Failed to read ufs file", e);
+      LOG.error("Failed to read ufs file, may have been closed due to a client timeout.", e);
       RPCFileReadResponse resp =
           RPCFileReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
       ChannelFuture future = ctx.writeAndFlush(resp);
