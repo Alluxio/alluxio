@@ -81,14 +81,11 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
-    DataOutputStream os = new DataOutputStream(fileOutStream);
-    try {
+    try (DataOutputStream os = new DataOutputStream(fileOutStream)) {
       os.writeInt(mLength);
       for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
-    } finally {
-      os.close();
     }
   }
 
@@ -110,16 +107,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
 
-    DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options));
-    try {
+    try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {
       int length = input.readInt();
       for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
           return false;
         }
       }
-    } finally {
-      input.close();
     }
     return true;
   }
