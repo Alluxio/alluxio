@@ -57,9 +57,9 @@ public class OSSOutputStreamTest {
    */
   @Before
   public void before() throws Exception {
-    mOssClient = PowerMockito.mock(OSSClient.class);
-    mFile = PowerMockito.mock(File.class);
-    mLocalOutputStream = PowerMockito.mock(BufferedOutputStream.class);
+    mOssClient = Mockito.mock(OSSClient.class);
+    mFile = Mockito.mock(File.class);
+    mLocalOutputStream = Mockito.mock(BufferedOutputStream.class);
   }
 
   /**
