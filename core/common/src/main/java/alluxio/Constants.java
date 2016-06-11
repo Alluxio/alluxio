@@ -72,6 +72,7 @@ public final class Constants {
 
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
+  public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
