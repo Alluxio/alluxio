@@ -29,6 +29,7 @@
     <module>oss</module>
     <module>swift</module>
     <module>s3</module>
+    <module>s3a</module>
     <module>gcs</module>
   </modules>
 
@@ -39,6 +40,11 @@
         <groupId>net.java.dev.jets3t</groupId>
         <artifactId>jets3t</artifactId>
         <version>0.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-s3</artifactId>
+        <version>1.11.7</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
