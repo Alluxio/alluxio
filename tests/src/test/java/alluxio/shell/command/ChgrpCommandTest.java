@@ -41,7 +41,8 @@ public class ChgrpCommandTest extends AbstractAlluxioShellTest {
   /**
    * Tests -R option for chgrp recursively.
    *
-   * @throws Exception
+   * @throws IOException if creating the file or getting the status of the filesystem fails
+   * @throws AlluxioException if getting the status of the filesystem fails
    */
   @Test
   public void chgrpRecursiveTest() throws IOException, AlluxioException {

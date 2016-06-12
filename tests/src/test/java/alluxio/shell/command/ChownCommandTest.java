@@ -42,7 +42,8 @@ public class ChownCommandTest extends AbstractAlluxioShellTest {
   /**
    * Tests -R option for chown recursively.
    *
-   * @throws Exception
+   * @throws IOException if creating the file or getting the status of the filesystem fails
+   * @throws AlluxioException if getting the status of the filesystem fails
    */
   @Test
   public void chownRecursiveTest() throws IOException, AlluxioException {
