@@ -289,8 +289,6 @@ public abstract class AbstractJournalFormatterTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -301,8 +299,6 @@ public abstract class AbstractJournalFormatterTest {
 
   /**
    * Closes all streams after a test ran.
-   *
-   * @throws Exception if closing the streams fails
    */
   @After
   public final void after() throws Exception {
@@ -343,8 +339,6 @@ public abstract class AbstractJournalFormatterTest {
   /**
    * Tests the {@link JournalFormatter#deserialize(InputStream)} and
    * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
-   *
-   * @throws IOException if reading or writing an entry fails
    */
   @Test
   public void entriesTest() throws IOException {

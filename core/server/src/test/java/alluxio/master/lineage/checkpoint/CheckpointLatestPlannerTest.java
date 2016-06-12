@@ -60,8 +60,6 @@ public final class CheckpointLatestPlannerTest {
   /**
    * Tests the {@link CheckpointLatestPlanner#generatePlan(LineageStoreView, FileSystemMasterView)}
    * method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void scheduleTest() throws Exception {

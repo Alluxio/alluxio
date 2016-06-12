@@ -67,8 +67,6 @@ public class ResourcePoolTest {
 
   /**
    * Tests that an exception is thrown if the resource pool is used more than its size can take.
-   *
-   * @throws InterruptedException when the queue starts to poll
    */
   @Test
   public void resourcePoolBlockingTest() throws InterruptedException {
