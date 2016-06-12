@@ -83,8 +83,6 @@ public final class BaseFileSystemTest {
   /**
    * Tests the creation of a file via the
    * {@link BaseFileSystem#createFile(AlluxioURI, CreateFileOptions)} method.
-   *
-   * @throws Exception when the client or file system cannot be created
    */
   @Test
   public void createFileTest() throws Exception {
@@ -99,8 +97,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when creating a file system.
-   *
-   * @throws Exception when the client or file system cannot be created
    */
   @Test
   public void createExceptionTest() throws Exception {
@@ -117,8 +113,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#delete(AlluxioURI, DeleteOptions)} method.
-   *
-   * @throws Exception when the file system cannot delete the file
    */
   @Test
   public void deleteTest() throws Exception {
@@ -130,8 +124,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when deleting a file.
-   *
-   * @throws Exception when the file system cannot delete the file
    */
   @Test
   public void deleteExceptionTest() throws Exception {
@@ -148,8 +140,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#free(AlluxioURI, FreeOptions)} method.
-   *
-   * @throws Exception when the file system cannot free the file
    */
   @Test
   public void freeTest() throws Exception {
@@ -161,8 +151,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when freeing a file.
-   *
-   * @throws Exception when the file system cannot free the file
    */
   @Test
   public void freeExceptionTest() throws Exception {
@@ -179,8 +167,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#getStatus(AlluxioURI, GetStatusOptions)} method.
-   *
-   * @throws Exception when the information cannot be retrieved
    */
   @Test
   public void getStatusTest() throws Exception {
@@ -194,8 +180,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when retrieving information.
-   *
-   * @throws Exception when the information cannot be retrieved
    */
   @Test
   public void getStatusExceptionTest() throws Exception {
@@ -212,8 +196,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#listStatus(AlluxioURI, ListStatusOptions)} method.
-   *
-   * @throws Exception when listing the status fails
    */
   @Test
   public void listStatusTest() throws Exception {
@@ -228,8 +210,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when listing the status.
-   *
-   * @throws Exception when listing the status fails
    */
   @Test
   public void listStatusExceptionTest() throws Exception {
@@ -248,8 +228,6 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#loadMetadata(AlluxioURI, LoadMetadataOptions)}
    * method.
-   *
-   * @throws Exception when loading the metadata fails
    */
   @Test
   public void loadMetadataTest() throws Exception {
@@ -262,8 +240,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when loading the metadata.
-   *
-   * @throws Exception when loading the metadata fails
    */
   @Test
   public void loadMetadataExceptionTest() throws Exception {
@@ -282,8 +258,6 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#createDirectory(AlluxioURI, CreateDirectoryOptions)}
    * method.
-   *
-   * @throws Exception when the creation of the directory fails
    */
   @Test
   public void createDirectoryTest() throws Exception {
@@ -296,8 +270,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when creating a directory.
-   *
-   * @throws Exception when the creation of the directory fails
    */
   @Test
   public void createDirectoryExceptionTest() throws Exception {
@@ -315,8 +287,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
-   *
-   * @throws Exception when the path cannot be mounted
    */
   @Test
   public void mountTest() throws Exception {
@@ -330,8 +300,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated correctly when mounting a path.
-   *
-   * @throws Exception when the path cannot be mounted
    */
   @Test
   public void mountExceptionTest() throws Exception {
@@ -351,8 +319,6 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#openFile(AlluxioURI, OpenFileOptions)} method to
    * complete successfully.
-   *
-   * @throws Exception when opening the file fails
    */
   @Test
   public void openFileTest() throws Exception {
@@ -366,8 +332,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when opening a file.
-   *
-   * @throws Exception when opening the file fails
    */
   @Test
   public void openExceptionTest() throws Exception {
@@ -386,8 +350,6 @@ public final class BaseFileSystemTest {
   /**
    * Tests for the {@link BaseFileSystem#rename(AlluxioURI, AlluxioURI, RenameOptions)}
    * method.
-   *
-   * @throws Exception when renaming the file fails
    */
   @Test
   public void renameTest() throws Exception {
@@ -401,8 +363,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when renaming a file.
-   *
-   * @throws Exception when renaming the file fails
    */
   @Test
   public void renameExceptionTest() throws Exception {
@@ -420,8 +380,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#setAttribute(AlluxioURI, SetAttributeOptions)} method.
-   *
-   * @throws Exception when setting the state fails
    */
   @Test
   public void setAttributeTest() throws Exception {
@@ -433,8 +391,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when setting the state.
-   *
-   * @throws Exception when setting the state fails
    */
   @Test
   public void setStateExceptionTest() throws Exception {
@@ -452,8 +408,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Tests for the {@link BaseFileSystem#unmount(AlluxioURI, UnmountOptions)} method.
-   *
-   * @throws Exception when unmounting the path fails
    */
   @Test
   public void unmountTest() throws Exception {
@@ -466,8 +420,6 @@ public final class BaseFileSystemTest {
 
   /**
    * Ensures that an exception is propagated successfully when unmounting a path.
-   *
-   * @throws Exception when unmounting the path fails
    */
   @Test
   public void unmountExceptionTest() throws Exception {
