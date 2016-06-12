@@ -188,7 +188,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         }
         if (!tmpDst.renameTo(dstFile)) {
           throw new IOException(
-                  "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
+              "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
         }
         System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
       } finally {
