@@ -53,16 +53,13 @@ public final class CatCommand extends WithWildCardPathCommand {
 
       if (!status.isFolder()) {
         OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = mFileSystem.openFile(path, options);
         byte[] buf = new byte[512];
-        try {
+        try (FileInStream is = mFileSystem.openFile(path, options)) {
           int read = is.read(buf);
           while (read != -1) {
             System.out.write(buf, 0, read);
             read = is.read(buf);
           }
-        } finally {
-          is.close();
         }
       } else {
         throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
