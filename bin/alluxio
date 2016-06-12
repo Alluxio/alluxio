@@ -44,7 +44,7 @@ function printUsage {
 function bootstrapConf {
   local usage="Usage: $0 bootstrap-conf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
   if [[ $# -lt 1 ]]; then
-    echo ${usage}
+    echo ${usage} >&2
     exit 1
   fi
   local master=${1}
@@ -101,7 +101,7 @@ function bootstrapConf {
       ALLUXIO_UNDERFS_ADDRESS="swift://swift-container/"
       ;;
     *)
-      echo ${usage}
+      echo ${usage} >&2
       exit 1
       ;;
   esac
@@ -160,7 +160,7 @@ function killAll {
 
 function copyDir {
   if [[ $# -ne 1 ]]; then
-    echo "Usage: alluxio copyDir <path>"
+    echo "Usage: alluxio copyDir <path>" >&2
     exit 1
   fi
 
@@ -187,7 +187,7 @@ function runJavaClass {
       ALLUXIO_SHELL_JAVA_OPTS+=" -D${OPTARG}"
       ;;
     \?)
-      echo "Invalid option: -${OPTARG}"
+      echo "Invalid option: -${OPTARG}" >&2
       printUsage
       exit 1
       ;;
@@ -274,8 +274,8 @@ function main {
     runJavaClass "$@"
   ;;
   "loadufs")
-    echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1."
-    echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead."
+    echo "The \"alluxio loadufs <AlluxioURI> <UfsURI>\" command is deprecated since version 1.1." >&2
+    echo "Use the \"alluxio fs mount <AlluxioURI> <UfsURI>\" command followed by the \"alluxio fs ls -R <AlluxioURI>\" command instead." >&2
     exit 1
   ;;
   "runClass")
@@ -344,7 +344,7 @@ function main {
     runJavaClass "$@"
   ;;
   *)
-    echo "Unsupported command ${COMMAND}"
+    echo "Unsupported command ${COMMAND}" >&2
     printUsage
     exit 1
   ;;
