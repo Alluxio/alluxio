@@ -45,8 +45,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that the {@link ReplayCallable} is only called when the key doesn't exist in the cache.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching1() throws Exception {
@@ -65,8 +63,6 @@ public final class ReplayCacheTest {
   /**
    * Tests that the {@link ReplayCallableThrowsIOException} is only called when the key doesn't
    * exist in the cache.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testCaching2() throws Exception {
@@ -84,8 +80,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that old keys are evicted when the configured maximum size is exceeded.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testSizeEviction() throws Exception {
@@ -101,8 +95,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests that keys are evicted after the configured timeout.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testTimeEviction() throws Exception {
@@ -118,8 +110,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallable}s that {@link AlluxioException}s are properly re-thrown as
    * {@link AlluxioTException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testAlluxioExceptionRethrow1() throws Exception {
@@ -135,8 +125,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link AlluxioException}s are properly
    * rethrown as {@link AlluxioTException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testAlluxioExceptionRethrow2() throws Exception {
@@ -153,8 +141,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link IOException}s are correctly
    * re-thrown as {@link ThriftIOException}s.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testIOExceptionRethrow() throws Exception {
@@ -168,8 +154,6 @@ public final class ReplayCacheTest {
 
   /**
    * Tests for {@link ReplayCallable}s that {@link RuntimeException}s are correctly propagated.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated1() throws Exception {
@@ -185,8 +169,6 @@ public final class ReplayCacheTest {
   /**
    * Tests for {@link ReplayCallableThrowsIOException}s that {@link RuntimeException}s are correctly
    * propagated.
-   *
-   * @throws Exception when the replay logic fails
    */
   @Test
   public void testRuntimeExceptionPropagated2() throws Exception {

@@ -35,8 +35,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#cleanPath(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void cleanPathNoExceptionTest() throws InvalidPathException {
@@ -66,8 +64,6 @@ public class PathUtilsTest {
   /**
    * Tests the {@link PathUtils#cleanPath(String)} method to thrown an exception in case an invalid
    * path is provided.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void cleanPathExceptionTest() throws InvalidPathException {
@@ -123,8 +119,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#getParent(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getParentTest() throws InvalidPathException {
@@ -147,8 +141,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#getPathComponents(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getPathComponentsNoExceptionTest() throws InvalidPathException {
@@ -167,8 +159,6 @@ public class PathUtilsTest {
   /**
    * Tests the {@link PathUtils#getPathComponents(String)} method to thrown an exception in case the
    * path is invalid.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getPathComponentsExceptionTest() throws InvalidPathException {
@@ -220,8 +210,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#hasPrefix(String, String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void hasPrefixTest() throws InvalidPathException {
@@ -245,8 +233,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#isRoot(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void isRootTest() throws InvalidPathException {
