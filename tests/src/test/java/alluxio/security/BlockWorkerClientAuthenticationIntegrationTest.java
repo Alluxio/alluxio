@@ -89,17 +89,14 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
-    BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, ClientContext.getConf(),
-        1 /* fake session id */, true, new ClientMetrics());
-    try {
+    try (BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
+        ClientContext.getConf(), 1 /* fake session id */, true, new ClientMetrics())) {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
       blockWorkerClient.connect();
     } finally {
-      blockWorkerClient.close();
       ClientTestUtils.resetClientContext();
     }
   }
