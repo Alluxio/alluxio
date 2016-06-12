@@ -52,7 +52,7 @@
 
 # Config properties set for Alluxio worker daemon. (Default: "")
 # E.g. "-Dalluxio.worker.port=49999"
-# ALLUXIO_WORKER_JAVA_OPTS
+ALLUXIO_WORKER_JAVA_OPTS="-Xms2048M -Xmx2048M"
 
 # Config properties set for Alluxio shell. (Default: "")
 # E.g. "-Dalluxio.user.file.writetype.default=THROUGH"
