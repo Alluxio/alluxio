@@ -100,11 +100,11 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.getDefaultBlockSize();
+    sTFS.getDefaultBlockSize(new Path("/testFile-create"));
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
-    sTFS.getDefaultReplication();
+    sTFS.getDefaultReplication(new Path("/testFile-create"));
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 

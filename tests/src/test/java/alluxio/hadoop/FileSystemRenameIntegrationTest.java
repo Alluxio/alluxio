@@ -223,7 +223,7 @@ public final class FileSystemRenameIntegrationTest {
     sTFS.mkdirs(dirA);
     FSDataOutputStream o = sTFS.create(fileA);
     o.writeBytes("Test Bytes");
-    o.sync();
+    o.hflush();
 
     Assert.assertTrue(sTFS.rename(dirA, dirB));
 
