@@ -63,8 +63,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that a {@link LineageFileOutStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getLineageOutStreamTest() throws Exception {
@@ -81,8 +79,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that a {@link DummyFileOutputStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getDummyOutStreamTest() throws Exception {
@@ -99,8 +95,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that a {@link FileOutStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getNonLineageStreamTest() throws Exception {
@@ -120,8 +114,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that reporting a lost file from the file system informs the client about this file.
-   *
-   * @throws Exception if reporting a lost file fails
    */
   @Test
   public void reportLostFileTest() throws Exception {
