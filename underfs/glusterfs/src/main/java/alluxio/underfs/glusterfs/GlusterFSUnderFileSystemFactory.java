@@ -39,9 +39,6 @@ public class GlusterFSUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, Configuration conf) {
-    if (path == null) {
-      return false;
-    }
-    return path.startsWith(GlusterFSUnderFileSystem.SCHEME);
+    return path != null && path.startsWith(GlusterFSUnderFileSystem.SCHEME);
   }
 }
