@@ -32,9 +32,9 @@ public final class ConcurrencyTestUtils {
    * maximize the chances of triggering a multithreading code error. Suggested by junit team at
    * https://github.com/junit-team/junit/wiki/Multithreaded-code-and-concurrency.
    *
-   * @param runnables
-   * @param maxTimeoutSeconds
-   * @throws InterruptedException
+   * @param runnables the list of runnables
+   * @param maxTimeoutSeconds the maximal timeout in seconds
+   * @throws InterruptedException if awaiting one of the threads fails
    */
   public static void assertConcurrent(final List<? extends Runnable> runnables,
       final int maxTimeoutSeconds) throws InterruptedException {

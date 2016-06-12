@@ -185,12 +185,8 @@ public final class LocalBlockInStreamIntegrationTest {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
-
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
           is.seek(-1);
-        } finally {
-          is.close();
         }
       }
     }
@@ -213,11 +209,8 @@ public final class LocalBlockInStreamIntegrationTest {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
           is.seek(k + 1);
-        } finally {
-          is.close();
         }
       }
     }
