@@ -21,10 +21,10 @@ import com.google.common.base.Throwables;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -67,17 +67,17 @@ public abstract class UIWebServer {
     QueuedThreadPool threadPool = new QueuedThreadPool();
     int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
 
-    mServer = new Server();
-    SelectChannelConnector connector = new SelectChannelConnector();
-    connector.setHost(address.getHostName());
-    connector.setPort(address.getPort());
-    connector.setAcceptors(webThreadCount);
-    mServer.setConnectors(new Connector[] {connector});
-
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
     threadPool.setMaxThreads(webThreadCount * 2 + 100);
-    mServer.setThreadPool(threadPool);
+
+    mServer = new Server(threadPool);
+
+    ServerConnector serverConnector = new ServerConnector(mServer);
+    serverConnector.setPort(mAddress.getPort());
+    serverConnector.setHost(mAddress.getAddress().getHostAddress());
+
+    mServer.addConnector(serverConnector);
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
@@ -122,7 +122,7 @@ public abstract class UIWebServer {
    * @return the bind host
    */
   public String getBindHost() {
-    String bindHost = mServer.getServer().getConnectors()[0].getHost();
+    String bindHost = mAddress.getHostString();
     return bindHost == null ? "0.0.0.0" : bindHost;
   }
 
@@ -132,7 +132,7 @@ public abstract class UIWebServer {
    * @return the local port
    */
   public int getLocalPort() {
-    return mServer.getServer().getConnectors()[0].getLocalPort();
+    return mAddress.getPort();
   }
 
   /**
@@ -143,7 +143,7 @@ public abstract class UIWebServer {
   public void shutdownWebServer() throws Exception {
     // close all connectors and release all binding ports
     for (Connector connector : mServer.getConnectors()) {
-      connector.close();
+      connector.stop();
     }
 
     mServer.stop();
@@ -154,14 +154,15 @@ public abstract class UIWebServer {
    */
   public void startWebServer() {
     try {
-      mServer.getConnectors()[0].close();
-      mServer.getConnectors()[0].open();
-      mServer.start();
       if (mAddress.getPort() == 0) {
-        int webPort = mServer.getConnectors()[0].getLocalPort();
+        int webPort = mAddress.getPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
         mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
+      }
+      mServer.start();
+      while (!mServer.isStarted()) {
+        Thread.sleep(10);
       }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
