@@ -134,7 +134,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the first block of the file.
-
    */
   @Test
   public void arrayReadTest() throws IOException {
