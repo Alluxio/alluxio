@@ -181,8 +181,8 @@ public class FileInStreamIntegrationTest {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
-        FileInStream is = sFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op));
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri,
+            FileSystemTestUtils.toOpenFileOptions(op))) {
           byte[] ret = new byte[k / 2];
           int readBytes = is.read(ret, 0, k / 2);
           while (readBytes != -1) {
@@ -190,8 +190,6 @@ public class FileInStreamIntegrationTest {
             Assert.assertTrue(0 != readBytes);
           }
           Assert.assertEquals(-1, readBytes);
-        } finally {
-          is.close();
         }
       }
     }
@@ -209,11 +207,9 @@ public class FileInStreamIntegrationTest {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
-        FileInStream is = sFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op));
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri,
+            FileSystemTestUtils.toOpenFileOptions(op))) {
           is.seek(-1);
-        } finally {
-          is.close();
         }
       }
     }
@@ -231,11 +227,9 @@ public class FileInStreamIntegrationTest {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
         AlluxioURI uri = new AlluxioURI(filename);
 
-        FileInStream is = sFileSystem.openFile(uri, FileSystemTestUtils.toOpenFileOptions(op));
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri,
+            FileSystemTestUtils.toOpenFileOptions(op))) {
           is.seek(k + 1);
-        } finally {
-          is.close();
         }
       }
     }

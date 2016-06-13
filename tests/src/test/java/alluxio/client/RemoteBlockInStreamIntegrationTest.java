@@ -353,11 +353,8 @@ public class RemoteBlockInStreamIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
-      try {
+      try (FileInStream is = mFileSystem.openFile(uri, mReadNoCache)) {
         is.seek(-1);
-      } finally {
-        is.close();
       }
     }
   }
@@ -376,11 +373,8 @@ public class RemoteBlockInStreamIntegrationTest {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteUnderStore, k);
 
-      FileInStream is = mFileSystem.openFile(uri, mReadNoCache);
-      try {
+      try (FileInStream is = mFileSystem.openFile(uri, mReadNoCache)) {
         is.seek(k + 1);
-      } finally {
-        is.close();
       }
     }
   }
