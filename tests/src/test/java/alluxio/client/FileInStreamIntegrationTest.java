@@ -17,7 +17,6 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 
@@ -29,7 +28,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.Timeout;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -86,7 +84,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read()} across block boundary.
    */
   @Test
-  public void readTest1() throws IOException, AlluxioException {
+  public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -127,7 +125,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read(byte[])}.
    */
   @Test
-  public void readTest2() throws IOException, AlluxioException {
+  public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -152,7 +150,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read(byte[], int, int)}.
    */
   @Test
-  public void readTest3() throws IOException, AlluxioException {
+  public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -177,7 +175,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read(byte[], int, int)} for end of file.
    */
   @Test
-  public void readEndOfFileTest() throws IOException, AlluxioException {
+  public void readEndOfFileTest() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -202,12 +200,9 @@ public class FileInStreamIntegrationTest {
   /**
    * Tests {@link FileInStream#seek(long)}. Validate the expected exception for seeking a negative
    * position.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest1() throws IOException, AlluxioException {
+  public void seekExceptionTest1() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -227,11 +222,9 @@ public class FileInStreamIntegrationTest {
   /**
    * Tests {@link FileInStream#seek(long)}. Validate the expected exception for seeking a position
    * that is past EOF.
-   *
-   * @throws IOException
    */
   @Test
-  public void seekExceptionTest2() throws IOException, AlluxioException {
+  public void seekExceptionTest2() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
@@ -250,12 +243,9 @@ public class FileInStreamIntegrationTest {
 
   /**
    * Tests {@link FileInStream#seek(long)}.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekTest() throws IOException, AlluxioException {
+  public void seekTest() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -275,11 +265,9 @@ public class FileInStreamIntegrationTest {
 
   /**
    * Tests {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
-   *
-   * @throws IOException
    */
   @Test
-  public void eofSeekTest() throws IOException, AlluxioException {
+  public void eofSeekTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int length = BLOCK_SIZE * 3;
     for (CreateFileOptions op : getOptionSet()) {
@@ -302,7 +290,7 @@ public class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, AlluxioException {
+  public void skipTest() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();

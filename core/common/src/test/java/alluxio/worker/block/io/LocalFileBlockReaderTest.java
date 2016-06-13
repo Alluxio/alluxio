@@ -41,8 +41,6 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Sets up the file path and file block reader before a test runs.
-   *
-   * @throws Exception if one of the file operations fails
    */
   @Before
   public void before() throws Exception {
@@ -54,8 +52,6 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Test for the {@link LocalFileBlockReader#getChannel()} method.
-   *
-   * @throws Exception if bytes cannot be read from the channel
    */
   @Test
   public void getChannelTest() throws Exception {
@@ -77,8 +73,6 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Tests that an exception is thrown if the read exceeds the file length limit.
-   *
-   * @throws Exception if the data from the block cannot be read
    */
   @Test
   public void readWithInvalidArgumentTest() throws Exception {
@@ -89,8 +83,6 @@ public class LocalFileBlockReaderTest {
 
   /**
    * Test for the {@link LocalFileBlockReader#read(long, long)} method.
-   *
-   * @throws Exception if the buffer cannot be read from the reader
    */
   @Test
   public void readTest() throws Exception {
@@ -113,9 +105,6 @@ public class LocalFileBlockReaderTest {
   /**
    * Tests that a {@link ClosedChannelException} is thrown when trying to read from a reader after
    * closing it.
-   *
-   * @throws Exception if either the block cannot be read from the reader or closing the reader
-   *                   fails
    */
   @Test
   public void closeTest() throws Exception {

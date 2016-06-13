@@ -184,10 +184,8 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param uri The uri to persist
    * @param size The size of the file
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
-   * @throws IOException if a non-Alluxio exception occurs
    */
-  protected void checkFilePersisted(AlluxioURI uri, int size) throws AlluxioException, IOException {
+  protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
     FileInStream tfis = mFileSystem.openFile(uri);

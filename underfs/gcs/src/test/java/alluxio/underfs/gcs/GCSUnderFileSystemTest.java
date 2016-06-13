@@ -36,8 +36,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#convertToFolderName(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void convertToFolderNameTest() throws Exception {
@@ -49,8 +47,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#getChildName(String, String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getChildNameTest() throws Exception {
@@ -74,8 +70,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#getParentKey(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getParentKeyTest() throws Exception {
@@ -96,8 +90,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#isRoot(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void isRootTest() throws Exception {
@@ -124,8 +116,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
@@ -146,8 +136,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
