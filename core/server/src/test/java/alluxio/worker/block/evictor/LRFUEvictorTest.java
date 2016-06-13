@@ -94,7 +94,7 @@ public class LRFUEvictorTest {
 
   /**
    * Sort all blocks in ascending order of CRF.
-
+   *
    * @return the sorted CRF of all blocks
    */
   private List<Map.Entry<Long, Double>> getSortedCRF(Map<Long, Double> crfMap) {
