@@ -36,8 +36,6 @@ public final class HdfsUnderFileSystemTest {
   /**
    * Tests the {@link HdfsUnderFileSystem#getUnderFSType()} method.
    * Confirm the UnderFSType for HdfsUnderFileSystem
-   *
-   * @throws Exception
    */
   @Test
   public void getUnderFSTypeTest() throws Exception {
@@ -48,8 +46,6 @@ public final class HdfsUnderFileSystemTest {
    * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
-   *
-   * @throws Exception
    */
   @Test
   public void prepareConfigurationTest() throws Exception {

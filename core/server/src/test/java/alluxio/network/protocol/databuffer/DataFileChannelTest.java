@@ -45,8 +45,6 @@ public class DataFileChannelTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws IOException if setting up a dependency fails
    */
   @Before
   public final void before() throws IOException {
@@ -64,8 +62,6 @@ public class DataFileChannelTest {
 
   /**
    * Closes the stream after a test ran.
-   *
-   * @throws IOException if closing the stream fails
    */
   @After
   public final void after() throws IOException {

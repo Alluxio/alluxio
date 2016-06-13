@@ -157,11 +157,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   /**
    * Explicitly starts the {@link LocalAlluxioCluster}.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  public void start() throws IOException, ConnectionFailedException {
+  public void start() throws Exception {
     mLocalAlluxioCluster.start(mTestConf);
   }
 
