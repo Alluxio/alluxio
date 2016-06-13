@@ -164,7 +164,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Same as create(path)
   @Override
   public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with S3UnderFileSystem. Block size will be "
+    LOG.debug("Create with block size is not supported with S3UnderFileSystem. Block size will be "
         + "ignored.");
     return create(path);
   }
@@ -173,7 +173,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path, short replication, int blockSizeByte)
       throws IOException {
-    LOG.warn("Create with block size and replication is not supported with S3UnderFileSystem."
+    LOG.debug("Create with block size and replication is not supported with S3UnderFileSystem."
         + " Block size and replication will be ignored.");
     return create(path);
   }
@@ -223,21 +223,21 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
