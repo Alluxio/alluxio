@@ -122,6 +122,12 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty.toolchain</groupId>
+      <artifactId>jetty-jsp-jdt</artifactId>
+      <version>2.3.3</version>
+    </dependency>
+
 
     <!-- Test Dependencies -->
     <dependency>
