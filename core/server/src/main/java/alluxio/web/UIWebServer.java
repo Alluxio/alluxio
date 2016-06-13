@@ -46,7 +46,6 @@ public abstract class UIWebServer {
   private final ServiceType mService;
   private final Configuration mConfiguration;
   private InetSocketAddress mAddress;
-  private final ServerConnector mServerConnector;
 
   /**
    * Creates a new instance of {@link UIWebServer}. It pairs URLs with servlets and sets the webapp
@@ -74,11 +73,11 @@ public abstract class UIWebServer {
 
     mServer = new Server(threadPool);
 
-    mServerConnector = new ServerConnector(mServer);
-    mServerConnector.setPort(mAddress.getPort());
-    mServerConnector.setHost(mAddress.getAddress().getHostAddress());
+    ServerConnector serverConnector = new ServerConnector(mServer);
+    serverConnector.setPort(mAddress.getPort());
+    serverConnector.setHost(mAddress.getAddress().getHostAddress());
 
-    mServer.addConnector(mServerConnector);
+    mServer.addConnector(serverConnector);
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
@@ -123,7 +122,7 @@ public abstract class UIWebServer {
    * @return the bind host
    */
   public String getBindHost() {
-    String bindHost = mServerConnector.getHost();
+    String bindHost = mAddress.getHostString();
     return bindHost == null ? "0.0.0.0" : bindHost;
   }
 
@@ -133,7 +132,7 @@ public abstract class UIWebServer {
    * @return the local port
    */
   public int getLocalPort() {
-    return mServerConnector.getLocalPort();
+    return mAddress.getPort();
   }
 
   /**
@@ -155,15 +154,15 @@ public abstract class UIWebServer {
    */
   public void startWebServer() {
     try {
-      mServer.start();
-      while (!mServer.isStarted()) {
-        Thread.sleep(10);
-      }
       if (mAddress.getPort() == 0) {
-        int webPort = mServerConnector.getLocalPort();
+        int webPort = mAddress.getPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
         mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
+      }
+      mServer.start();
+      while (!mServer.isStarted()) {
+        Thread.sleep(10);
       }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
