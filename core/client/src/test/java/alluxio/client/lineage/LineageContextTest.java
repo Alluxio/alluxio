@@ -26,8 +26,6 @@ public final class LineageContextTest {
 
   /**
    * Tests the concurrency of the {@link LineageContext}.
-   *
-   * @throws Exception when the thread fails to wait
    */
   @Test
   public void concurrencyTest() throws Exception {

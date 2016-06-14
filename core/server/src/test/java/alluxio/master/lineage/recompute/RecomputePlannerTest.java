@@ -57,8 +57,6 @@ public final class RecomputePlannerTest {
 
   /**
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void oneLineageTest() throws Exception {
@@ -74,8 +72,6 @@ public final class RecomputePlannerTest {
 
   /**
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for two lost files.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void twoLostLineagesTest() throws Exception {
@@ -94,8 +90,6 @@ public final class RecomputePlannerTest {
 
   /**
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one chechpointed lineage.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void oneCheckointedLineageTest() throws Exception {
@@ -109,8 +103,6 @@ public final class RecomputePlannerTest {
 
   /**
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost lineage.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void oneLostLineageTest() throws Exception {

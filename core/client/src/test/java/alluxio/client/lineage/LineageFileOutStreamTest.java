@@ -26,8 +26,6 @@ public final class LineageFileOutStreamTest {
 
   /**
    * Tests that the correct {@link UnderStorageType} is set when creating the stream.
-   *
-   * @throws Exception if creating the stream fails
    */
   @Test
   public void outStreamCreationTest() throws Exception {

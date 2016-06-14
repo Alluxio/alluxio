@@ -65,8 +65,6 @@ public class AbstractFileSystemTest {
 
   /**
    * Sets up the configuration before a test runs.
-   *
-   * @throws Exception when creating the mock fails
    */
   @Before
   public void setup() throws Exception {
@@ -115,8 +113,6 @@ public class AbstractFileSystemTest {
 
   /**
    * Ensures that Hadoop loads {@link FaultTolerantFileSystem} when configured.
-   *
-   * @throws IOException when the file system cannot be retrieved
    */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws Exception {

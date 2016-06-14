@@ -22,7 +22,6 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -277,11 +276,10 @@ public class ReadOnlyMountIntegrationTest {
   /**
    * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
    * second Ufs.
+   *
    * @return the path of the alternate Ufs directory
-   * @throws InvalidPathException if the UNDERFS_ADDRESS is not properly formed
-   * @throws IOException if a UnderFS I/O error occurs
    */
-  private String createAlternateUfs() throws InvalidPathException, IOException {
+  private String createAlternateUfs() throws Exception {
     AlluxioURI parentURI =
         new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
             .getParent();
@@ -293,10 +291,10 @@ public class ReadOnlyMountIntegrationTest {
 
   /**
    * Deletes the alternate under file system directory.
+   *
    * @param alternateUfsRoot the root of the alternate Ufs
-   * @throws IOException if an UnderFS I/O error occurs
    */
-  private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
+  private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
     UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
   }
 }
