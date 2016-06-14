@@ -40,8 +40,6 @@ public class ChgrpCommandTest extends AbstractAlluxioShellTest {
 
   /**
    * Tests -R option for chgrp recursively.
-   *
-   * @throws Exception
    */
   @Test
   public void chgrpRecursiveTest() throws IOException, AlluxioException {

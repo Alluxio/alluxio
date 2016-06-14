@@ -38,8 +38,6 @@ public class SwiftUnderFileSystemTest {
 
   /**
    * Tests the {@link SwiftUnderFileSystem#makeQualifiedPath(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void makeQualifiedPathTest() throws Exception {
@@ -60,8 +58,6 @@ public class SwiftUnderFileSystemTest {
 
   /**
    * Tests the {@link SwiftUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
@@ -82,8 +78,6 @@ public class SwiftUnderFileSystemTest {
 
   /**
    * Tests the {@link SwiftUnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {

@@ -53,8 +53,6 @@ public final class BlockStoreContextTest {
    * requests for clients. It also ensures clients are available for reuse after they are released
    * by the previous owners. If the test takes longer than 10 seconds, a deadlock most likely
    * occurred preventing the release of the master clients.
-   *
-   * @throws Exception if an unexpected error occurs during the test
    */
   @Test(timeout = 10000)
   public void acquireMasterLimitTest() throws Exception {
@@ -108,8 +106,6 @@ public final class BlockStoreContextTest {
    * for clients. It also ensures clients are available for reuse after they are released by the
    * previous owners. If the test takes longer than 10 seconds, a deadlock most likely occurred
    * preventing the release of the worker clients.
-   *
-   * @throws Exception if an unexpected error occurs during the test
    */
   @Test(timeout = 10000)
   public void acquireWorkerLimitTest() throws Exception {

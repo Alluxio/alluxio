@@ -62,8 +62,6 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -172,8 +170,6 @@ public final class BlockMetadataManagerTest {
   /**
    * Tests the different operations for metadata of a block, such as adding a temporary block or
    * committing a block.
-   *
-   * @throws Exception if a metadata operation fails
    */
   @Test
   public void blockMetaTest() throws Exception {
@@ -214,8 +210,6 @@ public final class BlockMetadataManagerTest {
   /**
    * Tests that an exception is thrown in the {@link BlockMetadataManager#getBlockMeta(long)} method
    * when trying to retrieve metadata of a block which does not exist.
-   *
-   * @throws Exception if retrieving the metadata of the block fails
    */
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
@@ -227,8 +221,6 @@ public final class BlockMetadataManagerTest {
   /**
    * Tests that an exception is thrown in the {@link BlockMetadataManager#getTempBlockMeta(long)}
    * method when trying to retrieve metadata of a temporary block which does not exist.
-   *
-   * @throws Exception if retrieving the metadata of the temporary block fails
    */
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
@@ -240,8 +232,6 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Dummy unit test, actually the case of move block meta to same dir should never happen.
-   *
-   * @throws Exception if a metadata operation fails
    */
   @Test
   public void moveBlockMetaSameDirTest() throws Exception {
@@ -271,8 +261,6 @@ public final class BlockMetadataManagerTest {
    * Tests that an exception is thrown in the
    * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when trying to move
    * a block to a not committed block meta.
-   *
-   * @throws Exception if a metadata operation fails
    */
   @Test
   public void moveBlockMetaDiffDirTest() throws Exception {
@@ -303,8 +291,6 @@ public final class BlockMetadataManagerTest {
    * Tests that an exception is thrown in the
    * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, TempBlockMeta)} method when the worker is
    * out of space.
-   *
-   * @throws Exception if adding or moving the metadata of a block fails
    */
   @Test
   public void moveBlockMetaOutOfSpaceExceptionTest() throws Exception {
@@ -329,8 +315,6 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Tests the {@link BlockMetadataManager#moveBlockMeta(BlockMeta, BlockStoreLocation)} method.
-   *
-   * @throws Exception if a metadata operation fails
    */
   @Test
   public void moveBlockMetaDeprecatedTest() throws Exception {
@@ -358,8 +342,6 @@ public final class BlockMetadataManagerTest {
    * Tests that an exception is thrown in the
    * {@link BlockMetadataManager#moveBlockMeta(BlockMeta, BlockStoreLocation)} method when the
    * capacity is exceeded.
-   *
-   * @throws Exception if adding or moving the metadata of a block fails
    */
   @Test
   public void moveBlockMetaDeprecatedExceedCapacityTest() throws Exception {
@@ -374,8 +356,6 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Tests the {@link BlockMetadataManager#resizeTempBlockMeta(TempBlockMeta, long)} method.
-   *
-   * @throws Exception if resizing the metadata of the block fails
    */
   @Test
   public void resizeTempBlockMetaTest() throws Exception {
@@ -388,8 +368,6 @@ public final class BlockMetadataManagerTest {
 
   /**
    * Tests the {@link BlockMetadataManager#cleanupSessionTempBlocks(long, List)} method.
-   *
-   * @throws Exception if adding metadata to a block or a temporary block fails
    */
   @Test
   public void cleanupSessionTest() throws Exception {
