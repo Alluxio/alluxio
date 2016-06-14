@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for copyToLocal command.
  */
-public class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
+public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyToLocalDirTest() throws IOException, AlluxioException {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);

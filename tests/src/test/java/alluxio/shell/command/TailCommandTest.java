@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Tests for tail command.
  */
-public class TailCommandTest extends AbstractAlluxioShellTest {
+public final class TailCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void tailEmptyFileTest() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);

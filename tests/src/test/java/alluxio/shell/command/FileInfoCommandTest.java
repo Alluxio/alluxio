@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for fileInfo command.
  */
-public class FileInfoCommandTest extends AbstractAlluxioShellTest {
+public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void fileinfoNotExistTest() throws IOException {
     int ret = mFsShell.run("fileInfo", "/NotExistFile");

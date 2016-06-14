@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * Tests for cp command.
  */
-public class CpCommandTest extends AbstractAlluxioShellTest {
+public final class CpCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyDirTest() throws Exception {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);

@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for chown command.
  */
-public class ChownCommandTest extends AbstractAlluxioShellTest {
+public final class ChownCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void chownTest() throws IOException, AlluxioException {
