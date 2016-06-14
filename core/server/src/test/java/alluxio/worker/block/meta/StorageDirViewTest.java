@@ -51,8 +51,6 @@ public class StorageDirViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -126,8 +124,6 @@ public class StorageDirViewTest {
 
   /**
    * Tests the {@link StorageDirView#getEvictableBlocks()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void getEvictableBlocksTest() throws Exception {

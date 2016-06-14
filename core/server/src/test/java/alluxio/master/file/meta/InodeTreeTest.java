@@ -71,8 +71,6 @@ public final class InodeTreeTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -110,8 +108,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that initializing the root twice results in the same root.
-   *
-   * @throws Exception if getting the Inode by path fails
    */
   @Test
   public void initializeRootTwiceTest() throws Exception {
@@ -126,8 +122,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for creating
    * directories.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createDirectoryTest() throws Exception {
@@ -156,8 +150,6 @@ public final class InodeTreeTest {
   /**
    * Tests that an exception is thrown when trying to create an already existing directory with the
    * {@code allowExists} flag set to {@code false}.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createExistingDirectoryTest() throws Exception {
@@ -175,8 +167,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that creating a file under a pinned directory works.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
@@ -199,8 +189,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for
    * creating a file.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createFileTest() throws Exception {
@@ -217,8 +205,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createPathTest() throws Exception {
@@ -273,8 +259,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create the root path twice.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createRootPathTest() throws Exception {
@@ -286,8 +270,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with invalid block size.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileWithInvalidBlockSizeTest() throws Exception {
@@ -300,8 +282,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with a negative block size.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileWithNegativeBlockSizeTest() throws Exception {
@@ -314,8 +294,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a non-existing directory.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileUnderNonexistingDirTest() throws Exception {
@@ -327,8 +305,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file twice.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileTwiceTest() throws Exception {
@@ -341,8 +317,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a file path.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileUnderFileTest() throws Exception {
@@ -385,8 +359,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
-   *
-   * @throws Exception if getting the Inode by path fails
    */
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
@@ -399,8 +371,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested path.
-   *
-   * @throws Exception if creating the path or getting the Inode by path fails
    */
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
@@ -414,8 +384,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode with an invalid id.
-   *
-   * @throws Exception if getting the Inode by its id fails
    */
   @Test
   public void getInodeByInvalidIdTest() throws Exception {
@@ -439,8 +407,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#getPath(Inode)} method.
-   *
-   * @throws Exception if creating the path or getting the Inode by its id fails
    */
   @Test
   public void getPathTest() throws Exception {
@@ -465,8 +431,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#lockDescendants(LockedInodePath, InodeTree.LockMode)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void getInodeChildrenRecursiveTest() throws Exception {
@@ -487,8 +451,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#deleteInode(LockedInodePath)} method.
-   *
-   * @throws Exception if an {@link InodeTree} operation fails
    */
   @Test
   public void deleteInodeTest() throws Exception {
@@ -518,8 +480,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#setPinned(LockedInodePath, boolean)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void setPinnedTest() throws Exception {
@@ -547,8 +507,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that streaming to a journal checkpoint works.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void streamToJournalCheckpointTest() throws Exception {
@@ -574,8 +532,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#addInodeFromJournal(alluxio.proto.journal.Journal.JournalEntry)}
    * method.
-   *
-   * @throws Exception if creating a path fails
    */
   @Test
   public void addInodeFromJournalTest() throws Exception {

@@ -47,8 +47,6 @@ public class GlusterFSUnderFileSystemFactoryTest {
 
   /**
    * Tests the {@link UnderFileSystem#create(String)} method.
-   *
-   * @throws Exception when the creation fails
    */
   @Test
   public void createGlusterFS() throws Exception {

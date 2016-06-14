@@ -60,8 +60,6 @@ public final class LineageMasterTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -79,8 +77,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#getLineageInfoList()} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void listLineagesTest() throws Exception {
@@ -96,8 +92,6 @@ public final class LineageMasterTest {
   /**
    * Tests that an exception is thrown when trying to create a lineage for a non-existing file via
    * the {@link LineageMaster#createLineage(List, List, Job)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void createLineageWithNonExistingFileTest() throws Exception {
@@ -116,8 +110,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#deleteLineage(long, boolean)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteLineageTest() throws Exception {
@@ -133,8 +125,6 @@ public final class LineageMasterTest {
   /**
    * Tests that an exception is thrown when trying to delete a non-existing lineage via the
    * {@link LineageMaster#deleteLineage(long, boolean)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteNonexistingLineageTest() throws Exception {
@@ -151,8 +141,6 @@ public final class LineageMasterTest {
    * Tests that an exception is thrown when trying to delete a lineage with children via the
    * {@link LineageMaster#deleteLineage(long, boolean)} without setting the {@code cascade} flag to
    * {@code true}.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteLineageWithChildrenTest() throws Exception {
@@ -171,8 +159,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#reinitializeFile(String, long, long)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void reinitializeFileTest() throws Exception {
@@ -187,8 +173,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests that completing a file asynchronously works.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void asyncCompleteFileTest() throws Exception {
@@ -201,8 +185,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#stop()} method.
-   *
-   * @throws Exception if stopping the master fails
    */
   @Test
   public void stopTest() throws Exception {

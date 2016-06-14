@@ -67,9 +67,7 @@ public final class TailCommand extends WithWildCardPathCommand {
 
     if (!status.isFolder()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream is = null;
-      try {
-        is = mFileSystem.openFile(path, options);
+      try (FileInStream is = mFileSystem.openFile(path, options)) {
         byte[] buf = new byte[numOfBytes];
         long bytesToRead;
         if (status.getLength() > numOfBytes) {
@@ -84,8 +82,6 @@ public final class TailCommand extends WithWildCardPathCommand {
         }
       } catch (AlluxioException e) {
         throw new IOException(e.getMessage());
-      } finally {
-        is.close();
       }
     } else {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));

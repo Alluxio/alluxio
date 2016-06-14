@@ -106,8 +106,6 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   /**
    * Tests Alluxio Worker client connects or disconnects to the Worker.
-   *
-   * @throws Exception
    */
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
