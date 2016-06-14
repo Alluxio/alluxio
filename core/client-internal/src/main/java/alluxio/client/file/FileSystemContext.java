@@ -72,6 +72,9 @@ public enum FileSystemContext {
    * {@link ClientContext}.
    */
   public void reset() {
+    if(null != mFileSystemMasterClientPool) {
+        return;
+    }
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool =
         new FileSystemMasterClientPool(ClientContext.getMasterAddress());
