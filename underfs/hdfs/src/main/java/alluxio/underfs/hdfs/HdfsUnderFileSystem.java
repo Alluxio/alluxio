@@ -282,11 +282,17 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     if (mFileSystem instanceof DistributedFileSystem) {
       switch (type) {
         case SPACE_TOTAL:
-          return mFileSystem.getStatus().getCapacity();
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getCapacity() will be the new one.
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
         case SPACE_USED:
-          return mFileSystem.getStatus().getUsed();
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getUsed() will be the new one.
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
-          return mFileSystem.getStatus().getRemaining();
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getRemaining() will be the new one.
+          return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
         default:
           throw new IOException("Unknown getSpace parameter: " + type);
       }
