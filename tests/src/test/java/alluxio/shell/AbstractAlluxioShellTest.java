@@ -110,23 +110,30 @@ public abstract class AbstractAlluxioShellTest {
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
-      if (cmd.equals("ls")) {
-        // Not sure how to handle this one.
-        return null;
-      } else if (cmd.equals("mkdir")) {
-        return "Successfully created directory " + command[1] + "\n";
-      } else if (cmd.equals("rm") || cmd.equals("rmr")) {
-        return command[1] + " has been removed" + "\n";
-      } else if (cmd.equals("touch")) {
-        return command[1] + " has been created" + "\n";
+      switch (cmd) {
+        case "ls":
+          // Not sure how to handle this one.
+          return null;
+        case "mkdir":
+          return "Successfully created directory " + command[1] + "\n";
+        case "rm":
+        case "rmr":
+          return command[1] + " has been removed" + "\n";
+        case "touch":
+          return command[1] + " has been created" + "\n";
+        default:
+          return null;
       }
     } else if (command.length == 3) {
-      if (cmd.equals("mv")) {
-        return "Renamed " + command[1] + " to " + command[2] + "\n";
-      } else if (cmd.equals("copyFromLocal")) {
-        return "Copied " + command[1] + " to " + command[2] + "\n";
-      } else if (cmd.equals("copyToLocal")) {
-        return "Copied " + command[1] + " to " + command[2] + "\n";
+      switch (cmd) {
+        case "mv":
+          return "Renamed " + command[1] + " to " + command[2] + "\n";
+        case "copyFromLocal":
+          return "Copied " + command[1] + " to " + command[2] + "\n";
+        case "copyToLocal":
+          return "Copied " + command[1] + " to " + command[2] + "\n";
+        default:
+          return null;
       }
     } else if (command.length > 3) {
       if (cmd.equals("location")) {
