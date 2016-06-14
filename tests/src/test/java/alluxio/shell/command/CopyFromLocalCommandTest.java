@@ -31,7 +31,7 @@ import java.io.IOException;
 /**
  * Tests for copyFromLocal command.
  */
-public class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
+public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void copyDirectoryFromLocalAtomicTest() throws Exception {
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");

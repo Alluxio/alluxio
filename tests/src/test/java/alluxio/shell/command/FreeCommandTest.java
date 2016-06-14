@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * Tests for free command.
  */
-public class FreeCommandTest extends AbstractAlluxioShellTest {
+public final class FreeCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);

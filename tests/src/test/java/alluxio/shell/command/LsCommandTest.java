@@ -30,7 +30,7 @@ import java.io.IOException;
 /**
  * Tests for ls command.
  */
-public class LsCommandTest extends AbstractAlluxioShellTest {
+public final class LsCommandTest extends AbstractAlluxioShellTest {
   // Helper function to format ls result.
   private String getLsResultStr(AlluxioURI uri, int size, String testUser, String testGroup)
       throws IOException, AlluxioException {

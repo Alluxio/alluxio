@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Tests for cat command.
  */
-public class CatCommandTest extends AbstractAlluxioShellTest {
+public final class CatCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void catDirectoryTest() throws IOException {
     String[] command = new String[] {"mkdir", "/testDir"};
