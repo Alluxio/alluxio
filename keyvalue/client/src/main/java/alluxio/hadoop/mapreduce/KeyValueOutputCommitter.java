@@ -109,6 +109,8 @@ public final class KeyValueOutputCommitter extends FileOutputCommitter {
    * @return the temp directory name
    */
   public static String getPendingDirName() {
-    return FileOutputCommitter.PENDING_DIR_NAME;
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileOutputCommitter.PENDING_DIR_NAME will be the new one.
+    return FileOutputCommitter.TEMP_DIR_NAME;
   }
 }
