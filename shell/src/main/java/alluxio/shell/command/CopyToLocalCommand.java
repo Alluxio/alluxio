@@ -176,8 +176,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
           RandomStringUtils.randomAlphanumeric(8));
       File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
 
-      Closer closer = Closer.create();
-      try {
+      try (Closer closer = Closer.create()) {
         OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
         FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
         FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
@@ -193,7 +192,6 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         }
         System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
       } finally {
-        closer.close();
         tmpDst.delete();
       }
     } catch (AlluxioException e) {

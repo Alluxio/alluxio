@@ -44,8 +44,6 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Sets up the file path and writer before a test runs.
-   *
-   * @throws Exception if one of the file operations fails
    */
   @Before
   public void before() throws Exception {
@@ -55,8 +53,6 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Test for the {@link LocalFileBlockWriter#getChannel()} method.
-   *
-   * @throws Exception if writing to the channel or closing it fails
    */
   @Test
   public void getChannelTest() throws Exception {
@@ -71,8 +67,6 @@ public class LocalFileBlockWriterTest {
 
   /**
    * Test for the {@link LocalFileBlockWriter#append(ByteBuffer)} method.
-   *
-   * @throws Exception if appending to the channel or closing it fails
    */
   @Test
   public void appendTest() throws Exception {
@@ -88,8 +82,6 @@ public class LocalFileBlockWriterTest {
   /**
    * Tests that a {@link ClosedChannelException} is thrown when trying to append to a channel after
    * closing it.
-   *
-   * @throws Exception if appending to the channel or closing it fails
    */
   @Test
   public void closeTest() throws Exception {

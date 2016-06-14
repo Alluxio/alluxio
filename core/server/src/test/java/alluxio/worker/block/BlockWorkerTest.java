@@ -22,8 +22,8 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.SessionCleaner;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.LocalFileBlockWriter;
@@ -80,8 +80,6 @@ public class BlockWorkerTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws IOException if initialization fails
    */
   @Before
   public void before() throws IOException {
@@ -121,8 +119,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
-   *
-   * @throws Exception if aborting the block fails
    */
   @Test
   public void abortBlockTest() throws Exception {
@@ -134,8 +130,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#accessBlock(long, long)} method.
-   *
-   * @throws Exception if accessing the block fails
    */
   @Test
   public void accessBlockTest() throws Exception {
@@ -166,8 +160,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#commitBlock(long, long)} method.
-   *
-   * @throws Exception if a block operation fails
    */
   @Test
   public void commitBlockTest() throws Exception {
@@ -234,8 +226,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
-   *
-   * @throws Exception if the creation of the block or its metadata fails
    */
   @Test
   public void createBlockTest() throws Exception {
@@ -258,8 +248,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#createBlockRemote(long, long, String, long)} method.
-   *
-   * @throws Exception if the creation of the block or its metadata fails
    */
   @Test
   public void createBlockRemoteTest() throws Exception {
@@ -281,8 +269,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#freeSpace(long, long, String)} method.
-   *
-   * @throws Exception if the free space check fails
    */
   @Test
   public void freeSpaceTest() throws Exception {
@@ -296,8 +282,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getTempBlockWriterRemote(long, long)} method.
-   *
-   * @throws Exception if the method check fails
    */
   @Test
   public void getTempBlockWriterRemoteTest() throws Exception {
@@ -331,8 +315,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getVolatileBlockMeta(long)} method.
-   *
-   * @throws Exception if the getVolatileBlockMeta check fails
    */
   @Test
   public void getVolatileBlockMetaTest() throws Exception {
@@ -343,8 +325,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getBlockMeta(long, long, long)} method.
-   *
-   * @throws Exception if the getVolatileBlockMeta check fails
    */
   @Test
   public void getBlockMetaTest() throws Exception {
@@ -367,8 +347,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#lockBlock(long, long)} method.
-   *
-   * @throws Exception if the lockBlock check fails
    */
   @Test
   public void lockBlockTest() throws Exception {
@@ -380,8 +358,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#moveBlock(long, long, String)} method.
-   *
-   * @throws Exception if the moveBlock check fails
    */
   @Test
   public void moveBlockTest() throws Exception {
@@ -402,8 +378,6 @@ public class BlockWorkerTest {
   /**
    * Tests the {@link BlockWorker#moveBlock(long, long, String)} method no-ops if the block is
    * already at the destination location.
-   *
-   * @throws Exception if the moveBlock check fails
    */
   @Test
   public void moveBlockNoopTest() throws Exception {
@@ -423,8 +397,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#readBlock(long, long, long)} method.
-   *
-   * @throws Exception if the readBlock check fails
    */
   @Test
   public void readBlockTest() throws Exception {
@@ -445,8 +417,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#readBlockRemote(long, long, long)} method.
-   *
-   * @throws Exception if the readBlockRemote check fails
    */
   @Test
   public void readBlockRemote() throws Exception {
@@ -460,8 +430,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#removeBlock(long, long)} method.
-   *
-   * @throws Exception if the removeBlock check fails
    */
   @Test
   public void removeBlockTest() throws Exception {
@@ -473,8 +441,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#requestSpace(long, long, long)} method.
-   *
-   * @throws Exception if the requestSpace check fails
    */
   @Test
   public void requestSpaceTest() throws Exception {
@@ -488,8 +454,6 @@ public class BlockWorkerTest {
   /**
    * Tests the {@link BlockWorker#unlockBlock(long)} and
    * {@link BlockWorker#unlockBlock(long, long)} method.
-   *
-   * @throws Exception if the unlockBlock check fails
    */
   @Test
   public void unlockBlockTest() throws Exception {
@@ -506,7 +470,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#sessionHeartbeat(long, List<long>)} method.
-   *
    */
   @Test
   public void sessionHeartbeatTest() {
@@ -521,7 +484,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#updatePinList(Set<long>)} method.
-   *
    */
   @Test
   public void updatePinListTest() {
@@ -534,8 +496,6 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getFileInfo(long)} method.
-   *
-   * @throws Exception if the getFileInfo check fails
    */
   @Test
   public void getFileInfoTest() throws Exception {

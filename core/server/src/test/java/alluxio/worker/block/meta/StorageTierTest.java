@@ -56,8 +56,6 @@ public class StorageTierTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public final void before() throws Exception {
@@ -99,8 +97,6 @@ public class StorageTierTest {
 
   /**
    * Tests the {@link StorageTier#getCapacityBytes()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void getCapacityBytesTest() throws Exception {
@@ -113,8 +109,6 @@ public class StorageTierTest {
 
   /**
    * Tests the {@link StorageTier#getAvailableBytes()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void getAvailableBytesTest() throws Exception {

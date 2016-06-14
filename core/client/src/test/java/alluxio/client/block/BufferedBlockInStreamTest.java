@@ -42,8 +42,6 @@ public class BufferedBlockInStreamTest {
   /**
    * Verifies the byte by byte read is equal to an increasing byte array, where the written data is
    * an increasing byte array.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void singleByteReadTest() throws Exception {
@@ -54,8 +52,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests for the {@link BufferedBlockInStream#skip(long)} method.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void skipTest() throws Exception {
@@ -70,8 +66,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests for the {@link BufferedBlockInStream#seek(long)} method.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void seekTest() throws Exception {
@@ -90,8 +84,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests that {@link BufferedBlockInStream#read(byte[], int, int)} works for bulk reads.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void bulkReadTest() throws Exception {
