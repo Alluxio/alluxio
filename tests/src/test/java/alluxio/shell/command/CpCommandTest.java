@@ -31,6 +31,10 @@ import java.io.IOException;
  * Tests for cp command.
  */
 public final class CpCommandTest extends AbstractAlluxioShellTest {
+
+  /**
+   * Tests recursively copying a directory.
+   */
   @Test
   public void copyDirTest() throws Exception {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -54,6 +58,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
         equals(new AlluxioURI("/copy/foobar4"), new AlluxioURI("/testWildCards/foobar4")));
   }
 
+  /**
+   * Tests copying a list of files specified through a wildcard expression.
+   */
   @Test
   public void copyWildcardDirTest() throws Exception {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -73,6 +80,9 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
         equals(new AlluxioURI("/copy/foobar3"), new AlluxioURI("/testWildCards/bar/foobar3")));
   }
 
+  /**
+   * Tests invalid input arguments.
+   */
   @Test
   public void copyWildcardNotDirTest() throws Exception {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
