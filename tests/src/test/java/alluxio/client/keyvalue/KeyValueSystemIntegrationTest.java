@@ -303,12 +303,9 @@ public final class KeyValueSystemIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    KeyValueMasterClient client =
-        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
-    try {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(ClientContext.getMasterAddress(),
+        ClientContext.getConf())) {
       return client.getPartitionInfo(storeUri).size();
-    } finally {
-      client.close();
     }
   }
 
