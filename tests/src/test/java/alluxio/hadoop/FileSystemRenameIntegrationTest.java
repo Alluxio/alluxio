@@ -223,7 +223,9 @@ public final class FileSystemRenameIntegrationTest {
     sTFS.mkdirs(dirA);
     FSDataOutputStream o = sTFS.create(fileA);
     o.writeBytes("Test Bytes");
-    o.hflush();
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FSDataOutputStream.hflush will be the new one.
+    o.sync();
 
     Assert.assertTrue(sTFS.rename(dirA, dirB));
 
