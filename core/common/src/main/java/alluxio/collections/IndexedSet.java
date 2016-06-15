@@ -120,12 +120,15 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public interface FieldIndex<T> {
     /**
+     * Gets whether this FieldIndex is Unique or Repeatable
+     */
+    Boolean isUnique();
+    /**
      * Gets the value of the field that serves as index.
      *
      * @param o the instance to get the field value from
      * @return the field value, which is just an Object
      */
-    Boolean isUnique();
     Object getFieldValue(T o);
   }
 
@@ -482,7 +485,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return the set of objects with the specified field value
    */
   private T getByFieldInternal(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(!index.isUnique(), "Using getByFieldInternalUniq for repeatable index");
+    Preconditions.checkState(index.isUnique(), "Using getByFieldInternalUniq for repeatable index");
     if(mIndexMap == null)
       return null;
     return mIndexMap.get(index).get(value);
