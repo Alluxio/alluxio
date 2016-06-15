@@ -24,6 +24,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
 import alluxio.util.io.PathUtils;
 
@@ -63,13 +64,14 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
     List<AlluxioURI> srcPaths = AlluxioShellUtils.getAlluxioURIs(mFileSystem, srcPath);
     if (srcPaths.size() == 0) {
-      throw new IOException(srcPath.getPath() + " does not exist.");
+      throw new FileDoesNotExistException(
+          ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(srcPath.getPath()));
     }
 
     if (srcPath.containsWildcard()) {
@@ -85,36 +87,32 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPaths a list of files or directories in the Alluxio filesystem
    * @param dstPath the destination in the Alluxio filesystem
-   * @throws IOException
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath) throws IOException {
+  private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
+      throws AlluxioException, IOException {
     URIStatus dstStatus = null;
     try {
       dstStatus = mFileSystem.getStatus(dstPath);
     } catch (FileDoesNotExistException e) {
       // if the destination does not exist, it will be created
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
     }
 
     if (dstStatus != null && !dstStatus.isFolder()) {
-      throw new IOException(
+      throw new InvalidPathException(
           ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
     }
     if (dstStatus == null) {
-      try {
-        mFileSystem.createDirectory(dstPath);
-        System.out.println("Created directory: " + dstPath.getPath());
-      } catch (AlluxioException e) {
-        throw new IOException("Fail to create directory: " + dstPath.getPath());
-      }
+      mFileSystem.createDirectory(dstPath);
+      System.out.println("Created directory: " + dstPath.getPath());
     }
     List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI srcPath : srcPaths) {
       try {
         copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
             PathUtils.concatPath(dstPath.getPath(), srcPath.getName())));
-      } catch (IOException e) {
+      } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
       }
     }
@@ -128,46 +126,34 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
    * @param dstPath the destination path in the Alluxio filesystem
-   * @throws IOException
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copy(AlluxioURI srcPath, AlluxioURI dstPath) throws IOException {
-    URIStatus srcStatus;
-    try {
-      srcStatus = mFileSystem.getStatus(srcPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  private void copy(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException, IOException {
+    URIStatus srcStatus = mFileSystem.getStatus(srcPath);
 
     URIStatus dstStatus = null;
     try {
       dstStatus = mFileSystem.getStatus(dstPath);
     } catch (FileDoesNotExistException e) {
       // if the destination does not exist, it will be created
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
     }
 
-    if (srcStatus.isFolder()) {
+    if (!srcStatus.isFolder()) {
+      copyFile(srcPath, dstPath);
+    } else {
       if (dstStatus != null && !dstStatus.isFolder()) {
         throw new IOException(
             ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
       }
 
       if (dstStatus == null) {
-        try {
-          mFileSystem.createDirectory(dstPath);
-          System.out.println("Created directory: " + dstPath.getPath());
-        } catch (AlluxioException e) {
-          throw new IOException("Fail to create directory: " + dstPath.getPath());
-        }
+        mFileSystem.createDirectory(dstPath);
+        System.out.println("Created directory: " + dstPath.getPath());
       }
 
       List<URIStatus> statuses;
-      try {
-        statuses = mFileSystem.listStatus(srcPath);
-      } catch (AlluxioException e) {
-        throw new IOException(e.getMessage());
-      }
+      statuses = mFileSystem.listStatus(srcPath);
 
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
@@ -183,8 +169,6 @@ public final class CpCommand extends AbstractShellCommand {
       if (errorMessages.size() != 0) {
         throw new IOException(Joiner.on('\n').join(errorMessages));
       }
-    } else {
-      copyFile(srcPath, dstPath);
     }
   }
 
@@ -193,15 +177,12 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the source {@link AlluxioURI} (has to be a file)
    * @param dstPath the destination path in the Alluxio filesystem
-   * @throws IOException
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath) throws IOException {
-    URIStatus srcStatus;
-    try {
-      srcStatus = mFileSystem.getStatus(srcPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
+      throws AlluxioException, IOException {
+    URIStatus srcStatus = mFileSystem.getStatus(srcPath);
 
     try (Closer closer = Closer.create()) {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
@@ -219,8 +200,6 @@ public final class CpCommand extends AbstractShellCommand {
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
       IOUtils.copy(is, os);
       System.out.println("Copied " + srcPath + " to " + dstPath.getPath());
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
     }
   }
 

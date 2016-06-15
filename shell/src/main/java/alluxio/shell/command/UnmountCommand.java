@@ -46,16 +46,12 @@ public final class UnmountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    try {
-      mFileSystem.unmount(inputPath);
-      System.out.println("Unmounted " + inputPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.unmount(inputPath);
+    System.out.println("Unmounted " + inputPath);
   }
 
   @Override

@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;

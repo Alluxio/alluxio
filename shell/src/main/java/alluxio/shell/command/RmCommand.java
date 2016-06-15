@@ -16,6 +16,8 @@ import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -54,23 +56,19 @@ public final class RmCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     // TODO(calvin): Remove explicit state checking.
-    try {
-      boolean recursive = cl.hasOption("R");
-      if (!mFileSystem.exists(path)) {
-        throw new IOException("Path " + path + " does not exist");
-      }
-      if (!recursive && mFileSystem.getStatus(path).isFolder()) {
-        throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
-      }
-
-      DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
-      mFileSystem.delete(path, options);
-      System.out.println(path + " has been removed");
-    } catch (AlluxioException e) {
-      throw new IOException(e);
+    boolean recursive = cl.hasOption("R");
+    if (!mFileSystem.exists(path)) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
+    if (!recursive && mFileSystem.getStatus(path).isFolder()) {
+      throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
+    }
+
+    DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);
+    mFileSystem.delete(path, options);
+    System.out.println(path + " has been removed");
   }
 
   @Override
