@@ -117,6 +117,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
         @Override
+        public Boolean isUnique() {
+          return true;
+        }
+
+        @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
@@ -124,6 +129,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
       new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+        @Override
+        public Boolean isUnique() {
+          return true;
+        }
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();

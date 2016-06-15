@@ -139,6 +139,11 @@ public class IndexedSetConcurrencyTest {
   private final IndexedSet.FieldIndex<TestInfo> mIdIndex =
       new IndexedSet.FieldIndex<TestInfo>() {
         @Override
+        public Boolean isUnique() {
+          return true;
+        }
+
+        @Override
         public Object getFieldValue(TestInfo o) {
           return o.getId();
         }
@@ -146,6 +151,11 @@ public class IndexedSetConcurrencyTest {
 
   private final IndexedSet.FieldIndex<TestInfo> mSizeIndex =
       new IndexedSet.FieldIndex<TestInfo>() {
+        @Override
+        public Boolean isUnique() {
+          return false;
+        }
+
         @Override
         public Object getFieldValue(TestInfo o) {
           return o.getSize();
