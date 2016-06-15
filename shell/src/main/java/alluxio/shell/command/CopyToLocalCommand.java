@@ -171,7 +171,8 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
    */
   private void copyFileToLocal(AlluxioURI srcPath, File dstFile)
       throws AlluxioException, IOException {
-    String randomSuffix = String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
+    String randomSuffix =
+        String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
     File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
 
     try (Closer closer = Closer.create()) {
@@ -185,7 +186,8 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
         t = is.read(buf);
       }
       if (!tmpDst.renameTo(dstFile)) {
-        throw new IOException("Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
+        throw new IOException(
+            "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
       }
       System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
     } finally {

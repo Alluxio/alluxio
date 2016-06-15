@@ -23,7 +23,6 @@ import alluxio.exception.AlluxioException;
 
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
-import org.fusesource.leveldbjni.All;
 
 import java.io.IOException;
 import java.util.List;

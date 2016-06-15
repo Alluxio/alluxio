@@ -98,7 +98,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
       try {
         copyPath(srcFile, newURI);
-      } catch (IOException e) {
+      } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
         if (!mFileSystem.exists(newURI)) {
           misFiles++;
@@ -137,7 +137,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       try {
         copyPath(srcFile, newURI);
         System.out.println("Copied " + srcFile.getPath() + " to " + dstPath);
-      } catch (IOException e) {
+      } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
         if (!mFileSystem.exists(newURI)) {
           misFiles++;

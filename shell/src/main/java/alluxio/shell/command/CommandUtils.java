@@ -17,8 +17,6 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 
-import org.fusesource.leveldbjni.All;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
