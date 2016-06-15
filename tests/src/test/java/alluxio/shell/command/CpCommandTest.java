@@ -124,9 +124,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
       FileInStream is2 = closer.register(mFileSystem.openFile(file2, openFileOptions));
-      IOUtils.contentEquals(is1, is2);
+      return IOUtils.contentEquals(is1, is2);
     }
-
-    return true;
   }
 }

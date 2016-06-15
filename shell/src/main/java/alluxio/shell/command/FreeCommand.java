@@ -18,7 +18,6 @@ import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
-import org.fusesource.leveldbjni.All;
 
 import java.io.IOException;
 

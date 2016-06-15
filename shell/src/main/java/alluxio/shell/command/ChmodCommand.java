@@ -68,9 +68,11 @@ public final class ChmodCommand extends AbstractShellCommand {
       AlluxioException, IOException {
     short newPermission = 0;
     newPermission = Short.parseShort(modeStr, 8);
-    SetAttributeOptions options = SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
     mFileSystem.setAttribute(path, options);
-    System.out.println("Changed permission of " + path + " to " + Integer.toOctalString(newPermission));
+    System.out
+        .println("Changed permission of " + path + " to " + Integer.toOctalString(newPermission));
   }
 
   @Override

@@ -60,7 +60,7 @@ public final class TailCommand extends WithWildCardPathCommand {
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
-    if (!status.isFolder()) {
+    if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
     }
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
