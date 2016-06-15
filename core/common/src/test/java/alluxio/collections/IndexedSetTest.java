@@ -53,11 +53,21 @@ public class IndexedSetTest {
   @Before
   public void before() {
     mIntIndex = new IndexedSet.FieldIndex<Pair>() {
+      @Override
+      public Boolean isUnique() {
+        return false;
+      }
+
       public Object getFieldValue(Pair o) {
         return o.intValue();
       }
     };
     mLongIndex = new IndexedSet.FieldIndex<Pair>() {
+      @Override
+      public Boolean isUnique() {
+        return false;
+      }
+
       public Object getFieldValue(Pair o) {
         return o.longValue();
       }

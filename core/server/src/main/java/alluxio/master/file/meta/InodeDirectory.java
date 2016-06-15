@@ -35,12 +35,22 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class InodeDirectory extends Inode<InodeDirectory> {
   private IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
+    public Boolean isUnique() {
+      return true;
+    }
+
+    @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getId();
     }
   };
 
   private IndexedSet.FieldIndex<Inode<?>> mNameIndex = new IndexedSet.FieldIndex<Inode<?>>() {
+    @Override
+    public Boolean isUnique() {
+      return true;
+    }
+
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getName();
