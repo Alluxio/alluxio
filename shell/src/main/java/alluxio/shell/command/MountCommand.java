@@ -59,7 +59,7 @@ public final class MountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
@@ -89,12 +89,8 @@ public final class MountCommand extends AbstractShellCommand {
       options.setReadOnly(true);
     }
 
-    try {
-      mFileSystem.mount(alluxioPath, ufsPath, options);
-      System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.mount(alluxioPath, ufsPath, options);
+    System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
   }
 
   @Override

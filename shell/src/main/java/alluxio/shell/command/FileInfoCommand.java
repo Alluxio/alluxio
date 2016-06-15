@@ -17,6 +17,7 @@ import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -44,16 +45,11 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
-      throw new IOException(path + " is a directory path so does not have file blocks.");
+      throw new InvalidPathException(path + " is a directory path so does not have file blocks.");
     }
 
     System.out.println(status);

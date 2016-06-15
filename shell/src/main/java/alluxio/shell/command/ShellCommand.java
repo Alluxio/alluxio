@@ -12,6 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.cli.AlluxioShell;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -43,7 +44,7 @@ public interface ShellCommand {
    * @param cl the parsed command line for the arguments
    * @throws IOException when the command fails
    */
-  void run(CommandLine cl) throws IOException;
+  void run(CommandLine cl) throws AlluxioException, IOException;
 
   /**
    * @return the usage information of the command

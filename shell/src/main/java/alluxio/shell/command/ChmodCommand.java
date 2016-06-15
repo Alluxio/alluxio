@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -60,25 +61,20 @@ public final class ChmodCommand extends AbstractShellCommand {
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param modeStr The new permission to be updated to the file or directory
    * @param recursive Whether change the permission recursively
-   * @throws IOException if command failed
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void chmod(AlluxioURI path, String modeStr, boolean recursive) throws IOException {
+  private void chmod(AlluxioURI path, String modeStr, boolean recursive) throws
+      AlluxioException, IOException {
     short newPermission = 0;
-    try {
-      newPermission = Short.parseShort(modeStr, 8);
-      SetAttributeOptions options =
-          SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
-      mFileSystem.setAttribute(path, options);
-      System.out.println("Changed permission of " + path + " to "
-          + Integer.toOctalString(newPermission));
-    } catch (Exception e) {
-      throw new IOException("Failed to changed permission of  " + path + " to "
-          + Integer.toOctalString(newPermission) + " : " + e.getMessage());
-    }
+    newPermission = Short.parseShort(modeStr, 8);
+    SetAttributeOptions options = SetAttributeOptions.defaults().setPermission(newPermission).setRecursive(recursive);
+    mFileSystem.setAttribute(path, options);
+    System.out.println("Changed permission of " + path + " to " + Integer.toOctalString(newPermission));
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String modeStr = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
