@@ -41,8 +41,6 @@ public class ChownCommandTest extends AbstractAlluxioShellTest {
 
   /**
    * Tests -R option for chown recursively.
-   *
-   * @throws Exception
    */
   @Test
   public void chownRecursiveTest() throws IOException, AlluxioException {

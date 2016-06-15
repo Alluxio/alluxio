@@ -188,9 +188,8 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       throw new IOException("Cannot read from a closed stream.");
     }
     if (mAlluxioFileInputStream != null) {
-      int ret = 0;
       try {
-        ret = mAlluxioFileInputStream.read(buffer, offset, length);
+        int ret = mAlluxioFileInputStream.read(buffer, offset, length);
         if (mStatistics != null && ret != -1) {
           mStatistics.incrementBytesRead(ret);
         }

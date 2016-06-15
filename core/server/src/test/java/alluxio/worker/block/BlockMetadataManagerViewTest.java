@@ -57,8 +57,6 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -137,8 +135,6 @@ public final class BlockMetadataManagerViewTest {
   /**
    * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
    * method when the block does not exist.
-   *
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   @Test
   public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
@@ -161,8 +157,6 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
-   *
-   * @throws Exception if an operation on the metadata of the block fails
    */
   @Test
   public void getBlockMetaTest() throws Exception {

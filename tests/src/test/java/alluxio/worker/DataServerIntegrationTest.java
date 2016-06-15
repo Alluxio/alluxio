@@ -135,7 +135,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void lengthTooSmall() throws IOException, AlluxioException {
+  public void lengthTooSmall() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -144,7 +144,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void multiReadTest() throws IOException, AlluxioException {
+  public void multiReadTest() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -155,7 +155,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void negativeOffset() throws IOException, AlluxioException {
+  public void negativeOffset() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -188,7 +188,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readPartialTest1() throws AlluxioException, IOException {
+  public void readPartialTest1() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, 10);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
     final int offset = 0;
@@ -198,7 +198,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readPartialTest2() throws AlluxioException, IOException {
+  public void readPartialTest2() throws Exception {
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, 10);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
     final int offset = 2;
@@ -209,7 +209,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTest() throws IOException, AlluxioException {
+  public void readTest() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -231,7 +231,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readThroughClientTest() throws IOException, AlluxioException {
+  public void readThroughClientTest() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -245,7 +245,7 @@ public class DataServerIntegrationTest {
 
   // TODO(calvin): Make this work with the new BlockReader.
   // @Test
-  public void readThroughClientNonExistentTest() throws IOException, AlluxioException {
+  public void readThroughClientNonExistentTest() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -268,7 +268,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTooLarge() throws IOException, AlluxioException {
+  public void readTooLarge() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -277,7 +277,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void tooLargeOffset() throws IOException, AlluxioException {
+  public void tooLargeOffset() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -336,11 +336,8 @@ public class DataServerIntegrationTest {
    *
    * @param uri the uri of the file to get the first MasterBlockInfo for
    * @return the MasterBlockInfo of the first block in the file
-   * @throws IOException if the block does not exist
-   * @throws AlluxioException
    */
-  private BlockInfo getFirstBlockInfo(AlluxioURI uri)
-      throws IOException, AlluxioException {
+  private BlockInfo getFirstBlockInfo(AlluxioURI uri) throws Exception {
     URIStatus status = mFileSystem.getStatus(uri);
     return mBlockMasterClient.getBlockInfo(status.getBlockIds().get(0));
   }

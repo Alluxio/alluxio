@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -69,8 +68,6 @@ public class SwiftDirectClient {
         return new SwiftOutputStream(httpCon);
       }
       LOG.debug("Not an instance of HTTP URL Connection");
-    } catch (MalformedURLException e) {
-      LOG.error(e.getMessage());
     } catch (IOException e) {
       LOG.error(e.getMessage());
     }
