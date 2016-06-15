@@ -110,7 +110,7 @@ public abstract class BufferedBlockInStream extends BlockInStream {
     }
 
     int toRead = (int) Math.min(len, remaining());
-    if (mBufferIsValid && mBuffer.remaining() > toRead) { // data is fully contained in the buffer
+    if (mBufferIsValid && mBuffer.remaining() >= toRead) { // data is fully contained in the buffer
       mBuffer.get(b, off, toRead);
       mPos += toRead;
       mBlockIsRead = true;

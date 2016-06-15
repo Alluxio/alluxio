@@ -21,7 +21,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.BufferUtils;
@@ -30,7 +29,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,10 +78,9 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * @param underStorageType type of under storage write
    * @param fileLen length of the file
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
-   * @throws IOException if an I/O exception occurs
    */
   protected void checkWrite(AlluxioURI filePath, UnderStorageType underStorageType, int fileLen,
-                            int increasingByteArrayLen) throws IOException, AlluxioException {
+      int increasingByteArrayLen) throws Exception {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());

@@ -97,8 +97,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       } else {
         throw new IOException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(uri));
       }
-    } catch (InvalidPathException e) {
-      throw new IOException(e);
     } catch (AlluxioException e) {
       throw new IOException(e);
     }

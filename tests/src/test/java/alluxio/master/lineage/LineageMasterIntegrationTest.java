@@ -82,9 +82,8 @@ public class LineageMasterIntegrationTest {
 
   @Test
   public void lineageCreationTest() throws Exception {
-    LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
-    try {
+    try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
       lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
@@ -95,23 +94,19 @@ public class LineageMasterIntegrationTest {
       URIStatus status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.NOT_PERSISTED.toString(), status.getPersistenceState());
       Assert.assertFalse(status.isCompleted());
-    } finally {
-      lineageMasterClient.close();
     }
   }
 
   @Test
   public void lineageCompleteAndAsyncPersistTest() throws Exception {
-    LineageMasterClient lineageMasterClient = getLineageMasterClient();
 
-    try {
+    try (LineageMasterClient lineageMasterClient = getLineageMasterClient()) {
       ArrayList<String> outFiles = new ArrayList<>();
       Collections.addAll(outFiles, OUT_FILE);
       lineageMasterClient.createLineage(new ArrayList<String>(), outFiles, mJob);
 
-      CreateFileOptions options =
-          CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
-              .setBlockSizeBytes(BLOCK_SIZE_BYTES);
+      CreateFileOptions options = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
+          .setBlockSizeBytes(BLOCK_SIZE_BYTES);
       LineageFileSystem fs = (LineageFileSystem) mLocalAlluxioClusterResource.get().getClient();
       FileOutStream outputStream = fs.createFile(new AlluxioURI(OUT_FILE), options);
       outputStream.write(1);
@@ -129,8 +124,6 @@ public class LineageMasterIntegrationTest {
       status = getFileSystemMasterClient().getStatus(uri);
       Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    } finally {
-      lineageMasterClient.close();
     }
   }
 
@@ -143,17 +136,14 @@ public class LineageMasterIntegrationTest {
     // Delete the log file so that when it starts to exist we know that it was created by the
     // lineage recompute job
     logFile.delete();
-    LineageMasterClient lineageClient = getLineageMasterClient();
     FileSystem fs = FileSystem.Factory.get();
-    try {
+    try (LineageMasterClient lineageClient = getLineageMasterClient()) {
       lineageClient.createLineage(ImmutableList.<String>of(), ImmutableList.of("/testFile"),
           new CommandLineJob("echo hello world", new JobConf(logFile.getAbsolutePath())));
       FileOutStream out = fs.createFile(new AlluxioURI("/testFile"));
       out.write("foo".getBytes());
       out.close();
       lineageClient.reportLostFile("/testFile");
-    } finally {
-      lineageClient.close();
     }
 
     // Wait for the log file to be created by the recompute job

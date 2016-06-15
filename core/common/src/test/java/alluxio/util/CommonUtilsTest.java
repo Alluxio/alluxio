@@ -190,8 +190,6 @@ public class CommonUtilsTest {
 
   /**
    * Tests the {@link CommonUtils#getUnixGroups(String)} method.
-   *
-   * @throws Throwable when the retrieval of the UNIX groups fails
    */
   @Test
   public void userGroupTest() throws Throwable {
@@ -213,8 +211,6 @@ public class CommonUtilsTest {
 
   /**
    * Test for the {@link CommonUtils#getPrimaryGroupName(Configuration, String)} method.
-   *
-   * @throws Throwable if getting the primary group name fails
    */
   @Test
   public void userPrimaryGroupTest() throws Throwable {
