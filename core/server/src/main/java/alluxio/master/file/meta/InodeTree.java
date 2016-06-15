@@ -95,6 +95,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   private final IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
+    public Boolean isUnique() {
+      return true;
+    }
+
+    @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getId();
     }
