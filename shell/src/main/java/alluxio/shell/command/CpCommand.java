@@ -142,18 +142,28 @@ public final class CpCommand extends AbstractShellCommand {
     if (!srcStatus.isFolder()) {
       copyFile(srcPath, dstPath);
     } else {
-      if (dstStatus != null && !dstStatus.isFolder()) {
-        throw new IOException(
-            ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+
+      List<URIStatus> statuses;
+      statuses = mFileSystem.listStatus(srcPath);
+
+      if (dstStatus != null) {
+        if (!dstStatus.isFolder()) {
+          throw new IOException(
+              ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+        }
+        // if copying a directory to an existing directory, the copied directory will become a
+        // subdirectory of the destination
+        if (srcStatus.isFolder()) {
+          dstPath = new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcPath.getName()));
+          mFileSystem.createDirectory(dstPath);
+          System.out.println("Created directory: " + dstPath.getPath());
+        }
       }
 
       if (dstStatus == null) {
         mFileSystem.createDirectory(dstPath);
         System.out.println("Created directory: " + dstPath.getPath());
       }
-
-      List<URIStatus> statuses;
-      statuses = mFileSystem.listStatus(srcPath);
 
       List<String> errorMessages = new ArrayList<>();
       for (URIStatus status : statuses) {
