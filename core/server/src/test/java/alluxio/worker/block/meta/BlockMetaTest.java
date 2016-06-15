@@ -45,8 +45,6 @@ public class BlockMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -70,8 +68,6 @@ public class BlockMetaTest {
 
   /**
    * Tests the {@link BlockMeta#getBlockSize()} method.
-   *
-   * @throws IOException if writting the buffer to the file fails
    */
   @Test
   public void getBlockSizeTest() throws IOException {

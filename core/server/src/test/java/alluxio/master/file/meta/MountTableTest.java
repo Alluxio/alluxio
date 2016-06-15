@@ -39,8 +39,6 @@ public class MountTableTest {
 
   /**
    * Tests the different methods of the {@link MountTable} class with a path.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void pathTest() throws Exception {
@@ -108,8 +106,6 @@ public class MountTableTest {
 
   /**
    * Tests the different methods of the {@link MountTable} class with an URI.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void uriTest() throws Exception {
@@ -182,8 +178,6 @@ public class MountTableTest {
 
   /**
    * Tests check of readonly mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void readOnlyMountTest() throws Exception {
@@ -215,8 +209,6 @@ public class MountTableTest {
 
   /**
    * Tests check of writable mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void writableMountTest() throws Exception {

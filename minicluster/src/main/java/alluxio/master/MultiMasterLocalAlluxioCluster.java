@@ -66,12 +66,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @return the URI of the master
    */
   public String getUri() {
-    return new StringBuilder()
-        .append(Constants.HEADER_FT)
-        .append(mHostname)
-        .append(":")
-        .append(getMaster().getRPCLocalPort())
-        .toString();
+    return Constants.HEADER_FT + mHostname + ":" + getMaster().getRPCLocalPort();
   }
 
   @Override

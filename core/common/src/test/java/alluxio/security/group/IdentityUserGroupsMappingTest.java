@@ -23,8 +23,6 @@ public final class IdentityUserGroupsMappingTest {
 
   /**
    * Tests the {@link IdentityUserGroupsMapping#getGroups(String)} method.
-   *
-   * @throws Throwable when the retrieval of the groups fails
    */
   @Test
   public void userGroupTest() throws Throwable {

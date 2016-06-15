@@ -283,7 +283,6 @@ public final class KeyValueSystemIntegrationTest {
    * @param size the number of key-value pairs
    * @param pairs the key-value pairs in the store, null if you don't want to know them
    * @return the URI to the store
-   * @throws Exception if any error happens
    */
   private AlluxioURI createStoreOfSize(int size, List<KeyValuePair> pairs) throws Exception {
     AlluxioURI path = new AlluxioURI(PathUtils.uniqPath());
@@ -304,12 +303,9 @@ public final class KeyValueSystemIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    KeyValueMasterClient client =
-        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
-    try {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(ClientContext.getMasterAddress(),
+        ClientContext.getConf())) {
       return client.getPartitionInfo(storeUri).size();
-    } finally {
-      client.close();
     }
   }
 

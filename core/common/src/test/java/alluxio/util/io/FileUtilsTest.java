@@ -46,8 +46,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
@@ -71,8 +69,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a non-existent
    * file to thrown an exception.
-   *
-   * @throws IOException thrown when trying to change the file permissions of a non-existent file
    */
   @Test
   public void changeNonExistentFileTest() throws IOException {
@@ -85,8 +81,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void changeLocalDirPermissionTests() throws IOException {
@@ -100,8 +94,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#move(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void moveFileTest() throws IOException {
@@ -116,8 +108,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#move(String, String)} method to thrown an exception when trying to
    * move a non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void moveNonExistentFileTest() throws IOException {
@@ -131,8 +121,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deleteFileTest() throws IOException {
@@ -148,8 +136,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
    * directories.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deletePathRecursivelyTest() throws IOException {
@@ -175,8 +161,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
    * non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deleteNonExistentFileTest() throws IOException {
@@ -189,8 +173,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void setLocalDirStickyBitTest() throws IOException {
@@ -220,8 +202,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createBlockPath(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createBlockPathTest() throws IOException {
@@ -233,8 +213,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createFile(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createFileTest() throws IOException {
@@ -246,8 +224,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createDir(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createDirTest() throws IOException {
