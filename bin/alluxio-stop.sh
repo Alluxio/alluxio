@@ -61,8 +61,8 @@ case "${WHAT}" in
     exit 0
     ;;
   *)
-    echo "Error: Invalid component: ${WHAT}"
-    echo -e "${USAGE}"
+    echo "Error: Invalid component: ${WHAT}" >&2
+    echo -e "${USAGE}" >&2
     exit 1
     ;;
 esac

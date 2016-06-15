@@ -40,7 +40,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mPartitionLength = Constants.MB;
-  private final int mValueLength = mPartitionLength / 2;
   private final int mNumKeyValuePairs = 10;
 
   private AlluxioURI mStoreUri;
@@ -80,7 +79,8 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       // Keys are 0, 1, 2, etc.
       byte[] key = ByteBuffer.allocate(4).putInt(i).array();
       // Values are byte arrays of length {@link #mValueLength}.
-      byte[] value = BufferUtils.getIncreasingByteArray(mValueLength);
+      int valueLength = mPartitionLength / 2;
+      byte[] value = BufferUtils.getIncreasingByteArray(valueLength);
       writer.put(key, value);
       mKeyValuePairs.put(ByteBuffer.wrap(key), ByteBuffer.wrap(value));
     }

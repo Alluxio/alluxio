@@ -17,7 +17,6 @@ import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
@@ -25,14 +24,12 @@ import alluxio.shell.AlluxioShellUtilsTest;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.IOException;
-
 /**
  * Tests for persist command.
  */
 public class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void persistTest() throws IOException, AlluxioException {
+  public void persistTest() throws Exception {
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);
     Assert
@@ -45,7 +42,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistDirectoryTest() throws IOException, AlluxioException {
+  public void persistDirectoryTest() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -69,7 +66,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistMultiFilesTest() throws IOException, AlluxioException {
+  public void persistMultiFilesTest() throws Exception {
     String filePath1 = "/testPersist/testFile1";
     String filePath2 = "/testFile2";
     String filePath3 = "/testPersist/testFile3";
@@ -92,7 +89,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
    * Tests persisting files and directories together in one persist command.
    */
   @Test
-  public void persistMultiFilesAndDirsTest() throws IOException, AlluxioException {
+  public void persistMultiFilesAndDirsTest() throws Exception {
     ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
@@ -116,7 +113,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistNonexistentFileTest() throws IOException, AlluxioException {
+  public void persistNonexistentFileTest() throws Exception {
     // Cannot persist a nonexistent file
     String path = "/testPersistNonexistent";
     int ret = mFsShell.run("persist", path);
@@ -126,7 +123,7 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void persistTwiceTest() throws IOException, AlluxioException {
+  public void persistTwiceTest() throws Exception {
     // Persisting an already-persisted file is okay
     String testFilePath = "/testPersist/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, testFilePath, WriteType.MUST_CACHE, 10);

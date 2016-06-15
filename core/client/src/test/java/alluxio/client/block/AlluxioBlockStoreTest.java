@@ -111,8 +111,6 @@ public final class AlluxioBlockStoreTest {
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -131,8 +129,6 @@ public final class AlluxioBlockStoreTest {
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {

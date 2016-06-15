@@ -100,10 +100,14 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.getDefaultBlockSize(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultBlockSize();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.geDefaultReplication(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultReplication();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());

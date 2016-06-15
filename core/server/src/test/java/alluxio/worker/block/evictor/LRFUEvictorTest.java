@@ -59,8 +59,6 @@ public class LRFUEvictorTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public final void before() throws Exception {
@@ -119,8 +117,6 @@ public class LRFUEvictorTest {
 
   /**
    * Tests that the eviction in the bottom tier works.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void evictInBottomTierTest() throws Exception {
@@ -177,8 +173,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
    * no eviction.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest1() throws Exception {
@@ -235,8 +229,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
    * second tier are evicted.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest2() throws Exception {

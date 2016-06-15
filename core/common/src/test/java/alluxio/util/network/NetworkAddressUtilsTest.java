@@ -30,8 +30,6 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method.
-   *
-   * @throws Exception thrown if something goes wrong
    */
   @Test
   public void testGetConnectAddress() throws Exception {
@@ -104,8 +102,6 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the {@link NetworkAddressUtils#getBindAddress(ServiceType, Configuration)} method.
-   *
-   * @throws Exception thrown if something goes wrong
    */
   @Test
   public void testGetBindAddress() throws Exception {
@@ -206,8 +202,6 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the {@link NetworkAddressUtils#replaceHostName(AlluxioURI)} method.
-   *
-   * @throws UnknownHostException thrown if the host is unknown
    */
   @Test
   public void replaceHostNameTest() throws UnknownHostException {
@@ -228,8 +222,6 @@ public class NetworkAddressUtilsTest {
 
   /**
    * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
-   *
-   * @throws UnknownHostException thrown if the host is unknown
    */
   @Test
   public void resolveHostNameTest() throws UnknownHostException {
@@ -241,8 +233,6 @@ public class NetworkAddressUtilsTest {
   /**
    * Tests the {@link NetworkAddressUtils#getFqdnHost(InetSocketAddress)} and
    * {@link NetworkAddressUtils#getFqdnHost(WorkerNetAddress)} methods.
-   *
-   * @throws UnknownHostException thrown if the host is unknown
    */
   @Test
   public void getFqdnHostTest() throws UnknownHostException {

@@ -23,8 +23,6 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
 
   /**
    * Tests that blocks are allocated in the first storage directory which has enough free space.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void allocateBlockTest() throws Exception {

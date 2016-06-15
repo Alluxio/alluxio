@@ -128,18 +128,7 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Resets the {@link MasterContext} after a test ran.
-   */
-  @After
-  public void after() {
-    MasterContext.reset();
-  }
-
-  /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if creating the temporary folder, starting the masters or register the
-   *                   workers fails.
    */
   @Before
   public void before() throws Exception {
@@ -174,9 +163,17 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Resets global state after each test run.
+   */
+  @After
+  public void after() throws Exception {
+    mFileSystemMaster.stop();
+    mBlockMaster.stop();
+    MasterContext.reset();
+  }
+
+  /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method.
-   *
-   * @throws Exception if deleting a file fails
    */
   @Test
   public void deleteFileTest() throws Exception {
@@ -210,8 +207,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method with a non-empty
    * directory.
-   *
-   * @throws Exception if deleting a directory fails
    */
   @Test
   public void deleteNonemptyDirectoryTest() throws Exception {
@@ -232,8 +227,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method for a directory.
-   *
-   * @throws Exception if deleting the directory fails
    */
   @Test
   public void deleteDirTest() throws Exception {
@@ -247,8 +240,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#getNewBlockIdForFile(AlluxioURI)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
@@ -564,8 +555,6 @@ public final class FileSystemMasterTest {
    * Tests that an exception is in the
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void createFileWithTtlTest() throws Exception {
@@ -583,8 +572,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted because of a TTL of 0.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1914")
@@ -606,8 +593,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted after the TTL has been set to 0.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
@@ -628,8 +613,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that a file has not been deleted after the TTL has been reset to a valid value.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setLargerTtlForFileWithTtlTest() throws Exception {
@@ -647,8 +630,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that the original TTL is removed after setting it to {@link Constants#NO_TTL} for a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setNoTtlForFileWithTtlTest() throws Exception {
@@ -666,8 +647,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method and
    * that an exception is thrown when trying to set a TTL for a directory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setAttributeTest() throws Exception {
@@ -712,8 +691,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that a file is fully written to memory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void isFullyInMemoryTest() throws Exception {
@@ -738,8 +715,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameTest() throws Exception {
@@ -783,8 +758,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to create a file in a non-existing directory
    * without setting the {@code recursive} flag.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameUnderNonexistingDir() throws Exception {
@@ -801,8 +774,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to rename a file to a prefix of the original
    * file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameToSubpathTest() throws Exception {
@@ -815,8 +786,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void freeTest() throws Exception {
@@ -839,8 +808,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method with a directory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void freeDirTest() throws Exception {
@@ -860,8 +827,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountTest() throws Exception {
@@ -872,8 +837,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting an existing dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountExistingDirTest() throws Exception {
@@ -886,8 +849,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a shadow Alluxio dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountShadowDirTest() throws Exception {
@@ -902,8 +863,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a prefix UFS dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountPrefixUfsDirTest() throws Exception {
@@ -918,8 +877,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a suffix UFS dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountSuffixUfsDirTest() throws Exception {
@@ -934,8 +891,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests unmounting operation.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void unmountTest() throws Exception {
@@ -957,7 +912,6 @@ public final class FileSystemMasterTest {
    *
    * @param ufsPath the UFS path of the temp dir needed to created
    * @return the AlluxioURI of the temp dir
-   * @throws IOException if {@link TemporaryFolder#newFolder(String...)} operation fails
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
@@ -966,8 +920,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#stop()} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void stopTest() throws Exception {
@@ -984,8 +936,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void workerHeartbeatTest() throws Exception {
@@ -1008,12 +958,11 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that lost files can successfully be detected.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void lostFilesDetectionTest() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
 
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
@@ -1038,8 +987,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests load metadata logic.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void testLoadMetadataTest() throws Exception {
@@ -1086,8 +1033,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests load root metadata. It should not fail.
-   *
-    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void loadRootTest() throws Exception {

@@ -369,8 +369,8 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @return the response object
    */
   @POST
-  @ReturnType("java.lang.Void")
   @Path(SET_ATTRIBUTE)
+  @ReturnType("java.lang.Void")
   public Response setAttribute(@QueryParam("path") String path,
       @QueryParam("pinned") Boolean pinned, @QueryParam("ttl") Long ttl,
       @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,

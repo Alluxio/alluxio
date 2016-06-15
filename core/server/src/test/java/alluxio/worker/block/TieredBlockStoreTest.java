@@ -65,8 +65,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -100,8 +98,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that different sessions can concurrently grab block locks on different blocks.
-   *
-   * @throws Exception if locking or unlocking the block fails
    */
   @Test
   public void differentSessionLockDifferentBlocksTest() throws Exception {
@@ -130,8 +126,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Same session can concurrently grab block locks on different block.
-   *
-   * @throws Exception if caching or locking the block fails
    */
   @Test
   public void sameSessionLockDifferentBlocksTest() throws Exception {
@@ -150,8 +144,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to lock a block which not exists.
-   *
-   * @throws Exception if locking the block fails
    */
   @Test
   public void lockNonExistingBlockTest() throws Exception {
@@ -164,8 +156,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to unlock a block which not exists.
-   *
-   * @throws Exception if unlocking the block fails
    */
   @Test
   public void unlockNonExistingLockTest() throws Exception {
@@ -177,9 +167,7 @@ public final class TieredBlockStoreTest {
   }
 
   /**
-   * Testssthe {@link TieredBlockStore#commitBlock(long, long)} method.
-   *
-   * @throws Exception if commiting the block fails
+   * Tests the {@link TieredBlockStore#commitBlock(long, long)} method.
    */
   @Test
   public void commitBlockTest() throws Exception {
@@ -194,8 +182,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests the {@link TieredBlockStore#abortBlock(long, long)} method.
-   *
-   * @throws Exception if aborting the block fails
    */
   @Test
   public void abortBlockTest() throws Exception {
@@ -210,8 +196,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests the {@link TieredBlockStore#moveBlock(long, long, BlockStoreLocation)} method.
-   *
-   * @throws Exception if moving the block fails
    */
   @Test
   public void moveBlockTest() throws Exception {
@@ -255,8 +239,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that moving a block to the same location does nothing.
-   *
-   * @throws Exception if moving the block fails
    */
   @Test
   public void moveBlockToSameLocationTest() throws Exception {
@@ -277,8 +259,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests the {@link TieredBlockStore#removeBlock(long, long)} method.
-   *
-   * @throws Exception if removing the block fails
    */
   @Test
   public void removeBlockTest() throws Exception {
@@ -315,8 +295,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests the {@link TieredBlockStore#freeSpace(long, long, BlockStoreLocation)} method.
-   *
-   * @throws Exception if freeing the space fails
    */
   @Test
   public void freeSpaceTest() throws Exception {
@@ -332,8 +310,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests the {@link TieredBlockStore#requestSpace(long, long, long)} method.
-   *
-   * @throws Exception if requesting space fails
    */
   @Test
   public void requestSpaceTest() throws Exception {
@@ -347,8 +323,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests the {@link TieredBlockStore#createBlockMeta(long, long, BlockStoreLocation, long)} method
    * to work without eviction.
-   *
-   * @throws Exception if creating the metadata for the block fails
    */
   @Test
   public void createBlockMetaWithoutEvictionTest() throws Exception {
@@ -361,8 +335,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests the {@link TieredBlockStore#createBlockMeta(long, long, BlockStoreLocation, long)} method
    * to work with eviction.
-   *
-   * @throws Exception if creating the metadata for the block fails
    */
   @Test
   public void createBlockMetaWithEvictionTest() throws Exception {
@@ -380,8 +352,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that when creating a block, if the space of the target location is currently taken by
    * another block being locked, this creation operation will fail until the lock released.
-   *
-   * @throws Exception if creating the metadata of the block fails
    */
   @Test
   public void createBlockMetaWithBlockLockedTest() throws Exception {
@@ -408,8 +378,6 @@ public final class TieredBlockStoreTest {
    * Tests that when moving a block from src location to dst, if the space of the dst location is
    * currently taken by another block being locked, this move operation will fail until the lock
    * released.
-   *
-   * @throws Exception if locking or moving the block fails
    */
   @Test
   public void moveBlockMetaWithBlockLockedTest() throws Exception {
@@ -440,8 +408,6 @@ public final class TieredBlockStoreTest {
    * Tests that when free the space of a location, if the space of the target location is currently
    * taken by another block being locked, this freeSpace operation will fail until the lock
    * released.
-   *
-   * @throws Exception if locking or unlocking a block or freeing space fails
    */
   @Test
   public void freeSpaceWithBlockLockedTest() throws Exception {
@@ -467,8 +433,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that an exception is thrown when trying to get a writer for the block that does not
    * exist.
-   *
-   * @throws Exception if getting the writer for the block fails
    */
   @Test
   public void getBlockWriterForNonExistingBlockTest() throws Exception {
@@ -480,8 +444,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to abort a block that does not exist.
-   *
-   * @throws Exception if aborting the block fails
    */
   @Test
   public void abortNonExistingBlockTest() throws Exception {
@@ -494,8 +456,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that an exception is thrown when trying to abort a block that is not owned by the
    * session.
-   *
-   * @throws Exception if aborting the block fails
    */
   @Test
   public void abortBlockNotOwnedBySessionIdTest() throws Exception {
@@ -509,8 +469,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to abort a block which was committed.
-   *
-   * @throws Exception if committing or aborting the block fails
    */
   @Test
   public void abortCommitedBlockTest() throws Exception {
@@ -524,8 +482,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to move a block which does not exist.
-   *
-   * @throws Exception if moving the block fails
    */
   @Test
   public void moveNonExistingBlockTest() throws Exception {
@@ -537,8 +493,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to move a temporary block.
-   *
-   * @throws Exception if moving the block fails
    */
   @Test
   public void moveTempBlockTest() throws Exception {
@@ -552,8 +506,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that an exception is thrown when trying to cache a block which already exists in a
    * different directory.
-   *
-   * @throws Exception if caching the block fails
    */
   @Test
   public void cacheSameBlockInDifferentDirsTest() throws Exception {
@@ -569,8 +521,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that an exception is thrown when trying to cache a block which already exists in a
    * different tier.
-   *
-   * @throws Exception if caching the block fails
    */
   @Test
   public void cacheSameBlockInDifferentTiersTest() throws Exception {
@@ -585,8 +535,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to commit a block twice.
-   *
-   * @throws Exception if committing the block fails
    */
   @Test
   public void commitBlockTwiceTest() throws Exception {
@@ -600,8 +548,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to commit a block which does not exist.
-   *
-   * @throws Exception if committing the block fails
    */
   @Test
   public void commitNonExistingBlockTest() throws Exception {
@@ -614,8 +560,6 @@ public final class TieredBlockStoreTest {
   /**
    * Tests that an exception is thrown when trying to commit a block which is not owned by the
    * session.
-   *
-   * @throws Exception if committing the block fails
    */
   @Test
   public void commitBlockNotOwnedBySessionIdTest() throws Exception {
@@ -629,8 +573,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to remove a block which was not committed.
-   *
-   * @throws Exception if removing the block fails
    */
   @Test
   public void removeTempBlockTest() throws Exception {
@@ -643,8 +585,6 @@ public final class TieredBlockStoreTest {
 
   /**
    * Tests that an exception is thrown when trying to remove a block which does not exist.
-   *
-   * @throws Exception if removing the block fails
    */
   @Test
   public void removeNonExistingBlockTest() throws Exception {
