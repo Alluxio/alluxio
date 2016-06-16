@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
+import com.amazonaws.AmazonClientException;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.slf4j.Logger;
@@ -34,7 +35,7 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * Constructs a new {@link alluxio.underfs.s3.S3AUnderFileSystemFactory}.
+   * Constructs a new {@link S3AUnderFileSystemFactory}.
    */
   public S3AUnderFileSystemFactory() {}
 
@@ -45,8 +46,8 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (addAndCheckAWSCredentials(configuration)) {
       try {
-        return new S3UnderFileSystem(new AlluxioURI(path), configuration);
-      } catch (ServiceException e) {
+        return new S3AUnderFileSystem(new AlluxioURI(path), configuration);
+      } catch (AmazonClientException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
       }
@@ -59,7 +60,7 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
 
   @Override
   public boolean supportsPath(String path, Configuration configuration) {
-    return path != null && path.startsWith(Constants.HEADER_S3N);
+    return path != null && path.startsWith(Constants.HEADER_S3A);
   }
 
   /**
