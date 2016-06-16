@@ -133,6 +133,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
         public Boolean isUnique() {
           return true;
         }
+
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();

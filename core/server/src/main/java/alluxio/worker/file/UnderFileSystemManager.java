@@ -57,6 +57,7 @@ public final class UnderFileSystemManager {
         public Boolean isUnique() {
           return true;
         }
+
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mSessionId;
