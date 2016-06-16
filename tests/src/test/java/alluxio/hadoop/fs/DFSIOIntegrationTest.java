@@ -622,7 +622,7 @@ public class DFSIOIntegrationTest implements Tool {
      * type.
      *
      * @param current offset
-     * @return
+     * @return the next offset for reading
      */
     private long nextOffset(long current) {
       if (mSkipSize == 0) {

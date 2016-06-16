@@ -84,16 +84,12 @@ public final class MasterClientAuthenticationIntegrationTest {
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            ClientContext.getConf());
-    try {
+    try (FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalAlluxioClusterResource.get().getMaster().getAddress(), ClientContext.getConf())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
       LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
       masterClient.connect();
-    } finally {
-      masterClient.close();
     }
   }
 
@@ -101,7 +97,8 @@ public final class MasterClientAuthenticationIntegrationTest {
    * Tests Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
    *
-   * @param filename
+   * @param filename the name of the file
+   * @throws Exception if a {@link FileSystemMasterClient} operation fails
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =

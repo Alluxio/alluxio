@@ -40,10 +40,6 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
 
   @Override
   public boolean supportsPath(String path, Configuration conf) {
-    if (path == null) {
-      return false;
-    }
-
-    return UnderFileSystem.isHadoopUnderFS(path, conf);
+    return path != null && UnderFileSystem.isHadoopUnderFS(path, conf);
   }
 }
