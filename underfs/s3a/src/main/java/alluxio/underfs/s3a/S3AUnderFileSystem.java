@@ -59,6 +59,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
 
+  /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
   /** Jets3t S3 client. */
@@ -67,7 +68,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
+  /** Prefix of the bucket, for example s3a://my-bucket-name/ . */
   private final String mBucketPrefix;
 
   static {
@@ -104,7 +105,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
             accessKey, secretKey)));
 
     mBucketName = uri.getHost();
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
     mClient = new AmazonS3Client(credentials);
   }
 
@@ -517,7 +518,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   private boolean isRoot(String key) {
     return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR));
+        PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR));
   }
 
   /**
@@ -626,7 +627,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   /**
    * Strips the s3 bucket prefix or the preceding path separator from the key if it is present. For
-   * example, for input key s3n://my-bucket-name/my-path/file, the output would be my-path/file. If
+   * example, for input key s3a://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
    * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
