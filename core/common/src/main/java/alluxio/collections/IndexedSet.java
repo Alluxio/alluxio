@@ -110,11 +110,14 @@ public class IndexedSet<T> extends AbstractSet<T> {
   // TODO(gpang): remove this set, and just use the indexes.
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
   /**
-   * Map from {@link FieldIndex} to the index. An index is a map from index value to set of objects
-   * with that index value.
+   * Map from {@link FieldIndex} to the index. An index is a map from index value to one or a
+   * set of objects with that index value. A Unique index is an index where each index value
+   * only maps to one object. A NonUnique index is an index where a index value can map to one or
+   * more objects.
    */
-  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> mIndexMapUniq;
-  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> mIndexMapDup;
+  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> mIndexMapUnique;
+  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>>
+      mIndexMapNonUnique;
 
   /**
    * An interface representing an index for this {@link IndexedSet}, each index for this set must
@@ -148,58 +151,59 @@ public class IndexedSet<T> extends AbstractSet<T> {
   @SafeVarargs
   public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
     // count the numbers of two index types
-    int uniqIndexLenth = 0;
-    int dupIndexLenth = 0;
+    int uniqueIndexLength = 0;
+    int nonUniqueIndexLength = 0;
 
     if (field.isUnique()) {
-      uniqIndexLenth = 1;
+      uniqueIndexLength = 1;
     } else {
-      dupIndexLenth = 1;
+      nonUniqueIndexLength = 1;
     }
 
     for (FieldIndex<T> fieldIndex : otherFields) {
       if (fieldIndex.isUnique()) {
-        uniqIndexLenth++;
+        uniqueIndexLength++;
       } else {
-        dupIndexLenth++;
+        nonUniqueIndexLength++;
       }
     }
 
-    // initialtion
-    Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMapDup = null;
-    Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> indexMapUniq = null;
-    if (uniqIndexLenth > 0) {
-      indexMapUniq = new HashMap<>(uniqIndexLenth);
+    // initiation
+    Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMapNonUnique = null;
+    Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> indexMapUnique = null;
+    if (uniqueIndexLength > 0) {
+      indexMapUnique = new HashMap<>(uniqueIndexLength);
     }
-    if (dupIndexLenth > 0) {
-      indexMapDup = new HashMap<>(dupIndexLenth);
+    if (nonUniqueIndexLength > 0) {
+      indexMapNonUnique = new HashMap<>(nonUniqueIndexLength);
     }
 
     if (field.isUnique()) {
-      indexMapUniq.put(field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
+      indexMapUnique.put(field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
     } else {
-      indexMapDup.put(field, new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
+      indexMapNonUnique.put(field,
+          new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
     }
 
     for (FieldIndex<T> fieldIndex : otherFields) {
       if (fieldIndex.isUnique()) {
-        indexMapUniq.put(fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
+        indexMapUnique.put(fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
       } else {
-        indexMapDup.put(fieldIndex,
+        indexMapNonUnique.put(fieldIndex,
             new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
       }
     }
     // read only, so it is thread safe and allows concurrent access.
-    if (uniqIndexLenth > 0) {
-      mIndexMapUniq = Collections.unmodifiableMap(indexMapUniq);
+    if (uniqueIndexLength > 0) {
+      mIndexMapUnique = Collections.unmodifiableMap(indexMapUnique);
     } else {
-      mIndexMapUniq = null;
+      mIndexMapUnique = null;
     }
 
-    if (dupIndexLenth > 0) {
-      mIndexMapDup = Collections.unmodifiableMap(indexMapDup);
+    if (nonUniqueIndexLength > 0) {
+      mIndexMapNonUnique = Collections.unmodifiableMap(indexMapNonUnique);
     } else {
-      mIndexMapDup = null;
+      mIndexMapNonUnique = null;
     }
 
   }
@@ -235,8 +239,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
         return false;
       }
 
-      if (mIndexMapUniq != null) {
-        for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUniq
+      if (mIndexMapUnique != null) {
+        for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUnique
             .entrySet()) {
           // For this field, retrieve the value to index
           Object fieldValue = fieldInfo.getKey().getFieldValue(object);
@@ -247,9 +251,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
         }
       }
 
-      if (mIndexMapDup != null) {
+      if (mIndexMapNonUnique != null) {
         for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo
-            : mIndexMapDup.entrySet()) {
+            : mIndexMapNonUnique.entrySet()) {
           // For this field, retrieve the value to index
           Object fieldValue = fieldInfo.getKey().getFieldValue(object);
           // Get the index for this field
@@ -336,12 +340,11 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public boolean contains(FieldIndex<T> index, Object value) {
     if (index.isUnique()) {
-      T res = getByFieldInternalUniq(index, value);
+      T res = getByFieldInternalUnique(index, value);
       return res != null;
-    } else {
-      ConcurrentHashSet<T> set = getByFieldInternalDup(index, value);
-      return set != null && !set.isEmpty();
     }
+    ConcurrentHashSet<T> set = getByFieldInternalNonUnique(index, value);
+    return set != null && !set.isEmpty();
   }
 
   /**
@@ -358,12 +361,12 @@ public class IndexedSet<T> extends AbstractSet<T> {
     Set<T> set;
     if (index.isUnique()) {
       set = new HashSet<T>();
-      T res = getByFieldInternalUniq(index, value);
+      T res = getByFieldInternalUnique(index, value);
       if (res != null) {
         set.add(res);
       }
     } else {
-      set = getByFieldInternalDup(index, value);
+      set = getByFieldInternalNonUnique(index, value);
     }
     return set == null ? new HashSet<T>() : Collections.unmodifiableSet(set);
   }
@@ -377,15 +380,15 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public T getFirstByField(FieldIndex<T> index, Object value) {
     if (index.isUnique()) {
-      T res = getByFieldInternalUniq(index, value);
+      T res = getByFieldInternalUnique(index, value);
       return res;
-    } else {
-      Set<T> all = getByFieldInternalDup(index, value);
-      try {
-        return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
-      } catch (NoSuchElementException e) {
-        return null;
-      }
+    }
+
+    Set<T> all = getByFieldInternalNonUnique(index, value);
+    try {
+      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
+    } catch (NoSuchElementException e) {
+      return null;
     }
   }
 
@@ -420,8 +423,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {
-    if (mIndexMapUniq != null) {
-      for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUniq
+    if (mIndexMapUnique != null) {
+      for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUnique
           .entrySet()) {
         Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         ConcurrentHashMap<Object, T> index = fieldInfo.getValue();
@@ -430,9 +433,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
       }
     }
 
-    if (mIndexMapDup != null) {
+    if (mIndexMapNonUnique != null) {
       for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo
-          : mIndexMapDup.entrySet()) {
+          : mIndexMapNonUnique.entrySet()) {
         Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
@@ -454,7 +457,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   public int removeByField(FieldIndex<T> index, Object value) {
     int removed = 0;
     if (index.isUnique()) {
-      T toRemove = getByFieldInternalUniq(index, value);
+      T toRemove = getByFieldInternalUnique(index, value);
       if (toRemove == null) {
         return 0;
       }
@@ -462,7 +465,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
         removed++;
       }
     } else {
-      ConcurrentHashSet<T> toRemove = getByFieldInternalDup(index, value);
+      ConcurrentHashSet<T> toRemove = getByFieldInternalNonUnique(index, value);
       if (toRemove == null) {
         return 0;
       }
@@ -491,19 +494,21 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param value the field value
    * @return the set of objects with the specified field value
    */
-  private T getByFieldInternalUniq(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(index.isUnique(), "Using getByFieldInternalUniq for repeatable index");
-    if (mIndexMapUniq == null) {
+  private T getByFieldInternalUnique(FieldIndex<T> index, Object value) {
+    Preconditions.checkState(index.isUnique(),
+        "Using getByFieldInternalUnique for repeatable index");
+    if (mIndexMapUnique == null) {
       return null;
     }
-    return mIndexMapUniq.get(index).get(value);
+    return mIndexMapUnique.get(index).get(value);
   }
 
-  private ConcurrentHashSet<T> getByFieldInternalDup(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(!index.isUnique(), "Using getByFieldInternalDup for unique index");
-    if (mIndexMapDup == null) {
+  private ConcurrentHashSet<T> getByFieldInternalNonUnique(FieldIndex<T> index, Object value) {
+    Preconditions.checkState(!index.isUnique(),
+        "Using getByFieldInternalNonUnique for unique index");
+    if (mIndexMapNonUnique == null) {
       return null;
     }
-    return mIndexMapDup.get(index).get(value);
+    return mIndexMapNonUnique.get(index).get(value);
   }
 }
