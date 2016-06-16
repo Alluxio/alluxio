@@ -14,7 +14,6 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.ReadType;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -192,21 +191,10 @@ public final class CpCommand extends AbstractShellCommand {
    */
   private void copyFile(AlluxioURI srcPath, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    URIStatus srcStatus = mFileSystem.getStatus(srcPath);
-
     try (Closer closer = Closer.create()) {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is = closer.register(mFileSystem.openFile(srcPath, openFileOptions));
       CreateFileOptions createFileOptions = CreateFileOptions.defaults();
-      if (srcStatus.isPersisted()) {
-        if (srcStatus.getInMemoryPercentage() == 0) {
-          createFileOptions.setWriteType(WriteType.THROUGH);
-        } else {
-          createFileOptions.setWriteType(WriteType.CACHE_THROUGH);
-        }
-      } else {
-        createFileOptions.setWriteType(WriteType.MUST_CACHE);
-      }
       FileOutStream os = closer.register(mFileSystem.createFile(dstPath, createFileOptions));
       IOUtils.copy(is, os);
       System.out.println("Copied " + srcPath + " to " + dstPath.getPath());
