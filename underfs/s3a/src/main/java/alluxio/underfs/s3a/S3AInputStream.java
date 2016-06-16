@@ -17,14 +17,18 @@ public class S3AInputStream extends InputStream {
   private final String mBucketName;
   private final String mKey;
 
-  private S3ObjectInputStream in;
+  private S3ObjectInputStream mIn;
   private long mPos;
 
   public S3AInputStream(String bucketName, String key, AmazonS3 client) {
+    this(bucketName, key, client, 0L);
+  }
+
+  public S3AInputStream(String bucketName, String key, AmazonS3 client, long position) {
     mBucketName = bucketName;
     mKey = key;
     mClient = client;
-    mPos = 0;
+    mPos = position;
   }
 
   @Override
@@ -34,10 +38,10 @@ public class S3AInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (in == null) {
+    if (mIn == null) {
       openStream();
     }
-    int value = in.read();
+    int value = mIn.read();
     if (value != -1) { // valid data read
       mPos++;
     }
@@ -54,10 +58,10 @@ public class S3AInputStream extends InputStream {
     if (length == 0) {
       return 0;
     }
-    if (in == null) {
+    if (mIn == null) {
       openStream();
     }
-    int read = in.read(b, offset, length);
+    int read = mIn.read(b, offset, length);
     if (read != -1) {
       mPos += read;
     }
@@ -66,26 +70,32 @@ public class S3AInputStream extends InputStream {
 
   @Override
   public long skip(long n) {
+    if (n <= 0) {
+      return 0;
+    }
     closeStream();
     mPos += n;
     openStream();
     return n;
   }
 
+  /**
+   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   */
   private void openStream() {
-    if (in != null) { // stream is already open
+    if (mIn != null) { // stream is already open
       return;
     }
     GetObjectRequest getReq = new GetObjectRequest(mBucketName, mKey);
     getReq.setRange(mPos);
-    in = mClient.getObject(getReq).getObjectContent();
+    mIn = mClient.getObject(getReq).getObjectContent();
   }
 
   private void closeStream() {
-    if (in == null) {
+    if (mIn == null) {
       return;
     }
-    in.abort();
-    in = null;
+    mIn.abort();
+    mIn = null;
   }
 }

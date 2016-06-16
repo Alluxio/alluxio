@@ -24,6 +24,7 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -44,7 +45,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
-
 
 /**
  * S3 {@link alluxio.underfs.UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
@@ -293,7 +293,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     try {
       path = stripPrefixIfPresent(path);
       return new S3AInputStream(mBucketName, path, mClient);
-    } catch (ServiceException e) {
+    } catch (AmazonClientException e) {
       LOG.error("Failed to open file: {}", path, e);
       return null;
     }
@@ -311,7 +311,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     try {
       path = stripPrefixIfPresent(path);
       return new S3AInputStream(mBucketName, path, mClient, pos);
-    } catch (ServiceException e) {
+    } catch (AmazonClientException e) {
       LOG.error("Failed to open file {} at position {}:", path, pos, e);
       return null;
     }
