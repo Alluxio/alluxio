@@ -19,6 +19,7 @@ import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -98,8 +99,7 @@ public class S3AOutputStream extends OutputStream {
     } catch (NoSuchAlgorithmException e) {
       LOG.warn("Algorithm not available for MD5 hash.", e);
       mHash = null;
-      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
-    }
+      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));    }
   }
 
   @Override
@@ -132,14 +132,8 @@ public class S3AOutputStream extends OutputStream {
       ObjectMetadata meta = new ObjectMetadata();
       meta.setContentLength(mFile.length());
       meta.setContentEncoding(Mimetypes.MIMETYPE_OCTET_STREAM);
-
       if (mHash != null) {
-        byte[] digest = mHash.digest();
-        StringBuilder sb = new StringBuilder();
-        for (byte b : digest) {
-          sb.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1, 3));
-        }
-        meta.setContentMD5(sb.toString());
+        meta.setContentMD5(new String(Base64.encode(mHash.digest())));
       }
 
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, mKey, mFile).withMetadata(meta);

@@ -24,12 +24,13 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +39,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -72,16 +71,8 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   private final String mBucketPrefix;
 
   static {
-    try {
-      byte[] dirByteHash = MessageDigest.getInstance("MD5").digest(new byte[0]);
-      StringBuilder sb = new StringBuilder();
-      for (byte b : dirByteHash) {
-        sb.append(Integer.toHexString((b & 0xFF) | 0x100).substring(1,3));
-      }
-      DIR_HASH = sb.toString();
-    } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException(e);
-    }
+    byte[] dirByteHash = DigestUtils.md5(new byte[0]);
+    DIR_HASH = new String(Base64.encode(dirByteHash));
   }
 
   /**
