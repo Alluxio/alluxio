@@ -14,9 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
-import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
 
@@ -24,8 +22,6 @@ import com.google.common.io.Closer;
 import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.io.IOException;
 
 /**
  * Tests for cp command.
@@ -125,32 +121,6 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
   }
 
   private boolean equals(AlluxioURI file1, AlluxioURI file2) throws Exception {
-    URIStatus status1;
-    try {
-      status1 = mFileSystem.getStatus(file1);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
-
-    URIStatus status2;
-    try {
-      status2 = mFileSystem.getStatus(file2);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
-
-    if (status1.getLength() != status2.getLength()) {
-      return false;
-    }
-
-    if (status1.getInMemoryPercentage() != status2.getInMemoryPercentage()) {
-      return false;
-    }
-
-    if (status1.isPersisted() != status2.isPersisted()) {
-      return false;
-    }
-
     try (Closer closer = Closer.create()) {
       OpenFileOptions openFileOptions = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream is1 = closer.register(mFileSystem.openFile(file1, openFileOptions));
