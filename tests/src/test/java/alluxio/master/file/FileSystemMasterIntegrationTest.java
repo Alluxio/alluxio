@@ -102,7 +102,7 @@ public class FileSystemMasterIntegrationTest {
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
                 path.join(Integer.toString(i))));
@@ -273,11 +273,11 @@ public class FileSystemMasterIntegrationTest {
         try {
           CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
           mFsMaster.createDirectory(dstPath.getParent(), options);
-        } catch (FileAlreadyExistsException e) {
-          // This is an acceptable exception to get, since we don't know if the parent has been
-          // created yet by another thread.
-        } catch (InvalidPathException e) {
-          // This could happen if we are renaming something that's a child of the root.
+        } catch (FileAlreadyExistsException | InvalidPathException e) {
+          // FileAlreadyExistsException: This is an acceptable exception to get, since we don't know
+          // if the parent has been created yet by another thread.
+          // InvalidPathException: This could happen if we are renaming something that's a child of
+          // the root.
         }
         mFsMaster.rename(srcPath, dstPath);
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));

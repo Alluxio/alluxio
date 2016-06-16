@@ -174,7 +174,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * Gets the namenode address for this {@LocalMiniDFSCluster}.
+   * Gets the namenode address for this {@link LocalMiniDFSCluster}.
    *
    * @return namenode address
    */
