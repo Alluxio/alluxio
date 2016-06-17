@@ -129,7 +129,7 @@ public enum ExceptionMessage {
 
   // shell
   DESTINATION_CANNOT_BE_FILE(
-      "The destination cannot be a existing file when the source is a directory or a list of "
+      "The destination cannot be an existing file when the source is a directory or a list of "
           + "files."),
 
   // lineage
