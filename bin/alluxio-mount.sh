@@ -31,8 +31,8 @@ function init_env() {
   . ${ALLUXIO_LIBEXEC_DIR}/alluxio-config.sh
 
   if [[ -z ${ALLUXIO_WORKER_MEMORY_SIZE} ]]; then
-    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 128MB"
-    ALLUXIO_WORKER_MEMORY_SIZE="128MB"
+    echo "ALLUXIO_WORKER_MEMORY_SIZE was not set. Using the default one: 1GB"
+    ALLUXIO_WORKER_MEMORY_SIZE="1GB"
   fi
 
   MEM_SIZE=$(echo "${ALLUXIO_WORKER_MEMORY_SIZE}" | tr -s '[:upper:]' '[:lower:]')
