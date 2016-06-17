@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.security.authorization.PermissionStatus;
@@ -19,8 +18,6 @@ import alluxio.thrift.CompleteUfsFileTOptions;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -33,7 +30,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The ufs user this file should be owned by. */
   private final String mUser;
   /** The ufs group this file should be owned by. */
@@ -53,9 +49,6 @@ public final class CompleteUfsFileOptions {
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }
-    // DEBUG(chaomin)
-    LOG.info("CompleteUfsFileOptions ps = {} ", ps.toString());
-    // END DEBUG
     return new CompleteUfsFileOptions(ps.getUserName(), ps.getGroupName(),
         String.valueOf(ps.getPermission().toShort()));
   }

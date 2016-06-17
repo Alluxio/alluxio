@@ -399,7 +399,7 @@ public abstract class UnderFileSystem {
    * Creates a file in the under file system with the indicated name and permission status.
    *
    * @param path The file name
-   * @param ps The permission
+   * @param ps the permission status to set for the file
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */

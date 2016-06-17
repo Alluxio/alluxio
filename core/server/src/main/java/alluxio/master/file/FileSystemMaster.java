@@ -1856,17 +1856,14 @@ public final class FileSystemMaster extends AbstractMaster {
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-    LOG.info("before");
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
       String ufsPermission = ufs.getPermission(ufsUri.toString());
-      LOG.info("setting dir permission status {}", ufsPermission);
       createFileOptions = createFileOptions.setPermissionStatus(
           new PermissionStatus(ufsOwner, ufsGroup,
               new FileSystemPermission(Short.parseShort(ufsPermission))));
     }
-    LOG.info("after");
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1906,7 +1903,6 @@ public final class FileSystemMaster extends AbstractMaster {
             .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
             .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true)
             .setAllowExists(true);
-    LOG.info("before loadDir");
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       AlluxioURI ufsUri = resolution.getUri();
@@ -1914,12 +1910,10 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
       String ufsPermission = ufs.getPermission(ufsUri.toString());
-      LOG.info("setting dir permission status {}", ufsPermission);
       createDirectoryOptions = createDirectoryOptions.setPermissionStatus(
           new PermissionStatus(ufsOwner, ufsGroup,
               new FileSystemPermission(Short.parseShort(ufsPermission))));
     }
-    LOG.info("after loadDir");
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
