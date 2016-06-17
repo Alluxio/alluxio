@@ -20,6 +20,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
 
@@ -161,7 +162,10 @@ public final class FileSystemUtils {
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);
       }
-      OutputStream out = closer.register(ufs.create(dstPath.getPath()));
+      URIStatus uriStatus = fs.getStatus(uri);
+      PermissionStatus ps = new PermissionStatus(uriStatus.getUserName(), uriStatus.getGroupName(),
+          (short) uriStatus.getPermission());
+      OutputStream out = closer.register(ufs.create(dstPath.getPath(), ps));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);
