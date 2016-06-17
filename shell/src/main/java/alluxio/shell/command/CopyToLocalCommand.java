@@ -90,8 +90,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
   private void copyWildcardToLocal(List<AlluxioURI> srcPaths, File dstFile)
       throws AlluxioException, IOException {
     if (dstFile.exists() && !dstFile.isDirectory()) {
-      throw new InvalidPathException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+      throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
     }
     if (!dstFile.exists()) {
       if (!dstFile.mkdirs()) {

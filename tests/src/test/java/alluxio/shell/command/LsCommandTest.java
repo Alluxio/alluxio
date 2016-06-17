@@ -129,27 +129,27 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void lsWildcardNoAclTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
-    mFsShell.run("ls", "/testWildCards/*/foo*");
+    mFsShell.run("ls", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20,
         LsCommand.STATE_FILE_IN_MEMORY);
-    expect += getLsNoAclResultStr(new AlluxioURI("/testWildCards/foobar4"), 40,
+    expect += getLsNoAclResultStr(new AlluxioURI(testDir + "/foobar4"), 40,
         LsCommand.STATE_FILE_IN_MEMORY);
-    mFsShell.run("ls", "/testWildCards/*");
+    mFsShell.run("ls", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
   }
 
@@ -166,20 +166,20 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
-    mFsShell.run("ls", "/testWildCards/*/foo*");
+    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
+    mFsShell.run("ls", testDir + "/*/foo*");
     Assert.assertEquals(expect, mOutput.toString());
 
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/bar/foobar3"), 30, testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar1"), 10, testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/foo/foobar2"), 20, testUser, testUser);
-    expect += getLsResultStr(new AlluxioURI("/testWildCards/foobar4"), 40, testUser, testUser);
-    mFsShell.run("ls", "/testWildCards/*");
+    expect += getLsResultStr(new AlluxioURI(testDir + "/bar/foobar3"), 30, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar1"), 10, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foo/foobar2"), 20, testUser, testUser);
+    expect += getLsResultStr(new AlluxioURI(testDir + "/foobar4"), 40, testUser, testUser);
+    mFsShell.run("ls", testDir + "/*");
     Assert.assertEquals(expect, mOutput.toString());
   }
 

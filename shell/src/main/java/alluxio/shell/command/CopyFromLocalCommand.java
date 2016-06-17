@@ -172,8 +172,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
 
     URIStatus dstStatus = mFileSystem.getStatus(dstPath);
     if (!dstStatus.isFolder()) {
-      throw new InvalidPathException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+      throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
     }
   }
 

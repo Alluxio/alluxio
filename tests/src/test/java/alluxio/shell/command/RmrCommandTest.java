@@ -57,22 +57,22 @@ public final class RmrCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void rmrWildCardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    mFsShell.run("rmr", "/testWildCards/foo/foo*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar1")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
+    mFsShell.run("rmr", testDir + "/foo/foo*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar1")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foo")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
 
-    mFsShell.run("rmr", "/testWildCards/ba*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foobar4")));
+    mFsShell.run("rmr", testDir + "/ba*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foobar4")));
 
-    mFsShell.run("rmr", "/testWildCards/*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foobar4")));
+    mFsShell.run("rmr", testDir + "/*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/bar")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
   }
 }
