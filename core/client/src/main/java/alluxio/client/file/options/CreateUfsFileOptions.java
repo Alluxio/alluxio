@@ -25,7 +25,8 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Options for creating a UFS file.
+ * Options for creating a UFS file. Currently we do not allow users to set arbitrary user and
+ * group options. The user and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
@@ -43,8 +44,8 @@ public final class CreateUfsFileOptions {
   public static CreateUfsFileOptions defaults() {
     PermissionStatus ps = PermissionStatus.defaults();
     try {
-      // Set user and group from user login module.
-      ps.setUserFromLoginModule(ClientContext.getConf());
+      // Set user and group from user login module, apply default file UMask.
+      ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
       // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
       // file is always created with default permission.
     } catch (IOException e) {
@@ -103,9 +104,9 @@ public final class CreateUfsFileOptions {
   }
 
   /**
-   * @return if the posixPerm has been set
+   * @return if the permission has been set
    */
-  public boolean hasPosixPerm() {
+  public boolean hasPermission() {
     return mPermission != Constants.INVALID_PERMISSION;
   }
 
@@ -135,7 +136,7 @@ public final class CreateUfsFileOptions {
     if (hasUser()) {
       options.setUser(mUser);
     }
-    if (hasPosixPerm()) {
+    if (hasPermission()) {
       options.setPermission(mPermission);
     }
     return options;
