@@ -96,7 +96,7 @@ public final class FileUtils {
   public static String getLocalFileOwner(String filePath) throws IOException {
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.owner();
+    return attr.owner().getName();
   }
 
   /**
@@ -109,7 +109,7 @@ public final class FileUtils {
   public static String getLocalFileGroup(String filePath) throws IOException {
     PosixFileAttributes attr =
         Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return attr.group();
+    return attr.group().getName();
   }
 
   /**
