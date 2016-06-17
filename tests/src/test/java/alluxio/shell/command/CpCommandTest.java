@@ -33,12 +33,12 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void copyFileNewTest() throws Exception {
-    String rootDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", rootDir + "/foobar4", "/copy");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    int ret = mFsShell.run("cp", testDir + "/foobar4", "/copy");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
 
-    Assert.assertTrue(equals(new AlluxioURI("/copy"), new AlluxioURI(rootDir + "/foobar4")));
+    Assert.assertTrue(equals(new AlluxioURI("/copy"), new AlluxioURI(testDir + "/foobar4")));
   }
 
   /**
@@ -46,13 +46,13 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void copyFileExistingTest() throws Exception {
-    String rootDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", rootDir + "/foobar4", rootDir + "/bar");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    int ret = mFsShell.run("cp", testDir + "/foobar4", testDir + "/bar");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + "/bar/foobar4")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + "/bar/foobar4")));
 
     Assert.assertTrue(
-        equals(new AlluxioURI(rootDir + "/bar/foobar4"), new AlluxioURI(rootDir + "/foobar4")));
+        equals(new AlluxioURI(testDir + "/bar/foobar4"), new AlluxioURI(testDir + "/foobar4")));
   }
 
   /**
@@ -60,8 +60,8 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void copyDirNewTest() throws Exception {
-    String rootDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "-R", rootDir, "/copy");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    int ret = mFsShell.run("cp", "-R", testDir, "/copy");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/bar")));
@@ -72,13 +72,13 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar4")));
 
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/bar/foobar3"), new AlluxioURI(rootDir + "/bar/foobar3")));
+        equals(new AlluxioURI("/copy/bar/foobar3"), new AlluxioURI(testDir + "/bar/foobar3")));
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foo/foobar1"), new AlluxioURI(rootDir + "/foo/foobar1")));
+        equals(new AlluxioURI("/copy/foo/foobar1"), new AlluxioURI(testDir + "/foo/foobar1")));
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foo/foobar2"), new AlluxioURI(rootDir + "/foo/foobar2")));
+        equals(new AlluxioURI("/copy/foo/foobar2"), new AlluxioURI(testDir + "/foo/foobar2")));
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foobar4"), new AlluxioURI(rootDir + "/foobar4")));
+        equals(new AlluxioURI("/copy/foobar4"), new AlluxioURI(testDir + "/foobar4")));
   }
 
   /**
@@ -86,25 +86,25 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void copyDirExistingTest() throws Exception {
-    String rootDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", "-R", rootDir, rootDir);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    int ret = mFsShell.run("cp", "-R", testDir, testDir);
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir)));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/bar")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/bar/foobar3")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/foo")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/foo/foobar1")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/foo/foobar2")));
-    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(rootDir + rootDir + "/foobar4")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir)));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/bar/foobar3")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar1")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foo/foobar2")));
+    Assert.assertTrue(mFileSystem.exists(new AlluxioURI(testDir + testDir + "/foobar4")));
 
-    Assert.assertTrue(equals(new AlluxioURI(rootDir + rootDir + "/bar/foobar3"),
-        new AlluxioURI(rootDir + "/bar/foobar3")));
-    Assert.assertTrue(equals(new AlluxioURI(rootDir + rootDir + "/foo/foobar1"),
-        new AlluxioURI(rootDir + "/foo/foobar1")));
-    Assert.assertTrue(equals(new AlluxioURI(rootDir + rootDir + "/foo/foobar2"),
-        new AlluxioURI(rootDir + "/foo/foobar2")));
-    Assert.assertTrue(equals(new AlluxioURI(rootDir + rootDir + "/foobar4"),
-        new AlluxioURI(rootDir + "/foobar4")));
+    Assert.assertTrue(equals(new AlluxioURI(testDir + testDir + "/bar/foobar3"),
+        new AlluxioURI(testDir + "/bar/foobar3")));
+    Assert.assertTrue(equals(new AlluxioURI(testDir + testDir + "/foo/foobar1"),
+        new AlluxioURI(testDir + "/foo/foobar1")));
+    Assert.assertTrue(equals(new AlluxioURI(testDir + testDir + "/foo/foobar2"),
+        new AlluxioURI(testDir + "/foo/foobar2")));
+    Assert.assertTrue(equals(new AlluxioURI(testDir + testDir + "/foobar4"),
+        new AlluxioURI(testDir + "/foobar4")));
   }
 
   /**
@@ -112,8 +112,8 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void copyWildcardTest() throws Exception {
-    String rootDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    int ret = mFsShell.run("cp", rootDir + "/*/foo*", "/copy");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    int ret = mFsShell.run("cp", testDir + "/*/foo*", "/copy");
     Assert.assertEquals(0, ret);
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy")));
     Assert.assertTrue(mFileSystem.exists(new AlluxioURI("/copy/foobar1")));
@@ -122,11 +122,11 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
     Assert.assertFalse(mFileSystem.exists(new AlluxioURI("/copy/foobar4")));
 
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foobar1"), new AlluxioURI(rootDir + "/foo/foobar1")));
+        equals(new AlluxioURI("/copy/foobar1"), new AlluxioURI(testDir + "/foo/foobar1")));
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foobar2"), new AlluxioURI(rootDir + "/foo/foobar2")));
+        equals(new AlluxioURI("/copy/foobar2"), new AlluxioURI(testDir + "/foo/foobar2")));
     Assert.assertTrue(
-        equals(new AlluxioURI("/copy/foobar3"), new AlluxioURI(rootDir + "/bar/foobar3")));
+        equals(new AlluxioURI("/copy/foobar3"), new AlluxioURI(testDir + "/bar/foobar3")));
   }
 
   /**
