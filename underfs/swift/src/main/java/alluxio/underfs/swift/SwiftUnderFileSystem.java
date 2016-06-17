@@ -290,8 +290,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   // Same as mkdirs
   @Override
   public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
-    LOG.debug("mkdirs with permission status is not supported with SwiftUnderFileSystem. " +
-        "Permission Status will be ignored.");
+    LOG.debug("mkdirs with permission status is not supported with SwiftUnderFileSystem. "
+        + "Permission Status will be ignored.");
     return mkdirs(path, createParent);
   }
 
