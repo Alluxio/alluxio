@@ -28,6 +28,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -101,9 +102,14 @@ public class FileOutStream extends AbstractOutStream {
         updateUfsPath();
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
+          PermissionStatus ps = options.getPermissionStatus();
+          // DEBUG(chaomin)
+          LOG.info("FileOutStream delegation on ps = {} ", ps.toString());
+          // END DEBUG
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-                  CreateUfsFileOptions.defaults());
+                  new CreateUfsFileOptions(ps.getUserName(), ps.getGroupName(),
+                      String.valueOf(ps.getPermission().toShort())));
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
@@ -112,11 +118,14 @@ public class FileOutStream extends AbstractOutStream {
             new UnderFileSystemFileOutStream(mFileSystemWorkerClient.getWorkerDataServerAddress(),
                 mUfsFileId);
       } else {
+        // DEBUG(chaomin)
+        LOG.info("FileOutStream delegation off");
+        // END DEBUG
         updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
+        mUnderStorageOutputStream = ufs.create(tmpPath, options.getPermissionStatus());
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;
@@ -162,6 +171,10 @@ public class FileOutStream extends AbstractOutStream {
             long len =
                 mFileSystemWorkerClient.completeUfsFile(mUfsFileId,
                     CompleteUfsFileOptions.defaults());
+            // DEBUG(chaomin)
+            LOG.info("with delegation: completeUfsFileOption = ",
+                CompleteUfsFileOptions.defaults().getPosixPerm().toString());
+            // END DEBUG
             options.setUfsLength(len);
           }
         } catch (AlluxioException e) {
