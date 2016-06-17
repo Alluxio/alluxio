@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.security.authorization.PermissionStatus;
@@ -33,8 +34,8 @@ public final class CreateUfsFileOptions {
   private final String mUser;
   /** The ufs group this file should be owned by. */
   private final String mGroup;
-  /** The ufs permission in Posix string format, such as 0777. */
-  private String mPosixPerm;
+  /** The ufs permission in short format, e.g. 0777. */
+  private final short mPermission;
 
   /**
    * @return the default {@link CreateUfsFileOptions}
@@ -50,7 +51,7 @@ public final class CreateUfsFileOptions {
       throw Throwables.propagate(e);
     }
     return new CreateUfsFileOptions(ps.getUserName(), ps.getGroupName(),
-        String.valueOf(ps.getPermission().toShort()));
+        ps.getPermission().toShort());
   }
 
   /**
@@ -58,12 +59,12 @@ public final class CreateUfsFileOptions {
    *
    * @param user the user name
    * @param group the group name
-   * @param posixPerm the permission in posix string format
+   * @param permission the permission in short format, e.g. 0777
    */
-  public CreateUfsFileOptions(String user, String group, String posixPerm) {
+  public CreateUfsFileOptions(String user, String group, short permission) {
     mUser = user;
     mGroup = group;
-    mPosixPerm = posixPerm;
+    mPermission = permission;
   }
 
   /**
@@ -81,10 +82,10 @@ public final class CreateUfsFileOptions {
   }
 
   /**
-   * @return the ufs permission in Posix string format
+   * @return the ufs permission in short format, e.g. 0777
    */
-  public String getPosixPerm() {
-    return mPosixPerm;
+  public short getPermission() {
+    return mPermission;
   }
 
   /**
@@ -105,16 +106,7 @@ public final class CreateUfsFileOptions {
    * @return if the posixPerm has been set
    */
   public boolean hasPosixPerm() {
-    return mPosixPerm != null;
-  }
-
-  /**
-   * Sets the posix perm.
-   *
-   * @param posixPerm the perm to set in posix string format
-   */
-  public void setPosixPerm(String posixPerm) {
-    mPosixPerm = posixPerm;
+    return mPermission != Constants.INVALID_PERMISSION;
   }
 
   @Override
@@ -144,7 +136,7 @@ public final class CreateUfsFileOptions {
       options.setUser(mUser);
     }
     if (hasPosixPerm()) {
-      options.setPosixPerm(mPosixPerm);
+      options.setPermission(mPermission);
     }
     return options;
   }

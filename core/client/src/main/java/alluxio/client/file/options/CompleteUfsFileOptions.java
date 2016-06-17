@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
 import alluxio.security.authorization.PermissionStatus;
@@ -34,8 +35,8 @@ public final class CompleteUfsFileOptions {
   private final String mUser;
   /** The ufs group this file should be owned by. */
   private final String mGroup;
-  /** The ufs permission in Posix string format, such as 0777. */
-  private String mPosixPerm;
+  /** The ufs permission in short format, e.g. 0777. */
+  private final short mPermission;
 
   /**
    * @return the default {@link CompleteUfsFileOptions}
@@ -51,13 +52,13 @@ public final class CompleteUfsFileOptions {
       throw Throwables.propagate(e);
     }
     return new CompleteUfsFileOptions(ps.getUserName(), ps.getGroupName(),
-        String.valueOf(ps.getPermission().toShort()));
+        ps.getPermission().toShort());
   }
 
-  private CompleteUfsFileOptions(String user, String group, String posixPerm) {
+  private CompleteUfsFileOptions(String user, String group, short permission) {
     mUser = user;
     mGroup = group;
-    mPosixPerm = posixPerm;
+    mPermission = permission;
   }
 
   /**
@@ -75,10 +76,10 @@ public final class CompleteUfsFileOptions {
   }
 
   /**
-   * @return the ufs permission in Posix string format
+   * @return the ufs permission in short format, e.g. 0777
    */
-  public String getPosixPerm() {
-    return mPosixPerm;
+  public short getPermission() {
+    return mPermission;
   }
 
   /**
@@ -99,16 +100,7 @@ public final class CompleteUfsFileOptions {
    * @return if the posixPerm has been set
    */
   public boolean hasPosixPerm() {
-    return mPosixPerm != null;
-  }
-
-  /**
-   * Sets the posix permission.
-   *
-   * @param posixPerm the permission to set
-   */
-  public void setPosixPerm(String posixPerm) {
-    mPosixPerm = posixPerm;
+    return mPermission != Constants.INVALID_PERMISSION;
   }
 
   @Override
@@ -138,7 +130,7 @@ public final class CompleteUfsFileOptions {
       options.setUser(mUser);
     }
     if (hasPosixPerm()) {
-      options.setPosixPerm(mPosixPerm);
+      options.setPermission(mPermission);
     }
     return options;
   }

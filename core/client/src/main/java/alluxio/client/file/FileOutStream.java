@@ -106,7 +106,7 @@ public class FileOutStream extends AbstractOutStream {
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
                   new CreateUfsFileOptions(ps.getUserName(), ps.getGroupName(),
-                      String.valueOf(ps.getPermission().toShort())));
+                      ps.getPermission().toShort()));
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);

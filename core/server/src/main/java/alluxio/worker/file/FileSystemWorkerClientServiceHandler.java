@@ -114,9 +114,10 @@ public final class FileSystemWorkerClientServiceHandler
     try {
       String user = options.isSetUser() ? options.getUser() : null;
       String group = options.isSetGroup() ? options.getGroup() : null;
-      String posixPerm = options.isSetPosixPerm() ? options.getPosixPerm() : null;
+      short permission = options.isSetPermission()
+          ? options.getPermission() : Constants.INVALID_PERMISSION;
       return mWorker.completeUfsFile(sessionId, tempUfsFileId,
-          new PermissionStatus(user, group, Short.parseShort(posixPerm)));
+          new PermissionStatus(user, group, permission));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -141,9 +142,10 @@ public final class FileSystemWorkerClientServiceHandler
     try {
       String user = options.isSetUser() ? options.getUser() : null;
       String group = options.isSetGroup() ? options.getGroup() : null;
-      String posixPerm = options.isSetPosixPerm() ? options.getPosixPerm() : null;
+      short permission = options.isSetPermission()
+          ? options.getPermission() : Constants.INVALID_PERMISSION;
       return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri),
-          new PermissionStatus(user, group, Short.parseShort(posixPerm)));
+          new PermissionStatus(user, group, permission));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
