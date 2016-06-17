@@ -11,13 +11,18 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
-import alluxio.security.LoginUser;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.CompleteUfsFileTOptions;
-import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -28,36 +33,37 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The ufs user this file should be owned by. */
   private final String mUser;
   /** The ufs group this file should be owned by. */
   private final String mGroup;
+  /** The ufs permission in Posix string format, such as 0777. */
+  private String mPosixPerm;
 
   /**
    * @return the default {@link CompleteUfsFileOptions}
    */
-  //TODO(calvin): Move the user group discovery to a utils method
-  //TODO(calvin): Utilize user-to-group mapping to discover the user
   public static CompleteUfsFileOptions defaults() {
-    String user = null;
-    if (SecurityUtils.isAuthenticationEnabled(ClientContext.getConf())) {
-      try {
-        user = LoginUser.get(ClientContext.getConf()).getName();
-      } catch (Exception e) {
-        // Fall through to system property approach
-      }
+    PermissionStatus ps = PermissionStatus.defaults();
+    try {
+      // Set user and group from user login module.
+      ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
+      // TODO(chaomin): set permission depends on the alluxio file.
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
     }
-    if (user == null) { // Set to system user, or null if there is no system user set
-      String systemUser = System.getProperty("user.name");
-      user = systemUser.isEmpty() ? null : systemUser;
-    }
-    String group = user;
-    return new CompleteUfsFileOptions(user, group);
+    // DEBUG(chaomin)
+    LOG.info("CompleteUfsFileOptions ps = {} ", ps.toString());
+    // END DEBUG
+    return new CompleteUfsFileOptions(ps.getUserName(), ps.getGroupName(),
+        String.valueOf(ps.getPermission().toShort()));
   }
 
-  private CompleteUfsFileOptions(String user, String group) {
+  private CompleteUfsFileOptions(String user, String group, String posixPerm) {
     mUser = user;
     mGroup = group;
+    mPosixPerm = posixPerm;
   }
 
   /**
@@ -75,6 +81,13 @@ public final class CompleteUfsFileOptions {
   }
 
   /**
+   * @return the ufs permission in Posix string format
+   */
+  public String getPosixPerm() {
+    return mPosixPerm;
+  }
+
+  /**
    * @return if the group has been set
    */
   public boolean hasGroup() {
@@ -86,6 +99,22 @@ public final class CompleteUfsFileOptions {
    */
   public boolean hasUser() {
     return mUser != null;
+  }
+
+  /**
+   * @return if the posixPerm has been set
+   */
+  public boolean hasPosixPerm() {
+    return mPosixPerm != null;
+  }
+
+  /**
+   * Sets the posix permission.
+   *
+   * @param posixPerm the permission to set
+   */
+  public void setPosixPerm(String posixPerm) {
+    mPosixPerm = posixPerm;
   }
 
   @Override
@@ -113,6 +142,9 @@ public final class CompleteUfsFileOptions {
     }
     if (hasUser()) {
       options.setUser(mUser);
+    }
+    if (hasPosixPerm()) {
+      options.setPosixPerm(mPosixPerm);
     }
     return options;
   }
