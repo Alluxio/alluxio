@@ -14,6 +14,7 @@ package alluxio.underfs.local;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.FileUtils;
@@ -74,7 +75,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, ps.getPermission().toString());
+      setPermission(path, ps.getPermission().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
@@ -213,7 +214,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     File file = new File(path);
     if (!createParent) {
       if (file.mkdir()) {
-        setPermission(file.getPath(), ps.getPermission().toString());
+        setPermission(file.getPath(), ps.getPermission().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
         return true;
       }
@@ -230,7 +231,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     while (!dirsToMake.empty()) {
       File dirToMake = dirsToMake.pop();
       if (dirToMake.mkdir()) {
-        setPermission(dirToMake.getAbsolutePath(), ps.getPermission().toString());
+        setPermission(dirToMake.getAbsolutePath(), ps.getPermission().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
       } else {
         return false;
@@ -268,8 +269,9 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
+  public void setPermission(String path, short permission) throws IOException {
     path = stripPath(path);
+    String posixPerm = new FileSystemPermission(permission).toString();
     FileUtils.changeLocalFilePermission(path, posixPerm);
   }
 

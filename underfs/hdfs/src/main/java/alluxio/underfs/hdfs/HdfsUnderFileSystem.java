@@ -502,15 +502,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
+  public void setPermission(String path, short permission) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
-          fileStatus.getPermission(), posixPerm);
-      FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
-      mFileSystem.setPermission(fileStatus.getPath(), perm);
+          fileStatus.getPermission(), permission);
+      mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(permission));
     } catch (IOException e) {
-      LOG.error("Fail to set permission for {} with perm {}", path, posixPerm, e);
+      LOG.error("Fail to set permission for {} with perm {}", path, permission, e);
       throw e;
     }
   }

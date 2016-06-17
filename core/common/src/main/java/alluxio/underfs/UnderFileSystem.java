@@ -694,10 +694,10 @@ public abstract class UnderFileSystem {
    * Changes posix file permission.
    *
    * @param path path of the file
-   * @param posixPerm standard posix permission like "777", "775", etc
+   * @param permission the permission to set in short format, e.g. 0777
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setPermission(String path, String posixPerm) throws IOException;
+  public abstract void setPermission(String path, short permission) throws IOException;
 
   /**
    * Gets the owner of the given path. An empty implementation should be provided if not supported.

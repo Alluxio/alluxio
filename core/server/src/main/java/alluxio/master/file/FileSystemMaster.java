@@ -2474,7 +2474,7 @@ public final class FileSystemMaster extends AbstractMaster {
         String ufsUri = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
         try {
-          ufs.setPermission(ufsUri, String.valueOf(inode.getPermission()));
+          ufs.setPermission(ufsUri, inode.getPermission());
         } catch (IOException e) {
           throw new AccessControlException("Could not setPermission for UFS file " + ufsUri, e);
         }

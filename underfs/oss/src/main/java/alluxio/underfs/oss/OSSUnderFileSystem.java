@@ -334,7 +334,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setPermission(String path, short permission) throws IOException {}
 
   // Not supported
   @Override
