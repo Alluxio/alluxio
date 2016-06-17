@@ -133,14 +133,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public FSDataOutputStream create(String path, PermissionStatus perm) throws IOException {
+  public FSDataOutputStream create(String path, PermissionStatus ps) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
+        LOG.debug("Creating HDFS file at {} with perm {}", path, ps.toString());
         return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(perm.getPermission().toShort()));
+            new FsPermission(ps.getPermission().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
