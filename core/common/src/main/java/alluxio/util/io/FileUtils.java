@@ -30,6 +30,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
@@ -83,6 +84,45 @@ public final class FileUtils {
    */
   public static void changeLocalFileToFullPermission(String filePath) throws IOException {
     changeLocalFilePermission(filePath, "rwxrwxrwx");
+  }
+
+  /**
+   * Gets local file's owner.
+   *
+   * @param filePath the file path
+   * @return the owner of the local file
+   * @throws IOException when fails to get the owner
+   */
+  public static String getLocalFileOwner(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.owner();
+  }
+
+  /**
+   * Gets local file's group.
+   *
+   * @param filePath the file path
+   * @return the group of the local file
+   * @throws IOException when fails to get the group
+   */
+  public static String getLocalFileGroup(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.group();
+  }
+
+  /**
+   * Gets local file's permission.
+   *
+   * @param filePath the file path
+   * @return the file permission in posix format, e.g. "rwxr--r--"
+   * @throws IOException when fails to get the permission
+   */
+  public static String getLocalFilePermission(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return PosixFilePermissions.toString(attr.permissions());
   }
 
   /**

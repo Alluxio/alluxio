@@ -275,20 +275,20 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String getOwner(String path) throws IOException {
-    // TODO(chaomin): implement this.
-    return null;
+    path = stripPath(path);
+    FileUtils.getLocalFileOwner(path);
   }
 
   @Override
   public String getGroup(String path) throws IOException {
-    // TODO(chaomin): implement this.
-    return null;
+    path = stripPath(path);
+    FileUtils.getLocalFileGroup(path);
   }
 
   @Override
   public String getPermission(String path) throws IOException {
-    // TODO(chaomin): implement this.
-    return null;
+    path = stripPath(path);
+    FileUtils.getLocalFilePermission(path);
   }
 
   @Override
