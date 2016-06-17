@@ -350,8 +350,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public String getPermission(String path) throws IOException {
-    return null;
+  public short getPermission(String path) throws IOException {
+    return (short) 0777;
   }
 
   /**

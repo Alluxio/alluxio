@@ -615,8 +615,9 @@ public abstract class UnderFileSystem {
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
-    /**
-   * Creates the directory named by this abstract pathname. If the folder already exists, the method
+  /**
+   * Creates the directory named by this abstract pathname, with specified permission status. If
+   * the folder already exists, the method
    * returns false.
    *
    * @param path the folder to create
@@ -722,12 +723,12 @@ public abstract class UnderFileSystem {
   public abstract String getGroup(String path) throws IOException;
 
   /**
-   * Gets the permission of the given path in posix string format. An empty implementation should
+   * Gets the permission of the given path in short format, e.g 0700. An empty implementation should
    * be provided if not supported.
    *
    * @param path path of the file
    * @return the permission of the file
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract String getPermission(String path) throws IOException;
+  public abstract short getPermission(String path) throws IOException;
 }
