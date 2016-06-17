@@ -17,6 +17,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -66,6 +68,8 @@ public final class UnderFileSystemManagerTest {
     mMockOutputStream = Mockito.mock(OutputStream.class);
     mMockInputStream = Mockito.mock(InputStream.class);
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
+    Mockito.when(mMockUfs.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
+        .thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
@@ -82,8 +86,9 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
         Mockito.anyString());
   }
@@ -98,7 +103,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FAILED_UFS_CREATE.getMessage(uniqPath));
-    manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
+    manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
   }
 
   /**
@@ -108,9 +113,11 @@ public final class UnderFileSystemManagerTest {
   public void completeUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.completeFile(SESSION_ID, id, null, null);
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath),
+        new PermissionStatus("", "", (short) 0777));
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
+    manager.completeFile(SESSION_ID, id, new PermissionStatus("", "", (short) 0777));
     Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
   }
 
@@ -123,9 +130,11 @@ public final class UnderFileSystemManagerTest {
     String user = "User";
     String group = "Group";
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
-    manager.completeFile(SESSION_ID, id, user, group);
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
+    manager.completeFile(SESSION_ID, id,
+        new PermissionStatus(user, group, FileSystemPermission.getFullFsPermission()));
     Mockito.verify(mMockUfs).rename(Mockito.contains(uniqPath), Mockito.eq(uniqPath));
     Mockito.verify(mMockUfs).setOwner(uniqPath, user, group);
   }
@@ -138,7 +147,7 @@ public final class UnderFileSystemManagerTest {
     UnderFileSystemManager manager = new UnderFileSystemManager();
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
-    manager.completeFile(SESSION_ID, INVALID_FILE_ID, null, null);
+    manager.completeFile(SESSION_ID, INVALID_FILE_ID, PermissionStatus.defaults());
   }
 
   /**
@@ -148,12 +157,13 @@ public final class UnderFileSystemManagerTest {
   public void completeUfsFileInvalidSessionTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "complete"));
-    manager.completeFile(INVALID_SESSION_ID, id, null, null);
+    manager.completeFile(INVALID_SESSION_ID, id, PermissionStatus.defaults());
   }
 
   /**
@@ -163,8 +173,9 @@ public final class UnderFileSystemManagerTest {
   public void cancelUfsFileTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
     manager.cancelFile(SESSION_ID, id);
     Mockito.verify(mMockUfs).delete(Mockito.contains(uniqPath), Mockito.eq(false));
   }
@@ -187,8 +198,9 @@ public final class UnderFileSystemManagerTest {
   public void cancelUfsFileInvalidSessionTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
-    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath));
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
+    Mockito.verify(mMockUfs).create(Mockito.contains(uniqPath),
+        Mockito.any(PermissionStatus.class));
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "cancel"));
@@ -271,7 +283,7 @@ public final class UnderFileSystemManagerTest {
   public void getOutputStreamTest() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     UnderFileSystemManager manager = new UnderFileSystemManager();
-    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath));
+    long id = manager.createFile(SESSION_ID, new AlluxioURI(uniqPath), PermissionStatus.defaults());
     Assert.assertEquals(mMockOutputStream, manager.getOutputStream(id));
   }
 

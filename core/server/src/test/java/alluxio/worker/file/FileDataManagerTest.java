@@ -18,6 +18,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -101,6 +102,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -191,6 +194,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -296,6 +301,8 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(BufferUtils.class);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     try {
