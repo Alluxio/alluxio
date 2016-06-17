@@ -98,7 +98,7 @@ public final class FileUtils {
     PosixFileAttributeView view =
         Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
             LinkOption.NOFOLLOW_LINKS);
-    UserPrincipal userPrincipal = lookupService.lookupPrincipalByGroupName(user);
+    UserPrincipal userPrincipal = lookupService.lookupPrincipalByName(user);
     view.setOwner(userPrincipal);
   }
 
