@@ -103,9 +103,6 @@ public class FileOutStream extends AbstractOutStream {
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
           PermissionStatus ps = options.getPermissionStatus();
-          // DEBUG(chaomin)
-          LOG.info("FileOutStream delegation on ps = {} ", ps.toString());
-          // END DEBUG
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
                   new CreateUfsFileOptions(ps.getUserName(), ps.getGroupName(),
@@ -118,9 +115,6 @@ public class FileOutStream extends AbstractOutStream {
             new UnderFileSystemFileOutStream(mFileSystemWorkerClient.getWorkerDataServerAddress(),
                 mUfsFileId);
       } else {
-        // DEBUG(chaomin)
-        LOG.info("FileOutStream delegation off");
-        // END DEBUG
         updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
@@ -171,10 +165,6 @@ public class FileOutStream extends AbstractOutStream {
             long len =
                 mFileSystemWorkerClient.completeUfsFile(mUfsFileId,
                     CompleteUfsFileOptions.defaults());
-            // DEBUG(chaomin)
-            LOG.info("with delegation: completeUfsFileOption = ",
-                CompleteUfsFileOptions.defaults().getPosixPerm().toString());
-            // END DEBUG
             options.setUfsLength(len);
           }
         } catch (AlluxioException e) {
