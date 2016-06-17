@@ -65,8 +65,6 @@ public final class FileDataManagerTest {
 
   /**
    * Tests that a file gets persisted.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   @SuppressWarnings("unchecked")
@@ -235,8 +233,6 @@ public final class FileDataManagerTest {
   /**
    * Tests the blocks are unlocked correctly when exception is encountered in
    * {@link FileDataManager#lockBlocks(long, List)}.
-   *
-   * @throws Exception when an exception occurs
    */
   @Test
   public void lockBlocksErrorHandlingTest() throws Exception {
@@ -268,8 +264,6 @@ public final class FileDataManagerTest {
 
   /**
    * Tests that the correct error message is provided when persisting a file fails.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void errorHandlingTest() throws Exception {

@@ -28,10 +28,10 @@ if [[ "$#" != 2 ]]; then
 fi
 
 if [[ -z "$HADOOP_HOME" ]]; then
-  echo "\$HADOOP_HOME is unset, please set this variable to connect to HDFS and YARN";
+  echo "\$HADOOP_HOME is unset, please set this variable to connect to HDFS and YARN" >&2
   exit 1
 else
-  echo "Using \$HADOOP_HOME set to '$HADOOP_HOME'";
+  echo "Using \$HADOOP_HOME set to '$HADOOP_HOME'"
 fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")"; pwd)"

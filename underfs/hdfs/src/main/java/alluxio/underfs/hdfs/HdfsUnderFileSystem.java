@@ -54,7 +54,6 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
   private final FileSystem mFileSystem;
-  private final String mUfsPrefix;
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
@@ -65,22 +64,22 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    */
   public HdfsUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
     super(uri, configuration);
-    mUfsPrefix = uri.toString();
+    String ufsPrefix = uri.toString();
     org.apache.hadoop.conf.Configuration tConf;
     if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
       tConf = (org.apache.hadoop.conf.Configuration) conf;
     } else {
       tConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(mUfsPrefix, configuration, tConf);
+    prepareConfiguration(ufsPrefix, configuration, tConf);
     tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(tConf);
 
-    Path path = new Path(mUfsPrefix);
+    Path path = new Path(ufsPrefix);
     try {
       mFileSystem = path.getFileSystem(tConf);
     } catch (IOException e) {
-      LOG.error("Exception thrown when trying to get FileSystem for {}", mUfsPrefix, e);
+      LOG.error("Exception thrown when trying to get FileSystem for {}", ufsPrefix, e);
       throw Throwables.propagate(e);
     }
   }
@@ -319,10 +318,16 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     if (mFileSystem instanceof DistributedFileSystem) {
       switch (type) {
         case SPACE_TOTAL:
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getCapacity() will be the new one.
           return ((DistributedFileSystem) mFileSystem).getDiskStatus().getCapacity();
         case SPACE_USED:
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getUsed() will be the new one.
           return ((DistributedFileSystem) mFileSystem).getDiskStatus().getDfsUsed();
         case SPACE_FREE:
+          // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+          // FileSystem.getStatus().getRemaining() will be the new one.
           return ((DistributedFileSystem) mFileSystem).getDiskStatus().getRemaining();
         default:
           throw new IOException("Unknown getSpace parameter: " + type);

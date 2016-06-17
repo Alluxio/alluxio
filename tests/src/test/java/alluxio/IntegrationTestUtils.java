@@ -33,8 +33,8 @@ import java.util.concurrent.TimeUnit;
 public final class IntegrationTestUtils {
 
   /**
-   * Convenience method for calling {@link #waitForPersist(LocalAlluxioClusterResource, long, long)}
-   * with a default timeout.
+   * Convenience method for calling
+   * {@link #waitForPersist(LocalAlluxioClusterResource, AlluxioURI, int)} with a default timeout.
    *
    * @param localAlluxioClusterResource the cluster for the worker that will persist the file
    * @param uri the file uri to wait to be persisted
@@ -54,11 +54,10 @@ public final class IntegrationTestUtils {
   public static void waitForPersist(final LocalAlluxioClusterResource localAlluxioClusterResource,
       final AlluxioURI uri, int timeoutMs) {
 
-    final FileSystemMasterClient client =
-        new FileSystemMasterClient(localAlluxioClusterResource.get().getMaster().getAddress(),
-            localAlluxioClusterResource.getTestConf());
-    try {
-      CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+    try (FileSystemMasterClient client = new FileSystemMasterClient(
+        localAlluxioClusterResource.get().getMaster().getAddress(),
+        localAlluxioClusterResource.getTestConf())) {
+      CommonTestUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           try {
@@ -68,8 +67,6 @@ public final class IntegrationTestUtils {
           }
         }
       }, timeoutMs);
-    } finally {
-      client.close();
     }
   }
 
@@ -103,7 +100,7 @@ public final class IntegrationTestUtils {
 
       // Waiting for the blocks to be added into the heartbeat reportor, so that they will be
       // removed from master in the next heartbeat.
-      CommonTestUtils.waitFor(new Function<Void, Boolean>() {
+      CommonTestUtils.waitFor("blocks to be removed", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {
           BlockHeartbeatReporter reporter = Whitebox.getInternalState(bw, "mHeartbeatReporter");

@@ -66,8 +66,6 @@ public final class InodeFileTest extends AbstractInodeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with a negative length.
-   *
-   * @throws Exception if completing the file fails
    */
   @Test
   public void setNegativeLengthTest() throws Exception {
@@ -88,8 +86,6 @@ public final class InodeFileTest extends AbstractInodeTest {
 
   /**
    * Tests that an exception is thrown when trying to complete a file twice.
-   *
-   * @throws Exception if completing the file fails
    */
   @Test
   public void completeTwiceTest() throws Exception {
@@ -121,8 +117,6 @@ public final class InodeFileTest extends AbstractInodeTest {
 
   /**
    * Tests the {@link InodeFile#getBlockIdByIndex(int)} method.
-   *
-   * @throws Exception if getting the block id by its index fails
    */
   @Test
   public void getBlockIdByIndexTest() throws Exception {
