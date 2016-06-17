@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -115,6 +116,14 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
     }
     return null;
+  }
+
+  // Same as create(path)
+  @Override
+  public OutputStream create(String path, PermissionStatus ps) throws IOException {
+    LOG.warn("Create with permission status is not supported with OSSUnderFileSystem. Permission "
+        + "Status will be ignored.");
+    return create(path);
   }
 
   @Override
@@ -266,6 +275,14 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     }
   }
 
+  // Same as mkdirs
+  @Override
+  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
+    LOG.warn("mkdirs with permission status is not supported with OSSUnderFileSystem. Permission "
+        + "Status will be ignored.");
+    return mkdirs(path, createParent);
+  }
+
   @Override
   public InputStream open(String path) throws IOException {
     try {
@@ -318,6 +335,24 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getPermission(String path) throws IOException {
+    return null;
+  }
 
   /**
    * Appends the directory suffix to the key.

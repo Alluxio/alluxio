@@ -14,6 +14,7 @@ package alluxio.underfs.swift;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
@@ -147,6 +148,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return SwiftDirectClient.put(mAccess, newPath);
   }
 
+  // Same as create(path)
+  @Override
+  public OutputStream create(String path, PermissionStatus ps) throws IOException {
+    LOG.warn("Create with permission status is not supported with SwiftUnderFileSystem. "
+        + "Permission Status will be ignored.");
+    return create(path);
+  }
+
   @Override
   public OutputStream create(String path,
       int blockSizeByte) throws IOException {
@@ -278,6 +287,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return true;
   }
 
+  // Same as mkdirs
+  @Override
+  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
+    LOG.warn("mkdirs with permission status is not supported with SwiftUnderFileSystem. Permission "
+        + "Status will be ignored.");
+    return mkdirs(path, createParent);
+  }
+
   @Override
   public InputStream open(String path) throws IOException {
     path = stripPrefixIfPresent(path);
@@ -344,6 +361,24 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public void setPermission(String path, String posixPerm) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getPermission(String path) throws IOException {
+    return null;
+  }
 
   /**
    * Copies an object to another name.
