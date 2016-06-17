@@ -63,7 +63,8 @@ public final class RmCommand extends WithWildCardPathCommand {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     }
     if (!recursive && mFileSystem.getStatus(path).isFolder()) {
-      throw new IOException("rm: cannot remove a directory, please try rm -R <path>");
+      throw new IOException(
+          path.getPath() + " is a directory, to remove it, please use \"rm -R <path>\"");
     }
 
     DeleteOptions options = DeleteOptions.defaults().setRecursive(recursive);

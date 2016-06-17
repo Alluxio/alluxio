@@ -30,6 +30,7 @@ import alluxio.util.io.PathUtils;
 import com.google.common.base.Joiner;
 import com.google.common.io.Closer;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
@@ -63,6 +64,11 @@ public final class CpCommand extends AbstractShellCommand {
   }
 
   @Override
+  protected Options getOptions() {
+    return new Options().addOption(RECURSIVE_OPTION);
+  }
+
+  @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
@@ -74,9 +80,9 @@ public final class CpCommand extends AbstractShellCommand {
     }
 
     if (srcPath.containsWildcard()) {
-      copyWildcard(srcPaths, dstPath);
+      copyWildcard(srcPaths, dstPath, cl.hasOption("R"));
     } else {
-      copy(srcPath, dstPath);
+      copy(srcPath, dstPath, cl.hasOption("R"));
     }
   }
 
@@ -86,10 +92,11 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPaths a list of files or directories in the Alluxio filesystem
    * @param dstPath the destination in the Alluxio filesystem
+   * @param recursive indicates whether directories should be copied recursively
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath)
+  private void copyWildcard(List<AlluxioURI> srcPaths, AlluxioURI dstPath, boolean recursive)
       throws AlluxioException, IOException {
     URIStatus dstStatus = null;
     try {
@@ -99,8 +106,7 @@ public final class CpCommand extends AbstractShellCommand {
     }
 
     if (dstStatus != null && !dstStatus.isFolder()) {
-      throw new InvalidPathException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+      throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
     }
     if (dstStatus == null) {
       mFileSystem.createDirectory(dstPath);
@@ -110,7 +116,7 @@ public final class CpCommand extends AbstractShellCommand {
     for (AlluxioURI srcPath : srcPaths) {
       try {
         copy(srcPath, new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-            PathUtils.concatPath(dstPath.getPath(), srcPath.getName())));
+            PathUtils.concatPath(dstPath.getPath(), srcPath.getName())), recursive);
       } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
       }
@@ -125,10 +131,12 @@ public final class CpCommand extends AbstractShellCommand {
    *
    * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
    * @param dstPath the destination path in the Alluxio filesystem
+   * @param recursive indicates whether directories should be copied recursively
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private void copy(AlluxioURI srcPath, AlluxioURI dstPath) throws AlluxioException, IOException {
+  private void copy(AlluxioURI srcPath, AlluxioURI dstPath, boolean recursive)
+      throws AlluxioException, IOException {
     URIStatus srcStatus = mFileSystem.getStatus(srcPath);
 
     URIStatus dstStatus = null;
@@ -139,16 +147,22 @@ public final class CpCommand extends AbstractShellCommand {
     }
 
     if (!srcStatus.isFolder()) {
+      if (dstStatus != null && dstStatus.isFolder()) {
+        dstPath = new AlluxioURI(PathUtils.concatPath(dstPath.getPath(), srcPath.getName()));
+      }
       copyFile(srcPath, dstPath);
     } else {
+      if (!recursive) {
+        throw new IOException(
+            srcPath.getPath() + " is a directory, to copy it please use \"cp -R <src> <dst>\"");
+      }
 
       List<URIStatus> statuses;
       statuses = mFileSystem.listStatus(srcPath);
 
       if (dstStatus != null) {
         if (!dstStatus.isFolder()) {
-          throw new IOException(
-              ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+          throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
         }
         // if copying a directory to an existing directory, the copied directory will become a
         // subdirectory of the destination
@@ -169,7 +183,7 @@ public final class CpCommand extends AbstractShellCommand {
         try {
           copy(new AlluxioURI(srcPath.getScheme(), srcPath.getAuthority(), status.getPath()),
               new AlluxioURI(dstPath.getScheme(), dstPath.getAuthority(),
-                  PathUtils.concatPath(dstPath.getPath(), status.getName())));
+                  PathUtils.concatPath(dstPath.getPath(), status.getName())), recursive);
         } catch (IOException e) {
           errorMessages.add(e.getMessage());
         }
@@ -203,11 +217,12 @@ public final class CpCommand extends AbstractShellCommand {
 
   @Override
   public String getUsage() {
-    return "cp <src> <dst>";
+    return "cp [-R] <src> <dst>";
   }
 
   @Override
   public String getDescription() {
-    return "Copies a file or a directory in the Alluxio filesystem.";
+    return "Copies a file or a directory in the Alluxio filesystem."
+        + "The -R flag is needed to copy directories.";
   }
 }

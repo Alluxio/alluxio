@@ -32,7 +32,7 @@ public final class RmCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
     mFsShell.run("rm", "/testFolder");
-    toCompare.append("rm: cannot remove a directory, please try rm -R <path>\n");
+    toCompare.append("/testFolder is a directory, to remove it, please use \"rm -R <path>\"\n");
     Assert.assertEquals(toCompare.toString(), mOutput.toString());
   }
 
@@ -67,17 +67,17 @@ public final class RmCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void rmWildCardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
-    mFsShell.run("rm", "/testWildCards/foo/foo*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar1")));
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foo/foobar2")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
+    mFsShell.run("rm", testDir + "/foo/foo*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar1")));
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foo/foobar2")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
 
-    mFsShell.run("rm", "/testWildCards/*");
-    Assert.assertFalse(fileExists(new AlluxioURI("/testWildCards/foobar4")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/foo")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar")));
-    Assert.assertTrue(fileExists(new AlluxioURI("/testWildCards/bar/foobar3")));
+    mFsShell.run("rm", testDir + "/*");
+    Assert.assertFalse(fileExists(new AlluxioURI(testDir + "/foobar4")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/foo")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar")));
+    Assert.assertTrue(fileExists(new AlluxioURI(testDir + "/bar/foobar3")));
   }
 }
