@@ -114,26 +114,16 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       new BlockContainerIdGenerator();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<MasterWorkerInfo> mIdIndex =
+      new IndexedSet.UniqueFieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<MasterWorkerInfo> mAddressIndex =
+      new IndexedSet.UniqueFieldIndex<MasterWorkerInfo>() {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();

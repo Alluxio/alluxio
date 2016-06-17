@@ -93,12 +93,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
-    @Override
-    public Boolean isUnique() {
-      return true;
-    }
-
+  private final IndexedSet.UniqueFieldIndex<Inode<?>> mIdIndex =
+      new IndexedSet.UniqueFieldIndex<Inode<?>>() {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getId();

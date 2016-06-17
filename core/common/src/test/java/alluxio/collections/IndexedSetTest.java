@@ -44,30 +44,22 @@ public class IndexedSetTest {
   }
 
   private IndexedSet<Pair> mSet;
-  private IndexedSet.FieldIndex<Pair> mIntIndex;
-  private IndexedSet.FieldIndex<Pair> mLongIndex;
+  private IndexedSet.NonUniqueFieldIndex<Pair> mIntIndex;
+  private IndexedSet.NonUniqueFieldIndex<Pair> mLongIndex;
 
   /**
    * Sets up the fields before running a test.
    */
   @Before
   public void before() {
-    mIntIndex = new IndexedSet.FieldIndex<Pair>() {
+    mIntIndex = new IndexedSet.NonUniqueFieldIndex<Pair>() {
       @Override
-      public Boolean isUnique() {
-        return false;
-      }
-
       public Object getFieldValue(Pair o) {
         return o.intValue();
       }
     };
-    mLongIndex = new IndexedSet.FieldIndex<Pair>() {
+    mLongIndex = new IndexedSet.NonUniqueFieldIndex<Pair>() {
       @Override
-      public Boolean isUnique() {
-        return false;
-      }
-
       public Object getFieldValue(Pair o) {
         return o.longValue();
       }

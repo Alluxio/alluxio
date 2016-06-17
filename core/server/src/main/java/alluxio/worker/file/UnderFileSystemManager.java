@@ -51,13 +51,8 @@ public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Input stream agent session index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
+      new IndexedSet.UniqueFieldIndex<InputStreamAgent>() {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mSessionId;
@@ -65,13 +60,8 @@ public final class UnderFileSystemManager {
       };
 
   // Input stream agent id index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
+      new IndexedSet.UniqueFieldIndex<InputStreamAgent>() {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mAgentId;
@@ -79,13 +69,8 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent session index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
+      new IndexedSet.UniqueFieldIndex<OutputStreamAgent>() {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
           return o.mSessionId;
@@ -93,13 +78,8 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent id index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.UniqueFieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
+      new IndexedSet.UniqueFieldIndex<OutputStreamAgent>() {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
           return o.mAgentId;

@@ -129,11 +129,6 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public interface FieldIndex<T> {
     /**
-     * @return whether this index entries are unique or repeatable
-     */
-    Boolean isUnique();
-
-    /**
      * Gets the value of the field that serves as index.
      *
      * @param o the instance to get the field value from
@@ -141,6 +136,20 @@ public class IndexedSet<T> extends AbstractSet<T> {
      */
     Object getFieldValue(T o);
   }
+
+  /**
+   * An interface extending{@link FieldIndex}, represents a unique index.
+   *
+   * @param <T> type of objects in this {@link IndexedSet}
+   */
+  public interface UniqueFieldIndex<T> extends FieldIndex<T> {}
+
+  /**
+   * An interface extending{@link FieldIndex}, represents a nonunique index.
+   *
+   * @param <T> type of objects in this {@link IndexedSet}
+   */
+  public interface NonUniqueFieldIndex<T> extends FieldIndex<T> {}
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
@@ -154,14 +163,14 @@ public class IndexedSet<T> extends AbstractSet<T> {
     int uniqueIndexLength = 0;
     int nonUniqueIndexLength = 0;
 
-    if (field.isUnique()) {
+    if (field instanceof UniqueFieldIndex) {
       uniqueIndexLength = 1;
     } else {
       nonUniqueIndexLength = 1;
     }
 
     for (FieldIndex<T> fieldIndex : otherFields) {
-      if (fieldIndex.isUnique()) {
+      if (fieldIndex instanceof UniqueFieldIndex) {
         uniqueIndexLength++;
       } else {
         nonUniqueIndexLength++;
@@ -178,7 +187,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
       indexMapNonUnique = new HashMap<>(nonUniqueIndexLength);
     }
 
-    if (field.isUnique()) {
+    if (field instanceof UniqueFieldIndex) {
       indexMapUnique.put(field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
     } else {
       indexMapNonUnique.put(field,
@@ -186,7 +195,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     }
 
     for (FieldIndex<T> fieldIndex : otherFields) {
-      if (fieldIndex.isUnique()) {
+      if (fieldIndex instanceof UniqueFieldIndex) {
         indexMapUnique.put(fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
       } else {
         indexMapNonUnique.put(fieldIndex,
@@ -339,7 +348,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return true if there is one such object, otherwise false
    */
   public boolean contains(FieldIndex<T> index, Object value) {
-    if (index.isUnique()) {
+    if (index instanceof UniqueFieldIndex) {
       T res = getByFieldInternalUnique(index, value);
       return res != null;
     }
@@ -359,7 +368,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   // TODO(gpang): Remove this method, if it is not being used.
   public Set<T> getByField(FieldIndex<T> index, Object value) {
     Set<T> set;
-    if (index.isUnique()) {
+    if (index instanceof UniqueFieldIndex) {
       set = new HashSet<T>();
       T res = getByFieldInternalUnique(index, value);
       if (res != null) {
@@ -379,7 +388,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return the object or null if there is no such object
    */
   public T getFirstByField(FieldIndex<T> index, Object value) {
-    if (index.isUnique()) {
+    if (index instanceof UniqueFieldIndex) {
       T res = getByFieldInternalUnique(index, value);
       return res;
     }
@@ -456,7 +465,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public int removeByField(FieldIndex<T> index, Object value) {
     int removed = 0;
-    if (index.isUnique()) {
+    if (index instanceof UniqueFieldIndex) {
       T toRemove = getByFieldInternalUnique(index, value);
       if (toRemove == null) {
         return 0;
@@ -495,7 +504,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return the set of objects with the specified field value
    */
   private T getByFieldInternalUnique(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(index.isUnique(),
+    Preconditions.checkState(index instanceof UniqueFieldIndex,
         "Using getByFieldInternalUnique for repeatable index");
     if (mIndexMapUnique == null) {
       return null;
@@ -504,7 +513,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   private ConcurrentHashSet<T> getByFieldInternalNonUnique(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(!index.isUnique(),
+    Preconditions.checkState(index instanceof NonUniqueFieldIndex,
         "Using getByFieldInternalNonUnique for unique index");
     if (mIndexMapNonUnique == null) {
       return null;
