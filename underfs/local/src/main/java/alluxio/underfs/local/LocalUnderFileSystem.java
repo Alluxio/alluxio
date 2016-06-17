@@ -14,6 +14,7 @@ package alluxio.underfs.local;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -65,10 +66,15 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, PermissionStatus.defaults());
+  }
+
+  @Override
+  public OutputStream create(String path, PermissionStatus perm) throws IOException {
     path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, "rwxrwxrwx");
+      setPermission(path, perm.getPermission().toString());
     } catch (IOException e) {
       stream.close();
       throw e;
@@ -197,11 +203,17 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, createParent,
+        PermissionStatus.defaults().applyDirectoryUMask(mConfiguration));
+  }
+
+  @Override
+  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     if (!createParent) {
       if (file.mkdir()) {
-        setPermission(file.getPath(), "rwxrwxrwx");
+        setPermission(file.getPath(), ps.getPermission().toString());
         FileUtils.setLocalDirStickyBit(file.getPath());
         return true;
       }
@@ -218,7 +230,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     while (!dirsToMake.empty()) {
       File dirToMake = dirsToMake.pop();
       if (dirToMake.mkdir()) {
-        setPermission(dirToMake.getAbsolutePath(), "rwxrwxrwx");
+        setPermission(dirToMake.getAbsolutePath(), ps.getPermission().toString());
         FileUtils.setLocalDirStickyBit(file.getPath());
       } else {
         return false;
@@ -259,6 +271,24 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public void setPermission(String path, String posixPerm) throws IOException {
     path = stripPath(path);
     FileUtils.changeLocalFilePermission(path, posixPerm);
+  }
+
+  @Override
+  public String getOwner(String path) throws IOException {
+    // TODO(chaomin): implement this.
+    return null;
+  }
+
+  @Override
+  public String getGroup(String path) throws IOException {
+    // TODO(chaomin): implement this.
+    return null;
+  }
+
+  @Override
+  public String getPermission(String path) throws IOException {
+    // TODO(chaomin): implement this.
+    return null;
   }
 
   @Override
