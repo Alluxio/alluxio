@@ -45,7 +45,8 @@ public final class CompleteUfsFileOptions {
     try {
       // Set user and group from user login module.
       ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
-      // TODO(chaomin): set permission depends on the alluxio file.
+      // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
+      // file is always created with default permission.
     } catch (IOException e) {
       throw Throwables.propagate(e);
     }

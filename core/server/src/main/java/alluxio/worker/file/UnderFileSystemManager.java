@@ -315,7 +315,7 @@ public final class UnderFileSystemManager {
                 + e);
           }
         }
-        // TODO(chaomin): consider whether need to setPermission of the ufs file or not.
+        // TODO(chaomin): consider setPermission of the ufs file.
       } else {
         ufs.delete(mTemporaryUri, false);
       }

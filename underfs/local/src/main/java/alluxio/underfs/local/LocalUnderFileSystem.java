@@ -70,11 +70,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, PermissionStatus perm) throws IOException {
+  public OutputStream create(String path, PermissionStatus ps) throws IOException {
     path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, perm.getPermission().toString());
+      setPermission(path, ps.getPermission().toString());
     } catch (IOException e) {
       stream.close();
       throw e;
