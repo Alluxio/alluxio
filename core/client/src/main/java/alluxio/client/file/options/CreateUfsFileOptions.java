@@ -12,9 +12,14 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
+import alluxio.client.ClientContext;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.CreateUfsFileTOptions;
 
 import com.google.common.base.Objects;
+import com.google.common.base.Throwables;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -24,15 +29,91 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateUfsFileOptions {
+  /** The ufs user this file should be owned by. */
+  private final String mUser;
+  /** The ufs group this file should be owned by. */
+  private final String mGroup;
+  /** The ufs permission in Posix string format, such as 0777. */
+  private String mPosixPerm;
+
   /**
    * @return the default {@link CreateUfsFileOptions}
    */
   public static CreateUfsFileOptions defaults() {
-    return new CreateUfsFileOptions();
+    PermissionStatus ps = PermissionStatus.defaults();
+    try {
+      // Set user and group from user login module.
+      ps.setUserFromLoginModule(ClientContext.getConf());
+      // TODO(chaomin): set permission depends on the alluxio file.
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+    return new CreateUfsFileOptions(ps.getUserName(), ps.getGroupName(),
+        ps.getPermission().toString());
   }
 
-  private CreateUfsFileOptions() {
-    // No options currently
+  /**
+   * Constructs a {@link CreateUfsFileOptions} with user, group and permission.
+   *
+   * @param user the user name
+   * @param group the group name
+   * @param posixPerm the permission in posix string format
+   */
+  public CreateUfsFileOptions(String user, String group, String posixPerm) {
+    mUser = user;
+    mGroup = group;
+    mPosixPerm = posixPerm;
+  }
+
+  /**
+   * @return the group which should own the file
+   */
+  public String getGroup() {
+    return mGroup;
+  }
+
+  /**
+   * @return the user who should own the file
+   */
+  public String getUser() {
+    return mUser;
+  }
+
+  /**
+   * @return the ufs permission in Posix string format
+   */
+  public String getPosixPerm() {
+    return mPosixPerm;
+  }
+
+  /**
+   * @return if the group has been set
+   */
+  public boolean hasGroup() {
+    return mGroup != null;
+  }
+
+  /**
+   * @return if the user has been set
+   */
+  public boolean hasUser() {
+    return mUser != null;
+  }
+
+  /**
+   * @return if the posixPerm has been set
+   */
+  public boolean hasPosixPerm() {
+    return mPosixPerm != null;
+  }
+
+  /**
+   * Sets the posix perm.
+   *
+   * @param posixPerm the perm to set in posix string format
+   */
+  public void setPosixPerm(String posixPerm) {
+    mPosixPerm = posixPerm;
   }
 
   @Override
@@ -54,6 +135,16 @@ public final class CreateUfsFileOptions {
    * @return Thrift representation of the options
    */
   public CreateUfsFileTOptions toThrift() {
-    return new CreateUfsFileTOptions();
+    CreateUfsFileTOptions options = new CreateUfsFileTOptions();
+    if (hasGroup()) {
+      options.setGroup(mGroup);
+    }
+    if (hasUser()) {
+      options.setUser(mUser);
+    }
+    if (hasPosixPerm()) {
+      options.setPosixPerm(mPosixPerm);
+    }
+    return options;
   }
 }
