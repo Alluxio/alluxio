@@ -165,7 +165,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Same as create(path)
   @Override
   public OutputStream create(String path, PermissionStatus ps) throws IOException {
-    LOG.warn("Create with permission status is not supported with S3UnderFileSystem. Permission "
+    LOG.debug("Create with permission status is not supported with S3UnderFileSystem. Permission "
         + "Status will be ignored.");
     return create(path);
   }
@@ -327,7 +327,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Same as mkdirs
   @Override
   public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
-    LOG.warn("mkdirs with permission status is not supported with S3UnderFileSystem. Permission "
+    LOG.debug("mkdirs with permission status is not supported with S3UnderFileSystem. Permission "
         + "Status will be ignored.");
     return mkdirs(path, createParent);
   }
