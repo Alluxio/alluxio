@@ -58,18 +58,18 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void tailWildcardTest() throws IOException, AlluxioException {
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)
-    byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testWildCards/bar/foobar3
-    byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testWildCards/foo/foobar1
-    byte[] exp3 = BufferUtils.getIncreasingByteArray(20); // testWildCards/foo/foobar2
+    byte[] exp1 = BufferUtils.getIncreasingByteArray(30); // testDir/bar/foobar3
+    byte[] exp2 = BufferUtils.getIncreasingByteArray(10); // testDir/foo/foobar1
+    byte[] exp3 = BufferUtils.getIncreasingByteArray(20); // testDir/foo/foobar2
     byte[] expect = new byte[exp1.length + exp2.length + exp3.length];
     System.arraycopy(exp1, 0, expect, 0, exp1.length);
     System.arraycopy(exp2, 0, expect, exp1.length, exp2.length);
     System.arraycopy(exp3, 0, expect, exp1.length + exp2.length, exp3.length);
 
-    int ret = mFsShell.run("tail", "/testWildCards/*/foo*");
+    int ret = mFsShell.run("tail", testDir + "/*/foo*");
     Assert.assertEquals(0, ret);
     Assert.assertArrayEquals(mOutput.toByteArray(), expect);
   }
