@@ -535,9 +535,9 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public String getPermission(String path) throws IOException {
+  public short getPermission(String path) throws IOException {
     try {
-      return String.valueOf(mFileSystem.getFileStatus(new Path(path)).getPermission().toShort());
+      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
     } catch (IOException e) {
       LOG.error("Fail to get permission for {} ", path, e);
       throw e;

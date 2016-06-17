@@ -1859,10 +1859,9 @@ public final class FileSystemMaster extends AbstractMaster {
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
-      String ufsPermission = ufs.getPermission(ufsUri.toString());
+      short ufsPermission = ufs.getPermission(ufsUri.toString());
       createFileOptions = createFileOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup,
-              new FileSystemPermission(Short.parseShort(ufsPermission))));
+          new PermissionStatus(ufsOwner, ufsGroup, new FileSystemPermission(ufsPermission)));
     }
 
     try {
@@ -1909,10 +1908,9 @@ public final class FileSystemMaster extends AbstractMaster {
       UnderFileSystem ufs = resolution.getUfs();
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
-      String ufsPermission = ufs.getPermission(ufsUri.toString());
+      short ufsPermission = ufs.getPermission(ufsUri.toString());
       createDirectoryOptions = createDirectoryOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup,
-              new FileSystemPermission(Short.parseShort(ufsPermission))));
+          new PermissionStatus(ufsOwner, ufsGroup, new FileSystemPermission(ufsPermission)));
     }
 
     try {
