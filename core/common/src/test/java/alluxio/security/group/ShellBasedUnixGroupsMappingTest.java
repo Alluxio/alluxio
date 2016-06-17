@@ -40,8 +40,6 @@ public final class ShellBasedUnixGroupsMappingTest {
 
   /**
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
-   *
-   * @throws Throwable when retrieval of the groups fails
    */
   @Test
   public void userGroupTest() throws Throwable {

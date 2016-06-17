@@ -42,7 +42,7 @@
 # E.g. "/my/local/path" to use local fs, "hdfs://localhost:9000/alluxio" to use a local hdfs
 # ALLUXIO_UNDERFS_ADDRESS
 
-# How much memory to use per worker. (Default: 128MB)
+# How much memory to use per worker. (Default: 1GB)
 # E.g. "1000MB", "2GB"
 # ALLUXIO_WORKER_MEMORY_SIZE
 

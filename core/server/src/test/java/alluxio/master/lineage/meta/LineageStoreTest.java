@@ -66,8 +66,6 @@ public final class LineageStoreTest {
 
   /**
    * Tests the {@link LineageStore#deleteLineage(long)} method.
-   *
-   * @throws Exception if deleting the lineage fails
    */
   @Test
   public void deleteLineageTest() throws Exception {
@@ -83,8 +81,6 @@ public final class LineageStoreTest {
   /**
    * Tests that an exception is thrown when trying to delete a non-existing lineage via the
    * {@link LineageStore#deleteLineage(long)} method.
-   *
-   * @throws Exception if deleting the lineage fails
    */
   @Test
   public void deleteNonexistingLineageTest() throws Exception {
@@ -97,8 +93,6 @@ public final class LineageStoreTest {
 
   /**
    * Tests the {@link LineageStore#streamToJournalCheckpoint(JournalOutputStream)} method.
-   *
-   * @throws Exception if a {@link LineageStore} operation fails
    */
   @Test
   public void journalEntrySerializationTest() throws Exception {

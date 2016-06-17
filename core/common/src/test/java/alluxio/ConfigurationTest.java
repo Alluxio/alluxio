@@ -236,7 +236,7 @@ public class ConfigurationTest {
     Assert.assertEquals(0, intValue);
 
     long longValue = sDefaultConfiguration.getBytes(Constants.WORKER_MEMORY_SIZE);
-    Assert.assertEquals(128 * Constants.MB, longValue);
+    Assert.assertEquals(Constants.GB, longValue);
   }
 
   /**

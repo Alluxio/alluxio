@@ -173,9 +173,7 @@ public class BaseFileSystem implements FileSystem {
     FileSystemMasterClient masterClient = mContext.acquireMasterClient();
     try {
       return masterClient.getStatus(path);
-    } catch (FileDoesNotExistException e) {
-      throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
-    } catch (InvalidPathException e) {
+    } catch (FileDoesNotExistException | InvalidPathException e) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path));
     } finally {
       mContext.releaseMasterClient(masterClient);

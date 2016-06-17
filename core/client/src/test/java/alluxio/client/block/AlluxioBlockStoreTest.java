@@ -111,8 +111,6 @@ public final class AlluxioBlockStoreTest {
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
@@ -123,16 +121,13 @@ public final class AlluxioBlockStoreTest {
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
   }
 
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
@@ -143,9 +138,8 @@ public final class AlluxioBlockStoreTest {
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
   }

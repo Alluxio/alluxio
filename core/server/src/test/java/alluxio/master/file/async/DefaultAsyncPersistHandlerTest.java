@@ -71,8 +71,6 @@ public class DefaultAsyncPersistHandlerTest {
 
   /**
    * Tests the persistence of file with block on multiple workers.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void persistenceFileWithBlocksOnMultipleWorkers() throws Exception {

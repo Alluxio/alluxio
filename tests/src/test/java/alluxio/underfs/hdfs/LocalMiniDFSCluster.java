@@ -174,7 +174,7 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
   }
 
   /**
-   * Gets the namenode address for this {@LocalMiniDFSCluster}.
+   * Gets the namenode address for this {@link LocalMiniDFSCluster}.
    *
    * @return namenode address
    */
@@ -193,8 +193,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Shuts down the minidfscluster in teardown phase.
-   *
-   * @throws IOException
    */
   @Override
   public void shutdown() throws IOException {
@@ -207,8 +205,6 @@ public class LocalMiniDFSCluster extends UnderFileSystemCluster {
 
   /**
    * Starts the minidfscluster before using it.
-   *
-   * @throws IOException
    */
   @Override
   public void start() throws IOException {
