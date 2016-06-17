@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Throwables;
@@ -129,12 +130,18 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public FSDataOutputStream create(String path) throws IOException {
+    return create(path, PermissionStatus.defaults().applyFileUMask(mConfiguration));
+  }
+
+  @Override
+  public FSDataOutputStream create(String path, PermissionStatus perm) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {}", path);
-        return FileSystem.create(mFileSystem, new Path(path), PERMISSION);
+        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
+        return FileSystem.create(mFileSystem, new Path(path),
+            new FsPermission(perm.getPermission().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -180,6 +187,35 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // }
     // }
     // throw te;
+  }
+
+  /**
+   * Creates a file with block size and permission status.
+   *
+   * @param path the file path
+   * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
+   * @param perm the permission status of the file
+   * @return a {@code FSDataOutputStream} object
+   * @throws IOException when a non-Alluxio related exception occurs
+   */
+  public FSDataOutputStream create(String path, int blockSizeByte, PermissionStatus perm)
+      throws IOException {
+    return create(path, perm);
+  }
+
+  /**
+   * Creates a file with replication factor, block size and permission status.
+   *
+   * @param path the file path
+   * @param replication the replication factor
+   * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
+   * @param perm the permission status of the file
+   * @return a {@code FSDataOutputStream} object
+   * @throws IOException when a non-Alluxio related exception occurs
+   */
+  public FSDataOutputStream create(String path, short replication, int blockSizeByte,
+      PermissionStatus perm) throws IOException {
+    return create(path, perm);
   }
 
   @Override
@@ -357,6 +393,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, createParent,
+        PermissionStatus.defaults().applyDirectoryUMask(mConfiguration));
+  }
+
+  @Override
+  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps)
+    throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -376,7 +419,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
-          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(), PERMISSION)) {
+          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(),
+              new FsPermission(ps.getPermission().toShort()))) {
             return false;
           }
         }
@@ -465,4 +509,35 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       throw e;
     }
   }
+
+  @Override
+  public String getOwner(String path) throws IOException {
+    try {
+      return mFileSystem.getFileStatus(new Path(path)).getOwner();
+    } catch (IOException e) {
+      LOG.error("Fail to get owner for {} ", path, e);
+      throw e;
+    }
+  }
+
+  @Override
+  public String getGroup(String path) throws IOException {
+    try {
+      return mFileSystem.getFileStatus(new Path(path)).getGroup();
+    } catch (IOException e) {
+      LOG.error("Fail to get group for {} ", path, e);
+      throw e;
+    }
+  }
+
+  @Override
+  public String getPermission(String path) throws IOException {
+    try {
+      return String.valueOf(mFileSystem.getFileStatus(new Path(path)).getPermission().toShort());
+    } catch (IOException e) {
+      LOG.error("Fail to get permission for {} ", path, e);
+      throw e;
+    }
+  }
+
 }
