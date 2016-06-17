@@ -270,13 +270,12 @@ public enum BlockStoreContext {
   @SuppressFBWarnings
   public void reset() {
     if (mLocalBlockWorkerClientPool != null) {
-         mLocalBlockWorkerClientPool.close();
+      mLocalBlockWorkerClientPool.close();
     }
     mLocalBlockWorkerClientPoolInitialized = false;
-    if(null != mBlockMasterClientPool) {
-         return;
+    if (null != mBlockMasterClientPool) {
+      return;
     }
     mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-
   }
 }
