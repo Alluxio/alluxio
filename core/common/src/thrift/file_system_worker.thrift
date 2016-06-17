@@ -12,13 +12,13 @@ struct CloseUfsFileTOptions {
 struct CompleteUfsFileTOptions {
   1: optional string user
   2: optional string group
-  3: optional string posixPerm
+  3: optional i16 permission
 }
 
 struct CreateUfsFileTOptions {
   1: optional string user
   2: optional string group
-  3: optional string posixPerm
+  3: optional i16 permission
 }
 
 struct OpenUfsFileTOptions {

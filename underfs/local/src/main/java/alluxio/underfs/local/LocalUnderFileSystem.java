@@ -276,19 +276,19 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public String getOwner(String path) throws IOException {
     path = stripPath(path);
-    FileUtils.getLocalFileOwner(path);
+    return FileUtils.getLocalFileOwner(path);
   }
 
   @Override
   public String getGroup(String path) throws IOException {
     path = stripPath(path);
-    FileUtils.getLocalFileGroup(path);
+    return FileUtils.getLocalFileGroup(path);
   }
 
   @Override
   public String getPermission(String path) throws IOException {
     path = stripPath(path);
-    FileUtils.getLocalFilePermission(path);
+    return FileUtils.getLocalFilePermission(path);
   }
 
   @Override
