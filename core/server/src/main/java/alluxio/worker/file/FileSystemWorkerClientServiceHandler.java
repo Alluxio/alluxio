@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
 import alluxio.thrift.CloseUfsFileTOptions;
@@ -113,7 +114,9 @@ public final class FileSystemWorkerClientServiceHandler
     try {
       String user = options.isSetUser() ? options.getUser() : null;
       String group = options.isSetGroup() ? options.getGroup() : null;
-      return mWorker.completeUfsFile(sessionId, tempUfsFileId, user, group);
+      String posixPerm = options.isSetPosixPerm() ? options.getPosixPerm() : null;
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId,
+          new PermissionStatus(user, group, Short.parseShort(posixPerm)));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -136,7 +139,11 @@ public final class FileSystemWorkerClientServiceHandler
   public long createUfsFile(long sessionId, String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri));
+      String user = options.isSetUser() ? options.getUser() : null;
+      String group = options.isSetGroup() ? options.getGroup() : null;
+      String posixPerm = options.isSetPosixPerm() ? options.getPosixPerm() : null;
+      return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri),
+          new PermissionStatus(user, group, Short.parseShort(posixPerm)));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
