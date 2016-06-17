@@ -381,7 +381,7 @@ public class BlockMasterTest {
   /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
+    private final IndexedSet.UniqueFieldIndex<MasterWorkerInfo> mIdIndex;
     private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 

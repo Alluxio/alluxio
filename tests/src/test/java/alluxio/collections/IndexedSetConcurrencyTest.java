@@ -136,26 +136,16 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
-  private final IndexedSet.FieldIndex<TestInfo> mIdIndex =
-      new IndexedSet.FieldIndex<TestInfo>() {
-        @Override
-        public Boolean isUnique() {
-          return true;
-        }
-
+  private final IndexedSet.NonUniqueFieldIndex<TestInfo> mIdIndex =
+      new IndexedSet.NonUniqueFieldIndex<TestInfo>() {
         @Override
         public Object getFieldValue(TestInfo o) {
           return o.getId();
         }
       };
 
-  private final IndexedSet.FieldIndex<TestInfo> mSizeIndex =
-      new IndexedSet.FieldIndex<TestInfo>() {
-        @Override
-        public Boolean isUnique() {
-          return false;
-        }
-
+  private final IndexedSet.NonUniqueFieldIndex<TestInfo> mSizeIndex =
+      new IndexedSet.NonUniqueFieldIndex<TestInfo>() {
         @Override
         public Object getFieldValue(TestInfo o) {
           return o.getSize();
