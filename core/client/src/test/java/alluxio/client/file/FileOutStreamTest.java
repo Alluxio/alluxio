@@ -33,6 +33,7 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
@@ -156,10 +157,13 @@ public class FileOutStreamTest {
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();
     Mockito.when(mUnderFileSystem.create(Mockito.anyString(), Mockito.eq((int) BLOCK_LENGTH)))
         .thenReturn(mUnderStorageOutputStream);
+    Mockito.when(mUnderFileSystem.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
+        .thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH);
+            .setWriteType(WriteType.CACHE_THROUGH)
+            .setPermissionStatus(PermissionStatus.defaults());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 
