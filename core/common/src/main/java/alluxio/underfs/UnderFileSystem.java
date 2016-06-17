@@ -127,6 +127,8 @@ public abstract class UnderFileSystem {
       UnderFileSystem cachedFs = null;
       PermissionStatus ps = PermissionStatus.defaults();
       try {
+        // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
+        // and client.
         String loggerType = configuration.get(Constants.LOGGER_TYPE);
         if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
             || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
@@ -327,6 +329,8 @@ public abstract class UnderFileSystem {
     mConfiguration = configuration;
     PermissionStatus ps = PermissionStatus.defaults();
     try {
+      // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
+      // and client.
       String loggerType = configuration.get(Constants.LOGGER_TYPE);
       if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
           || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {

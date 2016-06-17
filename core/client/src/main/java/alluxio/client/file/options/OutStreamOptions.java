@@ -62,6 +62,7 @@ public final class OutStreamOptions {
     }
     mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     try {
+      // Set user and group from user login module, apply default file UMask.
       mPermissionStatus = PermissionStatus.defaults().setUserFromLoginModule(conf)
           .applyFileUMask(conf);
     } catch (IOException e) {

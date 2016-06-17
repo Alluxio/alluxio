@@ -44,7 +44,7 @@ public final class CompleteUfsFileOptions {
   public static CompleteUfsFileOptions defaults() {
     PermissionStatus ps = PermissionStatus.defaults();
     try {
-      // Set user and group from user login module.
+      // Set user and group from user login module, apply default file UMask.
       ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
       // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
       // file is always created with default permission.
@@ -55,6 +55,13 @@ public final class CompleteUfsFileOptions {
         ps.getPermission().toShort());
   }
 
+  /**
+   * Constructs a {@link CompleteUfsFileOptions} with user, group and permission.
+   *
+   * @param user the user name
+   * @param group the group name
+   * @param permission the permission in short format, e.g. 0777
+   */
   private CompleteUfsFileOptions(String user, String group, short permission) {
     mUser = user;
     mGroup = group;
@@ -97,9 +104,9 @@ public final class CompleteUfsFileOptions {
   }
 
   /**
-   * @return if the posixPerm has been set
+   * @return if the permission has been set
    */
-  public boolean hasPosixPerm() {
+  public boolean hasPermission() {
     return mPermission != Constants.INVALID_PERMISSION;
   }
 
@@ -129,7 +136,7 @@ public final class CompleteUfsFileOptions {
     if (hasUser()) {
       options.setUser(mUser);
     }
-    if (hasPosixPerm()) {
+    if (hasPermission()) {
       options.setPermission(mPermission);
     }
     return options;
