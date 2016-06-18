@@ -14,6 +14,7 @@ package alluxio.cli;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -179,7 +180,7 @@ public final class AlluxioShell implements Closeable {
     try {
       command.run(cmdline);
       return 0;
-    } catch (IOException e) {
+    } catch (AlluxioException | IOException e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;

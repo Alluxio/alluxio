@@ -61,26 +61,22 @@ public final class ChgrpCommand extends AbstractShellCommand {
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param group The group to be updated to the file or directory
    * @param recursive Whether change the group recursively
-   * @throws IOException
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void chgrp(AlluxioURI path, String group, boolean recursive) throws IOException {
-    try {
-      SetAttributeOptions options = SetAttributeOptions.defaults()
-          .setGroup(group).setRecursive(recursive);
-      mFileSystem.setAttribute(path, options);
-      System.out.println("Changed group of " + path + " to " + group);
-    } catch (AlluxioException e) {
-      throw new IOException("Failed to changed group of " + path + " to " + group + " : "
-          + e.getMessage());
-    }
+  private void chgrp(AlluxioURI path, String group, boolean recursive)
+      throws AlluxioException, IOException {
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setGroup(group).setRecursive(recursive);
+    mFileSystem.setAttribute(path, options);
+    System.out.println("Changed group of " + path + " to " + group);
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String group = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
-
     chgrp(path, group, cl.hasOption("R"));
   }
 
