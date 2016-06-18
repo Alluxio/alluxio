@@ -31,9 +31,11 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -116,13 +118,19 @@ public final class FileUtils {
    * Gets local file's permission.
    *
    * @param filePath the file path
-   * @return the file permission in posix format, e.g. "rwxr--r--"
+   * @return the file permission in short, e.g. 0777
    * @throws IOException when fails to get the permission
    */
-  public static String getLocalFilePermission(String filePath) throws IOException {
-    PosixFileAttributes attr =
-        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
-    return PosixFilePermissions.toString(attr.permissions());
+  public static short getLocalFilePermission(String filePath) throws IOException {
+    Set<PosixFilePermission> permission =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
+    // Translate posix file permissions to short mode.
+    int mode = 0;
+    for (PosixFilePermission action : PosixFilePermission.values()) {
+      mode = mode << 1;
+      mode += permission.contains(action) ? 1 : 0;
+    }
+    return (short) mode;
   }
 
   /**

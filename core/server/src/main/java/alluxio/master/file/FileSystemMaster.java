@@ -76,7 +76,6 @@ import alluxio.proto.journal.File.SetAttributeEntry;
 import alluxio.proto.journal.File.StringPairEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.FileSystemAction;
-import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
@@ -300,7 +299,11 @@ public final class FileSystemMaster extends AbstractMaster {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof SetAttributeEntry) {
-      setAttributeFromEntry((SetAttributeEntry) innerEntry);
+      try {
+        setAttributeFromEntry((SetAttributeEntry) innerEntry);
+      } catch (AccessControlException | FileDoesNotExistException | InvalidPathException e) {
+        throw new RuntimeException(e);
+      }
     } else if (innerEntry instanceof DeleteFileEntry) {
       deleteFromEntry((DeleteFileEntry) innerEntry);
     } else if (innerEntry instanceof RenameEntry) {
@@ -1861,7 +1864,7 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsGroup = ufs.getGroup(ufsUri.toString());
       short ufsPermission = ufs.getPermission(ufsUri.toString());
       createFileOptions = createFileOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup, new FileSystemPermission(ufsPermission)));
+          new PermissionStatus(ufsOwner, ufsGroup, ufsPermission));
     }
 
     try {
@@ -1910,7 +1913,7 @@ public final class FileSystemMaster extends AbstractMaster {
       String ufsGroup = ufs.getGroup(ufsUri.toString());
       short ufsPermission = ufs.getPermission(ufsUri.toString());
       createDirectoryOptions = createDirectoryOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup, new FileSystemPermission(ufsPermission)));
+          new PermissionStatus(ufsOwner, ufsGroup, ufsPermission));
     }
 
     try {
@@ -2485,7 +2488,8 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
    */
-  private void setAttributeFromEntry(SetAttributeEntry entry) throws IOException {
+  private void setAttributeFromEntry(SetAttributeEntry entry)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());
@@ -2507,14 +2511,8 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
-      try {
-        setAttributeInternal(inodePath, entry.getOpTimeMs(), options);
-      } catch (FileDoesNotExistException | InvalidPathException | AccessControlException e) {
-        throw new IOException("Failed to setAttributeFromEntry", e);
-      }
+      setAttributeInternal(inodePath, entry.getOpTimeMs(), options);
       // Intentionally not journaling the persisted inodes from setAttributeInternal
-    } catch (FileDoesNotExistException e) {
-      throw new IOException("Failed to setAttributeFromEntry", e);
     }
   }
 

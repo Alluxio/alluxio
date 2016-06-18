@@ -232,4 +232,31 @@ public class FileUtilsTest {
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
     Assert.assertTrue(tempDir.delete());
   }
+
+  /**
+   * Tests the {@link FileUtils#getLocalFilePermission(String)}} method.
+   */
+  @Test
+  public void getLocalFilePermissionTest() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpFile777 = mTestFolder.newFile("dir/0777");
+    tmpFile777.setReadable(true, false /* owner only */);
+    tmpFile777.setWritable(true, false /* owner only */);
+    tmpFile777.setExecutable(true, false /* owner only */);
+
+    File tmpFile755 = mTestFolder.newFile("dir/0755");
+    tmpFile755.setReadable(true, false /* owner only */);
+    tmpFile755.setWritable(true, true /* owner only */);
+    tmpFile755.setExecutable(true, false /* owner only */);
+
+    File tmpFile444 = mTestFolder.newFile("dir/0444");
+    tmpFile444.setReadOnly();
+
+    Assert.assertEquals((short) 0777, FileUtils.getLocalFilePermission(tmpFile777.getPath()));
+    Assert.assertEquals((short) 0755, FileUtils.getLocalFilePermission(tmpFile755.getPath()));
+    Assert.assertEquals((short) 0444, FileUtils.getLocalFilePermission(tmpFile444.getPath()));
+
+    // Delete all of these.
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
+  }
 }
