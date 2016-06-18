@@ -459,7 +459,7 @@ public final class Constants {
   // Authorization
   public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       "alluxio.security.authorization.permission.enabled";
-  public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       "alluxio.security.authorization.permission.umask";
   public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       "alluxio.security.authorization.permission.supergroup";
@@ -467,8 +467,8 @@ public final class Constants {
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
 
   // Security related constant value
-  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
-  public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
+  public static final int DEFAULT_FS_UMASK = 0022;
+  public static final short DEFAULT_FS_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_PERMISSION = -1;
 

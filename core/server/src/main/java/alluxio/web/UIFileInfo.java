@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.authorization.Mode;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 
@@ -153,7 +153,7 @@ public final class UIFileInfo {
     mUserName = "";
     mGroupName = "";
     mPermission =
-        FormatUtils.formatPermission(FileSystemPermission.getNoneFsPermission()
+        FormatUtils.formatPermission(Mode.createNoAccess()
             .toShort(), true);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
     mFileLocations = new ArrayList<>();

@@ -12,7 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateDirectoryTOptions;
 
 import com.google.common.base.Objects;
@@ -48,8 +48,8 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mPermissionStatus =
-        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
+    mPermission =
+        Permission.defaults().setUserFromThriftClient(MasterContext.getConf());
   }
 
   private CreateDirectoryOptions() {

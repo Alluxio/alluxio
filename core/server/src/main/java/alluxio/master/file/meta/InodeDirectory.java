@@ -17,7 +17,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -221,7 +221,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
+    Permission permission = new Permission(entry.getUserName(),
         entry.getGroupName(), (short) entry.getPermission());
     return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
         .setName(entry.getName())
@@ -229,7 +229,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-        .setPermissionStatus(permissionStatus)
+        .setPermissionStatus(permission)
         .setMountPoint(entry.getMountPoint())
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
   }
@@ -245,12 +245,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions directoryOptions) {
-    PermissionStatus permissionStatus = new PermissionStatus(directoryOptions.getPermissionStatus())
+    Permission permission = new Permission(directoryOptions.getPermissionStatus())
         .applyDirectoryUMask(MasterContext.getConf());
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setPermissionStatus(permissionStatus)
+        .setPermissionStatus(permission)
         .setMountPoint(directoryOptions.isMountPoint());
   }
 

@@ -13,7 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Constants;
 import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 
 import com.google.common.base.Objects;
@@ -49,8 +49,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
-    mPermissionStatus =
-        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
+    mPermission =
+        Permission.defaults().setUserFromThriftClient(MasterContext.getConf());
   }
 
   private CreateFileOptions() {

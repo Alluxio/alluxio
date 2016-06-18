@@ -27,7 +27,7 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -53,8 +53,8 @@ public final class InodeTreeTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
-  private static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "", (short) 0755);
+  private static final Permission TEST_PERMISSION_STATUS =
+      new Permission("user1", "", (short) 0755);
   private static CreateFileOptions sFileOptions;
   private static CreateDirectoryOptions sDirectoryOptions;
   private static CreateFileOptions sNestedFileOptions;

@@ -15,7 +15,7 @@ import alluxio.Constants;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import org.junit.Rule;
 import org.junit.rules.ExpectedException;
@@ -26,8 +26,8 @@ import org.junit.rules.ExpectedException;
 public abstract class AbstractInodeTest {
   public static final String TEST_USER_NAME = "user1";
   public static final String TEST_GROUP_NAME = "group1";
-  public static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus(TEST_USER_NAME, TEST_GROUP_NAME, (short) 0755);
+  public static final Permission TEST_PERMISSION_STATUS =
+      new Permission(TEST_USER_NAME, TEST_GROUP_NAME, (short) 0755);
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
