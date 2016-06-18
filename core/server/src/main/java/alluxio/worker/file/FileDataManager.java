@@ -227,6 +227,7 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
+    // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     PermissionStatus ps = new PermissionStatus(fileInfo.getUserName(), fileInfo.getGroupName(),
         (short) fileInfo.getPermission());
