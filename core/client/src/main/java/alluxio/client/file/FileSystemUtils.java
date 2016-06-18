@@ -163,6 +163,7 @@ public final class FileSystemUtils {
       if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
         throw new IOException("Failed to create " + parentPath);
       }
+      // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
       URIStatus uriStatus = fs.getStatus(uri);
       PermissionStatus ps = new PermissionStatus(uriStatus.getUserName(), uriStatus.getGroupName(),
           (short) uriStatus.getPermission());
