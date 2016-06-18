@@ -46,7 +46,7 @@
 # E.g. "1000MB", "2GB"
 # ALLUXIO_WORKER_MEMORY_SIZE
 
-# Config properties set for Alluxio daemons and shell. (Default: "")
+# Config properties set for Alluxio master, worker and shell. (Default: "")
 # E.g. "-Dalluxio.master.port=39999"
 # ALLUXIO_JAVA_OPTS
 
@@ -59,5 +59,5 @@
 # ALLUXIO_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio shell. (Default: "")
-# E.g. "-Dalluxio.user.file.writetype.default=THROUGH"
+# E.g. "-Dalluxio.user.file.writetype.default=CACHE_THROUGH"
 # ALLUXIO_USER_JAVA_OPTS
