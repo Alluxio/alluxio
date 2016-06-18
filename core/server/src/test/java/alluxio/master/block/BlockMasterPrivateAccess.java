@@ -29,7 +29,8 @@ public final class BlockMasterPrivateAccess {
    */
   public static boolean isWorkerRegistered(BlockMaster master, long workerId) {
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(master, "mWorkers");
-    IndexedSet.FieldIndex<MasterWorkerInfo> idIndex = Whitebox.getInternalState(master, "mIdIndex");
+    IndexedSet.UniqueFieldIndex<MasterWorkerInfo> idIndex = Whitebox.getInternalState(master,
+        "mIdIndex");
     synchronized (workers) {
       MasterWorkerInfo workerInfo = workers.getFirstByField(idIndex, workerId);
       return workerInfo != null && workerInfo.isRegistered();

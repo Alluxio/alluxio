@@ -54,8 +54,8 @@ public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Input stream agent session index
-  private final IndexedSet.UniqueFieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
-      new IndexedSet.UniqueFieldIndex<InputStreamAgent>() {
+  private final IndexedSet.NonUniqueFieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
+      new IndexedSet.NonUniqueFieldIndex<InputStreamAgent>() {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mSessionId;
@@ -72,8 +72,8 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent session index
-  private final IndexedSet.UniqueFieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
-      new IndexedSet.UniqueFieldIndex<OutputStreamAgent>() {
+  private final IndexedSet.NonUniqueFieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
+      new IndexedSet.NonUniqueFieldIndex<OutputStreamAgent>() {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
           return o.mSessionId;
