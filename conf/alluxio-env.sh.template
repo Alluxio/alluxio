@@ -46,6 +46,10 @@
 # E.g. "1000MB", "2GB"
 # ALLUXIO_WORKER_MEMORY_SIZE
 
+# Config properties set for Alluxio daemons and shell. (Default: "")
+# E.g. "-Dalluxio.master.port=39999"
+# ALLUXIO_JAVA_OPTS
+
 # Config properties set for Alluxio master daemon. (Default: "")
 # E.g. "-Dalluxio.master.port=39999"
 # ALLUXIO_MASTER_JAVA_OPTS

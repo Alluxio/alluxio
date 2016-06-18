@@ -15,13 +15,15 @@ for Alluxio in different contexts.
 
 Alluxio runtime respects two sources of configuration settings:
 
-1. [Environment variables](#Environment-variables). This is a convenient way for beginner users or shell scripts to set
-a few basic properties when running Alluxio.
-2. [Configuration properties](#configuration-properties). This provides a general way to customize any
-[supported Alluxio configure properties](#appendix).
+1. [Environment variables](#Environment-variables). This is an easy and fast way to set the basic properties
+to manage an Alluxio deloyment, and run Alluxio shell command lines.
+Note that, configuration set through environment variables may not
+be realized by applications (e.g., Spark or MapReduce jobs) that interact Alluxio service.
+2. [Property files](#configuration-properties). This is a general way to customize any
+[supported Alluxio configure properties](#appendix), respected by Alluxio daemons, shells as well as clients.
 
-The priority to load a property values, from the highest to the lowest, is
-environment variables, properties files and the defaults.
+The priority to load property values, from the highest to the lowest, is
+environment variables, property files and the default value.
 
 ## Environment variables
 
@@ -62,6 +64,10 @@ will be remove in version 2.0.</td>
 default <code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code> is included in both
 <code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code> and
 <code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code>.</td>
+</tr>
+<tr>
+  <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
+  <td>additional Java VM options for client configuration.</td>
 </tr>
 </table>
 
