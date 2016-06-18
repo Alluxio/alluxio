@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for chmod command.
  */
-public class ChmodCommandTest extends AbstractAlluxioShellTest {
+public final class ChmodCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void chmodTest() throws IOException, AlluxioException {
     clearLoginUser();

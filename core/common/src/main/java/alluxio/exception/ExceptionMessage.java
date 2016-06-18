@@ -128,9 +128,9 @@ public enum ExceptionMessage {
       + "the client state due to a timeout."),
 
   // shell
-  DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src is a directory or contains"
-            +  " wildcards."),
+  DESTINATION_CANNOT_BE_FILE(
+      "The destination cannot be an existing file when the source is a directory or a list of "
+          + "files."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),

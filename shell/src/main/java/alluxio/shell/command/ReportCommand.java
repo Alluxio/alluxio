@@ -43,13 +43,9 @@ public final class ReportCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    try {
-      LineageFileSystem.get().reportLostFile(path);
-      System.out.println(path + " has been reported as lost.");
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    LineageFileSystem.get().reportLostFile(path);
+    System.out.println(path + " has been reported as lost.");
   }
 
   @Override

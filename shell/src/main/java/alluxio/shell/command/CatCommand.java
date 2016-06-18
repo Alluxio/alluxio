@@ -20,6 +20,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -47,25 +48,20 @@ public final class CatCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    try {
-      URIStatus status = mFileSystem.getStatus(path);
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
-      if (!status.isFolder()) {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        byte[] buf = new byte[512];
-        try (FileInStream is = mFileSystem.openFile(path, options)) {
-          int read = is.read(buf);
-          while (read != -1) {
-            System.out.write(buf, 0, read);
-            read = is.read(buf);
-          }
-        }
-      } else {
-        throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    if (status.isFolder()) {
+      throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    byte[] buf = new byte[512];
+    try (FileInStream is = mFileSystem.openFile(path, options)) {
+      int read = is.read(buf);
+      while (read != -1) {
+        System.out.write(buf, 0, read);
+        read = is.read(buf);
       }
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
     }
   }
 

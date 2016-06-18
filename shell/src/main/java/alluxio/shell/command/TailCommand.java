@@ -51,13 +51,8 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
@@ -65,26 +60,23 @@ public final class TailCommand extends WithWildCardPathCommand {
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
-    if (!status.isFolder()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      try (FileInStream is = mFileSystem.openFile(path, options)) {
-        byte[] buf = new byte[numOfBytes];
-        long bytesToRead;
-        if (status.getLength() > numOfBytes) {
-          bytesToRead = numOfBytes;
-        } else {
-          bytesToRead = status.getLength();
-        }
-        is.skip(status.getLength() - bytesToRead);
-        int read = is.read(buf);
-        if (read != -1) {
-          System.out.write(buf, 0, read);
-        }
-      } catch (AlluxioException e) {
-        throw new IOException(e.getMessage());
-      }
-    } else {
+    if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    try (FileInStream is = mFileSystem.openFile(path, options)) {
+      byte[] buf = new byte[numOfBytes];
+      long bytesToRead;
+      if (status.getLength() > numOfBytes) {
+        bytesToRead = numOfBytes;
+      } else {
+        bytesToRead = status.getLength();
+      }
+      is.skip(status.getLength() - bytesToRead);
+      int read = is.read(buf);
+      if (read != -1) {
+        System.out.write(buf, 0, read);
+      }
     }
   }
 
@@ -101,11 +93,7 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   protected Options getOptions() {
     Option bytesOption =
-        Option.builder("c")
-              .required(false)
-              .numberOfArgs(1)
-              .desc("user specified option")
-              .build();
+        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
     return new Options().addOption(bytesOption);
   }
 }

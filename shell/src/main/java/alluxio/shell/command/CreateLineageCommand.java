@@ -64,7 +64,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get();
     // TODO(yupeng) more validation
@@ -88,12 +88,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       throw new IOException("recompute output log is not configured");
     }
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
-    long lineageId;
-    try {
-      lineageId = tl.createLineage(inputFiles, outputFiles, job);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
     System.out.println("Lineage " + lineageId + " has been created.");
   }
 

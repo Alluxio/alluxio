@@ -26,7 +26,7 @@ import java.io.IOException;
 /**
  * Tests for load command.
  */
-public class LoadCommandTest extends AbstractAlluxioShellTest {
+public final class LoadCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void loadDirTest() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);
