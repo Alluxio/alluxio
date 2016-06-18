@@ -29,8 +29,8 @@ import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authorization.FileSystemAction;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -182,7 +182,7 @@ public final class PermissionCheckTest {
       inodeTree.createPath(inodePath,
           CreateDirectoryOptions.defaults()
               .setPermissionStatus(
-                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0755)));
+                  new Permission(TEST_USER_1.getUser(), "group1", (short) 0755)));
     }
 
     // create "/testDir/file" for user1
@@ -192,7 +192,7 @@ public final class PermissionCheckTest {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
               .setPermissionStatus(
-                  new PermissionStatus(TEST_USER_1.getUser(), "group1", (short) 0644)));
+                  new Permission(TEST_USER_1.getUser(), "group1", (short) 0644)));
     }
 
     // create "/testFile" for user2
@@ -202,7 +202,7 @@ public final class PermissionCheckTest {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
               .setPermissionStatus(
-                  new PermissionStatus(TEST_USER_2.getUser(), "group2", (short) 0644)));
+                  new Permission(TEST_USER_2.getUser(), "group2", (short) 0644)));
     }
   }
 
@@ -225,7 +225,7 @@ public final class PermissionCheckTest {
   public void createUnderRootFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, "/file1", "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/file1", "/")));
     // create "/file1" for user1
     verifyCreateFile(TEST_USER_1, "/file1", false);
   }
@@ -240,7 +240,7 @@ public final class PermissionCheckTest {
   public void createFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/file1",
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI + "/file1",
             "testDir")));
 
     // create "/testDir/file1" for user2
@@ -250,7 +250,7 @@ public final class PermissionCheckTest {
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
-        .setPermissionStatus(PermissionStatus.defaults()
+        .setPermissionStatus(Permission.defaults()
             .setUserFromThriftClient(MasterContext.getConf()));
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
@@ -277,7 +277,7 @@ public final class PermissionCheckTest {
   public void mkdirUnderRootByUserTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, "/dir1",
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/dir1",
             "/")));
 
     // createDirectory "/dir1" for user1
@@ -294,7 +294,7 @@ public final class PermissionCheckTest {
   public void mkdirFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI + "/dir1",
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI + "/dir1",
             "testDir")));
 
     // createDirectory "/testDir/dir1" for user2
@@ -305,7 +305,7 @@ public final class PermissionCheckTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
-        .setPermissionStatus(PermissionStatus.defaults()
+        .setPermissionStatus(Permission.defaults()
             .setUserFromThriftClient(MasterContext.getConf()));
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
@@ -333,7 +333,7 @@ public final class PermissionCheckTest {
   public void renameUnderRootFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, TEST_FILE_URI, "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_FILE_URI, "/")));
 
     // rename "/testFile" to "/testFileRenamed" for user1
     verifyRename(TEST_USER_1, TEST_FILE_URI, "/testFileRenamed");
@@ -360,7 +360,7 @@ public final class PermissionCheckTest {
   public void renameFailBySrcTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
             "testDir")));
 
     // rename "/testDir/file" to "/file" for user2
@@ -371,7 +371,7 @@ public final class PermissionCheckTest {
   public void renameFailByDstTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, "/fileRenamed", "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/fileRenamed", "/")));
 
     // rename "/testDir/file" to "/fileRenamed" for user2
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/fileRenamed");
@@ -397,7 +397,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailedTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, TEST_DIR_URI, "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
 
     // delete file and dir under root by owner
     verifyDelete(TEST_USER_1, TEST_DIR_URI, true);
@@ -423,7 +423,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailOnDirTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_URI, "/")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
 
     // user2 cannot delete "/testDir" under root
     verifyDelete(TEST_USER_2, TEST_DIR_URI, true);
@@ -433,7 +433,7 @@ public final class PermissionCheckTest {
   public void deleteUnderRootFailOnFileTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_1.getUser(), FileSystemAction.WRITE, TEST_FILE_URI, "/")));
+        toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_FILE_URI, "/")));
 
     // user2 cannot delete "/testFile" under root
     verifyDelete(TEST_USER_1, TEST_FILE_URI, true);
@@ -449,7 +449,7 @@ public final class PermissionCheckTest {
   public void deleteFailTest() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, TEST_DIR_FILE_URI,
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
             "testDir")));
 
     // user 2 cannot delete "/testDir/file"
@@ -478,7 +478,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "onlyReadByUser1")));
     verifyGetFileId(TEST_USER_2, file);
   }
 
@@ -488,7 +488,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "onlyReadByUser1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "onlyReadByUser1")));
     verifyGetFileInfoOrList(TEST_USER_2, file, true);
   }
 
@@ -498,7 +498,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, dir, "onlyReadByUser1")));
     verifyGetFileId(TEST_USER_2, dir);
   }
 
@@ -508,7 +508,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, dir, "onlyReadByUser1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, dir, "onlyReadByUser1")));
     verifyGetFileInfoOrList(TEST_USER_2, dir, false);
   }
 
@@ -516,7 +516,7 @@ public final class PermissionCheckTest {
   public void readNotExecuteDirTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "033");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
     MasterContext.reset(conf);
 
     String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
@@ -526,14 +526,14 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.EXECUTE, dir, "notExecuteDir")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.EXECUTE, dir, "notExecuteDir")));
     verifyGetFileInfoOrList(TEST_USER_2, dir, false);
   }
 
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
     MasterContext.reset(conf);
 
     String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
@@ -578,7 +578,7 @@ public final class PermissionCheckTest {
   public void setStateSuccessTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "000");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
@@ -594,7 +594,7 @@ public final class PermissionCheckTest {
   public void setStateFailTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
@@ -603,7 +603,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testState1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testState1")));
     verifySetState(TEST_USER_2, file, expect);
   }
 
@@ -629,7 +629,7 @@ public final class PermissionCheckTest {
   public void completeFileSuccessTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "044");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
@@ -642,7 +642,7 @@ public final class PermissionCheckTest {
   public void completeFileFailTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
@@ -651,7 +651,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.WRITE, file, "testComplete1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, file, "testComplete1")));
     verifyCompleteFile(TEST_USER_2, file, expect);
   }
 
@@ -689,7 +689,7 @@ public final class PermissionCheckTest {
   public void freeFileFailTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
@@ -697,7 +697,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "testComplete1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
     verifyFree(TEST_USER_2, file, false);
   }
 
@@ -705,7 +705,7 @@ public final class PermissionCheckTest {
   public void freeNonNullDirectoryFailTest() throws Exception {
     // set unmask
     Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSIONS_UMASK, "066");
+    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
     MasterContext.reset(conf);
 
     String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
@@ -713,7 +713,7 @@ public final class PermissionCheckTest {
 
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
-        toExceptionMessage(TEST_USER_2.getUser(), FileSystemAction.READ, file, "testComplete1")));
+        toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.READ, file, "testComplete1")));
     verifyFree(TEST_USER_2, file, false);
   }
 
@@ -841,7 +841,7 @@ public final class PermissionCheckTest {
     }
   }
 
-  private String toExceptionMessage(String user, FileSystemAction action, String path,
+  private String toExceptionMessage(String user, Mode.Bits action, String path,
       String inodeName) {
     StringBuilder stringBuilder =
         new StringBuilder().append("user=").append(user).append(", ").append("access=")

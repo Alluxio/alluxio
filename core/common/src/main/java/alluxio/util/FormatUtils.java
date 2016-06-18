@@ -12,7 +12,7 @@
 package alluxio.util;
 
 import alluxio.Constants;
-import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.authorization.Mode;
 
 import java.math.BigDecimal;
 import java.nio.ByteBuffer;
@@ -198,7 +198,7 @@ public final class FormatUtils {
     } else {
       permissionStr.append("-");
     }
-    permissionStr.append(new FileSystemPermission(permission).toString());
+    permissionStr.append(new Mode(permission).toString());
     return permissionStr.toString();
   }
 

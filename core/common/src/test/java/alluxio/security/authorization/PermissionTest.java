@@ -29,11 +29,11 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Tests the {@link PermissionStatus} class.
+ * Tests the {@link Permission} class.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({GroupMappingService.Factory.class})
-public final class PermissionStatusTest {
+public final class PermissionTest {
 
   /**
    * The exception expected to be thrown.
@@ -42,25 +42,25 @@ public final class PermissionStatusTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * Tests the {@link PermissionStatus#applyUMask(FileSystemPermission)} method.
+   * Tests the {@link Permission#applyUMask(Mode)} method.
    */
   @Test
   public void applyUMaskTest() {
-    FileSystemPermission umaskPermission = new FileSystemPermission((short) 0022);
-    PermissionStatus permissionStatus =
-        new PermissionStatus("user1", "group1", FileSystemPermission.getDefault());
-    permissionStatus.applyUMask(umaskPermission);
+    Mode umaskPermission = new Mode((short) 0022);
+    Permission permission =
+        new Permission("user1", "group1", Mode.getDefault());
+    permission.applyUMask(umaskPermission);
 
-    Assert.assertEquals(FileSystemAction.ALL, permissionStatus.getPermission().getUserAction());
-    Assert.assertEquals(FileSystemAction.READ_EXECUTE,
-        permissionStatus.getPermission().getGroupAction());
-    Assert.assertEquals(FileSystemAction.READ_EXECUTE,
-        permissionStatus.getPermission().getOtherAction());
-    verifyPermissionStatus("user1", "group1", (short) 0755, permissionStatus);
+    Assert.assertEquals(Mode.Bits.ALL, permission.getMode().getUserMode());
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE,
+        permission.getMode().getGroupMode());
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE,
+        permission.getMode().getOtherMode());
+    verifyPermissionStatus("user1", "group1", (short) 0755, permission);
   }
 
   /**
-   * Tests the {@link PermissionStatus#defaults()} method.
+   * Tests the {@link Permission#defaults()} method.
    */
   @Test
   public void defaultsTest() throws Exception {
@@ -68,44 +68,44 @@ public final class PermissionStatusTest {
 
     // no authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    PermissionStatus permissionStatus = PermissionStatus.defaults();
-    verifyPermissionStatus("", "", (short) 0777, permissionStatus);
+    Permission permission = Permission.defaults();
+    verifyPermissionStatus("", "", (short) 0777, permission);
   }
 
   /**
-   * Tests the {@link PermissionStatus#setUserFromThriftClient(Configuration)} method.
+   * Tests the {@link Permission#setUserFromThriftClient(Configuration)} method.
    */
   @Test
   public void setUserFromThriftClientTest() throws Exception {
     Configuration conf = new Configuration();
-    PermissionStatus permissionStatus = PermissionStatus.defaults();
+    Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permissionStatus.setUserFromThriftClient(conf);
-    verifyPermissionStatus("", "", (short) 0777, permissionStatus);
+    permission.setUserFromThriftClient(conf);
+    verifyPermissionStatus("", "", (short) 0777, permission);
 
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
 
     // When authentication is enabled, user and group are inferred from thrift transport
-    permissionStatus.setUserFromThriftClient(conf);
-    verifyPermissionStatus("test_client_user", "test_client_user", (short) 0777, permissionStatus);
+    permission.setUserFromThriftClient(conf);
+    verifyPermissionStatus("test_client_user", "test_client_user", (short) 0777, permission);
   }
 
   /**
-   * Tests the {@link PermissionStatus#setUserFromLoginModule(Configuration)} method.
+   * Tests the {@link Permission#setUserFromLoginModule(Configuration)} method.
    */
   @Test
   public void setUserFromLoginModuleTest() throws Exception {
     Configuration conf = new Configuration();
-    PermissionStatus permissionStatus = PermissionStatus.defaults();
+    Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permissionStatus.setUserFromThriftClient(conf);
-    verifyPermissionStatus("", "", (short) 0777, permissionStatus);
+    permission.setUserFromThriftClient(conf);
+    verifyPermissionStatus("", "", (short) 0777, permission);
 
     // When authentication is enabled, user and group are inferred from login module
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
@@ -113,14 +113,14 @@ public final class PermissionStatusTest {
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
 
-    permissionStatus.setUserFromLoginModule(conf);
-    verifyPermissionStatus("test_login_user", "test_login_user", (short) 0777, permissionStatus);
+    permission.setUserFromLoginModule(conf);
+    verifyPermissionStatus("test_login_user", "test_login_user", (short) 0777, permission);
   }
 
   private void verifyPermissionStatus(String user, String group, short permission,
-      PermissionStatus permissionStatus) {
+      Permission permissionStatus) {
     Assert.assertEquals(user, permissionStatus.getUserName());
     Assert.assertEquals(group, permissionStatus.getGroupName());
-    Assert.assertEquals(permission, permissionStatus.getPermission().toShort());
+    Assert.assertEquals(permission, permissionStatus.getMode().toShort());
   }
 }

@@ -22,8 +22,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
-import alluxio.security.authorization.FileSystemAction;
-import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.authorization.Mode;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.io.PathUtils;
 
@@ -72,12 +71,12 @@ public final class PermissionChecker {
    * its parent and checks permission on it. This check will pass if the path is invalid, or path
    * has no parent (e.g., root).
    *
-   * @param action requested {@link FileSystemAction} by user
+   * @param action requested {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkParentPermission(FileSystemAction action, LockedInodePath inodePath)
+  public void checkParentPermission(Mode.Bits action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -107,12 +106,12 @@ public final class PermissionChecker {
    * Checks whether a user has permission to perform a specific action on a path. This check will
    * pass if the path is invalid.
    *
-   * @param action requested {@link FileSystemAction} by user
+   * @param action requested {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkPermission(FileSystemAction action, LockedInodePath inodePath)
+  public void checkPermission(Mode.Bits action, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -151,7 +150,7 @@ public final class PermissionChecker {
     if (ownerRequired) {
       checkOwner(inodePath);
     }
-    checkPermission(FileSystemAction.WRITE, inodePath);
+    checkPermission(Mode.Bits.WRITE, inodePath);
   }
 
   /**
@@ -231,13 +230,13 @@ public final class PermissionChecker {
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
-   * @param action requested {@link FileSystemAction} by user
+   * @param action requested {@link Mode.Bits} by user
    * @param path the path to check permission on
    * @param inodeList file info list of all the inodes retrieved by traversing the path
    * @param checkIsOwner indicates whether to check the user is the owner of the path
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInodeList(String user, List<String> groups, FileSystemAction action,
+  private void checkInodeList(String user, List<String> groups, Mode.Bits action,
       String path, List<Inode<?>> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions
@@ -250,7 +249,7 @@ public final class PermissionChecker {
 
     // traverses from root to the parent dir to all inodes included by this path are executable
     for (int i = 0; i < size - 1; i++) {
-      checkInode(user, groups, inodeList.get(i), FileSystemAction.EXECUTE, path);
+      checkInode(user, groups, inodeList.get(i), Mode.Bits.EXECUTE, path);
     }
 
     Inode inode = inodeList.get(inodeList.size() - 1);
@@ -270,11 +269,11 @@ public final class PermissionChecker {
    * @param user who requests access permission
    * @param groups in which user belongs to
    * @param inode whose attributes used for permission check logic
-   * @param action requested {@link FileSystemAction} by user
+   * @param action requested {@link Mode.Bits} by user
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode, FileSystemAction action,
+  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits action,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -282,17 +281,17 @@ public final class PermissionChecker {
 
     short permission = inode.getPermission();
 
-    if (user.equals(inode.getUserName()) && FileSystemPermission.createUserAction(permission)
+    if (user.equals(inode.getUserName()) && Mode.createUserMode(permission)
         .imply(action)) {
       return;
     }
 
-    if (groups.contains(inode.getGroupName()) && FileSystemPermission.createGroupAction(permission)
+    if (groups.contains(inode.getGroupName()) && Mode.createGroupMode(permission)
         .imply(action)) {
       return;
     }
 
-    if (FileSystemPermission.createOtherAction(permission).imply(action)) {
+    if (Mode.createOtherMode(permission).imply(action)) {
       return;
     }
 
@@ -304,7 +303,7 @@ public final class PermissionChecker {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
-  private static String toExceptionMessage(String user, FileSystemAction action, String path,
+  private static String toExceptionMessage(String user, Mode.Bits action, String path,
       Inode inode) {
     // message format: who, action, resource: failed at where
     StringBuilder stringBuilder =

@@ -11,7 +11,7 @@
 
 package alluxio.master.file.options;
 
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Objects;
 
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class CreatePathOptions<T> {
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
-  protected PermissionStatus mPermissionStatus;
+  protected Permission mPermission;
   protected boolean mPersisted;
   // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
@@ -35,7 +35,7 @@ public abstract class CreatePathOptions<T> {
   protected CreatePathOptions() {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mPermissionStatus = PermissionStatus.defaults();
+    mPermission = Permission.defaults();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
@@ -60,8 +60,8 @@ public abstract class CreatePathOptions<T> {
   /**
    * @return the permission status
    */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
+  public Permission getPermissionStatus() {
+    return mPermission;
   }
 
   /**
@@ -106,11 +106,11 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @param permissionStatus the permission status to use
+   * @param permission the permission status to use
    * @return the updated options object
    */
-  public T setPermissionStatus(PermissionStatus permissionStatus) {
-    mPermissionStatus = permissionStatus;
+  public T setPermissionStatus(Permission permission) {
+    mPermission = permission;
     return getThis();
   }
 
@@ -154,7 +154,7 @@ public abstract class CreatePathOptions<T> {
     }
     CreatePathOptions<?> that = (CreatePathOptions<?>) o;
     return Objects.equal(mMountPoint, that.mMountPoint)
-        && Objects.equal(mPermissionStatus, that.mPermissionStatus)
+        && Objects.equal(mPermission, that.mPermission)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mRecursive, that.mRecursive)
         && Objects.equal(mMetadataLoad, that.mMetadataLoad);
@@ -162,14 +162,14 @@ public abstract class CreatePathOptions<T> {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mMountPoint, mPermissionStatus, mPersisted, mRecursive, mMetadataLoad);
+    return Objects.hashCode(mMountPoint, mPermission, mPersisted, mRecursive, mMetadataLoad);
   }
 
   protected Objects.ToStringHelper toStringHelper() {
     return Objects.toStringHelper(this)
         .add("mountPoint", mMountPoint)
         .add("operationTimeMs", mOperationTimeMs)
-        .add("permissionStatus", mPermissionStatus)
+        .add("permissionStatus", mPermission)
         .add("persisted", mPersisted)
         .add("recursive", mRecursive)
         .add("metadataLoad", mMetadataLoad);

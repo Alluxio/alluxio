@@ -15,7 +15,7 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +30,7 @@ import java.util.Random;
  */
 @RunWith(PowerMockRunner.class)
 // Need to mock PermissionStatus to use CommonTestUtils#testEquals.
-@PrepareForTest(PermissionStatus.class)
+@PrepareForTest(Permission.class)
 public class CreateDirectoryOptionsTest {
   /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
@@ -58,7 +58,7 @@ public class CreateDirectoryOptionsTest {
     boolean allowExists = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
-    PermissionStatus permissionStatus = PermissionStatus.defaults();
+    Permission permission = Permission.defaults();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 
@@ -67,13 +67,13 @@ public class CreateDirectoryOptionsTest {
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
-        .setPermissionStatus(permissionStatus)
+        .setPermissionStatus(permission)
         .setRecursive(recursive);
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(permissionStatus, options.getPermissionStatus());
+    Assert.assertEquals(permission, options.getPermissionStatus());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
   }

@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.master.journal.JournalEntryRepresentable;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Objects;
@@ -213,14 +213,14 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param permissionStatus the {@link PermissionStatus} to use
+   * @param permission the {@link Permission} to use
    * @return the updated object
    */
-  public T setPermissionStatus(PermissionStatus permissionStatus) {
-    if (permissionStatus != null) {
-      mGroupName = permissionStatus.getGroupName();
-      mPermission = permissionStatus.getPermission().toShort();
-      mUserName = permissionStatus.getUserName();
+  public T setPermissionStatus(Permission permission) {
+    if (permission != null) {
+      mGroupName = permission.getGroupName();
+      mPermission = permission.getMode().toShort();
+      mUserName = permission.getUserName();
     }
     return getThis();
   }
