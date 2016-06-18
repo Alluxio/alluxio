@@ -277,14 +277,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public short getPermission(String path) throws IOException {
     path = stripPath(path);
-    String posixPerm = FileUtils.getLocalFilePermission(path);
-    int n = 0;
-    for (int i = 0; i < posixPerm.length(); i++) {
-      n = n << 1;
-      char c = posixPerm.charAt(i);
-      n += (c == '-' || c == 'T' || c == 'S') ? 0 : 1;
-    }
-    return (short) n;
+    return FileUtils.getLocalFilePermission(path);
   }
 
   @Override
