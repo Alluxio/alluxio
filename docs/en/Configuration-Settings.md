@@ -13,17 +13,39 @@ for Alluxio in different contexts.
 
 # Configuration in Alluxio
 
-Alluxio runtime respects two sources of configuration settings:
+Alluxio runtime respects three sources of configuration settings:
 
-1. [Environment variables](#Environment-variables). This is an easy and fast way to set the basic properties
-to manage an Alluxio deloyment, and run Alluxio shell command lines.
-Note that, configuration set through environment variables may not
-be realized by applications (e.g., Spark or MapReduce jobs) that interact with Alluxio service.
-2. [Property files](#configuration-properties). This is a general way to customize any
-[supported Alluxio configure properties](#appendix), respected by Alluxio master, worker, client (e.g., Spark/MapReduce jobs or Alluxio shell commands).
+1. [Application settings](#application-settings). Setting Alluxio configuration in this way is application-specific,
+and is required each time when running a new Spark/MapReduce job or an Alluxio shell command.
+2. [Environment variables](#environment-variables). This is an easy and fast way to set the basic properties
+to manage Alluxio servers and run Alluxio shell commandlines.
+Note that, configuration set through environment variables may not be realized by applications.
+3. [Property files](#property-files). This is a general approach to customize any
+[supported Alluxio configure properties](#appendix). Configuration in those files can be respected by Alluxio servers,
+as well as applications.
+
 
 The priority to load property values, from the highest to the lowest, is
-environment variables, property files and the defaults.
+application settings (if any), environment variables, property files and the defaults.
+
+## Application settings
+
+Alluxio shell users can use `-Dkey=property` to specify an Alluxio configuration value in commandline. For example,
+
+```java
+$ bin/alluxio fs -Dalluxio.user.file.writetype.default=MUST_CACHE touch /foo
+```
+
+Spark users can add `"-Dkey=property"` to `${SPARK_DAEMON_JAVA_OPTS}` in `conf/spark-env.sh`, or add it to
+`spark.executor.extraJavaOptions` (for Spark executors) and `spark.driver.extraJavaOptions` (for Spark drivers).
+
+Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines to pass it down to Alluxio:
+
+```java
+$ hadoop jar -Dalluxio.user.file.writetype.default=MUST_CACHE foo.jar
+```
+
+Note that, setting Alluxio configuration in this way is application specific and is also required for each job or command.
 
 ## Environment variables
 
@@ -88,11 +110,11 @@ Alternatively, you can create one from a template we provided in the source code
 
 
 Note that `conf/alluxio-env.sh` is sourced when you
-[launch Alluxio servers](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html.html).
-It will not override configuration for applications jobs reading from or writing to Alluxio.
+[launch Alluxio servers](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html.html),
+but not for applications.
 
 
-## Configuration properties
+## Property files
 
 In addition to these environment variables that only provide basic settings, Alluxio also provides a
 more general approach for users to customize all supported configuration properties via property files.
@@ -112,6 +134,8 @@ which Alluxio is running in order. The easiest way is to copy the site propertie
 
 {% include Common-Commands/copy-alluxio-site-properties.md %}
 
+
+Note that, once set, configuration in those property files can be shared across Alluxio servers and those jobs using Alluxio clients.
 
 # Appendix
 All Alluxio configuration properties fall into one of the six categories:
