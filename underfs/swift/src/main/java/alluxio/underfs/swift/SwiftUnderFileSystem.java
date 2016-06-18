@@ -14,8 +14,9 @@ package alluxio.underfs.swift;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -134,6 +135,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+  }
+
+  @Override
+  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
+    // Block size and permission status in options are ignored when creating Swift object.
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     if (newPath.endsWith("_SUCCESS")) {
@@ -146,30 +153,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       out.close();
     }
     return SwiftDirectClient.put(mAccess, newPath);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, PermissionStatus ps) throws IOException {
-    LOG.debug("Create with permission status is not supported with SwiftUnderFileSystem. "
-        + "Permission Status will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path,
-      int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size is not supported"
-        + "with SwiftDirectUnderFileSystem. Block size will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size and replication is not"
-        + "supported with SwiftDirectUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   /**
@@ -273,26 +256,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /**
-   * @inheritDoc
-   *
-   * @param path the folder to create
-   * @param createParent if true, the method creates any necessary but nonexistent parent
-   *        directories; otherwise, the method does not create nonexistent parent directories
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return true;
+    return mkdirs(path,
+        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
   }
 
-  // Same as mkdirs
   @Override
-  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
-    LOG.debug("mkdirs with permission status is not supported with SwiftUnderFileSystem. "
-        + "Permission Status will be ignored.");
-    return mkdirs(path, createParent);
+  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
+    return true;
   }
 
   @Override

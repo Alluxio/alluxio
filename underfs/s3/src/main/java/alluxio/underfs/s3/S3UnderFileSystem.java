@@ -14,8 +14,9 @@ package alluxio.underfs.s3;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -156,35 +157,16 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+  }
+
+  @Override
+  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
+    // Block size and permission status in options are ignored when creating S3 object.
     if (mkdirs(getParentKey(path), true)) {
       return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, PermissionStatus ps) throws IOException {
-    LOG.debug("Create with permission status is not supported with S3UnderFileSystem. Permission "
-        + "Status will be ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size is not supported with S3UnderFileSystem. Block size will be "
-        + "ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.debug("Create with block size and replication is not supported with S3UnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -294,6 +276,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path,
+        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -304,7 +292,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -322,14 +310,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
       // Recursively make the parent folders
       return mkdirs(parentKey, true) && mkdirsInternal(path);
     }
-  }
-
-  // Same as mkdirs
-  @Override
-  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
-    LOG.debug("mkdirs with permission status is not supported with S3UnderFileSystem. Permission "
-        + "Status will be ignored.");
-    return mkdirs(path, createParent);
   }
 
   @Override
