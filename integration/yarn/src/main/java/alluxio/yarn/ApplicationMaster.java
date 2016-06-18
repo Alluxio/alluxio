@@ -313,10 +313,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Alluxio master to ResourceManager
-    boolean relaxLocality = true;
-    if (!mMasterAddress.equals("localhost")) {
-      relaxLocality = false;
-    }
+    boolean relaxLocality = mMasterAddress.equals("localhost");
     ContainerRequest masterContainerAsk = new ContainerRequest(masterResource, nodes,
         null /* any racks */, MASTER_PRIORITY, relaxLocality);
     LOG.info("Making resource request for Alluxio master: cpu {} memory {} MB on node {}",

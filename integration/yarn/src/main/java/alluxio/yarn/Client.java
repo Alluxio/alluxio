@@ -13,7 +13,6 @@ package alluxio.yarn;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
@@ -28,14 +27,11 @@ import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
-import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
-import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -44,11 +40,8 @@ import org.apache.hadoop.yarn.util.Apps;
 import org.apache.hadoop.yarn.util.Records;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -134,7 +127,6 @@ public final class Client {
    * @param args Command line arguments
    */
   public static void main(String[] args) {
-    boolean result = false;
     try {
       Client client = new Client();
       System.out.println("Initializing Client");
@@ -143,29 +135,21 @@ public final class Client {
         System.exit(0);
       }
       System.out.println("Starting Client");
-      result = client.run();
+      client.run();
     } catch (Exception e) {
       System.err.println("Error running Client " + e);
       System.exit(1);
     }
-    if (result) {
-      System.out.println("Application completed successfully");
-      System.exit(0);
-    }
-    System.err.println("Application failed to complete");
-    System.exit(2);
   }
 
   /**
    * Main run function for the client.
    *
-   * @return true if application completed successfully
    * @throws IOException if errors occur from ResourceManager
    * @throws YarnException if errors occur from ResourceManager
    */
-  public boolean run() throws IOException, YarnException {
+  public void run() throws IOException, YarnException {
     submitApplication();
-    return monitorApplication();
   }
 
   /**
@@ -342,52 +326,4 @@ public final class Client {
     // Set the priority for the application master
     mAppContext.setPriority(Priority.newInstance(mAmPriority));
   }
-
-  /**
-   * Monitors the submitted application for completion.
-   *
-   * @return true if application completed successfully
-   * @throws YarnException if errors occur when obtaining application report from ResourceManager
-   * @throws IOException if errors occur when obtaining application report from ResourceManager
-   */
-  private boolean monitorApplication() throws YarnException, IOException {
-    DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
-    while (true) {
-      // Check app status every 10 second.
-      CommonUtils.sleepMs(10 * Constants.SECOND_MS);
-      Date date = new Date();
-      String timeDateStr = dateFormat.format(date);
-
-      // Get application report for the appId we are interested in
-      ApplicationReport report = mYarnClient.getApplicationReport(mAppId);
-
-      System.out.println(timeDateStr + " Got application report from ASM for appId="
-          + mAppId.getId() + ", clientToAMToken=" + report.getClientToAMToken()
-          + ", appDiagnostics=" + report.getDiagnostics() + ", appMasterHost=" + report.getHost()
-          + ", appQueue=" + report.getQueue() + ", appMasterRpcPort=" + report.getRpcPort()
-          + ", appStartTime=" + report.getStartTime() + ", yarnAppState="
-          + report.getYarnApplicationState().toString() + ", distributedFinalState="
-          + report.getFinalApplicationStatus().toString() + ", appTrackingUrl="
-          + report.getTrackingUrl() + ", appUser=" + report.getUser());
-
-      YarnApplicationState state = report.getYarnApplicationState();
-      FinalApplicationStatus dsStatus = report.getFinalApplicationStatus();
-      if (YarnApplicationState.FINISHED == state) {
-        if (FinalApplicationStatus.SUCCEEDED == dsStatus) {
-          System.out.println("Application has completed successfully. Breaking monitoring loop");
-          return true;
-        }
-        System.out.println("Application did finished unsuccessfully. YarnState=" + state.toString()
-            + ", DSFinalStatus=" + dsStatus.toString() + ". Breaking monitoring loop");
-        return false;
-      }
-
-      if (YarnApplicationState.KILLED == state || YarnApplicationState.FAILED == state) {
-        System.out.println("Application did not finish. YarnState=" + state.toString()
-            + ", DSFinalStatus=" + dsStatus.toString() + ". Breaking monitoring loop");
-        return false;
-      }
-    }
-  }
-
 }
