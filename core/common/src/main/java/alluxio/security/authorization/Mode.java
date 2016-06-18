@@ -95,19 +95,19 @@ public final class Mode {
     }
   }
 
-  private Bits mUserMode;
-  private Bits mGroupMode;
-  private Bits mOtherMode;
+  private Bits mUserBits;
+  private Bits mGroupBits;
+  private Bits mOtherBits;
 
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
    *
-   * @param userMode  user mode
-   * @param groupMode group mode
-   * @param otherMode other mode
+   * @param userBits the user {@link Bits}
+   * @param groupBits the group {@link Bits}
+   * @param otherBits the other {@link Bits}
    */
-  public Mode(Bits userMode, Bits groupMode, Bits otherMode) {
-    set(userMode, groupMode, otherMode);
+  public Mode(Bits userBits, Bits groupBits, Bits otherBits) {
+    set(userBits, groupBits, otherBits);
   }
 
   /**
@@ -126,62 +126,62 @@ public final class Mode {
    * @param mode another {@link Mode}
    */
   public Mode(Mode mode) {
-    set(mode.mUserMode, mode.mGroupMode, mode.mOtherMode);
+    set(mode.mUserBits, mode.mGroupBits, mode.mOtherBits);
   }
 
   /**
    * @return the user {@link Bits}
    */
-  public Bits getUserMode() {
-    return mUserMode;
+  public Bits getUserBits() {
+    return mUserBits;
   }
 
   /**
    * @param mode the digital representation of a {@link Mode}
    * @return the user {@link Bits}
    */
-  public static Bits createUserMode(short mode) {
+  public static Bits extractUserBits(short mode) {
     return Bits.values()[(mode >>> 6) & 7];
   }
 
   /**
    * @return the group {@link Bits}
    */
-  public Bits getGroupMode() {
-    return mGroupMode;
+  public Bits getGroupBits() {
+    return mGroupBits;
   }
 
   /**
    * @param mode the digital representation of a {@link Mode}
    * @return the group {@link Bits}
    */
-  public static Bits createGroupMode(short mode) {
+  public static Bits extractGroupBits(short mode) {
     return Bits.values()[(mode >>> 3) & 7];
   }
 
   /**
    * @return the other {@link Bits}
    */
-  public Bits getOtherMode() {
-    return mOtherMode;
+  public Bits getOtherBits() {
+    return mOtherBits;
   }
 
   /**
    * @param mode the digital representation of a {@link Mode}
    * @return the other {@link Bits}
    */
-  public static Bits createOtherMode(short mode) {
+  public static Bits extractOtherBits(short mode) {
     return Bits.values()[mode & 7];
   }
 
   private void set(Bits u, Bits g, Bits o) {
-    mUserMode = u;
-    mGroupMode = g;
-    mOtherMode = o;
+    mUserBits = u;
+    mGroupBits = g;
+    mOtherBits = o;
   }
 
   /**
-   * Sets {@link Mode} attributes using a digital representation.
+   * Sets {@link Mode} bits using a digital representation.
    *
    * @param n the digital representation of a {@link Mode}
    */
@@ -196,7 +196,7 @@ public final class Mode {
    * @return the digital representation of this {@link Mode}
    */
   public short toShort() {
-    int s = (mUserMode.ordinal() << 6) | (mGroupMode.ordinal() << 3) | mOtherMode.ordinal();
+    int s = (mUserBits.ordinal() << 6) | (mGroupBits.ordinal() << 3) | mOtherBits.ordinal();
     return (short) s;
   }
 
@@ -204,8 +204,8 @@ public final class Mode {
   public boolean equals(Object obj) {
     if (obj instanceof Mode) {
       Mode that = (Mode) obj;
-      return mUserMode == that.mUserMode && mGroupMode == that.mGroupMode
-          && mOtherMode == that.mOtherMode;
+      return mUserBits == that.mUserBits && mGroupBits == that.mGroupBits
+          && mOtherBits == that.mOtherBits;
     }
     return false;
   }
@@ -217,7 +217,7 @@ public final class Mode {
 
   @Override
   public String toString() {
-    return mUserMode.toString() + mGroupMode.toString() + mOtherMode.toString();
+    return mUserBits.toString() + mGroupBits.toString() + mOtherBits.toString();
   }
 
   /**
@@ -227,8 +227,8 @@ public final class Mode {
    * @return a new {@link Mode}
    */
   public Mode applyUMask(Mode umask) {
-    return new Mode(mUserMode.and(umask.mUserMode.not()), mGroupMode.and(umask.mGroupMode.not()),
-        mOtherMode.and(umask.mOtherMode.not()));
+    return new Mode(mUserBits.and(umask.mUserBits.not()), mGroupBits.and(umask.mGroupBits.not()),
+        mOtherBits.and(umask.mOtherBits.not()));
   }
 
   /**
@@ -269,7 +269,7 @@ public final class Mode {
   }
 
   /**
-   * Gets the file/directory creation umask.
+   * Gets the file / directory creation umask.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the umask {@link Mode}

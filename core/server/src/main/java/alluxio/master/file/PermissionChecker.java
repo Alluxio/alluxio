@@ -279,19 +279,17 @@ public final class PermissionChecker {
       return;
     }
 
-    short permission = inode.getPermission();
+    short permission = inode.getMode();
 
-    if (user.equals(inode.getUserName()) && Mode.createUserMode(permission)
-        .imply(action)) {
+    if (user.equals(inode.getUserName()) && Mode.extractUserBits(permission).imply(action)) {
       return;
     }
 
-    if (groups.contains(inode.getGroupName()) && Mode.createGroupMode(permission)
-        .imply(action)) {
+    if (groups.contains(inode.getGroupName()) && Mode.extractGroupBits(permission).imply(action)) {
       return;
     }
 
-    if (Mode.createOtherMode(permission).imply(action)) {
+    if (Mode.extractOtherBits(permission).imply(action)) {
       return;
     }
 

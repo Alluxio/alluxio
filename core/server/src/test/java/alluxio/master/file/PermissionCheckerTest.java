@@ -84,13 +84,13 @@ public final class PermissionCheckerTest {
   private static final String TEST_NOT_EXIST_URI = "/testDir/notExistDir/notExistFile";
   private static final String TEST_WEIRD_FILE_URI = "/testWeirdFile";
 
-  private static final Permission TEST_PERMISSION_STATUS_SUPER =
+  private static final Permission TEST_PERMISSION_SUPER =
       new Permission(TEST_USER_ADMIN.getUser(), TEST_USER_ADMIN.getGroups(), (short) 0755);
-  private static final Permission TEST_PERMISSION_STATUS_1 =
+  private static final Permission TEST_PERMISSION_1 =
       new Permission(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0755);
-  private static final Permission TEST_PERMISSION_STATUS_2 =
+  private static final Permission TEST_PERMISSION_2 =
       new Permission(TEST_USER_2.getUser(), TEST_USER_2.getGroups(), (short) 0755);
-  private static final Permission TEST_PERMISSION_STATUS_WEIRD =
+  private static final Permission TEST_PERMISSION_WEIRD =
       new Permission(TEST_USER_1.getUser(), TEST_USER_1.getGroups(), (short) 0157);
 
   private static CreateFileOptions sFileOptions;
@@ -156,11 +156,11 @@ public final class PermissionCheckerTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS_2);
+        .setPermission(TEST_PERMISSION_2);
     sWeirdFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS_WEIRD);
+        .setPermission(TEST_PERMISSION_WEIRD);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS_1).setRecursive(true);
+        .setPermission(TEST_PERMISSION_1).setRecursive(true);
 
     // setup an InodeTree
     Journal blockJournal = new ReadWriteJournal(sTestFolder.newFolder().getAbsolutePath());
@@ -178,7 +178,7 @@ public final class PermissionCheckerTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     MasterContext.reset(conf);
-    sTree.initializeRoot(TEST_PERMISSION_STATUS_SUPER);
+    sTree.initializeRoot(TEST_PERMISSION_SUPER);
 
     // build file structure
     createAndSetPermission(TEST_DIR_FILE_URI, sNestedFileOptions);
@@ -204,7 +204,7 @@ public final class PermissionCheckerTest {
             .lockInodePath(new AlluxioURI(path), InodeTree.LockMode.WRITE)) {
       InodeTree.CreatePathResult result = sTree.createPath(inodePath, option);
       result.getCreated().get(result.getCreated().size() - 1)
-          .setPermissionStatus(option.getPermissionStatus());
+          .setPermission(option.getPermission());
     }
   }
 

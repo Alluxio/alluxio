@@ -2215,7 +2215,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
-        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_PERMISSION);
+        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_MODE);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
@@ -2298,7 +2298,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       builder.setGroup(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+    if (options.getPermission() != Constants.INVALID_MODE) {
       builder.setPermission(options.getPermission());
     }
     return appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
@@ -2428,7 +2428,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       inode.setGroupName(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_PERMISSION) {
+    if (options.getPermission() != Constants.INVALID_MODE) {
       inode.setPermission(options.getPermission());
     }
     return persistedInodes;

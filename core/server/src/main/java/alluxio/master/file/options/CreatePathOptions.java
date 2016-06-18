@@ -58,9 +58,9 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @return the permission status
+   * @return the permission
    */
-  public Permission getPermissionStatus() {
+  public Permission getPermission() {
     return mPermission;
   }
 
@@ -106,10 +106,10 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @param permission the permission status to use
+   * @param permission the permission to use
    * @return the updated options object
    */
-  public T setPermissionStatus(Permission permission) {
+  public T setPermission(Permission permission) {
     mPermission = permission;
     return getThis();
   }

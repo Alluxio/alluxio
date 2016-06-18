@@ -44,7 +44,8 @@
       "lastModificationTimeMs":1409349750338,
       "userName":"user1",
       "groupName":"group1",
-      "permission":511
+      "permission":511,
+      "mode":511
     }
   },
   "INODE_DIRECTORY":{
@@ -62,6 +63,7 @@
       "groupName":"group1",
       "permission":511,
       "mountPoint":true,
+      "mode":511
     }
   },
   "INODE_MTIME":{

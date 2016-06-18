@@ -181,8 +181,7 @@ public final class PermissionCheckTest {
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateDirectoryOptions.defaults()
-              .setPermissionStatus(
-                  new Permission(TEST_USER_1.getUser(), "group1", (short) 0755)));
+              .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0755)));
     }
 
     // create "/testDir/file" for user1
@@ -191,8 +190,7 @@ public final class PermissionCheckTest {
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setPermissionStatus(
-                  new Permission(TEST_USER_1.getUser(), "group1", (short) 0644)));
+              .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0644)));
     }
 
     // create "/testFile" for user2
@@ -201,8 +199,7 @@ public final class PermissionCheckTest {
         InodeTree.LockMode.WRITE)) {
       inodeTree.createPath(inodePath,
           CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setPermissionStatus(
-                  new Permission(TEST_USER_2.getUser(), "group2", (short) 0644)));
+              .setPermission(new Permission(TEST_USER_2.getUser(), "group2", (short) 0644)));
     }
   }
 
@@ -250,7 +247,7 @@ public final class PermissionCheckTest {
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
-        .setPermissionStatus(Permission.defaults()
+        .setPermission(Permission.defaults()
             .setUserFromThriftClient(MasterContext.getConf()));
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
@@ -305,7 +302,7 @@ public final class PermissionCheckTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
-        .setPermissionStatus(Permission.defaults()
+        .setPermission(Permission.defaults()
             .setUserFromThriftClient(MasterContext.getConf()));
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 

@@ -69,14 +69,14 @@ public class CreateFileOptionsTest {
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
-        .setPermissionStatus(permission)
+        .setPermission(permission)
         .setRecursive(recursive)
         .setTtl(ttl);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(permission, options.getPermissionStatus());
+    Assert.assertEquals(permission, options.getPermission());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());

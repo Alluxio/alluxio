@@ -46,17 +46,14 @@ public final class PermissionTest {
    */
   @Test
   public void applyUMaskTest() {
-    Mode umaskPermission = new Mode((short) 0022);
-    Permission permission =
-        new Permission("user1", "group1", Mode.getDefault());
-    permission.applyUMask(umaskPermission);
+    Mode umaskMode = new Mode((short) 0022);
+    Permission permission = new Permission("user1", "group1", Mode.getDefault());
+    permission.applyUMask(umaskMode);
 
-    Assert.assertEquals(Mode.Bits.ALL, permission.getMode().getUserMode());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE,
-        permission.getMode().getGroupMode());
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE,
-        permission.getMode().getOtherMode());
-    verifyPermissionStatus("user1", "group1", (short) 0755, permission);
+    Assert.assertEquals(Mode.Bits.ALL, permission.getMode().getUserBits());
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, permission.getMode().getGroupBits());
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, permission.getMode().getOtherBits());
+    verifyPermission("user1", "group1", (short) 0755, permission);
   }
 
   /**
@@ -69,7 +66,7 @@ public final class PermissionTest {
     // no authentication
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Permission permission = Permission.defaults();
-    verifyPermissionStatus("", "", (short) 0777, permission);
+    verifyPermission("", "", (short) 0777, permission);
   }
 
   /**
@@ -83,7 +80,7 @@ public final class PermissionTest {
     // When security is not enabled, user and group are not set
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     permission.setUserFromThriftClient(conf);
-    verifyPermissionStatus("", "", (short) 0777, permission);
+    verifyPermission("", "", (short) 0777, permission);
 
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
@@ -91,7 +88,7 @@ public final class PermissionTest {
 
     // When authentication is enabled, user and group are inferred from thrift transport
     permission.setUserFromThriftClient(conf);
-    verifyPermissionStatus("test_client_user", "test_client_user", (short) 0777, permission);
+    verifyPermission("test_client_user", "test_client_user", (short) 0777, permission);
   }
 
   /**
@@ -105,7 +102,7 @@ public final class PermissionTest {
     // When security is not enabled, user and group are not set
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     permission.setUserFromThriftClient(conf);
-    verifyPermissionStatus("", "", (short) 0777, permission);
+    verifyPermission("", "", (short) 0777, permission);
 
     // When authentication is enabled, user and group are inferred from login module
     conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
@@ -114,13 +111,12 @@ public final class PermissionTest {
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
 
     permission.setUserFromLoginModule(conf);
-    verifyPermissionStatus("test_login_user", "test_login_user", (short) 0777, permission);
+    verifyPermission("test_login_user", "test_login_user", (short) 0777, permission);
   }
 
-  private void verifyPermissionStatus(String user, String group, short permission,
-      Permission permissionStatus) {
-    Assert.assertEquals(user, permissionStatus.getUserName());
-    Assert.assertEquals(group, permissionStatus.getGroupName());
-    Assert.assertEquals(permission, permissionStatus.getMode().toShort());
+  private void verifyPermission(String user, String group, short mode, Permission permission) {
+    Assert.assertEquals(user, permission.getUserName());
+    Assert.assertEquals(group, permission.getGroupName());
+    Assert.assertEquals(mode, permission.getMode().toShort());
   }
 }
