@@ -12,8 +12,10 @@
 package alluxio.collections;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -137,7 +139,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * An interface extending {@link FieldIndex}, represents a unique index. A Unique index is an
+   * An interface extending {@link FieldIndex}, represents a unique index. A unique index is an
    * index where each index value only maps to one object.
    *
    * @param <T> type of objects in this {@link IndexedSet}
@@ -166,13 +168,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
     int uniqueIndexLength = 0;
     int nonUniqueIndexLength = 0;
 
-    if (field instanceof UniqueFieldIndex) {
-      uniqueIndexLength = 1;
-    } else {
-      nonUniqueIndexLength = 1;
-    }
+    Iterable<FieldIndex<T>> fields =
+        Iterables.concat(Arrays.asList(field), Arrays.asList(otherFields));
 
-    for (FieldIndex<T> fieldIndex : otherFields) {
+    for (FieldIndex<T> fieldIndex : fields) {
       if (fieldIndex instanceof UniqueFieldIndex) {
         uniqueIndexLength++;
       } else {
@@ -184,6 +183,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     Map<NonUniqueFieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMapNonUnique =
         null;
     Map<UniqueFieldIndex<T>, ConcurrentHashMap<Object, T>> indexMapUnique = null;
+
     if (uniqueIndexLength > 0) {
       indexMapUnique = new HashMap<>(uniqueIndexLength);
     }
@@ -191,14 +191,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
       indexMapNonUnique = new HashMap<>(nonUniqueIndexLength);
     }
 
-    if (field instanceof UniqueFieldIndex) {
-      indexMapUnique.put((UniqueFieldIndex) field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
-    } else {
-      indexMapNonUnique.put((NonUniqueFieldIndex<T>) field,
-          new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
-    }
-
-    for (FieldIndex<T> fieldIndex : otherFields) {
+    for (FieldIndex<T> fieldIndex : fields) {
       if (fieldIndex instanceof UniqueFieldIndex) {
         indexMapUnique.put(
             (UniqueFieldIndex<T>) fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
@@ -208,6 +201,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
             new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
       }
     }
+
     // read only, so it is thread safe and allows concurrent access.
     if (uniqueIndexLength > 0) {
       mIndexMapUnique = Collections.unmodifiableMap(indexMapUnique);
