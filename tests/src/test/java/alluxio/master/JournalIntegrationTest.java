@@ -538,7 +538,7 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  @Ignore("TODO(chaomin): try to fix this because setOwner/setGroup now is propogated to UFS.")
+  @Ignore("TODO(chaomin): fix this because setOwner/setGroup now is propagated to UFS.")
   @LocalAlluxioClusterResource.Config(confParams = {
       Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
       Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",

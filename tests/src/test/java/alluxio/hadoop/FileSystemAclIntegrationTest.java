@@ -34,7 +34,7 @@ import java.net.URI;
  * Integration tests for {@link FileSystem#setOwner(Path, String, String)} and
  * {@link FileSystem#setPermission(Path, org.apache.hadoop.fs.permission.FsPermission)}.
  */
-@Ignore("TODO(chaomin): try to fix this because setOwner/setGroup now is propogated to UFS.")
+@Ignore("TODO(chaomin): fix this because setOwner/setGroup now is propagated to UFS.")
 public final class FileSystemAclIntegrationTest {
 
   private static final int BLOCK_SIZE = 1024;
