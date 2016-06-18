@@ -110,13 +110,12 @@ public class IndexedSet<T> extends AbstractSet<T> {
   // TODO(gpang): remove this set, and just use the indexes.
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
   /**
-   * Map from {@link FieldIndex} to the index. An index is a map from index value to one or a
-   * set of objects with that index value. A Unique index is an index where each index value
-   * only maps to one object. A NonUnique index is an index where a index value can map to one or
-   * more objects.
+   * Map from {@link FieldIndex} to the index. An index is a map from index value to one or a set of
+   * objects with that index value. A unique index is an index where each index value only maps to
+   * one object. A non-unique index is an index where an index value can map to one or more objects.
    */
-  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> mIndexMapUnique;
-  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>>
+  private final Map<UniqueFieldIndex<T>, ConcurrentHashMap<Object, T>> mIndexMapUnique;
+  private final Map<NonUniqueFieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>>
       mIndexMapNonUnique;
 
   /**
@@ -138,18 +137,22 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * An interface extending{@link FieldIndex}, represents a unique index.
+   * An interface extending {@link FieldIndex}, represents a unique index. A Unique index is an
+   * index where each index value only maps to one object.
    *
    * @param <T> type of objects in this {@link IndexedSet}
    */
-  public interface UniqueFieldIndex<T> extends FieldIndex<T> {}
+  public interface UniqueFieldIndex<T> extends FieldIndex<T> {
+  }
 
   /**
-   * An interface extending{@link FieldIndex}, represents a nonunique index.
+   * An interface extending {@link FieldIndex}, represents a non-unique index. A non-unique index is
+   * an index where a index value can map to one or more objects.
    *
    * @param <T> type of objects in this {@link IndexedSet}
    */
-  public interface NonUniqueFieldIndex<T> extends FieldIndex<T> {}
+  public interface NonUniqueFieldIndex<T> extends FieldIndex<T> {
+  }
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
@@ -177,9 +180,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
       }
     }
 
-    // initiation
-    Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMapNonUnique = null;
-    Map<FieldIndex<T>, ConcurrentHashMap<Object, T>> indexMapUnique = null;
+    // initialization
+    Map<NonUniqueFieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMapNonUnique =
+        null;
+    Map<UniqueFieldIndex<T>, ConcurrentHashMap<Object, T>> indexMapUnique = null;
     if (uniqueIndexLength > 0) {
       indexMapUnique = new HashMap<>(uniqueIndexLength);
     }
@@ -188,17 +192,19 @@ public class IndexedSet<T> extends AbstractSet<T> {
     }
 
     if (field instanceof UniqueFieldIndex) {
-      indexMapUnique.put(field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
+      indexMapUnique.put((UniqueFieldIndex) field, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
     } else {
-      indexMapNonUnique.put(field,
+      indexMapNonUnique.put((NonUniqueFieldIndex<T>) field,
           new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
     }
 
     for (FieldIndex<T> fieldIndex : otherFields) {
       if (fieldIndex instanceof UniqueFieldIndex) {
-        indexMapUnique.put(fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
+        indexMapUnique.put(
+            (UniqueFieldIndex<T>) fieldIndex, new ConcurrentHashMap<Object, T>(8, 0.95f, 8));
       } else {
-        indexMapNonUnique.put(fieldIndex,
+        indexMapNonUnique.put(
+            (NonUniqueFieldIndex<T>) fieldIndex,
             new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
       }
     }
@@ -249,23 +255,25 @@ public class IndexedSet<T> extends AbstractSet<T> {
       }
 
       if (mIndexMapUnique != null) {
-        for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUnique
-            .entrySet()) {
+        for (Map.Entry<UniqueFieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo
+            : mIndexMapUnique.entrySet()) {
           // For this field, retrieve the value to index
           Object fieldValue = fieldInfo.getKey().getFieldValue(object);
-          // Get the index for this field
+          // Get the unique index for this field
           ConcurrentHashMap<Object, T> index = fieldInfo.getValue();
           // Update the indexes.
-          index.putIfAbsent(fieldValue, object);
+          if (index.putIfAbsent(fieldValue, object) != null) {
+            throw new IllegalStateException("Adding more than one value to a unique index.");
+          }
         }
       }
 
       if (mIndexMapNonUnique != null) {
-        for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo
-            : mIndexMapNonUnique.entrySet()) {
+        for (Map.Entry<NonUniqueFieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>>
+                 fieldInfo : mIndexMapNonUnique.entrySet()) {
           // For this field, retrieve the value to index
           Object fieldValue = fieldInfo.getKey().getFieldValue(object);
-          // Get the index for this field
+          // Get the non-unique index for this field
           ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
           ConcurrentHashSet<T> objSet = index.get(fieldValue);
           // Update the indexes.
@@ -341,23 +349,31 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * Whether there is an object with the specified field value in the set.
+   * Whether there is an object with the specified unique index field value in the set.
    *
    * @param index the field index
    * @param value the field value
    * @return true if there is one such object, otherwise false
    */
-  public boolean contains(FieldIndex<T> index, Object value) {
-    if (index instanceof UniqueFieldIndex) {
-      T res = getByFieldInternalUnique(index, value);
-      return res != null;
-    }
+  public boolean contains(UniqueFieldIndex<T> index, Object value) {
+    T res = getByFieldInternalUnique(index, value);
+    return res != null;
+  }
+
+  /**
+   * Whether there is an object with the specified non-unique field value in the set.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return true if there is one such object, otherwise false
+   */
+  public boolean contains(NonUniqueFieldIndex<T> index, Object value) {
     ConcurrentHashSet<T> set = getByFieldInternalNonUnique(index, value);
     return set != null && !set.isEmpty();
   }
 
   /**
-   * Gets a subset of objects with the specified field value. If there is no object with the
+   * Gets a subset of objects with the specified unique field value. If there is no object with the
    * specified field value, a newly created empty set is returned. Otherwise, the returned set is
    * backed up by an internal set, so changes in internal set will be reflected in returned set.
    *
@@ -365,34 +381,49 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  // TODO(gpang): Remove this method, if it is not being used.
-  public Set<T> getByField(FieldIndex<T> index, Object value) {
-    Set<T> set;
-    if (index instanceof UniqueFieldIndex) {
-      set = new HashSet<T>();
-      T res = getByFieldInternalUnique(index, value);
-      if (res != null) {
-        set.add(res);
-      }
-    } else {
-      set = getByFieldInternalNonUnique(index, value);
+  public Set<T> getByField(UniqueFieldIndex<T> index, Object value) {
+    Set<T> set = new HashSet<T>();
+    T res = getByFieldInternalUnique(index, value);
+    if (res != null) {
+      set.add(res);
     }
     return set == null ? new HashSet<T>() : Collections.unmodifiableSet(set);
   }
 
   /**
-   * Gets the first object from the set of objects with the specified field value.
+   * Gets a subset of objects with the specified non-unique field value. If there is no object with
+   * the specified field value, a newly created empty set is returned. Otherwise, the returned set
+   * is backed up by an internal set, so changes in internal set will be reflected in returned set.
+   *
+   * @param index the field index
+   * @param value the field value to be satisfied
+   * @return the set of objects or an empty set if no such object exists
+   */
+  public Set<T> getByField(NonUniqueFieldIndex<T> index, Object value) {
+    Set<T> set = getByFieldInternalNonUnique(index, value);
+    return set == null ? new HashSet<T>() : Collections.unmodifiableSet(set);
+  }
+
+  /**
+   * Gets the object from the set of objects with the specified unique field value.
    *
    * @param index the field index
    * @param value the field value
    * @return the object or null if there is no such object
    */
-  public T getFirstByField(FieldIndex<T> index, Object value) {
-    if (index instanceof UniqueFieldIndex) {
-      T res = getByFieldInternalUnique(index, value);
-      return res;
-    }
+  public T getFirstByField(UniqueFieldIndex<T> index, Object value) {
+    T res = getByFieldInternalUnique(index, value);
+    return res;
+  }
 
+  /**
+   * Gets the object from the set of objects with the specified non-unique field value.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return the object or null if there is no such object
+   */
+  public T getFirstByField(NonUniqueFieldIndex<T> index, Object value) {
     Set<T> all = getByFieldInternalNonUnique(index, value);
     try {
       return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
@@ -433,8 +464,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   private void removeFromIndices(T object) {
     if (mIndexMapUnique != null) {
-      for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo : mIndexMapUnique
-          .entrySet()) {
+      for (Map.Entry<UniqueFieldIndex<T>, ConcurrentHashMap<Object, T>> fieldInfo :
+          mIndexMapUnique.entrySet()) {
         Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         ConcurrentHashMap<Object, T> index = fieldInfo.getValue();
 
@@ -443,8 +474,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
     }
 
     if (mIndexMapNonUnique != null) {
-      for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo
-          : mIndexMapNonUnique.entrySet()) {
+      for (Map.Entry<NonUniqueFieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>>
+               fieldInfo : mIndexMapNonUnique.entrySet()) {
         Object fieldValue = fieldInfo.getKey().getFieldValue(object);
         ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
         ConcurrentHashSet<T> objSet = index.get(fieldValue);
@@ -453,35 +484,46 @@ public class IndexedSet<T> extends AbstractSet<T> {
         }
       }
     }
-
   }
 
   /**
-   * Removes the subset of objects with the specified field value.
+   * Removes the object with the specified unique index field value.
    *
    * @param index the field index
    * @param value the field value
    * @return the number of objects removed
    */
-  public int removeByField(FieldIndex<T> index, Object value) {
+  public int removeByField(UniqueFieldIndex<T> index, Object value) {
     int removed = 0;
-    if (index instanceof UniqueFieldIndex) {
-      T toRemove = getByFieldInternalUnique(index, value);
-      if (toRemove == null) {
-        return 0;
-      }
-      if (remove(toRemove)) {
+    T toRemove = getByFieldInternalUnique(index, value);
+
+    if (toRemove == null) {
+      return 0;
+    }
+    if (remove(toRemove)) {
+      removed++;
+    }
+
+    return removed;
+  }
+
+  /**
+   * Removes the subset of objects with the specified non-unique index field value.
+   *
+   * @param index the field index
+   * @param value the field value
+   * @return the number of objects removed
+   */
+  public int removeByField(NonUniqueFieldIndex<T> index, Object value) {
+    int removed = 0;
+    ConcurrentHashSet<T> toRemove = getByFieldInternalNonUnique(index, value);
+
+    if (toRemove == null) {
+      return 0;
+    }
+    for (T o : toRemove) {
+      if (remove(o)) {
         removed++;
-      }
-    } else {
-      ConcurrentHashSet<T> toRemove = getByFieldInternalNonUnique(index, value);
-      if (toRemove == null) {
-        return 0;
-      }
-      for (T o : toRemove) {
-        if (remove(o)) {
-          removed++;
-        }
       }
     }
 
@@ -503,18 +545,15 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param value the field value
    * @return the set of objects with the specified field value
    */
-  private T getByFieldInternalUnique(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(index instanceof UniqueFieldIndex,
-        "Using getByFieldInternalUnique for repeatable index");
+  private T getByFieldInternalUnique(UniqueFieldIndex<T> index, Object value) {
     if (mIndexMapUnique == null) {
       return null;
     }
     return mIndexMapUnique.get(index).get(value);
   }
 
-  private ConcurrentHashSet<T> getByFieldInternalNonUnique(FieldIndex<T> index, Object value) {
-    Preconditions.checkState(index instanceof NonUniqueFieldIndex,
-        "Using getByFieldInternalNonUnique for unique index");
+  private ConcurrentHashSet<T> getByFieldInternalNonUnique(NonUniqueFieldIndex<T> index,
+      Object value) {
     if (mIndexMapNonUnique == null) {
       return null;
     }
