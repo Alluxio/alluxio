@@ -18,12 +18,12 @@ Alluxio runtime respects two sources of configuration settings:
 1. [Environment variables](#Environment-variables). This is an easy and fast way to set the basic properties
 to manage an Alluxio deloyment, and run Alluxio shell command lines.
 Note that, configuration set through environment variables may not
-be realized by applications (e.g., Spark or MapReduce jobs) that interact Alluxio service.
+be realized by applications (e.g., Spark or MapReduce jobs) that interact with Alluxio service.
 2. [Property files](#configuration-properties). This is a general way to customize any
-[supported Alluxio configure properties](#appendix), respected by Alluxio daemons, shells as well as clients.
+[supported Alluxio configure properties](#appendix), respected by Alluxio master, worker, client (e.g., Spark/MapReduce jobs or Alluxio shell commands).
 
 The priority to load property values, from the highest to the lowest, is
-environment variables, property files and the default value.
+environment variables, property files and the defaults.
 
 ## Environment variables
 
@@ -52,7 +52,11 @@ will be remove in version 2.0.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code></td>
-  <td>Java VM options for both Master and Worker configuration.</td>
+  <td>Java VM options for both Master, Worker and Alluxio Shell configuration.
+  Note that, by default <code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code> is included in both
+<code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code>,
+<code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code> and
+<code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code>.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code></td>
@@ -60,14 +64,11 @@ will be remove in version 2.0.</td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code></td>
-  <td>additional Java VM options for Worker configuration. Note that, by
-default <code class="highlighter-rouge">ALLUXIO_JAVA_OPTS</code> is included in both
-<code class="highlighter-rouge">ALLUXIO_MASTER_JAVA_OPTS</code> and
-<code class="highlighter-rouge">ALLUXIO_WORKER_JAVA_OPTS</code>.</td>
+  <td>additional Java VM options for Worker configuration. </td>
 </tr>
 <tr>
   <td><code class="highlighter-rouge">ALLUXIO_USER_JAVA_OPTS</code></td>
-  <td>additional Java VM options for client configuration.</td>
+  <td>additional Java VM options for Alluxio shell configuration.</td>
 </tr>
 </table>
 
