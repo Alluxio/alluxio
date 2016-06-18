@@ -418,7 +418,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public short getPermission(String path) throws IOException {
-    return (short) 0777;
+    return Constants.DEFAULT_FS_FULL_PERMISSION;
   }
 
   /**
