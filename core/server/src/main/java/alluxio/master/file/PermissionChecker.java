@@ -71,12 +71,12 @@ public final class PermissionChecker {
    * its parent and checks permission on it. This check will pass if the path is invalid, or path
    * has no parent (e.g., root).
    *
-   * @param action requested {@link Mode.Bits} by user
+   * @param bits bits that capture the action {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkParentPermission(Mode.Bits action, LockedInodePath inodePath)
+  public void checkParentPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -99,19 +99,19 @@ public final class PermissionChecker {
     if (inodePath.fullPathExists()) {
       inodeList.remove(inodeList.size() - 1);
     }
-    checkInodeList(user, groups, action, inodePath.getUri().getPath(), inodeList, false);
+    checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
   }
 
   /**
    * Checks whether a user has permission to perform a specific action on a path. This check will
    * pass if the path is invalid.
    *
-   * @param action requested {@link Mode.Bits} by user
+   * @param bits bits that capture the action {@link Mode.Bits} by user
    * @param inodePath the path to check permission on
    * @throws AccessControlException if permission checking fails
    * @throws InvalidPathException if the path is invalid
    */
-  public void checkPermission(Mode.Bits action, LockedInodePath inodePath)
+  public void checkPermission(Mode.Bits bits, LockedInodePath inodePath)
       throws AccessControlException, InvalidPathException {
     if (!mPermissionCheckEnabled) {
       return;
@@ -124,7 +124,7 @@ public final class PermissionChecker {
     String user = getClientUser();
     List<String> groups = getGroups(user);
 
-    checkInodeList(user, groups, action, inodePath.getUri().getPath(), inodeList, false);
+    checkInodeList(user, groups, bits, inodePath.getUri().getPath(), inodeList, false);
   }
 
   /**
@@ -224,19 +224,19 @@ public final class PermissionChecker {
 
   /**
    * This method provides basic permission checking logic on a list of inodes. The input includes
-   * User and its Groups, requested Permission and inode list (by traversing the Path).
-   * Then User, Group, and Action will be evaluated on each of the inodes. It will return if check
-   * passed, and throw exception if check failed.
+   * user and its group, requested action and inode list (by traversing the path). Then user,
+   * group, and the requested action will be evaluated on each of the inodes. It will return if
+   * check passed, and throw exception if check failed.
    *
    * @param user who requests access permission
    * @param groups in which user belongs to
-   * @param action requested {@link Mode.Bits} by user
+   * @param bits bits that capture the action {@link Mode.Bits} by user
    * @param path the path to check permission on
    * @param inodeList file info list of all the inodes retrieved by traversing the path
    * @param checkIsOwner indicates whether to check the user is the owner of the path
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInodeList(String user, List<String> groups, Mode.Bits action,
+  private void checkInodeList(String user, List<String> groups, Mode.Bits bits,
       String path, List<Inode<?>> inodeList, boolean checkIsOwner) throws AccessControlException {
     int size = inodeList.size();
     Preconditions
@@ -260,7 +260,7 @@ public final class PermissionChecker {
       throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
           .getMessage("user=" + user + " is not the owner of path=" + path));
     }
-    checkInode(user, groups, inode, action, path);
+    checkInode(user, groups, inode, bits, path);
   }
 
   /**
@@ -269,11 +269,11 @@ public final class PermissionChecker {
    * @param user who requests access permission
    * @param groups in which user belongs to
    * @param inode whose attributes used for permission check logic
-   * @param action requested {@link Mode.Bits} by user
+   * @param bits requested {@link Mode.Bits} by user
    * @param path the path to check permission on
    * @throws AccessControlException if permission checking fails
    */
-  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits action,
+  private void checkInode(String user, List<String> groups, Inode inode, Mode.Bits bits,
       String path) throws AccessControlException {
     if (inode == null) {
       return;
@@ -281,33 +281,31 @@ public final class PermissionChecker {
 
     short permission = inode.getMode();
 
-    if (user.equals(inode.getUserName()) && Mode.extractUserBits(permission).imply(action)) {
+    if (user.equals(inode.getUserName()) && Mode.extractUserBits(permission).imply(bits)) {
       return;
     }
 
-    if (groups.contains(inode.getGroupName()) && Mode.extractGroupBits(permission).imply(action)) {
+    if (groups.contains(inode.getGroupName()) && Mode.extractGroupBits(permission).imply(bits)) {
       return;
     }
 
-    if (Mode.extractOtherBits(permission).imply(action)) {
+    if (Mode.extractOtherBits(permission).imply(bits)) {
       return;
     }
 
     throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
-        .getMessage(toExceptionMessage(user, action, path, inode)));
+        .getMessage(toExceptionMessage(user, bits, path, inode)));
   }
 
   private boolean isPrivilegedUser(String user, List<String> groups) {
     return user.equals(mInodeTree.getRootUserName()) || groups.contains(mFileSystemSuperGroup);
   }
 
-  private static String toExceptionMessage(String user, Mode.Bits action, String path,
-      Inode inode) {
-    // message format: who, action, resource: failed at where
+  private static String toExceptionMessage(String user, Mode.Bits bits, String path, Inode inode) {
     StringBuilder stringBuilder =
-        new StringBuilder().append("user=").append(user).append(", ").append("access=")
-            .append(action).append(", ").append("path=").append(path).append(": ")
-            .append("failed at ").append(inode.getName().equals("") ? "/" : inode.getName());
+        new StringBuilder().append("user=").append(user).append(", ").append("access=").append(bits)
+            .append(", ").append("path=").append(path).append(": ").append("failed at ")
+            .append(inode.getName().equals("") ? "/" : inode.getName());
     return stringBuilder.toString();
   }
 }
