@@ -470,7 +470,7 @@ public final class Constants {
   public static final int DEFAULT_FS_UMASK = 0022;
   public static final short DEFAULT_FS_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
-  public static final short INVALID_PERMISSION = -1;
+  public static final short INVALID_MODE = -1;
 
   private Constants() {} // prevent instantiation
 }

@@ -110,7 +110,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     for (URIStatus status : statuses) {
       System.out.format(
           formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
-              FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
+              FormatUtils.formatMode((short) status.getPermission(), status.isFolder()),
               status.getUserName(), status.getGroupName(), status.getLength(),
               status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {

@@ -45,7 +45,7 @@ public class LsCommandTest extends AbstractAlluxioShellTest {
       String testUser, String testGroup, int permission, boolean isDir)
       throws IOException, AlluxioException {
     return String
-        .format(Constants.LS_FORMAT, FormatUtils.formatPermission((short) permission, isDir),
+        .format(Constants.LS_FORMAT, FormatUtils.formatMode((short) permission, isDir),
             testUser, testGroup, FormatUtils.getSizeFromBytes(size),
             CommandUtils.convertMsToDate(createTime), fileType, path);
   }

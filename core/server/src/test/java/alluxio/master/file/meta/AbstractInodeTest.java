@@ -26,7 +26,7 @@ import org.junit.rules.ExpectedException;
 public abstract class AbstractInodeTest {
   public static final String TEST_USER_NAME = "user1";
   public static final String TEST_GROUP_NAME = "group1";
-  public static final Permission TEST_PERMISSION_STATUS =
+  public static final Permission TEST_PERMISSION =
       new Permission(TEST_USER_NAME, TEST_GROUP_NAME, (short) 0755);
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
@@ -37,12 +37,12 @@ public abstract class AbstractInodeTest {
 
   protected static InodeDirectory createInodeDirectory() {
     return InodeDirectory.create(1, 0, "test1",
-        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS));
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION));
   }
 
   protected InodeFile createInodeFile(long id) {
     return InodeFile.create(id, 1, "testFile" + id,
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-            .setPermissionStatus(TEST_PERMISSION_STATUS));
+            .setPermission(TEST_PERMISSION));
   }
 }

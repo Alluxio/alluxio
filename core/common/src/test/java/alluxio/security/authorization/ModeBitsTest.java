@@ -74,12 +74,9 @@ public final class ModeBitsTest {
    */
   @Test
   public void orOperationTest() {
-    Assert.assertEquals(Mode.Bits.WRITE_EXECUTE,
-        Mode.Bits.WRITE.or(Mode.Bits.EXECUTE));
-    Assert.assertEquals(Mode.Bits.READ_EXECUTE,
-        Mode.Bits.READ.or(Mode.Bits.EXECUTE));
-    Assert.assertEquals(Mode.Bits.READ_WRITE,
-        Mode.Bits.WRITE.or(Mode.Bits.READ));
+    Assert.assertEquals(Mode.Bits.WRITE_EXECUTE, Mode.Bits.WRITE.or(Mode.Bits.EXECUTE));
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, Mode.Bits.READ.or(Mode.Bits.EXECUTE));
+    Assert.assertEquals(Mode.Bits.READ_WRITE, Mode.Bits.WRITE.or(Mode.Bits.READ));
   }
 
   /**
@@ -88,9 +85,7 @@ public final class ModeBitsTest {
   @Test
   public void andOperationTest() {
     Assert.assertEquals(Mode.Bits.NONE, Mode.Bits.READ.and(Mode.Bits.WRITE));
-    Assert.assertEquals(Mode.Bits.READ,
-        Mode.Bits.READ_EXECUTE.and(Mode.Bits.READ));
-    Assert.assertEquals(Mode.Bits.WRITE,
-        Mode.Bits.READ_WRITE.and(Mode.Bits.WRITE));
+    Assert.assertEquals(Mode.Bits.READ, Mode.Bits.READ_EXECUTE.and(Mode.Bits.READ));
+    Assert.assertEquals(Mode.Bits.WRITE, Mode.Bits.READ_WRITE.and(Mode.Bits.WRITE));
   }
 }

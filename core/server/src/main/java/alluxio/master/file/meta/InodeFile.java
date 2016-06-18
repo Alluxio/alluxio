@@ -93,7 +93,7 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setTtl(mTtl);
     ret.setUserName(getUserName());
     ret.setGroupName(getGroupName());
-    ret.setPermission(getPermission());
+    ret.setPermission(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     return ret;
@@ -275,8 +275,14 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    Permission permission = new Permission(entry.getUserName(),
-        entry.getGroupName(), (short) entry.getPermission());
+    Permission permission;
+    if (entry.hasMode()) {
+      permission =
+          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getMode());
+    } else {
+      permission =
+          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getPermission());
+    }
     return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
@@ -289,7 +295,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setTtl(entry.getTtl())
-        .setPermissionStatus(permission);
+        .setPermission(permission);
   }
 
   /**
@@ -303,7 +309,7 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long id, long parentId, String name,
       CreateFileOptions fileOptions) {
-    Permission permission = new Permission(fileOptions.getPermissionStatus())
+    Permission permission = new Permission(fileOptions.getPermission())
         .applyFileUMask(MasterContext.getConf());
     return new InodeFile(id)
         .setParentId(parentId)
@@ -312,7 +318,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtl(fileOptions.getTtl())
         .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
             PersistenceState.NOT_PERSISTED)
-        .setPermissionStatus(permission);
+        .setPermission(permission);
   }
 
   @Override
@@ -333,7 +339,8 @@ public final class InodeFile extends Inode<InodeFile> {
         .setTtl(mTtl)
         .setUserName(getUserName())
         .setGroupName(getGroupName())
-        .setPermission(getPermission())
+        .setPermission(getMode())
+        .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }

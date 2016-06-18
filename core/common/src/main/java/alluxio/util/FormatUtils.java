@@ -185,21 +185,21 @@ public final class FormatUtils {
   }
 
   /**
-   * Formats file permission to human-readable version.
+   * Formats digital representation of a model as a human-readable string.
    *
-   * @param permission file permission
-   * @param isDirectory if the path is a directory
-   * @return human-readable version of permission
+   * @param mode file mode
+   * @param directory if the mode corresponds to a directory
+   * @return human-readable version of the given mode
    */
-  public static String formatPermission(short permission, boolean isDirectory) {
-    StringBuffer permissionStr = new StringBuffer();
-    if (isDirectory) {
-      permissionStr.append("d");
+  public static String formatMode(short mode, boolean directory) {
+    StringBuffer str = new StringBuffer();
+    if (directory) {
+      str.append("d");
     } else {
-      permissionStr.append("-");
+      str.append("-");
     }
-    permissionStr.append(new Mode(permission).toString());
-    return permissionStr.toString();
+    str.append(new Mode(mode).toString());
+    return str.toString();
   }
 
   private FormatUtils() {} // prevent instantiation

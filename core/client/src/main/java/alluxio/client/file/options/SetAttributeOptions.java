@@ -49,7 +49,7 @@ public final class SetAttributeOptions {
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mPermission = Constants.INVALID_PERMISSION;
+    mPermission = Constants.INVALID_MODE;
     mRecursive = false;
   }
 
@@ -135,7 +135,7 @@ public final class SetAttributeOptions {
    * @return true if the permission value is set, otherwise false
    */
   public boolean hasPermission() {
-    return mPermission != Constants.INVALID_PERMISSION;
+    return mPermission != Constants.INVALID_MODE;
   }
 
   /**
@@ -243,7 +243,7 @@ public final class SetAttributeOptions {
     if (mGroup != null) {
       options.setGroup(mGroup);
     }
-    if (mPermission != Constants.INVALID_PERMISSION) {
+    if (mPermission != Constants.INVALID_MODE) {
       options.setPermission(mPermission);
     }
     options.setRecursive(mRecursive);

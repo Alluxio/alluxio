@@ -67,13 +67,13 @@ public class CreateDirectoryOptionsTest {
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
-        .setPermissionStatus(permission)
+        .setPermission(permission)
         .setRecursive(recursive);
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(permission, options.getPermissionStatus());
+    Assert.assertEquals(permission, options.getPermission());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
   }
