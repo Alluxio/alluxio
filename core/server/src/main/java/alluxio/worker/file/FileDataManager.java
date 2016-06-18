@@ -19,6 +19,7 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -227,9 +228,10 @@ public final class FileDataManager {
 
     String dstPath = prepareUfsFilePath(fileId);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    PermissionStatus ps = new PermissionStatus(fileInfo.getUserName(), fileInfo.getGroupName(),
+        (short) fileInfo.getPermission());
     OutputStream outputStream = mUfs.create(dstPath,
-        new PermissionStatus(fileInfo.getUserName(), fileInfo.getGroupName(),
-            (short) fileInfo.getPermission()));
+        UnderFileSystemCreateOptions.defaults().setPermissionStatus(ps));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();

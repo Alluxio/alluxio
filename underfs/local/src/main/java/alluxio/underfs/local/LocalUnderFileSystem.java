@@ -17,6 +17,8 @@ import alluxio.Constants;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -67,36 +69,20 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, PermissionStatus.defaults());
+    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
   }
 
   @Override
-  public OutputStream create(String path, PermissionStatus ps) throws IOException {
+  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
     path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, ps.getPermission().toShort());
+      setPermission(path, options.getPermissionStatus().getPermission().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
     }
     return stream;
-  }
-
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    path = stripPath(path);
-    return create(path, (short) 1, blockSizeByte);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    path = stripPath(path);
-    if (replication != 1) {
-      throw new IOException("UnderFileSystemSingleLocal does not provide more than one"
-          + " replication factor");
-    }
-    return create(path);
   }
 
   @Override
@@ -204,15 +190,16 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, createParent,
-        PermissionStatus.defaults().applyDirectoryUMask(mConfiguration));
+    return mkdirs(path,
+        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
   }
 
   @Override
-  public boolean mkdirs(String path, boolean createParent, PermissionStatus ps) throws IOException {
+  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
-    if (!createParent) {
+    PermissionStatus ps = options.getPermissionStatus();
+    if (!options.getCreateParent()) {
       if (file.mkdir()) {
         setPermission(file.getPath(), ps.getPermission().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());

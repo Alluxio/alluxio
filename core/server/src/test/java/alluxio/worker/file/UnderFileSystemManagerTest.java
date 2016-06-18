@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -20,6 +21,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -77,8 +79,8 @@ public final class UnderFileSystemManagerTest {
     mMockInputStream = Mockito.mock(InputStream.class);
     mUri = new AlluxioURI(PathUtils.uniqPath());
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
-    Mockito.when(mMockUfs.create(Mockito.anyString(), Mockito.any(PermissionStatus.class)))
-        .thenReturn(mMockOutputStream);
+    Mockito.when(mMockUfs.create(Mockito.anyString(),
+        Mockito.any(UnderFileSystemCreateOptions.class))).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
@@ -101,7 +103,7 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
-        Mockito.any(PermissionStatus.class));
+        Mockito.any(UnderFileSystemCreateOptions.class));
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
         Mockito.anyString());
   }
@@ -123,8 +125,9 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void completeUfsFileTest() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri,
-        new PermissionStatus("", "", (short) 0777));
-    mManager.completeFile(SESSION_ID, id, new PermissionStatus("", "", (short) 0777));
+        new PermissionStatus("", "", Constants.DEFAULT_FS_FULL_PERMISSION));
+    mManager.completeFile(SESSION_ID, id,
+        new PermissionStatus("", "", Constants.DEFAULT_FS_FULL_PERMISSION));
     Mockito.verify(mMockUfs).rename(Mockito.contains(mUri.toString()), Mockito.eq(mUri.toString()));
   }
 

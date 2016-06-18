@@ -30,6 +30,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -119,7 +120,9 @@ public class FileOutStream extends AbstractOutStream {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        mUnderStorageOutputStream = ufs.create(tmpPath, options.getPermissionStatus());
+        UnderFileSystemCreateOptions ufsCreateOptions = UnderFileSystemCreateOptions.defaults()
+            .setBlockSizeByte(mBlockSize).setPermissionStatus(options.getPermissionStatus());
+        mUnderStorageOutputStream = ufs.create(tmpPath, ufsCreateOptions);
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;

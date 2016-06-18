@@ -11,7 +11,6 @@
 
 package alluxio.client.file.options;
 
-import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
@@ -21,6 +20,7 @@ import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 
 /**
  * Tests for the {@link CompleteUfsFileOptions} class.
@@ -30,7 +30,7 @@ public class CompleteUfsFileOptionsTest {
    * Tests that building an {@link CompleteUfsFileOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaultsTest() throws IOException {
     ClientContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
@@ -46,10 +46,5 @@ public class CompleteUfsFileOptionsTest {
     Assert.assertEquals("foo", options.getGroup());
     Assert.assertEquals(expectedPs.getPermission().toShort(), options.getPermission());
     ClientTestUtils.resetClientContext();
-  }
-
-  @Test
-  public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CompleteUfsFileOptions.class);
   }
 }

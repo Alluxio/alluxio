@@ -16,6 +16,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.PermissionStatus;
+import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -400,36 +402,15 @@ public abstract class UnderFileSystem {
   public abstract OutputStream create(String path) throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name and permission status.
+   * Creates a file in the under file system with the specified
+   * {@link UnderFileSystemCreateOptions}.
    *
    * @param path The file name
-   * @param ps the permission status to set for the file
+   * @param options the options for create, including block size and permissionStatus
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, PermissionStatus ps) throws IOException;
-
-  /**
-   * Creates a file in the under file system with the indicated name and block size.
-   *
-   * @param path The file name
-   * @param blockSizeByte The block size in bytes
-   * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
-
-  /**
-   * Creates a file in the under file system with the indicated name, replication number and block
-   * size.
-   *
-   * @param path The file name
-   * @param replication The number of replications for each block
-   * @param blockSizeByte The block size in bytes
-   * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract OutputStream create(String path, short replication, int blockSizeByte)
+  public abstract OutputStream create(String path, UnderFileSystemCreateOptions options)
       throws IOException;
 
   /**
@@ -608,27 +589,22 @@ public abstract class UnderFileSystem {
    *
    * @param path the folder to create
    * @param createParent If true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories.
-   * @return {@code true} if and only if the directory was created; {@code false}
-   *         otherwise
+   *        directories. Otherwise, the method does not create nonexistent parent directories
+   * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
 
   /**
-   * Creates the directory named by this abstract pathname, with specified permission status. If
-   * the folder already exists, the method
-   * returns false.
+   * Creates the directory named by this abstract pathname, with specified
+   * {@link UnderFileSystemMkdirsOptions}. If the folder already exists, the method returns false.
    *
    * @param path the folder to create
-   * @param createParent If true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories.
-   * @param ps the permission status to set for the directory
-   * @return {@code true} if and only if the directory was created; {@code false}
-   *         otherwise
+   * @param options the options for mkdirs, including createParent and permissionStatus
+   * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean mkdirs(String path, boolean createParent, PermissionStatus ps)
+  public abstract boolean mkdirs(String path, UnderFileSystemMkdirsOptions options)
     throws IOException;
 
   /**
