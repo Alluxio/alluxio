@@ -11,6 +11,8 @@
 
 package alluxio.network.protocol.databuffer;
 
+import alluxio.util.io.BufferUtils;
+
 import com.google.common.base.Preconditions;
 import io.netty.buffer.Unpooled;
 
@@ -52,6 +54,8 @@ public final class DataByteBuffer implements DataBuffer {
 
   @Override
   public void release() {
-    // Nothing we need to release explicitly, let GC take care of all objects.
+    if (mBuffer.isDirect()) {
+      BufferUtils.cleanDirectBuffer(mBuffer);
+    }
   }
 }
