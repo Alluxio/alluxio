@@ -459,7 +459,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     try {
       statuses = sFileSystem.listStatus(uri);
     } catch (AlluxioException e) {
-      throw new IOException(e);
+      if (e instanceof FileDoesNotExistException) {
+        throw new FileNotFoundException(HadoopUtils.getPathWithoutScheme(path));
+      } else {
+        throw new IOException(e);
+      }
     }
 
     FileStatus[] ret = new FileStatus[statuses.size()];
