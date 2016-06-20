@@ -31,38 +31,30 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
   /** The ufs user this file should be owned by. */
-  private final String mUser;
+  private String mUser;
   /** The ufs group this file should be owned by. */
-  private final String mGroup;
+  private String mGroup;
   /** The ufs permission in short format, e.g. 0777. */
-  private final short mPermission;
+  private short mPermission;
 
   /**
    * @return the default {@link CompleteUfsFileOptions}
    * @throws IOException if failed to set user from login module
    */
   public static CompleteUfsFileOptions defaults() throws IOException {
+    return new CompleteUfsFileOptions();
+  }
+
+  private CompleteUfsFileOptions() throws IOException {
     PermissionStatus ps = PermissionStatus.defaults();
     // Set user and group from user login module, apply default file UMask.
     ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
 
-    return new CompleteUfsFileOptions(ps.getUserName(), ps.getGroupName(),
-        ps.getPermission().toShort());
-  }
-
-  /**
-   * Constructs a {@link CompleteUfsFileOptions} with user, group and permission.
-   *
-   * @param user the user name
-   * @param group the group name
-   * @param permission the permission in short format, e.g. 0777
-   */
-  private CompleteUfsFileOptions(String user, String group, short permission) {
-    mUser = user;
-    mGroup = group;
-    mPermission = permission;
+    mUser = ps.getUserName();
+    mGroup = ps.getGroupName();
+    mPermission = ps.getPermission().toShort();
   }
 
   /**
@@ -107,9 +99,45 @@ public final class CompleteUfsFileOptions {
     return mPermission != Constants.INVALID_PERMISSION;
   }
 
+  /**
+   * @param user the user to be set
+   * @return the updated options object
+   */
+  public CompleteUfsFileOptions setUser(String user) {
+    mUser = user;
+    return this;
+  }
+
+  /**
+   * @param group the group to be set
+   * @return the updated options object
+   */
+  public CompleteUfsFileOptions setGroup(String group) {
+    mGroup = group;
+    return this;
+  }
+
+  /**
+   * @param permission the permission to be set
+   * @return the updated options object
+   */
+  public CompleteUfsFileOptions setPermission(short permission) {
+    mPermission = permission;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof CompleteUfsFileOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CompleteUfsFileOptions)) {
+      return false;
+    }
+    CompleteUfsFileOptions that = (CompleteUfsFileOptions) o;
+    return Objects.equal(mUser, that.mUser)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mPermission, that.mPermission);
   }
 
   @Override

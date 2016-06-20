@@ -11,11 +11,13 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
+import alluxio.thrift.CreateUfsFileTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -46,5 +48,48 @@ public class CreateUfsFileOptionsTest {
     Assert.assertEquals("foo", options.getGroup());
     Assert.assertEquals(expectedPs.getPermission().toShort(), options.getPermission());
     ClientTestUtils.resetClientContext();
+  }
+
+  /**
+   * Tests getting and setting fields.
+   */
+  @Test
+  public void fieldsTest() throws IOException {
+    CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
+    String user = "test-user";
+    String group = "test-group";
+    short permission = Constants.DEFAULT_FS_FULL_PERMISSION;
+    options.setUser(user);
+    options.setGroup(group);
+    options.setPermission(permission);
+
+    Assert.assertEquals(user, options.getUser());
+    Assert.assertEquals(group, options.getGroup());
+    Assert.assertEquals(permission, options.getPermission());
+  }
+
+  /**
+   * Tests conversion to thrift representation.
+   */
+  @Test
+  public void toThriftTest() throws IOException {
+    CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
+    String user = "test-user";
+    String group = "test-group";
+    short permission = Constants.DEFAULT_FS_FULL_PERMISSION;
+
+    options.setUser(user);
+    options.setGroup(group);
+    options.setPermission(permission);
+
+    CreateUfsFileTOptions thriftOptions = options.toThrift();
+    Assert.assertEquals(user, thriftOptions.getUser());
+    Assert.assertEquals(group, thriftOptions.getGroup());
+    Assert.assertEquals(permission, thriftOptions.getPermission());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CreateUfsFileOptions.class);
   }
 }
