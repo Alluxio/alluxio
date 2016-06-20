@@ -299,8 +299,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
-            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + uri));
+            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
+            fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
   }
 
   /**
@@ -316,7 +316,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   @Override
   public void setOwner(Path path, final String username, final String groupname)
       throws IOException {
-    LOG.info("setOwner({},{},{})", path, username, groupname);
+    LOG.info("setOwnership({},{},{})", path, username, groupname);
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options = SetAttributeOptions.defaults();
     boolean ownerOrGroupChanged = false;

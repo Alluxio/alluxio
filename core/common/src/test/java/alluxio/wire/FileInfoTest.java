@@ -55,9 +55,9 @@ public class FileInfoTest {
     Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getTtl(), b.getTtl());
-    Assert.assertEquals(a.getUserName(), b.getUserName());
-    Assert.assertEquals(a.getGroupName(), b.getGroupName());
-    Assert.assertEquals(a.getPermission(), b.getPermission());
+    Assert.assertEquals(a.getOwner(), b.getOwner());
+    Assert.assertEquals(a.getGroup(), b.getGroup());
+    Assert.assertEquals(a.getMode(), b.getMode());
     Assert.assertEquals(a.getPersistenceState(), b.getPersistenceState());
     Assert.assertEquals(a.isMountPoint(), b.isMountPoint());
     Assert.assertEquals(a.getFileBlockInfos(), b.getFileBlockInfos());

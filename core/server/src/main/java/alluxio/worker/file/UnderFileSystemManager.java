@@ -293,21 +293,20 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
-     * @param user the owner of the file, null for default Alluxio user
-     * @param group the group of the file, null for default Alluxio user
+     * @param owner the owner of the file, null for default owner
+     * @param group the group of the file, null for default group
      * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private long complete(String user, String group) throws IOException {
+    private long complete(String owner, String group) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (ufs.rename(mTemporaryUri, mUri)) {
-        if (user != null || group != null) {
+        if (owner != null || group != null) {
           try {
-            ufs.setOwner(mUri, user, group);
+            ufs.setOwnership(mUri, owner, group);
           } catch (Exception e) {
-            LOG.warn("Failed to update the ufs user, Alluxio system defaults will be used. Error: "
-                + e);
+            LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
           }
         }
       } else {

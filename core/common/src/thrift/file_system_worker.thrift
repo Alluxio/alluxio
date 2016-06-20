@@ -10,8 +10,9 @@ struct CloseUfsFileTOptions {
 }
 
 struct CompleteUfsFileTOptions {
-  1: optional string user
+  1: optional string user // deprecated since 1.2, will be removed in 2.0 (use owner)
   2: optional string group
+  3: optional string owner
 }
 
 struct CreateUfsFileTOptions {

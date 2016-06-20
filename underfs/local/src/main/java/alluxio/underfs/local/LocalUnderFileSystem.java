@@ -245,7 +245,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {}
 
   @Override
-  public void setOwner(String path, String user, String group) throws IOException {
+  public void setOwnership(String path, String user, String group) throws IOException {
     path = stripPath(path);
     if (user != null) {
       FileUtils.changeLocalFileUser(path, user);
