@@ -45,6 +45,8 @@
       "userName":"user1",
       "groupName":"group1",
       "permission":511,
+      "owner":"user1",
+      "group":"group1",
       "mode":511
     }
   },
@@ -63,6 +65,8 @@
       "groupName":"group1",
       "permission":511,
       "mountPoint":true,
+      "owner":"user1",
+      "group":"group1",
       "mode":511
     }
   },

@@ -36,7 +36,7 @@ struct ListStatusTOptions {
 struct FileBlockInfo {
   1: common.BlockInfo blockInfo
   2: i64 offset
-  3: list<common.WorkerNetAddress> ufsLocations // deprecated since 1.1 will be removed in 2.0, use ufsStringLocations instead
+  3: list<common.WorkerNetAddress> ufsLocations // deprecated since 1.1 will be removed in 2.0 (replaced by ufsStringLocations)
   4: list<string> ufsStringLocations
 }
 
@@ -57,12 +57,15 @@ struct FileInfo {
   15: i32 inMemoryPercentage
   16: i64 lastModificationTimeMs
   17: i64 ttl
-  18: string userName
-  19: string groupName
-  20: i32 permission
+  18: string userName // deprecated in 1.2, will be removed in 2.0 (replaced by owner)
+  19: string groupName // deprecated in 1.2, will be removed in 2.0 (replaced by group)
+  20: i32 permission // deprecated in 1.2, will be removed in 2.0 (replaced by mode)
   21: string persistenceState
   22: bool mountPoint
   23: list<FileBlockInfo> fileBlockInfos
+  24: string owner
+  25: string group
+  26: i32 mode
 }
 
 struct FileSystemCommand {
@@ -85,8 +88,9 @@ struct SetAttributeTOptions {
   3: optional bool persisted
   4: optional string owner
   5: optional string group
-  6: optional i16 permission
+  6: optional i16 permission // deprecated in 1.2, will be removed in 2.0 (replaced by mode)
   7: optional bool recursive
+  8: optional i16 mode
 }
 
 union FileSystemCommandOptions {

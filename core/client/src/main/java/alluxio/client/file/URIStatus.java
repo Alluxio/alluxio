@@ -71,10 +71,20 @@ public class URIStatus {
   }
 
   /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0
+   *
    * @return the group that owns the entity referenced by this uri, mutable
+   * @deprecated @see {@link #getGroup()}
    */
   public String getGroupName() {
-    return mInfo.getGroupName();
+    return getGroup();
+  }
+
+  /**
+   * @return the group that owns the entity referenced by this uri, mutable
+   */
+  public String getGroup() {
+    return mInfo.getGroup();
   }
 
   /**
@@ -117,11 +127,22 @@ public class URIStatus {
   }
 
   /**
-   * @return the int representation of the ACL permissions of the entity referenced by this uri,
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0
+   *
+   * @return the int representation of the permission bits of the entity referenced by this uri,
    *         mutable
+   * @deprecated @see {@link #getMode()}
    */
   public int getPermission() {
-    return mInfo.getPermission();
+    return getMode();
+  }
+
+  /**
+   * @return the int representation of the ACL mode bits of the entity referenced by this uri,
+   *         mutable
+   */
+  public int getMode() {
+    return mInfo.getMode();
   }
 
   /**
@@ -148,10 +169,21 @@ public class URIStatus {
   }
 
   /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0
+   *
    * @return the user which owns the entity referenced by this uri, mutable
+   * @deprecated @see {@link #getOwner()}
    */
+  @Deprecated
   public String getUserName() {
-    return mInfo.getUserName();
+    return getOwner();
+  }
+
+  /**
+   * @return the owner of the entity referenced by this uri, mutable
+   */
+  public String getOwner() {
+    return mInfo.getOwner();
   }
 
   /**

@@ -3975,28 +3975,52 @@ public final class File {
 
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     boolean hasUserName();
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     java.lang.String getUserName();
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     com.google.protobuf.ByteString
         getUserNameBytes();
 
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     boolean hasGroupName();
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     java.lang.String getGroupName();
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     com.google.protobuf.ByteString
         getGroupNameBytes();
@@ -4037,11 +4061,39 @@ public final class File {
     boolean getDirectChildrenLoaded();
 
     /**
-     * <code>optional int32 mode = 13;</code>
+     * <code>optional string owner = 13;</code>
+     */
+    boolean hasOwner();
+    /**
+     * <code>optional string owner = 13;</code>
+     */
+    java.lang.String getOwner();
+    /**
+     * <code>optional string owner = 13;</code>
+     */
+    com.google.protobuf.ByteString
+        getOwnerBytes();
+
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    boolean hasGroup();
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    java.lang.String getGroup();
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    com.google.protobuf.ByteString
+        getGroupBytes();
+
+    /**
+     * <code>optional int32 mode = 15;</code>
      */
     boolean hasMode();
     /**
-     * <code>optional int32 mode = 13;</code>
+     * <code>optional int32 mode = 15;</code>
      */
     int getMode();
   }
@@ -4049,7 +4101,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
    *
    * <pre>
-   * next available id: 12
+   * next available id: 16
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
@@ -4165,8 +4217,20 @@ public final class File {
               directChildrenLoaded_ = input.readBool();
               break;
             }
-            case 104: {
+            case 106: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00001000;
+              owner_ = bs;
+              break;
+            }
+            case 114: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00002000;
+              group_ = bs;
+              break;
+            }
+            case 120: {
+              bitField0_ |= 0x00004000;
               mode_ = input.readInt32();
               break;
             }
@@ -4373,12 +4437,20 @@ public final class File {
     private java.lang.Object userName_;
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public boolean hasUserName() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public java.lang.String getUserName() {
       java.lang.Object ref = userName_;
@@ -4396,6 +4468,10 @@ public final class File {
     }
     /**
      * <code>optional string user_name = 8;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getUserNameBytes() {
@@ -4415,12 +4491,20 @@ public final class File {
     private java.lang.Object groupName_;
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public boolean hasGroupName() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public java.lang.String getGroupName() {
       java.lang.Object ref = groupName_;
@@ -4438,6 +4522,10 @@ public final class File {
     }
     /**
      * <code>optional string group_name = 9;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getGroupNameBytes() {
@@ -4506,16 +4594,100 @@ public final class File {
       return directChildrenLoaded_;
     }
 
-    public static final int MODE_FIELD_NUMBER = 13;
-    private int mode_;
+    public static final int OWNER_FIELD_NUMBER = 13;
+    private java.lang.Object owner_;
     /**
-     * <code>optional int32 mode = 13;</code>
+     * <code>optional string owner = 13;</code>
      */
-    public boolean hasMode() {
+    public boolean hasOwner() {
       return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
-     * <code>optional int32 mode = 13;</code>
+     * <code>optional string owner = 13;</code>
+     */
+    public java.lang.String getOwner() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          owner_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string owner = 13;</code>
+     */
+    public com.google.protobuf.ByteString
+        getOwnerBytes() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        owner_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GROUP_FIELD_NUMBER = 14;
+    private java.lang.Object group_;
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    public boolean hasGroup() {
+      return ((bitField0_ & 0x00002000) == 0x00002000);
+    }
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    public java.lang.String getGroup() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          group_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string group = 14;</code>
+     */
+    public com.google.protobuf.ByteString
+        getGroupBytes() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        group_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MODE_FIELD_NUMBER = 15;
+    private int mode_;
+    /**
+     * <code>optional int32 mode = 15;</code>
+     */
+    public boolean hasMode() {
+      return ((bitField0_ & 0x00004000) == 0x00004000);
+    }
+    /**
+     * <code>optional int32 mode = 15;</code>
      */
     public int getMode() {
       return mode_;
@@ -4534,6 +4706,8 @@ public final class File {
       permission_ = 0;
       mountPoint_ = false;
       directChildrenLoaded_ = false;
+      owner_ = "";
+      group_ = "";
       mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -4586,7 +4760,13 @@ public final class File {
         output.writeBool(12, directChildrenLoaded_);
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
-        output.writeInt32(13, mode_);
+        output.writeBytes(13, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        output.writeBytes(14, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        output.writeInt32(15, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4647,7 +4827,15 @@ public final class File {
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(13, mode_);
+          .computeBytesSize(13, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(14, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(15, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4731,7 +4919,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
      *
      * <pre>
-     * next available id: 12
+     * next available id: 16
      * </pre>
      */
     public static final class Builder extends
@@ -4794,8 +4982,12 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000400);
         directChildrenLoaded_ = false;
         bitField0_ = (bitField0_ & ~0x00000800);
-        mode_ = 0;
+        owner_ = "";
         bitField0_ = (bitField0_ & ~0x00001000);
+        group_ = "";
+        bitField0_ = (bitField0_ & ~0x00002000);
+        mode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00004000);
         return this;
       }
 
@@ -4875,6 +5067,14 @@ public final class File {
         if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
           to_bitField0_ |= 0x00001000;
         }
+        result.owner_ = owner_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
+        }
+        result.group_ = group_;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+          to_bitField0_ |= 0x00004000;
+        }
         result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -4935,6 +5135,16 @@ public final class File {
         }
         if (other.hasDirectChildrenLoaded()) {
           setDirectChildrenLoaded(other.getDirectChildrenLoaded());
+        }
+        if (other.hasOwner()) {
+          bitField0_ |= 0x00001000;
+          owner_ = other.owner_;
+          onChanged();
+        }
+        if (other.hasGroup()) {
+          bitField0_ |= 0x00002000;
+          group_ = other.group_;
+          onChanged();
         }
         if (other.hasMode()) {
           setMode(other.getMode());
@@ -5281,12 +5491,20 @@ public final class File {
       private java.lang.Object userName_ = "";
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public boolean hasUserName() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public java.lang.String getUserName() {
         java.lang.Object ref = userName_;
@@ -5304,6 +5522,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getUserNameBytes() {
@@ -5320,6 +5542,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder setUserName(
           java.lang.String value) {
@@ -5333,6 +5559,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder clearUserName() {
         bitField0_ = (bitField0_ & ~0x00000080);
@@ -5342,6 +5572,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 8;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder setUserNameBytes(
           com.google.protobuf.ByteString value) {
@@ -5357,12 +5591,20 @@ public final class File {
       private java.lang.Object groupName_ = "";
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public boolean hasGroupName() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public java.lang.String getGroupName() {
         java.lang.Object ref = groupName_;
@@ -5380,6 +5622,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getGroupNameBytes() {
@@ -5396,6 +5642,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder setGroupName(
           java.lang.String value) {
@@ -5409,6 +5659,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder clearGroupName() {
         bitField0_ = (bitField0_ & ~0x00000100);
@@ -5418,6 +5672,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 9;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder setGroupNameBytes(
           com.google.protobuf.ByteString value) {
@@ -5542,33 +5800,185 @@ public final class File {
         return this;
       }
 
-      private int mode_ ;
+      private java.lang.Object owner_ = "";
       /**
-       * <code>optional int32 mode = 13;</code>
+       * <code>optional string owner = 13;</code>
        */
-      public boolean hasMode() {
+      public boolean hasOwner() {
         return ((bitField0_ & 0x00001000) == 0x00001000);
       }
       /**
-       * <code>optional int32 mode = 13;</code>
+       * <code>optional string owner = 13;</code>
+       */
+      public java.lang.String getOwner() {
+        java.lang.Object ref = owner_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            owner_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 13;</code>
+       */
+      public com.google.protobuf.ByteString
+          getOwnerBytes() {
+        java.lang.Object ref = owner_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          owner_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 13;</code>
+       */
+      public Builder setOwner(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00001000;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 13;</code>
+       */
+      public Builder clearOwner() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        owner_ = getDefaultInstance().getOwner();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 13;</code>
+       */
+      public Builder setOwnerBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00001000;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object group_ = "";
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public boolean hasGroup() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public java.lang.String getGroup() {
+        java.lang.Object ref = group_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            group_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public com.google.protobuf.ByteString
+          getGroupBytes() {
+        java.lang.Object ref = group_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          group_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public Builder setGroup(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00002000;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public Builder clearGroup() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        group_ = getDefaultInstance().getGroup();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 14;</code>
+       */
+      public Builder setGroupBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00002000;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int mode_ ;
+      /**
+       * <code>optional int32 mode = 15;</code>
+       */
+      public boolean hasMode() {
+        return ((bitField0_ & 0x00004000) == 0x00004000);
+      }
+      /**
+       * <code>optional int32 mode = 15;</code>
        */
       public int getMode() {
         return mode_;
       }
       /**
-       * <code>optional int32 mode = 13;</code>
+       * <code>optional int32 mode = 15;</code>
        */
       public Builder setMode(int value) {
-        bitField0_ |= 0x00001000;
+        bitField0_ |= 0x00004000;
         mode_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 mode = 13;</code>
+       * <code>optional int32 mode = 15;</code>
        */
       public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00001000);
+        bitField0_ = (bitField0_ & ~0x00004000);
         mode_ = 0;
         onChanged();
         return this;
@@ -6205,28 +6615,52 @@ public final class File {
 
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     boolean hasUserName();
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     java.lang.String getUserName();
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     com.google.protobuf.ByteString
         getUserNameBytes();
 
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     boolean hasGroupName();
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     java.lang.String getGroupName();
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     com.google.protobuf.ByteString
         getGroupNameBytes();
@@ -6249,11 +6683,39 @@ public final class File {
     int getPermission();
 
     /**
-     * <code>optional int32 mode = 17;</code>
+     * <code>optional string owner = 17;</code>
+     */
+    boolean hasOwner();
+    /**
+     * <code>optional string owner = 17;</code>
+     */
+    java.lang.String getOwner();
+    /**
+     * <code>optional string owner = 17;</code>
+     */
+    com.google.protobuf.ByteString
+        getOwnerBytes();
+
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    boolean hasGroup();
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    java.lang.String getGroup();
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    com.google.protobuf.ByteString
+        getGroupBytes();
+
+    /**
+     * <code>optional int32 mode = 19;</code>
      */
     boolean hasMode();
     /**
-     * <code>optional int32 mode = 17;</code>
+     * <code>optional int32 mode = 19;</code>
      */
     int getMode();
   }
@@ -6261,7 +6723,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
    *
    * <pre>
-   * next available id: 17
+   * next available id: 20
    * </pre>
    */
   public static final class InodeFileEntry extends
@@ -6413,8 +6875,20 @@ public final class File {
               permission_ = input.readInt32();
               break;
             }
-            case 136: {
+            case 138: {
+              com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00008000;
+              owner_ = bs;
+              break;
+            }
+            case 146: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00010000;
+              group_ = bs;
+              break;
+            }
+            case 152: {
+              bitField0_ |= 0x00020000;
               mode_ = input.readInt32();
               break;
             }
@@ -6721,12 +7195,20 @@ public final class File {
     private java.lang.Object userName_;
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public boolean hasUserName() {
       return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public java.lang.String getUserName() {
       java.lang.Object ref = userName_;
@@ -6744,6 +7226,10 @@ public final class File {
     }
     /**
      * <code>optional string user_name = 14;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getUserNameBytes() {
@@ -6763,12 +7249,20 @@ public final class File {
     private java.lang.Object groupName_;
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public boolean hasGroupName() {
       return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public java.lang.String getGroupName() {
       java.lang.Object ref = groupName_;
@@ -6786,6 +7280,10 @@ public final class File {
     }
     /**
      * <code>optional string group_name = 15;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by group), will be removed in 2.0
+     * </pre>
      */
     public com.google.protobuf.ByteString
         getGroupNameBytes() {
@@ -6824,16 +7322,100 @@ public final class File {
       return permission_;
     }
 
-    public static final int MODE_FIELD_NUMBER = 17;
-    private int mode_;
+    public static final int OWNER_FIELD_NUMBER = 17;
+    private java.lang.Object owner_;
     /**
-     * <code>optional int32 mode = 17;</code>
+     * <code>optional string owner = 17;</code>
      */
-    public boolean hasMode() {
+    public boolean hasOwner() {
       return ((bitField0_ & 0x00008000) == 0x00008000);
     }
     /**
-     * <code>optional int32 mode = 17;</code>
+     * <code>optional string owner = 17;</code>
+     */
+    public java.lang.String getOwner() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          owner_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string owner = 17;</code>
+     */
+    public com.google.protobuf.ByteString
+        getOwnerBytes() {
+      java.lang.Object ref = owner_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        owner_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int GROUP_FIELD_NUMBER = 18;
+    private java.lang.Object group_;
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    public boolean hasGroup() {
+      return ((bitField0_ & 0x00010000) == 0x00010000);
+    }
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    public java.lang.String getGroup() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          group_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string group = 18;</code>
+     */
+    public com.google.protobuf.ByteString
+        getGroupBytes() {
+      java.lang.Object ref = group_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        group_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int MODE_FIELD_NUMBER = 19;
+    private int mode_;
+    /**
+     * <code>optional int32 mode = 19;</code>
+     */
+    public boolean hasMode() {
+      return ((bitField0_ & 0x00020000) == 0x00020000);
+    }
+    /**
+     * <code>optional int32 mode = 19;</code>
      */
     public int getMode() {
       return mode_;
@@ -6856,6 +7438,8 @@ public final class File {
       userName_ = "";
       groupName_ = "";
       permission_ = 0;
+      owner_ = "";
+      group_ = "";
       mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -6920,7 +7504,13 @@ public final class File {
         output.writeInt32(16, permission_);
       }
       if (((bitField0_ & 0x00008000) == 0x00008000)) {
-        output.writeInt32(17, mode_);
+        output.writeBytes(17, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        output.writeBytes(18, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+        output.writeInt32(19, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -7002,7 +7592,15 @@ public final class File {
       }
       if (((bitField0_ & 0x00008000) == 0x00008000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(17, mode_);
+          .computeBytesSize(17, getOwnerBytes());
+      }
+      if (((bitField0_ & 0x00010000) == 0x00010000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(18, getGroupBytes());
+      }
+      if (((bitField0_ & 0x00020000) == 0x00020000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(19, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -7086,7 +7684,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
      *
      * <pre>
-     * next available id: 17
+     * next available id: 20
      * </pre>
      */
     public static final class Builder extends
@@ -7157,8 +7755,12 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00004000);
         permission_ = 0;
         bitField0_ = (bitField0_ & ~0x00008000);
-        mode_ = 0;
+        owner_ = "";
         bitField0_ = (bitField0_ & ~0x00010000);
+        group_ = "";
+        bitField0_ = (bitField0_ & ~0x00020000);
+        mode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00040000);
         return this;
       }
 
@@ -7255,6 +7857,14 @@ public final class File {
         if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
           to_bitField0_ |= 0x00008000;
         }
+        result.owner_ = owner_;
+        if (((from_bitField0_ & 0x00020000) == 0x00020000)) {
+          to_bitField0_ |= 0x00010000;
+        }
+        result.group_ = group_;
+        if (((from_bitField0_ & 0x00040000) == 0x00040000)) {
+          to_bitField0_ |= 0x00020000;
+        }
         result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
@@ -7334,6 +7944,16 @@ public final class File {
         }
         if (other.hasPermission()) {
           setPermission(other.getPermission());
+        }
+        if (other.hasOwner()) {
+          bitField0_ |= 0x00010000;
+          owner_ = other.owner_;
+          onChanged();
+        }
+        if (other.hasGroup()) {
+          bitField0_ |= 0x00020000;
+          group_ = other.group_;
+          onChanged();
         }
         if (other.hasMode()) {
           setMode(other.getMode());
@@ -7906,12 +8526,20 @@ public final class File {
       private java.lang.Object userName_ = "";
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public boolean hasUserName() {
         return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public java.lang.String getUserName() {
         java.lang.Object ref = userName_;
@@ -7929,6 +8557,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getUserNameBytes() {
@@ -7945,6 +8577,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder setUserName(
           java.lang.String value) {
@@ -7958,6 +8594,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder clearUserName() {
         bitField0_ = (bitField0_ & ~0x00002000);
@@ -7967,6 +8607,10 @@ public final class File {
       }
       /**
        * <code>optional string user_name = 14;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by owner), will be removed in 2.0
+       * </pre>
        */
       public Builder setUserNameBytes(
           com.google.protobuf.ByteString value) {
@@ -7982,12 +8626,20 @@ public final class File {
       private java.lang.Object groupName_ = "";
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public boolean hasGroupName() {
         return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public java.lang.String getGroupName() {
         java.lang.Object ref = groupName_;
@@ -8005,6 +8657,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public com.google.protobuf.ByteString
           getGroupNameBytes() {
@@ -8021,6 +8677,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder setGroupName(
           java.lang.String value) {
@@ -8034,6 +8694,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder clearGroupName() {
         bitField0_ = (bitField0_ & ~0x00004000);
@@ -8043,6 +8707,10 @@ public final class File {
       }
       /**
        * <code>optional string group_name = 15;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by group), will be removed in 2.0
+       * </pre>
        */
       public Builder setGroupNameBytes(
           com.google.protobuf.ByteString value) {
@@ -8103,33 +8771,185 @@ public final class File {
         return this;
       }
 
-      private int mode_ ;
+      private java.lang.Object owner_ = "";
       /**
-       * <code>optional int32 mode = 17;</code>
+       * <code>optional string owner = 17;</code>
        */
-      public boolean hasMode() {
+      public boolean hasOwner() {
         return ((bitField0_ & 0x00010000) == 0x00010000);
       }
       /**
-       * <code>optional int32 mode = 17;</code>
+       * <code>optional string owner = 17;</code>
+       */
+      public java.lang.String getOwner() {
+        java.lang.Object ref = owner_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            owner_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 17;</code>
+       */
+      public com.google.protobuf.ByteString
+          getOwnerBytes() {
+        java.lang.Object ref = owner_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          owner_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string owner = 17;</code>
+       */
+      public Builder setOwner(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00010000;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 17;</code>
+       */
+      public Builder clearOwner() {
+        bitField0_ = (bitField0_ & ~0x00010000);
+        owner_ = getDefaultInstance().getOwner();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string owner = 17;</code>
+       */
+      public Builder setOwnerBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00010000;
+        owner_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object group_ = "";
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public boolean hasGroup() {
+        return ((bitField0_ & 0x00020000) == 0x00020000);
+      }
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public java.lang.String getGroup() {
+        java.lang.Object ref = group_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            group_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public com.google.protobuf.ByteString
+          getGroupBytes() {
+        java.lang.Object ref = group_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          group_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public Builder setGroup(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00020000;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public Builder clearGroup() {
+        bitField0_ = (bitField0_ & ~0x00020000);
+        group_ = getDefaultInstance().getGroup();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string group = 18;</code>
+       */
+      public Builder setGroupBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00020000;
+        group_ = value;
+        onChanged();
+        return this;
+      }
+
+      private int mode_ ;
+      /**
+       * <code>optional int32 mode = 19;</code>
+       */
+      public boolean hasMode() {
+        return ((bitField0_ & 0x00040000) == 0x00040000);
+      }
+      /**
+       * <code>optional int32 mode = 19;</code>
        */
       public int getMode() {
         return mode_;
       }
       /**
-       * <code>optional int32 mode = 17;</code>
+       * <code>optional int32 mode = 19;</code>
        */
       public Builder setMode(int value) {
-        bitField0_ |= 0x00010000;
+        bitField0_ |= 0x00040000;
         mode_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 mode = 17;</code>
+       * <code>optional int32 mode = 19;</code>
        */
       public Builder clearMode() {
-        bitField0_ = (bitField0_ & ~0x00010000);
+        bitField0_ = (bitField0_ & ~0x00040000);
         mode_ = 0;
         onChanged();
         return this;
@@ -12079,38 +12899,39 @@ public final class File {
       "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
       "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
       "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
-      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\250\002\n\023In" +
+      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\306\002\n\023In" +
       "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
       "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
       "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
       "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
       "\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030" +
       "\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n\013mount_point" +
-      "\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022\014" +
-      "\n\004mode\030\r \001(\005\"O\n\036InodeDirectoryIdGenerato",
-      "rEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence" +
-      "_number\030\002 \001(\003\"\333\002\n\016InodeFileEntry\022\n\n\002id\030\001" +
-      " \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n" +
-      "\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010" +
-      "\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modif" +
-      "ication_time_ms\030\007 \001(\003\022\030\n\020block_size_byte" +
-      "s\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001" +
-      "(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n" +
-      "\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_n" +
-      "ame\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\022\014\n\004mode\030\021 ",
-      "\001(\005\"O\n\036InodeLastModificationTimeEntry\022\n\n" +
-      "\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002" +
-      " \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(" +
-      "\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006len" +
-      "gth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reiniti" +
-      "alizeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_si" +
-      "ze_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEnt" +
-      "ry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_t" +
-      "ime_ms\030\003 \001(\003\"\225\001\n\021SetAttributeEntry\022\n\n\002id" +
-      "\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001",
-      "(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005ow" +
-      "ner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010" +
-      " \001(\005"
+      "\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022\r" +
+      "\n\005owner\030\r \001(\t\022\r\n\005group\030\016 \001(\t\022\014\n\004mode\030\017 \001",
+      "(\005\"O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014" +
+      "container_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 " +
+      "\001(\003\"\371\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tpa" +
+      "rent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persisten" +
+      "ce_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creati" +
+      "on_time_ms\030\006 \001(\003\022!\n\031last_modification_ti" +
+      "me_ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n" +
+      "\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcach" +
+      "eable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003" +
+      "\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 \001(\t\022",
+      "\022\n\npermission\030\020 \001(\005\022\r\n\005owner\030\021 \001(\t\022\r\n\005gr" +
+      "oup\030\022 \001(\t\022\014\n\004mode\030\023 \001(\005\"O\n\036InodeLastModi" +
+      "ficationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_mo" +
+      "dification_time_ms\030\002 \001(\003\"#\n\025PersistDirec" +
+      "toryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntr" +
+      "y\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time" +
+      "_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004pa" +
+      "th\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003tt" +
+      "l\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010ds" +
+      "t_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021Set",
+      "AttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms" +
+      "\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tp" +
+      "ersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007" +
+      " \001(\t\022\022\n\npermission\030\010 \001(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -12165,7 +12986,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", "DirectChildrenLoaded", "Mode", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", "DirectChildrenLoaded", "Owner", "Group", "Mode", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
@@ -12177,7 +12998,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", "Mode", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", "Owner", "Group", "Mode", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
