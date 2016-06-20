@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.network.protocol.databuffer.DataBuffer;
+
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 
@@ -26,7 +27,7 @@ final class ReleasableResourceChannelListener implements ChannelFutureListener {
   private final DataBuffer mResource;
 
   /**
-   * Creates a new instance of {@link alluxio.worker.netty.ReleasableResourceChannelListener}.
+   * Creates a new instance of {@link ReleasableResourceChannelListener}.
    *
    * @param resource the resource to close
    */
