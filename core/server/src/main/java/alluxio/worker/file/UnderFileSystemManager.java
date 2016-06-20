@@ -304,7 +304,7 @@ public final class UnderFileSystemManager {
       if (ufs.rename(mTemporaryUri, mUri)) {
         if (owner != null || group != null) {
           try {
-            ufs.setOwnership(mUri, owner, group);
+            ufs.setOwner(mUri, owner, group);
           } catch (Exception e) {
             LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
           }

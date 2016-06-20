@@ -75,6 +75,17 @@ public final class CompleteUfsFileOptions {
   }
 
   /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
+   *
+   * @return the user who should own the file
+   * @deprecated @see {@link #getOwner()}
+   */
+  @Deprecated
+  public String getUser() {
+    return getOwner();
+  }
+
+  /**
    * @return if the group has been set
    */
   public boolean hasGroup() {
@@ -86,6 +97,17 @@ public final class CompleteUfsFileOptions {
    */
   public boolean hasOwner() {
     return mOwner != null;
+  }
+
+  /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
+   *
+   * @return if the owner has been set
+   * @deprecated @see {@link #hasOwner()}
+   */
+  @Deprecated
+  public boolean hasUser() {
+    return hasOwner();
   }
 
   @Override
