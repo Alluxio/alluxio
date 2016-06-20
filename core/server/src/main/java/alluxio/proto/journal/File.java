@@ -4003,10 +4003,18 @@ public final class File {
 
     /**
      * <code>optional int32 permission = 10;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     boolean hasPermission();
     /**
      * <code>optional int32 permission = 10;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     int getPermission();
 
@@ -4027,6 +4035,15 @@ public final class File {
      * <code>optional bool direct_children_loaded = 12;</code>
      */
     boolean getDirectChildrenLoaded();
+
+    /**
+     * <code>optional int32 mode = 13;</code>
+     */
+    boolean hasMode();
+    /**
+     * <code>optional int32 mode = 13;</code>
+     */
+    int getMode();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
@@ -4146,6 +4163,11 @@ public final class File {
             case 96: {
               bitField0_ |= 0x00000800;
               directChildrenLoaded_ = input.readBool();
+              break;
+            }
+            case 104: {
+              bitField0_ |= 0x00001000;
+              mode_ = input.readInt32();
               break;
             }
           }
@@ -4435,12 +4457,20 @@ public final class File {
     private int permission_;
     /**
      * <code>optional int32 permission = 10;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     public boolean hasPermission() {
       return ((bitField0_ & 0x00000200) == 0x00000200);
     }
     /**
      * <code>optional int32 permission = 10;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     public int getPermission() {
       return permission_;
@@ -4476,6 +4506,21 @@ public final class File {
       return directChildrenLoaded_;
     }
 
+    public static final int MODE_FIELD_NUMBER = 13;
+    private int mode_;
+    /**
+     * <code>optional int32 mode = 13;</code>
+     */
+    public boolean hasMode() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    /**
+     * <code>optional int32 mode = 13;</code>
+     */
+    public int getMode() {
+      return mode_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -4489,6 +4534,7 @@ public final class File {
       permission_ = 0;
       mountPoint_ = false;
       directChildrenLoaded_ = false;
+      mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -4538,6 +4584,9 @@ public final class File {
       }
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         output.writeBool(12, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeInt32(13, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -4595,6 +4644,10 @@ public final class File {
       if (((bitField0_ & 0x00000800) == 0x00000800)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(12, directChildrenLoaded_);
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(13, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -4741,6 +4794,8 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000400);
         directChildrenLoaded_ = false;
         bitField0_ = (bitField0_ & ~0x00000800);
+        mode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00001000);
         return this;
       }
 
@@ -4817,6 +4872,10 @@ public final class File {
           to_bitField0_ |= 0x00000800;
         }
         result.directChildrenLoaded_ = directChildrenLoaded_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -4876,6 +4935,9 @@ public final class File {
         }
         if (other.hasDirectChildrenLoaded()) {
           setDirectChildrenLoaded(other.getDirectChildrenLoaded());
+        }
+        if (other.hasMode()) {
+          setMode(other.getMode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -5371,18 +5433,30 @@ public final class File {
       private int permission_ ;
       /**
        * <code>optional int32 permission = 10;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public boolean hasPermission() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
       /**
        * <code>optional int32 permission = 10;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public int getPermission() {
         return permission_;
       }
       /**
        * <code>optional int32 permission = 10;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public Builder setPermission(int value) {
         bitField0_ |= 0x00000200;
@@ -5392,6 +5466,10 @@ public final class File {
       }
       /**
        * <code>optional int32 permission = 10;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public Builder clearPermission() {
         bitField0_ = (bitField0_ & ~0x00000200);
@@ -5460,6 +5538,38 @@ public final class File {
       public Builder clearDirectChildrenLoaded() {
         bitField0_ = (bitField0_ & ~0x00000800);
         directChildrenLoaded_ = false;
+        onChanged();
+        return this;
+      }
+
+      private int mode_ ;
+      /**
+       * <code>optional int32 mode = 13;</code>
+       */
+      public boolean hasMode() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      /**
+       * <code>optional int32 mode = 13;</code>
+       */
+      public int getMode() {
+        return mode_;
+      }
+      /**
+       * <code>optional int32 mode = 13;</code>
+       */
+      public Builder setMode(int value) {
+        bitField0_ |= 0x00001000;
+        mode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 mode = 13;</code>
+       */
+      public Builder clearMode() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        mode_ = 0;
         onChanged();
         return this;
       }
@@ -6123,12 +6233,29 @@ public final class File {
 
     /**
      * <code>optional int32 permission = 16;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     boolean hasPermission();
     /**
      * <code>optional int32 permission = 16;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     int getPermission();
+
+    /**
+     * <code>optional int32 mode = 17;</code>
+     */
+    boolean hasMode();
+    /**
+     * <code>optional int32 mode = 17;</code>
+     */
+    int getMode();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
@@ -6284,6 +6411,11 @@ public final class File {
             case 128: {
               bitField0_ |= 0x00004000;
               permission_ = input.readInt32();
+              break;
+            }
+            case 136: {
+              bitField0_ |= 0x00008000;
+              mode_ = input.readInt32();
               break;
             }
           }
@@ -6673,15 +6805,38 @@ public final class File {
     private int permission_;
     /**
      * <code>optional int32 permission = 16;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     public boolean hasPermission() {
       return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     /**
      * <code>optional int32 permission = 16;</code>
+     *
+     * <pre>
+     * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+     * </pre>
      */
     public int getPermission() {
       return permission_;
+    }
+
+    public static final int MODE_FIELD_NUMBER = 17;
+    private int mode_;
+    /**
+     * <code>optional int32 mode = 17;</code>
+     */
+    public boolean hasMode() {
+      return ((bitField0_ & 0x00008000) == 0x00008000);
+    }
+    /**
+     * <code>optional int32 mode = 17;</code>
+     */
+    public int getMode() {
+      return mode_;
     }
 
     private void initFields() {
@@ -6701,6 +6856,7 @@ public final class File {
       userName_ = "";
       groupName_ = "";
       permission_ = 0;
+      mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -6762,6 +6918,9 @@ public final class File {
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         output.writeInt32(16, permission_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        output.writeInt32(17, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -6840,6 +6999,10 @@ public final class File {
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt32Size(16, permission_);
+      }
+      if (((bitField0_ & 0x00008000) == 0x00008000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(17, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -6994,6 +7157,8 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00004000);
         permission_ = 0;
         bitField0_ = (bitField0_ & ~0x00008000);
+        mode_ = 0;
+        bitField0_ = (bitField0_ & ~0x00010000);
         return this;
       }
 
@@ -7087,6 +7252,10 @@ public final class File {
           to_bitField0_ |= 0x00004000;
         }
         result.permission_ = permission_;
+        if (((from_bitField0_ & 0x00010000) == 0x00010000)) {
+          to_bitField0_ |= 0x00008000;
+        }
+        result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -7165,6 +7334,9 @@ public final class File {
         }
         if (other.hasPermission()) {
           setPermission(other.getPermission());
+        }
+        if (other.hasMode()) {
+          setMode(other.getMode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -7886,18 +8058,30 @@ public final class File {
       private int permission_ ;
       /**
        * <code>optional int32 permission = 16;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public boolean hasPermission() {
         return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
        * <code>optional int32 permission = 16;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public int getPermission() {
         return permission_;
       }
       /**
        * <code>optional int32 permission = 16;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public Builder setPermission(int value) {
         bitField0_ |= 0x00008000;
@@ -7907,10 +8091,46 @@ public final class File {
       }
       /**
        * <code>optional int32 permission = 16;</code>
+       *
+       * <pre>
+       * deprecated since 1.2 (replaced by mode), will be removed in 2.0
+       * </pre>
        */
       public Builder clearPermission() {
         bitField0_ = (bitField0_ & ~0x00008000);
         permission_ = 0;
+        onChanged();
+        return this;
+      }
+
+      private int mode_ ;
+      /**
+       * <code>optional int32 mode = 17;</code>
+       */
+      public boolean hasMode() {
+        return ((bitField0_ & 0x00010000) == 0x00010000);
+      }
+      /**
+       * <code>optional int32 mode = 17;</code>
+       */
+      public int getMode() {
+        return mode_;
+      }
+      /**
+       * <code>optional int32 mode = 17;</code>
+       */
+      public Builder setMode(int value) {
+        bitField0_ |= 0x00010000;
+        mode_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 mode = 17;</code>
+       */
+      public Builder clearMode() {
+        bitField0_ = (bitField0_ & ~0x00010000);
+        mode_ = 0;
         onChanged();
         return this;
       }
@@ -11859,37 +12079,38 @@ public final class File {
       "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
       "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
       "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
-      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\232\002\n\023In" +
+      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\250\002\n\023In" +
       "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
       "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
       "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
       "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
       "\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n\ngroup_name\030" +
       "\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n\013mount_point" +
-      "\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\"O" +
-      "\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014cont",
-      "ainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003\"" +
-      "\315\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent" +
-      "_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_s" +
-      "tate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_t" +
-      "ime_ms\030\006 \001(\003\022!\n\031last_modification_time_m" +
-      "s\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006len" +
-      "gth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheabl" +
-      "e\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\t" +
-      "user_name\030\016 \001(\t\022\022\n\ngroup_name\030\017 \001(\t\022\022\n\np" +
-      "ermission\030\020 \001(\005\"O\n\036InodeLastModification",
-      "TimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_modificati" +
-      "on_time_ms\030\002 \001(\003\"#\n\025PersistDirectoryEntr" +
-      "y\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEntry\022\n\n\002id\030" +
-      "\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(" +
-      "\003\"L\n\025ReinitializeFileEntry\022\014\n\004path\030\001 \001(\t" +
-      "\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"" +
-      "?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002" +
-      " \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021SetAttribut" +
-      "eEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016" +
-      "\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted",
-      "\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\n" +
-      "permission\030\010 \001(\005"
+      "\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\022\014" +
+      "\n\004mode\030\r \001(\005\"O\n\036InodeDirectoryIdGenerato",
+      "rEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017sequence" +
+      "_number\030\002 \001(\003\"\333\002\n\016InodeFileEntry\022\n\n\002id\030\001" +
+      " \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n" +
+      "\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010" +
+      "\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modif" +
+      "ication_time_ms\030\007 \001(\003\022\030\n\020block_size_byte" +
+      "s\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcompleted\030\n \001" +
+      "(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n" +
+      "\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ngroup_n" +
+      "ame\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\022\014\n\004mode\030\021 ",
+      "\001(\005\"O\n\036InodeLastModificationTimeEntry\022\n\n" +
+      "\002id\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002" +
+      " \001(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(" +
+      "\003\"B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006len" +
+      "gth\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reiniti" +
+      "alizeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_si" +
+      "ze_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEnt" +
+      "ry\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_t" +
+      "ime_ms\030\003 \001(\003\"\225\001\n\021SetAttributeEntry\022\n\n\002id" +
+      "\030\001 \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001",
+      "(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005ow" +
+      "ner\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010" +
+      " \001(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -11944,7 +12165,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", "DirectChildrenLoaded", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", "DirectChildrenLoaded", "Mode", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
       getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
@@ -11956,7 +12177,7 @@ public final class File {
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", "Mode", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
       getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new

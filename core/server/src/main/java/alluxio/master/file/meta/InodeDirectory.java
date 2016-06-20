@@ -17,7 +17,7 @@ import alluxio.master.MasterContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.ImmutableSet;
@@ -203,7 +203,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setTtl(Constants.NO_TTL);
     ret.setUserName(getUserName());
     ret.setGroupName(getGroupName());
-    ret.setPermission(getPermission());
+    ret.setPermission(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
     return ret;
@@ -221,15 +221,21 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    PermissionStatus permissionStatus = new PermissionStatus(entry.getUserName(),
-        entry.getGroupName(), (short) entry.getPermission());
+    Permission permission;
+    if (entry.hasMode()) {
+      permission =
+          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getMode());
+    } else {
+      permission =
+          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getPermission());
+    }
     return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs())
-        .setPermissionStatus(permissionStatus)
+        .setPermission(permission)
         .setMountPoint(entry.getMountPoint())
         .setDirectChildrenLoaded(entry.getDirectChildrenLoaded());
   }
@@ -245,12 +251,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions directoryOptions) {
-    PermissionStatus permissionStatus = new PermissionStatus(directoryOptions.getPermissionStatus())
+    Permission permission = new Permission(directoryOptions.getPermission())
         .applyDirectoryUMask(MasterContext.getConf());
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)
-        .setPermissionStatus(permissionStatus)
+        .setPermission(permission)
         .setMountPoint(directoryOptions.isMountPoint());
   }
 
@@ -266,9 +272,10 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setUserName(getUserName())
         .setGroupName(getGroupName())
-        .setPermission(getPermission())
+        .setPermission(getMode())
         .setMountPoint(isMountPoint())
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

@@ -27,7 +27,7 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
@@ -53,8 +53,7 @@ public final class InodeTreeTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
-  private static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "", (short) 0755);
+  private static final Permission TEST_PERMISSION = new Permission("user1", "", (short) 0755);
   private static CreateFileOptions sFileOptions;
   private static CreateDirectoryOptions sDirectoryOptions;
   private static CreateFileOptions sNestedFileOptions;
@@ -87,7 +86,7 @@ public final class InodeTreeTest {
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     MasterContext.reset(conf);
-    mTree.initializeRoot(TEST_PERMISSION_STATUS);
+    mTree.initializeRoot(TEST_PERMISSION);
   }
 
   /**
@@ -96,14 +95,13 @@ public final class InodeTreeTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS);
+        .setPermission(TEST_PERMISSION);
     sDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS);
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
+        .setPermission(TEST_PERMISSION).setRecursive(true);
     sNestedDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS)
-            .setRecursive(true);
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
   }
 
   /**
@@ -113,8 +111,8 @@ public final class InodeTreeTest {
   public void initializeRootTwiceTest() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    Assert.assertEquals(TEST_PERMISSION_STATUS.getUserName(), root.getUserName());
+    mTree.initializeRoot(TEST_PERMISSION);
+    Assert.assertEquals(TEST_PERMISSION.getUserName(), root.getUserName());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -133,7 +131,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getUserName());
     Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0755, test.getPermission());
+    Assert.assertEquals((short) 0755, test.getMode());
 
     // create nested directory
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
@@ -144,7 +142,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(test.isDirectory());
     Assert.assertEquals("user1", test.getUserName());
     Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0755, test.getPermission());
+    Assert.assertEquals((short) 0755, test.getMode());
   }
 
   /**
@@ -200,7 +198,7 @@ public final class InodeTreeTest {
     Assert.assertTrue(nestedFile.isFile());
     Assert.assertEquals("user1", nestedFile.getUserName());
     Assert.assertTrue(nestedFile.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0644, nestedFile.getPermission());
+    Assert.assertEquals((short) 0644, nestedFile.getMode());
   }
 
   /**
