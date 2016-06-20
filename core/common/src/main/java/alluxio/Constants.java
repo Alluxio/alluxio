@@ -467,8 +467,8 @@ public final class Constants {
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
 
   // Security related constant value
-  public static final int DEFAULT_FS_UMASK = 0022;
-  public static final short DEFAULT_FS_MODE = (short) 0777;
+  public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
+  public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
   public static final short INVALID_MODE = -1;
 

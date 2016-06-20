@@ -247,7 +247,7 @@ public final class Mode {
    * @return the default {@link Mode}
    */
   public static Mode getDefault() {
-    return new Mode(Constants.DEFAULT_FS_MODE);
+    return new Mode(Constants.DEFAULT_FILE_SYSTEM_MODE);
   }
 
   /**
@@ -275,7 +275,7 @@ public final class Mode {
    * @return the umask {@link Mode}
    */
   public static Mode getUMask(Configuration conf) {
-    int umask = Constants.DEFAULT_FS_UMASK;
+    int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
     if (conf != null) {
       String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
       if (confUmask != null) {
