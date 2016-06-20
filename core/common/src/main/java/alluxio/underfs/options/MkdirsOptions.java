@@ -13,7 +13,7 @@ package alluxio.underfs.options;
 
 import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Objects;
 
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class MkdirsOptions {
   // Permission status to set for the directories being created.
-  private PermissionStatus mPermissionStatus;
+  private Permission mPermission;
   // Determine whether to create any necessary but nonexistent parent directories.
   private boolean mCreateParent;
 
@@ -34,7 +34,7 @@ public final class MkdirsOptions {
    * Constructs a default {@link MkdirsOptions}.
    */
   public MkdirsOptions() {
-    mPermissionStatus = PermissionStatus.defaults();
+    mPermission = Permission.defaults();
     // By default create parent is true.
     mCreateParent = true;
   }
@@ -47,7 +47,7 @@ public final class MkdirsOptions {
   public MkdirsOptions(Configuration conf) {
     // Only set the permission, not the owner/group because owner/group is not yet used for UFS
     // directories creation.
-    mPermissionStatus = PermissionStatus.defaults().applyDirectoryUMask(conf);
+    mPermission = Permission.defaults().applyDirectoryUMask(conf);
     // By default create parent is true.
     mCreateParent = true;
   }
@@ -62,8 +62,8 @@ public final class MkdirsOptions {
   /**
    * @return the permission status
    */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
@@ -80,11 +80,11 @@ public final class MkdirsOptions {
   /**
    * Sets the permission status.
    *
-   * @param permissionStatus the permission stats to set
+   * @param permission the permission stats to set
    * @return the updated option object
    */
-  public MkdirsOptions setPermissionStatus(PermissionStatus permissionStatus) {
-    mPermissionStatus = permissionStatus;
+  public MkdirsOptions setPermission(Permission permission) {
+    mPermission = permission;
     return this;
   }
 
@@ -97,19 +97,19 @@ public final class MkdirsOptions {
       return false;
     }
     MkdirsOptions that = (MkdirsOptions) o;
-    return Objects.equal(mPermissionStatus, that.mPermissionStatus)
+    return Objects.equal(mPermission, that.mPermission)
         && Objects.equal(mCreateParent, that.mCreateParent);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPermissionStatus, mCreateParent);
+    return Objects.hashCode(mPermission, mCreateParent);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("permissionStatus", mPermissionStatus)
+        .add("permission", mPermission)
         .add("createParent", mCreateParent)
         .toString();
   }

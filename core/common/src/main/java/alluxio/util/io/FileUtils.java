@@ -115,13 +115,13 @@ public final class FileUtils {
   }
 
   /**
-   * Gets local file's permission.
+   * Gets local file's permission mode.
    *
    * @param filePath the file path
-   * @return the file permission in short, e.g. 0777
+   * @return the file mode in short, e.g. 0777
    * @throws IOException when fails to get the permission
    */
-  public static short getLocalFilePermission(String filePath) throws IOException {
+  public static short getLocalFileMode(String filePath) throws IOException {
     Set<PosixFilePermission> permission =
         Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
     // Translate posix file permissions to short mode.

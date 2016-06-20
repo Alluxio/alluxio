@@ -13,7 +13,7 @@ package alluxio.underfs.options;
 
 import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Objects;
 
@@ -26,13 +26,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CreateOptions {
   // Permission status to set for the file being created.
-  private PermissionStatus mPermissionStatus;
+  private Permission mPermission;
 
   /**
    * Constructs a default {@link CreateOptions}.
    */
   public CreateOptions() {
-    mPermissionStatus = PermissionStatus.defaults();
+    mPermission = Permission.defaults();
   }
 
   /**
@@ -43,14 +43,14 @@ public final class CreateOptions {
   public CreateOptions(Configuration conf) {
     // Only set the permission not the owner/group, because owner/group is not yet used for ufs
     // file creation.
-    mPermissionStatus = PermissionStatus.defaults().applyFileUMask(conf);
+    mPermission = Permission.defaults().applyFileUMask(conf);
   }
 
   /**
    * @return the permission status
    */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
@@ -59,8 +59,8 @@ public final class CreateOptions {
    * @param permissionStatus the permission stats to set
    * @return the updated option object
    */
-  public CreateOptions setPermissionStatus(PermissionStatus permissionStatus) {
-    mPermissionStatus = permissionStatus;
+  public CreateOptions setPermission(Permission permissionStatus) {
+    mPermission = permissionStatus;
     return this;
   }
 
@@ -73,18 +73,18 @@ public final class CreateOptions {
       return false;
     }
     CreateOptions that = (CreateOptions) o;
-    return Objects.equal(mPermissionStatus, that.mPermissionStatus);
+    return Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPermissionStatus);
+    return Objects.hashCode(mPermission);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("permissionStatus", mPermissionStatus)
+        .add("permissionStatus", mPermission)
         .toString();
   }
 }

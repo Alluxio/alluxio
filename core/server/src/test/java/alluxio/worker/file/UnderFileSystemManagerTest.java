@@ -18,8 +18,8 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.security.authorization.FileSystemPermission;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.PathUtils;
@@ -101,7 +101,7 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void createUfsFileTest() throws Exception {
-    mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
         Mockito.any(CreateOptions.class));
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
@@ -116,7 +116,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri.toString()));
-    mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    mManager.createFile(SESSION_ID, mUri, Permission.defaults());
   }
 
   /**
@@ -125,9 +125,9 @@ public final class UnderFileSystemManagerTest {
   @Test
   public void completeUfsFileTest() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri,
-        new PermissionStatus("", "", Constants.DEFAULT_FS_FULL_PERMISSION));
+        new Permission("", "", Constants.DEFAULT_FILE_SYSTEM_MODE));
     mManager.completeFile(SESSION_ID, id,
-        new PermissionStatus("", "", Constants.DEFAULT_FS_FULL_PERMISSION));
+        new Permission("", "", Constants.DEFAULT_FILE_SYSTEM_MODE));
     Mockito.verify(mMockUfs).rename(Mockito.contains(mUri.toString()), Mockito.eq(mUri.toString()));
   }
 
@@ -138,9 +138,9 @@ public final class UnderFileSystemManagerTest {
   public void completeUfsFileWithOwnerTest() throws Exception {
     String user = "User";
     String group = "Group";
-    long id = mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mManager.completeFile(SESSION_ID, id,
-        new PermissionStatus(user, group, FileSystemPermission.getFullFsPermission()));
+        new Permission(user, group, Mode.createFullAccess()));
     Mockito.verify(mMockUfs).setOwner(mUri.toString(), user, group);
   }
 
@@ -151,7 +151,7 @@ public final class UnderFileSystemManagerTest {
   public void completeNonExistentUfsFileTest() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
-    mManager.completeFile(SESSION_ID, INVALID_FILE_ID, PermissionStatus.defaults());
+    mManager.completeFile(SESSION_ID, INVALID_FILE_ID, Permission.defaults());
   }
 
   /**
@@ -159,11 +159,11 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void completeUfsFileInvalidSessionTest() throws Exception {
-    long id = mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "complete"));
-    mManager.completeFile(INVALID_SESSION_ID, id, PermissionStatus.defaults());
+    mManager.completeFile(INVALID_SESSION_ID, id, Permission.defaults());
   }
 
   /**
@@ -171,7 +171,7 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void cancelUfsFileTest() throws Exception {
-    long id = mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mManager.cancelFile(SESSION_ID, id);
     Mockito.verify(mMockUfs).delete(Mockito.contains(mUri.toString()), Mockito.eq(false));
   }
@@ -191,7 +191,7 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void cancelUfsFileInvalidSessionTest() throws Exception {
-    long id = mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
         PreconditionMessage.ERR_UFS_MANAGER_OPERATION_INVALID_SESSION.toString(), "cancel"));
@@ -264,7 +264,7 @@ public final class UnderFileSystemManagerTest {
    */
   @Test
   public void getOutputStreamTest() throws Exception {
-    long id = mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
+    long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     Assert.assertEquals(mMockOutputStream, mManager.getOutputStream(id));
   }
 

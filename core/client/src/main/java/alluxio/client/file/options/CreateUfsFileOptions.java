@@ -14,7 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateUfsFileTOptions;
 
 import com.google.common.base.Objects;
@@ -24,37 +24,37 @@ import java.io.IOException;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Options for creating a UFS file. Currently we do not allow users to set arbitrary user and
- * group options. The user and group will be set to the user login.
+ * Options for creating a UFS file. Currently we do not allow user to set arbitrary owner and
+ * group options. The owner and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
 public final class CreateUfsFileOptions {
-  /** The ufs user this file should be owned by. */
-  private String mUser;
+  /** The ufs owner this file should be owned by. */
+  private String mOwner;
   /** The ufs group this file should be owned by. */
   private String mGroup;
-  /** The ufs permission in short format, e.g. 0777. */
-  private short mPermission;
+  /** The ufs mode in short format, e.g. 0777. */
+  private short mMode;
 
   /**
    * @return the default {@link CreateUfsFileOptions}
-   * @throws IOException if failed to set user from login module
+   * @throws IOException if failed to set owner from login module
    */
   public static CreateUfsFileOptions defaults() throws IOException {
     return new CreateUfsFileOptions();
   }
 
   private CreateUfsFileOptions() throws IOException {
-    PermissionStatus ps = PermissionStatus.defaults();
-    // Set user and group from user login module, apply default file UMask.
-    ps.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
+    Permission perm = Permission.defaults();
+    // Set owner and group from user login module, apply default file UMask.
+    perm.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
 
-    mUser = ps.getUserName();
-    mGroup = ps.getGroupName();
-    mPermission = ps.getPermission().toShort();
+    mOwner = perm.getUserName();
+    mGroup = perm.getGroupName();
+    mMode = perm.getMode().toShort();
   }
 
   /**
@@ -65,17 +65,17 @@ public final class CreateUfsFileOptions {
   }
 
   /**
-   * @return the user who should own the file
+   * @return the owner who should own the file
    */
-  public String getUser() {
-    return mUser;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
-   * @return the ufs permission in short format, e.g. 0777
+   * @return the ufs mode in short format, e.g. 0777
    */
-  public short getPermission() {
-    return mPermission;
+  public short getMode() {
+    return mMode;
   }
 
   /**
@@ -86,25 +86,25 @@ public final class CreateUfsFileOptions {
   }
 
   /**
-   * @return if the user has been set
+   * @return if the owner has been set
    */
-  public boolean hasUser() {
-    return mUser != null;
+  public boolean hasOwner() {
+    return mOwner != null;
   }
 
   /**
-   * @return if the permission has been set
+   * @return if the mode has been set
    */
-  public boolean hasPermission() {
-    return mPermission != Constants.INVALID_PERMISSION;
+  public boolean hasMode() {
+    return mMode != Constants.INVALID_MODE;
   }
 
   /**
-   * @param user the user to be set
+   * @param owner the owner to be set
    * @return the updated options object
    */
-  public CreateUfsFileOptions setUser(String user) {
-    mUser = user;
+  public CreateUfsFileOptions setOwner(String owner) {
+    mOwner = owner;
     return this;
   }
 
@@ -118,11 +118,11 @@ public final class CreateUfsFileOptions {
   }
 
   /**
-   * @param permission the permission to be set
+   * @param mode the mode to be set
    * @return the updated options object
    */
-  public CreateUfsFileOptions setPermission(short permission) {
-    mPermission = permission;
+  public CreateUfsFileOptions setMode(short mode) {
+    mMode = mode;
     return this;
   }
 
@@ -135,9 +135,9 @@ public final class CreateUfsFileOptions {
       return false;
     }
     CreateUfsFileOptions that = (CreateUfsFileOptions) o;
-    return Objects.equal(mUser, that.mUser)
+    return Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mPermission, that.mPermission);
+        && Objects.equal(mMode, that.mMode);
   }
 
   @Override
@@ -155,14 +155,14 @@ public final class CreateUfsFileOptions {
    */
   public CreateUfsFileTOptions toThrift() {
     CreateUfsFileTOptions options = new CreateUfsFileTOptions();
+    if (hasOwner()) {
+      options.setOwner(mOwner);
+    }
     if (hasGroup()) {
       options.setGroup(mGroup);
     }
-    if (hasUser()) {
-      options.setUser(mUser);
-    }
-    if (hasPermission()) {
-      options.setPermission(mPermission);
+    if (hasMode()) {
+      options.setMode(mMode);
     }
     return options;
   }

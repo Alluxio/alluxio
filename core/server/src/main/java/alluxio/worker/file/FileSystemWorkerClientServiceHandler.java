@@ -14,7 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
 import alluxio.thrift.CloseUfsFileTOptions;
@@ -112,12 +112,10 @@ public final class FileSystemWorkerClientServiceHandler
   public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      String user = options.isSetUser() ? options.getUser() : null;
+      String user = options.isSetOwner() ? options.getOwner() : null;
       String group = options.isSetGroup() ? options.getGroup() : null;
-      short permission = options.isSetPermission()
-          ? options.getPermission() : Constants.INVALID_PERMISSION;
-      return mWorker.completeUfsFile(sessionId, tempUfsFileId,
-          new PermissionStatus(user, group, permission));
+      short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId, new Permission(user, group, mode));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -140,12 +138,11 @@ public final class FileSystemWorkerClientServiceHandler
   public long createUfsFile(long sessionId, String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      String user = options.isSetUser() ? options.getUser() : null;
+      String user = options.isSetOwner() ? options.getOwner() : null;
       String group = options.isSetGroup() ? options.getGroup() : null;
-      short permission = options.isSetPermission()
-          ? options.getPermission() : Constants.INVALID_PERMISSION;
+      short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
       return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri),
-          new PermissionStatus(user, group, permission));
+          new Permission(user, group, mode));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

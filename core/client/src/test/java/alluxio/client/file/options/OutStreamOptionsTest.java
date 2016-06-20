@@ -21,7 +21,7 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,8 +35,8 @@ import java.util.Random;
  * Tests for the {@link OutStreamOptions} class.
  */
 @RunWith(PowerMockRunner.class)
-// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
-@PrepareForTest(PermissionStatus.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public class OutStreamOptionsTest {
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
@@ -56,8 +56,8 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals(PermissionStatus.defaults().applyFileUMask(ClientContext.getConf()),
-        options.getPermissionStatus());
+    Assert.assertEquals(Permission.defaults().applyFileUMask(ClientContext.getConf()),
+        options.getPermission());
     ClientTestUtils.resetClientContext();
   }
 
@@ -71,21 +71,21 @@ public class OutStreamOptionsTest {
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     long ttl = random.nextLong();
     WriteType writeType = WriteType.NONE;
-    PermissionStatus ps = PermissionStatus.defaults();
+    Permission perm = Permission.defaults();
 
     OutStreamOptions options = OutStreamOptions.defaults();
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(policy);
     options.setTtl(ttl);
     options.setWriteType(writeType);
-    options.setPermissionStatus(ps);
+    options.setPermission(perm);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
-    Assert.assertEquals(ps, options.getPermissionStatus());
+    Assert.assertEquals(perm, options.getPermission());
   }
 
   @Test

@@ -14,7 +14,7 @@ package alluxio.underfs.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import org.junit.Assert;
@@ -29,8 +29,8 @@ import java.io.IOException;
  * Tests for the {@link CreateOptions} class.
  */
 @RunWith(PowerMockRunner.class)
-// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
-@PrepareForTest(PermissionStatus.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public class CreateOptionsTest {
   /**
    * Tests for default {@link CreateOptions}.
@@ -39,12 +39,12 @@ public class CreateOptionsTest {
   public void defaultsTest() throws IOException {
     CreateOptions options = new CreateOptions();
 
-    PermissionStatus expectedPs = PermissionStatus.defaults();
+    Permission expectedPs = Permission.defaults();
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermissionStatus().getUserName());
-    Assert.assertEquals("", options.getPermissionStatus().getGroupName());
-    Assert.assertEquals(expectedPs.getPermission().toShort(),
-        options.getPermissionStatus().getPermission().toShort());
+    Assert.assertEquals("", options.getPermission().getUserName());
+    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals(expectedPs.getMode().toShort(),
+        options.getPermission().getMode().toShort());
   }
 
   /**
@@ -61,13 +61,13 @@ public class CreateOptionsTest {
 
     CreateOptions options = new CreateOptions(conf);
 
-    PermissionStatus expectedPs = PermissionStatus.defaults().applyFileUMask(conf);
+    Permission expectedPs = Permission.defaults().applyFileUMask(conf);
 
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermissionStatus().getUserName());
-    Assert.assertEquals("", options.getPermissionStatus().getGroupName());
-    Assert.assertEquals(expectedPs.getPermission().toShort(),
-        options.getPermissionStatus().getPermission().toShort());
+    Assert.assertEquals("", options.getPermission().getUserName());
+    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals(expectedPs.getMode().toShort(),
+        options.getPermission().getMode().toShort());
   }
 
   /**
@@ -75,13 +75,13 @@ public class CreateOptionsTest {
    */
   @Test
   public void fieldsTest() {
-    PermissionStatus ps = PermissionStatus.defaults();
+    Permission perm = Permission.defaults();
 
     Configuration conf = new Configuration();
     CreateOptions options = new CreateOptions(conf);
-    options.setPermissionStatus(ps);
+    options.setPermission(perm);
 
-    Assert.assertEquals(ps, options.getPermissionStatus());
+    Assert.assertEquals(perm, options.getPermission());
   }
 
   @Test

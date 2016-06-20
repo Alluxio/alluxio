@@ -338,7 +338,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, short permission) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
 
   // Not supported
   @Override
@@ -354,8 +354,8 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public short getPermission(String path) throws IOException {
-    return Constants.DEFAULT_FS_FULL_PERMISSION;
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
   }
 
   /**

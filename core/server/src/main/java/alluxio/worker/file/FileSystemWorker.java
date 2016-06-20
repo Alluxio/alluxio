@@ -19,7 +19,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.FileSystemWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -149,14 +149,14 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
-   * @param ps the permission status of the file
+   * @param perm the permission status of the file
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public long completeUfsFile(long sessionId, long tempUfsFileId, PermissionStatus ps)
+  public long completeUfsFile(long sessionId, long tempUfsFileId, Permission perm)
       throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, ps);
+    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, perm);
   }
 
   /**
@@ -165,15 +165,15 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the under file system uri to create a file for
-   * @param ps the permission status of the file
+   * @param perm the permission status of the file
    * @throws FileAlreadyExistsException if a file already exists in the under file system with
    *                                    the same path
    * @throws IOException if an error occurs interacting with the under file system
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
-  public long createUfsFile(long sessionId, AlluxioURI ufsUri, PermissionStatus ps)
+  public long createUfsFile(long sessionId, AlluxioURI ufsUri, Permission perm)
       throws FileAlreadyExistsException, IOException {
-    return mUnderFileSystemManager.createFile(sessionId, ufsUri, ps);
+    return mUnderFileSystemManager.createFile(sessionId, ufsUri, perm);
   }
 
   /**

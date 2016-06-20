@@ -234,10 +234,10 @@ public class FileUtilsTest {
   }
 
   /**
-   * Tests the {@link FileUtils#getLocalFilePermission(String)}} method.
+   * Tests the {@link FileUtils#getLocalFileMode(String)}} method.
    */
   @Test
-  public void getLocalFilePermissionTest() throws IOException {
+  public void getLocalFileModeTest() throws IOException {
     File tmpDir = mTestFolder.newFolder("dir");
     File tmpFile777 = mTestFolder.newFile("dir/0777");
     tmpFile777.setReadable(true, false /* owner only */);
@@ -252,9 +252,9 @@ public class FileUtilsTest {
     File tmpFile444 = mTestFolder.newFile("dir/0444");
     tmpFile444.setReadOnly();
 
-    Assert.assertEquals((short) 0777, FileUtils.getLocalFilePermission(tmpFile777.getPath()));
-    Assert.assertEquals((short) 0755, FileUtils.getLocalFilePermission(tmpFile755.getPath()));
-    Assert.assertEquals((short) 0444, FileUtils.getLocalFilePermission(tmpFile444.getPath()));
+    Assert.assertEquals((short) 0777, FileUtils.getLocalFileMode(tmpFile777.getPath()));
+    Assert.assertEquals((short) 0755, FileUtils.getLocalFileMode(tmpFile755.getPath()));
+    Assert.assertEquals((short) 0444, FileUtils.getLocalFileMode(tmpFile444.getPath()));
 
     // Delete all of these.
     FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());

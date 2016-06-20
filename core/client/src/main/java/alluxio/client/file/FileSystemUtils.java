@@ -20,7 +20,7 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
@@ -165,10 +165,10 @@ public final class FileSystemUtils {
       }
       // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
       URIStatus uriStatus = fs.getStatus(uri);
-      PermissionStatus ps = new PermissionStatus(uriStatus.getUserName(), uriStatus.getGroupName(),
+      Permission perm = new Permission(uriStatus.getUserName(), uriStatus.getGroupName(),
           (short) uriStatus.getPermission());
       OutputStream out = closer.register(ufs.create(dstPath.getPath(),
-          new CreateOptions().setPermissionStatus(ps)));
+          new CreateOptions().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

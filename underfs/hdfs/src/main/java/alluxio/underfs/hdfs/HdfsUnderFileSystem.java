@@ -16,7 +16,7 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -139,13 +139,13 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
-    PermissionStatus ps = options.getPermissionStatus();
+    Permission perm = options.getPermission();
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {} with perm {}", path, ps.toString());
+        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
         // TODO(chaomin): support creating HDFS files with specified block size and replication.
         return FileSystem.create(mFileSystem, new Path(path),
-            new FsPermission(ps.getPermission().toShort()));
+            new FsPermission(perm.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
@@ -360,7 +360,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         }
         while (!dirsToMake.empty()) {
           if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(),
-              new FsPermission(options.getPermissionStatus().getPermission().toShort()))) {
+              new FsPermission(options.getPermission().getMode().toShort()))) {
             return false;
           }
         }
@@ -437,14 +437,14 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setPermission(String path, short permission) throws IOException {
+  public void setMode(String path, short mode) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
-          fileStatus.getPermission(), permission);
-      mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(permission));
+          fileStatus.getPermission(), mode);
+      mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.error("Fail to set permission for {} with perm {}", path, permission, e);
+      LOG.error("Fail to set permission for {} with perm {}", path, mode, e);
       throw e;
     }
   }
@@ -470,7 +470,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public short getPermission(String path) throws IOException {
+  public short getMode(String path) throws IOException {
     try {
       return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
     } catch (IOException e) {
