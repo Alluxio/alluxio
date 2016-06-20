@@ -348,7 +348,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     LOG.info("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options =
-        SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+        SetAttributeOptions.defaults().setMode(permission.toShort()).setRecursive(false);
     try {
       sFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {

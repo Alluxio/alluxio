@@ -2215,7 +2215,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
-        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_MODE);
+        (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
@@ -2298,8 +2298,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       builder.setGroup(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      builder.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      builder.setPermission(options.getMode());
     }
     return appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
@@ -2428,8 +2428,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       inode.setGroup(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      inode.setPermission(options.getMode());
     }
     return persistedInodes;
   }
@@ -2456,7 +2456,7 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setGroup(entry.getGroup());
     }
     if (entry.hasPermission()) {
-      options.setPermission((short) entry.getPermission());
+      options.setMode((short) entry.getPermission());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {

@@ -394,7 +394,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       options.setGroup(group);
     }
     if (permission != null) {
-      options.setPermission(permission);
+      options.setMode(permission);
     }
     if (recursive != null) {
       options.setRecursive(recursive);
