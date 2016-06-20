@@ -35,7 +35,7 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -159,7 +159,7 @@ public class FileOutStreamTest {
     Mockito.when(mUnderFileSystem.create(Mockito.anyString()))
         .thenReturn(mUnderStorageOutputStream);
     Mockito.when(mUnderFileSystem.create(Mockito.anyString(),
-        Mockito.any(UnderFileSystemCreateOptions.class))).thenReturn(mUnderStorageOutputStream);
+        Mockito.any(CreateOptions.class))).thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)

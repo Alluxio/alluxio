@@ -22,7 +22,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Closer;
@@ -168,7 +168,7 @@ public final class FileSystemUtils {
       PermissionStatus ps = new PermissionStatus(uriStatus.getUserName(), uriStatus.getGroupName(),
           (short) uriStatus.getPermission());
       OutputStream out = closer.register(ufs.create(dstPath.getPath(),
-          UnderFileSystemCreateOptions.defaults().setPermissionStatus(ps)));
+          CreateOptions.defaults().setPermissionStatus(ps)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

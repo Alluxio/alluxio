@@ -21,7 +21,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -80,7 +80,7 @@ public final class UnderFileSystemManagerTest {
     mUri = new AlluxioURI(PathUtils.uniqPath());
     Mockito.when(mMockUfs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.create(Mockito.anyString(),
-        Mockito.any(UnderFileSystemCreateOptions.class))).thenReturn(mMockOutputStream);
+        Mockito.any(CreateOptions.class))).thenReturn(mMockOutputStream);
     Mockito.when(mMockUfs.open(Mockito.anyString())).thenReturn(mMockInputStream);
     Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
@@ -103,7 +103,7 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     mManager.createFile(SESSION_ID, mUri, PermissionStatus.defaults());
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
-        Mockito.any(UnderFileSystemCreateOptions.class));
+        Mockito.any(CreateOptions.class));
     Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
         Mockito.anyString());
   }

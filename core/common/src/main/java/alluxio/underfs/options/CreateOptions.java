@@ -23,31 +23,31 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class UnderFileSystemCreateOptions {
+public final class CreateOptions {
   // Permission status to set for the file being created.
   private PermissionStatus mPermissionStatus;
   // Block size in bytes for HDFS files only, not applicable for other Under FileSystems.
   private long mBlockSizeByte;
 
   /**
-   * @return the default {@link UnderFileSystemCreateOptions}
+   * @return the default {@link CreateOptions}
    */
-  public static UnderFileSystemCreateOptions defaults() {
-    return new UnderFileSystemCreateOptions();
+  public static CreateOptions defaults() {
+    return new CreateOptions();
   }
 
-  private UnderFileSystemCreateOptions() {
+  private CreateOptions() {
     mPermissionStatus = PermissionStatus.defaults();
     // By default HDFS block size is 64MB.
     mBlockSizeByte = 64 * Constants.MB;
   }
 
   /**
-   * Constructs a {@link UnderFileSystemCreateOptions} with specified configuration.
+   * Constructs a {@link CreateOptions} with specified configuration.
    *
    * @param conf the configuration
    */
-  public UnderFileSystemCreateOptions(Configuration conf) {
+  public CreateOptions(Configuration conf) {
     // Only set the permission not the owner/group, because owner/group is not yet used for ufs
     // file creation.
     mPermissionStatus = PermissionStatus.defaults().applyFileUMask(conf);
@@ -75,7 +75,7 @@ public final class UnderFileSystemCreateOptions {
    * @param blockSizeByte the block size to set in bytes
    * @return the updated option object
    */
-  public UnderFileSystemCreateOptions setBlockSizeByte(long blockSizeByte) {
+  public CreateOptions setBlockSizeByte(long blockSizeByte) {
     mBlockSizeByte = blockSizeByte;
     return this;
   }
@@ -86,7 +86,7 @@ public final class UnderFileSystemCreateOptions {
    * @param permissionStatus the permission stats to set
    * @return the updated option object
    */
-  public UnderFileSystemCreateOptions setPermissionStatus(PermissionStatus permissionStatus) {
+  public CreateOptions setPermissionStatus(PermissionStatus permissionStatus) {
     mPermissionStatus = permissionStatus;
     return this;
   }

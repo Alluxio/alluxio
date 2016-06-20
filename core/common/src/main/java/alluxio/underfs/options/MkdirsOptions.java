@@ -22,31 +22,31 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class UnderFileSystemMkdirsOptions {
+public final class MkdirsOptions {
   // Permission status to set for the directories being created.
   private PermissionStatus mPermissionStatus;
   // Determine whether to create any necessary but nonexistent parent directories.
   private boolean mCreateParent;
 
   /**
-   * @return the default {@link UnderFileSystemMkdirsOptions}
+   * @return the default {@link MkdirsOptions}
    */
-  public static UnderFileSystemMkdirsOptions defaults() {
-    return new UnderFileSystemMkdirsOptions();
+  public static MkdirsOptions defaults() {
+    return new MkdirsOptions();
   }
 
-  private UnderFileSystemMkdirsOptions() {
+  private MkdirsOptions() {
     mPermissionStatus = PermissionStatus.defaults();
     // By default create parent is true.
     mCreateParent = true;
   }
 
   /**
-   * Constructs a {@link UnderFileSystemMkdirsOptions} with specified configuration.
+   * Constructs a {@link MkdirsOptions} with specified configuration.
    *
    * @param conf the configuration
    */
-  public UnderFileSystemMkdirsOptions(Configuration conf) {
+  public MkdirsOptions(Configuration conf) {
     // Only set the permission, not the owner/group because owner/group is not yet used for UFS
     // directories creation.
     mPermissionStatus = PermissionStatus.defaults().applyDirectoryUMask(conf);
@@ -74,7 +74,7 @@ public final class UnderFileSystemMkdirsOptions {
    * @param createParent if true, creates any necessary but nonexistent parent directories
    * @return the updated option object
    */
-  public UnderFileSystemMkdirsOptions setCreateParent(boolean createParent) {
+  public MkdirsOptions setCreateParent(boolean createParent) {
     mCreateParent = createParent;
     return this;
   }
@@ -85,7 +85,7 @@ public final class UnderFileSystemMkdirsOptions {
    * @param permissionStatus the permission stats to set
    * @return the updated option object
    */
-  public UnderFileSystemMkdirsOptions setPermissionStatus(PermissionStatus permissionStatus) {
+  public MkdirsOptions setPermissionStatus(PermissionStatus permissionStatus) {
     mPermissionStatus = permissionStatus;
     return this;
   }

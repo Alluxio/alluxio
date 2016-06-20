@@ -16,8 +16,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.security.authorization.PermissionStatus;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
-import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
@@ -403,14 +403,14 @@ public abstract class UnderFileSystem {
 
   /**
    * Creates a file in the under file system with the specified
-   * {@link UnderFileSystemCreateOptions}.
+   * {@link CreateOptions}.
    *
    * @param path The file name
    * @param options the options for create, including block size and permissionStatus
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, UnderFileSystemCreateOptions options)
+  public abstract OutputStream create(String path, CreateOptions options)
       throws IOException;
 
   /**
@@ -597,14 +597,14 @@ public abstract class UnderFileSystem {
 
   /**
    * Creates the directory named by this abstract pathname, with specified
-   * {@link UnderFileSystemMkdirsOptions}. If the folder already exists, the method returns false.
+   * {@link MkdirsOptions}. If the folder already exists, the method returns false.
    *
    * @param path the folder to create
    * @param options the options for mkdirs, including createParent and permissionStatus
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract boolean mkdirs(String path, UnderFileSystemMkdirsOptions options)
+  public abstract boolean mkdirs(String path, MkdirsOptions options)
     throws IOException;
 
   /**
