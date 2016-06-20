@@ -1838,10 +1838,10 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
-   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws AccessControlException if permission checking fails or permission setting fails
    * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
-   * @throws AccessControlException if permission checking fails
    */
   private long loadFileMetadataAndJournal(LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options)
@@ -2405,7 +2405,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @return list of inodes which were marked as persisted
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if failed to set permission
    */
   private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, long opTimeMs,
       SetAttributeOptions options)
@@ -2487,6 +2489,8 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if failed to set permission
    */
   private void setAttributeFromEntry(SetAttributeEntry entry)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
