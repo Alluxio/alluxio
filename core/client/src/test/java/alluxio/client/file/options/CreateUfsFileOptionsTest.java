@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Tests for the {@link CreateUfsFileOptions} class.
  */
-public class CreateUfsFileOptionsTest {
+public final class CreateUfsFileOptionsTest {
   /**
    * Tests that building an {@link CreateUfsFileOptions} with the defaults works.
    */

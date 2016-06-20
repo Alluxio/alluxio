@@ -31,7 +31,7 @@ import java.io.IOException;
 @RunWith(PowerMockRunner.class)
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
-public class MkdirsOptionsTest {
+public final class MkdirsOptionsTest {
   /**
    * Tests for default {@link MkdirsOptions}.
    */
