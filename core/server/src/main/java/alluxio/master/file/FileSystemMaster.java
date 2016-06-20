@@ -1862,9 +1862,9 @@ public final class FileSystemMaster extends AbstractMaster {
     if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
-      short ufsPermission = ufs.getPermission(ufsUri.toString());
-      createFileOptions = createFileOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup, ufsPermission));
+      short ufsPermission = ufs.getMode(ufsUri.toString());
+      createFileOptions = createFileOptions.setPermission(
+          new Permission(ufsOwner, ufsGroup, ufsPermission));
     }
 
     try {
@@ -1911,9 +1911,9 @@ public final class FileSystemMaster extends AbstractMaster {
       UnderFileSystem ufs = resolution.getUfs();
       String ufsOwner = ufs.getOwner(ufsUri.toString());
       String ufsGroup = ufs.getGroup(ufsUri.toString());
-      short ufsPermission = ufs.getPermission(ufsUri.toString());
-      createDirectoryOptions = createDirectoryOptions.setPermissionStatus(
-          new PermissionStatus(ufsOwner, ufsGroup, ufsPermission));
+      short ufsPermission = ufs.getMode(ufsUri.toString());
+      createDirectoryOptions = createDirectoryOptions.setPermission(
+          new Permission(ufsOwner, ufsGroup, ufsPermission));
     }
 
     try {
@@ -2477,9 +2477,9 @@ public final class FileSystemMaster extends AbstractMaster {
         String ufsUri = resolution.getUri().toString();
         UnderFileSystem ufs = resolution.getUfs();
         try {
-          ufs.setPermission(ufsUri, inode.getPermission());
+          ufs.setMode(ufsUri, inode.getMode());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setPermission for UFS file " + ufsUri, e);
+          throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
         }
       }
     }

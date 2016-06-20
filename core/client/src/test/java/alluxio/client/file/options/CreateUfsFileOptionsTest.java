@@ -15,7 +15,7 @@ import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CreateUfsFileTOptions;
 
@@ -35,18 +35,18 @@ public class CreateUfsFileOptionsTest {
   public void defaultsTest() throws IOException {
     ClientContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
     ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "foo");
-    // Use IdentityUserGroupMapping to map user "foo" to group "foo".
+    // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
     ClientContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
         IdentityUserGroupsMapping.class.getName());
 
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
 
-    PermissionStatus expectedPs =
-        PermissionStatus.defaults().applyFileUMask(ClientContext.getConf());
+    Permission expectedPs =
+        Permission.defaults().applyFileUMask(ClientContext.getConf());
 
-    Assert.assertEquals("foo", options.getUser());
+    Assert.assertEquals("foo", options.getOwner());
     Assert.assertEquals("foo", options.getGroup());
-    Assert.assertEquals(expectedPs.getPermission().toShort(), options.getPermission());
+    Assert.assertEquals(expectedPs.getMode().toShort(), options.getMode());
     ClientTestUtils.resetClientContext();
   }
 
@@ -56,16 +56,16 @@ public class CreateUfsFileOptionsTest {
   @Test
   public void fieldsTest() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
-    String user = "test-user";
+    String owner = "test-owner";
     String group = "test-group";
-    short permission = Constants.DEFAULT_FS_FULL_PERMISSION;
-    options.setUser(user);
+    short permission = Constants.DEFAULT_FILE_SYSTEM_MODE;
+    options.setOwner(owner);
     options.setGroup(group);
-    options.setPermission(permission);
+    options.setMode(permission);
 
-    Assert.assertEquals(user, options.getUser());
+    Assert.assertEquals(owner, options.getOwner());
     Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(permission, options.getPermission());
+    Assert.assertEquals(permission, options.getMode());
   }
 
   /**
@@ -74,18 +74,18 @@ public class CreateUfsFileOptionsTest {
   @Test
   public void toThriftTest() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
-    String user = "test-user";
+    String owner = "test-owner";
     String group = "test-group";
-    short permission = Constants.DEFAULT_FS_FULL_PERMISSION;
+    short permission = Constants.DEFAULT_FILE_SYSTEM_MODE;
 
-    options.setUser(user);
+    options.setOwner(owner);
     options.setGroup(group);
-    options.setPermission(permission);
+    options.setMode(permission);
 
     CreateUfsFileTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(user, thriftOptions.getUser());
+    Assert.assertEquals(owner, thriftOptions.getOwner());
     Assert.assertEquals(group, thriftOptions.getGroup());
-    Assert.assertEquals(permission, thriftOptions.getPermission());
+    Assert.assertEquals(permission, thriftOptions.getMode());
   }
 
   @Test

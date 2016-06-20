@@ -14,7 +14,7 @@ package alluxio.underfs.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import org.junit.Assert;
@@ -29,8 +29,8 @@ import java.io.IOException;
  * Tests for the {@link MkdirsOptions} class.
  */
 @RunWith(PowerMockRunner.class)
-// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
-@PrepareForTest(PermissionStatus.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public class MkdirsOptionsTest {
   /**
    * Tests for default {@link MkdirsOptions}.
@@ -39,14 +39,14 @@ public class MkdirsOptionsTest {
   public void defaultsTest() throws IOException {
     MkdirsOptions options = new MkdirsOptions();
 
-    PermissionStatus expectedPs = PermissionStatus.defaults();
+    Permission expectedPs = Permission.defaults();
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermissionStatus().getUserName());
-    Assert.assertEquals("", options.getPermissionStatus().getGroupName());
-    Assert.assertEquals(expectedPs.getPermission().toShort(),
-        options.getPermissionStatus().getPermission().toShort());
+    Assert.assertEquals("", options.getPermission().getUserName());
+    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals(expectedPs.getMode().toShort(),
+        options.getPermission().getMode().toShort());
   }
 
   /**
@@ -63,15 +63,15 @@ public class MkdirsOptionsTest {
 
     MkdirsOptions options = new MkdirsOptions(conf);
 
-    PermissionStatus expectedPs = PermissionStatus.defaults().applyDirectoryUMask(conf);
+    Permission expectedPs = Permission.defaults().applyDirectoryUMask(conf);
 
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermissionStatus().getUserName());
-    Assert.assertEquals("", options.getPermissionStatus().getGroupName());
-    Assert.assertEquals(expectedPs.getPermission().toShort(),
-        options.getPermissionStatus().getPermission().toShort());
+    Assert.assertEquals("", options.getPermission().getUserName());
+    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals(expectedPs.getMode().toShort(),
+        options.getPermission().getMode().toShort());
   }
 
   /**
@@ -80,15 +80,15 @@ public class MkdirsOptionsTest {
   @Test
   public void fieldsTest() {
     boolean createParent = false;
-    PermissionStatus ps = PermissionStatus.defaults();
+    Permission perm = Permission.defaults();
 
     Configuration conf = new Configuration();
     MkdirsOptions options = new MkdirsOptions(conf);
     options.setCreateParent(createParent);
-    options.setPermissionStatus(ps);
+    options.setPermission(perm);
 
     Assert.assertEquals(createParent, options.getCreateParent());
-    Assert.assertEquals(ps, options.getPermissionStatus());
+    Assert.assertEquals(perm, options.getPermission());
   }
 
   @Test

@@ -33,7 +33,7 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -163,8 +163,7 @@ public class FileOutStreamTest {
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH)
-            .setPermissionStatus(PermissionStatus.defaults());
+            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 

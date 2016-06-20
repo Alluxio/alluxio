@@ -15,7 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
@@ -127,21 +127,21 @@ public abstract class UnderFileSystem {
      */
     UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
       UnderFileSystem cachedFs = null;
-      PermissionStatus ps = PermissionStatus.defaults();
+      Permission perm = Permission.defaults();
       try {
         // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
         // and client.
         String loggerType = configuration.get(Constants.LOGGER_TYPE);
         if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
             || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
-          ps.setUserFromThriftClient(configuration);
+          perm.setUserFromThriftClient(configuration);
         } else {
-          ps.setUserFromLoginModule(configuration);
+          perm.setUserFromLoginModule(configuration);
         }
       } catch (IOException e) {
         LOG.warn("Failed to set user from login module or thrift client: " + e);
       }
-      Key key = new Key(new AlluxioURI(path), ps.getUserName(), ps.getGroupName());
+      Key key = new Key(new AlluxioURI(path), perm.getUserName(), perm.getGroupName());
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
@@ -329,22 +329,22 @@ public abstract class UnderFileSystem {
     Preconditions.checkNotNull(configuration);
     mUri = uri;
     mConfiguration = configuration;
-    PermissionStatus ps = PermissionStatus.defaults();
+    Permission perm = Permission.defaults();
     try {
       // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
       // and client.
       String loggerType = configuration.get(Constants.LOGGER_TYPE);
       if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
           || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
-        ps.setUserFromThriftClient(configuration);
+        perm.setUserFromThriftClient(configuration);
       } else {
-        ps.setUserFromLoginModule(configuration);
+        perm.setUserFromLoginModule(configuration);
       }
     } catch (IOException e) {
       LOG.warn("Failed to set user from login module or thrift client: " + e);
     }
-    mUser = ps.getUserName();
-    mGroup = ps.getGroupName();
+    mUser = perm.getUserName();
+    mGroup = perm.getGroupName();
   }
 
   /**
@@ -672,13 +672,13 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Changes posix file permission.
+   * Changes posix file mode.
    *
    * @param path path of the file
-   * @param permission the permission to set in short format, e.g. 0777
+   * @param mode the mode to set in short format, e.g. 0777
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setPermission(String path, short permission) throws IOException;
+  public abstract void setMode(String path, short mode) throws IOException;
 
   /**
    * Gets the owner of the given path. An empty implementation should be provided if not supported.
@@ -699,12 +699,12 @@ public abstract class UnderFileSystem {
   public abstract String getGroup(String path) throws IOException;
 
   /**
-   * Gets the permission of the given path in short format, e.g 0700. An empty implementation should
+   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
    * be provided if not supported.
    *
    * @param path path of the file
-   * @return the permission of the file
+   * @return the mode of the file
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract short getPermission(String path) throws IOException;
+  public abstract short getMode(String path) throws IOException;
 }

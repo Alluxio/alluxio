@@ -345,7 +345,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @throws IOException if the path failed to be changed permission
    */
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    LOG.info("setPermission({},{})", path, permission.toString());
+    LOG.info("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options =
         SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);

@@ -17,7 +17,7 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
@@ -229,10 +229,9 @@ public final class FileDataManager {
     String dstPath = prepareUfsFilePath(fileId);
     // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    PermissionStatus ps = new PermissionStatus(fileInfo.getUserName(), fileInfo.getGroupName(),
+    Permission perm = new Permission(fileInfo.getUserName(), fileInfo.getGroupName(),
         (short) fileInfo.getPermission());
-    OutputStream outputStream = mUfs.create(dstPath,
-        new CreateOptions().setPermissionStatus(ps));
+    OutputStream outputStream = mUfs.create(dstPath, new CreateOptions().setPermission(perm));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();

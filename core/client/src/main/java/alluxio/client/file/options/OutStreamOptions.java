@@ -19,7 +19,7 @@ import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
@@ -39,7 +39,7 @@ public final class OutStreamOptions {
   private long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
   private WriteType mWriteType;
-  private PermissionStatus mPermissionStatus;
+  private Permission mPermission;
 
   /**
    * @return the default {@link OutStreamOptions}
@@ -61,10 +61,10 @@ public final class OutStreamOptions {
       throw Throwables.propagate(e);
     }
     mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    mPermissionStatus = PermissionStatus.defaults();
+    mPermission = Permission.defaults();
     try {
       // Set user and group from user login module, and apply default file UMask.
-      mPermissionStatus.applyFileUMask(conf).setUserFromLoginModule(conf);
+      mPermission.applyFileUMask(conf).setUserFromLoginModule(conf);
     } catch (IOException e) {
       // Fall through to system property approach
     }
@@ -109,8 +109,8 @@ public final class OutStreamOptions {
   /**
    * @return the permission status
    */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
@@ -159,13 +159,13 @@ public final class OutStreamOptions {
   }
 
   /**
-   * Sets the {@link PermissionStatus}.
+   * Sets the {@link Permission}.
    *
-   * @param ps the permission status
+   * @param perm the permission status
    * @return the updated options object
    */
-  public OutStreamOptions setPermissionStatus(PermissionStatus ps) {
-    mPermissionStatus = ps;
+  public OutStreamOptions setPermission(Permission perm) {
+    mPermission = perm;
     return this;
   }
 
@@ -182,12 +182,12 @@ public final class OutStreamOptions {
         && Objects.equal(mTtl, that.mTtl)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mWriteType, that.mWriteType)
-        && Objects.equal(mPermissionStatus, that.mPermissionStatus);
+        && Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSizeBytes, mTtl, mLocationPolicy, mWriteType, mPermissionStatus);
+    return Objects.hashCode(mBlockSizeBytes, mTtl, mLocationPolicy, mWriteType, mPermission);
   }
 
   @Override
@@ -197,7 +197,7 @@ public final class OutStreamOptions {
         .add("ttl", mTtl)
         .add("locationPolicy", mLocationPolicy)
         .add("writeType", mWriteType)
-        .add("permissionStatus", mPermissionStatus)
+        .add("permission", mPermission)
         .toString();
   }
 }
