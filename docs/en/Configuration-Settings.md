@@ -16,9 +16,9 @@ for Alluxio in different contexts.
 Alluxio runtime respects three sources of configuration settings:
 
 1. [Application settings](#application-settings). Setting Alluxio configuration in this way is application-specific,
-and is required each time when running a new Spark/MapReduce job or an Alluxio shell command.
+and is required each time when running an application instance (e.g., a Spark job).
 2. [Environment variables](#environment-variables). This is an easy and fast way to set the basic properties
-to manage Alluxio servers and run Alluxio shell commandlines.
+to manage Alluxio servers and run Alluxio shell commands.
 Note that, configuration set through environment variables may not be realized by applications.
 3. [Property files](#property-files). This is a general approach to customize any
 [supported Alluxio configure properties](#appendix). Configuration in those files can be respected by Alluxio servers,
@@ -45,7 +45,7 @@ Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines 
 $ hadoop jar -Dalluxio.user.file.writetype.default=MUST_CACHE foo.jar
 ```
 
-Note that, setting Alluxio configuration in this way is application specific and is also required for each job or command.
+Note that, setting Alluxio configuration in this way is application specific and required for each job or command.
 
 ## Environment variables
 
