@@ -156,8 +156,8 @@ public enum ExceptionMessage {
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
+  MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_DENIED("Permission denied: {0}"),
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
