@@ -12,9 +12,10 @@
 package alluxio.underfs.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.PermissionStatus;
+
+import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -26,8 +27,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CreateOptions {
   // Permission status to set for the file being created.
   private PermissionStatus mPermissionStatus;
-  // Block size in bytes for HDFS files only, not applicable for other Under FileSystems.
-  private long mBlockSizeByte;
 
   /**
    * @return the default {@link CreateOptions}
@@ -38,8 +37,6 @@ public final class CreateOptions {
 
   private CreateOptions() {
     mPermissionStatus = PermissionStatus.defaults();
-    // By default HDFS block size is 64MB.
-    mBlockSizeByte = 64 * Constants.MB;
   }
 
   /**
@@ -51,15 +48,6 @@ public final class CreateOptions {
     // Only set the permission not the owner/group, because owner/group is not yet used for ufs
     // file creation.
     mPermissionStatus = PermissionStatus.defaults().applyFileUMask(conf);
-    // By default HDFS block size is 64MB.
-    mBlockSizeByte = 64 * Constants.MB;
-  }
-
-  /**
-   * @return the block size in bytes
-   */
-  public long getBlockSizeByte() {
-    return mBlockSizeByte;
   }
 
   /**
@@ -67,17 +55,6 @@ public final class CreateOptions {
    */
   public PermissionStatus getPermissionStatus() {
     return mPermissionStatus;
-  }
-
-  /**
-   * Sets the block size.
-   *
-   * @param blockSizeByte the block size to set in bytes
-   * @return the updated option object
-   */
-  public CreateOptions setBlockSizeByte(long blockSizeByte) {
-    mBlockSizeByte = blockSizeByte;
-    return this;
   }
 
   /**
@@ -89,5 +66,29 @@ public final class CreateOptions {
   public CreateOptions setPermissionStatus(PermissionStatus permissionStatus) {
     mPermissionStatus = permissionStatus;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateOptions)) {
+      return false;
+    }
+    CreateOptions that = (CreateOptions) o;
+    return Objects.equal(mPermissionStatus, that.mPermissionStatus);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPermissionStatus);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("permissionStatus", mPermissionStatus)
+        .toString();
   }
 }

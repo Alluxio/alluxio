@@ -11,6 +11,7 @@
 
 package alluxio.underfs.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.security.authorization.PermissionStatus;
@@ -18,12 +19,18 @@ import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
 /**
  * Tests for the {@link MkdirsOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
+@PrepareForTest(PermissionStatus.class)
 public class MkdirsOptionsTest {
   /**
    * Tests for default {@link MkdirsOptions}.
@@ -82,5 +89,10 @@ public class MkdirsOptionsTest {
 
     Assert.assertEquals(createParent, options.getCreateParent());
     Assert.assertEquals(ps, options.getPermissionStatus());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CreateOptions.class);
   }
 }

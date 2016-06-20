@@ -11,6 +11,7 @@
 
 package alluxio.underfs.options;
 
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.security.authorization.PermissionStatus;
@@ -18,13 +19,18 @@ import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.Random;
 
 /**
  * Tests for the {@link CreateOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
+@PrepareForTest(PermissionStatus.class)
 public class CreateOptionsTest {
   /**
    * Tests for default {@link CreateOptions}.
@@ -34,8 +40,6 @@ public class CreateOptionsTest {
     CreateOptions options = CreateOptions.defaults();
 
     PermissionStatus expectedPs = PermissionStatus.defaults();
-    // Verify the default block size is 64MB for HDFS.
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeByte());
     // Verify that the owner and group are not.
     Assert.assertEquals("", options.getPermissionStatus().getUserName());
     Assert.assertEquals("", options.getPermissionStatus().getGroupName());
@@ -59,8 +63,6 @@ public class CreateOptionsTest {
 
     PermissionStatus expectedPs = PermissionStatus.defaults().applyFileUMask(conf);
 
-    // Verify the default block size is 64MB for HDFS.
-    Assert.assertEquals(64 * Constants.MB, options.getBlockSizeByte());
     // Verify that the owner and group are not.
     Assert.assertEquals("", options.getPermissionStatus().getUserName());
     Assert.assertEquals("", options.getPermissionStatus().getGroupName());
@@ -73,16 +75,17 @@ public class CreateOptionsTest {
    */
   @Test
   public void fieldsTest() {
-    Random random = new Random();
-    long blockSize = random.nextLong();
     PermissionStatus ps = PermissionStatus.defaults();
 
     Configuration conf = new Configuration();
     CreateOptions options = new CreateOptions(conf);
-    options.setBlockSizeByte(blockSize);
     options.setPermissionStatus(ps);
 
-    Assert.assertEquals(blockSize, options.getBlockSizeByte());
     Assert.assertEquals(ps, options.getPermissionStatus());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CreateOptions.class);
   }
 }
