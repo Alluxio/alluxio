@@ -554,7 +554,7 @@ public class JournalIntegrationTest {
     mFileSystem.setAttribute(filePath,
         SetAttributeOptions.defaults().setGroup("group1").setRecursive(false));
     mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setPermission((short) 0400).setRecursive(false));
+        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(false));
 
     URIStatus status = mFileSystem.getStatus(filePath);
 

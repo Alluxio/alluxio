@@ -820,7 +820,7 @@ public final class PermissionCheckTest {
       short permission, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
-        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setPermission(permission)
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setMode(permission)
             .setRecursive(recursive);
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
