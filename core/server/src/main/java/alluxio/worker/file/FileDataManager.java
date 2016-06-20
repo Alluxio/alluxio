@@ -232,7 +232,7 @@ public final class FileDataManager {
     PermissionStatus ps = new PermissionStatus(fileInfo.getUserName(), fileInfo.getGroupName(),
         (short) fileInfo.getPermission());
     OutputStream outputStream = mUfs.create(dstPath,
-        CreateOptions.defaults().setPermissionStatus(ps));
+        new CreateOptions().setPermissionStatus(ps));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();

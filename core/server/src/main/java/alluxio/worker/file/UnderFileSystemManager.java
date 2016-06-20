@@ -266,9 +266,8 @@ public final class UnderFileSystemManager {
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(
-        long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf, PermissionStatus ps)
-        throws FileAlreadyExistsException, IOException {
+    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf,
+        PermissionStatus ps) throws FileAlreadyExistsException, IOException {
       mSessionId = sessionId;
       mAgentId = agentId;
       mConfiguration = Preconditions.checkNotNull(conf);
@@ -282,7 +281,7 @@ public final class UnderFileSystemManager {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
       mStream = ufs.create(mTemporaryUri,
-          CreateOptions.defaults().setPermissionStatus(mPermissionStatus));
+          new CreateOptions().setPermissionStatus(mPermissionStatus));
     }
 
     /**

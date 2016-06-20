@@ -29,13 +29,9 @@ public final class CreateOptions {
   private PermissionStatus mPermissionStatus;
 
   /**
-   * @return the default {@link CreateOptions}
+   * Constructs a default {@link CreateOptions}.
    */
-  public static CreateOptions defaults() {
-    return new CreateOptions();
-  }
-
-  private CreateOptions() {
+  public CreateOptions() {
     mPermissionStatus = PermissionStatus.defaults();
   }
 

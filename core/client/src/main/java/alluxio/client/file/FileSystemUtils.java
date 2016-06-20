@@ -168,7 +168,7 @@ public final class FileSystemUtils {
       PermissionStatus ps = new PermissionStatus(uriStatus.getUserName(), uriStatus.getGroupName(),
           (short) uriStatus.getPermission());
       OutputStream out = closer.register(ufs.create(dstPath.getPath(),
-          CreateOptions.defaults().setPermissionStatus(ps)));
+          new CreateOptions().setPermissionStatus(ps)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
       throw closer.rethrow(e);

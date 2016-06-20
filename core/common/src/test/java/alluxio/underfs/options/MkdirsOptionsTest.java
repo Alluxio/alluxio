@@ -37,7 +37,7 @@ public class MkdirsOptionsTest {
    */
   @Test
   public void defaultsTest() throws IOException {
-    MkdirsOptions options = MkdirsOptions.defaults();
+    MkdirsOptions options = new MkdirsOptions();
 
     PermissionStatus expectedPs = PermissionStatus.defaults();
     // Verify the default createParent is true.

@@ -31,13 +31,9 @@ public final class MkdirsOptions {
   private boolean mCreateParent;
 
   /**
-   * @return the default {@link MkdirsOptions}
+   * Constructs a default {@link MkdirsOptions}.
    */
-  public static MkdirsOptions defaults() {
-    return new MkdirsOptions();
-  }
-
-  private MkdirsOptions() {
+  public MkdirsOptions() {
     mPermissionStatus = PermissionStatus.defaults();
     // By default create parent is true.
     mCreateParent = true;
