@@ -44,7 +44,7 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 12
+// next available id: 16
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -53,12 +53,14 @@ message InodeDirectoryEntry {
   optional bool pinned = 5;
   optional int64 creation_time_ms = 6;
   optional int64 last_modification_time_ms = 7;
-  optional string user_name = 8;
-  optional string group_name = 9;
+  optional string user_name = 8; // deprecated since 1.2 (replaced by owner), will be removed in 2.0
+  optional string group_name = 9; // deprecated since 1.2 (replaced by group), will be removed in 2.0
   optional int32 permission = 10; // deprecated since 1.2 (replaced by mode), will be removed in 2.0
   optional bool mount_point = 11;
   optional bool direct_children_loaded = 12;
-  optional int32 mode = 13;
+  optional string owner = 13;
+  optional string group = 14;
+  optional int32 mode = 15;
 }
 
 // next available id: 3
@@ -67,7 +69,7 @@ message InodeDirectoryIdGeneratorEntry {
   optional int64 sequence_number = 2;
 }
 
-// next available id: 17
+// next available id: 20
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -82,10 +84,12 @@ message InodeFileEntry {
   optional bool cacheable = 11;
   repeated int64 blocks = 12;
   optional int64 ttl = 13;
-  optional string user_name = 14;
-  optional string group_name = 15;
+  optional string user_name = 14; // deprecated since 1.2 (replaced by owner), will be removed in 2.0
+  optional string group_name = 15; // deprecated since 1.2 (replaced by group), will be removed in 2.0
   optional int32 permission = 16; // deprecated since 1.2 (replaced by mode), will be removed in 2.0
-  optional int32 mode = 17;
+  optional string owner = 17;
+  optional string group = 18;
+  optional int32 mode = 19;
 }
 
 // next available id: 3

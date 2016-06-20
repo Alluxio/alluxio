@@ -201,9 +201,9 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setPersisted(isPersisted());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(Constants.NO_TTL);
-    ret.setUserName(getUserName());
-    ret.setGroupName(getGroupName());
-    ret.setPermission(getMode());
+    ret.setOwner(getOwner());
+    ret.setGroup(getGroup());
+    ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(isMountPoint());
     return ret;
@@ -221,14 +221,28 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    Permission permission;
-    if (entry.hasMode()) {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getMode());
+    String owner;
+    String group;
+    int mode;
+    if (entry.hasOwner()) {
+      owner = entry.getOwner();
     } else {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getPermission());
+      // remove in 2.0
+      owner = entry.getUserName();
     }
+    if (entry.hasGroup()) {
+      group = entry.getGroup();
+    } else {
+      // remove in 2.0
+      group = entry.getGroupName();
+    }
+    if (entry.hasMode()) {
+      mode = entry.getMode();
+    } else {
+      // remove in 2.0
+      mode = entry.getPermission();
+    }
+    Permission permission = new Permission(owner, group, (short) mode);
     return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
@@ -270,11 +284,13 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
-        .setUserName(getUserName())
-        .setGroupName(getGroupName())
+        .setUserName(getOwner())
+        .setGroupName(getGroup())
         .setPermission(getMode())
         .setMountPoint(isMountPoint())
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
+        .setOwner(getOwner())
+        .setGroup(getGroup())
         .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();

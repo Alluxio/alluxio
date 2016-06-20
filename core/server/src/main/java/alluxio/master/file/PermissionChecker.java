@@ -254,7 +254,7 @@ public final class PermissionChecker {
 
     Inode inode = inodeList.get(inodeList.size() - 1);
     if (checkIsOwner) {
-      if (inode == null || user.equals(inode.getUserName())) {
+      if (inode == null || user.equals(inode.getOwner())) {
         return;
       }
       throw new AccessControlException(ExceptionMessage.PERMISSION_DENIED
@@ -281,11 +281,11 @@ public final class PermissionChecker {
 
     short permission = inode.getMode();
 
-    if (user.equals(inode.getUserName()) && Mode.extractUserBits(permission).imply(bits)) {
+    if (user.equals(inode.getOwner()) && Mode.extractOwnerBits(permission).imply(bits)) {
       return;
     }
 
-    if (groups.contains(inode.getGroupName()) && Mode.extractGroupBits(permission).imply(bits)) {
+    if (groups.contains(inode.getGroup()) && Mode.extractGroupBits(permission).imply(bits)) {
       return;
     }
 

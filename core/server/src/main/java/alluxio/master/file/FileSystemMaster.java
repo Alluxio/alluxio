@@ -357,7 +357,7 @@ public final class FileSystemMaster extends AbstractMaster {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree.initializeRoot(Permission.defaults()
           .applyDirectoryUMask(MasterContext.getConf())
-          .setUserFromLoginModule(MasterContext.getConf()));
+          .setOwnerFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -2423,10 +2423,10 @@ public final class FileSystemMaster extends AbstractMaster {
       }
     }
     if (options.getOwner() != null) {
-      inode.setUserName(options.getOwner());
+      inode.setOwner(options.getOwner());
     }
     if (options.getGroup() != null) {
-      inode.setGroupName(options.getGroup());
+      inode.setGroup(options.getGroup());
     }
     if (options.getPermission() != Constants.INVALID_MODE) {
       inode.setPermission(options.getPermission());

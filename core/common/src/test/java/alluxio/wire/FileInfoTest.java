@@ -115,9 +115,9 @@ public class FileInfoTest {
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
     result.setTtl(ttl);
-    result.setUserName(userName);
-    result.setGroupName(groupName);
-    result.setPermission(permission);
+    result.setOwner(userName);
+    result.setGroup(groupName);
+    result.setMode(permission);
     result.setPersistenceState(persistenceState);
     result.setMountPoint(mountPoint);
     result.setFileBlockInfos(fileBlocksInfos);

@@ -91,9 +91,9 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);
-    ret.setUserName(getUserName());
-    ret.setGroupName(getGroupName());
-    ret.setPermission(getMode());
+    ret.setOwner(getOwner());
+    ret.setGroup(getGroup());
+    ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     return ret;
@@ -275,14 +275,28 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    Permission permission;
-    if (entry.hasMode()) {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getMode());
+    String owner;
+    String group;
+    int mode;
+    if (entry.hasOwner()) {
+      owner = entry.getOwner();
     } else {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getPermission());
+      // remove in 2.0
+      owner = entry.getUserName();
     }
+    if (entry.hasGroup()) {
+      group = entry.getGroup();
+    } else {
+      // remove in 2.0
+      group = entry.getGroupName();
+    }
+    if (entry.hasMode()) {
+      mode = entry.getMode();
+    } else {
+      // remove in 2.0
+      mode = entry.getPermission();
+    }
+    Permission permission = new Permission(owner, group, (short) mode);
     return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
@@ -335,11 +349,13 @@ public final class InodeFile extends Inode<InodeFile> {
         .setLength(getLength())
         .setCompleted(isCompleted())
         .setCacheable(isCacheable())
-        .addAllBlocks(mBlocks)
-        .setTtl(mTtl)
-        .setUserName(getUserName())
-        .setGroupName(getGroupName())
+        .addAllBlocks(getBlockIds())
+        .setTtl(getTtl())
+        .setUserName(getOwner())
+        .setGroupName(getGroup())
         .setPermission(getMode())
+        .setOwner(getOwner())
+        .setGroup(getGroup())
         .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();

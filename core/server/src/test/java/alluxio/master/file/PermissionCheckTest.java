@@ -248,7 +248,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
         .setPermission(Permission.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+            .setOwnerFromThriftClient(MasterContext.getConf()));
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
@@ -303,7 +303,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
         .setPermission(Permission.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+            .setOwnerFromThriftClient(MasterContext.getConf()));
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
     FileInfo fileInfo =
