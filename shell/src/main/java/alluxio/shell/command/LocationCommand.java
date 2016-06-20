@@ -48,13 +48,8 @@ public final class LocationCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     System.out.println(path + " with file id " + status.getFileId() + " is on nodes: ");
     for (long blockId : status.getBlockIds()) {

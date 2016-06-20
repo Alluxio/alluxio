@@ -49,16 +49,12 @@ public final class TouchCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    try {
-      mFileSystem.createFile(inputPath,
-          CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.createFile(inputPath,
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
     System.out.println(inputPath + " has been created");
   }
 

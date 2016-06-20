@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Tests the "pin" and "unpin" commands.
  */
-public class PinCommandTest extends AbstractAlluxioShellTest {
+public final class PinCommandTest extends AbstractAlluxioShellTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallyScheduleRule = new ManuallyScheduleHeartbeat(
       HeartbeatContext.MASTER_TTL_CHECK,

@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
 import alluxio.master.journal.JournalEntryRepresentable;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Objects;
@@ -32,15 +33,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected boolean mDirectory;
-  private String mGroupName;
   protected long mId;
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
-  private short mPermission;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
+
   private String mUserName;
+  private String mGroupName;
+  private short mMode;
 
   private final ReentrantReadWriteLock mLock;
 
@@ -53,7 +55,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
-    mPermission = 0;
+    mMode = Constants.INVALID_MODE;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
     mUserName = "";
@@ -96,10 +98,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the permission of the inode
+   * @return the mode of the inode
    */
-  public short getPermission() {
-    return mPermission;
+  public short getMode() {
+    return mMode;
   }
 
   /**
@@ -213,24 +215,24 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param permissionStatus the {@link PermissionStatus} to use
+   * @param permission the {@link Permission} to use
    * @return the updated object
    */
-  public T setPermissionStatus(PermissionStatus permissionStatus) {
-    if (permissionStatus != null) {
-      mGroupName = permissionStatus.getGroupName();
-      mPermission = permissionStatus.getPermission().toShort();
-      mUserName = permissionStatus.getUserName();
+  public T setPermission(Permission permission) {
+    if (permission != null) {
+      mUserName = permission.getUserName();
+      mGroupName = permission.getGroupName();
+      mMode = permission.getMode().toShort();
     }
     return getThis();
   }
 
   /**
-   * @param permission the permission of the inode
+   * @param mode the mode of the inode
    * @return the updated object
    */
-  public T setPermission(short permission) {
-    mPermission = permission;
+  public T setPermission(short mode) {
+    mMode = mode;
     return getThis();
   }
 
@@ -329,6 +331,6 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
         .add("lastModificationTimeMs", mLastModificationTimeMs).add("userName", mUserName)
-        .add("groupName", mGroupName).add("permission", mPermission);
+        .add("groupName", mGroupName).add("permission", mMode);
   }
 }
