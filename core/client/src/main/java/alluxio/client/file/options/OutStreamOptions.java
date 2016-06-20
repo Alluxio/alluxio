@@ -24,8 +24,6 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -37,8 +35,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class OutStreamOptions {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private long mBlockSizeBytes;
   private long mTtl;
   private FileWriteLocationPolicy mLocationPolicy;
@@ -65,13 +61,12 @@ public final class OutStreamOptions {
       throw Throwables.propagate(e);
     }
     mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
-    // Apply default file UMask to permission status.
-    mPermissionStatus = PermissionStatus.defaults().applyFileUMask(conf);
+    mPermissionStatus = PermissionStatus.defaults();
     try {
-      // Set user and group from user login module.
-      mPermissionStatus.setUserFromLoginModule(conf);
+      // Set user and group from user login module, and apply default file UMask.
+      mPermissionStatus.applyFileUMask(conf).setUserFromLoginModule(conf);
     } catch (IOException e) {
-      LOG.warn("Failed to set user from login module {} ", e.getMessage());
+      // Fall through to system property approach
     }
   }
 
@@ -202,7 +197,7 @@ public final class OutStreamOptions {
         .add("ttl", mTtl)
         .add("locationPolicy", mLocationPolicy)
         .add("writeType", mWriteType)
-        .add("permissionStatus", mPermissionStatus.toString())
+        .add("permissionStatus", mPermissionStatus)
         .toString();
   }
 }
