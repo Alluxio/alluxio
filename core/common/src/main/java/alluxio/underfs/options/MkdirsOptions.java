@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class MkdirsOptions {
-  // Permission status to set for the directories being created.
+  // Permission to set for the directories being created.
   private Permission mPermission;
   // Determine whether to create any necessary but nonexistent parent directories.
   private boolean mCreateParent;

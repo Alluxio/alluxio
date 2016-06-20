@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CreateOptions {
-  // Permission status to set for the file being created.
+  // Permission to set for the file being created.
   private Permission mPermission;
 
   /**

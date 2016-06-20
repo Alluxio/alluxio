@@ -27,7 +27,7 @@ import java.io.IOException;
 /**
  * Tests for the {@link CompleteUfsFileOptions} class.
  */
-public class CompleteUfsFileOptionsTest {
+public final class CompleteUfsFileOptionsTest {
   /**
    * Tests that building an {@link CompleteUfsFileOptions} with the defaults works.
    */
