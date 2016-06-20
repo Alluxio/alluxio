@@ -12,10 +12,16 @@ public class AlluxioProcess {
     WORKER
   }
 
+  /**
+   * @param type the {@link Type} to use
+   */
   public static void setType(Type type) {
     sType = type;
   }
 
+  /**
+   * @return the {@link Type} of the current process
+   */
   public static Type getType() {
     return sType;
   }
