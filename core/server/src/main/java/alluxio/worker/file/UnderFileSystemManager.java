@@ -22,7 +22,7 @@ import alluxio.exception.PreconditionMessage;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -282,7 +282,7 @@ public final class UnderFileSystemManager {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
       mStream = ufs.create(mTemporaryUri,
-          UnderFileSystemCreateOptions.defaults().setPermissionStatus(mPermissionStatus));
+          CreateOptions.defaults().setPermissionStatus(mPermissionStatus));
     }
 
     /**

@@ -23,15 +23,15 @@ import java.io.IOException;
 import java.util.Random;
 
 /**
- * Tests for the {@link UnderFileSystemCreateOptions} class.
+ * Tests for the {@link CreateOptions} class.
  */
-public class UnderFileSystemCreateOptionsTest {
+public class CreateOptionsTest {
   /**
-   * Tests for default {@link UnderFileSystemCreateOptions}.
+   * Tests for default {@link CreateOptions}.
    */
   @Test
   public void defaultsTest() throws IOException {
-    UnderFileSystemCreateOptions options = UnderFileSystemCreateOptions.defaults();
+    CreateOptions options = CreateOptions.defaults();
 
     PermissionStatus expectedPs = PermissionStatus.defaults();
     // Verify the default block size is 64MB for HDFS.
@@ -44,7 +44,7 @@ public class UnderFileSystemCreateOptionsTest {
   }
 
   /**
-   * Tests for building an {@link UnderFileSystemCreateOptions} with a security enabled
+   * Tests for building an {@link CreateOptions} with a security enabled
    * configuration.
    */
   @Test
@@ -55,7 +55,7 @@ public class UnderFileSystemCreateOptionsTest {
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
 
-    UnderFileSystemCreateOptions options = new UnderFileSystemCreateOptions(conf);
+    CreateOptions options = new CreateOptions(conf);
 
     PermissionStatus expectedPs = PermissionStatus.defaults().applyFileUMask(conf);
 
@@ -78,7 +78,7 @@ public class UnderFileSystemCreateOptionsTest {
     PermissionStatus ps = PermissionStatus.defaults();
 
     Configuration conf = new Configuration();
-    UnderFileSystemCreateOptions options = new UnderFileSystemCreateOptions(conf);
+    CreateOptions options = new CreateOptions(conf);
     options.setBlockSizeByte(blockSize);
     options.setPermissionStatus(ps);
 

@@ -18,8 +18,8 @@ import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
-import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -131,11 +131,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public FSDataOutputStream create(String path) throws IOException {
-    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+    return create(path, new CreateOptions(mConfiguration));
   }
 
   @Override
-  public FSDataOutputStream create(String path, UnderFileSystemCreateOptions options)
+  public FSDataOutputStream create(String path, CreateOptions options)
       throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
@@ -349,12 +349,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path,
-        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
+    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
   }
 
   @Override
-  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {

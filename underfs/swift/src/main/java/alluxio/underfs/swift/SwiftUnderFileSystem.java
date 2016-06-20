@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
-import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -135,12 +135,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+    return create(path, new CreateOptions(mConfiguration));
   }
 
   @Override
-  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
-    // Block size and permission status in options are ignored when creating Swift object.
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     if (newPath.endsWith("_SUCCESS")) {
@@ -258,12 +257,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path,
-        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
+    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
   }
 
   @Override
-  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     return true;
   }
 

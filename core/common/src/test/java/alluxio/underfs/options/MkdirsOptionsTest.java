@@ -22,15 +22,15 @@ import org.junit.Test;
 import java.io.IOException;
 
 /**
- * Tests for the {@link UnderFileSystemMkdirsOptions} class.
+ * Tests for the {@link MkdirsOptions} class.
  */
-public class UnderFileSystemMkdirsOptionsTest {
+public class MkdirsOptionsTest {
   /**
-   * Tests for default {@link UnderFileSystemMkdirsOptions}.
+   * Tests for default {@link MkdirsOptions}.
    */
   @Test
   public void defaultsTest() throws IOException {
-    UnderFileSystemMkdirsOptions options = UnderFileSystemMkdirsOptions.defaults();
+    MkdirsOptions options = MkdirsOptions.defaults();
 
     PermissionStatus expectedPs = PermissionStatus.defaults();
     // Verify the default createParent is true.
@@ -43,7 +43,7 @@ public class UnderFileSystemMkdirsOptionsTest {
   }
 
   /**
-   * Tests for building an {@link UnderFileSystemMkdirsOptions} with a security enabled
+   * Tests for building an {@link MkdirsOptions} with a security enabled
    * configuration.
    */
   @Test
@@ -54,7 +54,7 @@ public class UnderFileSystemMkdirsOptionsTest {
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
 
-    UnderFileSystemMkdirsOptions options = new UnderFileSystemMkdirsOptions(conf);
+    MkdirsOptions options = new MkdirsOptions(conf);
 
     PermissionStatus expectedPs = PermissionStatus.defaults().applyDirectoryUMask(conf);
 
@@ -76,7 +76,7 @@ public class UnderFileSystemMkdirsOptionsTest {
     PermissionStatus ps = PermissionStatus.defaults();
 
     Configuration conf = new Configuration();
-    UnderFileSystemMkdirsOptions options = new UnderFileSystemMkdirsOptions(conf);
+    MkdirsOptions options = new MkdirsOptions(conf);
     options.setCreateParent(createParent);
     options.setPermissionStatus(ps);
 

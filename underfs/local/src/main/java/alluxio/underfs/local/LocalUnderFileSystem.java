@@ -17,8 +17,8 @@ import alluxio.Constants;
 import alluxio.security.authorization.FileSystemPermission;
 import alluxio.security.authorization.PermissionStatus;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
-import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -69,11 +69,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+    return create(path, new CreateOptions(mConfiguration));
   }
 
   @Override
-  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
@@ -190,12 +190,11 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path,
-        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
+    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
   }
 
   @Override
-  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     path = stripPath(path);
     File file = new File(path);
     PermissionStatus ps = options.getPermissionStatus();

@@ -15,8 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.underfs.options.UnderFileSystemCreateOptions;
-import alluxio.underfs.options.UnderFileSystemMkdirsOptions;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -112,12 +112,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
-    return create(path, new UnderFileSystemCreateOptions(mConfiguration));
+    return create(path, new CreateOptions(mConfiguration));
   }
 
   @Override
-  public OutputStream create(String path, UnderFileSystemCreateOptions options) throws IOException {
-    // Block size and permission status in options are ignored when creating OSS object.
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
@@ -231,13 +230,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path,
-        new UnderFileSystemMkdirsOptions(mConfiguration).setCreateParent(createParent));
+    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
 
   }
 
   @Override
-  public boolean mkdirs(String path, UnderFileSystemMkdirsOptions options) throws IOException {
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
