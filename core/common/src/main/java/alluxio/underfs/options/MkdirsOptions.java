@@ -60,7 +60,7 @@ public final class MkdirsOptions {
   }
 
   /**
-   * @return the permission status
+   * @return the permission
    */
   public Permission getPermission() {
     return mPermission;
@@ -78,7 +78,7 @@ public final class MkdirsOptions {
   }
 
   /**
-   * Sets the permission status.
+   * Sets the permission.
    *
    * @param permission the permission stats to set
    * @return the updated option object

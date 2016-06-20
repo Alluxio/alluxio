@@ -47,20 +47,20 @@ public final class CreateOptions {
   }
 
   /**
-   * @return the permission status
+   * @return the permission
    */
   public Permission getPermission() {
     return mPermission;
   }
 
   /**
-   * Sets the permission status.
+   * Sets the permission.
    *
-   * @param permissionStatus the permission stats to set
+   * @param permission the permission stats to set
    * @return the updated option object
    */
-  public CreateOptions setPermission(Permission permissionStatus) {
-    mPermission = permissionStatus;
+  public CreateOptions setPermission(Permission permission) {
+    mPermission = permission;
     return this;
   }
 
@@ -84,7 +84,7 @@ public final class CreateOptions {
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("permissionStatus", mPermission)
+        .add("permission", mPermission)
         .toString();
   }
 }

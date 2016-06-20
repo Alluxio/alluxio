@@ -251,7 +251,7 @@ public final class UnderFileSystemManager {
     private final String mUri;
     /** String form of the temporary uri to write to in the under file system. */
     private final String mTemporaryUri;
-    /** The permission status for the file. */
+    /** The permission for the file. */
     private final Permission mPermission;
 
     /**
@@ -262,7 +262,7 @@ public final class UnderFileSystemManager {
      * @param agentId the worker specific agentId which references this object
      * @param ufsUri the file to create in the UFS
      * @param conf the configuration to use
-     * @param perm the permission status of the file
+     * @param perm the permission of the file
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
@@ -300,7 +300,7 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
-     * @param perm the permission status of the file
+     * @param perm the permission of the file
      * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
@@ -337,7 +337,7 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
-   * @param perm the permission status for the file to be created
+   * @param perm the permission for the file to be created
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
@@ -449,7 +449,7 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
-   * @param perm the permission status of the file
+   * @param perm the permission of the file
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
