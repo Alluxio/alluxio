@@ -131,7 +131,7 @@ public final class UnderFileSystemManagerTest {
     String group = "Group";
     long id = mManager.createFile(SESSION_ID, mUri);
     mManager.completeFile(SESSION_ID, id, user, group);
-    Mockito.verify(mMockUfs).setOwner(mUri.toString(), user, group);
+    Mockito.verify(mMockUfs).setOwnership(mUri.toString(), user, group);
   }
 
   /**

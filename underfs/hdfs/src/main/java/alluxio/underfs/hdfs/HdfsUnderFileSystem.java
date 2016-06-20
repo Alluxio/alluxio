@@ -443,7 +443,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setOwner(String path, String user, String group) throws IOException {
+  public void setOwnership(String path, String user, String group) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       LOG.info("Changing file '{}' user from: {} to {}, group from: {} to {}", fileStatus.getPath(),

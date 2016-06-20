@@ -40,6 +40,7 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
 
   private static final org.apache.thrift.protocol.TField USER_FIELD_DESC = new org.apache.thrift.protocol.TField("user", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField GROUP_FIELD_DESC = new org.apache.thrift.protocol.TField("group", org.apache.thrift.protocol.TType.STRING, (short)2);
+  private static final org.apache.thrift.protocol.TField OWNER_FIELD_DESC = new org.apache.thrift.protocol.TField("owner", org.apache.thrift.protocol.TType.STRING, (short)3);
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
@@ -49,11 +50,13 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
 
   private String user; // optional
   private String group; // optional
+  private String owner; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     USER((short)1, "user"),
-    GROUP((short)2, "group");
+    GROUP((short)2, "group"),
+    OWNER((short)3, "owner");
 
     private static final Map<String, _Fields> byName = new HashMap<String, _Fields>();
 
@@ -72,6 +75,8 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
           return USER;
         case 2: // GROUP
           return GROUP;
+        case 3: // OWNER
+          return OWNER;
         default:
           return null;
       }
@@ -112,13 +117,15 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
   }
 
   // isset id assignments
-  private static final _Fields optionals[] = {_Fields.USER,_Fields.GROUP};
+  private static final _Fields optionals[] = {_Fields.USER,_Fields.GROUP,_Fields.OWNER};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
     tmpMap.put(_Fields.USER, new org.apache.thrift.meta_data.FieldMetaData("user", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     tmpMap.put(_Fields.GROUP, new org.apache.thrift.meta_data.FieldMetaData("group", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
+        new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
+    tmpMap.put(_Fields.OWNER, new org.apache.thrift.meta_data.FieldMetaData("owner", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(CompleteUfsFileTOptions.class, metaDataMap);
@@ -137,6 +144,9 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
     if (other.isSetGroup()) {
       this.group = other.group;
     }
+    if (other.isSetOwner()) {
+      this.owner = other.owner;
+    }
   }
 
   public CompleteUfsFileTOptions deepCopy() {
@@ -147,6 +157,7 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
   public void clear() {
     this.user = null;
     this.group = null;
+    this.owner = null;
   }
 
   public String getUser() {
@@ -197,6 +208,30 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
     }
   }
 
+  public String getOwner() {
+    return this.owner;
+  }
+
+  public CompleteUfsFileTOptions setOwner(String owner) {
+    this.owner = owner;
+    return this;
+  }
+
+  public void unsetOwner() {
+    this.owner = null;
+  }
+
+  /** Returns true if field owner is set (has been assigned a value) and false otherwise */
+  public boolean isSetOwner() {
+    return this.owner != null;
+  }
+
+  public void setOwnerIsSet(boolean value) {
+    if (!value) {
+      this.owner = null;
+    }
+  }
+
   public void setFieldValue(_Fields field, Object value) {
     switch (field) {
     case USER:
@@ -215,6 +250,14 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
       }
       break;
 
+    case OWNER:
+      if (value == null) {
+        unsetOwner();
+      } else {
+        setOwner((String)value);
+      }
+      break;
+
     }
   }
 
@@ -225,6 +268,9 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
 
     case GROUP:
       return getGroup();
+
+    case OWNER:
+      return getOwner();
 
     }
     throw new IllegalStateException();
@@ -241,6 +287,8 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
       return isSetUser();
     case GROUP:
       return isSetGroup();
+    case OWNER:
+      return isSetOwner();
     }
     throw new IllegalStateException();
   }
@@ -276,6 +324,15 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
         return false;
     }
 
+    boolean this_present_owner = true && this.isSetOwner();
+    boolean that_present_owner = true && that.isSetOwner();
+    if (this_present_owner || that_present_owner) {
+      if (!(this_present_owner && that_present_owner))
+        return false;
+      if (!this.owner.equals(that.owner))
+        return false;
+    }
+
     return true;
   }
 
@@ -292,6 +349,11 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
     list.add(present_group);
     if (present_group)
       list.add(group);
+
+    boolean present_owner = true && (isSetOwner());
+    list.add(present_owner);
+    if (present_owner)
+      list.add(owner);
 
     return list.hashCode();
   }
@@ -320,6 +382,16 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
     }
     if (isSetGroup()) {
       lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.group, other.group);
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+    }
+    lastComparison = Boolean.valueOf(isSetOwner()).compareTo(other.isSetOwner());
+    if (lastComparison != 0) {
+      return lastComparison;
+    }
+    if (isSetOwner()) {
+      lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.owner, other.owner);
       if (lastComparison != 0) {
         return lastComparison;
       }
@@ -360,6 +432,16 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
         sb.append("null");
       } else {
         sb.append(this.group);
+      }
+      first = false;
+    }
+    if (isSetOwner()) {
+      if (!first) sb.append(", ");
+      sb.append("owner:");
+      if (this.owner == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.owner);
       }
       first = false;
     }
@@ -422,6 +504,14 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
             }
             break;
+          case 3: // OWNER
+            if (schemeField.type == org.apache.thrift.protocol.TType.STRING) {
+              struct.owner = iprot.readString();
+              struct.setOwnerIsSet(true);
+            } else { 
+              org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+            }
+            break;
           default:
             org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
         }
@@ -451,6 +541,13 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
           oprot.writeFieldEnd();
         }
       }
+      if (struct.owner != null) {
+        if (struct.isSetOwner()) {
+          oprot.writeFieldBegin(OWNER_FIELD_DESC);
+          oprot.writeString(struct.owner);
+          oprot.writeFieldEnd();
+        }
+      }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
     }
@@ -475,19 +572,25 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
       if (struct.isSetGroup()) {
         optionals.set(1);
       }
-      oprot.writeBitSet(optionals, 2);
+      if (struct.isSetOwner()) {
+        optionals.set(2);
+      }
+      oprot.writeBitSet(optionals, 3);
       if (struct.isSetUser()) {
         oprot.writeString(struct.user);
       }
       if (struct.isSetGroup()) {
         oprot.writeString(struct.group);
       }
+      if (struct.isSetOwner()) {
+        oprot.writeString(struct.owner);
+      }
     }
 
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, CompleteUfsFileTOptions struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(2);
+      BitSet incoming = iprot.readBitSet(3);
       if (incoming.get(0)) {
         struct.user = iprot.readString();
         struct.setUserIsSet(true);
@@ -495,6 +598,10 @@ public class CompleteUfsFileTOptions implements org.apache.thrift.TBase<Complete
       if (incoming.get(1)) {
         struct.group = iprot.readString();
         struct.setGroupIsSet(true);
+      }
+      if (incoming.get(2)) {
+        struct.owner = iprot.readString();
+        struct.setOwnerIsSet(true);
       }
     }
   }
