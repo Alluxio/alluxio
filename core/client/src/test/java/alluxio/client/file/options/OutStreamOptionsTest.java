@@ -24,14 +24,19 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.security.authorization.PermissionStatus;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
+@PrepareForTest(PermissionStatus.class)
 public class OutStreamOptionsTest {
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
@@ -84,7 +89,6 @@ public class OutStreamOptionsTest {
   }
 
   @Test
-  @Ignore("TODO(chaomin): fix this")
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(OutStreamOptions.class);
   }
