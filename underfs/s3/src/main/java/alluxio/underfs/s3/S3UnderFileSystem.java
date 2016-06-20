@@ -380,7 +380,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setOwnership(String path, String user, String group) {}
+  public void setOwner(String path, String user, String group) {}
 
   // Not supported
   @Override

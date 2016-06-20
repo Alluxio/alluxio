@@ -139,11 +139,33 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
+   *
+   * @return true if the mode value is set, otherwise false
+   * @deprecated @see {@link #hasMode()}
+   */
+  @Deprecated
+  public boolean hasPermission() {
+    return hasMode();
+  }
+
+  /**
    * @return the mode
    */
   public short getMode() {
     Preconditions.checkState(hasMode(), PreconditionMessage.MUST_SET_MODE);
     return mMode;
+  }
+
+  /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
+   *
+   * @return the mode
+   * @deprecated @see {@link #hasMode()}
+   */
+  @Deprecated
+  public short getPermission() {
+    return getMode();
   }
 
   /**
@@ -192,6 +214,18 @@ public final class SetAttributeOptions {
   public SetAttributeOptions setOwner(String owner) {
     mOwner = owner;
     return this;
+  }
+
+  /**
+   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
+   *
+   * @param user to be set as the owner of a path
+   * @return the updated options object
+   * @deprecated @see {@link #setOwner(String)}
+   */
+  @Deprecated
+  public SetAttributeOptions setUser(String user) {
+    return setOwner(user);
   }
 
   /**

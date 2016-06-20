@@ -611,7 +611,7 @@ public abstract class UnderFileSystem {
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setOwnership(String path, String owner, String group) throws IOException;
+  public abstract void setOwner(String path, String owner, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.
