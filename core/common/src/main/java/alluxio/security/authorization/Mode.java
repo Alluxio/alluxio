@@ -39,19 +39,17 @@ public final class Mode {
     READ_WRITE("rw-"),
     ALL("rwx");
 
-    /** String representation. */
+    /** String representation of the bits. */
     private final String mString;
 
-    /** Retain reference to value array. */
+    /** Retain reference to the values array. */
     private static final Bits[] SVALS = values();
 
     Bits(String s) {
       mString = s;
     }
 
-    /**
-     * @return the string representation of the bits
-     */
+    @Override
     public String toString() {
       return mString;
     }
