@@ -97,7 +97,7 @@ public final class MkdirsOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof CreateOptions)) {
+    if (!(o instanceof MkdirsOptions)) {
       return false;
     }
     MkdirsOptions that = (MkdirsOptions) o;

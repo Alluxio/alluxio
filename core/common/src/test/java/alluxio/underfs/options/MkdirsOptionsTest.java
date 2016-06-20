@@ -93,6 +93,6 @@ public class MkdirsOptionsTest {
 
   @Test
   public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(CreateOptions.class);
+    CommonTestUtils.testEquals(MkdirsOptions.class);
   }
 }
