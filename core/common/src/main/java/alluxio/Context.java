@@ -36,8 +36,11 @@ public final class Context {
         case WORKER:
           clazz = Class.forName("alluxio.worker.WorkerContext");
           break;
-        default:
+        case CLIENT:
           clazz = Class.forName("alluxio.client.ClientContext");
+          break;
+        default:
+          throw new IllegalStateException("unexpected process type");
       }
       Method method = clazz.getMethod("getConf");
       return (Configuration) method.invoke(null);
