@@ -37,7 +37,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
 
   /**
    * Constructs an instance of {@link CreateDirectoryOptions} from {@link CreateDirectoryTOptions}.
-   * The option of permission status is constructed with the username obtained from thrift
+   * The option of permission is constructed with the username obtained from thrift
    * transport.
    *
    * @param options the {@link CreateDirectoryTOptions} to use

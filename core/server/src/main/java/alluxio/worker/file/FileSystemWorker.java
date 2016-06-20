@@ -149,7 +149,7 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param sessionId the session id of the request
    * @param tempUfsFileId the id of the file to complete, only understood by the worker that created
    *                      the file
-   * @param perm the permission status of the file
+   * @param perm the permission of the file
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
@@ -165,7 +165,7 @@ public final class FileSystemWorker extends AbstractWorker {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the under file system uri to create a file for
-   * @param perm the permission status of the file
+   * @param perm the permission of the file
    * @throws FileAlreadyExistsException if a file already exists in the under file system with
    *                                    the same path
    * @throws IOException if an error occurs interacting with the under file system

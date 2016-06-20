@@ -107,7 +107,7 @@ public final class OutStreamOptions {
   }
 
   /**
-   * @return the permission status
+   * @return the permission
    */
   public Permission getPermission() {
     return mPermission;
@@ -161,7 +161,7 @@ public final class OutStreamOptions {
   /**
    * Sets the {@link Permission}.
    *
-   * @param perm the permission status
+   * @param perm the permission
    * @return the updated options object
    */
   public OutStreamOptions setPermission(Permission perm) {
