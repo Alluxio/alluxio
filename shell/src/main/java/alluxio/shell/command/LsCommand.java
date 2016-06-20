@@ -103,14 +103,15 @@ public final class LsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException if a non-Alluxio related exception occurs
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void ls(AlluxioURI path, boolean recursive) throws IOException {
+  private void ls(AlluxioURI path, boolean recursive) throws AlluxioException, IOException {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
     for (URIStatus status : statuses) {
       System.out.format(
           formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
-              FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
+              FormatUtils.formatMode((short) status.getPermission(), status.isFolder()),
               status.getUserName(), status.getGroupName(), status.getLength(),
               status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
@@ -120,13 +121,8 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path)
-      throws IOException {
-    List<URIStatus> statuses;
-    try {
-      statuses = mFileSystem.listStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+      throws AlluxioException, IOException {
+    List<URIStatus> statuses = mFileSystem.listStatus(path);
     Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
       public int compare(URIStatus status1, URIStatus status2) {
@@ -145,7 +141,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"));
   }
 

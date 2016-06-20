@@ -47,16 +47,13 @@ public final class MvCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     AlluxioURI dstPath = new AlluxioURI(args[1]);
-    try {
-      mFileSystem.rename(srcPath, dstPath);
-      System.out.println("Renamed " + srcPath + " to " + dstPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+
+    mFileSystem.rename(srcPath, dstPath);
+    System.out.println("Renamed " + srcPath + " to " + dstPath);
   }
 
   @Override

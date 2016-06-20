@@ -21,6 +21,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.InvalidPathException;
 import alluxio.shell.AlluxioShellUtils;
 
 import com.google.common.base.Joiner;
@@ -61,7 +62,7 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI srcPath = new AlluxioURI(args[0]);
     File dstFile = new File(args[1]);
@@ -81,15 +82,15 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
    * Copies a list of files or directories specified by srcPaths from the Alluxio filesystem to
    * dstPath in the local filesystem. This method is used when the input path contains wildcards.
    *
-   * @param srcPaths The list of files in the Alluxio filesystem
-   * @param dstFile The destination directory in the local filesystem
-   * @throws IOException
+   * @param srcPaths the list of files in the Alluxio filesystem
+   * @param dstFile the destination directory in the local filesystem
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyWildcardToLocal(List<AlluxioURI> srcPaths,
-      File dstFile) throws IOException {
+  private void copyWildcardToLocal(List<AlluxioURI> srcPaths, File dstFile)
+      throws AlluxioException, IOException {
     if (dstFile.exists() && !dstFile.isDirectory()) {
-      throw new IOException(
-          ExceptionMessage.DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE.getMessage());
+      throw new InvalidPathException(ExceptionMessage.DESTINATION_CANNOT_BE_FILE.getMessage());
     }
     if (!dstFile.exists()) {
       if (!dstFile.mkdirs()) {
@@ -114,17 +115,13 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
   /**
    * Copies a file or a directory from the Alluxio filesystem to the local filesystem.
    *
-   * @param srcPath The source {@link AlluxioURI} (could be a file or a directory)
-   * @param dstFile The destination file in the local filesystem
-   * @throws IOException
+   * @param srcPath the source {@link AlluxioURI} (could be a file or a directory)
+   * @param dstFile the destination file in the local filesystem
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyToLocal(AlluxioURI srcPath, File dstFile) throws IOException {
-    URIStatus srcStatus;
-    try {
-      srcStatus = mFileSystem.getStatus(srcPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  private void copyToLocal(AlluxioURI srcPath, File dstFile) throws AlluxioException, IOException {
+    URIStatus srcStatus = mFileSystem.getStatus(srcPath);
 
     if (srcStatus.isFolder()) {
       // make a local directory
@@ -168,34 +165,32 @@ public final class CopyToLocalCommand extends AbstractShellCommand {
    *
    * @param srcPath The source {@link AlluxioURI} (has to be a file)
    * @param dstFile The destination file in the local filesystem
-   * @throws IOException
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void copyFileToLocal(AlluxioURI srcPath, File dstFile) throws IOException {
-    try {
-      String randomSuffix = String.format(".%s_copyToLocal_",
-          RandomStringUtils.randomAlphanumeric(8));
-      File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
+  private void copyFileToLocal(AlluxioURI srcPath, File dstFile)
+      throws AlluxioException, IOException {
+    String randomSuffix =
+        String.format(".%s_copyToLocal_", RandomStringUtils.randomAlphanumeric(8));
+    File tmpDst = new File(dstFile.getAbsolutePath() + randomSuffix);
 
-      try (Closer closer = Closer.create()) {
-        OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-        FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
-        FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
-        byte[] buf = new byte[64 * Constants.MB];
-        int t = is.read(buf);
-        while (t != -1) {
-          out.write(buf, 0, t);
-          t = is.read(buf);
-        }
-        if (!tmpDst.renameTo(dstFile)) {
-          throw new IOException(
-              "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
-        }
-        System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
-      } finally {
-        tmpDst.delete();
+    try (Closer closer = Closer.create()) {
+      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+      FileInStream is = closer.register(mFileSystem.openFile(srcPath, options));
+      FileOutputStream out = closer.register(new FileOutputStream(tmpDst));
+      byte[] buf = new byte[64 * Constants.MB];
+      int t = is.read(buf);
+      while (t != -1) {
+        out.write(buf, 0, t);
+        t = is.read(buf);
       }
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
+      if (!tmpDst.renameTo(dstFile)) {
+        throw new IOException(
+            "Failed to rename " + tmpDst.getPath() + " to destination " + dstFile.getPath());
+      }
+      System.out.println("Copied " + srcPath + " to " + dstFile.getPath());
+    } finally {
+      tmpDst.delete();
     }
   }
 

@@ -49,7 +49,7 @@ public final class CountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
@@ -59,13 +59,8 @@ public final class CountCommand extends AbstractShellCommand {
     System.out.format(format, values[0], values[1], values[2]);
   }
 
-  private long[] countHelper(AlluxioURI path) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  private long[] countHelper(AlluxioURI path) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     if (!status.isFolder()) {
       return new long[] { 1L, 0L, status.getLength() };

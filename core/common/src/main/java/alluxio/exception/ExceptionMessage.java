@@ -128,9 +128,9 @@ public enum ExceptionMessage {
       + "the client state due to a timeout."),
 
   // shell
-  DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src is a directory or contains"
-            +  " wildcards."),
+  DESTINATION_CANNOT_BE_FILE(
+      "The destination cannot be an existing file when the source is a directory or a list of "
+          + "files."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
@@ -156,8 +156,8 @@ public enum ExceptionMessage {
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
+  MODE_IS_NULL("Mode cannot be null when constructing Permission"),
   PERMISSION_DENIED("Permission denied: {0}"),
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn

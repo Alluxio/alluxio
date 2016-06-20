@@ -51,18 +51,14 @@ public final class MkdirCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     for (String path : args) {
       AlluxioURI inputPath = new AlluxioURI(path);
 
-      try {
-        CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-        mFileSystem.createDirectory(inputPath, options);
-        System.out.println("Successfully created directory " + inputPath);
-      } catch (AlluxioException e) {
-        throw new IOException(e.getMessage());
-      }
+      CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+      mFileSystem.createDirectory(inputPath, options);
+      System.out.println("Successfully created directory " + inputPath);
     }
   }
 

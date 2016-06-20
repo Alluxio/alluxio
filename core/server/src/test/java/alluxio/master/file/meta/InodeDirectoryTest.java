@@ -14,7 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.Constants;
 import alluxio.master.MasterContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.collect.Sets;
@@ -225,7 +225,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeDirectory#getPermission()} method.
+   * Tests the {@link InodeDirectory#getMode()} method.
    */
   @Test
   public void permissionStatusTest() {
@@ -233,8 +233,8 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     Assert.assertEquals(TEST_USER_NAME, inode2.getUserName());
     Assert.assertEquals(TEST_GROUP_NAME, inode2.getGroupName());
     Assert.assertEquals(
-        new PermissionStatus(TEST_PERMISSION_STATUS).applyDirectoryUMask(MasterContext.getConf())
-            .getPermission().toShort(), inode2.getPermission());
+        new Permission(TEST_PERMISSION).applyDirectoryUMask(MasterContext.getConf())
+            .getMode().toShort(), inode2.getMode());
   }
 
   /**

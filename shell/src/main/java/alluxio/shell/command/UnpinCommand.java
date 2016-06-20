@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -42,7 +43,7 @@ public final class UnpinCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     CommandUtils.setPinned(mFileSystem, path, false);
     System.out.println("File '" + path + "' was successfully unpinned.");
   }

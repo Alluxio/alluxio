@@ -61,22 +61,19 @@ public final class ChownCommand extends AbstractShellCommand {
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param owner The owner to be updated to the file or directory
    * @param recursive Whether change the owner recursively
-   * @throws IOException if command failed
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void chown(AlluxioURI path, String owner, boolean recursive) throws IOException {
-    try {
-      SetAttributeOptions options = SetAttributeOptions.defaults()
-          .setOwner(owner).setRecursive(recursive);
-      mFileSystem.setAttribute(path, options);
-      System.out.println("Changed owner of " + path + " to " + owner);
-    } catch (AlluxioException e) {
-      throw new IOException("Failed to changed owner of " + path + " to " + owner + " : "
-          + e.getMessage());
-    }
+  private void chown(AlluxioURI path, String owner, boolean recursive)
+      throws AlluxioException, IOException {
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setOwner(owner).setRecursive(recursive);
+    mFileSystem.setAttribute(path, options);
+    System.out.println("Changed owner of " + path + " to " + owner);
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     String owner = args[0];
     AlluxioURI path = new AlluxioURI(args[1]);
