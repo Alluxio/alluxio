@@ -37,7 +37,7 @@ public class CreateOptionsTest {
    */
   @Test
   public void defaultsTest() throws IOException {
-    CreateOptions options = CreateOptions.defaults();
+    CreateOptions options = new CreateOptions();
 
     PermissionStatus expectedPs = PermissionStatus.defaults();
     // Verify that the owner and group are not.
