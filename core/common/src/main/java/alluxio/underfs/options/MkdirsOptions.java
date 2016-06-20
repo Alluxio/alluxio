@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.PermissionStatus;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -88,5 +90,31 @@ public final class MkdirsOptions {
   public MkdirsOptions setPermissionStatus(PermissionStatus permissionStatus) {
     mPermissionStatus = permissionStatus;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateOptions)) {
+      return false;
+    }
+    MkdirsOptions that = (MkdirsOptions) o;
+    return Objects.equal(mPermissionStatus, that.mPermissionStatus)
+        && Objects.equal(mCreateParent, that.mCreateParent);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPermissionStatus, mCreateParent);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("permissionStatus", mPermissionStatus)
+        .add("createParent", mCreateParent)
+        .toString();
   }
 }

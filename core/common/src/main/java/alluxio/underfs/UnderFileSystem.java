@@ -406,7 +406,7 @@ public abstract class UnderFileSystem {
    * {@link CreateOptions}.
    *
    * @param path The file name
-   * @param options the options for create, including block size and permissionStatus
+   * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -600,7 +600,7 @@ public abstract class UnderFileSystem {
    * {@link MkdirsOptions}. If the folder already exists, the method returns false.
    *
    * @param path the folder to create
-   * @param options the options for mkdirs, including createParent and permissionStatus
+   * @param options the options for mkdirs
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
