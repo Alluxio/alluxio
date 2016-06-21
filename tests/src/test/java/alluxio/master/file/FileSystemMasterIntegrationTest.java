@@ -329,7 +329,6 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
   private InodeTree mInodeTree;
 
@@ -338,10 +337,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
 
     TtlBucketPrivateAccess
-        .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
+        .setTtlIntervalMs(Configuration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
   }
 
   @Test
@@ -380,7 +378,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createFileSystemMasterFromJournal();
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to

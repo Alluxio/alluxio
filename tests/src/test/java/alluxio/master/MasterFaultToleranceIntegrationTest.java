@@ -48,15 +48,12 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mMultiMasterLocalAlluxioCluster.stop();
-    // Reset the master conf.
-    MasterContext.getConf().merge(new Configuration());
   }
 
   @Before
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
-    // Reset the master conf.
-    MasterContext.getConf().merge(new Configuration());
+    Configuration.defaultInit(); // Reset configuration.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
     mMultiMasterLocalAlluxioCluster.start();

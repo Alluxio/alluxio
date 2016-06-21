@@ -39,11 +39,10 @@ public final class ClientPool implements Closeable {
    * Returns a {@link FileSystem} client. This client does not need to be
    * closed directly, but can be closed by calling {@link #close()} on this object.
    *
-   * @param configuration Alluxio configuration
    * @return a {@link FileSystem} client
    * @throws IOException when the operation fails
    */
-  public FileSystem getClient(Configuration configuration) throws IOException {
+  public FileSystem getClient() throws IOException {
     final FileSystem fs = FileSystem.Factory.get();
     mClients.add(fs);
     return fs;

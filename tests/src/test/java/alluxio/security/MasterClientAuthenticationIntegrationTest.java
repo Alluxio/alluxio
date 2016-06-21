@@ -85,10 +85,10 @@ public final class MasterClientAuthenticationIntegrationTest {
     mThrown.expect(ConnectionFailedException.class);
 
     try (FileSystemMasterClient masterClient = new FileSystemMasterClient(
-        mLocalAlluxioClusterResource.get().getMaster().getAddress(), ClientContext.getConf())) {
+        mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
+      LoginUserTestUtils.resetLoginUser("no-alluxio");
       masterClient.connect();
     }
   }
@@ -102,8 +102,7 @@ public final class MasterClientAuthenticationIntegrationTest {
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            mLocalAlluxioClusterResource.get().getMasterConf());
+        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

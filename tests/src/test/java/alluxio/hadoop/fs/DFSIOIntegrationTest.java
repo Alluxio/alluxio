@@ -210,14 +210,13 @@ public class DFSIOIntegrationTest implements Tool {
     sBench = new DFSIOIntegrationTest();
     sBench.getConf().setBoolean("dfs.support.append", true);
 
-    sLocalAlluxioClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    sLocalAlluxioClusterUri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sBench.getConf().set("fs.defaultFS", sLocalAlluxioClusterUri.toString());
     sBench.getConf().set("fs.default.name", sLocalAlluxioClusterUri.toString());
     sBench.getConf().set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
 
     // Store Alluxio configuration in Hadoop configuration
-    Configuration configuration = sLocalAlluxioClusterResource.get().getMasterConf();
-    ConfUtils.storeToHadoopConfiguration(configuration, sBench.getConf());
+    ConfUtils.storeToHadoopConfiguration(sBench.getConf());
 
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());

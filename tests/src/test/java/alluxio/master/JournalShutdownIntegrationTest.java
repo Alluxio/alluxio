@@ -112,7 +112,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createFileSystemMasterFromJournal();
   }
 
   /**
@@ -136,7 +136,6 @@ public class JournalShutdownIntegrationTest {
     MultiMasterLocalAlluxioCluster cluster =
         new MultiMasterLocalAlluxioCluster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
@@ -147,7 +146,6 @@ public class JournalShutdownIntegrationTest {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;

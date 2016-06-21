@@ -73,7 +73,6 @@ public class DataServerIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
   private FileSystem mFileSystem = null;
-  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
 
@@ -91,14 +90,12 @@ public class DataServerIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
     mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
     mBlockMasterClient = new BlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()),
-        mWorkerConfiguration);
+            mLocalAlluxioClusterResource.get().getMasterPort()));
   }
 
   @After
@@ -236,8 +233,7 @@ public class DataServerIntegrationTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
 
-    RemoteBlockReader client =
-        RemoteBlockReader.Factory.create(mWorkerConfiguration);
+    RemoteBlockReader client = RemoteBlockReader.Factory.create();
     ByteBuffer result = readRemotely(client, block, length);
 
     Assert.assertEquals(BufferUtils.getIncreasingByteBuffer(length), result);
@@ -259,8 +255,7 @@ public class DataServerIntegrationTest {
       }
     }
 
-    RemoteBlockReader client =
-        RemoteBlockReader.Factory.create(mWorkerConfiguration);
+    RemoteBlockReader client = RemoteBlockReader.Factory.create();
     block.setBlockId(maxBlockId + 1);
     ByteBuffer result = readRemotely(client, block, length);
 

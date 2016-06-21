@@ -52,17 +52,14 @@ public class ReadOnlyMountIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
 
     // Add a readonly mount point.
     mAlternateUfsRoot = createAlternateUfs();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
-    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir, testConf);
-    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH), testConf);
-    UnderFileSystemUtils
-        .mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH), testConf);
-    UnderFileSystemUtils
-        .touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH), testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir);
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
+    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
@@ -284,8 +281,7 @@ public class ReadOnlyMountIntegrationTest {
         new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
             .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils
-        .mkdirIfNotExists(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;
   }
 
@@ -295,6 +291,6 @@ public class ReadOnlyMountIntegrationTest {
    * @param alternateUfsRoot the root of the alternate Ufs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.deleteDir(alternateUfsRoot);
   }
 }

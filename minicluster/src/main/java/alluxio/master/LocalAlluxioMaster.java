@@ -51,18 +51,16 @@ public final class LocalAlluxioMaster {
   };
   private final ClientPool mClientPool = new ClientPool(mClientSupplier);
 
-  private LocalAlluxioMaster()
-      throws IOException {
-    Configuration configuration = MasterContext.getConf();
-    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, configuration);
+  private LocalAlluxioMaster() throws IOException {
+    mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
 
-    mJournalFolder = configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+    mJournalFolder = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
 
     mAlluxioMaster = AlluxioMaster.Factory.create();
     Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", mAlluxioMaster);
 
     // Reset the master port
-    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -86,12 +84,11 @@ public final class LocalAlluxioMaster {
    */
   public static LocalAlluxioMaster create() throws IOException {
     final String alluxioHome = uniquePath();
-    Configuration configuration = MasterContext.getConf();
-    UnderFileSystemUtils.deleteDir(alluxioHome, configuration);
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome, configuration);
+    UnderFileSystemUtils.deleteDir(alluxioHome);
+    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
 
     // Update Alluxio home in the passed Alluxio configuration instance.
-    configuration.set(Constants.HOME, alluxioHome);
+    Configuration.set(Constants.HOME, alluxioHome);
 
     return new LocalAlluxioMaster();
   }
@@ -105,8 +102,7 @@ public final class LocalAlluxioMaster {
    * @throws IOException when unable to do file operation or listen on port
    */
   public static LocalAlluxioMaster create(final String alluxioHome) throws IOException {
-    Configuration configuration = MasterContext.getConf();
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome, configuration);
+    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
 
     return new LocalAlluxioMaster();
   }
@@ -220,7 +216,7 @@ public final class LocalAlluxioMaster {
    * @throws IOException if the client cannot be retrieved
    */
   public FileSystem getClient() throws IOException {
-    return mClientPool.getClient(ClientContext.getConf());
+    return mClientPool.getClient();
   }
 
   private static String uniquePath() throws IOException {

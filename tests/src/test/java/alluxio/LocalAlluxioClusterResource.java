@@ -148,10 +148,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   private void applyConfParams() throws IOException {
-    mTestConf = mLocalAlluxioCluster.newTestConf();
+    mLocalAlluxioCluster.initializeTestConfiguration();
     // Override the configuration parameters with mConfParams
     for (int i = 0; i < mConfParams.length; i += 2) {
-      mTestConf.set(mConfParams[i], mConfParams[i + 1]);
+      Configuration.set(mConfParams[i], mConfParams[i + 1]);
     }
   }
 
@@ -159,7 +159,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws Exception {
-    mLocalAlluxioCluster.start(mTestConf);
+    mLocalAlluxioCluster.start();
   }
 
   @Override
@@ -174,13 +174,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
         Config config = (Config) configAnnotation;
         // Override the configuration parameters with any configuration params
         for (int i = 0; i < config.confParams().length; i += 2) {
-          mTestConf.set(config.confParams()[i], config.confParams()[i + 1]);
+          Configuration.set(config.confParams()[i], config.confParams()[i + 1]);
         }
         // Override startCluster
         startCluster = config.startCluster();
       }
       if (startCluster) {
-        mLocalAlluxioCluster.start(mTestConf);
+        mLocalAlluxioCluster.start();
       }
     } catch (IOException | ConnectionFailedException e) {
       throw new RuntimeException(e);
