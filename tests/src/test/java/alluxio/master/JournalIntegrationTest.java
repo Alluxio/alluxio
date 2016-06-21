@@ -41,7 +41,6 @@ import alluxio.wire.FileInfo;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -538,7 +537,6 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  @Ignore("TODO(chaomin): fix this because setOwner/setGroup now is propagated to UFS.")
   @LocalAlluxioClusterResource.Config(confParams = {
       Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
       Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
@@ -546,15 +544,13 @@ public class JournalIntegrationTest {
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
-    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "alluxio");
+    String user = "alluxio";
+    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, user);
     CreateFileOptions op =
         CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 
-    mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setOwner("user1").setRecursive(false));
-    mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setGroup("group1").setRecursive(false));
+    // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
     mFileSystem.setAttribute(filePath,
         SetAttributeOptions.defaults().setPermission((short) 0400).setRecursive(false));
 
@@ -562,15 +558,15 @@ public class JournalIntegrationTest {
 
     mLocalAlluxioCluster.stopFS();
 
-    aclTestUtil(status);
+    aclTestUtil(status, user);
     deleteFsMasterJournalLogs();
-    aclTestUtil(status);
+    aclTestUtil(status, user);
   }
 
-  private void aclTestUtil(URIStatus status) throws Exception {
+  private void aclTestUtil(URIStatus status, String user) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    AuthenticatedClientUser.set("user1");
+    AuthenticatedClientUser.set(user);
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
     Assert.assertEquals(status, new URIStatus(info));
 
