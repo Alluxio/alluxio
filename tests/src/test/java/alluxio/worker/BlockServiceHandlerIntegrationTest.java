@@ -65,7 +65,6 @@ public class BlockServiceHandlerIntegrationTest {
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
-  private Configuration mMasterConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @Before
@@ -156,7 +155,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(localPath);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -277,7 +276,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(filename);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

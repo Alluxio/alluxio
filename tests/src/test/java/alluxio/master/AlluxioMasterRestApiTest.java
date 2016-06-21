@@ -240,8 +240,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     UnderFileSystem ufs =
         PowerMockito.spy(UnderFileSystem.get(Configuration.get(Constants.UNDERFS_ADDRESS)));
     PowerMockito.mockStatic(UnderFileSystem.class);
-    Mockito.when(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
-        .thenReturn(ufs);
+    Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(ufs);
     return ufs;
   }
 

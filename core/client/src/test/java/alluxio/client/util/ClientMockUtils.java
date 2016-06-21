@@ -31,7 +31,7 @@ public final class ClientMockUtils {
   }
 
   /**
-   * When {@link UnderFileSystem#get(String, Configuration)} is called to get an
+   * When {@link UnderFileSystem#get(String)} is called to get an
    * {@link UnderFileSystem}, it will instead return the mock returned by this method, as long as
    * `filename` matches `ufsPathMatcher`
    *
@@ -44,8 +44,7 @@ public final class ClientMockUtils {
   public static UnderFileSystem mockUnderFileSystem(String ufsPathMatcher) {
     UnderFileSystem ufs = PowerMockito.mock(UnderFileSystem.class);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    PowerMockito.when(UnderFileSystem.get(ufsPathMatcher, Mockito.any(Configuration.class)))
-        .thenReturn(ufs);
+    PowerMockito.when(UnderFileSystem.get(ufsPathMatcher)).thenReturn(ufs);
     return ufs;
   }
 

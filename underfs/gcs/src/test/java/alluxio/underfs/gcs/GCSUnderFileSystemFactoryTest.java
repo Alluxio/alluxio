@@ -28,8 +28,6 @@ public final class GCSUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("gs://test-bucket/path");
 
     Assert.assertNotNull(
