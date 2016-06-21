@@ -131,7 +131,7 @@
     <repository>
       <id>orangefs-repo</id>
       <name>OrangeFS Repository</name>
-      <url>http://www.orangefs.org/svn/orangefs/branches/maven-repository/maven2</url>
+      <url>http://dev.orangefs.org/svn/orangefs/branches/maven-repository/maven2</url>
     </repository>
   </repositories>
 
@@ -719,7 +719,7 @@
     <profile>
       <id>orangefs-lgpl</id>
       <properties>
-        <orangefs.version>2.9.4</orangefs.version>
+        <orangefs.version>2.9.5</orangefs.version>
       </properties>
     </profile>
 
