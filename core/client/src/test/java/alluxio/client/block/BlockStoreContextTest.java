@@ -59,8 +59,7 @@ public final class BlockStoreContextTest {
     final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireMasterClientResource());
     }
 
@@ -138,8 +137,7 @@ public final class BlockStoreContextTest {
     conf.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients
-    for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireLocalWorkerClient());
     }
 

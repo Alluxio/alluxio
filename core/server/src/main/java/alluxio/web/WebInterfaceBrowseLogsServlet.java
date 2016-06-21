@@ -38,7 +38,6 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   private static final long serialVersionUID = 6589358568781503724L;
 
-  private final transient Configuration mConfiguration;
   private final String mBrowseJsp;
   private final String mViewJsp;
   private static final FilenameFilter LOG_FILE_FILTER = new FilenameFilter() {
@@ -54,7 +53,6 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
    * @param isMasterServlet whether this is a master servlet
    */
   public WebInterfaceBrowseLogsServlet(boolean isMasterServlet) {
-    mConfiguration = isMasterServlet ? MasterContext.getConf() : WorkerContext.getConf();
     String prefix = isMasterServlet ? "/" : "/worker/";
     mBrowseJsp = prefix + "browse.jsp";
     mViewJsp = prefix + "viewFile.jsp";
@@ -112,7 +110,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -120,7 +118,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
     request.setAttribute("showPermissions", false);
 
-    String logsPath = mConfiguration.get(Constants.LOGS_DIR);
+    String logsPath = Configuration.get(Constants.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 

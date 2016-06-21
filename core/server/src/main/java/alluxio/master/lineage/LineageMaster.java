@@ -76,7 +76,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LineageMaster extends AbstractMaster {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Configuration mConfiguration;
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
@@ -109,7 +108,6 @@ public final class LineageMaster extends AbstractMaster {
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
     super(journal, 2);
 
-    mConfiguration = MasterContext.getConf();
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();
     mLineageStore = new LineageStore(mLineageIdGenerator);
@@ -149,12 +147,12 @@ public final class LineageMaster extends AbstractMaster {
       mCheckpointExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
               new CheckpointSchedulingExecutor(this, mFileSystemMaster),
-              mConfiguration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+              Configuration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
               new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                   mFileSystemMaster),
-              mConfiguration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+              Configuration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 

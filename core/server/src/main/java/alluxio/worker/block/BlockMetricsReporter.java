@@ -36,7 +36,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
    */
   public BlockMetricsReporter(WorkerSource workerSource) {
     mWorkerSource = workerSource;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override

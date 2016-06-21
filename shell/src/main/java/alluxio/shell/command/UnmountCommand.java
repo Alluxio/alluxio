@@ -27,12 +27,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UnmountCommand extends AbstractShellCommand {
+
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public UnmountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public UnmountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

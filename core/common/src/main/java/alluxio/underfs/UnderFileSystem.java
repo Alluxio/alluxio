@@ -40,8 +40,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class UnderFileSystem {
-  protected final Configuration mConfiguration;
-
   /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
   protected final AlluxioURI mUri;
 
@@ -110,17 +108,16 @@ public abstract class UnderFileSystem {
      *
      * @param path the UFS path
      * @param ufsConf the UFS configuration
-     * @param configuration the Alluxio configuration
      * @return the UFS instance
      */
-    UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
+    UnderFileSystem get(String path, Object ufsConf) {
       UnderFileSystem cachedFs = null;
       Key key = new Key(new AlluxioURI(path));
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
       }
-      UnderFileSystem fs = UnderFileSystemRegistry.create(path, configuration, ufsConf);
+      UnderFileSystem fs = UnderFileSystemRegistry.create(path, ufsConf);
       cachedFs = mUnderFileSystemMap.putIfAbsent(key, fs);
       if (cachedFs == null) {
         return fs;
@@ -175,11 +172,10 @@ public abstract class UnderFileSystem {
    * Gets the UnderFileSystem instance according to its schema.
    *
    * @param path file path storing over the ufs
-   * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Configuration configuration) {
-    return get(path, null, configuration);
+  public static UnderFileSystem get(String path) {
+    return get(path, null);
   }
 
   /**
@@ -187,14 +183,12 @@ public abstract class UnderFileSystem {
    *
    * @param path file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
-   * @param configuration the {@link Configuration} instance
    * @return instance of the under layer file system
    */
-  public static UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
+  public static UnderFileSystem get(String path, Object ufsConf) {
     Preconditions.checkArgument(path != null, "path may not be null");
-    Preconditions.checkNotNull(configuration);
 
-    return UFS_CACHE.get(path, ufsConf, configuration);
+    return UFS_CACHE.get(path, ufsConf);
   }
 
   /**
@@ -224,15 +218,14 @@ public abstract class UnderFileSystem {
    * {@link String#startsWith(String)} to see if the configured schemas are found.
    *
    * @param path the path in under filesystem
-   * @param configuration the configuration for Alluxio
    * @return true if the given path is on a Hadoop under file system, false otherwise
    */
-  public static boolean isHadoopUnderFS(final String path, Configuration configuration) {
+  public static boolean isHadoopUnderFS(final String path) {
     // TODO(hy): In Hadoop 2.x this can be replaced with the simpler call to
     // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
     // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
     // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : configuration.getList(Constants.UNDERFS_HDFS_PREFIXS, ",")) {
+    for (final String prefix : Configuration.getList(Constants.UNDERFS_HDFS_PREFIXS, ",")) {
       if (path.startsWith(prefix)) {
         return true;
       }
@@ -255,20 +248,19 @@ public abstract class UnderFileSystem {
    * ("hdfs://host:port", "/"), ("/", "/dir") and ("/", "/dir") respectively.
    *
    * @param path the input path string
-   * @param configuration the configuration for Alluxio
    * @return null if path does not start with alluxio://, alluxio-ft://, hdfs://, s3://, s3n://,
    *         file://, /. Or a pair of strings denoting the under FS address and the relative path
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
-  public static Pair<String, String> parse(AlluxioURI path, Configuration configuration) {
+  public static Pair<String, String> parse(AlluxioURI path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
     if (path.hasScheme()) {
       String header = path.getScheme() + "://";
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
-          || isHadoopUnderFS(header, configuration) || header.equals(Constants.HEADER_S3)
+          || isHadoopUnderFS(header) || header.equals(Constants.HEADER_S3)
           || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)
           || header.equals(Constants.HEADER_GCS)) {
         if (path.getPath().isEmpty()) {
@@ -290,13 +282,10 @@ public abstract class UnderFileSystem {
    * Constructs an {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} used to create this UFS
-   * @param configuration the {@link Configuration} for this UFS
    */
-  protected UnderFileSystem(AlluxioURI uri, Configuration configuration) {
+  protected UnderFileSystem(AlluxioURI uri) {
     Preconditions.checkNotNull(uri);
-    Preconditions.checkNotNull(configuration);
     mUri = uri;
-    mConfiguration = configuration;
   }
 
   /**
@@ -318,11 +307,10 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param conf Alluxio configuration
    * @param hostname The host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void connectFromMaster(Configuration conf, String hostname) throws IOException;
+  public abstract void connectFromMaster(String hostname) throws IOException;
 
   /**
    * Takes any necessary actions required to establish a connection to the under file system from
@@ -331,11 +319,10 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param conf Alluxio configuration
    * @param hostname The host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void connectFromWorker(Configuration conf, String hostname) throws IOException;
+  public abstract void connectFromWorker(String hostname) throws IOException;
 
   /**
    * Closes this under file system.

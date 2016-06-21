@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
@@ -90,7 +91,7 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
-    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
+    mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);

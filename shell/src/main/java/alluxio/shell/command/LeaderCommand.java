@@ -25,12 +25,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LeaderCommand extends AbstractShellCommand {
+
   /**
-   * @param conf the configuration of Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LeaderCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LeaderCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

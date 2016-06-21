@@ -30,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ReportCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public ReportCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ReportCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

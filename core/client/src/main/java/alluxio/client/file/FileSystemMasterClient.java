@@ -53,10 +53,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * Creates a new file system master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public FileSystemMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

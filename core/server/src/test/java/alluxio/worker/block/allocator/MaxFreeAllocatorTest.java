@@ -26,9 +26,9 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, getManagerView());
+    Configuration.defaultInit();
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000

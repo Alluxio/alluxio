@@ -77,8 +77,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
       int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
-    Configuration configuration = ClientContext.getConf();
-    long bufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long bufferBytes = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get();

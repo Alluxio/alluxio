@@ -40,10 +40,10 @@ public final class NoSaslTransportProvider implements TransportProvider {
    *
    * @param conf Alluxio configuration
    */
-  public NoSaslTransportProvider(Configuration conf) {
-    Preconditions.checkNotNull(conf);
-    mSocketTimeoutMs = conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-    mThriftFrameSizeMax = (int) conf.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
+  public NoSaslTransportProvider() {
+    mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mThriftFrameSizeMax =
+        (int) Configuration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
   }
 
   @Override

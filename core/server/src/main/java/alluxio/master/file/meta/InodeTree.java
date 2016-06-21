@@ -823,7 +823,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
-        if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
+        if (SecurityUtils.isSecurityEnabled()
             && mRoot != null && !mRoot.getUserName().equals(directory.getUserName())) {
           // user is not the owner of journal root entry
           throw new AccessControlException(

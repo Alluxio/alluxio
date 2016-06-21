@@ -28,12 +28,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UnsetTtlCommand extends AbstractShellCommand {
+
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public UnsetTtlCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public UnsetTtlCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

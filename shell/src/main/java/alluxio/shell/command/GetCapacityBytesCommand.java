@@ -30,11 +30,10 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to get the capacity of the {@link FileSystem}.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public GetCapacityBytesCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public GetCapacityBytesCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

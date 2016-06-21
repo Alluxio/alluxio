@@ -11,6 +11,7 @@
 
 package alluxio.master.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -58,11 +59,10 @@ public final class PermissionChecker {
   public PermissionChecker(InodeTree inodeTree) {
     mInodeTree = Preconditions.checkNotNull(inodeTree);
     mPermissionCheckEnabled =
-        MasterContext.getConf().getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        MasterContext.getConf().get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
-    mGroupMappingService =
-        GroupMappingService.Factory.getUserToGroupsMappingService(MasterContext.getConf());
+        Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+    mGroupMappingService = GroupMappingService.Factory.getUserToGroupsMappingService();
   }
 
   /**
@@ -159,7 +159,7 @@ public final class PermissionChecker {
    */
   private String getClientUser() throws AccessControlException {
     try {
-      User authorizedUser = AuthenticatedClientUser.get(MasterContext.getConf());
+      User authorizedUser = AuthenticatedClientUser.get();
       if (authorizedUser == null) {
         throw new AccessControlException(
             ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());

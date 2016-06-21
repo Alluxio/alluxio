@@ -30,7 +30,7 @@ public class OSSUnderFileSystemFactoryTest {
   public void factoryTest() {
     Configuration conf = new Configuration();
 
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path", conf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path");
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for oss paths when using this module", factory);

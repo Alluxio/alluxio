@@ -35,11 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CatCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CatCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CatCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

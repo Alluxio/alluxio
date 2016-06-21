@@ -31,18 +31,17 @@ public class RemoteBlockWriterTest {
   @Test
   public void createFromMockClass() throws Exception {
     RemoteBlockWriter mock = Mockito.mock(RemoteBlockWriter.class);
-    Configuration conf = new Configuration();
-    conf.set(Constants.USER_BLOCK_REMOTE_WRITER, mock.getClass().getName());
-    Assert.assertTrue(RemoteBlockWriter.Factory.create(conf).getClass().equals(mock.getClass()));
+    Configuration.defaultInit();
+    Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, mock.getClass().getName());
+    Assert.assertTrue(RemoteBlockWriter.Factory.create().getClass().equals(mock.getClass()));
   }
 
   @Test
   public void createFailed() {
     mThrown.expect(RuntimeException.class);
-
-    Configuration conf = new Configuration();
-    conf.set(Constants.USER_BLOCK_REMOTE_WRITER, "unknown");
-    RemoteBlockWriter.Factory.create(conf);
+    Configuration.defaultInit();
+    Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, "unknown");
+    RemoteBlockWriter.Factory.create();
   }
 
 }

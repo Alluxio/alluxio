@@ -38,11 +38,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TailCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public TailCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public TailCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

@@ -45,10 +45,8 @@ public class BlockMasterClientTest {
     BlockMasterWorkerService.Client mock = PowerMockito.mock(BlockMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
 
-    BlockMasterClient client =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
-            WorkerContext.getConf());
+    BlockMasterClient client = new BlockMasterClient(
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC));
 
     try {
       Whitebox.invokeMethod(client, "checkVersion", mock,

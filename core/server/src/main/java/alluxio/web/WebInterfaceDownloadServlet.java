@@ -68,9 +68,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-        && AuthenticatedClientUser.get(MasterContext.getConf()) == null) {
-      AuthenticatedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+      AuthenticatedClientUser.set(LoginUser.get().getName());
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {

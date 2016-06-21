@@ -40,9 +40,9 @@ public final class CompleteUfsFileOptions {
   //TODO(calvin): Utilize user-to-group mapping to discover the user
   public static CompleteUfsFileOptions defaults() {
     String user = null;
-    if (SecurityUtils.isAuthenticationEnabled(ClientContext.getConf())) {
+    if (SecurityUtils.isAuthenticationEnabled()) {
       try {
-        user = LoginUser.get(ClientContext.getConf()).getName();
+        user = LoginUser.get().getName();
       } catch (Exception e) {
         // Fall through to system property approach
       }

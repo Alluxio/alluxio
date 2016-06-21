@@ -43,10 +43,9 @@ public interface GroupMappingService {
     /**
      * Gets the groups being used to map user-to-groups.
      *
-     * @param conf Alluxio configuration
      * @return the groups being used to map user-to-groups
      */
-    public static GroupMappingService getUserToGroupsMappingService(Configuration conf) {
+    public static GroupMappingService getUserToGroupsMappingService() {
       GroupMappingService mGroupMappingService;
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating new Groups object");
@@ -54,8 +53,7 @@ public interface GroupMappingService {
       try {
         mGroupMappingService =
             CommonUtils.createNewClassInstance(
-                conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
-        mGroupMappingService.setConf(conf);
+                Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -72,13 +70,4 @@ public interface GroupMappingService {
    * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user) throws IOException;
-
-  /**
-   * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
-   * from LDAP, we will need configuration to set up the connection to LDAP server.
-   *
-   * @param conf The alluxio configuration set to GroupMappingService
-   * @throws IOException if failed config GroupMappingService
-   */
-  void setConf(Configuration conf) throws IOException;
 }

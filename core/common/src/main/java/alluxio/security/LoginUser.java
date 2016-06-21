@@ -47,15 +47,14 @@ public final class LoginUser {
    * runs Alluxio client. When Alluxio client gets a user by this method and connects to Alluxio
    * service, this user represents the client and is maintained in service.
    *
-   * @param conf Alluxio configuration
    * @return the login user
-   * @throws java.io.IOException if login fails
+   * @throws IOException if login fails
    */
-  public static User get(Configuration conf) throws IOException {
+  public static User get() throws IOException {
     if (sLoginUser == null) {
       synchronized (LoginUser.class) {
         if (sLoginUser == null) {
-          sLoginUser = login(conf);
+          sLoginUser = login();
         }
       }
     }
@@ -65,12 +64,11 @@ public final class LoginUser {
   /**
    * Logs in based on the LoginModules.
    *
-   * @param conf Alluxio configuration
    * @return the login user
    * @throws IOException if login fails
    */
-  private static User login(Configuration conf) throws IOException {
-    AuthType authType = conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+  private static User login() throws IOException {
+    AuthType authType = Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
 
     try {
@@ -78,7 +76,7 @@ public final class LoginUser {
 
       CallbackHandler callbackHandler = null;
       if (authType.equals(AuthType.SIMPLE) || authType.equals(AuthType.CUSTOM)) {
-        callbackHandler = new AppLoginModule.AppCallbackHandler(conf);
+        callbackHandler = new AppLoginModule.AppCallbackHandler();
       }
 
       // Create LoginContext based on authType, corresponding LoginModule should be registered

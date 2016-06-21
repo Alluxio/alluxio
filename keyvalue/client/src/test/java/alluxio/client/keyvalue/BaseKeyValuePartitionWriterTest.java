@@ -11,6 +11,7 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ByteArrayOutStream;
 import alluxio.client.ClientContext;
@@ -127,7 +128,7 @@ public final class BaseKeyValuePartitionWriterTest {
   @Test
   public void canPutKeyValueTest() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
+    Configuration.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
     mWriter = new BaseKeyValuePartitionWriter(mOutStream);
     Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);

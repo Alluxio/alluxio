@@ -11,10 +11,10 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.util.CommonUtils;
@@ -45,12 +45,11 @@ public final class OpenFileOptions {
    */
   private OpenFileOptions() {
     mReadType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+        Configuration.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-                  .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[]{}, new Object[]{});
+      mLocationPolicy = CommonUtils.createNewClassInstance(
+          Configuration.<FileWriteLocationPolicy>getClass(
+              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

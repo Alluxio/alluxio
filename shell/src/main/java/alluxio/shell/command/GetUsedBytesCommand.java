@@ -30,11 +30,10 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public GetUsedBytesCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public GetUsedBytesCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

@@ -47,11 +47,9 @@ public final class KeyValueWorkerClient extends AbstractClient {
    * Creates a {@link KeyValueWorkerClient}.
    *
    * @param workerNetAddress location of the worker to connect to
-   * @param conf Alluxio configuration
    */
-  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress, Configuration conf) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf,
-        "key-value-worker");
+  public KeyValueWorkerClient(WorkerNetAddress workerNetAddress) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "key-value-worker");
   }
 
   @Override

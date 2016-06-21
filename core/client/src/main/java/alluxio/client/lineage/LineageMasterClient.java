@@ -47,10 +47,9 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public LineageMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

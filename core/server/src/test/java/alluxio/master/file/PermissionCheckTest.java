@@ -129,24 +129,18 @@ public final class PermissionCheckTest {
       }
       return new ArrayList<>();
     }
-
-    @Override
-    public void setConf(Configuration conf) throws IOException {
-      // no-op
-    }
   }
 
   @Before
   public void before() throws Exception {
-    Configuration conf = new Configuration();
+    Configuration.defaultInit();
     // authentication
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
     // authorization
-    conf.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
 
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -247,8 +241,7 @@ public final class PermissionCheckTest {
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
-        .setPermission(Permission.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+        .setPermission(Permission.defaults().setUserFromThriftClient());
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
@@ -302,8 +295,7 @@ public final class PermissionCheckTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
-        .setPermission(Permission.defaults()
-            .setUserFromThriftClient(MasterContext.getConf()));
+        .setPermission(Permission.defaults().setUserFromThriftClient());
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
     FileInfo fileInfo =
@@ -512,9 +504,7 @@ public final class PermissionCheckTest {
   @Test
   public void readNotExecuteDirTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
 
     String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
     // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
@@ -529,9 +519,7 @@ public final class PermissionCheckTest {
 
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
     if (isFile) {
@@ -574,9 +562,7 @@ public final class PermissionCheckTest {
   @Test
   public void setStateSuccessTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -590,9 +576,7 @@ public final class PermissionCheckTest {
   @Test
   public void setStateFailTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -625,9 +609,7 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileSuccessTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -638,9 +620,7 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileFailTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -685,9 +665,7 @@ public final class PermissionCheckTest {
   @Test
   public void freeFileFailTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -701,9 +679,7 @@ public final class PermissionCheckTest {
   @Test
   public void freeNonNullDirectoryFailTest() throws Exception {
     // set unmask
-    Configuration conf = MasterContext.getConf();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);

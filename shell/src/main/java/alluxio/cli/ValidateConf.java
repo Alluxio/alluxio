@@ -36,15 +36,17 @@ public final class ValidateConf {
   public static void main(String[] args) {
     int ret = 0;
     LOG.info("Validating client configuration.");
-    if (ConfigurationUtils.validateConf(Configuration.createClientConf())) {
+    Configuration.clientInit();
+    if (ConfigurationUtils.validateConf()) {
       LOG.info("All client configuration entries are valid.");
     } else {
       LOG.info("Client configuration has invalid entries.");
       ret = -1;
     }
 
-    LOG.info("Validating sever configuration.");
-    if (ConfigurationUtils.validateConf(Configuration.createServerConf())) {
+    LOG.info("Validating server configuration.");
+    Configuration.serverInit();
+    if (ConfigurationUtils.validateConf()) {
       LOG.info("All server configuration entries are valid.");
     } else {
       LOG.info("Server configuration has invalid entries.");

@@ -60,7 +60,7 @@ public final class BlockMetadataManager {
 
   private BlockMetadataManager() {
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
       mAliasToTiers = new HashMap<>(storageTierAssoc.size());
       mTiers = new ArrayList<>(storageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal++) {
@@ -68,11 +68,7 @@ public final class BlockMetadataManager {
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
-    } catch (BlockAlreadyExistsException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (WorkerOutOfSpaceException e) {
+    } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
   }

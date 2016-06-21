@@ -146,11 +146,6 @@ public final class PermissionCheckerTest {
       }
       return new ArrayList<>();
     }
-
-    @Override
-    public void setConf(Configuration conf) throws IOException {
-      // no-op
-    }
   }
 
   @BeforeClass
@@ -172,12 +167,11 @@ public final class PermissionCheckerTest {
 
     blockMaster.start(true);
 
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
-    MasterContext.reset(conf);
+    Configuration.defaultInit();
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     sTree.initializeRoot(TEST_PERMISSION_SUPER);
 
     // build file structure

@@ -11,7 +11,6 @@
 
 package alluxio.security.group.provider;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 
@@ -43,10 +42,5 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
     return new ArrayList<>(new LinkedHashSet<>(groups));
-  }
-
-  @Override
-  public void setConf(Configuration conf) {
-    // does nothing in this provider of user to groups mapping
   }
 }

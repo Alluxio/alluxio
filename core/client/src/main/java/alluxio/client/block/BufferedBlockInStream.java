@@ -206,9 +206,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @return a heap buffer of user configured size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
-        (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

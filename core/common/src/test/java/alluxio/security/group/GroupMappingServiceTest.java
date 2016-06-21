@@ -30,9 +30,9 @@ public final class GroupMappingServiceTest {
   public void groupTest() throws Throwable {
     String userName = "alluxio-user1";
 
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    GroupMappingService groups = GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+    Configuration.defaultInit();
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    GroupMappingService groups = GroupMappingService.Factory.getUserToGroupsMappingService();
 
     Assert.assertNotNull(groups);
     Assert.assertNotNull(groups.getGroups(userName));

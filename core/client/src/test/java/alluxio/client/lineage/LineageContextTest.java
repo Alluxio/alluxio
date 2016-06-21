@@ -11,6 +11,7 @@
 
 package alluxio.client.lineage;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 
@@ -32,8 +33,7 @@ public final class LineageContextTest {
     final List<LineageMasterClient> clients = new ArrayList<>();
 
     // acquire all the clients
-    for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i++) {
       clients.add(LineageContext.INSTANCE.acquireMasterClient());
     }
 

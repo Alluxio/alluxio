@@ -97,8 +97,7 @@ public final class UnderFileSystemManagerTest {
   public void createUfsFileTest() throws Exception {
     mManager.createFile(SESSION_ID, mUri);
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()));
-    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
-        Mockito.anyString());
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
   }
 
   /**
@@ -197,8 +196,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     Mockito.verify(mMockUfs).exists(mUri.toString());
-    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
-        Mockito.anyString());
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
   }
 
   /**

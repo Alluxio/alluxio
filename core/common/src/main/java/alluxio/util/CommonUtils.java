@@ -226,14 +226,13 @@ public final class CommonUtils {
   /**
    * Using {@link GroupMappingService} to get the primary group name.
    *
-   * @param conf the runtime configuration of Alluxio
    * @param userName Alluxio user name
    * @return primary group name
    * @throws IOException if getting group failed
    */
-  public static String getPrimaryGroupName(Configuration conf, String userName) throws IOException {
+  public static String getPrimaryGroupName(String userName) throws IOException {
     GroupMappingService groupMappingService =
-        GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+        GroupMappingService.Factory.getUserToGroupsMappingService();
     List<String> groups = groupMappingService.getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }

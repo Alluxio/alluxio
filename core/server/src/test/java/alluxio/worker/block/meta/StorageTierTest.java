@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.worker.WorkerContext;
@@ -149,7 +150,7 @@ public class StorageTierTest {
   public void blankStorageTierTest() throws Exception {
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0);
-    WorkerContext.getConf().set(tierDirCapacityConf, "");
+    Configuration.set(tierDirCapacityConf, "");
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
     mTier = StorageTier.newStorageTier("MEM");

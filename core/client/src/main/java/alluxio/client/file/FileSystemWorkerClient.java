@@ -77,13 +77,12 @@ public class FileSystemWorkerClient extends AbstractClient {
    *
    * @param workerNetAddress the worker address to connect to
    * @param executorService the executor service to run this client's heartbeat thread
-   * @param conf the configuration to use
    * @param sessionId the session id to use, this should be unique
    * @param metrics the metrics object to send any metrics through
    */
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      Configuration conf, long sessionId, ClientMetrics metrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "FileSystemWorker");
+      long sessionId, ClientMetrics metrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "FileSystemWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
@@ -103,7 +102,7 @@ public class FileSystemWorkerClient extends AbstractClient {
     // only start the heartbeat thread if the connection is successful and if there is not
     // another heartbeat thread running
     if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-      final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+      final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =
           mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
               mHeartbeatExecutor, interval));

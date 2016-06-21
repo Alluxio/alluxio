@@ -41,10 +41,9 @@ public final class KeyValueMasterClient extends AbstractMasterClient {
    * Creates a new key-value master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public KeyValueMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public KeyValueMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

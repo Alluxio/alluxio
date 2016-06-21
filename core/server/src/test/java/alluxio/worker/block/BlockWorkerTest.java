@@ -94,10 +94,9 @@ public class BlockWorkerTest {
     mWorkerId = mRandom.nextLong();
     ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
 
-    Configuration conf = WorkerContext.getConf();
-    conf.set("alluxio.worker.tieredstore.level0.dirs.path",
+    Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
-    conf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
 
     mBlockWorker = new BlockWorker();
 

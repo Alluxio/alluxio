@@ -33,11 +33,10 @@ public final class MkdirCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to create a new directory.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public MkdirCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public MkdirCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

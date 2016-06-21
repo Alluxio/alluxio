@@ -29,19 +29,18 @@ import org.junit.Test;
 public class GlusterFSUnderFileSystemFactoryTest {
   private String mMount = null;
   private String mVolume = null;
-  private Configuration mConfiguration;
 
   /**
    * Sets the volume and the mount directory before a test runs.
    */
   @Before
   public final void before() {
-    mConfiguration = new Configuration();
-    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
-      mMount = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
+    Configuration.defaultInit();
+    if (Configuration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
+      mMount = Configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
     }
-    if (mConfiguration.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
-      mVolume = mConfiguration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
+    if (Configuration.containsKey(Constants.UNDERFS_GLUSTERFS_VOLUMES)) {
+      mVolume = Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES);
     }
   }
 
@@ -55,22 +54,22 @@ public class GlusterFSUnderFileSystemFactoryTest {
     Assume.assumeTrue(!StringUtils.isEmpty(mMount));
     Assume.assumeTrue(!StringUtils.isEmpty(mVolume));
 
-    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///", mConfiguration);
+    UnderFileSystem gfs = UnderFileSystem.get("glusterfs:///");
     Assert.assertNotNull(gfs.create("alluxio_test"));
   }
 
   /**
-   * Tests the {@link UnderFileSystemRegistry#find(String, Configuration)} method.
+   * Tests the {@link UnderFileSystemRegistry#find(String)} method.
    */
   @Test
   public void factoryTest() {
     UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mConfiguration);
+        UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for Gluster FS paths when using this module",
         factory);
 
-    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path", mConfiguration);
+    factory = UnderFileSystemRegistry.find("alluxio://localhost/test/path");
     Assert.assertNull("A UnderFileSystemFactory should not exist for unsupported paths when using"
         + " this module.", factory);
   }

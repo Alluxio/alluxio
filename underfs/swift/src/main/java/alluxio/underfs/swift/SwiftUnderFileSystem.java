@@ -77,31 +77,30 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
-    super(uri, configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri) {
+    super(uri);
     String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
-      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
-    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
-      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
+    } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
     }
-    config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
-    String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
+    config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
+    String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
+      config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
       // tempauth requires authentication header to be of the form tenant:user.
       // JOSS however generates header of the form user:tenant.
       // To resolve this, we switch user with tenant
-      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
+      config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -122,12 +121,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     LOG.debug("connect from master");
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     LOG.debug("connect from worker");
   }
 
@@ -211,7 +210,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override

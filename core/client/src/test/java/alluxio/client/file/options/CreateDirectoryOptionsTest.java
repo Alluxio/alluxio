@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
@@ -27,7 +28,7 @@ import java.util.Random;
  */
 public class CreateDirectoryOptionsTest {
   private final WriteType mDefaultWriteType =
-      ClientContext.getConf().getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+      Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 
   @Test
   public void defaultsTest() {

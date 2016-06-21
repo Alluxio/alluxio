@@ -52,7 +52,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   public BlockWorkerClientServiceHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override

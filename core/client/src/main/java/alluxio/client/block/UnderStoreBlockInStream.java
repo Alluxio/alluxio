@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
@@ -88,7 +89,7 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
     public static UnderStoreBlockInStream create(long blockStart, long length, long blockSize,
         String path) throws IOException {
       UnderStoreBlockInStream stream;
-      if (ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
+      if (Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
         stream = new DelegatedUnderStoreBlockInStream(blockStart, length, blockSize, path);
       } else {
         stream = new DirectUnderStoreBlockInStream(blockStart, length, blockSize, path);

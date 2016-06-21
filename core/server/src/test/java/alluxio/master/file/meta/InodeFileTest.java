@@ -165,8 +165,7 @@ public final class InodeFileTest extends AbstractInodeTest {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(TEST_USER_NAME, inode1.getUserName());
     Assert.assertEquals(TEST_GROUP_NAME, inode1.getGroupName());
-    Assert.assertEquals(
-        new Permission(TEST_PERMISSION).applyFileUMask(MasterContext.getConf())
-            .getMode().toShort(), inode1.getMode());
+    Assert.assertEquals(new Permission(TEST_PERMISSION).applyFileUMask().getMode().toShort(),
+        inode1.getMode());
   }
 }

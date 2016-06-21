@@ -142,7 +142,6 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
-    return ByteBuffer.allocate((int) conf.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    return ByteBuffer.allocate((int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 }
