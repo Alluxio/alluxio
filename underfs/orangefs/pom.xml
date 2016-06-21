@@ -13,43 +13,41 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.alluxio</groupId>
-    <artifactId>alluxio-parent</artifactId>
+    <artifactId>alluxio-underfs</artifactId>
     <version>1.1.0-SNAPSHOT</version>
   </parent>
-  <artifactId>alluxio-underfs</artifactId>
-  <packaging>pom</packaging>
-  <name>Alluxio Under File System</name>
-  <description>Parent POM for different implementations of Alluxio under file system</description>
-
-  <modules>
-    <module>local</module>
-    <module>hdfs</module>
-    <module>glusterfs</module>
-    <module>oss</module>
-    <module>swift</module>
-    <module>s3</module>
-  </modules>
 
   <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
-  <profiles>
-    <profile>
-      <id>orangefs-lgpl</id>
-      <activation>
-        <property>
-          <name>orangefs.version</name>
-        </property>
-      </activation>
-      <modules>
-        <module>orangefs</module>
-      </modules>
-    </profile>
-  </profiles>
+  <artifactId>alluxio-underfs-orangefs</artifactId>
+  <name>Alluxio Under File System - OrangeFS</name>
+  <description>Alluxio Under File System implementation for OrangeFS</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
          properly from sub-project directories -->
-    <license.header.path>${project.parent.basedir}/build/license/</license.header.path>
-    <checkstyle.path>${project.parent.basedir}/build/checkstyle/</checkstyle.path>
-    <findbugs.path>${project.parent.basedir}/build/findbugs/</findbugs.path>
+    <license.header.path>${project.parent.parent.basedir}/build/license/</license.header.path>
+    <checkstyle.path>${project.parent.parent.basedir}/build/checkstyle/</checkstyle.path>
+    <findbugs.path>${project.parent.parent.basedir}/build/findbugs/</findbugs.path>
   </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.orangefs.usrint</groupId>
+      <artifactId>orangefs-jni</artifactId>
+      <version>${orangefs.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.alluxio</groupId>
+      <artifactId>alluxio-core-common</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+  </dependencies>
 </project>

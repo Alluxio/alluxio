@@ -88,6 +88,10 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(result.getFirst(), "oss://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
+    result = UnderFileSystem.parse(new AlluxioURI("ofs://localhost:19998/path"), mConf);
+    Assert.assertEquals(result.getFirst(), "ofs://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/path");
+
     Assert.assertEquals(UnderFileSystem.parse(AlluxioURI.EMPTY_URI, mConf), null);
     Assert.assertEquals(UnderFileSystem.parse(new AlluxioURI("anythingElse"), mConf), null);
   }
@@ -144,5 +148,10 @@ public final class UnderFileSystemTest {
     factory = UnderFileSystemRegistry.find("glusterfs://localhost/test/path", mConf);
     Assert.assertNull("No UnderFileSystemFactory should exist for Gluster FS paths as it requires"
         + " a separate module", factory);
+
+    factory = UnderFileSystemRegistry.find("ofs://localhost/test/path", mConf);
+    Assert.assertNull(
+        "No UnderFileSystemFactory should exist for OrangeFS paths as it requires a separate"
+            + " module", factory);
   }
 }

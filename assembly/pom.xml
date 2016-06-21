@@ -109,6 +109,23 @@
         </dependency>
       </dependencies>
     </profile>
+
+    <!-- OrangeFS integration is not included by default due to LGPL-licensed code -->
+    <profile>
+      <id>orangefs-lgpl</id>
+      <activation>
+        <property>
+          <name>orangefs.version</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.alluxio</groupId>
+          <artifactId>alluxio-underfs-orangefs</artifactId>
+          <version>${project.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
   <build>
