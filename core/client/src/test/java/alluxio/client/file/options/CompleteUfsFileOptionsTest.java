@@ -58,14 +58,14 @@ public final class CompleteUfsFileOptionsTest {
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";
-    short permission = Constants.DEFAULT_FILE_SYSTEM_MODE;
+    short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
     options.setOwner(owner);
     options.setGroup(group);
-    options.setMode(permission);
+    options.setMode(mode);
 
     Assert.assertEquals(owner, options.getOwner());
     Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(permission, options.getMode());
+    Assert.assertEquals(mode, options.getMode());
   }
 
   /**
@@ -76,16 +76,16 @@ public final class CompleteUfsFileOptionsTest {
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";
-    short permission = Constants.DEFAULT_FILE_SYSTEM_MODE;
+    short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
 
     options.setOwner(owner);
     options.setGroup(group);
-    options.setMode(permission);
+    options.setMode(mode);
 
     CompleteUfsFileTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(owner, thriftOptions.getOwner());
     Assert.assertEquals(group, thriftOptions.getGroup());
-    Assert.assertEquals(permission, thriftOptions.getMode());
+    Assert.assertEquals(mode, thriftOptions.getMode());
   }
 
   @Test
