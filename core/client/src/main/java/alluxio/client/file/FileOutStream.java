@@ -120,8 +120,8 @@ public class FileOutStream extends AbstractOutStream {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        CreateOptions ufsCreateOptions = new CreateOptions().setPermission(options.getPermission());
-        mUnderStorageOutputStream = ufs.create(tmpPath, ufsCreateOptions);
+        CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
+        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;

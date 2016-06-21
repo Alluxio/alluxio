@@ -155,9 +155,9 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertNotEquals(defaultOwner, nonexistentOwner);
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
 
-    // Expect a IOException for not able to setGroup for UFS with invalid owner name.
+    // Expect a IOException for not able to setOwner for UFS with invalid group name.
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setGroup for UFS file");
+    mThrown.expectMessage("Could not setOwner for UFS file");
     sTFS.setOwner(fileB, null, nonexistentGroup);
   }
 

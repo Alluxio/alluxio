@@ -1859,13 +1859,11 @@ public final class FileSystemMaster extends AbstractMaster {
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
-    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      String ufsOwner = ufs.getOwner(ufsUri.toString());
-      String ufsGroup = ufs.getGroup(ufsUri.toString());
-      short ufsPermission = ufs.getMode(ufsUri.toString());
-      createFileOptions = createFileOptions.setPermission(
-          new Permission(ufsOwner, ufsGroup, ufsPermission));
-    }
+    String ufsOwner = ufs.getOwner(ufsUri.toString());
+    String ufsGroup = ufs.getGroup(ufsUri.toString());
+    short ufsPermission = ufs.getMode(ufsUri.toString());
+    createFileOptions = createFileOptions.setPermission(
+        new Permission(ufsOwner, ufsGroup, ufsPermission));
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1905,16 +1903,14 @@ public final class FileSystemMaster extends AbstractMaster {
             .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
             .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true)
             .setAllowExists(true);
-    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())) {
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      AlluxioURI ufsUri = resolution.getUri();
-      UnderFileSystem ufs = resolution.getUfs();
-      String ufsOwner = ufs.getOwner(ufsUri.toString());
-      String ufsGroup = ufs.getGroup(ufsUri.toString());
-      short ufsPermission = ufs.getMode(ufsUri.toString());
-      createDirectoryOptions = createDirectoryOptions.setPermission(
-          new Permission(ufsOwner, ufsGroup, ufsPermission));
-    }
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsOwner = ufs.getOwner(ufsUri.toString());
+    String ufsGroup = ufs.getGroup(ufsUri.toString());
+    short ufsPermission = ufs.getMode(ufsUri.toString());
+    createDirectoryOptions = createDirectoryOptions.setPermission(
+        new Permission(ufsOwner, ufsGroup, ufsPermission));
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
@@ -2444,38 +2440,33 @@ public final class FileSystemMaster extends AbstractMaster {
         MasterContext.getMasterSource().incFilesPersisted(1);
       }
     }
+    boolean ownerGroupChanged = false;
+    boolean permissionChanged = false;
     if (options.getOwner() != null) {
       inode.setUserName(options.getOwner());
-      if (inode.isPersisted()) {
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
+      ownerGroupChanged = true;
+    }
+    if (options.getGroup() != null) {
+      inode.setGroupName(options.getGroup());
+      ownerGroupChanged = true;
+    }
+    if (options.getPermission() != Constants.INVALID_MODE) {
+      inode.setPermission(options.getPermission());
+      permissionChanged = true;
+    }
+    // If the file is persisted in UFS, also update corresponding owner/group/permission.
+    if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      if (ownerGroupChanged) {
         try {
           ufs.setOwner(ufsUri, inode.getUserName(), inode.getGroupName());
         } catch (IOException e) {
           throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
         }
       }
-    }
-    if (options.getGroup() != null) {
-      inode.setGroupName(options.getGroup());
-      if (inode.isPersisted()) {
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
-        try {
-          ufs.setOwner(ufsUri, inode.getUserName(), inode.getGroupName());
-        } catch (IOException e) {
-          throw new AccessControlException("Could not setGroup for UFS file " + ufsUri, e);
-        }
-      }
-    }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getPermission());
-      if (inode.isPersisted()) {
-        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-        String ufsUri = resolution.getUri().toString();
-        UnderFileSystem ufs = resolution.getUfs();
+      if (permissionChanged) {
         try {
           ufs.setMode(ufsUri, inode.getMode());
         } catch (IOException e) {
