@@ -20,8 +20,7 @@ import alluxio.util.io.PathUtils;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.internal.StaticCredentialsProvider;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -29,7 +28,6 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.util.Base64;
-import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,18 +81,8 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   public S3AUnderFileSystem(AlluxioURI uri, Configuration conf) {
     super(uri, conf);
-
-    //TODO(calvin): Clean up the credentials handling
-    String accessKey =
-        Preconditions.checkNotNull(conf.get(Constants.S3_ACCESS_KEY), "Property "
-            + Constants.S3_ACCESS_KEY + " is required to connect to S3");
-    String secretKey =
-        Preconditions.checkNotNull(conf.get(Constants.S3_SECRET_KEY), "Property "
-            + Constants.S3_SECRET_KEY + " is required to connect to S3");
     AWSCredentialsProvider credentials =
-        new AWSCredentialsProviderChain(new StaticCredentialsProvider(new BasicAWSCredentials(
-            accessKey, secretKey)));
-
+        new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
     mClient = new AmazonS3Client(credentials);
