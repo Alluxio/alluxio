@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * Unit tests for {@link AlluxioProcess}.
  */
-public class AlluxioProcessTest {
+public final class AlluxioProcessTest {
   @Test
   public void typeTest() {
     AlluxioProcess.setType(AlluxioProcess.Type.CLIENT);

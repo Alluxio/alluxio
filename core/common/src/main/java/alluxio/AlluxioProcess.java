@@ -11,9 +11,12 @@
 
 package alluxio;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Utility class to help distinguish between different types of Alluxio processes at runtime.
  */
+@ThreadSafe
 public final class AlluxioProcess {
   private static Type sType = Type.CLIENT;
 

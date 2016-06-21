@@ -17,38 +17,44 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * Utility class for fetching configuration across different types of Alluxio processes.
  */
+@ThreadSafe
 public final class Context {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static Configuration sConfiguration = null;
 
   /**
    * @return the configuration retrieved from the context of the current process
    */
-  public static Configuration getConf() {
-    try {
-      Class clazz;
-      switch (AlluxioProcess.getType()) {
-        case MASTER:
-          clazz = Class.forName("alluxio.master.MasterContext");
-          break;
-        case WORKER:
-          clazz = Class.forName("alluxio.worker.WorkerContext");
-          break;
-        case CLIENT:
-          clazz = Class.forName("alluxio.client.ClientContext");
-          break;
-        default:
-          throw new IllegalStateException("unexpected process type");
+  public static synchronized Configuration getConf() {
+    if (sConfiguration == null) {
+      try {
+        Class clazz;
+        switch (AlluxioProcess.getType()) {
+          case MASTER:
+            clazz = Class.forName("alluxio.master.MasterContext");
+            break;
+          case WORKER:
+            clazz = Class.forName("alluxio.worker.WorkerContext");
+            break;
+          case CLIENT:
+            clazz = Class.forName("alluxio.client.ClientContext");
+            break;
+          default:
+            throw new IllegalStateException("unexpected process type");
+        }
+        Method method = clazz.getMethod("getConf");
+        sConfiguration = (Configuration) method.invoke(null);
+      } catch (Exception e) {
+        LOG.warn("failed to retrieve configuration from the context of the current process");
+        Throwables.propagate(e);
       }
-      Method method = clazz.getMethod("getConf");
-      return (Configuration) method.invoke(null);
-    } catch (Exception e) {
-      LOG.warn("failed to retrieve configuration from the context of the current process");
-      Throwables.propagate(e);
     }
-    return null;
+    return sConfiguration;
   }
 
   private Context() {} // prevent instantiation
