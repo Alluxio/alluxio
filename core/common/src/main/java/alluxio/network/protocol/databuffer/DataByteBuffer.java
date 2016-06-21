@@ -19,7 +19,10 @@ import io.netty.buffer.Unpooled;
 import java.nio.ByteBuffer;
 
 /**
- * A DataBuffer with the underlying data being a {@link ByteBuffer}.
+ * A DataBuffer with the underlying data being a {@link ByteBuffer}. If the backing ByteBuffer is
+ * a direct ByteBuffer, {@link #release()} should only be called when all references to the
+ * object are finished with it. For this reason, it is not recommended to share objects of this
+ * class unless reference counting is implemented by the users of this class.
  */
 public final class DataByteBuffer implements DataBuffer {
   private final ByteBuffer mBuffer;
