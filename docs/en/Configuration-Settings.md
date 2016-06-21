@@ -31,7 +31,7 @@ following environment variables:
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Meaning</th></tr>
 <tr>
-  <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></pre></td>
+  <td><code class="highlighter-rouge">ALLUXIO_MASTER_HOSTNAME</code></td>
   <td>hostname of Alluxio master, defaults to localhost.</td>
 </tr>
 <tr>
