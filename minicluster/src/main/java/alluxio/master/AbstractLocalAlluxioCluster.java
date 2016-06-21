@@ -321,7 +321,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public Configuration newTestConf() throws IOException {
-    Configuration testConf = Configuration.createDefaultConf();
+    Configuration testConf = Configuration.emptyInit();
     setAlluxioHome();
     setHostname();
 

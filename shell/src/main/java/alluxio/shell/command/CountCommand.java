@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CountCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

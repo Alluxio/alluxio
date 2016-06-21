@@ -12,6 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
@@ -20,7 +21,6 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.Assert;
 import org.junit.Before;
@@ -116,7 +116,7 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws Exception {
-    final Configuration conf = new Configuration();
+    final org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
     }
@@ -124,9 +124,9 @@ public class AbstractFileSystemTest {
     // when
     final URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "true");
+    Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    Configuration.set(Constants.ZOOKEEPER_ENABLED, "true");
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
@@ -142,14 +142,14 @@ public class AbstractFileSystemTest {
    */
   @Test
   public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws Exception {
-    final Configuration conf = getConf();
+    final org.apache.hadoop.conf.Configuration conf = getConf();
 
     // when
     final URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, "false");
+    Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    Configuration.set(Constants.ZOOKEEPER_ENABLED, "false");
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
 
@@ -188,7 +188,7 @@ public class AbstractFileSystemTest {
   @Test
   public void concurrentInitializeTest() throws Exception {
     final List<Thread> threads = new ArrayList<>();
-    final Configuration conf = getConf();
+    final org.apache.hadoop.conf.Configuration conf = getConf();
     for (int i = 0; i < 100; i++) {
       final int id = i;
       Thread t = new Thread(new Runnable() {
@@ -221,8 +221,8 @@ public class AbstractFileSystemTest {
     return getHadoopVersion().startsWith("2");
   }
 
-  private Configuration getConf() throws Exception {
-    Configuration conf = new Configuration();
+  private org.apache.hadoop.conf.Configuration getConf() throws Exception {
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME + ".impl", FileSystem.class.getName());
     }

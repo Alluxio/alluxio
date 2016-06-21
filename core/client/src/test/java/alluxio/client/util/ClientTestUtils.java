@@ -11,6 +11,7 @@
 
 package alluxio.client.util;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
@@ -30,8 +31,8 @@ public final class ClientTestUtils {
    * Sets small buffer sizes so that Alluxio does not run out of heap space.
    */
   public static void setSmallBufferSizes() {
-    ClientContext.getConf().set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
-    ClientContext.getConf().set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
+    Configuration.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "4KB");
+    Configuration.set(Constants.USER_FILE_BUFFER_BYTES, "4KB");
   }
 
   /**

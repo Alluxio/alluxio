@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -51,16 +52,16 @@ public final class StorageTier {
 
   private StorageTier(String tierAlias) {
     mTierAlias = tierAlias;
-    mTierOrdinal = new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrdinal(tierAlias);
+    mTierOrdinal = new WorkerStorageTierAssoc().getOrdinal(tierAlias);
   }
 
   private void initStorageTier()
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
-    String workerDataFolder = WorkerContext.getConf().get(Constants.WORKER_DATA_FOLDER);
-    String tmpDir = WorkerContext.getConf().get(Constants.WORKER_DATA_TMP_FOLDER);
+    String workerDataFolder = Configuration.get(Constants.WORKER_DATA_FOLDER);
+    String tmpDir = Configuration.get(Constants.WORKER_DATA_TMP_FOLDER);
     String tierDirPathConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
-    String[] dirPaths = WorkerContext.getConf().get(tierDirPathConf).split(",");
+    String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
     // /mnt/ramdisk/alluxioworker
@@ -70,7 +71,7 @@ public final class StorageTier {
 
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
-    String rawDirQuota = WorkerContext.getConf().get(tierDirCapacityConf);
+    String rawDirQuota = Configuration.get(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");
 

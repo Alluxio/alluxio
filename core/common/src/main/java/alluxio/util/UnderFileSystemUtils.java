@@ -30,11 +30,10 @@ public final class UnderFileSystemUtils {
    * Deletes the directory at the given path.
    *
    * @param path path to the directory
-   * @param configuration Alluxio configuration
    * @throws IOException if the directory cannot be deleted
    */
-  public static void deleteDir(final String path, Configuration configuration) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
+  public static void deleteDir(final String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -45,12 +44,10 @@ public final class UnderFileSystemUtils {
    * Attempts to create the directory if it does not already exist.
    *
    * @param path path to the directory
-   * @param configuration Alluxio configuration
    * @throws IOException if the directory cannot be created
    */
-  public static void mkdirIfNotExists(final String path, Configuration configuration)
-      throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
+  public static void mkdirIfNotExists(final String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (!ufs.exists(path)) {
       if (!ufs.mkdirs(path, true)) {
@@ -63,11 +60,10 @@ public final class UnderFileSystemUtils {
    * Creates an empty file.
    *
    * @param path path to the file
-   * @param configuration Alluxio Configuration
    * @throws IOException if the file cannot be created
    */
-  public static void touch(final String path, Configuration configuration) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, configuration);
+  public static void touch(final String path) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(path);
     OutputStream os = ufs.create(path);
     os.close();
   }

@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
   private final KeyValueMasterClient mKeyValueMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+      new KeyValueMasterClient(ClientContext.getMasterAddress());
 
   /**
    * Constructs a new {@link KeyValueInputFormat}.

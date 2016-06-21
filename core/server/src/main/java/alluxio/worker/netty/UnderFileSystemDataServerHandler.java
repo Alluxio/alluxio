@@ -50,9 +50,8 @@ public class UnderFileSystemDataServerHandler {
    * Constructs a file data server handler for serving any ufs read/write requests.
    *
    * @param worker the file system worker
-   * @param configuration the configuration to use
    */
-  public UnderFileSystemDataServerHandler(FileSystemWorker worker, Configuration configuration) {
+  public UnderFileSystemDataServerHandler(FileSystemWorker worker) {
     mWorker = worker;
   }
 

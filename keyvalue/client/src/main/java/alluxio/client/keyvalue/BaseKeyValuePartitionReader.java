@@ -53,7 +53,7 @@ final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
     mBlockId = blockId;
     BlockInfo info = AlluxioBlockStore.get().getInfo(mBlockId);
     WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-    mClient = new KeyValueWorkerClient(workerAddr, ClientContext.getConf());
+    mClient = new KeyValueWorkerClient(workerAddr);
     mClosed = false;
   }
 

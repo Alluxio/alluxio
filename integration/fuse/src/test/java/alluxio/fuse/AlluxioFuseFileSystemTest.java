@@ -62,17 +62,17 @@ public class AlluxioFuseFileSystemTest {
   private FuseFileInfo mFileInfo;
 
   @Before
-  public void setUp() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
-    conf.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
+  public void before() throws Exception {
+    Configuration.defaultInit();
+    Configuration.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
+    Configuration.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
     AlluxioFuseOptions opts = new AlluxioFuseOptions(
         "/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
-    mFuseFs = new AlluxioFuseFileSystem(conf, mFileSystem, opts);
+    mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
     mFileInfo = allocateNativeFileInfo();
   }
 

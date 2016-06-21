@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
@@ -95,7 +96,7 @@ public class FileOutStream extends AbstractOutStream {
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
     mPreviousBlockOutStreams = new LinkedList<>();
-    mUfsDelegation = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
+    mUfsDelegation = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
         updateUfsPath();
@@ -114,7 +115,7 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
         mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
 
@@ -171,7 +172,7 @@ public class FileOutStream extends AbstractOutStream {
         }
       } else {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
         if (mCanceled) {
           // TODO(yupeng): Handle this special case in under storage integrations.
           mUnderStorageOutputStream.close();

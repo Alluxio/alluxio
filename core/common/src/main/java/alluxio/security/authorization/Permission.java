@@ -108,22 +108,20 @@ public final class Permission {
   /**
    * Applies the default umask for newly created files to the mode bits.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return this {@link Permission} after umask applied
    */
-  public Permission applyFileUMask(Configuration conf) {
-    mMode = mMode.applyUMask(Mode.getUMask(conf)).applyUMask(FILE_UMASK);
+  public Permission applyFileUMask() {
+    mMode = mMode.applyUMask(Mode.getUMask()).applyUMask(FILE_UMASK);
     return this;
   }
 
   /**
    * Applies the default umask for newly created directories to the mode bits.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return this {@link Permission} after umask applied
    */
-  public Permission applyDirectoryUMask(Configuration conf) {
-    mMode = mMode.applyUMask(Mode.getUMask(conf));
+  public Permission applyDirectoryUMask() {
+    mMode = mMode.applyUMask(Mode.getUMask());
     return this;
   }
 
@@ -132,20 +130,19 @@ public final class Permission {
    * user. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
    * no-op.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
    * @throws IOException when getting login user fails
    */
-  public Permission setUserFromThriftClient(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+  public Permission setUserFromThriftClient() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
       // no authentication, no user to set
       return this;
     }
     // get the username through the authentication mechanism
-    User user = AuthenticatedClientUser.get(conf);
+    User user = AuthenticatedClientUser.get();
     Preconditions.checkNotNull(user, ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
     mUserName = user.getName();
-    mGroupName = CommonUtils.getPrimaryGroupName(conf, user.getName());
+    mGroupName = CommonUtils.getPrimaryGroupName(user.getName());
     return this;
   }
 
@@ -153,19 +150,18 @@ public final class Permission {
    * Sets the user based on the login module and updates the group to the primary group of the user.
    * If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a no-op.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
    * @throws IOException when getting login user fails
    */
-  public Permission setUserFromLoginModule(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+  public Permission setUserFromLoginModule() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
       // no authentication, no user to set
       return this;
     }
     // get the username through the login module
-    String loginUserName = LoginUser.get(conf).getName();
+    String loginUserName = LoginUser.get().getName();
     mUserName = loginUserName;
-    mGroupName = CommonUtils.getPrimaryGroupName(conf, loginUserName);
+    mGroupName = CommonUtils.getPrimaryGroupName(loginUserName);
     return this;
   }
 

@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
@@ -55,7 +56,7 @@ public interface FileSystem {
     private Factory() {} // prevent instantiation
 
     public static FileSystem get() {
-      if (ClientContext.getConf().getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+      if (Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
         return LineageFileSystem.get();
       }
       return BaseFileSystem.get();

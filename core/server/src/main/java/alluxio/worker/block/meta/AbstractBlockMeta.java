@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.WorkerContext;
@@ -41,8 +42,8 @@ public abstract class AbstractBlockMeta {
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
-    final String tmpDir = WorkerContext.getConf().get(Constants.WORKER_DATA_TMP_FOLDER);
-    final int subDirMax = WorkerContext.getConf().getInt(Constants.WORKER_DATA_TMP_SUBDIR_MAX);
+    final String tmpDir = Configuration.get(Constants.WORKER_DATA_TMP_FOLDER);
+    final int subDirMax = Configuration.getInt(Constants.WORKER_DATA_TMP_SUBDIR_MAX);
 
     return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
         String.format("%x-%x", sessionId, blockId));

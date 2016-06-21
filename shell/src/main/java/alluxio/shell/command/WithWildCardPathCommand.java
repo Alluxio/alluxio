@@ -37,8 +37,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractShellCommand {
 
-  protected WithWildCardPathCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  protected WithWildCardPathCommand(FileSystem fs) {
+    super(fs);
   }
 
   /**

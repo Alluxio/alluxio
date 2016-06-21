@@ -75,18 +75,17 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
-    super(uri, conf);
+  public GCSUnderFileSystem(AlluxioURI uri) throws ServiceException {
+    super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_ACCESS_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_ACCESS_KEY),
         "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_SECRET_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_SECRET_KEY),
         "Property " + Constants.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials = new GSCredentials(conf.get(Constants.GCS_ACCESS_KEY),
-        conf.get(Constants.GCS_SECRET_KEY));
+    GSCredentials googleCredentials = new GSCredentials(Configuration.get(Constants.GCS_ACCESS_KEY),
+        Configuration.get(Constants.GCS_SECRET_KEY));
     mBucketName = bucketName;
 
     // TODO(chaomin): maybe add proxy support for GCS.
@@ -104,12 +103,12 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
@@ -176,7 +175,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported

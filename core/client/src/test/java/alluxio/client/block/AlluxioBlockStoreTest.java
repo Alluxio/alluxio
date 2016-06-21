@@ -116,8 +116,7 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamLocalTest() throws Exception {
     Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
-        .thenReturn(WORKER_HOSTNAME_LOCAL);
+    Mockito.when(NetworkAddressUtils.getLocalHostName()).thenReturn(WORKER_HOSTNAME_LOCAL);
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
@@ -133,7 +132,7 @@ public final class AlluxioBlockStoreTest {
   public void getInStreamRemoteTest() throws Exception {
     Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
+    Mockito.when(NetworkAddressUtils.getLocalHostName())
         .thenReturn(WORKER_HOSTNAME_LOCAL + "_different");
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 

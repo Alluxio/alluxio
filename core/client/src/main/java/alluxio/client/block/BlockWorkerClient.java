@@ -76,14 +76,13 @@ public final class BlockWorkerClient extends AbstractClient {
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
-   * @param conf Alluxio configuration
    * @param sessionId the id of the session
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      Configuration conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
+      long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "blockWorker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
@@ -225,7 +224,7 @@ public final class BlockWorkerClient extends AbstractClient {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
                 mHeartbeatExecutor, interval));

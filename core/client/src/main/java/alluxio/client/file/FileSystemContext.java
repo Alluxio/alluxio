@@ -88,7 +88,7 @@ public enum FileSystemContext {
     }
     long sessionId = IdUtils.getRandomNonNegativeLong();
     return new FileSystemWorkerClient(address, ClientContext.getFileClientExecutorService(),
-        ClientContext.getConf(), sessionId, ClientContext.getClientMetrics());
+        sessionId, ClientContext.getClientMetrics());
   }
 
   /**
@@ -140,7 +140,7 @@ public enum FileSystemContext {
     // Convert the worker infos into net addresses, if there are local addresses, only keep those
     List<WorkerNetAddress> workerNetAddresses = new ArrayList<>();
     List<WorkerNetAddress> localWorkerNetAddresses = new ArrayList<>();
-    String localHostname = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    String localHostname = NetworkAddressUtils.getLocalHostName();
     for (WorkerInfo info : infos) {
       WorkerNetAddress netAddress = info.getAddress();
       if (netAddress.getHost().equals(localHostname)) {

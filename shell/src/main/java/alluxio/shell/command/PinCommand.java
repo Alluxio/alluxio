@@ -30,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class PinCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public PinCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public PinCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

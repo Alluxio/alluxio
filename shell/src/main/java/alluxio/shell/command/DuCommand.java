@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DuCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DuCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DuCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

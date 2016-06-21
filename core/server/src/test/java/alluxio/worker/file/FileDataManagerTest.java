@@ -164,9 +164,8 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    Configuration conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
-    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
 
     FileDataManager manager = new FileDataManager(blockWorker);
 
@@ -178,7 +177,7 @@ public final class FileDataManagerTest {
 
     // Setup a mock rate limiter.
     MockRateLimiter mockRateLimiter = new MockRateLimiter(
-        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(
         manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 
@@ -208,7 +207,7 @@ public final class FileDataManagerTest {
 
     // Repeat persistence without sleeping.
     mockRateLimiter = new MockRateLimiter(
-        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(
         manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 

@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -96,7 +97,7 @@ public final class MasterSourceTest {
    */
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
+    Configuration.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -119,7 +120,7 @@ public final class MasterSourceTest {
     MasterContext.reset();
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
 
-    mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR, MasterContext.getConf());
+    mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR);
   }
 
   @After

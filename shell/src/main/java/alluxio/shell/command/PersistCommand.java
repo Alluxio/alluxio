@@ -34,11 +34,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class PersistCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public PersistCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public PersistCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -95,7 +94,7 @@ public final class PersistCommand extends AbstractShellCommand {
     } else if (status.isPersisted()) {
       System.out.println(filePath + " is already persisted");
     } else {
-      long size = FileSystemUtils.persistFile(mFileSystem, filePath, status, mConfiguration);
+      long size = FileSystemUtils.persistFile(mFileSystem, filePath, status);
       System.out.println("persisted file " + filePath + " with size " + size);
     }
   }

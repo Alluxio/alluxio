@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TouchCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public TouchCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public TouchCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

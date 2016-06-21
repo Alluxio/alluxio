@@ -77,9 +77,8 @@ public final class JournalWriter {
     mJournalDirectory = mJournal.getDirectory();
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
-    Configuration conf = MasterContext.getConf();
-    mUfs = UnderFileSystem.get(mJournalDirectory, conf);
-    mMaxLogSize = conf.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    mUfs = UnderFileSystem.get(mJournalDirectory);
+    mMaxLogSize = Configuration.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
   }
 
   /**

@@ -30,7 +30,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class AbstractShellCommand implements ShellCommand {
 
-  protected Configuration mConfiguration;
   protected FileSystem mFileSystem;
   protected static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -53,8 +52,7 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .desc("properties file name")
           .build();
 
-  protected AbstractShellCommand(Configuration conf, FileSystem fs) {
-    mConfiguration = conf;
+  protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
   }
 

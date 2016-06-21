@@ -48,7 +48,7 @@ public final class CreateDirectoryOptions extends CreatePathOptions<CreateDirect
     mAllowExists = options.isAllowExists();
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
-    mPermission = Permission.defaults().setUserFromThriftClient(MasterContext.getConf());
+    mPermission = Permission.defaults().setUserFromThriftClient();
   }
 
   private CreateDirectoryOptions() {

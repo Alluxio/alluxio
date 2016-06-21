@@ -79,7 +79,7 @@ public enum BlockStoreContext {
   private synchronized void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
-          NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+          NetworkAddressUtils.getLocalHostName())) {
         mLocalBlockWorkerClientPoolMap.put(localWorkerAddress,
             new BlockWorkerClientPool(localWorkerAddress));
       }
@@ -136,7 +136,7 @@ public enum BlockStoreContext {
     if (address == null) {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName())) {
       client = acquireLocalWorkerClient(address);
       if (client == null) {
         throw new IOException(
@@ -192,12 +192,11 @@ public enum BlockStoreContext {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    Preconditions.checkArgument(
-        !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
+    Preconditions.checkArgument(!address.getHost().equals(NetworkAddressUtils.getLocalHostName()),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(address, ClientContext.getBlockClientExecutorService(),
-        ClientContext.getConf(), clientId, false, new ClientMetrics());
+    return new BlockWorkerClient(address, ClientContext.getBlockClientExecutorService(), clientId,
+        false, new ClientMetrics());
   }
 
   /**

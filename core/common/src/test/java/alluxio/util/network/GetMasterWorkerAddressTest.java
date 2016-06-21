@@ -27,60 +27,60 @@ import java.net.InetSocketAddress;
 public class GetMasterWorkerAddressTest {
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for
    * a master node.
    */
   @Test
   public void getMasterAddressTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
-    conf.set(Constants.MASTER_RPC_PORT, "10000");
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
+    Configuration.defaultInit();
+    Configuration.set(Constants.MASTER_HOSTNAME, "RemoteMaster1");
+    Configuration.set(Constants.MASTER_RPC_PORT, "10000");
+    String defaultHostname = NetworkAddressUtils.getLocalHostName();
     int defaultPort = Constants.DEFAULT_MASTER_PORT;
 
     // connect host and port
     InetSocketAddress masterAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster1", 10000), masterAddress);
 
-    conf = new Configuration();
-    conf.set(Constants.MASTER_RPC_PORT, "20000");
+    Configuration.defaultInit();
+    Configuration.set(Constants.MASTER_RPC_PORT, "20000");
     // port only
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 20000), masterAddress);
 
-    conf = new Configuration();
-    conf.set(Constants.MASTER_HOSTNAME, "RemoteMaster3");
+    Configuration.defaultInit();
+    Configuration.set(Constants.MASTER_HOSTNAME, "RemoteMaster3");
     // connect host only
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress("RemoteMaster3", defaultPort), masterAddress);
 
-    conf = new Configuration();
+    Configuration.defaultInit();
     // all default
-    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+    masterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), masterAddress);
   }
 
   /**
-   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType, Configuration)} method for
+   * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method for
    * a worker node.
    */
   @Test
   public void getWorkerAddressTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_RPC_PORT, "10001");
+    Configuration.defaultInit();
+    Configuration.set(Constants.WORKER_RPC_PORT, "10001");
 
-    String defaultHostname = NetworkAddressUtils.getLocalHostName(conf);
+    String defaultHostname = NetworkAddressUtils.getLocalHostName();
     int defaultPort = Constants.DEFAULT_WORKER_PORT;
 
     // port only
     InetSocketAddress workerAddress =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, 10001), workerAddress);
 
-    conf = new Configuration();
+    Configuration.defaultInit();
     // all default
-    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, conf);
+    workerAddress = NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC);
     Assert.assertEquals(new InetSocketAddress(defaultHostname, defaultPort), workerAddress);
   }
 }

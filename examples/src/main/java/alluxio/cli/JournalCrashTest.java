@@ -378,7 +378,8 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = Configuration.createServerConf().get(Constants.HOME)
+    Configuration.serverInit();
+    String startMasterCommand = Configuration.get(Constants.HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -393,7 +394,8 @@ public final class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = Configuration.createServerConf().get(Constants.HOME)
+    Configuration.serverInit();
+    String stopClusterCommand = Configuration.get(Constants.HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

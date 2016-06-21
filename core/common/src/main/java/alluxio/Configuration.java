@@ -57,80 +57,50 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** File to set default properties. */
-  public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
+  private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
-  public static final String SITE_PROPERTIES = "alluxio-site.properties";
+  private static final String SITE_PROPERTIES = "alluxio-site.properties";
   /** File to set customized properties for Alluxio server (both master and worker). */
-  public static final String SERVER_PROPERTIES = "alluxio-server.properties";
+  private static final String SERVER_PROPERTIES = "alluxio-server.properties";
   /** File to set customized properties for Alluxio client. */
-  public static final String CLIENT_PROPERTIES = "alluxio-client.properties";
+  private static final String CLIENT_PROPERTIES = "alluxio-client.properties";
 
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** Set of properties. */
-  private final Properties mProperties = new Properties();
-
-  // TODO(binfan): Add unit tests for those constructors
-  /**
-   * @param properties the source configuration
-   * @return a new configuration with only properties copied from source
-   */
-  public static Configuration fromMap(Map<?, ?> properties) {
-    return new Configuration(properties);
-  }
+  private static final Properties sProperties = new Properties();
 
   /**
    * @return the default configuration without loading site and system properties
    */
-  public static Configuration createDefaultConf() {
-    return new Configuration(null, null, false);
+  public static void emptyInit() {
+    init(null, null, false);
   }
 
   /**
    * @return the configuration for master or worker daemon
    */
-  public static Configuration createServerConf() {
-    return new Configuration(SITE_PROPERTIES, SERVER_PROPERTIES, true);
+  public static void serverInit() {
+    init(SITE_PROPERTIES, SERVER_PROPERTIES, true);
   }
 
   /**
    * @return the configuration for client
    */
-  public static Configuration createClientConf() {
-    return new Configuration(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
-  }
-
-  /**
-   * Overrides default properties.
-   *
-   * @param props override {@link Properties}
-   */
-  private Configuration(Map<?, ?> props) {
-    if (props != null) {
-      mProperties.putAll(props);
-    }
-    checkUserFileBufferBytes();
-  }
-
-  /**
-   * A copy constructor with properties from the source configuration.
-   *
-   * @param conf the source configuration to copy
-   */
-  public Configuration(Configuration conf) {
-    this(conf.toMap());
+  public static void clientInit() {
+    init(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
   }
 
   /**
    * Default constructor.
    */
-  // TODO(binfan): make this constructor private
-  public Configuration() {
-    this(SITE_PROPERTIES, null, true);
+  public static void defaultInit() {
+    init(SITE_PROPERTIES, null, true);
   }
 
   /**
@@ -141,7 +111,7 @@ public final class Configuration {
    * @param processPropertiesFile server or client specific properties
    * @param includeSystemProperties whether to include the system properties
    */
-  private Configuration(String sitePropertiesFile, String processPropertiesFile,
+  private static void init(String sitePropertiesFile, String processPropertiesFile,
       boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
@@ -180,21 +150,21 @@ public final class Configuration {
     }
 
     // Now lets combine, order matters here
-    mProperties.putAll(defaultProps);
+    sProperties.putAll(defaultProps);
     if (siteProps != null) {
-      mProperties.putAll(siteProps);
+      sProperties.putAll(siteProps);
     }
     if (processProps != null) {
-      mProperties.putAll(processProps);
+      sProperties.putAll(processProps);
     }
-    mProperties.putAll(systemProps);
+    sProperties.putAll(systemProps);
 
-    String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
+    String masterHostname = sProperties.getProperty(Constants.MASTER_HOSTNAME);
+    String masterPort = sProperties.getProperty(Constants.MASTER_RPC_PORT);
+    boolean useZk = Boolean.parseBoolean(sProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    sProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
@@ -208,31 +178,10 @@ public final class Configuration {
           String.format(message, Constants.WORKER_RPC_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
           String.format(message, Constants.WORKER_WEB_PORT));
-      mProperties.setProperty(Constants.WORKER_DATA_PORT, "0");
-      mProperties.setProperty(Constants.WORKER_RPC_PORT, "0");
-      mProperties.setProperty(Constants.WORKER_WEB_PORT, "0");
+      sProperties.setProperty(Constants.WORKER_DATA_PORT, "0");
+      sProperties.setProperty(Constants.WORKER_RPC_PORT, "0");
+      sProperties.setProperty(Constants.WORKER_WEB_PORT, "0");
     }
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 0;
-    for (Object s : mProperties.keySet()) {
-      hash ^= s.hashCode();
-    }
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Configuration)) {
-      return false;
-    }
-    Configuration that = (Configuration) o;
-    return mProperties.equals(that.mProperties);
   }
 
   /**
@@ -241,7 +190,7 @@ public final class Configuration {
    *
    * @param alternateConf The source {@link Configuration} to be merged
    */
-  public void merge(Configuration alternateConf) {
+  public static void merge(Configuration alternateConf) {
     merge(alternateConf.toMap());
   }
 
@@ -251,10 +200,10 @@ public final class Configuration {
    *
    * @param properties The source {@link Properties} to be merged
    */
-  public void merge(Map<?, ?> properties) {
+  public static void merge(Map<?, ?> properties) {
     if (properties != null) {
       // merge the system properties
-      mProperties.putAll(properties);
+      sProperties.putAll(properties);
     }
   }
 
@@ -268,10 +217,10 @@ public final class Configuration {
    * @param key the key to set
    * @param value the value for the key
    */
-  public void set(String key, String value) {
+  public static void set(String key, String value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    mProperties.put(key, value);
+    sProperties.put(key, value);
   }
 
   /**
@@ -280,12 +229,12 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
-  public String get(String key) {
-    if (!mProperties.containsKey(key)) {
+  public static String get(String key) {
+    if (!sProperties.containsKey(key)) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    String raw = mProperties.getProperty(key);
+    String raw = sProperties.getProperty(key);
     return lookup(raw);
   }
 
@@ -295,8 +244,8 @@ public final class Configuration {
    * @param key the key to check
    * @return true if the key is in the {@link Properties}, false otherwise
    */
-  public boolean containsKey(String key) {
-    return mProperties.containsKey(key);
+  public static boolean containsKey(String key) {
+    return sProperties.containsKey(key);
   }
 
   /**
@@ -305,9 +254,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as an {@code int}
    */
-  public int getInt(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static int getInt(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       try {
         return Integer.parseInt(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -324,9 +273,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code long}
    */
-  public long getLong(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static long getLong(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -343,9 +292,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code double}
    */
-  public double getDouble(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static double getDouble(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -362,9 +311,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code float}
    */
-  public float getFloat(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static float getFloat(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       try {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -381,9 +330,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code boolean}
    */
-  public boolean getBoolean(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static boolean getBoolean(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
     }
     // if key is not found among the default properties
@@ -397,11 +346,11 @@ public final class Configuration {
    * @param delimiter the delimiter to split the values
    * @return the list of values for the given key
    */
-  public List<String> getList(String key, String delimiter) {
+  public static List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
           .split(rawValue));
     }
@@ -417,8 +366,8 @@ public final class Configuration {
    * @param <T> the type of the enum
    * @return the value for the given key as an enum value
    */
-  public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
-    if (!mProperties.containsKey(key)) {
+  public static <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
+    if (!sProperties.containsKey(key)) {
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
     final String val = get(key);
@@ -431,8 +380,8 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the bytes of the value for the given key
    */
-  public long getBytes(String key) {
-    if (mProperties.containsKey(key)) {
+  public static long getBytes(String key) {
+    if (sProperties.containsKey(key)) {
       String rawValue = get(key);
       try {
         return FormatUtils.parseSpaceSize(rawValue);
@@ -451,9 +400,9 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   @SuppressWarnings("unchecked")
-  public <T> Class<T> getClass(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static <T> Class<T> getClass(String key) {
+    if (sProperties.containsKey(key)) {
+      String rawValue = sProperties.getProperty(key);
       try {
         return (Class<T>) Class.forName(rawValue);
       } catch (Exception e) {
@@ -468,13 +417,8 @@ public final class Configuration {
   /**
    * @return a copy of the internal {@link Properties} of as an immutable map
    */
-  public ImmutableMap<String, String> toMap() {
-    return Maps.fromProperties(mProperties);
-  }
-
-  @Override
-  public String toString() {
-    return mProperties.toString();
+  public static ImmutableMap<String, String> toMap() {
+    return Maps.fromProperties(sProperties);
   }
 
   /**
@@ -483,7 +427,7 @@ public final class Configuration {
    * @param base string to look for
    * @return the key name with the ${key} substituted
    */
-  private String lookup(String base) {
+  private static String lookup(String base) {
     return lookupRecursively(base, new HashMap<String, String>());
   }
 
@@ -494,7 +438,7 @@ public final class Configuration {
    * @param found {@link Map} of String that already seen in this path
    * @return resolved String value
    */
-  private String lookupRecursively(final String base, Map<String, String> found) {
+  private static String lookupRecursively(final String base, Map<String, String> found) {
     // check argument
     if (base == null) {
       return null;
@@ -508,7 +452,7 @@ public final class Configuration {
       String match = matcher.group(2).trim();
       String value;
       if (!found.containsKey(match)) {
-        value = lookupRecursively(mProperties.getProperty(match), found);
+        value = lookupRecursively(sProperties.getProperty(match), found);
         found.put(match, value);
       } else {
         value = found.get(match);
@@ -527,7 +471,7 @@ public final class Configuration {
    *
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
-  private void checkUserFileBufferBytes() {
+  private static void checkUserFileBufferBytes() {
     if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
       return;
     }

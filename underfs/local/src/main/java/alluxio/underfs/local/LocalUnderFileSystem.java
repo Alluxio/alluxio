@@ -49,10 +49,9 @@ public class LocalUnderFileSystem extends UnderFileSystem {
    * Constructs a new {@link LocalUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
    */
-  public LocalUnderFileSystem(AlluxioURI uri, Configuration conf) {
-    super(uri, conf);
+  public LocalUnderFileSystem(AlluxioURI uri) {
+    super(uri);
   }
 
   @Override
@@ -121,7 +120,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -132,7 +131,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   @Override
   public List<String> getFileLocations(String path) throws IOException {
     List<String> ret = new ArrayList<>();
-    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mConfiguration));
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
     return ret;
   }
 
@@ -262,12 +261,12 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) throws IOException {
+  public void connectFromMaster(String hostname) throws IOException {
     // No-op
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) throws IOException {
+  public void connectFromWorker(String hostname) throws IOException {
     // No-op
   }
 

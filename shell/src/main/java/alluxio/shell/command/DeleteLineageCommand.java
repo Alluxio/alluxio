@@ -30,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DeleteLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DeleteLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DeleteLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

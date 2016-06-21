@@ -65,8 +65,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String WRITE_BLOCK = "write_block";
 
   private final BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
-  private final StorageTierAssoc mStorageTierAssoc =
-      new WorkerStorageTierAssoc(WorkerContext.getConf());
+  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
    * Constructs a new {@link BlockWorkerClientRestServiceHandler}.

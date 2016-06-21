@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -38,9 +39,8 @@ public class OutStreamOptionsTest {
   public void defaultsTest() {
     AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
-    ClientContext.getConf().set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.CACHE_THROUGH.toString());
+    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
 
     OutStreamOptions options = OutStreamOptions.defaults();
 

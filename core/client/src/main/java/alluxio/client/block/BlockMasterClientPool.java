@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
@@ -34,7 +35,7 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
    * @param masterAddress the master address
    */
   public BlockMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
+    super(Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
@@ -56,6 +57,6 @@ public final class BlockMasterClientPool extends ResourcePool<BlockMasterClient>
 
   @Override
   protected BlockMasterClient createNewResource() {
-    return new BlockMasterClient(mMasterAddress, ClientContext.getConf());
+    return new BlockMasterClient(mMasterAddress);
   }
 }

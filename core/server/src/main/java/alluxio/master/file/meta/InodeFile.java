@@ -309,8 +309,7 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long id, long parentId, String name,
       CreateFileOptions fileOptions) {
-    Permission permission = new Permission(fileOptions.getPermission())
-        .applyFileUMask(MasterContext.getConf());
+    Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
     return new InodeFile(id)
         .setParentId(parentId)
         .setName(name)

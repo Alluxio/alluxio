@@ -114,7 +114,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     request.setAttribute("nTotalFile", fileIds.size());
 
     request.setAttribute("orderedTierAliases",
-        new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
+        new WorkerStorageTierAssoc().getOrderedStorageAliases());
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {

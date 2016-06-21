@@ -64,11 +64,10 @@ public class AllocatorContractTest extends BaseAllocatorTest {
    */
   @Test
   public void shouldNotAllocateTest() throws Exception {
-    Configuration conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
-      conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator allocator = Allocator.Factory.create(conf, getManagerView());
+      Allocator allocator = Allocator.Factory.create(getManagerView());
       assertTempBlockMeta(allocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc2, DEFAULT_SSD_SIZE + 1, false);
       assertTempBlockMeta(allocator, mAnyDirInTierLoc3, DEFAULT_HDD_SIZE + 1, false);
@@ -82,11 +81,10 @@ public class AllocatorContractTest extends BaseAllocatorTest {
    */
   @Test
   public void shouldAllocateTest() throws Exception {
-    Configuration conf = WorkerContext.getConf();
     for (String strategyName : mStrategies) {
-      conf.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
+      Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
-      Allocator tierAllocator = Allocator.Factory.create(conf, getManagerView());
+      Allocator tierAllocator = Allocator.Factory.create(getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(tierAllocator, mAnyDirInTierLoc1, DEFAULT_RAM_SIZE - 1, true);
       }
@@ -98,7 +96,7 @@ public class AllocatorContractTest extends BaseAllocatorTest {
       }
 
       resetManagerView();
-      Allocator anyAllocator = Allocator.Factory.create(conf, getManagerView());
+      Allocator anyAllocator = Allocator.Factory.create(getManagerView());
       for (int i = 0; i < DEFAULT_RAM_NUM; i++) {
         assertTempBlockMeta(anyAllocator, mAnyTierLoc, DEFAULT_RAM_SIZE - 1, true);
       }

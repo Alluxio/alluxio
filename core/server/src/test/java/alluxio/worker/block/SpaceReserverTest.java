@@ -75,19 +75,18 @@ public class SpaceReserverTest {
     // Mock away data server creation which would otherwise happen in BlockWorker construction.
     // We shouldn't need to bind net addresses in unit tests
     PowerMockito.mockStatic(DataServer.Factory.class);
-    PowerMockito
-        .when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
-            Mockito.<AlluxioWorker>any(), Mockito.<Configuration>any()))
+    PowerMockito.when(
+        DataServer.Factory.create(Mockito.<InetSocketAddress>any(), Mockito.<AlluxioWorker>any()))
         .thenReturn(Mockito.mock(DataServer.class));
 
     BlockWorker blockWorker = new BlockWorker();
     mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
-    WorkerContext.getConf().set(reserveRatioProp, "0.2");
+    Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
-    WorkerContext.getConf().set(reserveRatioProp, "0.3");
+    Configuration.set(reserveRatioProp, "0.3");
     mSpaceReserver = new SpaceReserver(blockWorker);
   }
 

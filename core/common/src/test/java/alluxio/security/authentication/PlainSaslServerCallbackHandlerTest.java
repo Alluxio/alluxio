@@ -45,11 +45,11 @@ public class PlainSaslServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.defaultInit();
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM, conf));
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM));
   }
 
   /**

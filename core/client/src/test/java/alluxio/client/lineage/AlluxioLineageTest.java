@@ -12,6 +12,7 @@
 package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -45,7 +46,7 @@ public final class AlluxioLineageTest {
 
   @Before
   public void before() throws Exception {
-    ClientContext.getConf().set(Constants.USER_LINEAGE_ENABLED, "true");
+    Configuration.set(Constants.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);

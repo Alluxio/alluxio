@@ -31,7 +31,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Configuration mConfiguration;
   private final LineageMaster mLineageMaster;
   private final FileSystemMaster mFileSystemMaster;
   private final CheckpointPlanner mPlanner;
@@ -44,9 +43,8 @@ public final class CheckpointSchedulingExecutor implements HeartbeatExecutor {
       FileSystemMaster fileSystemMaster) {
     mLineageMaster = Preconditions.checkNotNull(lineageMaster);
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
-    mConfiguration = MasterContext.getConf();
     mPlanner =
-        CheckpointPlanner.Factory.create(mConfiguration, mLineageMaster.getLineageStoreView(),
+        CheckpointPlanner.Factory.create(mLineageMaster.getLineageStoreView(),
             mFileSystemMaster.getFileSystemMasterView());
   }
 

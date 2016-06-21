@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class SetTtlCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public SetTtlCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public SetTtlCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

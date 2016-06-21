@@ -11,6 +11,7 @@
 
 package alluxio.client.lineage;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
@@ -30,7 +31,7 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
    * @param masterAddress the master address
    */
   public LineageMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS));
+    super(Configuration.getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
@@ -41,6 +42,6 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
 
   @Override
   protected LineageMasterClient createNewResource() {
-    return new LineageMasterClient(mMasterAddress, ClientContext.getConf());
+    return new LineageMasterClient(mMasterAddress);
   }
 }

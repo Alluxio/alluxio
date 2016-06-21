@@ -45,11 +45,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CopyFromLocalCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CopyFromLocalCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CopyFromLocalCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

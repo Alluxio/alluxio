@@ -92,9 +92,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       BlockMasterClient masterClient) {
     mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
-    Configuration conf = WorkerContext.getConf();
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
     try {
@@ -118,7 +117,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   private void registerWithMaster() throws IOException, ConnectionFailedException {
     BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());

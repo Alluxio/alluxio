@@ -11,6 +11,7 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
@@ -48,19 +49,18 @@ public final class InStreamOptions {
   }
 
   private InStreamOptions() {
-    mReadType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+    mReadType = Configuration.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
       mLocationPolicy = CommonUtils.createNewClassInstance(
-          ClientContext.getConf().<FileWriteLocationPolicy>getClass(
+          Configuration.<FileWriteLocationPolicy>getClass(
               Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mCachePartiallyReadBlock =
-        ClientContext.getConf().getBoolean(Constants.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+        Configuration.getBoolean(Constants.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
     mSeekBufferSizeBytes =
-        ClientContext.getConf().getBytes(Constants.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
+        Configuration.getBytes(Constants.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
   }
 
   /**

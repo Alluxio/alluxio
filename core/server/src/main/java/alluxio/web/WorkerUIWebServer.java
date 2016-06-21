@@ -40,12 +40,11 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
-   * @param conf Alluxio configuration
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
       AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
-      long startTimeMs, Configuration conf) {
-    super(serviceType, webAddress, conf);
+      long startTimeMs) {
+    super(serviceType, webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
     Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
 
@@ -57,12 +56,12 @@ public final class WorkerUIWebServer extends UIWebServer {
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(false)),
         "/browseLogs");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)), "/header");
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()), "/header");
     mWebAppContext.addServlet(new ServletHolder(new
         WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
 
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(
-        Collections.singletonList(conf.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
+    mWebAppContext.setOverrideDescriptors(Collections
+        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
   }
 }

@@ -52,8 +52,6 @@ public final class FileSystemWorker extends AbstractWorker {
   private final FileDataManager mFileDataManager;
   /** Client for file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterWorkerClient;
-  /** Configuration object. */
-  private final Configuration mConf;
   /** Logic for handling RPC requests. */
   private final FileSystemWorkerClientServiceHandler mServiceHandler;
   /** Object for managing this worker's sessions. */
@@ -76,14 +74,13 @@ public final class FileSystemWorker extends AbstractWorker {
     super(Executors.newFixedThreadPool(3,
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
-    mConf = WorkerContext.getConf();
     mSessions = new Sessions();
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
     mUnderFileSystemManager = new UnderFileSystemManager();
 
     // Setup AbstractMasterClient
     mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     // Setup session cleaner
     mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
@@ -248,7 +245,7 @@ public final class FileSystemWorker extends AbstractWorker {
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            mConf.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);

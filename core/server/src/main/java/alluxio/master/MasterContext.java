@@ -16,29 +16,16 @@ import alluxio.Configuration;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A MasterContext object stores {@link Configuration}.
+ * A singleton for storing shared master state.
  */
 @ThreadSafe
 public final class MasterContext {
   private MasterContext() {} // to prevent initialization
 
   /**
-   * The static configuration object. There is only one {@link Configuration} object shared within
-   * the same master process.
-   */
-  private static Configuration sConfiguration = Configuration.createServerConf();
-
-  /**
    * The {@link MasterSource} for collecting master metrics.
    */
   private static MasterSource sMasterSource = new MasterSource();
-
-  /**
-   * @return the {@link Configuration} for the master process
-   */
-  public static Configuration getConf() {
-    return sConfiguration;
-  }
 
   /**
    * @return the {@link MasterSource} for the master process
@@ -48,21 +35,9 @@ public final class MasterContext {
   }
 
   /**
-   * Resets the master context, for test only.
-   * TODO(binfan): consider a better way to mock test configuration
+   * Resets the master context.
    */
   public static void reset() {
-    reset(Configuration.createServerConf());
-  }
-
-  /**
-   * Resets the master context, for test only.
-   * TODO(binfan): consider a better way to mock test configuration
-   *
-   * @param conf the configuration for Alluxio
-   */
-  public static void reset(Configuration conf) {
-    sConfiguration = conf;
     sMasterSource = new MasterSource();
   }
 }

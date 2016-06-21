@@ -76,11 +76,10 @@ public final class LsCommand extends WithWildCardPathCommand {
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LsCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LsCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -110,7 +109,7 @@ public final class LsCommand extends WithWildCardPathCommand {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
     for (URIStatus status : statuses) {
       System.out.format(
-          formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
+          formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
               FormatUtils.formatMode((short) status.getPermission(), status.isFolder()),
               status.getUserName(), status.getGroupName(), status.getLength(),
               status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));

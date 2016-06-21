@@ -53,7 +53,7 @@ public abstract class Journal {
       directory += AlluxioURI.SEPARATOR;
     }
     mDirectory = directory;
-    mJournalFormatter = JournalFormatter.Factory.create(MasterContext.getConf());
+    mJournalFormatter = JournalFormatter.Factory.create();
   }
 
   /**

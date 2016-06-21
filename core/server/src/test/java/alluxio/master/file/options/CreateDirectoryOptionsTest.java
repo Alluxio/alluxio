@@ -37,9 +37,8 @@ public class CreateDirectoryOptionsTest {
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    MasterContext.reset(conf);
+    Configuration.defaultInit();
+    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 

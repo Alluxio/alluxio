@@ -89,9 +89,6 @@ public final class BlockWorker extends AbstractWorker {
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
 
-  /** Configuration object. */
-  private final Configuration mConf;
-
   /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
   /** Block store delta reporter for master heartbeat. */
@@ -125,14 +122,12 @@ public final class BlockWorker extends AbstractWorker {
   public BlockWorker() throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mConf = WorkerContext.getConf();
-
     // Setup BlockMasterClient
-    mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+    mBlockMasterClient =
+        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
-    mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+    mFileSystemMasterClient =
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(this);
@@ -187,18 +182,18 @@ public final class BlockWorker extends AbstractWorker {
     setupSessionCleaner();
 
     // Setup space reserver
-    if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);

@@ -57,27 +57,25 @@ public final class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    Configuration conf = Configuration.createClientConf();
-    if (!ConfigurationUtils.validateConf(conf)) {
+    Configuration.clientInit();
+    if (!ConfigurationUtils.validateConf()) {
       System.out.println("Invalid configuration found, please check user log for details");
       System.exit(-1);
     }
     int ret;
-    try (AlluxioShell shell = new AlluxioShell(conf)) {
+    try (AlluxioShell shell = new AlluxioShell()) {
       ret = shell.run(argv);
     }
     System.exit(ret);
   }
 
   private final Map<String, ShellCommand> mCommands = new HashMap<>();
-  private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
 
   /**
-   * @param configuration the configuration for Alluxio
+   * Creates a new instance of {@link AlluxioShell}.
    */
-  public AlluxioShell(Configuration configuration) {
-    mConfiguration = configuration;
+  public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
     loadCommands();
   }
@@ -98,8 +96,8 @@ public final class AlluxioShell implements Closeable {
         ShellCommand cmd;
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
-              new Class[] { Configuration.class, FileSystem.class },
-              new Object[] {mConfiguration, mFileSystem });
+              new Class[] { FileSystem.class },
+              new Object[] {mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }

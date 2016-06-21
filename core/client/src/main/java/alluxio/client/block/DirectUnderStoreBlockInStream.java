@@ -46,7 +46,7 @@ public final class DirectUnderStoreBlockInStream extends UnderStoreBlockInStream
     if (pos < 0 || pos > mLength) {
       throw new IOException(ExceptionMessage.FAILED_SEEK.getMessage(pos));
     }
-    UnderFileSystem ufs = UnderFileSystem.get(mUfsPath, ClientContext.getConf());
+    UnderFileSystem ufs = UnderFileSystem.get(mUfsPath);
     mUnderStoreStream = ufs.open(mUfsPath);
     // The stream is at the beginning of the file, so skip to the correct absolute position.
     long streamStart = mInitPos + pos;

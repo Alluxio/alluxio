@@ -38,7 +38,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class AlluxioFuse {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static Configuration sConfiguration;
 
   // prevent instantiation
   private AlluxioFuse() {
@@ -54,14 +53,13 @@ public final class AlluxioFuse {
    * @param args arguments to run the command line
    */
   public static void main(String[] args) {
-    sConfiguration = ClientContext.getConf();
     final AlluxioFuseOptions opts = parseOptions(args);
     if (opts == null) {
       System.exit(1);
     }
 
     final FileSystem tfs = FileSystem.Factory.get();
-    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(sConfiguration, tfs, opts);
+    final AlluxioFuseFileSystem fs = new AlluxioFuseFileSystem(tfs, opts);
     final List<String> fuseOpts = opts.getFuseOpts();
     // Force direct_io in FUSE: writes and reads bypass the kernel page
     // cache and go directly to alluxio. This avoids extra memory copies
@@ -144,21 +142,21 @@ public final class AlluxioFuse {
       // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
-        final long maxWrite = sConfiguration.getLong(Constants.FUSE_MAXWRITE_BYTES);
+        final long maxWrite = Configuration.getLong(Constants.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
       if (mntPointValue == null) {
-        mntPointValue = sConfiguration.get(Constants.FUSE_DEFAULT_MOUNTPOINT);
+        mntPointValue = Configuration.get(Constants.FUSE_DEFAULT_MOUNTPOINT);
         LOG.info("Mounting on default {}", mntPointValue);
       }
 
       if (alluxioRootValue == null) {
-        alluxioRootValue = sConfiguration.get(Constants.FUSE_FS_ROOT);
+        alluxioRootValue = Configuration.get(Constants.FUSE_FS_ROOT);
         LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
-      final boolean fuseDebug = sConfiguration.getBoolean(Constants.FUSE_DEBUG_ENABLE);
+      final boolean fuseDebug = Configuration.getBoolean(Constants.FUSE_DEBUG_ENABLE);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {

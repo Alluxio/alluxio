@@ -232,11 +232,10 @@ public final class Mode {
   /**
    * Creates a new mode by applying the umask specified in configuration to this mode.
    *
-   * @param conf the configuration to read the umask from
    * @return a new {@link Mode}
    */
-  public Mode applyUMask(Configuration conf) {
-    return applyUMask(getUMask(conf));
+  public Mode applyUMask() {
+    return applyUMask(getUMask());
   }
 
   /**
@@ -269,25 +268,22 @@ public final class Mode {
   /**
    * Gets the file / directory creation umask.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return the umask {@link Mode}
    */
-  public static Mode getUMask(Configuration conf) {
+  public static Mode getUMask() {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
-    if (conf != null) {
-      String confUmask = conf.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
-      if (confUmask != null) {
-        if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
-          throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
-              .getMessage(confUmask, Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-        }
-        int newUmask = 0;
-        int lastIndex = confUmask.length() - 1;
-        for (int i = 0; i <= lastIndex; i++) {
-          newUmask += (confUmask.charAt(i) - '0') << 3 * (lastIndex - i);
-        }
-        umask = newUmask;
+    String confUmask = Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    if (confUmask != null) {
+      if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
+        throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
+            .getMessage(confUmask, Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
       }
+      int newUmask = 0;
+      int lastIndex = confUmask.length() - 1;
+      for (int i = 0; i <= lastIndex; i++) {
+        newUmask += (confUmask.charAt(i) - '0') << 3 * (lastIndex - i);
+      }
+      umask = newUmask;
     }
     return new Mode((short) umask);
   }

@@ -618,9 +618,7 @@ public final class Performance {
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = sFileBytes * sFiles;
 
-    Configuration configuration = ClientContext.getConf();
-
-    long fileBufferBytes = configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long fileBufferBytes = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
@@ -630,8 +628,8 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    configuration.set(Constants.MASTER_HOSTNAME, masterAddress.getHostText());
-    configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
+    Configuration.set(Constants.MASTER_HOSTNAME, masterAddress.getHostText());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

@@ -29,7 +29,6 @@ import org.junit.rules.TemporaryFolder;
  * conf and test if it generates the correct {@link Allocator} instance.
  */
 public class AllocatorFactoryTest {
-  private Configuration mConfiguration;
   private BlockMetadataManagerView mManagerView;
 
   /** Rule to create a new temporary folder during each test. */
@@ -41,62 +40,53 @@ public class AllocatorFactoryTest {
    */
   @Before
   public void before() throws Exception {
+    Configuration.defaultInit();
     String baseDir = mTestFolder.newFolder().getAbsolutePath();
     mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
-    mConfiguration = WorkerContext.getConf();
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
    * Tests the creation of the {@link GreedyAllocator} via the
-   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
   public void createGreedyAllocatorTest() {
-    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
   }
 
   /**
    * Tests the creation of the {@link MaxFreeAllocator} via the
-   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
   public void createMaxFreeAllocatorTest() {
-    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 
   /**
    * Tests the creation of the {@link RoundRobinAllocator} via the
-   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
   public void createRoundRobinAllocatorTest() {
-    mConfiguration.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(mConfiguration, mManagerView);
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
   }
 
   /**
    * Tests the creation of the default allocator via the
-   * {@link Allocator.Factory#create(Configuration, BlockMetadataManagerView)} method.
+   * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
   public void createDefaultAllocatorTest() {
     // Create a new instance of Alluxio configuration with original properties to test the default
     // behavior of create.
-    Configuration conf = new Configuration();
-    Allocator allocator = Allocator.Factory.create(conf, mManagerView);
+    Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
   }
 }

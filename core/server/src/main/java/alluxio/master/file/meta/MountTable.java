@@ -226,7 +226,7 @@ public final class MountTable implements JournalCheckpointStreamable {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
         // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), MasterContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString());
         ufs.setProperties(info.getOptions().getProperties());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs);
