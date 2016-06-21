@@ -51,7 +51,7 @@ public final class CommonTestUtils {
 
   // This directory should be used over the system temp directory for creating temporary files
   // during tests. We recursively delete this directory on JVM exit.
-  private static File sAlluxioTestDirectory;
+  private static File sAlluxioTestDirectory = createTestingDirectory();
 
   /**
    * Traverses a chain of potentially private fields using {@link Whitebox}.
@@ -204,9 +204,6 @@ public final class CommonTestUtils {
    * @return the directory to be used for temporary files in Alluxio tests
    */
   public static synchronized File getAlluxioTestDirectory() {
-    if (sAlluxioTestDirectory == null) {
-      sAlluxioTestDirectory = createTestingDirectory();
-    }
     return sAlluxioTestDirectory;
   }
 
