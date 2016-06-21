@@ -57,8 +57,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
-
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** File to set default properties. */
   private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
@@ -76,28 +76,28 @@ public final class Configuration {
   private static final Properties sProperties = new Properties();
 
   /**
-   * @return the default configuration without loading site and system properties
+   * the default configuration without loading site and system properties
    */
   public static void emptyInit() {
     init(null, null, false);
   }
 
   /**
-   * @return the configuration for master or worker daemon
+   * the configuration for master or worker daemon
    */
   public static void serverInit() {
     init(SITE_PROPERTIES, SERVER_PROPERTIES, true);
   }
 
   /**
-   * @return the configuration for client
+   * the configuration for client
    */
   public static void clientInit() {
     init(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
   }
 
   /**
-   * Default constructor.
+   * default initialization
    */
   public static void defaultInit() {
     init(SITE_PROPERTIES, null, true);
@@ -480,4 +480,5 @@ public final class Configuration {
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 
+  private Configuration() {} // prevent instantiation
 }

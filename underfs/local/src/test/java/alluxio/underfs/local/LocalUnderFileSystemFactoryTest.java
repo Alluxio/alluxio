@@ -28,8 +28,6 @@ public class LocalUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/local/test/path");
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://local/test/path");
     UnderFileSystemFactory factory3 = UnderFileSystemRegistry.find("hdfs://test-bucket/path");

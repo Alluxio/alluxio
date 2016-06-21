@@ -28,12 +28,8 @@ public class SwiftUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration.defaultInit();
-
-    UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("swift://localhost/test/path");
-    UnderFileSystemFactory factory2 =
-        UnderFileSystemRegistry.find("file://localhost/test/path");
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("swift://localhost/test/path");
+    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://localhost/test/path");
 
     Assert.assertNotNull("A UnderFileSystemFactory should exist for swift paths when using this "
         + "module", factory);

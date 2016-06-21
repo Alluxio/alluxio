@@ -93,7 +93,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     if (underStorageType.isSyncPersist() || underStorageType.isAsyncPersist()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       String checkpointPath = status.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTestConf);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) status.getLength()];

@@ -63,9 +63,9 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createGreedyEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.defaultInit();
+    Configuration.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
@@ -78,9 +78,9 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createLRUEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.defaultInit();
+    Configuration.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
@@ -93,8 +93,8 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createDefaultEvictorTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.defaultInit();
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);

@@ -28,8 +28,6 @@ public class OSSUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("oss://test-bucket/path");
 
     Assert.assertNotNull(

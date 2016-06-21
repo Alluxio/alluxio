@@ -89,7 +89,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -171,7 +171,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
 
@@ -280,7 +280,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
