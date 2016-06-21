@@ -34,8 +34,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class KeyValueWorker extends AbstractWorker {
-  /** Configuration object. */
-  private final Configuration mConfiguration;
   /** BlockWorker handle for access block info. */
   private final BlockWorker mBlockWorker;
   /** Logic for handling key-value RPC requests. */
@@ -50,7 +48,6 @@ public final class KeyValueWorker extends AbstractWorker {
     // TODO(binfan): figure out do we really need thread pool for key-value worker (and for what)
     super(Executors.newFixedThreadPool(1,
         ThreadFactoryUtils.build("keyvalue-worker-heartbeat-%d", true)));
-    mConfiguration = WorkerContext.getConf();
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mKeyValueServiceHandler = new KeyValueWorkerClientServiceHandler(mBlockWorker);
   }
@@ -58,8 +55,7 @@ public final class KeyValueWorker extends AbstractWorker {
   @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
-    services.put(
-        Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
+    services.put(Constants.KEY_VALUE_WORKER_CLIENT_SERVICE_NAME,
         new KeyValueWorkerClientService.Processor<>(mKeyValueServiceHandler));
     return services;
   }

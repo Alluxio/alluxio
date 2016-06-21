@@ -61,7 +61,7 @@ public final class FileSystemAclIntegrationTest {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }

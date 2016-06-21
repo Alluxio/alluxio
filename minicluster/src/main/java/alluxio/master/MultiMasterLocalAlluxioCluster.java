@@ -137,7 +137,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void deleteDir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path) && !ufs.delete(path, true)) {
       throw new IOException("Folder " + path + " already exists but can not be deleted.");
@@ -145,7 +145,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   private void mkdir(String path) throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(path, mMasterConf);
+    UnderFileSystem ufs = UnderFileSystem.get(path);
 
     if (ufs.exists(path)) {
       ufs.delete(path, true);
@@ -156,26 +156,17 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   @Override
-  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
-    mWorkerConf = WorkerContext.getConf();
-    mWorkerConf.merge(conf);
-
-    mWorkerConf.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
-
+  protected void startWorker() throws IOException, ConnectionFailedException {
+    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
     runWorker();
-    // The client context should reflect the updates to the conf.
-    ClientContext.getConf().merge(conf);
-    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
-  protected void startMaster(Configuration conf) throws IOException {
-    mMasterConf = conf;
-    mMasterConf.set(Constants.ZOOKEEPER_ENABLED, "true");
-    mMasterConf.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
-    mMasterConf.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
-    mMasterConf.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
-    MasterContext.reset(mMasterConf);
+  protected void startMaster() throws IOException {
+    Configuration.set(Constants.ZOOKEEPER_ENABLED, "true");
+    Configuration.set(Constants.ZOOKEEPER_ADDRESS, mCuratorServer.getConnectString());
+    Configuration.set(Constants.ZOOKEEPER_ELECTION_PATH, "/election");
+    Configuration.set(Constants.ZOOKEEPER_LEADER_PATH, "/leader");
 
     for (int k = 0; k < mNumOfMasters; k++) {
       final LocalAlluxioMaster master = LocalAlluxioMaster.create(mHome);
@@ -184,12 +175,12 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
           master.getAddress());
       mMasters.add(master);
       // Each master should generate a new port for binding
-      mMasterConf.set(Constants.MASTER_RPC_PORT, "0");
+      Configuration.set(Constants.MASTER_RPC_PORT, "0");
     }
 
     // Create the UFS directory after LocalAlluxioMaster construction, because LocalAlluxioMaster
     // sets UNDERFS_ADDRESS.
-    mkdir(mMasterConf.get(Constants.UNDERFS_ADDRESS));
+    mkdir(Configuration.get(Constants.UNDERFS_ADDRESS));
 
     LOG.info("all {} masters started.", mNumOfMasters);
     LOG.info("waiting for a leader.");
@@ -205,7 +196,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
       }
     }
     // Use first master port
-    mMasterConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
+    Configuration.set(Constants.MASTER_RPC_PORT, String.valueOf(getMaster().getRPCLocalPort()));
   }
 
   @Override

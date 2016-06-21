@@ -91,10 +91,10 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
     try (BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
-        ClientContext.getConf(), 1 /* fake session id */, true, new ClientMetrics())) {
+        1 /* fake session id */, true, new ClientMetrics())) {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
+      LoginUserTestUtils.resetLoginUser("no-alluxio");
       blockWorkerClient.connect();
     } finally {
       ClientTestUtils.resetClientContext();
@@ -107,8 +107,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerConf(),
-        1 /* fake session id */, true, new ClientMetrics());
+        mExecutorService, 1 /* fake session id */, true, new ClientMetrics());
 
     Assert.assertFalse(blockWorkerClient.isConnected());
     blockWorkerClient.connect();

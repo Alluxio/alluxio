@@ -30,7 +30,6 @@ import java.io.IOException;
 public class UnderFileSystemClusterTest {
 
   private static final String BASE_DIR = "/tmp";
-  private static final Configuration ALLUXIO_CONF = new Configuration();
   private UnderFileSystemCluster mUnderFileSystemCluster;
 
   @Before
@@ -46,8 +45,8 @@ public class UnderFileSystemClusterTest {
   public void getTest() throws IOException {
     PowerMockito.spy(UnderFileSystemCluster.class);
 
-    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR,
-        ALLUXIO_CONF)).thenReturn(mUnderFileSystemCluster);
+    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR))
+        .thenReturn(mUnderFileSystemCluster);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSCluster",
         (UnderFileSystemCluster) null);
@@ -55,7 +54,7 @@ public class UnderFileSystemClusterTest {
     Mockito.when(mUnderFileSystemCluster.isStarted()).thenReturn(false);
 
     // execute test
-    UnderFileSystemCluster.get(BASE_DIR, ALLUXIO_CONF);
+    UnderFileSystemCluster.get(BASE_DIR);
 
     UnderFileSystemCluster underFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
         .class, "sUnderFSCluster");

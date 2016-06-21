@@ -178,8 +178,7 @@ public class FileSystemIntegrationTest {
         new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
             .getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot,
-        mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;
   }
 
@@ -189,7 +188,7 @@ public class FileSystemIntegrationTest {
    * @param alternateUfsRoot the root of the alternate Ufs
    */
   private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.deleteDir(alternateUfsRoot);
   }
 
   @Test
@@ -197,7 +196,7 @@ public class FileSystemIntegrationTest {
     String alternateUfsRoot = createAlternateUfs();
     try {
       String filePath = PathUtils.concatPath(alternateUfsRoot, "file1");
-      UnderFileSystemUtils.touch(filePath, mLocalAlluxioClusterResource.getTestConf());
+      UnderFileSystemUtils.touch(filePath);
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(alternateUfsRoot));
       mFileSystem.loadMetadata(new AlluxioURI("/d1/file1"));
       Assert.assertEquals("file1", mFileSystem.listStatus(new AlluxioURI("/d1")).get(0).getName());
@@ -210,15 +209,14 @@ public class FileSystemIntegrationTest {
   public void mountAlternateUfsSubdirsTest() throws Exception {
     String alternateUfsRoot = createAlternateUfs();
     try {
-      Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
       String dirPath1 = PathUtils.concatPath(alternateUfsRoot, "dir1");
       String dirPath2 = PathUtils.concatPath(alternateUfsRoot, "dir2");
-      UnderFileSystemUtils.mkdirIfNotExists(dirPath1, testConf);
-      UnderFileSystemUtils.mkdirIfNotExists(dirPath2, testConf);
+      UnderFileSystemUtils.mkdirIfNotExists(dirPath1);
+      UnderFileSystemUtils.mkdirIfNotExists(dirPath2);
       String filePath1 = PathUtils.concatPath(dirPath1, "file1");
       String filePath2 = PathUtils.concatPath(dirPath2, "file2");
-      UnderFileSystemUtils.touch(filePath1, testConf);
-      UnderFileSystemUtils.touch(filePath2, testConf);
+      UnderFileSystemUtils.touch(filePath1);
+      UnderFileSystemUtils.touch(filePath2);
 
       mFileSystem.mount(new AlluxioURI("/d1"), new AlluxioURI(dirPath1));
       mFileSystem.mount(new AlluxioURI("/d2"), new AlluxioURI(dirPath2));
@@ -233,11 +231,10 @@ public class FileSystemIntegrationTest {
 
   @Test
   public void mountPrefixUfsTest() throws Exception {
-    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
     // Primary UFS cannot be re-mounted
-    String ufsRoot = testConf.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
-    UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir, testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir);
     try {
       mFileSystem.mount(new AlluxioURI("/dir"), new AlluxioURI(ufsSubdir));
       Assert.fail("Cannot remount primary ufs.");
@@ -249,7 +246,7 @@ public class FileSystemIntegrationTest {
     try {
       String midDirPath = PathUtils.concatPath(alternateUfsRoot, "mid");
       String innerDirPath = PathUtils.concatPath(midDirPath, "inner");
-      UnderFileSystemUtils.mkdirIfNotExists(innerDirPath, testConf);
+      UnderFileSystemUtils.mkdirIfNotExists(innerDirPath);
       mFileSystem.mount(new AlluxioURI("/mid"), new AlluxioURI(midDirPath));
       // Cannot mount suffix of already-mounted directory
       try {
@@ -272,15 +269,14 @@ public class FileSystemIntegrationTest {
 
   @Test
   public void mountShadowUfsTest() throws Exception {
-    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
-    String ufsRoot = testConf.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
-    UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir, testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir);
 
     String alternateUfsRoot = createAlternateUfs();
     try {
       String subdirPath = PathUtils.concatPath(alternateUfsRoot, "subdir");
-      UnderFileSystemUtils.mkdirIfNotExists(subdirPath, testConf);
+      UnderFileSystemUtils.mkdirIfNotExists(subdirPath);
       // Cannot mount to path that shadows a file in the primary UFS
       mFileSystem.mount(new AlluxioURI("/dir1"), new AlluxioURI(subdirPath));
       Assert.fail("Cannot mount to path that shadows a file in the primary UFS");

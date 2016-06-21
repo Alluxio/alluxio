@@ -71,7 +71,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the URI of the master
    */
-  public String getMasterUri() {
+  public String getMasterURI() {
     return mMaster.getUri();
   }
 
@@ -97,13 +97,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the configuration for Alluxio
-   */
-  public Configuration getWorkerConf() {
-    return mWorkerConf;
-  }
-
-  /**
    * @return the address of the worker
    */
   public WorkerNetAddress getWorkerAddress() {
@@ -111,29 +104,18 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startMaster(Configuration testConf) throws IOException {
-    mMasterConf = new Configuration(testConf);
-    MasterContext.reset(mMasterConf);
-
+  protected void startMaster() throws IOException {
     mMaster = LocalAlluxioMaster.create(mHome);
     mMaster.start();
 
     // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
-
-    // We need to update client context with the most recent configuration so they know the correct
-    // port to connect to master.
-    ClientContext.getConf().merge(testConf);
-    ClientTestUtils.reinitializeClientContext();
+    Configuration.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
   }
 
   @Override
-  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
+  protected void startWorker() throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = new Configuration(conf);
-    WorkerContext.reset(mWorkerConf);
-
     runWorker();
   }
 

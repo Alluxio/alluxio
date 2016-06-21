@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
@@ -139,7 +140,7 @@ public class FileSystemUtilsIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          ClientContext.getConf().set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,

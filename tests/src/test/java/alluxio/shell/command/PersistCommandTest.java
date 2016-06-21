@@ -12,6 +12,7 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
@@ -44,7 +45,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void persistDirectoryTest() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert
@@ -90,7 +91,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void persistMultiFilesAndDirsTest() throws Exception {
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());

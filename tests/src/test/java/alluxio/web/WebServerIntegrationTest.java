@@ -36,8 +36,6 @@ import java.util.Scanner;
  * Tests the web server is up when Alluxio starts.
  */
 public class WebServerIntegrationTest {
-  private Configuration mMasterConf;
-  private Configuration mWorkerConf;
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
@@ -54,17 +52,11 @@ public class WebServerIntegrationTest {
   @Before
   public final void before() throws Exception {
     LocalAlluxioCluster localAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mMasterConf = localAlluxioCluster.getMasterConf();
-    mWorkerConf = localAlluxioCluster.getWorkerConf();
   }
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    Configuration conf =
-        serviceType == ServiceType.MASTER_WEB ? mMasterConf : mWorkerConf;
-
-    InetSocketAddress webAddr =
-        NetworkAddressUtils.getConnectAddress(serviceType, conf);
+    InetSocketAddress webAddr = NetworkAddressUtils.getConnectAddress(serviceType);
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();

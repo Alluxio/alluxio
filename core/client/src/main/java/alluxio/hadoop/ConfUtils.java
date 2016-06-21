@@ -34,18 +34,16 @@ public final class ConfUtils {
   private ConfUtils() {} // Prevent instantiation.
 
   /**
-   * Stores the source {@link Configuration} object to the target
+   * Stores the Alluxio {@link Configuration} to the target
    * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
    *
-   * @param source the {@link Configuration} to be stored
    * @param target the {@link org.apache.hadoop.conf.Configuration} target
    */
-  public static void storeToHadoopConfiguration(Configuration source,
-      org.apache.hadoop.conf.Configuration target) {
+  public static void storeToHadoopConfiguration(org.apache.hadoop.conf.Configuration target) {
   // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Map<String, String> confProperties = source.toMap();
+    Map<String, String> confProperties = Configuration.toMap();
     try {
       DefaultStringifier.store(target, confProperties, Constants.SITE_CONF_DIR);
     } catch (IOException ex) {

@@ -57,8 +57,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** File to set default properties. */
   private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties for Alluxio server (both master and worker) and client. */

@@ -134,13 +134,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Mockito.verify(mBlockMaster).getWorkerInfoList();
   }
 
-  private Configuration mockConfiguration() {
-    Configuration conf = PowerMockito.spy(MasterContext.getConf());
-    PowerMockito.spy(MasterContext.class);
-    Mockito.when(MasterContext.getConf()).thenReturn(conf);
-    return conf;
-  }
-
   @Test
   public void getConfigurationTest() throws Exception {
     SortedMap<String, String> propertyMap = new TreeMap<>();
@@ -156,13 +149,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     properties.put(NOT_ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),
         CommonUtils.randomString(10));
 
-    Configuration configuration = mockConfiguration();
-    Mockito.doReturn(ImmutableMap.copyOf(properties)).when(configuration).toMap();
-
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION),
         NO_PARAMS, HttpMethod.GET, propertyMap).run();
-
-    Mockito.verify(configuration).toMap();
   }
 
   @Test
@@ -249,9 +237,8 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   private UnderFileSystem mockUfs() {
-    Configuration masterConf = MasterContext.getConf();
-    UnderFileSystem ufs = PowerMockito.spy(UnderFileSystem.get(masterConf.get(
-        Constants.UNDERFS_ADDRESS), masterConf));
+    UnderFileSystem ufs =
+        PowerMockito.spy(UnderFileSystem.get(Configuration.get(Constants.UNDERFS_ADDRESS)));
     PowerMockito.mockStatic(UnderFileSystem.class);
     Mockito.when(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
         .thenReturn(ufs);
@@ -301,7 +288,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getCapacityBytesOnTiersTest() throws Exception {
     Random random = new Random();
-    MasterStorageTierAssoc tierAssoc = new MasterStorageTierAssoc(MasterContext.getConf());
+    MasterStorageTierAssoc tierAssoc = new MasterStorageTierAssoc();
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
@@ -321,7 +308,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   @Test
   public void getUsedBytesOnTiersTest() throws Exception {
     Random random = new Random();
-    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(MasterContext.getConf());
+    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc();
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.

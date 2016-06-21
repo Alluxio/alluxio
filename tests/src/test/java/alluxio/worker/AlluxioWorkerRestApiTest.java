@@ -152,7 +152,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getCapacityBytesOnTiersTest() throws Exception {
     Random random = new Random();
-    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(MasterContext.getConf());
+    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc();
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
@@ -172,7 +172,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getUsedBytesOnTiersTest() throws Exception {
     Random random = new Random();
-    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(MasterContext.getConf());
+    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc();
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
@@ -191,7 +191,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getDirectoryPathsOnTiersTest() throws Exception {
-    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc(MasterContext.getConf());
+    WorkerStorageTierAssoc tierAssoc = new WorkerStorageTierAssoc();
     int nTiers = tierAssoc.size();
     // LinkedHashMap keeps keys in the serialized json object in the insertion order, the insertion
     // order is from smaller tier ordinal to larger ones.
