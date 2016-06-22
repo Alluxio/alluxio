@@ -15,6 +15,8 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.hdfs.HdfsUnderFileSystem;
+import alluxio.underfs.local.LocalUnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -104,13 +106,17 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the
-   * owner of file using TFS and propagate the change to UFS. Since the arbitrary owner does not
-   * exist in the UFS, the operation would fail.
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with local UFS. It will test only
+   * changing the owner of file using TFS and propagate the change to UFS. Since the arbitrary
+   * owner does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerTest() throws Exception {
-    Path fileA = new Path("/chownfileA");
+  public void changeNonexistentOwnerForLocalTest() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem)) {
+      // Skip non-local UFSs.
+      return;
+    }
+    Path fileA = new Path("/chownfileA-local");
     final String nonexistentOwner = "nonexistent-user1";
     final String nonexistentGroup = "nonexistent-group1";
 
@@ -133,13 +139,17 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test only changing the
-   * group of file using TFS and propagate the change to UFS. Since the arbitrary group does not
-   * exist in the UFS, the operation would fail.
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with local UFS. It will test only
+   * changing the group of file using TFS and propagate the change to UFS. Since the arbitrary
+   * group does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentGroupTest() throws Exception {
-    Path fileB = new Path("/chownfileB");
+  public void changeNonexistentGroupForLocalTest() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem)) {
+      // Skip non-local UFSs.
+      return;
+    }
+    Path fileB = new Path("/chownfileB-local");
     final String nonexistentOwner = "nonexistent-user1";
     final String nonexistentGroup = "nonexistent-group1";
 
@@ -162,13 +172,17 @@ public final class FileSystemAclIntegrationTest {
   }
 
   /**
-   * Test for {@link FileSystem#setOwner(Path, String, String)}. It will test changing both owner
-   * and group of file using TFS and propagate the change to UFS. Since the arbitrary owner and
-   * group do not exist in the UFS, the operation would fail.
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with local UFS. It will test
+   * changing both owner and group of file using TFS and propagate the change to UFS. Since the
+   * arbitrary owner and group do not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupTest() throws Exception {
-    Path fileC = new Path("/chownfileC");
+  public void changeNonexistentOwnerAndGroupForLocalTest() throws Exception {
+    if (!(sUfs instanceof LocalUnderFileSystem)) {
+      // Skip non-local UFSs.
+      return;
+    }
+    Path fileC = new Path("/chownfileC-local");
     final String nonexistentOwner = "nonexistent-user1";
     final String nonexistentGroup = "nonexistent-group1";
 
@@ -187,6 +201,110 @@ public final class FileSystemAclIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Could not setOwner for UFS file");
     sTFS.setOwner(fileC, nonexistentOwner, nonexistentGroup);
+  }
+
+  /**
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with HDFS UFS. It will test only
+   * changing the owner of file using TFS and propagate the change to UFS.
+   */
+  @Test
+  public void changeNonexistentOwnerForHdfsTest() throws Exception {
+    if (!(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-HDFS UFSs.
+      return;
+    }
+    Path fileA = new Path("/chownfileA-hdfs");
+    final String testOwner = "test-user1";
+    final String testGroup = "test-group1";
+
+    create(sTFS, fileA);
+
+    FileStatus fs = sTFS.getFileStatus(fileA);
+    String defaultOwner = fs.getOwner();
+    String defaultGroup = fs.getGroup();
+
+    Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    // Group can different because HDFS user to group mapping can be different from that in Alluxio.
+
+    Assert.assertNotEquals(defaultOwner, testOwner);
+    Assert.assertNotEquals(defaultGroup, testGroup);
+
+    // Expect a IOException for not able to setOwner for UFS with invalid owner name.
+    sTFS.setOwner(fileA, testOwner, null);
+
+    fs = sTFS.getFileStatus(fileA);
+    Assert.assertEquals(testOwner, fs.getOwner());
+    Assert.assertEquals(defaultGroup, fs.getGroup());
+    Assert.assertEquals(testOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals(defaultGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
+
+  /**
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with HDFS UFS. It will test only
+   * changing the group of file using TFS and propagate the change to UFS.
+   */
+  @Test
+  public void changeNonexistentGroupForHdfsTest() throws Exception {
+    if (!(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-HDFS UFSs.
+      return;
+    }
+    Path fileB = new Path("/chownfileB-hdfs");
+    final String testOwner = "test-user1";
+    final String testGroup = "test-group1";
+
+    create(sTFS, fileB);
+
+    FileStatus fs = sTFS.getFileStatus(fileB);
+    String defaultOwner = fs.getOwner();
+    String defaultGroup = fs.getGroup();
+
+    Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileB)));
+    // Group can different because HDFS user to group mapping can be different from that in Alluxio.
+
+    Assert.assertNotEquals(defaultOwner, testOwner);
+    Assert.assertNotEquals(defaultGroup, testGroup);
+
+    sTFS.setOwner(fileB, null, testGroup);
+    fs = sTFS.getFileStatus(fileB);
+    Assert.assertEquals(defaultOwner, fs.getOwner());
+    Assert.assertEquals(testGroup, fs.getGroup());
+    Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileB)));
+    Assert.assertEquals(testGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileB)));
+  }
+
+  /**
+   * Test for {@link FileSystem#setOwner(Path, String, String)} with HDFS UFS. It will test
+   * changing both owner and group of file using TFS and propagate the change to UFS.
+   */
+  @Test
+  public void changeNonexistentOwnerAndGroupForHdfsTest() throws Exception {
+    if (!(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-HDFS UFSs.
+      return;
+    }
+    Path fileC = new Path("/chownfileC-hdfs");
+    final String testOwner = "test-user1";
+    final String testGroup = "test-group1";
+
+    create(sTFS, fileC);
+
+    FileStatus fs = sTFS.getFileStatus(fileC);
+    String defaultOwner = fs.getOwner();
+    String defaultGroup = fs.getGroup();
+
+    Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileC)));
+    // Group can different because HDFS user to group mapping can be different from that in Alluxio.
+
+    Assert.assertNotEquals(defaultOwner, testOwner);
+    Assert.assertNotEquals(defaultGroup, testGroup);
+
+    sTFS.setOwner(fileC, testOwner, testGroup);
+    fs = sTFS.getFileStatus(fileC);
+    Assert.assertEquals(testOwner, fs.getOwner());
+    Assert.assertEquals(testGroup, fs.getGroup());
+    Assert.assertEquals(testOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileC)));
+    Assert.assertEquals(testGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileC)));
   }
 
   /**
@@ -209,6 +327,4 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals(defaultOwner, fs.getOwner());
     Assert.assertEquals(defaultGroup, fs.getGroup());
   }
-
-  // TODO(chaomin): create fake legal user and group in UFS and verify the setOwner can succeed.
 }
