@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 import java.io.IOException;

@@ -14,7 +14,6 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.Constants;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
@@ -37,8 +36,6 @@ public final class NoSaslTransportProvider implements TransportProvider {
 
   /**
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
-   *
-   * @param conf Alluxio configuration
    */
   public NoSaslTransportProvider() {
     mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);

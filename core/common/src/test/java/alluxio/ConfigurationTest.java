@@ -39,9 +39,6 @@ public class ConfigurationTest {
 
   private static Map<String, String> sTestProperties = new LinkedHashMap<>();
 
-  private Configuration mCustomPropsConfiguration;
-  private Configuration mSystemPropsConfiguration;
-
   /**
    * Clears the properties after the test suite is finished.
    */
@@ -71,19 +68,15 @@ public class ConfigurationTest {
     System.setProperty(Constants.MASTER_HOSTNAME, "master");
     System.setProperty(Constants.MASTER_RPC_PORT, "20001");
     System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
-
-    // initialize
-    Configuration.emptyInit();
   }
 
   /**
    * Creates new configurations before a test runs.
    */
   @Before
-  public void beforeTests() {
+  public void before() {
     // initialize Alluxio configuration
-    // FIX: mCustomPropsConfiguration = Configuration.fromMap(sTestProperties);
-    // FIX:  mSystemPropsConfiguration = new Configuration();
+    Configuration.emptyInit();
   }
 
   /**
@@ -261,26 +254,28 @@ public class ConfigurationTest {
    */
   @Test
   public void variableSubstitutionSimpleTest() {
-    String home = mCustomPropsConfiguration.get("home");
+    Configuration.merge(sTestProperties);
+
+    String home = Configuration.get("home");
     Assert.assertEquals("hometest", home);
 
-    String homeAndPath = mCustomPropsConfiguration.get("homeandpath");
+    String homeAndPath = Configuration.get("homeandpath");
     Assert.assertEquals(home + "/path1", homeAndPath);
 
-    String homeAndString = mCustomPropsConfiguration.get("homeandstring");
+    String homeAndString = Configuration.get("homeandstring");
     Assert.assertEquals(home + " string1", homeAndString);
 
-    String path2 = mCustomPropsConfiguration.get("path2");
+    String path2 = Configuration.get("path2");
     Assert.assertEquals("path2", path2);
 
-    String multiplesubs = mCustomPropsConfiguration.get("multiplesubs");
+    String multiplesubs = Configuration.get("multiplesubs");
     Assert.assertEquals(home + "/path1/" + path2, multiplesubs);
 
-    String homePort = mCustomPropsConfiguration.get("home.port");
+    String homePort = Configuration.get("home.port");
     Assert.assertEquals("8080", homePort);
 
     sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
-    String complexAddress = mCustomPropsConfiguration.get("complex.address");
+    String complexAddress = Configuration.get("complex.address");
     Assert.assertEquals("alluxio://" + home + ":" + homePort, complexAddress);
 
   }
@@ -290,8 +285,9 @@ public class ConfigurationTest {
    */
   @Test
   public void variableSubstitutionRecursiveTest() {
-    String multiplesubs = mCustomPropsConfiguration.get("multiplesubs");
-    String recursive = mCustomPropsConfiguration.get("recursive");
+    Configuration.merge(sTestProperties);
+    String multiplesubs = Configuration.get("multiplesubs");
+    String recursive = Configuration.get("recursive");
     Assert.assertEquals(multiplesubs, recursive);
   }
 
@@ -300,7 +296,9 @@ public class ConfigurationTest {
    */
   @Test
   public void systemVariableSubstitutionSampleTest() {
-    String masterAddress = mSystemPropsConfiguration.get(Constants.MASTER_ADDRESS);
+    Configuration.defaultInit();
+    Configuration.merge(sTestProperties);
+    String masterAddress = Configuration.get(Constants.MASTER_ADDRESS);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals("alluxio-ft://master:20001", masterAddress);
   }
@@ -311,10 +309,9 @@ public class ConfigurationTest {
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest() {
     Properties mProperties = new Properties();
-    mProperties.put(Constants.USER_FILE_BUFFER_BYTES ,
-            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    mProperties.put(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    // FIX: Configuration.fromMap(mProperties);
+    Configuration.merge(mProperties);
   }
 
   /**
@@ -323,10 +320,9 @@ public class ConfigurationTest {
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest1() {
     Map<String, String> properties = new LinkedHashMap<>();
-    properties.put(Constants.USER_FILE_BUFFER_BYTES ,
-            String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    properties.put(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    // FIX: Configuration.fromMap(properties);
+    Configuration.merge(properties);
   }
 
   /**
@@ -336,11 +332,10 @@ public class ConfigurationTest {
   public void variableUserFileBufferBytesNormalCheckTest() {
     Properties mProperties = new Properties();
     mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
-    // FIX: mCustomPropsConfiguration = Configuration.fromMap(mProperties);
+    Configuration.merge(mProperties);
     Assert.assertEquals(Integer.MAX_VALUE,
-            (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
-    mCustomPropsConfiguration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
-    Assert.assertEquals(1073741824,
-            (int) mCustomPropsConfiguration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+        (int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    Configuration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
+    Assert.assertEquals(1073741824, (int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }
 }

@@ -73,31 +73,31 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Set of properties. */
-  private static final Properties sProperties = new Properties();
+  private static final Properties PROPERTIES = new Properties();
 
   /**
-   * the default configuration without loading site and system properties
+   * The minimal configuration without loading any site or system properties.
    */
   public static void emptyInit() {
     init(null, null, false);
   }
 
   /**
-   * the configuration for master or worker daemon
+   * The configuration for master or worker daemon.
    */
   public static void serverInit() {
     init(SITE_PROPERTIES, SERVER_PROPERTIES, true);
   }
 
   /**
-   * the configuration for client
+   * The configuration for client.
    */
   public static void clientInit() {
     init(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
   }
 
   /**
-   * default initialization
+   * The default configuration.
    */
   public static void defaultInit() {
     init(SITE_PROPERTIES, null, true);
@@ -113,6 +113,8 @@ public final class Configuration {
    */
   private static void init(String sitePropertiesFile, String processPropertiesFile,
       boolean includeSystemProperties) {
+    PROPERTIES.clear();
+
     // Load default
     Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
     if (defaultProps == null) {
@@ -150,21 +152,21 @@ public final class Configuration {
     }
 
     // Now lets combine, order matters here
-    sProperties.putAll(defaultProps);
+    PROPERTIES.putAll(defaultProps);
     if (siteProps != null) {
-      sProperties.putAll(siteProps);
+      PROPERTIES.putAll(siteProps);
     }
     if (processProps != null) {
-      sProperties.putAll(processProps);
+      PROPERTIES.putAll(processProps);
     }
-    sProperties.putAll(systemProps);
+    PROPERTIES.putAll(systemProps);
 
-    String masterHostname = sProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = sProperties.getProperty(Constants.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(sProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
+    String masterHostname = PROPERTIES.getProperty(Constants.MASTER_HOSTNAME);
+    String masterPort = PROPERTIES.getProperty(Constants.MASTER_RPC_PORT);
+    boolean useZk = Boolean.parseBoolean(PROPERTIES.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    sProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    PROPERTIES.setProperty(Constants.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
@@ -178,9 +180,9 @@ public final class Configuration {
           String.format(message, Constants.WORKER_RPC_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
           String.format(message, Constants.WORKER_WEB_PORT));
-      sProperties.setProperty(Constants.WORKER_DATA_PORT, "0");
-      sProperties.setProperty(Constants.WORKER_RPC_PORT, "0");
-      sProperties.setProperty(Constants.WORKER_WEB_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_DATA_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_RPC_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_WEB_PORT, "0");
     }
   }
 
@@ -203,8 +205,9 @@ public final class Configuration {
   public static void merge(Map<?, ?> properties) {
     if (properties != null) {
       // merge the system properties
-      sProperties.putAll(properties);
+      PROPERTIES.putAll(properties);
     }
+    checkUserFileBufferBytes();
   }
 
   // Public accessor methods
@@ -220,7 +223,8 @@ public final class Configuration {
   public static void set(String key, String value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    sProperties.put(key, value);
+    PROPERTIES.put(key, value);
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -230,11 +234,11 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(String key) {
-    if (!sProperties.containsKey(key)) {
+    if (!PROPERTIES.containsKey(key)) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    String raw = sProperties.getProperty(key);
+    String raw = PROPERTIES.getProperty(key);
     return lookup(raw);
   }
 
@@ -245,7 +249,7 @@ public final class Configuration {
    * @return true if the key is in the {@link Properties}, false otherwise
    */
   public static boolean containsKey(String key) {
-    return sProperties.containsKey(key);
+    return PROPERTIES.containsKey(key);
   }
 
   /**
@@ -255,8 +259,8 @@ public final class Configuration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Integer.parseInt(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -274,8 +278,8 @@ public final class Configuration {
    * @return the value for the given key as a {@code long}
    */
   public static long getLong(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -293,8 +297,8 @@ public final class Configuration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -312,8 +316,8 @@ public final class Configuration {
    * @return the value for the given key as a {@code float}
    */
   public static float getFloat(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -331,8 +335,8 @@ public final class Configuration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
     }
     // if key is not found among the default properties
@@ -349,8 +353,8 @@ public final class Configuration {
   public static List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
           .split(rawValue));
     }
@@ -367,7 +371,7 @@ public final class Configuration {
    * @return the value for the given key as an enum value
    */
   public static <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
-    if (!sProperties.containsKey(key)) {
+    if (!PROPERTIES.containsKey(key)) {
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
     final String val = get(key);
@@ -381,7 +385,7 @@ public final class Configuration {
    * @return the bytes of the value for the given key
    */
   public static long getBytes(String key) {
-    if (sProperties.containsKey(key)) {
+    if (PROPERTIES.containsKey(key)) {
       String rawValue = get(key);
       try {
         return FormatUtils.parseSpaceSize(rawValue);
@@ -401,8 +405,8 @@ public final class Configuration {
    */
   @SuppressWarnings("unchecked")
   public static <T> Class<T> getClass(String key) {
-    if (sProperties.containsKey(key)) {
-      String rawValue = sProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return (Class<T>) Class.forName(rawValue);
       } catch (Exception e) {
@@ -418,7 +422,7 @@ public final class Configuration {
    * @return a copy of the internal {@link Properties} of as an immutable map
    */
   public static ImmutableMap<String, String> toMap() {
-    return Maps.fromProperties(sProperties);
+    return Maps.fromProperties(PROPERTIES);
   }
 
   /**
@@ -452,7 +456,7 @@ public final class Configuration {
       String match = matcher.group(2).trim();
       String value;
       if (!found.containsKey(match)) {
-        value = lookupRecursively(sProperties.getProperty(match), found);
+        value = lookupRecursively(PROPERTIES.getProperty(match), found);
         found.put(match, value);
       } else {
         value = found.get(match);
@@ -472,7 +476,7 @@ public final class Configuration {
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
   private static void checkUserFileBufferBytes() {
-    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
     long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);

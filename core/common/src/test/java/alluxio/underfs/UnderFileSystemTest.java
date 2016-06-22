@@ -12,12 +12,10 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.collections.Pair;
 
 import org.junit.Assert;
 import org.junit.Assume;
-import org.junit.Before;
 import org.junit.Test;
 
 /**

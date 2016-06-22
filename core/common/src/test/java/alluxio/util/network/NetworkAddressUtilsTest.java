@@ -18,6 +18,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.InetSocketAddress;
@@ -27,6 +28,11 @@ import java.net.UnknownHostException;
  * Tests for the {@link NetworkAddressUtils} class.
  */
 public class NetworkAddressUtilsTest {
+
+  @Before
+  public void before() {
+    Configuration.defaultInit();
+  }
 
   /**
    * Tests the {@link NetworkAddressUtils#getConnectAddress(ServiceType)} method.

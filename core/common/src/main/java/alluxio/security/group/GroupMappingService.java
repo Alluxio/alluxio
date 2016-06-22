@@ -51,9 +51,9 @@ public interface GroupMappingService {
         LOG.debug("Creating new Groups object");
       }
       try {
-        mGroupMappingService =
-            CommonUtils.createNewClassInstance(
-                Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
+        mGroupMappingService = CommonUtils.createNewClassInstance(
+            Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null,
+            null);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
