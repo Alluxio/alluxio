@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 
 import com.google.common.base.Supplier;

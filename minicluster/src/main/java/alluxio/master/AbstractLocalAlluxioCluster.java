@@ -294,7 +294,6 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Creates a default {@link Configuration} for testing.
    *
-   * @return a test configuration
    * @throws IOException when the operation fails
    */
   public void initializeTestConfiguration() throws IOException {

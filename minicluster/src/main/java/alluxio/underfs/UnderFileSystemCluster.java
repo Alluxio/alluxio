@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
