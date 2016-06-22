@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -53,41 +54,17 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // Input stream agent session index
-  private final IndexedSet.NonUniqueFieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
-      new IndexedSet.NonUniqueFieldIndex<InputStreamAgent>() {
-        @Override
-        public Object getFieldValue(InputStreamAgent o) {
-          return o.mSessionId;
-        }
-      };
+  private static final String INPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME =
+      "InputStreamAgentSessionIdIndex";
 
-  // Input stream agent id index
-  private final IndexedSet.UniqueFieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
-      new IndexedSet.UniqueFieldIndex<InputStreamAgent>() {
-        @Override
-        public Object getFieldValue(InputStreamAgent o) {
-          return o.mAgentId;
-        }
-      };
+  private static final String INPUT_STREAM_AGENT_ID_INDEX_NAME =
+      "inputStreamAgentIdIndex";
 
-  // Output stream agent session index
-  private final IndexedSet.NonUniqueFieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
-      new IndexedSet.NonUniqueFieldIndex<OutputStreamAgent>() {
-        @Override
-        public Object getFieldValue(OutputStreamAgent o) {
-          return o.mSessionId;
-        }
-      };
+  private static final String OUTPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME =
+      "outputStreamAgentSessionIdIndex";
 
-  // Output stream agent id index
-  private final IndexedSet.UniqueFieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
-      new IndexedSet.UniqueFieldIndex<OutputStreamAgent>() {
-        @Override
-        public Object getFieldValue(OutputStreamAgent o) {
-          return o.mAgentId;
-        }
-      };
+  private static final String OUTPUT_STREAM_AGENT_ID_INDEX_NAME =
+      "outputStreamAgentIdIndex";
 
   /** A random id generator for worker file ids. */
   private final AtomicLong mIdGenerator;
@@ -103,11 +80,50 @@ public final class UnderFileSystemManager {
    * manager.
    */
   public UnderFileSystemManager() {
+
+    // Input stream agent session index
+    IndexDefinition<InputStreamAgent> inputStreamAgentSessionIdIndex =
+        new IndexDefinition<>(INPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, false,
+            new IndexDefinition.Abstracter<InputStreamAgent>() {
+            @Override
+            public Object getFieldValue(InputStreamAgent o) {
+              return o.mSessionId;
+            }
+          });
+
+    // Input stream agent id index
+    IndexDefinition<InputStreamAgent> inputStreamAgentIdIndex = new IndexDefinition<>(
+        INPUT_STREAM_AGENT_ID_INDEX_NAME, true, new IndexDefinition.Abstracter<InputStreamAgent>() {
+          @Override
+          public Object getFieldValue(InputStreamAgent o) {
+            return o.mAgentId;
+          }
+        });
+
+    // Output stream agent session index
+    IndexDefinition<OutputStreamAgent> outputStreamAgentSessionIdIndex =
+        new IndexDefinition<>(OUTPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, false,
+            new IndexDefinition.Abstracter<OutputStreamAgent>() {
+            @Override
+            public Object getFieldValue(OutputStreamAgent o) {
+              return o.mSessionId;
+            }
+          });
+
+    // Output stream agent id index
+    IndexDefinition<OutputStreamAgent> outputStreamAgentIdIndex =
+        new IndexDefinition<>(OUTPUT_STREAM_AGENT_ID_INDEX_NAME, true,
+            new IndexDefinition.Abstracter<OutputStreamAgent>() {
+            @Override
+            public Object getFieldValue(OutputStreamAgent o) {
+              return o.mAgentId;
+            }
+          });
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
     mInputStreamAgents =
-        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
+        new IndexedSet<>(inputStreamAgentSessionIdIndex, inputStreamAgentIdIndex);
     mOutputStreamAgents =
-        new IndexedSet<>(mOuputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
+        new IndexedSet<>(outputStreamAgentSessionIdIndex, outputStreamAgentIdIndex);
   }
 
   /**
@@ -358,7 +374,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_STREAM_AGENT_ID_INDEX_NAME, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -380,8 +396,9 @@ public final class UnderFileSystemManager {
     Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
       toClose =
-          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
-      mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
+          new HashSet<>(
+              mInputStreamAgents.getByField(INPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, sessionId));
+      mInputStreamAgents.removeByField(INPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, sessionId);
     }
     // close is done outside of the synchronized block since it may be expensive
     for (InputStreamAgent agent : toClose) {
@@ -394,9 +411,9 @@ public final class UnderFileSystemManager {
 
     Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
-      toCancel =
-          new HashSet<>(mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId));
-      mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
+      toCancel = new HashSet<>(
+          mOutputStreamAgents.getByField(OUTPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, sessionId));
+      mOutputStreamAgents.removeByField(OUTPUT_STREAM_AGENT_SESSION_ID_INDEX_NAME, sessionId);
     }
     // cancel is done outside of the synchronized block since it may be expensive
     for (OutputStreamAgent agent : toCancel) {
@@ -421,7 +438,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_STREAM_AGENT_ID_INDEX_NAME, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -451,7 +468,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_STREAM_AGENT_ID_INDEX_NAME, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -476,7 +493,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_STREAM_AGENT_ID_INDEX_NAME, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(
@@ -493,7 +510,7 @@ public final class UnderFileSystemManager {
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_STREAM_AGENT_ID_INDEX_NAME, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(
