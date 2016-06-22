@@ -16,6 +16,8 @@ import alluxio.master.file.options.MountOptions;
 
 import com.google.common.base.Preconditions;
 
+import java.util.Objects;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -49,5 +51,22 @@ public final class MountInfo {
    */
   public MountOptions getOptions() {
     return mOptions;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof MountInfo)) {
+      return false;
+    }
+    MountInfo that = (MountInfo) o;
+    return mUfsUri.equals(that.getUfsUri()) && mOptions.equals(that.getOptions());
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(mUfsUri, mOptions);
   }
 }
