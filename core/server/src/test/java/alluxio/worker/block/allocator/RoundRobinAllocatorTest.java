@@ -12,6 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
 import org.junit.Test;
@@ -26,7 +27,6 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //
@@ -218,5 +218,6 @@ public class RoundRobinAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 700   <--- alloc
     //  2               └─── 0
     //
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

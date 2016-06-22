@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -112,7 +113,6 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    Configuration.defaultInit();
     sNestedFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
@@ -170,6 +170,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.stop();
     mBlockMaster.stop();
     MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -606,7 +607,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
-    // TTL is resetConfiguration to 0, the file should have been deleted during last TTL check.
+    // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
@@ -624,7 +625,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster
         .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     executeTtlCheckOnce();
-    // TTL is resetConfiguration to 1 hour, the file should not be deleted during last TTL check.
+    // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
 

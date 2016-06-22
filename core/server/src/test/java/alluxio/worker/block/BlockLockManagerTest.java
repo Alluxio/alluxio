@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
@@ -61,8 +62,6 @@ public class BlockLockManagerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
-
     BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
     PowerMockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
     mLockManager = new BlockLockManager();
@@ -70,6 +69,7 @@ public class BlockLockManagerTest {
 
   @After
   public void after() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
     WorkerContext.reset();
   }
 

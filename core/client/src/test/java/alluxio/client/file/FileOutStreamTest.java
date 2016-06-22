@@ -89,8 +89,6 @@ public class FileOutStreamTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
-
     ClientTestUtils.setSmallBufferSizes();
     mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 

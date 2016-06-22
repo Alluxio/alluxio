@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -20,7 +21,6 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -48,7 +48,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    ClientTestUtils.resetClient();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

@@ -13,6 +13,7 @@ package alluxio.util.network;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
@@ -30,8 +31,8 @@ import java.net.UnknownHostException;
 public class NetworkAddressUtilsTest {
 
   @Before
-  public void before() {
-    Configuration.defaultInit();
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

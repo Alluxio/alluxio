@@ -12,7 +12,6 @@
 package alluxio.client.util;
 
 import alluxio.Configuration;
-import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
@@ -45,7 +44,6 @@ public final class ClientTestUtils {
   public static void resetClient() {
     try {
       HadoopClientTestUtils.resetHadoopClientContext();
-      ConfigurationTestUtils.resetConfiguration();
       ClientContext.init();
       resetContexts();
     } catch (Exception e) {

@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
@@ -68,6 +69,7 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
+    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 

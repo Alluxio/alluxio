@@ -35,7 +35,6 @@ public class GlusterFSUnderFileSystemFactoryTest {
    */
   @Before
   public final void before() {
-    Configuration.defaultInit();
     if (Configuration.containsKey(Constants.UNDERFS_GLUSTERFS_MR_DIR)) {
       mMount = Configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR);
     }

@@ -13,11 +13,11 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -182,7 +182,7 @@ public final class PermissionCheckerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before

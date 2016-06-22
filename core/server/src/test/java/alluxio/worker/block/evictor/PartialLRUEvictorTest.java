@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -41,6 +42,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
    */
   @After
   public void after() {
+    ConfigurationTestUtils.resetConfiguration();
     WorkerContext.reset();
   }
 

@@ -12,6 +12,7 @@
 package alluxio.security.group;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
@@ -30,7 +31,6 @@ public final class GroupMappingServiceTest {
   public void groupTest() throws Throwable {
     String userName = "alluxio-user1";
 
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     GroupMappingService groups = GroupMappingService.Factory.getUserToGroupsMappingService();
 
@@ -38,5 +38,7 @@ public final class GroupMappingServiceTest {
     Assert.assertNotNull(groups.getGroups(userName));
     Assert.assertEquals(groups.getGroups(userName).size(), 1);
     Assert.assertEquals(groups.getGroups(userName).get(0), userName);
+
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

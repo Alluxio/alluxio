@@ -45,7 +45,6 @@ public class StorageTierAssocTest {
    */
   @Test
   public void masterWorkerConfConstructorTest() {
-    Configuration.defaultInit();
     Configuration.set(Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS, "4");
     Configuration.set(String.format(Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 3),
         "BOTTOM");
@@ -57,6 +56,7 @@ public class StorageTierAssocTest {
         Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
     checkStorageTierAssoc(new WorkerStorageTierAssoc(), Constants.WORKER_TIERED_STORE_LEVELS,
         Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

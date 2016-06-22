@@ -11,7 +11,6 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -28,8 +27,6 @@ public class HdfsUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration.defaultInit();
-
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("hdfs://localhost/test/path");
     Assert.assertNotNull(

@@ -13,6 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
@@ -22,6 +23,7 @@ import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 
 import org.apache.hadoop.security.UserGroupInformation;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -67,8 +69,7 @@ public class AbstractFileSystemTest {
    * Sets up the configuration before a test runs.
    */
   @Before
-  public void setup() throws Exception {
-    ClientTestUtils.resetClient();
+  public void before() throws Exception {
     mockUserGroupInformation();
     mockMasterClient();
 
@@ -79,6 +80,12 @@ public class AbstractFileSystemTest {
     } else {
       LOG.warn("Running Alluxio FS tests against untargeted Hadoop version: " + getHadoopVersion());
     }
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+    ClientTestUtils.resetClient();
   }
 
   private ClassLoader getClassLoader(Class<?> clazz) {

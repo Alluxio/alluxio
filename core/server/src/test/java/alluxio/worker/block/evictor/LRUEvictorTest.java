@@ -11,6 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
+import alluxio.ConfigurationTestUtils;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreEventListener;
 import alluxio.worker.block.BlockStoreLocation;
@@ -41,6 +42,7 @@ public class LRUEvictorTest extends EvictorTestBase {
   @After
   public void after() {
     WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   // access the block to update evictor

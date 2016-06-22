@@ -74,7 +74,6 @@ public class EvictorTestBase {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(mManagerView);

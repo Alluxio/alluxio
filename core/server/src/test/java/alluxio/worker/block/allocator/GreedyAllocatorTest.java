@@ -12,6 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
 import org.junit.Test;
@@ -26,7 +27,6 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //
@@ -138,5 +138,6 @@ public class GreedyAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 1300   <--- alloc
     //  2               └─── 3000
     //
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

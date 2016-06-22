@@ -18,6 +18,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
@@ -83,8 +84,6 @@ public class BlockWorkerTest {
    */
   @Before
   public void before() throws IOException {
-    Configuration.defaultInit();
-
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
@@ -114,6 +113,7 @@ public class BlockWorkerTest {
    */
   @After
   public void after() throws IOException {
+    ConfigurationTestUtils.resetConfiguration();
     WorkerContext.reset();
   }
 

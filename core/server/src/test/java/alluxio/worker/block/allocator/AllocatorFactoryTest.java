@@ -12,10 +12,12 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,9 +40,13 @@ public class AllocatorFactoryTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
     String baseDir = mTestFolder.newFolder().getAbsolutePath();
     mManagerView = TieredBlockStoreTestUtils.defaultMetadataManagerView(baseDir);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

@@ -12,11 +12,12 @@
 package alluxio.security.authorization;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -32,9 +33,9 @@ public final class ModeTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  @Before
-  public void before() {
-    Configuration.defaultInit();
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
