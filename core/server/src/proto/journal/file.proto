@@ -44,7 +44,7 @@ message DeleteMountPointEntry {
   optional string alluxio_path = 1;
 }
 
-// next available id: 16
+// next available id: 13
 message InodeDirectoryEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
@@ -66,7 +66,7 @@ message InodeDirectoryIdGeneratorEntry {
   optional int64 sequence_number = 2;
 }
 
-// next available id: 20
+// next available id: 17
 message InodeFileEntry {
   optional int64 id = 1;
   optional int64 parent_id = 2;
