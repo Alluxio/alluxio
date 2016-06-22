@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.wire.LineageInfo;

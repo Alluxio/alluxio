@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;

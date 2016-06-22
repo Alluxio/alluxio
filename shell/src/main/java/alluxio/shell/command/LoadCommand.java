@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;

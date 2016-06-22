@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
