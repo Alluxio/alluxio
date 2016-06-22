@@ -51,9 +51,6 @@ public class SetAttributeOptions {
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
     mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
-    if (options.isSetPermission()) {
-      mMode = options.getPermission();
-    }
     mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }

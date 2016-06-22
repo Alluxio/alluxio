@@ -275,28 +275,9 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    String owner;
-    String group;
-    int mode;
-    if (entry.hasOwner()) {
-      owner = entry.getOwner();
-    } else {
-      // remove in 2.0
-      owner = entry.getUserName();
-    }
-    if (entry.hasGroup()) {
-      group = entry.getGroup();
-    } else {
-      // remove in 2.0
-      group = entry.getGroupName();
-    }
-    if (entry.hasMode()) {
-      mode = entry.getMode();
-    } else {
-      // remove in 2.0
-      mode = entry.getPermission();
-    }
-    Permission permission = new Permission(owner, group, (short) mode);
+    Permission permission =
+        new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
+
     return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
@@ -351,9 +332,6 @@ public final class InodeFile extends Inode<InodeFile> {
         .setCacheable(isCacheable())
         .addAllBlocks(getBlockIds())
         .setTtl(getTtl())
-        .setUserName(getOwner())
-        .setGroupName(getGroup())
-        .setPermission(getMode())
         .setOwner(getOwner())
         .setGroup(getGroup())
         .setMode(getMode())

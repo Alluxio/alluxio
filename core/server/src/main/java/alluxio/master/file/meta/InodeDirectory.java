@@ -221,28 +221,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the {@link InodeDirectory} representation
    */
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
-    String owner;
-    String group;
-    int mode;
-    if (entry.hasOwner()) {
-      owner = entry.getOwner();
-    } else {
-      // remove in 2.0
-      owner = entry.getUserName();
-    }
-    if (entry.hasGroup()) {
-      group = entry.getGroup();
-    } else {
-      // remove in 2.0
-      group = entry.getGroupName();
-    }
-    if (entry.hasMode()) {
-      mode = entry.getMode();
-    } else {
-      // remove in 2.0
-      mode = entry.getPermission();
-    }
-    Permission permission = new Permission(owner, group, (short) mode);
+    Permission permission =
+        new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
     return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
@@ -284,9 +264,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setLastModificationTimeMs(getLastModificationTimeMs())
-        .setUserName(getOwner())
-        .setGroupName(getGroup())
-        .setPermission(getMode())
         .setMountPoint(isMountPoint())
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
         .setOwner(getOwner())

@@ -47,7 +47,6 @@ public class URIStatusTest {
     Assert.assertEquals(uriStatus.getCreationTimeMs(),
         fileInfo.getCreationTimeMs());
     Assert.assertEquals(uriStatus.getFileId(), fileInfo.getFileId());
-    Assert.assertEquals(uriStatus.getGroupName(), fileInfo.getGroup());
     Assert.assertEquals(uriStatus.getGroup(), fileInfo.getGroup());
     Assert.assertEquals(uriStatus.getInMemoryPercentage(),
         fileInfo.getInMemoryPercentage());
@@ -56,13 +55,11 @@ public class URIStatusTest {
     Assert.assertEquals(uriStatus.getLength(), fileInfo.getLength());
     Assert.assertEquals(uriStatus.getName(), fileInfo.getName());
     Assert.assertEquals(uriStatus.getPath(), fileInfo.getPath());
-    Assert.assertEquals(uriStatus.getPermission(), fileInfo.getMode());
     Assert.assertEquals(uriStatus.getMode(), fileInfo.getMode());
     Assert.assertEquals(uriStatus.getPersistenceState(),
         fileInfo.getPersistenceState());
     Assert.assertEquals(uriStatus.getTtl(), fileInfo.getTtl());
     Assert.assertEquals(uriStatus.getUfsPath(), fileInfo.getUfsPath());
-    Assert.assertEquals(uriStatus.getUserName(), fileInfo.getOwner());
     Assert.assertEquals(uriStatus.getOwner(), fileInfo.getOwner());
     Assert.assertEquals(uriStatus.isCacheable(), fileInfo.isCacheable());
     Assert.assertEquals(uriStatus.isCompleted(), fileInfo.isCompleted());
