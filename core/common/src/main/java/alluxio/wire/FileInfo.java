@@ -75,24 +75,9 @@ public final class FileInfo {
     mInMemoryPercentage = fileInfo.getInMemoryPercentage();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mTtl = fileInfo.getTtl();
-    if (fileInfo.isSetOwner()) {
-      mOwner = fileInfo.getOwner();
-    } else {
-      // remove in 2.0
-      mOwner = fileInfo.getUserName();
-    }
-    if (fileInfo.isSetGroup()) {
-      mGroup = fileInfo.getGroup();
-    } else {
-      // remove in 2.0
-      mGroup = fileInfo.getGroupName();
-    }
-    if (fileInfo.isSetMode()) {
-      mMode = fileInfo.getMode();
-    } else {
-      // remove in 2.0
-      mMode = fileInfo.getPermission();
-    }
+    mOwner = fileInfo.getOwner();
+    mGroup = fileInfo.getGroup();
+    mMode = fileInfo.getMode();
     mPersistenceState = fileInfo.getPersistenceState();
     mMountPoint = fileInfo.isMountPoint();
     mFileBlockInfos = new ArrayList<>();
@@ -470,15 +455,10 @@ public final class FileInfo {
     for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
-    return new alluxio.thrift.FileInfo().setFileId(mFileId).setName(mName).setPath(mPath)
-        .setUfsPath(mUfsPath).setLength(mLength).setBlockSizeBytes(mBlockSizeBytes)
-        .setCreationTimeMs(mCreationTimeMs).setCompleted(mCompleted).setFolder(mFolder)
-        .setPinned(mPinned).setCacheable(mCacheable).setPersisted(mPersisted).setBlockIds(mBlockIds)
-        .setInMemoryPercentage(mInMemoryPercentage)
-        .setLastModificationTimeMs(mLastModificationTimeMs).setTtl(mTtl).setUserName(mOwner)
-        .setGroupName(mGroup).setPermission(mMode).setPersistenceState(mPersistenceState)
-        .setMountPoint(mMountPoint).setFileBlockInfos(fileBlockInfos).setOwner(mOwner)
-        .setGroup(mGroup).setMode(mMode);
+    return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
+        mPersistenceState, mMountPoint, fileBlockInfos);
   }
 
   @Override

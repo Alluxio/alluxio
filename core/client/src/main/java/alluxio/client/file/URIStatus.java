@@ -71,17 +71,6 @@ public class URIStatus {
   }
 
   /**
-   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
-   *
-   * @return the group that owns the entity referenced by this uri, mutable
-   * @deprecated @see {@link #getGroup()}
-   */
-  @Deprecated
-  public String getGroupName() {
-    return getGroup();
-  }
-
-  /**
    * @return the group that owns the entity referenced by this uri, mutable
    */
   public String getGroup() {
@@ -128,18 +117,6 @@ public class URIStatus {
   }
 
   /**
-   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
-   *
-   * @return the int representation of the permission bits of the entity referenced by this uri,
-   *         mutable
-   * @deprecated @see {@link #getMode()}
-   */
-  @Deprecated
-  public int getPermission() {
-    return getMode();
-  }
-
-  /**
    * @return the int representation of the ACL mode bits of the entity referenced by this uri,
    *         mutable
    */
@@ -168,17 +145,6 @@ public class URIStatus {
    */
   public String getUfsPath() {
     return mInfo.getUfsPath();
-  }
-
-  /**
-   * DEPRECATED SINCE 1.2 AND WILL BE REMOVED IN 2.0.
-   *
-   * @return the user which owns the entity referenced by this uri, mutable
-   * @deprecated @see {@link #getOwner()}
-   */
-  @Deprecated
-  public String getUserName() {
-    return getOwner();
   }
 
   /**
