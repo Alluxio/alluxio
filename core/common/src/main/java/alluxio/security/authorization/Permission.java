@@ -11,7 +11,6 @@
 
 package alluxio.security.authorization;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;

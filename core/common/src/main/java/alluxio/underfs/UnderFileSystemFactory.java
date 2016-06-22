@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
-
 /**
  * Interface for under file system factories.
  */

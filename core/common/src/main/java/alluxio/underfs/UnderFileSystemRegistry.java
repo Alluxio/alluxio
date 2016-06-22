@@ -11,7 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 
 import com.google.common.base.Preconditions;

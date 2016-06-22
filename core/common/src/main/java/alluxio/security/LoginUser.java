@@ -68,7 +68,8 @@ public final class LoginUser {
    * @throws IOException if login fails
    */
   private static User login() throws IOException {
-    AuthType authType = Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+    AuthType authType =
+        Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
 
     try {
