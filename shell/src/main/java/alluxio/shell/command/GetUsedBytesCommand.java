@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 
