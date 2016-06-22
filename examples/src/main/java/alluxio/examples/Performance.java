@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;

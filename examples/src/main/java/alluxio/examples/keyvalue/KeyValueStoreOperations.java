@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
-import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
