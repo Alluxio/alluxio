@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.AbstractMasterClient;
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateDirectoryOptions;

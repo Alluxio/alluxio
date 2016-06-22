@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.UnderFileSystem;
 

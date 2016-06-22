@@ -13,7 +13,6 @@ package alluxio.master.file.options;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 

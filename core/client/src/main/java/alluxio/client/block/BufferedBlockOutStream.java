@@ -14,7 +14,6 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.Cancelable;
-import alluxio.client.ClientContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
 import alluxio.client.lineage.options.GetLineageInfoListOptions;

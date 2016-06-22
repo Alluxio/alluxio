@@ -11,7 +11,6 @@
 
 package alluxio.client.util;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 import org.mockito.Mockito;

@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;

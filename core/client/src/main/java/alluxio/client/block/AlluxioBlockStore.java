@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;

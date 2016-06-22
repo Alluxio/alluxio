@@ -12,7 +12,6 @@
 package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.security.LoginUser;
 import alluxio.thrift.CompleteUfsFileTOptions;
 import alluxio.util.SecurityUtils;
