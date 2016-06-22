@@ -142,7 +142,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
       }
 
       if (indices.put(indexDefinition.getName(), index) != null) {
-        throw new IllegalStateException("Adding two index to indexedSet with same name.");
+        throw new IllegalStateException("Adding two indices to indexedSet using same name.");
       }
     }
 
