@@ -53,13 +53,11 @@ public final class ConfUtils {
   }
 
   /**
-   * Loads {@link Configuration} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.
    *
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
-   * @return instance of {@link Configuration} to be loaded
+   * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    */
-  public static Configuration loadFromHadoopConfiguration(
-      org.apache.hadoop.conf.Configuration source) {
+  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = new Properties();
@@ -82,7 +80,6 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
-    // FIX return Configuration.fromMap(alluxioConfProperties);
-    return null;
+    Configuration.merge(alluxioConfProperties);
   }
 }

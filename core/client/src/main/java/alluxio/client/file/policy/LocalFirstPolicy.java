@@ -11,7 +11,6 @@
 
 package alluxio.client.file.policy;
 
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;

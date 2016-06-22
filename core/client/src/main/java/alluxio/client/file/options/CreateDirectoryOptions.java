@@ -14,7 +14,6 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;

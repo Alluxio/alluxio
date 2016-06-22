@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.util.io.BufferUtils;
 
@@ -44,6 +45,8 @@ public class UnderFileSystemFileInStreamTest {
 
   @Before
   public final void before() throws Exception {
+    Configuration.defaultInit();
+
     mData = BufferUtils.getIncreasingByteArray(FILE_SIZE);
     mMockReader = PowerMockito.mock(NettyUnderFileSystemFileReader.class);
     InetSocketAddress mockAddr = Mockito.mock(InetSocketAddress.class);

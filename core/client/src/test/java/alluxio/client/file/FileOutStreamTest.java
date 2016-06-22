@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -90,6 +89,8 @@ public class FileOutStreamTest {
    */
   @Before
   public void before() throws Exception {
+    Configuration.defaultInit();
+
     ClientTestUtils.setSmallBufferSizes();
     mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 

@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;

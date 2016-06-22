@@ -13,7 +13,6 @@ package alluxio.client.lineage;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 
 import org.junit.Test;
 

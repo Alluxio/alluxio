@@ -13,7 +13,6 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;

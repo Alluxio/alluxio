@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
