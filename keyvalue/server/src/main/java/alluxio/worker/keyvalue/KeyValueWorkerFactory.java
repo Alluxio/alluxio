@@ -14,7 +14,6 @@ package alluxio.worker.keyvalue;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.worker.Worker;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockWorker;
 

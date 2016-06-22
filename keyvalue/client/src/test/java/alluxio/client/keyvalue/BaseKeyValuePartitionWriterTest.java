@@ -14,10 +14,10 @@ package alluxio.client.keyvalue;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ByteArrayOutStream;
-import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -33,11 +33,18 @@ public final class BaseKeyValuePartitionWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
-  private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
-  private BaseKeyValuePartitionWriter mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+  private ByteArrayOutStream mOutStream;
+  private BaseKeyValuePartitionWriter mWriter;
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
+
+  @Before
+  public void before() {
+    Configuration.defaultInit();
+    mOutStream = new ByteArrayOutStream();
+    mWriter = new BaseKeyValuePartitionWriter(mOutStream);
+  }
 
   /**
    * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}.
