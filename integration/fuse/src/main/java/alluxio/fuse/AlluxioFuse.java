@@ -13,7 +13,6 @@ package alluxio.fuse;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;

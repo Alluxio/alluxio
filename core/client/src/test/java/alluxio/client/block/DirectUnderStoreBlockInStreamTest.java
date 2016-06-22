@@ -68,7 +68,7 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

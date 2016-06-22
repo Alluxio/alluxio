@@ -606,7 +606,7 @@ public final class FileSystemMasterTest {
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(0));
     executeTtlCheckOnce();
-    // TTL is reset to 0, the file should have been deleted during last TTL check.
+    // TTL is resetConfiguration to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
   }
@@ -624,7 +624,7 @@ public final class FileSystemMasterTest {
     mFileSystemMaster
         .setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults().setTtl(Constants.HOUR_MS));
     executeTtlCheckOnce();
-    // TTL is reset to 1 hour, the file should not be deleted during last TTL check.
+    // TTL is resetConfiguration to 1 hour, the file should not be deleted during last TTL check.
     Assert.assertEquals(fileId, mFileSystemMaster.getFileInfo(fileId).getFileId());
   }
 

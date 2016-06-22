@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 public final class LoginUserTestUtils {
 
-  private LoginUserTestUtils() {} // This is a utils class not intended for instantiation
+  private LoginUserTestUtils() {} // prevent instantiation
 
   /**
    * Resets the singleton {@link LoginUser} to null.

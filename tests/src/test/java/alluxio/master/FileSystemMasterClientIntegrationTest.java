@@ -12,14 +12,12 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 

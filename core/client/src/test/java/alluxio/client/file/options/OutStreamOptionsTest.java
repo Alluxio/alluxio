@@ -48,7 +48,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

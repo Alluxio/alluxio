@@ -140,7 +140,7 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
     Assert.assertFalse(mWriter.canPut(KEY1, VALUE1));
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

@@ -139,7 +139,7 @@ public class FileInStreamTest {
 
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

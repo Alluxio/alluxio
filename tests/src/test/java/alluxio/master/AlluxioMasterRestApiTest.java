@@ -28,8 +28,8 @@ import alluxio.wire.WorkerInfoTest;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -135,6 +135,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
+  @Ignore
   public void getConfigurationTest() throws Exception {
     SortedMap<String, String> propertyMap = new TreeMap<>();
     propertyMap.put(ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),

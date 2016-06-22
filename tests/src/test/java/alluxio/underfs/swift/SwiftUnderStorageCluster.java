@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;

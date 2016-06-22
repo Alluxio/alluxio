@@ -13,7 +13,6 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.CommonTestUtils;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;

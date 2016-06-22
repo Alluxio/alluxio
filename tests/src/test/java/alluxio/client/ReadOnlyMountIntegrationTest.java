@@ -277,9 +277,7 @@ public class ReadOnlyMountIntegrationTest {
    * @return the path of the alternate Ufs directory
    */
   private String createAlternateUfs() throws Exception {
-    AlluxioURI parentURI =
-        new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
-            .getParent();
+    AlluxioURI parentURI = new AlluxioURI(Configuration.get(Constants.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;

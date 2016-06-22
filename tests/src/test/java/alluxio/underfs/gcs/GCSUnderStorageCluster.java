@@ -11,7 +11,6 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;

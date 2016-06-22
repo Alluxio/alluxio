@@ -68,7 +68,7 @@ public class AbstractFileSystemTest {
    */
   @Before
   public void setup() throws Exception {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
     mockUserGroupInformation();
     mockMasterClient();
 
@@ -134,7 +134,7 @@ public class AbstractFileSystemTest {
 
     PowerMockito.verifyStatic();
     alluxio.client.file.FileSystem.Factory.get();
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**
@@ -157,7 +157,7 @@ public class AbstractFileSystemTest {
 
     PowerMockito.verifyStatic();
     alluxio.client.file.FileSystem.Factory.get();
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

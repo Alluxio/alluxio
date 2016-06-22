@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.UnderFileSystemUtils;

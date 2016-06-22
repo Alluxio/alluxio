@@ -11,19 +11,17 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Multimap;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;

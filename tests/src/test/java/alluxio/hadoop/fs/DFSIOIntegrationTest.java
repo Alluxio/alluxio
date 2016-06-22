@@ -11,7 +11,6 @@
 
 package alluxio.hadoop.fs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.hadoop.ConfUtils;

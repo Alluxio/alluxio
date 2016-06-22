@@ -51,7 +51,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      mLocalAlluxioClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
+      Configuration.set(service.getBindHostKey(), bindHost);
     }
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();

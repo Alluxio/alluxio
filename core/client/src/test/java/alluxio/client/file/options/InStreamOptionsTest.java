@@ -68,7 +68,7 @@ public class InStreamOptionsTest {
       Assert.assertEquals(ReadType.NO_CACHE.getAlluxioStorageType(),
           options.getAlluxioStorageType());
     } finally {
-      ClientTestUtils.resetClientContext();
+      ClientTestUtils.resetClient();
     }
   }
 

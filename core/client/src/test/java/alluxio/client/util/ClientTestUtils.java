@@ -12,6 +12,7 @@
 package alluxio.client.util;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
@@ -20,7 +21,6 @@ import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
 
 import com.google.common.base.Throwables;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Utility methods for the client tests.
@@ -36,31 +36,17 @@ public final class ClientTestUtils {
   }
 
   /**
-   * Reverts the client context configuration to the default value, and reinitializes all contexts
-   * while rely on this configuration. Resets the initialization flag in AbstractFileSystem.
+   * Resets the client to its initial state, re-initializing all configuration and contexts.
+   * Resets the initialization flag in AbstractFileSystem.
    *
    * This method should only be used as a cleanup mechanism between tests. It should not be used
    * while any object may be using the {@link ClientContext}.
    */
-  public static void resetClientContext() {
+  public static void resetClient() {
     try {
       HadoopClientTestUtils.resetHadoopClientContext();
-      Whitebox.invokeMethod(ClientContext.class, "reset");
-      resetContexts();
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
-  }
-
-  /**
-   * Re-initializes the {@link ClientContext} singleton to pick up any configuration changes.
-   *
-   * This method is needed when the master address has been changed so that new clients will use the
-   * new address. It should not be used while any object may be using the {@link ClientContext}.
-   */
-  public static void reinitializeClientContext() {
-    try {
-      Whitebox.invokeMethod(ClientContext.class, "init");
+      ConfigurationTestUtils.resetConfiguration();
+      ClientContext.init();
       resetContexts();
     } catch (Exception e) {
       throw Throwables.propagate(e);
