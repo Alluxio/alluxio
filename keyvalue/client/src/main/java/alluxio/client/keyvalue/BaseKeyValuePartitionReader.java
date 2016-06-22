@@ -12,7 +12,6 @@
 package alluxio.client.keyvalue;
 
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;

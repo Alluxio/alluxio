@@ -14,7 +14,6 @@ package alluxio.master.keyvalue;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.Master;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;

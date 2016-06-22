@@ -34,7 +34,6 @@ import java.util.Random;
 @PrepareForTest(Permission.class)
 public class CreateFileOptionsTest {
 
-
   @Before
   public void before() {
     Configuration.defaultInit();

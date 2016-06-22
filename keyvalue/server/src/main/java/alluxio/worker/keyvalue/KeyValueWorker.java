@@ -11,12 +11,10 @@
 
 package alluxio.worker.keyvalue;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.thrift.KeyValueWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.AbstractWorker;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
