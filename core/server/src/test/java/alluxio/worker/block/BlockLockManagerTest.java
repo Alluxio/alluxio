@@ -61,6 +61,8 @@ public class BlockLockManagerTest {
    */
   @Before
   public void before() throws Exception {
+    Configuration.defaultInit();
+
     BlockMetadataManager mockMetaManager = PowerMockito.mock(BlockMetadataManager.class);
     PowerMockito.when(mockMetaManager.hasBlockMeta(TEST_BLOCK_ID)).thenReturn(true);
     mLockManager = new BlockLockManager();

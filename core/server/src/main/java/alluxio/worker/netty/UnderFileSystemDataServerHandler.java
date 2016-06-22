@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.network.protocol.RPCFileReadResponse;
@@ -28,13 +27,14 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * This class handles filesystem data server requests.

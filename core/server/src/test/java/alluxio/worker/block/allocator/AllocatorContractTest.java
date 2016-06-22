@@ -13,7 +13,6 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.reflect.ClassPath;
 import com.google.common.reflect.Reflection;

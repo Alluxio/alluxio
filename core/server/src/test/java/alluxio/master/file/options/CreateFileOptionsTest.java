@@ -18,6 +18,7 @@ import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -32,12 +33,18 @@ import java.util.Random;
 // Need to mock PermissionStatus to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public class CreateFileOptionsTest {
+
+
+  @Before
+  public void before() {
+    Configuration.defaultInit();
+  }
+
   /**
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateFileOptions options = CreateFileOptions.defaults();

@@ -13,7 +13,6 @@ package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;

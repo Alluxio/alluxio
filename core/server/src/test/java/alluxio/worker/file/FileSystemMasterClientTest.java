@@ -11,11 +11,11 @@
 
 package alluxio.worker.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,8 +39,7 @@ public class FileSystemMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the file system context can be used.
-    WorkerContext.reset();
+    Configuration.defaultInit();
 
     FileSystemMasterWorkerService.Client mock =
         PowerMockito.mock(FileSystemMasterWorkerService.Client.class);

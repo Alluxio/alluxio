@@ -11,7 +11,6 @@
 
 package alluxio.master.file.options;
 
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateDirectoryTOptions;
 

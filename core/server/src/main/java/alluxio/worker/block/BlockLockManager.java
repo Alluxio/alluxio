@@ -17,7 +17,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.resource.ResourcePool;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;

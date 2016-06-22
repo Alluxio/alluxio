@@ -19,7 +19,6 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.PersistFile;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.BlockMasterSync;
 

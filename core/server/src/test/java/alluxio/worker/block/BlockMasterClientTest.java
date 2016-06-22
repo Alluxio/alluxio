@@ -11,11 +11,11 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -39,8 +39,7 @@ public class BlockMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the block store context can be used.
-    WorkerContext.reset();
+    Configuration.defaultInit();
 
     BlockMasterWorkerService.Client mock = PowerMockito.mock(BlockMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);

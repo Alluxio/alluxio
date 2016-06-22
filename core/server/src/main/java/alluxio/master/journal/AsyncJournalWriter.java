@@ -13,7 +13,6 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;

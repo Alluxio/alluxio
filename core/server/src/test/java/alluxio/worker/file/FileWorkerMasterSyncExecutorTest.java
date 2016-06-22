@@ -11,6 +11,7 @@
 
 package alluxio.worker.file;
 
+import alluxio.Configuration;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.worker.WorkerIdRegistry;
 
@@ -37,6 +38,8 @@ public final class FileWorkerMasterSyncExecutorTest {
 
   @Before
   public void before() {
+    Configuration.defaultInit();
+
     mFileDataManager = Mockito.mock(FileDataManager.class);
     mFileSystemMasterClient = Mockito.mock(FileSystemMasterClient.class);
     mFileWorkerMasterSyncExecutor =

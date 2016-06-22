@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerSource;
 
 import java.util.List;

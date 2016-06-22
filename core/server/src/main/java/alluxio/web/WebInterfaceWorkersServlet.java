@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 

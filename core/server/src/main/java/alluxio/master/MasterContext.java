@@ -11,8 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-
 import javax.annotation.concurrent.ThreadSafe;
 
 /**

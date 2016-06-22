@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
@@ -25,7 +24,6 @@ import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.CountingInputStream;

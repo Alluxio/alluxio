@@ -14,7 +14,6 @@ package alluxio.master.journal;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
-import alluxio.master.MasterContext;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
 

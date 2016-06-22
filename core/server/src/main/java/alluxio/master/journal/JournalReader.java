@@ -11,9 +11,7 @@
 
 package alluxio.master.journal;
 
-import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Preconditions;

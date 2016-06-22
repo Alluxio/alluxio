@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 
 import com.google.common.base.Objects;
 
