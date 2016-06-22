@@ -12,7 +12,6 @@
 package alluxio.underfs.local;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 

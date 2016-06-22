@@ -11,7 +11,6 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 

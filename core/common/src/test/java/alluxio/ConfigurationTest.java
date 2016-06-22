@@ -100,7 +100,7 @@ public class ConfigurationTest {
     Assert.assertNotNull(value);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", value);
 
-    value = Configuration.get(Constants.UNDERFS_HDFS_PREFIXS);
+    value = Configuration.get(Constants.UNDERFS_HDFS_PREFIXES);
     Assert.assertNotNull(value);
     Assert.assertEquals(DEFAULT_HADOOP_UFS_PREFIX, value);
 

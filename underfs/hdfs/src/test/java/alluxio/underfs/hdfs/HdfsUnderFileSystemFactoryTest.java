@@ -28,6 +28,8 @@ public class HdfsUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
+    Configuration.defaultInit();
+
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("hdfs://localhost/test/path");
     Assert.assertNotNull(
