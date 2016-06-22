@@ -93,7 +93,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

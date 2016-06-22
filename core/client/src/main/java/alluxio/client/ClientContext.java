@@ -32,19 +32,9 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientContext {
   private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
-  private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
 
   static {
-    reset();
-  }
-
-  /**
-   * Resets to the default Alluxio configuration and initializes the client context singleton.
-   *
-   * This method is useful for undoing changes to {@link Configuration} made by unit tests.
-   */
-  private static void reset() {
     Configuration.clientInit();
     init();
   }
@@ -58,11 +48,6 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    String masterHostname =
-        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
-    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
     sClientMetrics = new ClientMetrics();
 
     sBlockClientExecutorService = Executors
@@ -84,7 +69,10 @@ public final class ClientContext {
    * @return the master address
    */
   public static InetSocketAddress getMasterAddress() {
-    return sMasterAddress;
+    String masterHostname =
+        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
+    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
+    return new InetSocketAddress(masterHostname, masterPort);
   }
 
   /**

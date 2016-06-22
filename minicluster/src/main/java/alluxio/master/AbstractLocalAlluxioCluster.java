@@ -13,7 +13,11 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.client.ClientContext;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.lineage.LineageContext;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
@@ -88,6 +92,10 @@ public abstract class AbstractLocalAlluxioCluster {
     waitForMasterReady();
     startWorker();
     waitForWorkerReady();
+
+    BlockStoreContext.INSTANCE.reset();
+    FileSystemContext.INSTANCE.reset();
+    LineageContext.INSTANCE.reset();
   }
 
   /**
@@ -297,7 +305,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public void initializeTestConfiguration() throws IOException {
-    Configuration.emptyInit();
+    ClientContext.init();
     setAlluxioHome();
     setHostname();
 

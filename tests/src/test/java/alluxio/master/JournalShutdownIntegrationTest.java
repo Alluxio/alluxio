@@ -135,6 +135,7 @@ public class JournalShutdownIntegrationTest {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
         new MultiMasterLocalAlluxioCluster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
+    cluster.initializeTestConfiguration();
     cluster.start();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
@@ -145,6 +146,7 @@ public class JournalShutdownIntegrationTest {
       throws IOException, ConnectionFailedException {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
+    cluster.initializeTestConfiguration();
     cluster.start();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);

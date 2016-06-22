@@ -12,6 +12,7 @@
 package alluxio.security;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.security.authentication.AuthType;
 
@@ -35,10 +36,11 @@ public final class LoginUserTest {
   public ExpectedException mThrown = ExpectedException.none();
 
   /**
-   * User reflection to reset the private static member sLoginUser in LoginUser.
+   * User reflection to resetConfiguration the private static member sLoginUser in LoginUser.
    */
   @Before
   public void before() throws Exception {
+    ConfigurationTestUtils.resetConfiguration();
     Field field = LoginUser.class.getDeclaredField("sLoginUser");
     field.setAccessible(true);
     field.set(null, null);
@@ -49,7 +51,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
 
     User loginUser = LoginUser.get();
@@ -64,7 +65,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
@@ -80,7 +80,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserListProvidedByAppTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
@@ -98,7 +97,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -113,7 +111,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
 
     User loginUser = LoginUser.get();
@@ -128,7 +125,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
@@ -145,7 +141,6 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "");
 
@@ -164,7 +159,6 @@ public final class LoginUserTest {
   public void securityEnabledTest() throws Exception {
     // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
 
     mThrown.expect(UnsupportedOperationException.class);

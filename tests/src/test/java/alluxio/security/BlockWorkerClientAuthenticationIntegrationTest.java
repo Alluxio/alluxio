@@ -13,7 +13,6 @@ package alluxio.security;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
@@ -97,7 +96,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
       LoginUserTestUtils.resetLoginUser("no-alluxio");
       blockWorkerClient.connect();
     } finally {
-      ClientTestUtils.resetClientContext();
+      ClientTestUtils.resetClient();
     }
   }
 

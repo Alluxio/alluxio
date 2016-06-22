@@ -15,7 +15,6 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.ArrayUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -81,8 +80,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  /** The {@link Configuration} object used by the cluster. */
-  private Configuration mTestConf = null;
 
   /**
    * Creates a new instance.
@@ -93,7 +90,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param confParams specific alluxio configuration parameters, specified as a list of strings,
    */
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster, String... confParams) {
+      boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -110,12 +107,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster) {
+      boolean startCluster) {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     String... confParams) {
+      String... confParams) {
     this(workerCapacityBytes, userBlockSize, true, confParams);
   }
 
@@ -128,23 +125,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   public LocalAlluxioCluster get() {
     return mLocalAlluxioCluster;
-  }
-
-  /**
-   * @return the {@link Configuration} object used by the cluster
-   */
-  public Configuration getTestConf() {
-    return mTestConf;
-  }
-
-  /**
-   * Appends new parameters to mConfParams and applies to mTestConf.
-   *
-   * @param s string array to be added to mConfParams
-   */
-  public void addConfParams(String[] s) throws IOException {
-    ArrayUtils.addAll(mConfParams, s);
-    applyConfParams();
   }
 
   private void applyConfParams() throws IOException {

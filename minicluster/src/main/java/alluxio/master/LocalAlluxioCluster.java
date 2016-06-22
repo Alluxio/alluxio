@@ -122,7 +122,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void resetContext() {
     MasterContext.reset();
     WorkerContext.reset();
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   @Override

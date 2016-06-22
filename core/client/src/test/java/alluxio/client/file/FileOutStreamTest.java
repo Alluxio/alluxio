@@ -167,7 +167,7 @@ public class FileOutStreamTest {
 
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**

@@ -12,16 +12,13 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
-
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.Assert;

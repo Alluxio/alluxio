@@ -11,7 +11,6 @@
 
 package alluxio.underfs.oss;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.io.PathUtils;

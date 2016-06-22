@@ -14,7 +14,6 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.util.ClientTestUtils;
@@ -63,7 +62,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar2"), 20);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   @Test
@@ -110,7 +109,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   @Test

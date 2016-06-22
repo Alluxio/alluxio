@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -48,6 +49,7 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mMultiMasterLocalAlluxioCluster.stop();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before
@@ -56,6 +58,7 @@ public class MasterFaultToleranceIntegrationTest {
     Configuration.defaultInit(); // Reset configuration.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
+    mMultiMasterLocalAlluxioCluster.initializeTestConfiguration();
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }

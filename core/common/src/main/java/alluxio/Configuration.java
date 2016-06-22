@@ -113,13 +113,11 @@ public final class Configuration {
    */
   private static void init(String sitePropertiesFile, String processPropertiesFile,
       boolean includeSystemProperties) {
-    PROPERTIES.clear();
-
     // Load default
     Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
     if (defaultProps == null) {
-      throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
-          .getMessage());
+      throw new RuntimeException(
+          ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST.getMessage());
     }
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));

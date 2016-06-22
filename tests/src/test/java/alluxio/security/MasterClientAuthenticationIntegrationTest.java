@@ -14,7 +14,6 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;

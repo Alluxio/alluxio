@@ -67,7 +67,7 @@ public final class AlluxioLineageTest {
 
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   @Test

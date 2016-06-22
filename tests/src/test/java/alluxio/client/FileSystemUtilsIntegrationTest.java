@@ -149,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            ClientTestUtils.resetClientContext();
+            ClientTestUtils.resetClient();
           }
         } catch (Exception e) {
           e.printStackTrace();
