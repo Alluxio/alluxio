@@ -80,7 +80,8 @@ public class IndexedSetConcurrencyTest {
     @Override
     public long runSingleTask() {
       TestInfo info =
-          mIndexedSet.getFirstByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+          mIndexedSet.getFirstByField(SIZE_INDEX_NAME,
+              ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
       if (info != null) {
         return mIndexedSet.remove(info) ? 1 : 0;
       }
@@ -92,7 +93,7 @@ public class IndexedSetConcurrencyTest {
     @Override
     public long runSingleTask() {
       return mIndexedSet
-          .removeByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+          .removeByField(SIZE_INDEX_NAME, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
     }
   }
 
@@ -136,21 +137,24 @@ public class IndexedSetConcurrencyTest {
     }
   }
 
-  private final IndexedSet.NonUniqueFieldIndex<TestInfo> mIdIndex =
-      new IndexedSet.NonUniqueFieldIndex<TestInfo>() {
+  private static final String ID_INDEX_NAME = "IdIndex";
+  private static final String SIZE_INDEX_NAME = "SizeIndex";
+
+  private final IndexDefinition<TestInfo> mIdIndex =
+      new IndexDefinition<>(ID_INDEX_NAME, true, new IndexDefinition.Abstracter<TestInfo>() {
         @Override
         public Object getFieldValue(TestInfo o) {
           return o.getId();
         }
-      };
+      });
 
-  private final IndexedSet.NonUniqueFieldIndex<TestInfo> mSizeIndex =
-      new IndexedSet.NonUniqueFieldIndex<TestInfo>() {
+  private final IndexDefinition<TestInfo> mSizeIndex =
+      new IndexDefinition<>(SIZE_INDEX_NAME, false, new IndexDefinition.Abstracter<TestInfo>() {
         @Override
         public Object getFieldValue(TestInfo o) {
           return o.getSize();
         }
-      };
+      });
 
   @Before
   public void before() throws Exception {
@@ -185,7 +189,7 @@ public class IndexedSetConcurrencyTest {
     // Verify the size according to the id index.
     int count = 0;
     for (Long id : ids) {
-      Set<TestInfo> elements = mIndexedSet.getByField(mIdIndex, id);
+      Set<TestInfo> elements = mIndexedSet.getByField(ID_INDEX_NAME, id);
       count += elements.size();
     }
     Assert.assertEquals(expectedCount, count);
@@ -193,7 +197,7 @@ public class IndexedSetConcurrencyTest {
     // Verify the size according to the size index.
     count = 0;
     for (Integer size : sizes) {
-      Set<TestInfo> elements = mIndexedSet.getByField(mSizeIndex, size);
+      Set<TestInfo> elements = mIndexedSet.getByField(SIZE_INDEX_NAME, size);
       count += elements.size();
     }
     Assert.assertEquals(expectedCount, count);

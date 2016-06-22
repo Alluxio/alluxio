@@ -381,13 +381,13 @@ public class BlockMasterTest {
   /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.UniqueFieldIndex<MasterWorkerInfo> mIdIndex;
+    private final String mIdIndexName;
     private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 
     PrivateAccess(BlockMaster blockMaster) {
+      mIdIndexName = mMaster.ID_INDEX_NAME;
       mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
-      mIdIndex = Whitebox.getInternalState(mMaster, "mIdIndex");
       mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
       mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
     }
@@ -409,7 +409,7 @@ public class BlockMasterTest {
      */
     private MasterWorkerInfo getWorkerById(long workerId) {
       synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
+        return mWorkers.getFirstByField(mIdIndexName, workerId);
       }
     }
 
