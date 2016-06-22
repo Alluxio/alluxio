@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.AlluxioProcess;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
@@ -78,6 +79,9 @@ public final class AlluxioWorker {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
+
+    // indicate the type of this process
+    AlluxioProcess.setType(AlluxioProcess.Type.WORKER);
 
     AlluxioWorker worker = get();
     try {

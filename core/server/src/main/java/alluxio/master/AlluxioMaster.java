@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioProcess;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
@@ -81,6 +82,9 @@ public class AlluxioMaster {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
+
+    // indicate the type of this process
+    AlluxioProcess.setType(AlluxioProcess.Type.MASTER);
 
     AlluxioMaster master = get();
     try {
