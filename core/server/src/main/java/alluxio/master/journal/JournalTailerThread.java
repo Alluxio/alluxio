@@ -14,7 +14,6 @@ package alluxio.master.journal;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.Master;
-import alluxio.master.MasterContext;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;

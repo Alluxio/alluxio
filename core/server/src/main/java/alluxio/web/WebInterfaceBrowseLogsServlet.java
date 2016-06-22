@@ -13,8 +13,6 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
-import alluxio.worker.WorkerContext;
 
 import java.io.File;
 import java.io.FileInputStream;

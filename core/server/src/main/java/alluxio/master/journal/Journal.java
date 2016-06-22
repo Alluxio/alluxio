@@ -12,7 +12,6 @@
 package alluxio.master.journal;
 
 import alluxio.AlluxioURI;
-import alluxio.master.MasterContext;
 
 import javax.annotation.concurrent.ThreadSafe;
 

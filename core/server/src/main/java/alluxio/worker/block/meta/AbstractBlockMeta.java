@@ -14,7 +14,6 @@ package alluxio.worker.block.meta;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 
 import com.google.common.base.Preconditions;

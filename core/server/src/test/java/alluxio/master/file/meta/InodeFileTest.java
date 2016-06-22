@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;

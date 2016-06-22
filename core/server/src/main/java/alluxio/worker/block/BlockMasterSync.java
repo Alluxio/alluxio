@@ -24,7 +24,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 
 import org.slf4j.Logger;

@@ -12,6 +12,7 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -67,6 +68,8 @@ public final class UnderFileSystemManagerTest {
 
   @Before
   public void before() throws Exception {
+    Configuration.defaultInit();
+
     mManager = new UnderFileSystemManager();
     mMockUfs = Mockito.mock(UnderFileSystem.class);
     mMockOutputStream = Mockito.mock(OutputStream.class);

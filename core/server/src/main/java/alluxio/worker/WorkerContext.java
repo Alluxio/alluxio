@@ -11,7 +11,6 @@
 
 package alluxio.worker;
 
-import alluxio.Configuration;
 import alluxio.wire.WorkerNetAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;

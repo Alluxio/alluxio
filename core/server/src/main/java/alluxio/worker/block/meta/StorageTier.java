@@ -20,7 +20,6 @@ import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;

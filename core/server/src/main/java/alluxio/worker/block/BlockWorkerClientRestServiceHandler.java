@@ -19,7 +19,6 @@ import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 

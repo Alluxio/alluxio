@@ -68,6 +68,8 @@ public class SpaceReserverTest {
    */
   @Before
   public void before() throws Exception {
+    Configuration.defaultInit();
+
     String baseDir = mTempFolder.newFolder().getAbsolutePath();
     TieredBlockStoreTestUtils.setupConfWithMultiTier(baseDir, TIER_ORDINAL, TIER_ALIAS,
         TIER_PATH, TIER_CAPACITY_BYTES, null);

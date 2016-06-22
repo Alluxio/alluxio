@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.worker.WorkerContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

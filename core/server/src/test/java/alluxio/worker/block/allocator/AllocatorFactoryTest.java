@@ -13,11 +13,9 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;

@@ -83,8 +83,9 @@ public class BlockWorkerTest {
    */
   @Before
   public void before() throws IOException {
-    mRandom = new Random();
+    Configuration.defaultInit();
 
+    mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);

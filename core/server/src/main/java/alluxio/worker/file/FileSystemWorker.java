@@ -26,7 +26,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
