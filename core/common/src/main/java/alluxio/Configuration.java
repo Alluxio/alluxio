@@ -75,6 +75,10 @@ public final class Configuration {
   /** Set of properties. */
   private static final Properties PROPERTIES = new Properties();
 
+  static {
+    init(SITE_PROPERTIES, null, true);
+  }
+
   /**
    * The minimal configuration without loading any site or system properties.
    */

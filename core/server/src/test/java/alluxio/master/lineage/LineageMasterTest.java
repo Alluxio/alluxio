@@ -12,7 +12,6 @@
 package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.LineageDeletionException;
@@ -64,8 +63,6 @@ public final class LineageMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
-
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mLineageMaster = new LineageMaster(mFileSystemMaster, journal);

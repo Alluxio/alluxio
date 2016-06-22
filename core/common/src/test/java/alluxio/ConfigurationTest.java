@@ -13,9 +13,8 @@ package alluxio;
 
 import alluxio.util.network.NetworkAddressUtils;
 
-import org.junit.AfterClass;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,16 +39,6 @@ public class ConfigurationTest {
   private static Map<String, String> sTestProperties = new LinkedHashMap<>();
 
   /**
-   * Clears the properties after the test suite is finished.
-   */
-  @AfterClass
-  public static void afterClass() {
-    System.clearProperty(Constants.MASTER_HOSTNAME);
-    System.clearProperty(Constants.MASTER_RPC_PORT);
-    System.clearProperty(Constants.ZOOKEEPER_ENABLED);
-  }
-
-  /**
    * Sets the properties and configuration before the test suite runs.
    */
   @BeforeClass
@@ -63,20 +52,11 @@ public class ConfigurationTest {
     sTestProperties.put("recursive", "${multiplesubs}");
     sTestProperties.put("home.port", "8080");
     sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
-
-    // initialize the system properties
-    System.setProperty(Constants.MASTER_HOSTNAME, "master");
-    System.setProperty(Constants.MASTER_RPC_PORT, "20001");
-    System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
   }
 
-  /**
-   * Creates new configurations before a test runs.
-   */
-  @Before
-  public void before() {
-    // initialize Alluxio configuration
-    Configuration.emptyInit();
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -296,11 +276,20 @@ public class ConfigurationTest {
    */
   @Test
   public void systemVariableSubstitutionSampleTest() {
+    // set system properties
+    System.setProperty(Constants.MASTER_HOSTNAME, "master");
+    System.setProperty(Constants.MASTER_RPC_PORT, "20001");
+    System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
+
     Configuration.defaultInit();
-    Configuration.merge(sTestProperties);
     String masterAddress = Configuration.get(Constants.MASTER_ADDRESS);
     Assert.assertNotNull(masterAddress);
     Assert.assertEquals("alluxio-ft://master:20001", masterAddress);
+
+    // clear system properties
+    System.clearProperty(Constants.MASTER_HOSTNAME);
+    System.clearProperty(Constants.MASTER_RPC_PORT);
+    System.clearProperty(Constants.ZOOKEEPER_ENABLED);
   }
 
   /**

@@ -13,6 +13,7 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -31,6 +32,7 @@ import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -81,10 +83,14 @@ public final class InodeTreeTest {
 
     blockMaster.start(true);
 
-    Configuration.defaultInit();
     Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
     mTree.initializeRoot(TEST_PERMISSION);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

@@ -30,9 +30,9 @@ public final class ClientMockUtils {
   }
 
   /**
-   * When {@link UnderFileSystem#get(String)} is called to get an
-   * {@link UnderFileSystem}, it will instead return the mock returned by this method, as long as
-   * `filename` matches `ufsPathMatcher`
+   * When {@link UnderFileSystem#get(String)} is called to get an {@link UnderFileSystem}, it
+   * will instead return the mock returned by this method, as long as `filename` matches
+   * `ufsPathMatcher`.
    *
    * Because this method needs to mock a static method from {@link UnderFileSystem}, calling tests
    * should make sure to annotate their classes with `@PrepareForTesting(UnderFileSystem.class)`.

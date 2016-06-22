@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
@@ -66,6 +67,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
   @Before
   public void before() throws Exception {
     Configuration.set(Constants.USER_UFS_DELEGATION_ENABLED, "true");
+
     mFile = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(mFile);
     // Create a file of 2 block sizes.
@@ -93,6 +95,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
+    ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
   }
 

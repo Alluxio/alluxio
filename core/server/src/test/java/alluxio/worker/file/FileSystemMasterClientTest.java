@@ -11,7 +11,6 @@
 
 package alluxio.worker.file;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.FileSystemMasterWorkerService;
@@ -39,8 +38,6 @@ public class FileSystemMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    Configuration.defaultInit();
-
     FileSystemMasterWorkerService.Client mock =
         PowerMockito.mock(FileSystemMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);

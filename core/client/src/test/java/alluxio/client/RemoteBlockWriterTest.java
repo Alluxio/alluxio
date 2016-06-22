@@ -12,8 +12,10 @@
 package alluxio.client;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,20 +30,22 @@ public class RemoteBlockWriterTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   @Test
   public void createFromMockClass() throws Exception {
     RemoteBlockWriter mock = Mockito.mock(RemoteBlockWriter.class);
-    Configuration.defaultInit();
     Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, mock.getClass().getName());
     Assert.assertTrue(RemoteBlockWriter.Factory.create().getClass().equals(mock.getClass()));
   }
 
   @Test
   public void createFailed() {
-    mThrown.expect(RuntimeException.class);
-    Configuration.defaultInit();
     Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, "unknown");
+    mThrown.expect(RuntimeException.class);
     RemoteBlockWriter.Factory.create();
   }
-
 }

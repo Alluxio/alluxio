@@ -16,6 +16,7 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.security.authentication.AuthType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -40,10 +41,14 @@ public final class LoginUserTest {
    */
   @Before
   public void before() throws Exception {
-    ConfigurationTestUtils.resetConfiguration();
     Field field = LoginUser.class.getDeclaredField("sLoginUser");
     field.setAccessible(true);
     field.set(null, null);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

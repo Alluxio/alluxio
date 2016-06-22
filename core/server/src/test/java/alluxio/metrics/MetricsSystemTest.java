@@ -11,7 +11,6 @@
 
 package alluxio.metrics;
 
-import alluxio.Configuration;
 import alluxio.master.MasterSource;
 import alluxio.worker.WorkerSource;
 
@@ -32,7 +31,6 @@ public class MetricsSystemTest {
    */
   @Before
   public final void before() {
-    Configuration.defaultInit();
     Properties metricsProps = new Properties();
     metricsProps.setProperty("*.sink.console.class", "alluxio.metrics.sink.ConsoleSink");
     metricsProps.setProperty("*.sink.console.period", "15");

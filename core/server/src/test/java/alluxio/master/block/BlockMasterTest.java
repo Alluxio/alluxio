@@ -11,7 +11,6 @@
 
 package alluxio.master.block;
 
-import alluxio.Configuration;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -79,8 +78,6 @@ public class BlockMasterTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
-
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mMaster = new BlockMaster(blockJournal);
     mMaster.start(true);

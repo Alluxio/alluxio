@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthType;
@@ -19,6 +20,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +43,11 @@ public final class PermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Tests the {@link Permission#applyUMask(Mode)} method.
    */
@@ -61,8 +68,6 @@ public final class PermissionTest {
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration.defaultInit();
-
     // no authentication
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Permission permission = Permission.defaults();
@@ -74,7 +79,6 @@ public final class PermissionTest {
    */
   @Test
   public void setUserFromThriftClientTest() throws Exception {
-    Configuration.defaultInit();
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
@@ -96,7 +100,6 @@ public final class PermissionTest {
    */
   @Test
   public void setUserFromLoginModuleTest() throws Exception {
-    Configuration.defaultInit();
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set

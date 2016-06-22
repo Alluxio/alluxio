@@ -13,12 +13,11 @@ package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -34,11 +33,6 @@ import java.util.Random;
 @PrepareForTest(Permission.class)
 public class CreateFileOptionsTest {
 
-  @Before
-  public void before() {
-    Configuration.defaultInit();
-  }
-
   /**
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
@@ -52,7 +46,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

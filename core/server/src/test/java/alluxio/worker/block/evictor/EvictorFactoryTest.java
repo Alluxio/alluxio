@@ -12,6 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -19,6 +20,7 @@ import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.allocator.MaxFreeAllocator;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,6 +58,11 @@ public class EvictorFactoryTest {
     }
   }
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Tests that a {@link GreedyEvictor} can be created from
    * {@link alluxio.worker.block.evictor.Evictor.Factory#create(
@@ -63,7 +70,6 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createGreedyEvictorTest() {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
@@ -78,7 +84,6 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createLRUEvictorTest() {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
@@ -93,7 +98,6 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createDefaultEvictorTest() {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);

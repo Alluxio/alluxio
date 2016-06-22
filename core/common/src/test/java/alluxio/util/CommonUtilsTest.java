@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -228,7 +227,6 @@ public class CommonUtilsTest {
         GroupMappingService.Factory.getUserToGroupsMappingService())
         .thenReturn(groupService);
 
-    Configuration.defaultInit();
     String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
     Assert.assertNotNull(primaryGroup);
     Assert.assertEquals(userGroup1, primaryGroup);

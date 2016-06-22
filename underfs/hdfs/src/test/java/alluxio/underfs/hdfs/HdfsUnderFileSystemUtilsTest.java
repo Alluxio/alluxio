@@ -12,6 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -28,7 +29,6 @@ public final class HdfsUnderFileSystemUtilsTest {
   public void addKeyTest() {
     String key = "key";
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    Configuration.defaultInit();
     Configuration.set(key, "alluxioKey");
 
     System.setProperty(key, "systemKey");
@@ -38,5 +38,6 @@ public final class HdfsUnderFileSystemUtilsTest {
     System.clearProperty(key);
     HdfsUnderFileSystemUtils.addKey(conf, key);
     Assert.assertEquals("alluxioKey", conf.get(key));
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

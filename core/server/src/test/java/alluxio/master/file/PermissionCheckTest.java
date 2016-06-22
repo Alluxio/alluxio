@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
@@ -133,7 +134,6 @@ public final class PermissionCheckTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
     // authentication
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
@@ -157,6 +157,7 @@ public final class PermissionCheckTest {
   @After
   public void after() throws Exception {
     MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

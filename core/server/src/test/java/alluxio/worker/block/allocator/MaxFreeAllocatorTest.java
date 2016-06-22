@@ -12,6 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
 import org.junit.Test;
@@ -26,7 +27,6 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration.defaultInit();
     Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //
@@ -78,5 +78,6 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

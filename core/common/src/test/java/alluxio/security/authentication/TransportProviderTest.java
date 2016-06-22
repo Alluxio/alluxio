@@ -12,6 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -21,6 +22,7 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,12 +58,16 @@ public final class TransportProviderTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.defaultInit();
     // Use port 0 to assign each test case an available port (possibly different)
     String localhost = NetworkAddressUtils.getLocalHostName();
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

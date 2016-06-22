@@ -12,12 +12,11 @@
 package alluxio.client.keyvalue;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ByteArrayOutStream;
-import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -33,18 +32,11 @@ public final class BaseKeyValuePartitionWriterTest {
   private static final byte[] VALUE1 = "value1".getBytes();
   private static final byte[] VALUE2 = "value2_bar".getBytes();
 
-  private ByteArrayOutStream mOutStream;
-  private BaseKeyValuePartitionWriter mWriter;
+  private ByteArrayOutStream mOutStream = new ByteArrayOutStream();
+  private BaseKeyValuePartitionWriter mWriter = new BaseKeyValuePartitionWriter(mOutStream);
 
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
-
-  @Before
-  public void before() {
-    Configuration.defaultInit();
-    mOutStream = new ByteArrayOutStream();
-    mWriter = new BaseKeyValuePartitionWriter(mOutStream);
-  }
 
   /**
    * Tests {@link BaseKeyValuePartitionWriter#put(byte[], byte[])}.
@@ -140,7 +132,7 @@ public final class BaseKeyValuePartitionWriterTest {
     Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
     Assert.assertFalse(mWriter.canPut(KEY1, VALUE1));
-    ClientTestUtils.resetClient();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

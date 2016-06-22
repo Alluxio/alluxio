@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -127,6 +128,7 @@ public final class MasterSourceTest {
   public void after() throws Exception {
     mBlockMaster.stop();
     mFileSystemMaster.stop();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

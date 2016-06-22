@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
@@ -29,8 +30,8 @@ import alluxio.worker.block.meta.BlockMeta;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.MockRateLimiter;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -53,9 +54,9 @@ import java.util.Set;
 @PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class})
 public final class FileDataManagerTest {
 
-  @Before
-  public void before() throws IOException {
-    Configuration.defaultInit();
+  @After
+  public void after() throws IOException {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

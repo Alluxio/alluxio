@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.BlockMasterWorkerService;
@@ -39,8 +38,6 @@ public class BlockMasterClientTest {
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    Configuration.defaultInit();
-
     BlockMasterWorkerService.Client mock = PowerMockito.mock(BlockMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
 

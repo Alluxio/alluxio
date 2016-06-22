@@ -87,8 +87,6 @@ public class FileInStreamTest {
    */
   @Before
   public void before() throws AlluxioException, IOException {
-    Configuration.defaultInit();
-
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
     mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
