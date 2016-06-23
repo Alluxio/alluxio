@@ -12,7 +12,6 @@
 package alluxio.master.file.meta.options;
 
 import alluxio.AlluxioURI;
-import alluxio.CommonTestUtils;
 import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
@@ -32,10 +31,5 @@ public class MountInfoTest {
     MountInfo info = new MountInfo(uri, options);
     Assert.assertEquals(uri, info.getUfsUri());
     Assert.assertEquals(options, info.getOptions());
-  }
-
-  @Test
-  public void equalsTest() throws Exception {
-    CommonTestUtils.testEquals(MountInfo.class);
   }
 }
