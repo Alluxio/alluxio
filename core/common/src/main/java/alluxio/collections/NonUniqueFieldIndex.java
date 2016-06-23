@@ -23,35 +23,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 class NonUniqueFieldIndex<T> implements FieldIndex<T> {
-  private final IndexDefinition.Abstracter mAbstracter;
+  private final IndexDefinition<T> mIndexDefinition;
   private ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndex} instance.
    */
-  public NonUniqueFieldIndex(IndexDefinition.Abstracter abstracter) {
+  public NonUniqueFieldIndex(IndexDefinition<T> indexDefinition) {
     mIndexMap = new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8);
-    mAbstracter = abstracter;
-  }
-
-  /**
-   * Gets the set of objects with the specified field value - internal function.
-   *
-   * @param value the field value
-   * @return the set of objects with the specified field value
-   */
-  public ConcurrentHashSet<T> get(Object value) {
-    return mIndexMap.get(value);
+    mIndexDefinition = indexDefinition;
   }
 
   @Override
-  public Object getFieldValue(T o) {
-    return mAbstracter.getFieldValue(o);
-  }
-
-  @Override
-  public void put(T object) {
-    Object fieldValue = getFieldValue(object);
+  public void add(T object) {
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
 
@@ -61,20 +46,12 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       objSet = mIndexMap.get(fieldValue);
     }
 
-    if (!objSet.addIfAbsent(object)) {
-      // this call can never return false because:
-      // a. the second-level sets in the indices are all
-      // {@link java.util.Set} instances of unbounded space
-      // b. We have already successfully added object on mObjects,
-      // meaning that it cannot be already in any of the sets.
-      // (mObjects is exactly the set-union of all the other second-level sets)
-      throw new IllegalStateException("Indexed Set is in an illegal state");
-    }
+    objSet.add(object);
   }
 
   @Override
   public boolean remove(T object) {
-    Object fieldValue = getFieldValue(object);
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
     if (objSet != null) {
       return objSet.remove(object);

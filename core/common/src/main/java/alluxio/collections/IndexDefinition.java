@@ -19,46 +19,20 @@ package alluxio.collections;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-public class IndexDefinition<T> {
-
-  /**
-   * An interface abstracting the value of the field that serves as index.
-   *
-   * @param <T> type of objects in this {@link Abstracter}
-   */
-  public interface Abstracter<T> {
-    /**
-     * Gets the value of the field that serves as index.
-     *
-     * @param o the instance to get the field value from
-     * @return the field value, which is just an Object
-     */
-    Object getFieldValue(T o);
-  }
-
-  /** The index name, representing the index in methods of {@link IndexedSet}. */
-  private final String mName;
-
+public abstract class IndexDefinition<T> {
   /** Whether it is a unique index. */
   //TODO(lei): change the mIsUnique to mIndexType enum
   private final boolean mIsUnique;
 
-  /** Abstracts the data field of this index. */
-  private final Abstracter mAbstracter;
-
   /**
    * Constructs a new {@link IndexDefinition} instance.
    *
-   * @param name the name of the field index, used as index id
    * @param isUnique if the index is unique. A unique index is an index where each index value only
    *                 maps toone object; A non-unique index is an index where an index value can map
    *                 to one or more objects.
-   * @param abstracter the interface to abstract the value of the field that serves as index
    */
-  public IndexDefinition(String name, boolean isUnique, Abstracter abstracter) {
+  public IndexDefinition(boolean isUnique) {
     mIsUnique = isUnique;
-    mAbstracter = abstracter;
-    mName = name;
   }
 
   /**
@@ -69,16 +43,10 @@ public class IndexDefinition<T> {
   }
 
   /**
-   * @return the abstracter of the index
+   * Gets the value of the field that serves as index.
+   *
+   * @param o the instance to get the field value from
+   * @return the field value, which is just an Object
    */
-  public Abstracter getAbstracter() {
-    return mAbstracter;
-  }
-
-  /**
-   * @return the name of the index
-   */
-  public String getName() {
-    return mName;
-  }
+  public abstract Object getFieldValue(T o);
 }

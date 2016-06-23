@@ -87,22 +87,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private static final String ROOT_INODE_NAME = "";
   /** Number of retries when trying to lock a path, from a given id. */
   private static final int PATH_TRAVERSAL_RETRIES = 1000;
-  /** Name of IdIndex. */
-  private static final String ID_INDEX_NAME = "IdIndex";
-
   /** The root of the entire file system. */
   private InodeDirectory mRoot = null;
 
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final IndexDefinition<Inode<?>> mIdIndex =
-      new IndexDefinition<>(ID_INDEX_NAME, true, new IndexDefinition.Abstracter<Inode<?>>() {
-        @Override
-        public Object getFieldValue(Inode<?> o) {
-          return o.getId();
-        }
-      });
+  private final IndexDefinition<Inode<?>> mIdIndex = new IndexDefinition<Inode<?>>(true) {
+    @Override
+    public Object getFieldValue(Inode<?> o) {
+      return o.getId();
+    }
+  };
 
   @SuppressWarnings("unchecked")
   private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
@@ -184,7 +180,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
-    return mInodes.getFirstByField(ID_INDEX_NAME, id) != null;
+    return mInodes.getFirstByField(mIdIndex, id) != null;
   }
 
   /**
@@ -350,7 +346,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws FileDoesNotExistException {
     int count = 0;
     while (true) {
-      Inode<?> inode = mInodes.getFirstByField(ID_INDEX_NAME, id);
+      Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
       if (inode == null) {
         throw new FileDoesNotExistException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
       }
@@ -427,7 +423,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     } else {
-      Inode<?> parentInode = mInodes.getFirstByField(ID_INDEX_NAME, parentId);
+      Inode<?> parentInode = mInodes.getFirstByField(mIdIndex, parentId);
       if (parentInode == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
@@ -708,7 +704,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
     InodeDirectory parent =
-        (InodeDirectory) mInodes.getFirstByField(ID_INDEX_NAME, inode.getParentId());
+        (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
     if (parent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
@@ -858,7 +854,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
       parentDirectory =
-          (InodeDirectory) mInodes.getFirstByField(ID_INDEX_NAME, inode.getParentId());
+          (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
       mCachedInode = parentDirectory;
     }
     parentDirectory.addChild(inode);

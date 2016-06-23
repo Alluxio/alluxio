@@ -23,35 +23,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 class UniqueFieldIndex<T> implements FieldIndex<T> {
-  private final IndexDefinition.Abstracter mAbstracter;
+  private final IndexDefinition<T> mIndexDefinition;
   private ConcurrentHashMap<Object, T> mIndexMap;
 
   /**
    * Constructs a new {@link UniqueFieldIndex} instance.
    */
-  public UniqueFieldIndex(IndexDefinition.Abstracter abstracter) {
+  public UniqueFieldIndex(IndexDefinition<T> indexDefinition) {
     mIndexMap = new ConcurrentHashMap<Object, T>(8, 0.95f, 8);
-    mAbstracter = abstracter;
-  }
-
-  /**
-   * Gets the object with the specified field value - internal function.
-   *
-   * @param value the field value
-   * @return the object with the specified field value
-   */
-  public T get(Object value) {
-    return mIndexMap.get(value);
+    mIndexDefinition = indexDefinition;
   }
 
   @Override
-  public Object getFieldValue(T o) {
-    return mAbstracter.getFieldValue(o);
-  }
-
-  @Override
-  public void put(T object) {
-    Object fieldValue = getFieldValue(object);
+  public void add(T object) {
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     if (mIndexMap.putIfAbsent(fieldValue, object) != null) {
       throw new IllegalStateException("Adding more than one value to a unique index.");
@@ -60,7 +45,7 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
 
   @Override
   public boolean remove(T object) {
-    Object fieldValue = getFieldValue(object);
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
     return mIndexMap.remove(fieldValue, object);
   }
 
