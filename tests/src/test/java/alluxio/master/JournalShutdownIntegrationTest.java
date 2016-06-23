@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
@@ -104,6 +105,7 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     System.clearProperty("fs.hdfs.impl.disable.cache");
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before

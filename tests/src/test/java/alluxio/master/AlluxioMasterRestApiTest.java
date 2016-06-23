@@ -135,7 +135,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  @Ignore
+  @Ignore // TODO(jiri): re-enable
   public void getConfigurationTest() throws Exception {
     SortedMap<String, String> propertyMap = new TreeMap<>();
     propertyMap.put(ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),

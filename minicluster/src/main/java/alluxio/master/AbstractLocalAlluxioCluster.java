@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
@@ -260,6 +260,7 @@ public abstract class AbstractLocalAlluxioCluster {
     stopFS();
     stopUFS();
 
+    ConfigurationTestUtils.resetConfiguration();
     resetContext();
     resetLoginUser();
   }
@@ -301,7 +302,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public void initializeTestConfiguration() throws IOException {
-    ClientContext.init();
     setAlluxioHome();
     setHostname();
 
@@ -424,7 +424,7 @@ public abstract class AbstractLocalAlluxioCluster {
   /**
    * Resets contexts. This is called when the cluster is stopped.
    */
-  protected void resetContext() {}
+  protected abstract void resetContext();
 
   /**
    * Sets hostname.
