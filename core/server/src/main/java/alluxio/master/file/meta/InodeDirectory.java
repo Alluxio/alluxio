@@ -34,27 +34,19 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  /** Name of Id Index. */
-  private static final String ID_INDEX_NAME = "IdIndex";
+  private final IndexDefinition<Inode<?>> mIdIndex = new IndexDefinition<Inode<?>>(true) {
+    @Override
+    public Object getFieldValue(Inode<?> o) {
+      return o.getId();
+    }
+  };
 
-  /** Name of Name Index. */
-  private static final String NAME_INDEX_NAME = "NameIndex";
-
-  private final IndexDefinition<Inode<?>> mIdIndex =
-      new IndexDefinition<>(ID_INDEX_NAME, true, new IndexDefinition.Abstracter<Inode<?>>() {
-        @Override
-        public Object getFieldValue(Inode<?> o) {
-          return o.getId();
-        }
-      });
-
-  private final IndexDefinition<Inode<?>> mNameIndex =
-      new IndexDefinition<>(NAME_INDEX_NAME, true, new IndexDefinition.Abstracter<Inode<?>>() {
-        @Override
-        public Object getFieldValue(Inode<?> o) {
-          return o.getName();
-        }
-      });
+  private final IndexDefinition<Inode<?>> mNameIndex = new IndexDefinition<Inode<?>>(true) {
+    @Override
+    public Object getFieldValue(Inode<?> o) {
+      return o.getName();
+    }
+  };
 
   @SuppressWarnings("unchecked")
   private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mIdIndex, mNameIndex);
@@ -100,7 +92,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given id, or null if there is no child with that id
    */
   public Inode<?> getChild(long id) {
-    return mChildren.getFirstByField(ID_INDEX_NAME, id);
+    return mChildren.getFirstByField(mIdIndex, id);
   }
 
   /**
@@ -108,7 +100,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public Inode<?> getChild(String name) {
-    return mChildren.getFirstByField(NAME_INDEX_NAME, name);
+    return mChildren.getFirstByField(mNameIndex, name);
   }
 
   /**
@@ -167,7 +159,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    return mChildren.removeByField(NAME_INDEX_NAME, name) == 0;
+    return mChildren.removeByField(mNameIndex, name) == 0;
   }
 
   /**

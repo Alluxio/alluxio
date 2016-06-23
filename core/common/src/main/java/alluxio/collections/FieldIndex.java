@@ -22,20 +22,20 @@ import java.util.Set;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 interface FieldIndex<T> {
-  /**
-   * Gets the value of the field that serves as index.
-   *
-   * @param o the instance to get the field value from
-   * @return the field value, which is just an Object
-   */
-  Object getFieldValue(T o);
+//  /**
+//   * Gets the value of the field that serves as index.
+//   *
+//   * @param o the instance to get the field value from
+//   * @return the field value, which is just an Object
+//   */
+//  Object getFieldValue(T o);
 
   /**
    * Puts the an object o to the index.
    *
    * @param o the instance to get the field value from
    */
-  void put(T o);
+  void add(T o);
 
   /**
    * Remove the object o from the index.
@@ -55,9 +55,7 @@ interface FieldIndex<T> {
 
   /**
    * Gets a subset of objects with the specified field value. If there is no object with
-   * the specified field value, a newly created empty set is returned. For non unique index, the
-   * returned set is backed up by an internal set, so changes in internal set will be reflected
-   * in returned set.
+   * the specified field value, a newly created empty set is returned.
    *
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
@@ -65,7 +63,7 @@ interface FieldIndex<T> {
   Set<T> getByField(Object value);
 
   /**
-   * Gets the object from the set of objects with the specified unique field value.
+   * Gets an object from the set of objects with the specified unique field value.
    *
    * @param value the field value
    * @return the object or null if there is no such object

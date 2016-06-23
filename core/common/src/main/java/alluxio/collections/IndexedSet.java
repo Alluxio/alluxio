@@ -67,14 +67,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * First, define the fields to be indexed:
  *
  * <pre>
- *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
+ *  IndexDefinition<Puppy> idIndex = new IndexDefinition<Puppy>(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
- *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
+ *  IndexDefinition<Puppy> nameIndex = new IndexDefinition<Puppy>(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
@@ -111,37 +111,36 @@ public class IndexedSet<T> extends AbstractSet<T> {
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
 
   /**
-   * Map from {@link FieldIndex} to the index. An index is a map from index value to one or a set of
+   * Map from index name to the index. An index is a map from index value to one or a set of
    * objects with that index value. A unique index is an index where each index value only maps to
    * one object. A non-unique index is an index where an index value can map to one or more objects.
    */
-
-  private final Map<String, FieldIndex<T>> mIndices;
+  private final Map<IndexDefinition<T>, FieldIndex<T>> mIndices;
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
    *
-   * @param field at least one field is needed to index the set of objects
-   * @param otherFields other fields to index the set
+   * @param firstIndexDefinition at least one field is needed to index the set of objects
+   * @param otherIndexDefinitions other index definitions to index the set
    */
   @SafeVarargs
-  public IndexedSet(IndexDefinition<T> field, IndexDefinition<T>... otherFields) {
-    // count the numbers of two index types
-    Iterable<IndexDefinition<T>> fields =
-        Iterables.concat(Arrays.asList(field), Arrays.asList(otherFields));
+  public IndexedSet(IndexDefinition<T> firstIndexDefinition, IndexDefinition<T>...
+      otherIndexDefinitions) {
+    Iterable<IndexDefinition<T>> indexDefinitions =
+        Iterables.concat(Arrays.asList(firstIndexDefinition), Arrays.asList(otherIndexDefinitions));
 
     // initialization
-    Map<String, FieldIndex<T>> indices = new HashMap<String, FieldIndex<T>>();
+    Map<IndexDefinition<T>, FieldIndex<T>> indices = new HashMap<>();
 
-    for (IndexDefinition<T> indexDefinition : fields) {
+    for (IndexDefinition<T> indexDefinition : indexDefinitions) {
       FieldIndex<T> index;
       if (indexDefinition.isUnique()) {
-        index = new UniqueFieldIndex<T>(indexDefinition.getAbstracter());
+        index = new UniqueFieldIndex<T>(indexDefinition);
       } else {
-        index = new NonUniqueFieldIndex<T>(indexDefinition.getAbstracter());
+        index = new NonUniqueFieldIndex<T>(indexDefinition);
       }
 
-      if (indices.put(indexDefinition.getName(), index) != null) {
+      if (indices.put(indexDefinition, index) != null) {
         throw new IllegalStateException("Adding two indices to indexedSet using same name.");
       }
     }
@@ -180,8 +179,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
         return false;
       }
 
-      for (Map.Entry<String, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
-        fieldInfo.getValue().put(object);
+      for (Map.Entry<IndexDefinition<T>, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
+        fieldInfo.getValue().add(object);
       }
     }
     return true;
@@ -242,38 +241,37 @@ public class IndexedSet<T> extends AbstractSet<T> {
   /**
    * Whether there is an object with the specified unique index field value in the set.
    *
-   * @param indexName the field index name
+   * @param indexDefinition the field index definition
    * @param value the field value
    * @return true if there is one such object, otherwise false
    */
-  public boolean contains(String indexName, Object value) {
-    FieldIndex<T> index = mIndices.get(indexName);
+  public boolean contains(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
     return index != null && index.contains(value);
   }
 
   /**
    * Gets a subset of objects with the specified field value. If there is no object with the
-   * specified field value, a newly created empty set is returned. Otherwise, the returned set is
-   * backed up by an internal set, so changes in internal set will be reflected in returned set.
+   * specified field value, a newly created empty set is returned.
    *
-   * @param indexName the field index name
+   * @param indexDefinition the field index definition
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  public Set<T> getByField(String indexName, Object value) {
-    FieldIndex<T> index = mIndices.get(indexName);
+  public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
     return index == null ? new HashSet<T>() : index.getByField(value);
   }
 
   /**
    * Gets the object from the set of objects with the specified non-unique field value.
    *
-   * @param indexName the field index name
+   * @param indexDefinition the field index definition
    * @param value the field value
    * @return the object or null if there is no such object
    */
-  public T getFirstByField(String indexName, Object value) {
-    FieldIndex<T> index = mIndices.get(indexName);
+  public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
     return index == null ? null : index.getFirst(value);
   }
 
@@ -311,7 +309,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {
-    for (Map.Entry<String, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
+    for (Map.Entry<IndexDefinition<T>, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
       fieldInfo.getValue().remove(object);
     }
   }
@@ -319,34 +317,27 @@ public class IndexedSet<T> extends AbstractSet<T> {
   /**
    * Removes the object with the specified unique index field value.
    *
-   * @param indexName the field index
+   * @param indexDefinition the field index
    * @param value the field value
    * @return the number of objects removed
    */
-  public int removeByField(String indexName, Object value) {
-    int removed = 0;
-    FieldIndex<T> index = mIndices.get(indexName);
+  public int removeByField(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
 
     if (index == null) {
       return 0;
-    } else if (index instanceof UniqueFieldIndex) {
-      T toRemove = ((UniqueFieldIndex<T>) index).get(value);
-      if (remove(toRemove)) {
-        removed++;
-      }
-    } else if (index instanceof NonUniqueFieldIndex) {
-      ConcurrentHashSet<T> toRemove = ((NonUniqueFieldIndex<T>) index).get(value);
-
-      if (toRemove == null) {
-        return 0;
-      }
-      for (T o : toRemove) {
-        if (remove(o)) {
-          removed++;
-        }
-      }
     }
 
+    Set<T> toRemove = index.getByField(value);
+    if (toRemove == null) {
+      return 0;
+    }
+    int removed = 0;
+    for (T o : toRemove) {
+      if (remove(o)) {
+        removed++;
+      }
+    }
     return removed;
   }
 
