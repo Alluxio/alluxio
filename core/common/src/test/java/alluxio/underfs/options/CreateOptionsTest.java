@@ -41,8 +41,8 @@ public final class CreateOptionsTest {
 
     Permission expectedPs = Permission.defaults();
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermission().getUserName());
-    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals("", options.getPermission().getOwner());
+    Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
         options.getPermission().getMode().toShort());
   }
@@ -64,8 +64,8 @@ public final class CreateOptionsTest {
     Permission expectedPs = Permission.defaults().applyFileUMask(conf);
 
     // Verify that the owner and group are not.
-    Assert.assertEquals("", options.getPermission().getUserName());
-    Assert.assertEquals("", options.getPermission().getGroupName());
+    Assert.assertEquals("", options.getPermission().getOwner());
+    Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
         options.getPermission().getMode().toShort());
   }

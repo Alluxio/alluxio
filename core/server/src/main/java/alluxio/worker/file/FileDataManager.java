@@ -229,8 +229,8 @@ public final class FileDataManager {
     String dstPath = prepareUfsFilePath(fileId);
     // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
-    Permission perm = new Permission(fileInfo.getUserName(), fileInfo.getGroupName(),
-        (short) fileInfo.getPermission());
+    Permission perm = new Permission(fileInfo.getOwner(), fileInfo.getGroup(),
+        (short) fileInfo.getMode());
     OutputStream outputStream = mUfs.create(dstPath, new CreateOptions().setPermission(perm));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 

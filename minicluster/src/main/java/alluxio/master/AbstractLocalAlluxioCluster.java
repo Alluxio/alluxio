@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -21,7 +22,6 @@ import alluxio.security.LoginUser;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
-import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
@@ -32,7 +32,6 @@ import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -466,19 +465,7 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws IOException when the operation fails
    */
-  protected void setAlluxioHome() throws IOException {
-    mHome =
-        File.createTempFile("Alluxio", "U" + System.currentTimeMillis()).getAbsolutePath();
-    // Make a copy of mHome.
-    final String home = mHome;
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      public void run() {
-        try {
-          FileUtils.deletePathRecursively(home);
-        } catch (IOException e) {
-          // The directory is already cleaned up.
-        }
-      }
-    }));
+  protected void setAlluxioHome() {
+    mHome = CommonTestUtils.createTemporaryDirectory("test-cluster").getAbsolutePath();
   }
 }

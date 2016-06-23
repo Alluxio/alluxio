@@ -48,12 +48,12 @@ public final class CreateUfsFileOptions {
   private CreateUfsFileOptions() throws IOException {
     Permission perm = Permission.defaults();
     // Set owner and group from user login module, apply default file UMask.
-    perm.setUserFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
+    perm.setOwnerFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
 
-    mOwner = perm.getUserName();
-    mGroup = perm.getGroupName();
+    mOwner = perm.getOwner();
+    mGroup = perm.getGroup();
     mMode = perm.getMode().toShort();
   }
 

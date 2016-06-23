@@ -134,14 +134,14 @@ public abstract class UnderFileSystem {
         String loggerType = configuration.get(Constants.LOGGER_TYPE);
         if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
             || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
-          perm.setUserFromThriftClient(configuration);
+          perm.setOwnerFromThriftClient(configuration);
         } else {
-          perm.setUserFromLoginModule(configuration);
+          perm.setOwnerFromLoginModule(configuration);
         }
       } catch (IOException e) {
         LOG.warn("Failed to set user from login module or thrift client: " + e);
       }
-      Key key = new Key(new AlluxioURI(path), perm.getUserName(), perm.getGroupName());
+      Key key = new Key(new AlluxioURI(path), perm.getOwner(), perm.getGroup());
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
@@ -336,15 +336,15 @@ public abstract class UnderFileSystem {
       String loggerType = configuration.get(Constants.LOGGER_TYPE);
       if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
           || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
-        perm.setUserFromThriftClient(configuration);
+        perm.setOwnerFromThriftClient(configuration);
       } else {
-        perm.setUserFromLoginModule(configuration);
+        perm.setOwnerFromLoginModule(configuration);
       }
     } catch (IOException e) {
       LOG.warn("Failed to set user from login module or thrift client: " + e);
     }
-    mUser = perm.getUserName();
-    mGroup = perm.getGroupName();
+    mUser = perm.getOwner();
+    mGroup = perm.getGroup();
   }
 
   /**
@@ -655,11 +655,11 @@ public abstract class UnderFileSystem {
    * unsupported.
    *
    * @param path path of the file
-   * @param user the new user to set, unchanged if null
+   * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setOwner(String path, String user, String group) throws IOException;
+  public abstract void setOwner(String path, String owner, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.

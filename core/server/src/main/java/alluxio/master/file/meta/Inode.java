@@ -40,8 +40,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   private PersistenceState mPersistenceState;
   private boolean mPinned;
 
-  private String mUserName;
-  private String mGroupName;
+  private String mOwner;
+  private String mGroup;
   private short mMode;
 
   private final ReentrantReadWriteLock mLock;
@@ -50,7 +50,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
     mDirectory = false;
-    mGroupName = "";
+    mGroup = "";
     mId = id;
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
@@ -58,7 +58,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mMode = Constants.INVALID_MODE;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mUserName = "";
+    mOwner = "";
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -70,10 +70,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the group name of the inode
+   * @return the group of the inode
    */
-  public String getGroupName() {
-    return mGroupName;
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
@@ -119,10 +119,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the user name of the inode
+   * @return the owner of the inode
    */
-  public String getUserName() {
-    return mUserName;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
@@ -170,11 +170,11 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param groupName the group name of the inode
+   * @param group the group of the inode
    * @return the updated object
    */
-  public T setGroupName(String groupName) {
-    mGroupName = groupName;
+  public T setGroup(String group) {
+    mGroup = group;
     return getThis();
   }
 
@@ -220,8 +220,8 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public T setPermission(Permission permission) {
     if (permission != null) {
-      mUserName = permission.getUserName();
-      mGroupName = permission.getGroupName();
+      mOwner = permission.getOwner();
+      mGroup = permission.getGroup();
       mMode = permission.getMode().toShort();
     }
     return getThis();
@@ -246,11 +246,11 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param userName the user name of the inode
+   * @param owner the owner name of the inode
    * @return the updated object
    */
-  public T setUserName(String userName) {
-    mUserName = userName;
+  public T setOwner(String owner) {
+    mOwner = owner;
     return getThis();
   }
 
@@ -330,7 +330,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
-        .add("lastModificationTimeMs", mLastModificationTimeMs).add("userName", mUserName)
-        .add("groupName", mGroupName).add("permission", mMode);
+        .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
+        .add("group", mGroup).add("permission", mMode);
   }
 }
