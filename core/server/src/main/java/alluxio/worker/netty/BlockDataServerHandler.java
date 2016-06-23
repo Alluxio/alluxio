@@ -81,6 +81,7 @@ public final class BlockDataServerHandler {
     final long sessionId = req.getSessionId();
 
     BlockReader reader;
+    DataBuffer buffer;
     try {
       reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
@@ -91,11 +92,13 @@ public final class BlockDataServerHandler {
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
-      RPCBlockReadResponse resp = new RPCBlockReadResponse(blockId, offset, readLength,
-          getDataBuffer(req, reader, readLength), RPCResponse.Status.SUCCESS);
+      buffer = getDataBuffer(req, reader, readLength);
+      RPCBlockReadResponse resp =
+          new RPCBlockReadResponse(blockId, offset, readLength, buffer, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
+      future.addListener(new ReleasableResourceChannelListener(buffer));
       mWorker.accessBlock(sessionId, blockId);
       LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
