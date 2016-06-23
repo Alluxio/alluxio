@@ -607,11 +607,11 @@ public abstract class UnderFileSystem {
    * unsupported.
    *
    * @param path path of the file
-   * @param user the new user to set, unchanged if null
+   * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setOwner(String path, String user, String group) throws IOException;
+  public abstract void setOwner(String path, String owner, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.

@@ -157,7 +157,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (mRoot == null) {
       return null;
     }
-    return mRoot.getUserName();
+    return mRoot.getOwner();
   }
 
   /**
@@ -824,7 +824,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
         if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-            && mRoot != null && !mRoot.getUserName().equals(directory.getUserName())) {
+            && mRoot != null && !mRoot.getOwner().equals(directory.getOwner())) {
           // user is not the owner of journal root entry
           throw new AccessControlException(
               ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
