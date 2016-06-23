@@ -201,7 +201,7 @@ public final class CommonTestUtils {
   }
 
   /**
-   * Creates the Alluxio testing directory, deleting the previous one if it still exists.
+   * Creates the Alluxio testing directory, attempting to delete the previous one if it exists.
    *
    * @return the directory
    */
@@ -211,12 +211,14 @@ public final class CommonTestUtils {
       try {
         FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
       } catch (IOException e) {
-        throw new RuntimeException("Failed to delete previous Alluxio testing directory", e);
+        // This can be caused by misbehaved processes creating files while the delete is happening.
       }
     }
-    if (!tmpDir.mkdir()) {
-      throw new RuntimeException(
-          "Failed to create testing directory " + tmpDir.getAbsolutePath());
+    if (!tmpDir.exists()) {
+      if (!tmpDir.mkdir()) {
+        throw new RuntimeException(
+            "Failed to create testing directory " + tmpDir.getAbsolutePath());
+      }
     }
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
       public void run() {
