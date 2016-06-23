@@ -82,7 +82,6 @@ import javax.annotation.concurrent.ThreadSafe;
  * </pre>
  *
  * Then create an {@link IndexedSet} and add puppies:
- *
  * <pre>
  *  IndexedSet<Puppy> puppies = new IndexedSet<Puppy>(idIndex, nameIndex);
  *  puppies.add(new Puppy("sweet", 0));
@@ -90,13 +89,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * </pre>
  *
  * Then retrieve the puppy named sweet:
- *
  * <pre>
  *   Puppy sweet = puppies.getFirstByField(nameIndex, "sweet");
  * </pre>
- *
  * and retrieve the puppy with id 1:
- *
  * <pre>
  *   Puppy heart = puppies.getFirstByField(idIndex, 1L);
  * </pre>
