@@ -168,7 +168,7 @@ public class MountPointInfo {
     MountPointInfo that = (MountPointInfo) o;
     return mUfsUri.equals(that.mUfsUri) && mUfsType.equals(that.mUfsType)
         && mUfsCapacityBytes == that.mUfsCapacityBytes && mUfsUsedBytes == that.mUfsUsedBytes
-        && mReadOnly == that.mReadOnly && mProperties == that.mProperties;
+        && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties);
   }
 
   @Override
