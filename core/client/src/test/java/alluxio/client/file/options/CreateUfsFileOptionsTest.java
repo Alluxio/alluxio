@@ -15,25 +15,33 @@ import alluxio.CommonTestUtils;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 import alluxio.thrift.CreateUfsFileTOptions;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
 
 /**
  * Tests for the {@link CreateUfsFileOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public final class CreateUfsFileOptionsTest {
   /**
    * Tests that building an {@link CreateUfsFileOptions} with the defaults works.
    */
   @Test
   public void defaultsTest() throws IOException {
-    ClientContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    ClientContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
+        AuthType.SIMPLE.getAuthName());
     ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
     ClientContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
@@ -44,9 +52,9 @@ public final class CreateUfsFileOptionsTest {
     Permission expectedPs =
         Permission.defaults().applyFileUMask(ClientContext.getConf());
 
-    Assert.assertEquals("foo", options.getOwner());
-    Assert.assertEquals("foo", options.getGroup());
-    Assert.assertEquals(expectedPs.getMode().toShort(), options.getMode());
+    Assert.assertEquals("foo", options.getPermission().getOwner());
+    Assert.assertEquals("foo", options.getPermission().getGroup());
+    Assert.assertEquals(expectedPs.getMode(), options.getPermission().getMode());
     ClientTestUtils.resetClientContext();
   }
 
@@ -59,13 +67,11 @@ public final class CreateUfsFileOptionsTest {
     String owner = "test-owner";
     String group = "test-group";
     short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
-    options.setOwner(owner);
-    options.setGroup(group);
-    options.setMode(mode);
+    options.setPermission(new Permission(owner, group, mode));
 
-    Assert.assertEquals(owner, options.getOwner());
-    Assert.assertEquals(group, options.getGroup());
-    Assert.assertEquals(mode, options.getMode());
+    Assert.assertEquals(owner, options.getPermission().getOwner());
+    Assert.assertEquals(group, options.getPermission().getGroup());
+    Assert.assertEquals(mode, options.getPermission().getMode().toShort());
   }
 
   /**
@@ -78,9 +84,7 @@ public final class CreateUfsFileOptionsTest {
     String group = "test-group";
     short mode = Constants.DEFAULT_FILE_SYSTEM_MODE;
 
-    options.setOwner(owner);
-    options.setGroup(group);
-    options.setMode(mode);
+    options.setPermission(new Permission(owner, group, mode));
 
     CreateUfsFileTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(owner, thriftOptions.getOwner());
@@ -93,3 +97,4 @@ public final class CreateUfsFileOptionsTest {
     CommonTestUtils.testEquals(CreateUfsFileOptions.class);
   }
 }
+

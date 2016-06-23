@@ -14,6 +14,7 @@ package alluxio.underfs.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
@@ -56,7 +57,7 @@ public final class MkdirsOptionsTest {
   @Test
   public void securityEnabledTest() throws IOException {
     Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE");
+    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     conf.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
     conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());

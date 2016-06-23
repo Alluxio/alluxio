@@ -106,8 +106,7 @@ public class FileOutStream extends AbstractOutStream {
           Permission perm = options.getPermission();
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-                  CreateUfsFileOptions.defaults().setOwner(perm.getOwner())
-                      .setGroup(perm.getGroup()).setMode(perm.getMode().toShort()));
+                  CreateUfsFileOptions.defaults().setPermission(perm));
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
