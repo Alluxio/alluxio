@@ -35,8 +35,7 @@ public final class Format {
   private static final String USAGE = String.format("java -cp %s %s <MASTER/WORKER>",
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
-  private static boolean formatFolder(String name, String folder)
-      throws IOException {
+  private static boolean formatFolder(String name, String folder) throws IOException {
     UnderFileSystem ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder)) {
@@ -65,7 +64,6 @@ public final class Format {
       System.exit(-1);
     }
 
-    Configuration.serverInit();
     if ("MASTER".equalsIgnoreCase(args[0])) {
       String masterJournal =
           Configuration.get(Constants.MASTER_JOURNAL_FOLDER);

@@ -11,7 +11,6 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
@@ -57,7 +56,6 @@ public final class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    Configuration.clientInit();
     if (!ConfigurationUtils.validateConf()) {
       System.out.println("Invalid configuration found, please check user log for details");
       System.exit(-1);
