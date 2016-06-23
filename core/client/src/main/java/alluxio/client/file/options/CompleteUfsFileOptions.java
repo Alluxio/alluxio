@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
   /** The ufs user this file should be owned by. */
-  private final String mUser;
+  private final String mOwner;
   /** The ufs group this file should be owned by. */
   private final String mGroup;
 
@@ -55,8 +55,8 @@ public final class CompleteUfsFileOptions {
     return new CompleteUfsFileOptions(user, group);
   }
 
-  private CompleteUfsFileOptions(String user, String group) {
-    mUser = user;
+  private CompleteUfsFileOptions(String owner, String group) {
+    mOwner = owner;
     mGroup = group;
   }
 
@@ -70,8 +70,8 @@ public final class CompleteUfsFileOptions {
   /**
    * @return the user who should own the file
    */
-  public String getUser() {
-    return mUser;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
@@ -82,10 +82,10 @@ public final class CompleteUfsFileOptions {
   }
 
   /**
-   * @return if the user has been set
+   * @return if the owner has been set
    */
-  public boolean hasUser() {
-    return mUser != null;
+  public boolean hasOwner() {
+    return mOwner != null;
   }
 
   @Override
@@ -111,8 +111,8 @@ public final class CompleteUfsFileOptions {
     if (hasGroup()) {
       options.setGroup(mGroup);
     }
-    if (hasUser()) {
-      options.setUser(mUser);
+    if (hasOwner()) {
+      options.setOwner(mOwner);
     }
     return options;
   }

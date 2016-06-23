@@ -31,7 +31,7 @@ public class SetAttributeOptionsTest {
     Assert.assertFalse(options.hasTtl());
     Assert.assertFalse(options.hasOwner());
     Assert.assertFalse(options.hasGroup());
-    Assert.assertFalse(options.hasPermission());
+    Assert.assertFalse(options.hasMode());
     Assert.assertFalse(options.isRecursive());
   }
 
@@ -58,7 +58,7 @@ public class SetAttributeOptionsTest {
     options.setTtl(ttl);
     options.setOwner(owner);
     options.setGroup(group);
-    options.setPermission(permission);
+    options.setMode(permission);
     options.setRecursive(recursive);
 
     Assert.assertTrue(options.hasPersisted());
@@ -71,8 +71,8 @@ public class SetAttributeOptionsTest {
     Assert.assertEquals(owner, options.getOwner());
     Assert.assertTrue(options.hasGroup());
     Assert.assertEquals(group, options.getGroup());
-    Assert.assertTrue(options.hasPermission());
-    Assert.assertEquals(permission, options.getPermission());
+    Assert.assertTrue(options.hasMode());
+    Assert.assertEquals(permission, options.getMode());
     Assert.assertEquals(recursive, options.isRecursive());
   }
 

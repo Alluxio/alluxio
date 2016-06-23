@@ -10,7 +10,7 @@ struct CloseUfsFileTOptions {
 }
 
 struct CompleteUfsFileTOptions {
-  1: optional string user
+  1: optional string owner
   2: optional string group
 }
 
