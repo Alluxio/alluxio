@@ -30,14 +30,13 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
-  /** The ufs owner this file should be owned by. */
-  private String mOwner;
-  /** The ufs group this file should be owned by. */
-  private String mGroup;
-  /** The ufs permission in short format, e.g. 0777. */
-  private short mMode;
+  /** The ufs file permission, including owner, group and mode. */
+  private Permission mPermission;
 
   /**
+   * Creates a default {@link CompleteUfsFileOptions} with owner, group from login module and
+   * default file mode.
+   *
    * @return the default {@link CompleteUfsFileOptions}
    * @throws IOException if failed to set owner from login module
    */
@@ -46,83 +45,27 @@ public final class CompleteUfsFileOptions {
   }
 
   private CompleteUfsFileOptions() throws IOException {
-    Permission perm = Permission.defaults();
+    mPermission = Permission.defaults();
     // Set owner and group from user login module, apply default file UMask.
-    perm.setOwnerFromLoginModule(ClientContext.getConf()).applyFileUMask(ClientContext.getConf());
+    mPermission.setOwnerFromLoginModule(ClientContext.getConf()).applyFileUMask(
+        ClientContext.getConf());
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
-
-    mOwner = perm.getOwner();
-    mGroup = perm.getGroup();
-    mMode = perm.getMode().toShort();
   }
 
   /**
-   * @return the group which should own the file
+   * @return the permission of the UFS file
    */
-  public String getGroup() {
-    return mGroup;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
-   * @return the owner who should own the file
-   */
-  public String getOwner() {
-    return mOwner;
-  }
-
-  /**
-   * @return the ufs mode in short format, e.g. 0777
-   */
-  public short getMode() {
-    return mMode;
-  }
-
-  /**
-   * @return if the group has been set
-   */
-  public boolean hasGroup() {
-    return mGroup != null;
-  }
-
-  /**
-   * @return if the owner has been set
-   */
-  public boolean hasOwner() {
-    return mOwner != null;
-  }
-
-  /**
-   * @return if the mode has been set
-   */
-  public boolean hasMode() {
-    return mMode != Constants.INVALID_MODE;
-  }
-
-  /**
-   * @param owner the owner to be set
+   * @param permission the permission to be set
    * @return the updated options object
    */
-  public CompleteUfsFileOptions setOwner(String owner) {
-    mOwner = owner;
-    return this;
-  }
-
-  /**
-   * @param group the group to be set
-   * @return the updated options object
-   */
-  public CompleteUfsFileOptions setGroup(String group) {
-    mGroup = group;
-    return this;
-  }
-
-  /**
-   * @param mode the mode to be set
-   * @return the updated options object
-   */
-  public CompleteUfsFileOptions setMode(short mode) {
-    mMode = mode;
+  public CompleteUfsFileOptions setPermission(Permission permission) {
+    mPermission = permission;
     return this;
   }
 
@@ -135,19 +78,19 @@ public final class CompleteUfsFileOptions {
       return false;
     }
     CompleteUfsFileOptions that = (CompleteUfsFileOptions) o;
-    return Objects.equal(mOwner, that.mOwner)
-        && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mMode, that.mMode);
+    return Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return Objects.hashCode(mPermission);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return Objects.toStringHelper(this)
+        .add("permission", mPermission)
+        .toString();
   }
 
   /**
@@ -155,14 +98,15 @@ public final class CompleteUfsFileOptions {
    */
   public CompleteUfsFileTOptions toThrift() {
     CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
-    if (hasGroup()) {
-      options.setGroup(mGroup);
+    if (!mPermission.getOwner().isEmpty()) {
+      options.setOwner(mPermission.getOwner());
     }
-    if (hasOwner()) {
-      options.setOwner(mOwner);
+    if (!mPermission.getGroup().isEmpty()) {
+      options.setGroup(mPermission.getGroup());
     }
-    if (hasMode()) {
-      options.setMode(mMode);
+    short mode = mPermission.getMode().toShort();
+    if (mode != Constants.INVALID_MODE) {
+      options.setMode(mode);
     }
     return options;
   }
