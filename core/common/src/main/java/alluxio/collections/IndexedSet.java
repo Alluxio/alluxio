@@ -111,7 +111,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
 
   /**
-   * Map from index name to the index. An index is a map from index value to one or a set of
+   * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value. A unique index is an index where each index value only maps to
    * one object. A non-unique index is an index where an index value can map to one or more objects.
    */
