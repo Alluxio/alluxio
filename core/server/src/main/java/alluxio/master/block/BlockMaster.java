@@ -578,8 +578,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
     // TODO(gpang): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
-    MasterWorkerInfo existingWorker =
-        mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+    MasterWorkerInfo existingWorker = mWorkers.getFirstByField(mAddressIndex, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
       long oldWorkerId = existingWorker.getId();
@@ -587,8 +586,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       return oldWorkerId;
     }
 
-    MasterWorkerInfo lostWorker =
-        mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
+    MasterWorkerInfo lostWorker = mLostWorkers.getFirstByField(mAddressIndex, workerNetAddress);
     if (lostWorker != null) {
       // this is one of the lost workers
       synchronized (lostWorker) {

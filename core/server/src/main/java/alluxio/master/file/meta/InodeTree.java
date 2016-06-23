@@ -87,6 +87,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private static final String ROOT_INODE_NAME = "";
   /** Number of retries when trying to lock a path, from a given id. */
   private static final int PATH_TRAVERSAL_RETRIES = 1000;
+
   /** The root of the entire file system. */
   private InodeDirectory mRoot = null;
 
@@ -99,7 +100,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return o.getId();
     }
   };
-
   @SuppressWarnings("unchecked")
   private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
   /** A set of inode ids representing pinned inode files. */
@@ -703,8 +703,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void deleteInode(LockedInodePath inodePath, long opTimeMs)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
-    InodeDirectory parent =
-        (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+    InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
     if (parent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));

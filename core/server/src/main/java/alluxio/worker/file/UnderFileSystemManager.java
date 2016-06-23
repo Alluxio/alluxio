@@ -381,8 +381,7 @@ public final class UnderFileSystemManager {
     Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
       toClose =
-          new HashSet<>(
-              mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
+          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
       mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
     }
     // close is done outside of the synchronized block since it may be expensive
