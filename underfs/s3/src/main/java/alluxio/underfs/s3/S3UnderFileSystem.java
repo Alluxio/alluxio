@@ -523,7 +523,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
         String dir = stripPrefixIfPresent(key);
         String dirPrefix = dir.endsWith(PATH_SEPARATOR) ? dir : dir + PATH_SEPARATOR;
         // Check if anything begins with <folder_path>/
-        S3Object[] objs = mClient.listObjects(mBucketName, dir, "");
+        S3Object[] objs = mClient.listObjects(mBucketName, dirPrefix, "");
         // If there are, this is a folder and we can create the necessary metadata
         if (objs.length > 0) {
           mkdirsInternal(dir);
@@ -532,10 +532,6 @@ public class S3UnderFileSystem extends UnderFileSystem {
           return false;
         }
       } catch (ServiceException s2) {
-        s2.printStackTrace();
-        return false;
-      } catch (Exception e) {
-        e.printStackTrace();
         return false;
       }
     }

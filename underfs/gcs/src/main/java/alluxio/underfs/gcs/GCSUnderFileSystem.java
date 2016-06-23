@@ -19,11 +19,10 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
-import org.jets3t.service.model.S3Object;
-import org.jets3t.service.utils.Mimetypes;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
 import org.jets3t.service.security.GSCredentials;
+import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -480,11 +479,8 @@ public class GCSUnderFileSystem extends UnderFileSystem {
     } catch (ServiceException s) {
       // It is possible that the folder has not been encoded as a _$folder$ file
       try {
-        LOG.info(key);
         String dir = stripPrefixIfPresent(key);
-        LOG.info(dir);
         String dirPrefix = dir.endsWith(PATH_SEPARATOR) ? dir : dir + PATH_SEPARATOR;
-        LOG.info(dirPrefix);
         // Check if anything begins with <folder_path>/
         GSObject[] objs = mClient.listObjects(mBucketName, dirPrefix, "");
         if (objs.length > 0) {
@@ -494,10 +490,6 @@ public class GCSUnderFileSystem extends UnderFileSystem {
           return false;
         }
       } catch (ServiceException s2) {
-        s2.printStackTrace();
-        return false;
-      } catch (Exception e) {
-        e.printStackTrace();
         return false;
       }
     }
