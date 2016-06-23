@@ -19,7 +19,6 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -140,6 +139,7 @@ public class FileSystemUtilsIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
+          String original = Configuration.get(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
           Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
@@ -149,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            ClientTestUtils.resetClient();
+            Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, original);
           }
         } catch (Exception e) {
           e.printStackTrace();
