@@ -14,10 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystem;
-import alluxio.client.file.FileSystemContext;
-import alluxio.client.lineage.LineageContext;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
@@ -93,9 +90,8 @@ public abstract class AbstractLocalAlluxioCluster {
     startWorker();
     waitForWorkerReady();
 
-    BlockStoreContext.INSTANCE.reset();
-    FileSystemContext.INSTANCE.reset();
-    LineageContext.INSTANCE.reset();
+    // Reset contexts so that they pick up the master and worker configuration.
+    resetContext();
   }
 
   /**

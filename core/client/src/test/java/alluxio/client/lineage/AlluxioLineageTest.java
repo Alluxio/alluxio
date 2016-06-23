@@ -25,7 +25,6 @@ import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -46,20 +45,12 @@ public final class AlluxioLineageTest {
   private LineageMasterClient mLineageMasterClient;
   private AlluxioLineage mAlluxioLineage;
 
-  @BeforeClass
-  public static void beforeClass() {
-    // explicitly initialize client context to prevent lazy initialization from resetting
-    // configuration
-    ClientContext.init();
-  }
-
   @Before
   public void before() throws Exception {
     Configuration.set(Constants.USER_LINEAGE_ENABLED, "true");
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
-    System.out.println(Configuration.get(Constants.USER_LINEAGE_ENABLED));
     Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
     mAlluxioLineage = AlluxioLineage.get();
     Whitebox.setInternalState(mAlluxioLineage, "mContext", mLineageContext);

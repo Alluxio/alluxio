@@ -33,9 +33,9 @@ public final class ClientContext {
   private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
   private static ClientMetrics sClientMetrics;
+  private static InetSocketAddress sMasterAddress;
 
   static {
-    Configuration.clientInit();
     init();
   }
 
@@ -48,14 +48,18 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    sClientMetrics = new ClientMetrics();
-
     sBlockClientExecutorService = Executors
         .newFixedThreadPool(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
     sFileClientExecutorService = Executors
         .newFixedThreadPool(Configuration.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
+    sClientMetrics = new ClientMetrics();
+
+    String masterHostname =
+        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
+    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
+    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
   }
 
   /**
@@ -69,10 +73,7 @@ public final class ClientContext {
    * @return the master address
    */
   public static InetSocketAddress getMasterAddress() {
-    String masterHostname =
-        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
-    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
-    return new InetSocketAddress(masterHostname, masterPort);
+    return sMasterAddress;
   }
 
   /**

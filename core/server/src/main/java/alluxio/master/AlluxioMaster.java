@@ -76,7 +76,6 @@ public class AlluxioMaster {
     }
 
     // initialize and validate the configuration
-    Configuration.serverInit();
     if (!ConfigurationUtils.validateConf()) {
       LOG.error("Invalid configuration found");
       System.exit(-1);

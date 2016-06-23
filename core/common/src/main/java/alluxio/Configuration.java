@@ -63,10 +63,6 @@ public final class Configuration {
   private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
   private static final String SITE_PROPERTIES = "alluxio-site.properties";
-  /** File to set customized properties for Alluxio server (both master and worker). */
-  private static final String SERVER_PROPERTIES = "alluxio-server.properties";
-  /** File to set customized properties for Alluxio client. */
-  private static final String CLIENT_PROPERTIES = "alluxio-client.properties";
 
   /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
@@ -76,35 +72,21 @@ public final class Configuration {
   private static final Properties PROPERTIES = new Properties();
 
   static {
-    init(SITE_PROPERTIES, null, true);
+    defaultInit();
   }
 
   /**
    * The minimal configuration without loading any site or system properties.
    */
   public static void emptyInit() {
-    init(null, null, false);
-  }
-
-  /**
-   * The configuration for master or worker daemon.
-   */
-  public static void serverInit() {
-    init(SITE_PROPERTIES, SERVER_PROPERTIES, true);
-  }
-
-  /**
-   * The configuration for client.
-   */
-  public static void clientInit() {
-    init(SITE_PROPERTIES, CLIENT_PROPERTIES, true);
+    init(null, false);
   }
 
   /**
    * The default configuration.
    */
   public static void defaultInit() {
-    init(SITE_PROPERTIES, null, true);
+    init(SITE_PROPERTIES, true);
   }
 
   /**
@@ -112,11 +94,9 @@ public final class Configuration {
    * is set to false, it is used for {@link Configuration} test class.
    *
    * @param sitePropertiesFile site-wide properties
-   * @param processPropertiesFile server or client specific properties
    * @param includeSystemProperties whether to include the system properties
    */
-  private static void init(String sitePropertiesFile, String processPropertiesFile,
-      boolean includeSystemProperties) {
+  private static void init(String sitePropertiesFile, boolean includeSystemProperties) {
     // Load default
     Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
     if (defaultProps == null) {
@@ -143,10 +123,6 @@ public final class Configuration {
     Properties siteProps = ConfigurationUtils
         .searchPropertiesFile(sitePropertiesFile, confPathList);
 
-    // Load server or client specific properties file
-    Properties processProps = ConfigurationUtils
-        .searchPropertiesFile(processPropertiesFile, confPathList);
-
     // Load system properties
     Properties systemProps = new Properties();
     if (includeSystemProperties) {
@@ -157,9 +133,6 @@ public final class Configuration {
     PROPERTIES.putAll(defaultProps);
     if (siteProps != null) {
       PROPERTIES.putAll(siteProps);
-    }
-    if (processProps != null) {
-      PROPERTIES.putAll(processProps);
     }
     PROPERTIES.putAll(systemProps);
 
