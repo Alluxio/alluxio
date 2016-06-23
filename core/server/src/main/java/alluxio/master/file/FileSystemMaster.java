@@ -49,6 +49,7 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -856,6 +857,13 @@ public final class FileSystemMaster extends AbstractMaster {
       MasterContext.getMasterSource().incNewBlocksGot(1);
       return inodePath.getInodeFile().getNewBlockId();
     }
+  }
+
+  /**
+   * @return a copy of the current mount table
+   */
+  public Map<String, MountInfo> getMountTable() {
+    return mMountTable.getMountTable();
   }
 
   /**

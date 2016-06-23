@@ -203,13 +203,24 @@ public abstract class UnderFileSystem {
    * below and returned by the implementation of {@link #getUnderFSType()}.
    */
   public enum UnderFSType {
-    LOCAL,
-    HDFS,
-    S3,
-    GLUSTERFS,
-    SWIFT,
-    OSS,
-    GCS,
+    LOCAL("local"),
+    HDFS("hdfs"),
+    S3("s3"),
+    GLUSTERFS("glusterfs"),
+    SWIFT("swift"),
+    OSS("oss"),
+    GCS("gcs");
+
+    private String mType;
+
+    UnderFSType(String type) {
+      mType = type;
+    }
+
+    @Override
+    public String toString() {
+      return mType;
+    }
   }
 
   /**
