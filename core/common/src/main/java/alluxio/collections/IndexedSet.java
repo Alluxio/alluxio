@@ -190,8 +190,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * order. It is to implement {@link Iterable} so that users can foreach the {@link IndexedSet}
    * directly.
    *
-   * Note that the behaviour of the iterator is unspecified if the underlying collection is modified
-   * while a thread is going through the iterator.
+   * Note that the behaviour of the iterator is unspecified if the underlying collection is
+   * modified while a thread is going through the iterator.
    *
    * @return an iterator over the elements in this {@link IndexedSet}
    */
@@ -201,9 +201,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * Specialized iterator for {@link IndexedSet}.
+   *  Specialized iterator for {@link IndexedSet}.
    *
-   * This is needed to support consistent removal from the set and the indices.
+   *  This is needed to support consistent removal from the set and the indices.
    */
   private class IndexedSetIterator implements Iterator<T> {
     private final Iterator<T> mSetIterator;
