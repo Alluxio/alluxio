@@ -25,6 +25,7 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -42,9 +43,12 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
+
   public static final String SERVICE_PREFIX = "worker";
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
+  public static final String GET_CONFIGURATION = "configuration";
   public static final String GET_USED_BYTES = "used_bytes";
   public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
   public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
@@ -61,6 +65,25 @@ public final class AlluxioWorkerRestServiceHandler {
    * Constructs a new {@link AlluxioWorkerRestServiceHandler}.
    */
   public AlluxioWorkerRestServiceHandler() {}
+
+  /**
+   * @summary get the configuration map, the keys are ordered alphabetically.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_CONFIGURATION)
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
+  public Response getConfiguration() {
+    Set<Map.Entry<String, String>> properties = WorkerContext.getConf().toMap().entrySet();
+    SortedMap<String, String> configuration = new TreeMap<>();
+    for (Map.Entry<String, String> entry : properties) {
+      String key = entry.getKey();
+      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+        configuration.put(key, entry.getValue());
+      }
+    }
+    return RestUtils.createResponse(configuration);
+  }
 
   /**
    * @summary get the address of the worker

@@ -91,9 +91,9 @@ public final class AlluxioMasterRestServiceHandler {
     Set<Map.Entry<String, String>> properties = mMasterConf.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
-      String key = entry.getKey().toString();
+      String key = entry.getKey();
       if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
-        configuration.put(key, (String) entry.getValue());
+        configuration.put(key, entry.getValue());
       }
     }
     return RestUtils.createResponse(configuration);
