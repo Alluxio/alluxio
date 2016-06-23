@@ -385,8 +385,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an error occurs listing the directory
    */
   private boolean isDirectory(String path) throws IOException {
-    String strippedPath = stripPrefixIfPresent(path);
-    String[] children = listInternal(strippedPath, true);
+    String[] children = listInternal(path, true);
     return children != null && children.length > 0;
   }
 
@@ -407,11 +406,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       Directory directory = new Directory(path, '/');
       Container c = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> res = c.listDirectory(directory);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       Iterator<DirectoryOrObject> iter = res.iterator();
       while (iter.hasNext()) {
-        DirectoryOrObject dirobj = (DirectoryOrObject) iter.next();
-        String child = stripFolderSuffixIfPresent(dirobj.getName());
+        DirectoryOrObject dirObj = iter.next();
+        String child = stripFolderSuffixIfPresent(dirObj.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
       }
