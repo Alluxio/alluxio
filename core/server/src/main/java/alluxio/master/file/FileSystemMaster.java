@@ -357,7 +357,7 @@ public final class FileSystemMaster extends AbstractMaster {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree.initializeRoot(Permission.defaults()
           .applyDirectoryUMask(MasterContext.getConf())
-          .setUserFromLoginModule(MasterContext.getConf()));
+          .setOwnerFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -2230,7 +2230,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
-        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_MODE);
+        (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
@@ -2313,8 +2313,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       builder.setGroup(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      builder.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      builder.setPermission(options.getMode());
     }
     return appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
@@ -2442,15 +2442,15 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean ownerGroupChanged = false;
     boolean permissionChanged = false;
     if (options.getOwner() != null) {
-      inode.setUserName(options.getOwner());
+      inode.setOwner(options.getOwner());
       ownerGroupChanged = true;
     }
     if (options.getGroup() != null) {
-      inode.setGroupName(options.getGroup());
+      inode.setGroup(options.getGroup());
       ownerGroupChanged = true;
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      inode.setPermission(options.getMode());
       permissionChanged = true;
     }
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
@@ -2460,7 +2460,7 @@ public final class FileSystemMaster extends AbstractMaster {
       UnderFileSystem ufs = resolution.getUfs();
       if (ownerGroupChanged) {
         try {
-          ufs.setOwner(ufsUri, inode.getUserName(), inode.getGroupName());
+          ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
         } catch (IOException e) {
           throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
         }
@@ -2501,7 +2501,7 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setGroup(entry.getGroup());
     }
     if (entry.hasPermission()) {
-      options.setPermission((short) entry.getPermission());
+      options.setMode((short) entry.getPermission());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {

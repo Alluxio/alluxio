@@ -52,9 +52,9 @@
                   <th><%= fileInfo.getSize() %></th>
                   <th><%= fileInfo.getBlockSizeBytes() %></th>
                   <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-                    <th><%= fileInfo.getPermission() %></th>
-                    <th><%= fileInfo.getUserName() %></th>
-                    <th><%= fileInfo.getGroupName() %></th>
+                    <th><%= fileInfo.getMode() %></th>
+                    <th><%= fileInfo.getOwner() %></th>
+                    <th><%= fileInfo.getGroup() %></th>
                   <% } %>
                   <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>
                   <th><%= fileInfo.getCreationTime() %></th>

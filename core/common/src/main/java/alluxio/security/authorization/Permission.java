@@ -35,33 +35,33 @@ public final class Permission {
   /** This default umask is used to calculate file permission from directory permission. */
   private static final Mode FILE_UMASK = new Mode(Constants.FILE_DIR_PERMISSION_DIFF);
 
-  private String mUserName;
-  private String mGroupName;
+  private String mOwner;
+  private String mGroup;
   private Mode mMode;
 
   /**
    * Constructs an instance of {@link Permission}.
    *
-   * @param userName the user name
-   * @param groupName the group name which the user belongs to
+   * @param owner the owner
+   * @param group the group
    * @param mode the {@link Mode}
    */
-  public Permission(String userName, String groupName, Mode mode) {
+  public Permission(String owner, String group, Mode mode) {
     Preconditions.checkNotNull(mode, ExceptionMessage.MODE_IS_NULL.getMessage());
-    mUserName = userName;
-    mGroupName = groupName;
+    mOwner = owner;
+    mGroup = group;
     mMode = mode;
   }
 
   /**
    * Constructs an instance of {@link Permission}. The permission is represented by short.
    *
-   * @param userName the user name
-   * @param groupName the group name which the user belongs to
+   * @param owner the owner
+   * @param group the group
    * @param mode the {@link Mode} represented by short value
    */
-  public Permission(String userName, String groupName, short mode) {
-    this(userName, groupName, new Mode(mode));
+  public Permission(String owner, String group, short mode) {
+    this(owner, group, new Mode(mode));
   }
 
   /**
@@ -70,21 +70,21 @@ public final class Permission {
    * @param p the given permission
    */
   public Permission(Permission p) {
-    this(p.getUserName(), p.getGroupName(), new Mode(p.getMode()));
+    this(p.getOwner(), p.getGroup(), new Mode(p.getMode()));
   }
 
   /**
-   * @return the user name
+   * @return the owner
    */
-  public String getUserName() {
-    return mUserName;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
-   * @return the group name
+   * @return the group
    */
-  public String getGroupName() {
-    return mGroupName;
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
@@ -128,17 +128,17 @@ public final class Permission {
   }
 
   /**
-   * Sets the user based on the thrift transport and updates the group to the primary group of the
-   * user. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * Sets the owner based on the thrift transport and updates the group to the primary group of the
+   * owner. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
    * no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
-   * @throws IOException when getting login user fails
+   * @throws IOException when getting owner or group information fails
    */
-  public Permission setUserFromThriftClient(Configuration conf) throws IOException {
+  public Permission setOwnerFromThriftClient(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication, no user to set
+      // no authentication, no owner is set
       return this;
     }
     // get the username through the authentication mechanism
@@ -146,33 +146,34 @@ public final class Permission {
     if (user == null) {
       throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
     }
-    mUserName = user.getName();
-    mGroupName = CommonUtils.getPrimaryGroupName(conf, user.getName());
+    mOwner = user.getName();
+    mGroup = CommonUtils.getPrimaryGroupName(conf, user.getName());
     return this;
   }
 
   /**
-   * Sets the user based on the login module and updates the group to the primary group of the user.
-   * If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a no-op.
+   * Sets the owner based on the login module and updates the group to the primary group of the
+   * owner. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
+   * no-op.
    *
    * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
-   * @throws IOException when getting login user fails
+   * @throws IOException when getting owner or group information fails
    */
-  public Permission setUserFromLoginModule(Configuration conf) throws IOException {
+  public Permission setOwnerFromLoginModule(Configuration conf) throws IOException {
     if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication, no user to set
+      // no authentication, no owner is set
       return this;
     }
     // get the username through the login module
-    String loginUserName = LoginUser.get(conf).getName();
-    mUserName = loginUserName;
-    mGroupName = CommonUtils.getPrimaryGroupName(conf, loginUserName);
+    String user = LoginUser.get(conf).getName();
+    mOwner = user;
+    mGroup = CommonUtils.getPrimaryGroupName(conf, user);
     return this;
   }
 
   /**
-   * Creates the default {@link Permission} for a file or a directory. Both user and group are
+   * Creates the default {@link Permission} for a file or a directory. Both owner and group are
    * empty and the "full access" mode is used.
    *
    * @return the {@link Permission} for a file or a directory
@@ -191,18 +192,18 @@ public final class Permission {
       return false;
     }
     Permission that = (Permission) o;
-    return Objects.equal(mUserName, that.mUserName)
-        && Objects.equal(mGroupName, that.mGroupName)
+    return Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
         && Objects.equal(mMode, that.mMode);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mUserName, mGroupName, mMode);
+    return Objects.hashCode(mOwner, mGroup, mMode);
   }
 
   @Override
   public String toString() {
-    return mUserName + ":" + mGroupName + ":" + mMode;
+    return mOwner + ":" + mGroup + ":" + mMode;
   }
 }

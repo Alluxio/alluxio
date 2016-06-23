@@ -308,12 +308,11 @@ public final class UnderFileSystemManager {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (ufs.rename(mTemporaryUri, mUri)) {
-        if (!perm.getUserName().isEmpty() || !perm.getGroupName().isEmpty()) {
+        if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
           try {
-            ufs.setOwner(mUri, perm.getUserName(), perm.getGroupName());
+            ufs.setOwner(mUri, perm.getOwner(), perm.getGroup());
           } catch (Exception e) {
-            LOG.warn("Failed to update the ufs user, Alluxio system defaults will be used. Error: "
-                + e);
+            LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
           }
         }
         // TODO(chaomin): consider setMode of the ufs file.

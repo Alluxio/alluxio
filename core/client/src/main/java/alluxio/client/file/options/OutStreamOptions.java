@@ -64,7 +64,7 @@ public final class OutStreamOptions {
     mPermission = Permission.defaults();
     try {
       // Set user and group from user login module, and apply default file UMask.
-      mPermission.applyFileUMask(conf).setUserFromLoginModule(conf);
+      mPermission.applyFileUMask(conf).setOwnerFromLoginModule(conf);
     } catch (IOException e) {
       // Fall through to system property approach
     }

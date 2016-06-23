@@ -165,8 +165,8 @@ public final class FileSystemUtils {
       }
       // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
       URIStatus uriStatus = fs.getStatus(uri);
-      Permission perm = new Permission(uriStatus.getUserName(), uriStatus.getGroupName(),
-          (short) uriStatus.getPermission());
+      Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
+          (short) uriStatus.getMode());
       OutputStream out = closer.register(ufs.create(dstPath.getPath(),
           new CreateOptions().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
