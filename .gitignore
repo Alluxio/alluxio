@@ -35,5 +35,4 @@
 /underFSStorage/
 dependency-reduced-pom.xml
 target/
-examples/src/main/java/alluxio/examples/LoadGenerator.java
 tests.log*
