@@ -33,7 +33,7 @@ import java.util.UUID;
 public final class AlluxioTestDirectory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static final int MAX_FILE_AGE_HOURS = 2;
+  private static final int MAX_FILE_AGE_HOURS = 1;
 
   // This directory should be used over the system temp directory for creating temporary files
   // during tests. We recursively delete this directory on JVM exit.
