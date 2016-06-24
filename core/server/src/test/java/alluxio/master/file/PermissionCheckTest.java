@@ -240,14 +240,14 @@ public final class PermissionCheckTest {
   private void verifyCreateFile(TestUser user, String path, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateFileOptions options = CreateFileOptions.defaults().setRecursive(recursive)
-        .setPermission(Permission.defaults().setUserFromThriftClient());
+        .setPermission(Permission.defaults().setOwnerFromThriftClient());
 
     long fileId = mFileSystemMaster.createFile(new AlluxioURI(path), options);
 
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(fileId);
     String[] pathComponents = path.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-    Assert.assertEquals(user.getUser(), fileInfo.getUserName());
+    Assert.assertEquals(user.getUser(), fileInfo.getOwner());
   }
 
   @Test
@@ -294,7 +294,7 @@ public final class PermissionCheckTest {
       throws Exception {
     AuthenticatedClientUser.set(user.getUser());
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(recursive)
-        .setPermission(Permission.defaults().setUserFromThriftClient());
+        .setPermission(Permission.defaults().setOwnerFromThriftClient());
     mFileSystemMaster.createDirectory(new AlluxioURI(path), options);
 
     FileInfo fileInfo =
@@ -302,7 +302,7 @@ public final class PermissionCheckTest {
     String[] pathComponents = path.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
     Assert.assertEquals(true, fileInfo.isFolder());
-    Assert.assertEquals(user.getUser(), fileInfo.getUserName());
+    Assert.assertEquals(user.getUser(), fileInfo.getOwner());
   }
 
   @Test
@@ -369,7 +369,7 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     String fileOwner =
         mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(srcPath)))
-            .getUserName();
+            .getOwner();
 
     mFileSystemMaster.rename(new AlluxioURI(srcPath), new AlluxioURI(dstPath));
 
@@ -378,7 +378,7 @@ public final class PermissionCheckTest {
         mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(dstPath)));
     String[] pathComponents = dstPath.split("/");
     Assert.assertEquals(pathComponents[pathComponents.length - 1], fileInfo.getName());
-    Assert.assertEquals(fileOwner, fileInfo.getUserName());
+    Assert.assertEquals(fileOwner, fileInfo.getOwner());
   }
 
   @Test
@@ -700,7 +700,7 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getUserName());
+    Assert.assertEquals(TEST_USER_2.getUser(), fileInfo.getOwner());
   }
 
   @Test
@@ -720,13 +720,13 @@ public final class PermissionCheckTest {
         true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroup());
 
     // owner
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) -1, true);
     fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroup());
   }
 
   @Test
@@ -747,13 +747,13 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, null, null, (short) 0700, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals((short) 0700, fileInfo.getPermission());
+    Assert.assertEquals((short) 0700, fileInfo.getMode());
 
     // owner enlarge the permission
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, null, (short) 0777, true);
     fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals((short) 0777, fileInfo.getPermission());
+    Assert.assertEquals((short) 0777, fileInfo.getMode());
     // other user can operate under this enlarged permission
     verifyCreateFile(TEST_USER_2, TEST_DIR_URI + "/newFile", false);
     verifyDelete(TEST_USER_2, TEST_DIR_FILE_URI, false);
@@ -778,8 +778,8 @@ public final class PermissionCheckTest {
     verifySetAcl(TEST_USER_1, TEST_DIR_URI, null, TEST_USER_2.getGroups(), (short) 0777, true);
     FileInfo fileInfo = mFileSystemMaster
         .getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(TEST_DIR_FILE_URI)));
-    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroupName());
-    Assert.assertEquals((short) 0777, fileInfo.getPermission());
+    Assert.assertEquals(TEST_USER_2.getGroups(), fileInfo.getGroup());
+    Assert.assertEquals((short) 0777, fileInfo.getMode());
   }
 
   @Test
@@ -795,7 +795,7 @@ public final class PermissionCheckTest {
       short permission, boolean recursive) throws Exception {
     AuthenticatedClientUser.set(runUser.getUser());
     SetAttributeOptions options =
-        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setPermission(permission)
+        SetAttributeOptions.defaults().setOwner(owner).setGroup(group).setMode(permission)
             .setRecursive(recursive);
     mFileSystemMaster.setAttribute(new AlluxioURI(path), options);
 
@@ -803,13 +803,13 @@ public final class PermissionCheckTest {
     FileInfo fileInfo =
         mFileSystemMaster.getFileInfo(mFileSystemMaster.getFileId(new AlluxioURI(path)));
     if (owner != null) {
-      Assert.assertEquals(owner, fileInfo.getUserName());
+      Assert.assertEquals(owner, fileInfo.getOwner());
     }
     if (group != null) {
-      Assert.assertEquals(group, fileInfo.getGroupName());
+      Assert.assertEquals(group, fileInfo.getGroup());
     }
     if (permission != -1) {
-      Assert.assertEquals(permission, fileInfo.getPermission());
+      Assert.assertEquals(permission, fileInfo.getMode());
     }
   }
 

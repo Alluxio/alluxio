@@ -197,6 +197,18 @@ public final class MountTable implements JournalCheckpointStreamable {
   }
 
   /**
+   * Returns a copy of the current mount table, the mount table is a map from Alluxio file system
+   * URIs to the corresponding mount point information.
+   *
+   * @return a copy of the current mount table
+   */
+  public Map<String, MountInfo> getMountTable() {
+    try (LockResource r = new LockResource(mReadLock)) {
+      return new HashMap<>(mMountTable);
+    }
+  }
+
+  /**
    * @param uri an Alluxio path URI
    * @return whether the given uri is a mount point
    */

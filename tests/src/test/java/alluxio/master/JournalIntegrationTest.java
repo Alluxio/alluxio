@@ -538,31 +538,28 @@ public class JournalIntegrationTest {
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio");
-    CreateFileOptions op =
-        CreateFileOptions.defaults().setBlockSizeBytes(64);
+    String user = "alluxio";
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+    CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 
+    // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
     mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setOwner("user1").setRecursive(false));
-    mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setGroup("group1").setRecursive(false));
-    mFileSystem.setAttribute(filePath,
-        SetAttributeOptions.defaults().setPermission((short) 0400).setRecursive(false));
+        SetAttributeOptions.defaults().setMode((short) 0400).setRecursive(false));
 
     URIStatus status = mFileSystem.getStatus(filePath);
 
     mLocalAlluxioCluster.stopFS();
 
-    aclTestUtil(status);
+    aclTestUtil(status, user);
     deleteFsMasterJournalLogs();
-    aclTestUtil(status);
+    aclTestUtil(status, user);
   }
 
-  private void aclTestUtil(URIStatus status) throws Exception {
+  private void aclTestUtil(URIStatus status, String user) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    AuthenticatedClientUser.set("user1");
+    AuthenticatedClientUser.set(user);
     FileInfo info = fsMaster.getFileInfo(new AlluxioURI("/file"));
     Assert.assertEquals(status, new URIStatus(info));
 

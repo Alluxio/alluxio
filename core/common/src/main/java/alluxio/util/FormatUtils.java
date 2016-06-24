@@ -192,7 +192,7 @@ public final class FormatUtils {
    * @return human-readable version of the given mode
    */
   public static String formatMode(short mode, boolean directory) {
-    StringBuffer str = new StringBuffer();
+    StringBuilder str = new StringBuilder();
     if (directory) {
       str.append("d");
     } else {

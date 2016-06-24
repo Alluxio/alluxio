@@ -90,9 +90,9 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);
-    ret.setUserName(getUserName());
-    ret.setGroupName(getGroupName());
-    ret.setPermission(getMode());
+    ret.setOwner(getOwner());
+    ret.setGroup(getGroup());
+    ret.setMode(getMode());
     ret.setPersistenceState(getPersistenceState().toString());
     ret.setMountPoint(false);
     return ret;
@@ -274,14 +274,9 @@ public final class InodeFile extends Inode<InodeFile> {
    * @return the {@link InodeFile} representation
    */
   public static InodeFile fromJournalEntry(InodeFileEntry entry) {
-    Permission permission;
-    if (entry.hasMode()) {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getMode());
-    } else {
-      permission =
-          new Permission(entry.getUserName(), entry.getGroupName(), (short) entry.getPermission());
-    }
+    Permission permission =
+        new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
+
     return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
@@ -333,11 +328,10 @@ public final class InodeFile extends Inode<InodeFile> {
         .setLength(getLength())
         .setCompleted(isCompleted())
         .setCacheable(isCacheable())
-        .addAllBlocks(mBlocks)
-        .setTtl(mTtl)
-        .setUserName(getUserName())
-        .setGroupName(getGroupName())
-        .setPermission(getMode())
+        .addAllBlocks(getBlockIds())
+        .setTtl(getTtl())
+        .setOwner(getOwner())
+        .setGroup(getGroup())
         .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();

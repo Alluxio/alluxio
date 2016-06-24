@@ -36,7 +36,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
       throws IOException, AlluxioException {
     URIStatus status = mFileSystem.getStatus(uri);
     return getLsResultStr(uri.getPath(), status.getCreationTimeMs(), size,
-        LsCommand.STATE_FILE_IN_MEMORY, testUser, testGroup, status.getPermission(),
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testGroup, status.getMode(),
         status.isFolder());
   }
 
@@ -113,13 +113,13 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mFsShell.run("ls", "/testRoot");
     String expected = "";
     expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getPermission(),
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getMode(),
         files[0].isFolder());
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1, LsCommand.STATE_FOLDER,
-            testUser, testUser, files[1].getPermission(), files[1].isFolder());
+            testUser, testUser, files[1].getMode(), files[1].isFolder());
     expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-        LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getPermission(),
+        LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getMode(),
         files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
   }
@@ -221,16 +221,16 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     String expected = "";
     expected += "WARNING: lsr is deprecated. Please use ls -R instead.\n";
     expected += getLsResultStr("/testRoot/testFileA", files[0].getCreationTimeMs(), 10,
-        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getPermission(),
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[0].getMode(),
         files[0].isFolder());
     expected +=
         getLsResultStr("/testRoot/testDir", files[1].getCreationTimeMs(), 1, LsCommand.STATE_FOLDER,
-            testUser, testUser, files[1].getPermission(), files[1].isFolder());
+            testUser, testUser, files[1].getMode(), files[1].isFolder());
     expected += getLsResultStr("/testRoot/testDir/testFileB", files[2].getCreationTimeMs(), 20,
-        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[2].getPermission(),
+        LsCommand.STATE_FILE_IN_MEMORY, testUser, testUser, files[2].getMode(),
         files[2].isFolder());
     expected += getLsResultStr("/testRoot/testFileC", files[3].getCreationTimeMs(), 30,
-        LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getPermission(),
+        LsCommand.STATE_FILE_NOT_IN_MEMORY, testUser, testUser, files[3].getMode(),
         files[3].isFolder());
     Assert.assertEquals(expected, mOutput.toString());
   }

@@ -299,8 +299,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
     return new FileStatus(fileStatus.getLength(), fileStatus.isFolder(),
         BLOCK_REPLICATION_CONSTANT, fileStatus.getBlockSizeBytes(), fileStatus.getCreationTimeMs(),
-            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getPermission()),
-            fileStatus.getUserName(), fileStatus.getGroupName(), new Path(mAlluxioHeader + uri));
+            fileStatus.getCreationTimeMs(), new FsPermission((short) fileStatus.getMode()),
+            fileStatus.getOwner(), fileStatus.getGroup(), new Path(mAlluxioHeader + uri));
   }
 
   /**
@@ -345,10 +345,10 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
    * @throws IOException if the path failed to be changed permission
    */
   public void setPermission(Path path, FsPermission permission) throws IOException {
-    LOG.info("setPermission({},{})", path, permission.toString());
+    LOG.info("setMode({},{})", path, permission.toString());
     AlluxioURI uri = new AlluxioURI(HadoopUtils.getPathWithoutScheme(path));
     SetAttributeOptions options =
-        SetAttributeOptions.defaults().setPermission(permission.toShort()).setRecursive(false);
+        SetAttributeOptions.defaults().setMode(permission.toShort()).setRecursive(false);
     try {
       sFileSystem.setAttribute(uri, options);
     } catch (AlluxioException e) {
@@ -453,6 +453,8 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
     List<URIStatus> statuses;
     try {
       statuses = sFileSystem.listStatus(uri);
+    } catch (FileDoesNotExistException e) {
+      throw new FileNotFoundException(HadoopUtils.getPathWithoutScheme(path));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
