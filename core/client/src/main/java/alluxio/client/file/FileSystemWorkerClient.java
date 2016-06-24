@@ -15,7 +15,6 @@ import alluxio.AbstractClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -38,11 +37,12 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client for talking to a file system worker server. It keeps sending keep alive messages to the

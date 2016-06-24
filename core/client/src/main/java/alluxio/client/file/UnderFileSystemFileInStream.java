@@ -19,11 +19,12 @@ import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to read a file in the under file system through an Alluxio worker's data

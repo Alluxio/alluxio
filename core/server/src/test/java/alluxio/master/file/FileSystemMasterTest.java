@@ -24,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
@@ -169,7 +168,6 @@ public final class FileSystemMasterTest {
   public void after() throws Exception {
     mFileSystemMaster.stop();
     mBlockMaster.stop();
-    MasterContext.reset();
     ConfigurationTestUtils.resetConfiguration();
   }
 

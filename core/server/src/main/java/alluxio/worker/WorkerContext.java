@@ -50,11 +50,4 @@ public final class WorkerContext {
   public static void setWorkerNetAddress(WorkerNetAddress netAddress) {
     sNetAddress = netAddress;
   }
-
-  /**
-   * Resets the worker context.
-   */
-  public static void reset() {
-    sWorkerSource = new WorkerSource();
-  }
 }

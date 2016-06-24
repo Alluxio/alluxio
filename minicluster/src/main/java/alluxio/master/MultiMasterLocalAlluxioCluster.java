@@ -14,10 +14,8 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.underfs.UnderFileSystem;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
 import org.apache.curator.test.TestingServer;
@@ -207,12 +205,5 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
-  }
-
-  @Override
-  protected void resetContext() {
-    MasterContext.reset();
-    WorkerContext.reset();
-    ClientTestUtils.resetClient();
   }
 }

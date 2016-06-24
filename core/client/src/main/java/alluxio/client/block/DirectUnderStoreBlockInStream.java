@@ -14,8 +14,9 @@ package alluxio.client.block;
 import alluxio.exception.ExceptionMessage;
 import alluxio.underfs.UnderFileSystem;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Implementation of {@link UnderStoreBlockInStream} which directly accesses the under storage

@@ -16,7 +16,6 @@ import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.DataServer;
-import alluxio.worker.WorkerContext;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -62,7 +61,6 @@ public class SpaceReserverTest {
   public void after() {
     mSpaceReserver.stop();
     ConfigurationTestUtils.resetConfiguration();
-    WorkerContext.reset();
   }
 
   /**
