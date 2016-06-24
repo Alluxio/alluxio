@@ -35,8 +35,10 @@ public final class AlluxioTestDirectory {
 
   private static final int MAX_FILE_AGE_HOURS = 1;
 
-  // This directory should be used over the system temp directory for creating temporary files
-  // during tests. We recursively delete this directory on JVM exit.
+  /**
+   * This directory should be used over the system temp directory for creating temporary files
+   * during tests. We recursively delete this directory on JVM exit.
+   */
   public static final File ALLUXIO_TEST_DIRECTORY = createTestingDirectory();
 
   /**
