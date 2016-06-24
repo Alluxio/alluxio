@@ -35,7 +35,7 @@ defaults:
 # Each language has a particular version of category names
 # When supporting a new language version, do not change the 'group' attribute in .md page files
 # Instead, just add the group name of that language below
-categories:
+categoryInfo:
   User Guide:
     en: User Guides
     cn: 用户指南
