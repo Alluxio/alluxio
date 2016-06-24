@@ -15,10 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
+import alluxio.security.authorization.Permission;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,10 +45,17 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class UnderFileSystem {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   protected final Configuration mConfiguration;
 
   /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
   protected final AlluxioURI mUri;
+
+  /** The user to access this {@link UnderFileSystem}. */
+  protected final String mUser;
+  /** The group to access this {@link UnderFileSystem}. */
+  protected final String mGroup;
 
   /** A map of property names to values. */
   protected HashMap<String, String> mProperties = new HashMap<>();
@@ -115,7 +127,21 @@ public abstract class UnderFileSystem {
      */
     UnderFileSystem get(String path, Object ufsConf, Configuration configuration) {
       UnderFileSystem cachedFs = null;
-      Key key = new Key(new AlluxioURI(path));
+      Permission perm = Permission.defaults();
+      try {
+        // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
+        // and client.
+        String loggerType = configuration.get(Constants.LOGGER_TYPE);
+        if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
+            || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
+          perm.setOwnerFromThriftClient(configuration);
+        } else {
+          perm.setOwnerFromLoginModule(configuration);
+        }
+      } catch (IOException e) {
+        LOG.warn("Failed to set user from login module or thrift client: " + e);
+      }
+      Key key = new Key(new AlluxioURI(path), perm.getOwner(), perm.getGroup());
       cachedFs = mUnderFileSystemMap.get(key);
       if (cachedFs != null) {
         return cachedFs;
@@ -140,16 +166,19 @@ public abstract class UnderFileSystem {
   private static class Key {
     private final String mScheme;
     private final String mAuthority;
-    // TODO(peis): Add UGI information.
+    private final String mUser;
+    private final String mGroup;
 
-    Key(AlluxioURI uri) {
+    Key(AlluxioURI uri, String user, String group) {
       mScheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
       mAuthority = uri.getAuthority() == null ? "" : uri.getAuthority().toLowerCase();
+      mUser = user;
+      mGroup = group;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(mScheme, mAuthority);
+      return Objects.hashCode(mScheme, mAuthority, mUser, mGroup);
     }
 
     @Override
@@ -163,12 +192,15 @@ public abstract class UnderFileSystem {
       }
 
       Key that = (Key) object;
-      return Objects.equal(mScheme, that.mScheme) && Objects.equal(mAuthority, that.mAuthority);
+      return Objects.equal(mScheme, that.mScheme)
+          && Objects.equal(mAuthority, that.mAuthority)
+          && Objects.equal(mUser, that.mUser)
+          && Objects.equal(mGroup, that.mGroup);
     }
 
     @Override
     public String toString() {
-      return mScheme + "://" + mAuthority;
+      return mScheme + "://" + mAuthority + ":user=" + mUser + ":group=" + mGroup;
     }
   }
   /**
@@ -203,13 +235,24 @@ public abstract class UnderFileSystem {
    * below and returned by the implementation of {@link #getUnderFSType()}.
    */
   public enum UnderFSType {
-    LOCAL,
-    HDFS,
-    S3,
-    GLUSTERFS,
-    SWIFT,
-    OSS,
-    GCS,
+    LOCAL("local"),
+    HDFS("hdfs"),
+    S3("s3"),
+    GLUSTERFS("glusterfs"),
+    SWIFT("swift"),
+    OSS("oss"),
+    GCS("gcs");
+
+    private String mType;
+
+    UnderFSType(String type) {
+      mType = type;
+    }
+
+    @Override
+    public String toString() {
+      return mType;
+    }
   }
 
   /**
@@ -297,6 +340,22 @@ public abstract class UnderFileSystem {
     Preconditions.checkNotNull(configuration);
     mUri = uri;
     mConfiguration = configuration;
+    Permission perm = Permission.defaults();
+    try {
+      // TODO(chaomin): consider adding a JVM-level constant to distinguish between Alluxio server
+      // and client.
+      String loggerType = configuration.get(Constants.LOGGER_TYPE);
+      if (loggerType.equalsIgnoreCase("MASTER_LOGGER")
+          || loggerType.equalsIgnoreCase("WORKER_LOGGER")) {
+        perm.setOwnerFromThriftClient(configuration);
+      } else {
+        perm.setOwnerFromLoginModule(configuration);
+      }
+    } catch (IOException e) {
+      LOG.warn("Failed to set user from login module or thrift client: " + e);
+    }
+    mUser = perm.getOwner();
+    mGroup = perm.getGroup();
   }
 
   /**
@@ -354,26 +413,15 @@ public abstract class UnderFileSystem {
   public abstract OutputStream create(String path) throws IOException;
 
   /**
-   * Creates a file in the under file system with the indicated name and block size.
+   * Creates a file in the under file system with the specified
+   * {@link CreateOptions}.
    *
    * @param path The file name
-   * @param blockSizeByte The block size in bytes
+   * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract OutputStream create(String path, int blockSizeByte) throws IOException;
-
-  /**
-   * Creates a file in the under file system with the indicated name, replication number and block
-   * size.
-   *
-   * @param path The file name
-   * @param replication The number of replications for each block
-   * @param blockSizeByte The block size in bytes
-   * @return A {@code OutputStream} object
-   * @throws IOException if a non-Alluxio error occurs
-   */
-  public abstract OutputStream create(String path, short replication, int blockSizeByte)
+  public abstract OutputStream create(String path, CreateOptions options)
       throws IOException;
 
   /**
@@ -552,12 +600,23 @@ public abstract class UnderFileSystem {
    *
    * @param path the folder to create
    * @param createParent If true, the method creates any necessary but nonexistent parent
-   *        directories. Otherwise, the method does not create nonexistent parent directories.
-   * @return {@code true} if and only if the directory was created; {@code false}
-   *         otherwise
+   *        directories. Otherwise, the method does not create nonexistent parent directories
+   * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract boolean mkdirs(String path, boolean createParent) throws IOException;
+
+  /**
+   * Creates the directory named by this abstract pathname, with specified
+   * {@link MkdirsOptions}. If the folder already exists, the method returns false.
+   *
+   * @param path the folder to create
+   * @param options the options for mkdirs
+   * @return {@code true} if and only if the directory was created; {@code false} otherwise
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract boolean mkdirs(String path, MkdirsOptions options)
+    throws IOException;
 
   /**
    * Opens an {@link InputStream} at the indicated path.
@@ -607,11 +666,11 @@ public abstract class UnderFileSystem {
    * unsupported.
    *
    * @param path path of the file
-   * @param user the new user to set, unchanged if null
+   * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setOwner(String path, String user, String group) throws IOException;
+  public abstract void setOwner(String path, String owner, String group) throws IOException;
 
   /**
    * Sets the properties for this {@link UnderFileSystem}.
@@ -624,11 +683,39 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Changes posix file permission.
+   * Changes posix file mode.
    *
    * @param path path of the file
-   * @param posixPerm standard posix permission like "777", "775", etc
+   * @param mode the mode to set in short format, e.g. 0777
    * @throws IOException if a non-Alluxio error occurs
    */
-  public abstract void setPermission(String path, String posixPerm) throws IOException;
+  public abstract void setMode(String path, short mode) throws IOException;
+
+  /**
+   * Gets the owner of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path path of the file
+   * @return the owner of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract String getOwner(String path) throws IOException;
+
+  /**
+   * Gets the group of the given path. An empty implementation should be provided if not supported.
+   *
+   * @param path path of the file
+   * @return the group of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract String getGroup(String path) throws IOException;
+
+  /**
+   * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
+   * be provided if not supported.
+   *
+   * @param path path of the file
+   * @return the mode of the file
+   * @throws IOException if a non-Alluxio error occurs
+   */
+  public abstract short getMode(String path) throws IOException;
 }

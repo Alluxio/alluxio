@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -110,24 +112,16 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions(mConfiguration));
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
     }
     return null;
-  }
-
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("blocksize is not supported with OSSUnderFileSystem. Block size will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.warn(
-        "blocksize and replication is not supported with OSSUnderFileSystem. Will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -174,21 +168,21 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
@@ -236,6 +230,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
+
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -246,7 +246,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -317,7 +317,25 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.

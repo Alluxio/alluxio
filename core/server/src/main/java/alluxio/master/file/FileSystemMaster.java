@@ -49,6 +49,7 @@ import alluxio.master.file.meta.TempInodePathForChild;
 import alluxio.master.file.meta.TempInodePathForDescendant;
 import alluxio.master.file.meta.TtlBucket;
 import alluxio.master.file.meta.TtlBucketList;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -300,7 +301,7 @@ public final class FileSystemMaster extends AbstractMaster {
     } else if (innerEntry instanceof SetAttributeEntry) {
       try {
         setAttributeFromEntry((SetAttributeEntry) innerEntry);
-      } catch (FileDoesNotExistException e) {
+      } catch (AccessControlException | FileDoesNotExistException | InvalidPathException e) {
         throw new RuntimeException(e);
       }
     } else if (innerEntry instanceof DeleteFileEntry) {
@@ -357,7 +358,7 @@ public final class FileSystemMaster extends AbstractMaster {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree.initializeRoot(Permission.defaults()
           .applyDirectoryUMask(MasterContext.getConf())
-          .setUserFromLoginModule(MasterContext.getConf()));
+          .setOwnerFromLoginModule(MasterContext.getConf()));
       String defaultUFS = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
@@ -856,6 +857,13 @@ public final class FileSystemMaster extends AbstractMaster {
       MasterContext.getMasterSource().incNewBlocksGot(1);
       return inodePath.getInodeFile().getNewBlockId();
     }
+  }
+
+  /**
+   * @return a copy of the current mount table
+   */
+  public Map<String, MountInfo> getMountTable() {
+    return mMountTable.getMountTable();
   }
 
   /**
@@ -1837,15 +1845,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws BlockInfoException if an invalid block size is encountered
    * @throws FileDoesNotExistException if there is no UFS path
    * @throws InvalidPathException if invalid path is encountered
-   * @throws InvalidFileSizeException if invalid file size is encountered
+   * @throws AccessControlException if permission checking fails or permission setting fails
    * @throws FileAlreadyCompletedException if the file is already completed
+   * @throws InvalidFileSizeException if invalid file size is encountered
    * @throws IOException if an I/O error occurs
-   * @throws AccessControlException if permission checking fails
    */
   private long loadFileMetadataAndJournal(LockedInodePath inodePath,
       MountTable.Resolution resolution, LoadMetadataOptions options)
       throws IOException, BlockInfoException, FileDoesNotExistException, InvalidPathException,
-      AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException {
+      AccessControlException, FileAlreadyCompletedException, InvalidFileSizeException, IOException {
     if (inodePath.fullPathExists()) {
       return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     }
@@ -1858,6 +1866,12 @@ public final class FileSystemMaster extends AbstractMaster {
     CreateFileOptions createFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(ufsBlockSizeByte)
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
+    String ufsOwner = ufs.getOwner(ufsUri.toString());
+    String ufsGroup = ufs.getGroup(ufsUri.toString());
+    short ufsPermission = ufs.getMode(ufsUri.toString());
+    createFileOptions = createFileOptions.setPermission(
+        new Permission(ufsOwner, ufsGroup, ufsPermission));
+
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
       CompleteFileOptions completeOptions = CompleteFileOptions.defaults().setUfsLength(ufsLength);
@@ -1896,6 +1910,15 @@ public final class FileSystemMaster extends AbstractMaster {
             .setMountPoint(mMountTable.isMountPoint(inodePath.getUri()))
             .setPersisted(true).setRecursive(options.isCreateAncestors()).setMetadataLoad(true)
             .setAllowExists(true);
+    MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+    AlluxioURI ufsUri = resolution.getUri();
+    UnderFileSystem ufs = resolution.getUfs();
+    String ufsOwner = ufs.getOwner(ufsUri.toString());
+    String ufsGroup = ufs.getGroup(ufsUri.toString());
+    short ufsPermission = ufs.getMode(ufsUri.toString());
+    createDirectoryOptions = createDirectoryOptions.setPermission(
+        new Permission(ufsOwner, ufsGroup, ufsPermission));
+
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
     } catch (FileAlreadyExistsException e) {
@@ -2215,7 +2238,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean rootRequired = options.getOwner() != null;
     // for chgrp, chmod
     boolean ownerRequired =
-        (options.getGroup() != null) || (options.getPermission() != Constants.INVALID_MODE);
+        (options.getGroup() != null) || (options.getMode() != Constants.INVALID_MODE);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree.lockFullInodePath(path, InodeTree.LockMode.WRITE)) {
       mPermissionChecker.checkSetAttributePermission(inodePath, rootRequired, ownerRequired);
@@ -2298,8 +2321,8 @@ public final class FileSystemMaster extends AbstractMaster {
     if (options.getGroup() != null) {
       builder.setGroup(options.getGroup());
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      builder.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      builder.setPermission(options.getMode());
     }
     return appendJournalEntry(JournalEntry.newBuilder().setSetAttribute(builder).build());
   }
@@ -2385,11 +2408,13 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param opTimeMs the operation time (in milliseconds)
    * @param options the method options
    * @return list of inodes which were marked as persisted
-   * @throws FileDoesNotExistException
+   * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if failed to set permission
    */
   private List<Inode<?>> setAttributeInternal(LockedInodePath inodePath, long opTimeMs,
       SetAttributeOptions options)
-      throws FileDoesNotExistException {
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     List<Inode<?>> persistedInodes = Collections.emptyList();
     Inode<?> inode = inodePath.getInode();
     if (options.getPinned() != null) {
@@ -2422,14 +2447,39 @@ public final class FileSystemMaster extends AbstractMaster {
         MasterContext.getMasterSource().incFilesPersisted(1);
       }
     }
+    boolean ownerGroupChanged = false;
+    boolean permissionChanged = false;
     if (options.getOwner() != null) {
-      inode.setUserName(options.getOwner());
+      inode.setOwner(options.getOwner());
+      ownerGroupChanged = true;
     }
     if (options.getGroup() != null) {
-      inode.setGroupName(options.getGroup());
+      inode.setGroup(options.getGroup());
+      ownerGroupChanged = true;
     }
-    if (options.getPermission() != Constants.INVALID_MODE) {
-      inode.setPermission(options.getPermission());
+    if (options.getMode() != Constants.INVALID_MODE) {
+      inode.setPermission(options.getMode());
+      permissionChanged = true;
+    }
+    // If the file is persisted in UFS, also update corresponding owner/group/permission.
+    if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
+      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+      String ufsUri = resolution.getUri().toString();
+      UnderFileSystem ufs = resolution.getUfs();
+      if (ownerGroupChanged) {
+        try {
+          ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
+        } catch (IOException e) {
+          throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+        }
+      }
+      if (permissionChanged) {
+        try {
+          ufs.setMode(ufsUri, inode.getMode());
+        } catch (IOException e) {
+          throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+        }
+      }
     }
     return persistedInodes;
   }
@@ -2437,8 +2487,11 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * @param entry the entry to use
    * @throws FileDoesNotExistException if the file does not exist
+   * @throws InvalidPathException if the file path corresponding to the file id is invalid
+   * @throws AccessControlException if failed to set permission
    */
-  private void setAttributeFromEntry(SetAttributeEntry entry) throws FileDoesNotExistException {
+  private void setAttributeFromEntry(SetAttributeEntry entry)
+      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     if (entry.hasPinned()) {
       options.setPinned(entry.getPinned());
@@ -2456,7 +2509,7 @@ public final class FileSystemMaster extends AbstractMaster {
       options.setGroup(entry.getGroup());
     }
     if (entry.hasPermission()) {
-      options.setPermission((short) entry.getPermission());
+      options.setMode((short) entry.getPermission());
     }
     try (LockedInodePath inodePath = mInodeTree
         .lockFullInodePath(entry.getId(), InodeTree.LockMode.WRITE)) {
