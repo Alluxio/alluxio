@@ -63,6 +63,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
 
+  /** Threshold to do multipart copy. */
+  private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
+
   /** Jets3t S3 client. */
   private final AmazonS3Client mClient;
 
@@ -93,12 +96,16 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
     ClientConfiguration clientConf = new ClientConfiguration();
-    clientConf.setSocketTimeout(60000);
-    clientConf.setProtocol(Protocol.HTTP);
+    clientConf.setSocketTimeout(conf.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    if (conf.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP)) {
+      clientConf.setProtocol(Protocol.HTTPS);
+    } else {
+      clientConf.setProtocol(Protocol.HTTP);
+    }
     mClient = new AmazonS3Client(credentials, clientConf);
     mManager = new TransferManager(mClient);
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
-    transferConf.setMultipartCopyThreshold(100 * Constants.MB);
+    transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     mManager.setConfiguration(transferConf);
   }
 

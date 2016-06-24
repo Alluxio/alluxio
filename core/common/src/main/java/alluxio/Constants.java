@@ -161,6 +161,9 @@ public final class Constants {
   public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
   public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
       "alluxio.underfs.s3.upload.threads.max";
+  public static final String UNDERFS_S3A_SECURE_HTTP = "alluxio.underfs.s3a.secure.http";
+  public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+      "alluxio.underfs.s3a.socket.timeout.ms";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
