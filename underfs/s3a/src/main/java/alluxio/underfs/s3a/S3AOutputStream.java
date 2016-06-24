@@ -54,9 +54,6 @@ public class S3AOutputStream extends OutputStream {
   /** The local file that will be uploaded when the stream is closed. */
   private final File mFile;
 
-  /** The AmazonS3 client for S3 operations. */
-  private final AmazonS3 mClient;
-
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
   private final AtomicBoolean mClosed = new AtomicBoolean(false);
 
@@ -68,7 +65,7 @@ public class S3AOutputStream extends OutputStream {
    * It is recommended (http://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html)
    * to upload file larger than 100MB using Multipart Uploads.
    */
-  private final TransferManager mTransferManager;
+  private final TransferManager mManager;
 
   /** The output stream to a local file where the file will be buffered until closed. */
   private OutputStream mLocalOutputStream;
@@ -81,17 +78,17 @@ public class S3AOutputStream extends OutputStream {
    *
    * @param bucketName the name of the bucket
    * @param key the key of the file
-   * @param client the JetS3t client
+   * @param manager the transfer manager to upload the file with
    * @throws IOException when a non-Alluxio related error occurs
    */
-  public S3AOutputStream(String bucketName, String key, AmazonS3 client) throws IOException {
+  public S3AOutputStream(String bucketName, String key, TransferManager manager)
+      throws IOException {
     Preconditions.checkArgument(bucketName != null && !bucketName.isEmpty(), "Bucket name must "
         + "not be null or empty.");
     mBucketName = bucketName;
     mKey = key;
-    mClient = client;
+    mManager = manager;
     mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
-    mTransferManager = new TransferManager(mClient);
     try {
       mHash = MessageDigest.getInstance("MD5");
       mLocalOutputStream =
@@ -135,11 +132,8 @@ public class S3AOutputStream extends OutputStream {
       if (mHash != null) {
         meta.setContentMD5(new String(Base64.encode(mHash.digest())));
       }
-
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, mKey, mFile).withMetadata(meta);
-
-      mTransferManager.upload(putReq).waitForUploadResult();
-
+      mManager.upload(putReq).waitForUploadResult();
       if (!mFile.delete()) {
         LOG.error("Failed to delete temporary file @ {}", mFile.getPath());
       }
