@@ -83,7 +83,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
-   * @param uri the {@link alluxio.AlluxioURI} for this UFS
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Alluxio
    */
   public S3AUnderFileSystem(AlluxioURI uri, Configuration conf) {
@@ -124,7 +124,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
-      return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
+      return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
     }
     return null;
   }
