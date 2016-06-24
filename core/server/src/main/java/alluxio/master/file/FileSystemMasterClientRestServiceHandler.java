@@ -16,11 +16,14 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
+import alluxio.master.MasterContext;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -28,6 +31,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import javax.ws.rs.GET;
@@ -55,6 +61,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String CREATE_FILE = "create_file";
   public static final String FREE = "free";
   public static final String GET_FILE_BLOCK_INFO_LIST = "file_block_info_list";
+  public static final String GET_MOUNT_POINTS = "mount_points";
   public static final String GET_NEW_BLOCK_ID_FOR_FILE = "new_block_id_for_file";
   public static final String GET_STATUS = "status";
   public static final String GET_STATUS_INTERNAL = "status_internal";
@@ -292,6 +299,26 @@ public final class FileSystemMasterClientRestServiceHandler {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }
+  }
+
+  /**
+   * @summary get the map from alluxio paths of mount points to the mount point details
+   * @return the response object
+   */
+  @GET
+  @Path(GET_MOUNT_POINTS)
+  @ReturnType("java.util.SortedMap<java.lang.String, alluxio.wire.MountPointInfo>")
+  public Response getMountPoints() {
+    SortedMap<String, MountPointInfo> mountPoints = new TreeMap<>();
+    for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable().entrySet()) {
+      MountInfo mountInfo = mountPoint.getValue();
+      MountPointInfo info = new MountPointInfo();
+      info.setUfsInfo(mountInfo.getUfsUri().toString(), MasterContext.getConf());
+      info.setReadOnly(mountInfo.getOptions().isReadOnly());
+      info.setProperties(mountInfo.getOptions().getProperties());
+      mountPoints.put(mountPoint.getKey(), info);
+    }
+    return RestUtils.createResponse(mountPoints);
   }
 
   /**
