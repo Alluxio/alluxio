@@ -18,6 +18,8 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.Protocol;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
@@ -27,6 +29,8 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -68,6 +72,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3a://my-bucket-name/ . */
   private final String mBucketPrefix;
 
+  /** Transfer Manager for efficient I/O to s3 */
+  private final TransferManager mManager;
+
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
     DIR_HASH = new String(Base64.encode(dirByteHash));
@@ -85,7 +92,14 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
-    mClient = new AmazonS3Client(credentials);
+    ClientConfiguration clientConf = new ClientConfiguration();
+    clientConf.setSocketTimeout(60000);
+    clientConf.setProtocol(Protocol.HTTP);
+    mClient = new AmazonS3Client(credentials, clientConf);
+    mManager = new TransferManager(mClient);
+    TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
+    transferConf.setMultipartCopyThreshold(100 * Constants.MB);
+    mManager.setConfiguration(transferConf);
   }
 
   @Override
@@ -369,9 +383,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
-        mClient.copyObject(mBucketName, src, mBucketName, dst);
+        mManager.copy(mBucketName, src, mBucketName, dst).waitForCopyResult();
         return true;
-      } catch (AmazonClientException e) {
+      } catch (AmazonClientException | InterruptedException e) {
         LOG.error("Failed to copy file {} to {}", src, dst, e);
         if (i != retries - 1) {
           LOG.error("Retrying copying file {} to {}", src, dst);
