@@ -13,15 +13,11 @@ package alluxio;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.AgeFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.UUID;
 
 /**
@@ -91,16 +87,15 @@ public final class AlluxioTestDirectory {
    * @param dir the directory to clean up
    */
   private static void cleanUpOldFiles(File dir) {
-    Iterator<File> filesToDelete = FileUtils.iterateFilesAndDirs(dir,
-        new AgeFileFilter(
-            new Date(System.currentTimeMillis() - MAX_FILE_AGE_HOURS * Constants.HOUR_MS)),
-        TrueFileFilter.TRUE);
-    while (filesToDelete.hasNext()) {
-      File file = filesToDelete.next();
-      try {
-        alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
-      } catch (Exception e) {
-        LOG.warn("Failed to delete {}", file.getAbsolutePath(), e);
+    long cutoffTimestamp = System.currentTimeMillis() - (MAX_FILE_AGE_HOURS * Constants.HOUR_MS);
+    File[] files = dir.listFiles();
+    for (File file : files) {
+      if (!FileUtils.isFileNewer(file, cutoffTimestamp)) {
+        try {
+          alluxio.util.io.FileUtils.deletePathRecursively(file.getAbsolutePath());
+        } catch (Exception e) {
+          LOG.warn("Failed to delete {}", file.getAbsolutePath(), e);
+        }
       }
     }
   }
