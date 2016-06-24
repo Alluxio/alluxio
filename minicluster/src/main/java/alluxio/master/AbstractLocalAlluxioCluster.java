@@ -11,7 +11,7 @@
 
 package alluxio.master;
 
-import alluxio.CommonTestUtils;
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -466,6 +466,6 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() {
-    mHome = CommonTestUtils.createTemporaryDirectory("test-cluster").getAbsolutePath();
+    mHome = AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
   }
 }

@@ -12,18 +12,14 @@
 package alluxio;
 
 import alluxio.util.CommonUtils;
-import alluxio.util.io.FileUtils;
 
 import com.google.common.base.Function;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.testing.EqualsTester;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.reflect.Whitebox;
 
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -32,7 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 /**
  * Common utilities for testing.
@@ -48,10 +43,6 @@ public final class CommonTestUtils {
       .put(long.class, Lists.newArrayList((long) 40, (long) 41))
       .put(float.class, Lists.newArrayList((float) 50, (float) 51))
       .put(double.class, Lists.newArrayList((double) 60, (double) 61)).build();
-
-  // This directory should be used over the system temp directory for creating temporary files
-  // during tests. We recursively delete this directory on JVM exit.
-  public static final File ALLUXIO_TEST_DIRECTORY = createTestingDirectory();
 
   /**
    * Traverses a chain of potentially private fields using {@link Whitebox}.
@@ -198,53 +189,5 @@ public final class CommonTestUtils {
       fields.addAll(Arrays.asList(c.getDeclaredFields()));
     }
     return fields;
-  }
-
-  /**
-   * Creates the Alluxio testing directory, attempting to delete the previous one if it exists.
-   *
-   * @return the directory
-   */
-  private static File createTestingDirectory() {
-    final File tmpDir = new File(System.getProperty("java.io.tmpdir"), "alluxio-tests");
-    if (tmpDir.exists()) {
-      try {
-        FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
-      } catch (IOException e) {
-        // This can be caused by misbehaved processes creating files while the delete is happening.
-      }
-    }
-    if (!tmpDir.exists()) {
-      if (!tmpDir.mkdir()) {
-        throw new RuntimeException(
-            "Failed to create testing directory " + tmpDir.getAbsolutePath());
-      }
-    }
-    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-      public void run() {
-        try {
-          FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
-        } catch (IOException e) {
-          throw new RuntimeException("Failed to clean up Alluxio testing directory", e);
-        }
-      }
-    }));
-    return tmpDir;
-  }
-
-  /**
-   * Creates a directory with the given prefix inside the Alluxio temporary directory.
-   *
-   * @param prefix a prefix to use in naming the temporary directory
-   * @return the created directory
-   */
-  public static File createTemporaryDirectory(String prefix) {
-    File file = new File(ALLUXIO_TEST_DIRECTORY, prefix + "-" + UUID.randomUUID());
-    try {
-      file.createNewFile();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
-    }
-    return file;
   }
 }
