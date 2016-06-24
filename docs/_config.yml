@@ -6,4 +6,4 @@ kramdown:
 
 # These allow the documentation to be updated with new releases of Tachyon.
 TACHYON_RELEASED_VERSION: 0.8.2
-TACHYON_MASTER_VERSION_SHORT: 0.8.3-SNAPSHOT
+TACHYON_MASTER_VERSION_SHORT: 0.8.2
