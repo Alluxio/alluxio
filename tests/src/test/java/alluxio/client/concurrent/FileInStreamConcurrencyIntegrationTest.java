@@ -35,7 +35,8 @@ import java.util.List;
  */
 public final class FileInStreamConcurrencyIntegrationTest {
   private static final int BLOCK_SIZE = 30;
-  private static int sNumReadThreads;
+  private static int sNumReadThreads =
+      Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
@@ -45,7 +46,6 @@ public final class FileInStreamConcurrencyIntegrationTest {
 
   @BeforeClass
   public static final void beforeClass() throws Exception {
-    sNumReadThreads = Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
     sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
   }

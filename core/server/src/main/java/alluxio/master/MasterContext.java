@@ -31,11 +31,4 @@ public final class MasterContext {
   public static MasterSource getMasterSource() {
     return sMasterSource;
   }
-
-  /**
-   * Resets the master context.
-   */
-  public static void reset() {
-    sMasterSource = new MasterSource();
-  }
 }

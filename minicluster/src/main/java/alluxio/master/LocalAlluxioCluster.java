@@ -11,14 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerContext;
 
 import java.io.IOException;
 
@@ -106,9 +102,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   protected void startMaster() throws IOException {
     mMaster = LocalAlluxioMaster.create(mHome);
     mMaster.start();
-
-    // Update the test conf with actual RPC port.
-    Configuration.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
   }
 
   @Override
@@ -116,13 +109,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
     runWorker();
-  }
-
-  @Override
-  protected void resetContext() {
-    MasterContext.reset();
-    WorkerContext.reset();
-    ClientTestUtils.resetClient();
   }
 
   @Override

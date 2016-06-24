@@ -15,6 +15,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
@@ -91,7 +92,7 @@ public abstract class AbstractLocalAlluxioCluster {
     waitForWorkerReady();
 
     // Reset contexts so that they pick up the master and worker configuration.
-    resetContext();
+    reset();
   }
 
   /**
@@ -261,7 +262,7 @@ public abstract class AbstractLocalAlluxioCluster {
     stopUFS();
 
     ConfigurationTestUtils.resetConfiguration();
-    resetContext();
+    reset();
     resetLoginUser();
   }
 
@@ -422,9 +423,11 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract LocalAlluxioMaster getMaster();
 
   /**
-   * Resets contexts. This is called when the cluster is stopped.
+   * Resets the cluster to original state.
    */
-  protected abstract void resetContext();
+  protected void reset() {
+    ClientTestUtils.resetClient();
+  }
 
   /**
    * Sets hostname.

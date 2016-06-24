@@ -17,7 +17,6 @@ import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
 import org.junit.After;
@@ -70,7 +69,6 @@ public class BlockLockManagerTest {
   @After
   public void after() throws Exception {
     ConfigurationTestUtils.resetConfiguration();
-    WorkerContext.reset();
   }
 
   /**

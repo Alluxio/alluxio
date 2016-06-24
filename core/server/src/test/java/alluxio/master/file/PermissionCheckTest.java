@@ -18,7 +18,6 @@ import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
@@ -156,7 +155,6 @@ public final class PermissionCheckTest {
 
   @After
   public void after() throws Exception {
-    MasterContext.reset();
     ConfigurationTestUtils.resetConfiguration();
   }
 

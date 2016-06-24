@@ -68,6 +68,8 @@ public final class ConfUtils {
       if (propertyName.startsWith("alluxio.")
           || propertyName.equals(Constants.S3_ACCESS_KEY)
           || propertyName.equals(Constants.S3_SECRET_KEY)
+          || propertyName.equals(Constants.GCS_ACCESS_KEY)
+          || propertyName.equals(Constants.GCS_SECRET_KEY)
           || propertyName.equals(Constants.SWIFT_API_KEY)
           || propertyName.equals(Constants.SWIFT_AUTH_METHOD_KEY)
           || propertyName.equals(Constants.SWIFT_AUTH_PORT_KEY)
@@ -80,6 +82,8 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
+    // Merge the relevant Hadoop configuration into Alluxio's configuration.
+    // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
     Configuration.merge(alluxioConfProperties);
   }
 }

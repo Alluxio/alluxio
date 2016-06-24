@@ -49,6 +49,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -118,7 +119,7 @@ public final class MasterSourceTest {
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
         new HashMap<String, List<Long>>());
 
-    MasterContext.reset();
+    Whitebox.setInternalState(MasterContext.class, "sMasterSource", new MasterSource());
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
 
     mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR);
@@ -310,7 +311,7 @@ public final class MasterSourceTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
 
-    Assert.assertEquals(1, mCounters.get("GetNewBlockOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.GET_NEW_BLOCK_OPS).getCount());
   }
 
   /**
@@ -403,8 +404,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.mount(TEST_URI, MOUNT_URI, MountOptions.defaults());
 
-    Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(1, mCounters.get("MountOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_MOUNTED).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.MOUNT_OPS).getCount());
 
     // trying to mount an existing file
     try {

@@ -25,7 +25,6 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -114,7 +113,6 @@ public class BlockWorkerTest {
   @After
   public void after() throws IOException {
     ConfigurationTestUtils.resetConfiguration();
-    WorkerContext.reset();
   }
 
   /**
