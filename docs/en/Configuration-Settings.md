@@ -32,18 +32,14 @@ application settings (if any), environment variables, property files and the def
 
 Alluxio shell users can use `-Dkey=property` to specify an Alluxio configuration value in commandline. For example,
 
-```java
-$ bin/alluxio fs -Dalluxio.user.file.writetype.default=MUST_CACHE touch /foo
-```
+{% include Configuration-Settings/specify-conf.md %}
 
 Spark users can add `"-Dkey=property"` to `${SPARK_DAEMON_JAVA_OPTS}` in `conf/spark-env.sh`, or add it to
 `spark.executor.extraJavaOptions` (for Spark executors) and `spark.driver.extraJavaOptions` (for Spark drivers).
 
 Hadoop MapReduce users can set `"-Dkey=property"` in `hadoop jar` command-lines to pass it down to Alluxio:
 
-```java
-$ hadoop jar -Dalluxio.user.file.writetype.default=MUST_CACHE foo.jar
-```
+{% include Configuration-Settings/hadoop-specify-conf.md %}
 
 Note that, setting Alluxio configuration in this way is application specific and required for each job or command.
 
@@ -110,7 +106,7 @@ Alternatively, you can create one from a template we provided in the source code
 
 
 Note that `conf/alluxio-env.sh` is sourced when you
-[launch Alluxio servers](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html.html),
+[launch Alluxio servers](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html),
 but not for applications.
 
 
