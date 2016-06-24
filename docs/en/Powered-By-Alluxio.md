@@ -19,6 +19,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
+* [JD](http://www.jd.com/)
 * [Neusoft](http://www.neusoft.com/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)

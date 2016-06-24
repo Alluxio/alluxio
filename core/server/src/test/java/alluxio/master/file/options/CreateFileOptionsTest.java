@@ -29,7 +29,7 @@ import java.util.Random;
  * Unit tests for {@link CreateFileOptions}.
  */
 @RunWith(PowerMockRunner.class)
-// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
+// Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public class CreateFileOptionsTest {
   /**

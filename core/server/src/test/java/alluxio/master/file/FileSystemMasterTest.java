@@ -685,8 +685,8 @@ public final class FileSystemMasterTest {
   @Test
   public void permissionTest() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**

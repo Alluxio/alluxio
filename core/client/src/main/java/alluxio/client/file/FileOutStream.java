@@ -28,7 +28,9 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -101,9 +103,10 @@ public class FileOutStream extends AbstractOutStream {
         updateUfsPath();
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
+          Permission perm = options.getPermission();
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-                  CreateUfsFileOptions.defaults());
+                  CreateUfsFileOptions.defaults().setPermission(perm));
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
@@ -116,7 +119,8 @@ public class FileOutStream extends AbstractOutStream {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
         UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
+        CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
+        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;

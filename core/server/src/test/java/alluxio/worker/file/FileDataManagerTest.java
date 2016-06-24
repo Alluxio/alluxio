@@ -19,6 +19,7 @@ import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -99,6 +100,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -189,6 +192,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -290,6 +295,8 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(BufferUtils.class);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     try {

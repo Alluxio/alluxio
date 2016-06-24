@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
 import alluxio.IntegrationTestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -25,6 +26,7 @@ import alluxio.worker.block.BlockWorker;
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +41,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -49,8 +52,12 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class})
+@PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class, Configuration.class,
+    WorkerContext.class})
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
+  private static final String NOT_ALLUXIO_CONF_PREFIX = "_alluxio_";
+
   private AlluxioWorker mWorker;
   private BlockStoreMeta mStoreMeta;
 
@@ -89,6 +96,42 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
         NO_PARAMS, HttpMethod.GET, capacityBytes).run();
+  }
+
+  private Configuration mockConfiguration() {
+    Configuration conf = PowerMockito.spy(WorkerContext.getConf());
+    PowerMockito.spy(WorkerContext.class);
+    Mockito.when(WorkerContext.getConf()).thenReturn(conf);
+    return conf;
+  }
+
+  /**
+   * Tests worker's REST API for getting alluxio configuration.
+   *
+   * @throws Exception when any error happens
+   */
+  @Test
+  public void getConfigurationTest() throws Exception {
+    SortedMap<String, String> propertyMap = new TreeMap<>();
+    propertyMap.put(ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),
+        CommonUtils.randomString(10));
+    propertyMap.put(ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),
+        CommonUtils.randomString(10));
+
+    Properties properties = new Properties();
+    for (Map.Entry<String, String> property : propertyMap.entrySet()) {
+      properties.put(property.getKey(), property.getValue());
+    }
+    properties.put(NOT_ALLUXIO_CONF_PREFIX + CommonUtils.randomString(10),
+        CommonUtils.randomString(10));
+
+    Configuration configuration = mockConfiguration();
+    Mockito.doReturn(ImmutableMap.copyOf(properties)).when(configuration).toMap();
+
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CONFIGURATION),
+        NO_PARAMS, HttpMethod.GET, propertyMap).run();
+
+    Mockito.verify(configuration).toMap();
   }
 
   @Test
