@@ -87,7 +87,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
       mFileInfo = fs.getStatus(uri);
       mHdfsPath = new Path(mFileInfo.getUfsPath());
       mAlluxioFileInputStream =
-          fs.openFile(uri, OpenFileOptions.defaults().setReadType(ReadType.CACHE));
+          fs.openFile(uri, OpenFileOptions.defaults());
     } catch (FileDoesNotExistException e) {
       throw new FileNotFoundException(
           ExceptionMessage.HDFS_FILE_NOT_FOUND.getMessage(mHdfsPath, uri));
