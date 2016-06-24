@@ -93,19 +93,19 @@ public final class Mode {
     }
   }
 
-  private Bits mUserBits;
+  private Bits mOwnerBits;
   private Bits mGroupBits;
   private Bits mOtherBits;
 
   /**
    * Constructs an instance of {@link Mode} with the given {@link Bits}.
    *
-   * @param userBits the user {@link Bits}
+   * @param ownerBits the owner {@link Bits}
    * @param groupBits the group {@link Bits}
    * @param otherBits the other {@link Bits}
    */
-  public Mode(Bits userBits, Bits groupBits, Bits otherBits) {
-    set(userBits, groupBits, otherBits);
+  public Mode(Bits ownerBits, Bits groupBits, Bits otherBits) {
+    set(ownerBits, groupBits, otherBits);
   }
 
   /**
@@ -124,21 +124,21 @@ public final class Mode {
    * @param mode another {@link Mode}
    */
   public Mode(Mode mode) {
-    set(mode.mUserBits, mode.mGroupBits, mode.mOtherBits);
+    set(mode.mOwnerBits, mode.mGroupBits, mode.mOtherBits);
   }
 
   /**
-   * @return the user {@link Bits}
+   * @return the owner {@link Bits}
    */
-  public Bits getUserBits() {
-    return mUserBits;
+  public Bits getOwnerBits() {
+    return mOwnerBits;
   }
 
   /**
    * @param mode the digital representation of a {@link Mode}
-   * @return the user {@link Bits}
+   * @return the owner {@link Bits}
    */
-  public static Bits extractUserBits(short mode) {
+  public static Bits extractOwnerBits(short mode) {
     return Bits.values()[(mode >>> 6) & 7];
   }
 
@@ -173,7 +173,7 @@ public final class Mode {
   }
 
   private void set(Bits u, Bits g, Bits o) {
-    mUserBits = u;
+    mOwnerBits = u;
     mGroupBits = g;
     mOtherBits = o;
   }
@@ -194,7 +194,7 @@ public final class Mode {
    * @return the digital representation of this {@link Mode}
    */
   public short toShort() {
-    int s = (mUserBits.ordinal() << 6) | (mGroupBits.ordinal() << 3) | mOtherBits.ordinal();
+    int s = (mOwnerBits.ordinal() << 6) | (mGroupBits.ordinal() << 3) | mOtherBits.ordinal();
     return (short) s;
   }
 
@@ -202,7 +202,7 @@ public final class Mode {
   public boolean equals(Object obj) {
     if (obj instanceof Mode) {
       Mode that = (Mode) obj;
-      return mUserBits == that.mUserBits && mGroupBits == that.mGroupBits
+      return mOwnerBits == that.mOwnerBits && mGroupBits == that.mGroupBits
           && mOtherBits == that.mOtherBits;
     }
     return false;
@@ -215,7 +215,7 @@ public final class Mode {
 
   @Override
   public String toString() {
-    return mUserBits.toString() + mGroupBits.toString() + mOtherBits.toString();
+    return mOwnerBits.toString() + mGroupBits.toString() + mOtherBits.toString();
   }
 
   /**
@@ -225,7 +225,7 @@ public final class Mode {
    * @return a new {@link Mode}
    */
   public Mode applyUMask(Mode umask) {
-    return new Mode(mUserBits.and(umask.mUserBits.not()), mGroupBits.and(umask.mGroupBits.not()),
+    return new Mode(mOwnerBits.and(umask.mOwnerBits.not()), mGroupBits.and(umask.mGroupBits.not()),
         mOtherBits.and(umask.mOtherBits.not()));
   }
 

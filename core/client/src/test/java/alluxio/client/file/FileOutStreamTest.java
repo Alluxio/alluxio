@@ -33,7 +33,9 @@ import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
@@ -154,12 +156,14 @@ public class FileOutStreamTest {
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();
-    Mockito.when(mUnderFileSystem.create(Mockito.anyString(), Mockito.eq((int) BLOCK_LENGTH)))
+    Mockito.when(mUnderFileSystem.create(Mockito.anyString()))
         .thenReturn(mUnderStorageOutputStream);
+    Mockito.when(mUnderFileSystem.create(Mockito.anyString(),
+        Mockito.any(CreateOptions.class))).thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.CACHE_THROUGH);
+            .setWriteType(WriteType.CACHE_THROUGH).setPermission(Permission.defaults());
     mTestStream = createTestStream(FILE_NAME, options);
   }
 

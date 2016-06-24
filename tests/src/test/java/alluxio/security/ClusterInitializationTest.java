@@ -55,8 +55,8 @@ public class ClusterInitializationTest {
   public void startClusterTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
-    Assert.assertEquals(SUPER_USER, status.getUserName());
-    Assert.assertEquals(0755, status.getPermission());
+    Assert.assertEquals(SUPER_USER, status.getOwner());
+    Assert.assertEquals(0755, status.getMode());
 
     Assert.assertEquals(0, fs.listStatus(new AlluxioURI("/")).size());
   }
@@ -80,7 +80,7 @@ public class ClusterInitializationTest {
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
-        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getUserName());
+        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
   }
 
   /**

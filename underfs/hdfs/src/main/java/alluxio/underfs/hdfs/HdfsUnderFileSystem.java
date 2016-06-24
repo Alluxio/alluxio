@@ -16,7 +16,10 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 
 import com.google.common.base.Throwables;
 import org.apache.commons.lang3.StringUtils;
@@ -126,57 +129,27 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public FSDataOutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public FSDataOutputStream create(String path, CreateOptions options)
+      throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
+    Permission perm = options.getPermission();
     while (retryPolicy.attemptRetry()) {
       try {
-        LOG.debug("Creating HDFS file at {}", path);
-        return FileSystem.create(mFileSystem, new Path(path), PERMISSION);
+        LOG.debug("Creating HDFS file at {} with perm {}", path, perm.toString());
+        // TODO(chaomin): support creating HDFS files with specified block size and replication.
+        return FileSystem.create(mFileSystem, new Path(path),
+            new FsPermission(perm.getMode().toShort()));
       } catch (IOException e) {
         LOG.error("Retry count {} : {} ", retryPolicy.getRetryCount(), e.getMessage(), e);
         te = e;
       }
     }
     throw te;
-  }
-
-  /**
-   * Creates a new file.
-   *
-   * @param path the path
-   * @param blockSizeByte the size of the block in bytes; should be a multiple of 512
-   * @return a {@code FSDataOutputStream} object
-   * @throws IOException when a non-Alluxio related exception occurs
-   */
-  @Override
-  public FSDataOutputStream create(String path, int blockSizeByte) throws IOException {
-    // TODO(hy): Fix this.
-    // return create(path, (short) Math.min(3, mFileSystem.getDefaultReplication()),
-    // blockSizeBytes);
-    return create(path);
-  }
-
-  @Override
-  public FSDataOutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    // TODO(hy): Fix this.
-    // return create(path, (short) Math.min(3, mFileSystem.getDefaultReplication()),
-    // blockSizeBytes);
-    return create(path);
-    // LOG.info("{} {} {}", path, replication, blockSizeBytes);
-    // IOException te = null;
-    // int cnt = 0;
-    // while (cnt < MAX_TRY) {
-    // try {
-    // return mFileSystem.create(new Path(path), true, 4096, replication, blockSizeBytes);
-    // } catch (IOException e) {
-    // cnt++;
-    // LOG.error("{} : {}", cnt, e.getMessage(), e);
-    // te = e;
-    // continue;
-    // }
-    // }
-    // throw te;
   }
 
   @Override
@@ -360,6 +333,11 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     IOException te = null;
     RetryPolicy retryPolicy = new CountingRetry(MAX_TRY);
     while (retryPolicy.attemptRetry()) {
@@ -379,7 +357,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
           parent = parent.getParent();
         }
         while (!dirsToMake.empty()) {
-          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(), PERMISSION)) {
+          if (!FileSystem.mkdirs(mFileSystem, dirsToMake.pop(),
+              new FsPermission(options.getPermission().getMode().toShort()))) {
             return false;
           }
         }
@@ -456,16 +435,46 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
+  public void setMode(String path, short mode) throws IOException {
     try {
       FileStatus fileStatus = mFileSystem.getFileStatus(new Path(path));
       LOG.info("Changing file '{}' permissions from: {} to {}", fileStatus.getPath(),
-          fileStatus.getPermission(), posixPerm);
-      FsPermission perm = new FsPermission(Short.parseShort(posixPerm));
-      mFileSystem.setPermission(fileStatus.getPath(), perm);
+          fileStatus.getPermission(), mode);
+      mFileSystem.setPermission(fileStatus.getPath(), new FsPermission(mode));
     } catch (IOException e) {
-      LOG.error("Fail to set permission for {} with perm {}", path, posixPerm, e);
+      LOG.error("Fail to set permission for {} with perm {}", path, mode, e);
       throw e;
     }
   }
+
+  @Override
+  public String getOwner(String path) throws IOException {
+    try {
+      return mFileSystem.getFileStatus(new Path(path)).getOwner();
+    } catch (IOException e) {
+      LOG.error("Fail to get owner for {} ", path, e);
+      throw e;
+    }
+  }
+
+  @Override
+  public String getGroup(String path) throws IOException {
+    try {
+      return mFileSystem.getFileStatus(new Path(path)).getGroup();
+    } catch (IOException e) {
+      LOG.error("Fail to get group for {} ", path, e);
+      throw e;
+    }
+  }
+
+  @Override
+  public short getMode(String path) throws IOException {
+    try {
+      return mFileSystem.getFileStatus(new Path(path)).getPermission().toShort();
+    } catch (IOException e) {
+      LOG.error("Fail to get permission for {} ", path, e);
+      throw e;
+    }
+  }
+
 }

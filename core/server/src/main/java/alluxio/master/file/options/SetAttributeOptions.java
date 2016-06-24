@@ -28,7 +28,7 @@ public class SetAttributeOptions {
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private Short mPermission;
+  private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
 
@@ -50,8 +50,7 @@ public class SetAttributeOptions {
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mPermission =
-        options.isSetPermission() ? options.getPermission() : Constants.INVALID_MODE;
+    mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
     mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }
@@ -62,7 +61,7 @@ public class SetAttributeOptions {
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mPermission = Constants.INVALID_MODE;
+    mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
   }
@@ -103,10 +102,10 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @return the permission bits
+   * @return the mode bits
    */
-  public Short getPermission() {
-    return mPermission;
+  public Short getMode() {
+    return mMode;
   }
 
   /**
@@ -169,16 +168,16 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @param permission the permission bits to use
+   * @param mode the mode bits to use
    * @return the updated options object
    */
-  public SetAttributeOptions setPermission(short permission) {
-    mPermission = permission;
+  public SetAttributeOptions setMode(short mode) {
+    mMode = mode;
     return this;
   }
 
   /**
-   * @param recursive whether owner / group / permission should be updated recursively
+   * @param recursive whether owner / group / mode should be updated recursively
    * @return the updated options object
    */
   public SetAttributeOptions setRecursive(boolean recursive) {
@@ -209,13 +208,13 @@ public class SetAttributeOptions {
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
-        && Objects.equal(mPermission, that.mPermission)
+        && Objects.equal(mMode, that.mMode)
         && Objects.equal(mRecursive, that.mRecursive);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mPermission, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
   }
 
   @Override
@@ -226,7 +225,7 @@ public class SetAttributeOptions {
         .add("persisted", mPersisted)
         .add("owner", mOwner)
         .add("group", mGroup)
-        .add("permission", mPermission)
+        .add("mode", mMode)
         .add("recursive", mRecursive)
         .add("operationTimeMs", mOperationTimeMs)
         .toString();

@@ -218,8 +218,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // TODO(andreareale): understand how to map FileInfo#getUserName()
-      // and FileInfo#getGroupName() to UIDs and GIDs of the node
+      // TODO(andreareale): understand how to map FileInfo#getOwner()
+      // and FileInfo#getGroup() to UIDs and GIDs of the node
       // where alluxio-fuse is mounted.
       // While this is not done, just use uid and gid of the user
       // running alluxio-fuse.

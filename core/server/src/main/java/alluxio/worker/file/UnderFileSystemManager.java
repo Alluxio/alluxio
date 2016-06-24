@@ -18,8 +18,10 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
@@ -241,6 +243,8 @@ public final class UnderFileSystemManager {
     private final String mUri;
     /** String form of the temporary uri to write to in the under file system. */
     private final String mTemporaryUri;
+    /** The permission for the file. */
+    private final Permission mPermission;
 
     /**
      * Creates an output stream agent for the specified UFS uri. The UFS file must not exist when
@@ -249,22 +253,25 @@ public final class UnderFileSystemManager {
      * @param sessionId the agentId of the session that created this object
      * @param agentId the worker specific agentId which references this object
      * @param ufsUri the file to create in the UFS
+     * @param perm the permission of the file
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri)
+    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Permission perm)
         throws FileAlreadyExistsException, IOException {
       mSessionId = sessionId;
       mAgentId = agentId;
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
+      mPermission = perm;
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       ufs.connectFromWorker(
           NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       if (ufs.exists(mUri)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
-      mStream = ufs.create(mTemporaryUri);
+      mStream = ufs.create(mTemporaryUri,
+          new CreateOptions().setPermission(mPermission));
     }
 
     /**
@@ -283,23 +290,22 @@ public final class UnderFileSystemManager {
      * Closes the temporary file and attempts to promote it to the final file path. If the final
      * path already exists, the stream is canceled instead.
      *
-     * @param user the owner of the file, null for default Alluxio user
-     * @param group the group of the file, null for default Alluxio user
+     * @param perm the permission of the file
      * @return the length of the completed file
      * @throws IOException if an error occurs during the under file system operation
      */
-    private long complete(String user, String group) throws IOException {
+    private long complete(Permission perm) throws IOException {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri);
       if (ufs.rename(mTemporaryUri, mUri)) {
-        if (user != null || group != null) {
+        if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
           try {
-            ufs.setOwner(mUri, user, group);
+            ufs.setOwner(mUri, perm.getOwner(), perm.getGroup());
           } catch (Exception e) {
-            LOG.warn("Failed to update the ufs user, Alluxio system defaults will be used. Error: "
-                + e);
+            LOG.warn("Failed to update the ufs ownership, default values will be used. " + e);
           }
         }
+        // TODO(chaomin): consider setMode of the ufs file.
       } else {
         ufs.delete(mTemporaryUri, false);
       }
@@ -320,14 +326,15 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param ufsUri the path to create in the under file system
+   * @param perm the permission for the file to be created
    * @return the worker file id which should be used to reference the open stream
    * @throws FileAlreadyExistsException if the under file system path already exists
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long createFile(long sessionId, AlluxioURI ufsUri) throws FileAlreadyExistsException,
-      IOException {
+  public long createFile(long sessionId, AlluxioURI ufsUri, Permission perm)
+      throws FileAlreadyExistsException, IOException {
     long id = mIdGenerator.getAndIncrement();
-    OutputStreamAgent agent = new OutputStreamAgent(sessionId, id, ufsUri);
+    OutputStreamAgent agent = new OutputStreamAgent(sessionId, id, ufsUri, perm);
     synchronized (mOutputStreamAgents) {
       mOutputStreamAgents.add(agent);
     }
@@ -430,13 +437,12 @@ public final class UnderFileSystemManager {
    *
    * @param sessionId the session id of the request
    * @param tempUfsFileId the worker id referencing an open file in the under file system
-   * @param user the owner of the file, null for default Alluxio user
-   * @param group the group of the file, null for default Alluxio user
+   * @param perm the permission of the file
    * @return the length of the completed file
    * @throws FileDoesNotExistException if the worker file id is not valid
    * @throws IOException if an error occurs when operating on the under file system
    */
-  public long completeFile(long sessionId, long tempUfsFileId, String user, String group)
+  public long completeFile(long sessionId, long tempUfsFileId, Permission perm)
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
@@ -450,7 +456,7 @@ public final class UnderFileSystemManager {
       Preconditions.checkState(mOutputStreamAgents.remove(agent),
           PreconditionMessage.ERR_UFS_MANAGER_FAILED_TO_REMOVE_AGENT.toString(), tempUfsFileId);
     }
-    return agent.complete(user, group);
+    return agent.complete(perm);
   }
 
   /**

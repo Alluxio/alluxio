@@ -21,15 +21,22 @@ import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
+import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Random;
 
 /**
  * Tests for the {@link OutStreamOptions} class.
  */
+@RunWith(PowerMockRunner.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public class OutStreamOptionsTest {
   /**
    * Tests that building an {@link OutStreamOptions} with the defaults works.
@@ -48,6 +55,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
+    Assert.assertEquals(Permission.defaults().applyFileUMask(), options.getPermission());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -61,18 +69,21 @@ public class OutStreamOptionsTest {
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     long ttl = random.nextLong();
     WriteType writeType = WriteType.NONE;
+    Permission perm = Permission.defaults();
 
     OutStreamOptions options = OutStreamOptions.defaults();
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(policy);
     options.setTtl(ttl);
     options.setWriteType(writeType);
+    options.setPermission(perm);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(ttl, options.getTtl());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
+    Assert.assertEquals(perm, options.getPermission());
   }
 
   @Test

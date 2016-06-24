@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -132,6 +134,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     if (newPath.endsWith("_SUCCESS")) {
@@ -144,22 +151,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       out.close();
     }
     return SwiftDirectClient.put(mAccess, newPath);
-  }
-
-  @Override
-  public OutputStream create(String path,
-      int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size is not supported"
-        + "with SwiftDirectUnderFileSystem. Block size will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size and replication is not"
-        + "supported with SwiftDirectUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   /**
@@ -263,17 +254,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /**
-   * @inheritDoc
-   *
-   * @param path the folder to create
-   * @param createParent if true, the method creates any necessary but nonexistent parent
-   *        directories; otherwise, the method does not create nonexistent parent directories
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     return true;
   }
 
@@ -342,7 +329,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Copies an object to another name.

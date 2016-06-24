@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -114,27 +116,15 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new GCSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size is not supported with GCSUnderFileSystem. Block size will be "
-        + "ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.debug("Create with block size and replication is not supported with GCSUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -243,6 +233,11 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -253,7 +248,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -342,7 +337,25 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.
