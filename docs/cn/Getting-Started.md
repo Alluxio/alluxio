@@ -14,7 +14,7 @@ Alluxio可以以多种配置模式进行安装。对于新用户，最简单的�
 
 ### 配置底层存储
 
-Alluxio可以看作一个数据交换层，并且得益于有可靠的持久存储的支撑。不同底层存储的选择依赖于具体的生产环境。通过提供的底层存储连接器，Alluxio可以与任何底层存储整合。现在[Amazon S3](Configuring-Alluxio-with-S3.html)，[OpenStack Swift](Configuring-Alluxio-with-Swift.html)，[GlusterFS](Configuring-Alluxio-with-GlusterFS.html)，和[Apache HDFS](Configuring-Alluxio-with-HDFS.html)都已支持Alluxio。
+Alluxio可以看作一个数据交换层，并且得益于有可靠的持久存储的支撑。不同底层存储的选择依赖于具体的生产环境。通过提供的底层存储连接器，Alluxio可以与任何底层存储整合。现在[Amazon S3](Configuring-Alluxio-with-S3.html)，[OpenStack Swift](Configuring-Alluxio-with-Swift.html)，[Google Cloud Storage](Configuring-Alluxio-with-GCS.html)，[NFS](Configuring-Alluxio-with-NFS.html)，[Alibaba OSS](Configuring-Alluxio-with-OSS.html)，[GlusterFS](Configuring-Alluxio-with-GlusterFS.html)，和[Apache HDFS](Configuring-Alluxio-with-HDFS.html)都已支持Alluxio。
 
 ### 配置应用程序
 
