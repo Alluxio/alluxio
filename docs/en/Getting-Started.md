@@ -203,6 +203,25 @@ $ ./bin/alluxio fs ls /mnt/s3
 
 We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well. 
 
+With Alluxio's unified namespace, you can easily interact with data from different storage systems
+seamlessly. For example, with the `ls` shell command, you can recursively list all the files that
+exist under a directory.
+
+```bash
+$ ./bin/alluxio fs ls -R /
+26.22KB   06-20-2016 11:30:04:415  In Memory      /LICENSE
+1.00B     06-20-2016 12:28:39:176                 /mnt
+4.00B     06-20-2016 12:30:41:986                 /mnt/s3
+87.86KB   06-20-2016 12:50:51:660  Not In Memory  /mnt/s3/sample_tweets_100k.csv
+933.21KB  06-20-2016 12:50:53:633  Not In Memory  /mnt/s3/sample_tweets_1m.csv
+149.77MB  06-20-2016 12:50:55:473  Not In Memory  /mnt/s3/sample_tweets_150m.csv
+9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
+```
+
+This shows all the files under the root of the Alluxio file system, from all of the mounted storage
+systems. The `/LICENSE` file is in your local file system, while the files under `/mnt/s3/` are in
+S3.
+
 ## Accelerating Data Access with Alluxio
 
 Since Alluxio leverages memory to store data, it can accelerate access to data. First, let’s take a
