@@ -12,9 +12,13 @@ struct CloseUfsFileTOptions {
 struct CompleteUfsFileTOptions {
   1: optional string owner
   2: optional string group
+  3: optional i16 mode
 }
 
 struct CreateUfsFileTOptions {
+  1: optional string owner
+  2: optional string group
+  3: optional i16 mode
 }
 
 struct OpenUfsFileTOptions {

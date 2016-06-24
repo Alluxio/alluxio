@@ -38,7 +38,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
 
   /**
    * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
-   * option of permission status is constructed with the username obtained from thrift transport.
+   * option of permission is constructed with the username obtained from thrift transport.
    *
    * @param options the {@link CreateFileTOptions} to use
    * @throws IOException if it failed to retrieve users or groups from thrift transport

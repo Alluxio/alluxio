@@ -11,96 +11,86 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.ClientContext;
-import alluxio.security.LoginUser;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CompleteUfsFileTOptions;
-import alluxio.util.SecurityUtils;
 
 import com.google.common.base.Objects;
+
+import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Options for completing a UFS file. Currently we do not allow users to set arbitrary user and
- * group options. The user and group will be set to the user login.
+ * Options for completing a UFS file. Currently we do not allow users to set arbitrary owner and
+ * group options. The owner and group will be set to the user login.
  */
 @PublicApi
 @NotThreadSafe
 public final class CompleteUfsFileOptions {
-  /** The ufs user this file should be owned by. */
-  private final String mOwner;
-  /** The ufs group this file should be owned by. */
-  private final String mGroup;
+  /** The ufs file permission, including owner, group and mode. */
+  private Permission mPermission;
 
   /**
+   * Creates a default {@link CompleteUfsFileOptions} with owner, group from login module and
+   * default file mode.
+   *
    * @return the default {@link CompleteUfsFileOptions}
+   * @throws IOException if failed to set owner from login module
    */
-  //TODO(calvin): Move the user group discovery to a utils method
-  //TODO(calvin): Utilize user-to-group mapping to discover the user
-  public static CompleteUfsFileOptions defaults() {
-    String user = null;
-    if (SecurityUtils.isAuthenticationEnabled(ClientContext.getConf())) {
-      try {
-        user = LoginUser.get(ClientContext.getConf()).getName();
-      } catch (Exception e) {
-        // Fall through to system property approach
-      }
-    }
-    if (user == null) { // Set to system user, or null if there is no system user set
-      String systemUser = System.getProperty("user.name");
-      user = systemUser.isEmpty() ? null : systemUser;
-    }
-    String group = user;
-    return new CompleteUfsFileOptions(user, group);
+  public static CompleteUfsFileOptions defaults() throws IOException {
+    return new CompleteUfsFileOptions();
   }
 
-  private CompleteUfsFileOptions(String owner, String group) {
-    mOwner = owner;
-    mGroup = group;
+  private CompleteUfsFileOptions() throws IOException {
+    mPermission = Permission.defaults();
+    // Set owner and group from user login module, apply default file UMask.
+    mPermission.setOwnerFromLoginModule(ClientContext.getConf()).applyFileUMask(
+        ClientContext.getConf());
+    // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
+    // file is always created with default permission.
   }
 
   /**
-   * @return the group which should own the file
+   * @return the permission of the UFS file
    */
-  public String getGroup() {
-    return mGroup;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
-   * @return the user who should own the file
+   * @param permission the permission to be set
+   * @return the updated options object
    */
-  public String getOwner() {
-    return mOwner;
-  }
-
-  /**
-   * @return if the group has been set
-   */
-  public boolean hasGroup() {
-    return mGroup != null;
-  }
-
-  /**
-   * @return if the owner has been set
-   */
-  public boolean hasOwner() {
-    return mOwner != null;
+  public CompleteUfsFileOptions setPermission(Permission permission) {
+    mPermission = permission;
+    return this;
   }
 
   @Override
   public boolean equals(Object o) {
-    return this == o || o instanceof CompleteUfsFileOptions;
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CompleteUfsFileOptions)) {
+      return false;
+    }
+    CompleteUfsFileOptions that = (CompleteUfsFileOptions) o;
+    return Objects.equal(mPermission, that.mPermission);
   }
 
   @Override
   public int hashCode() {
-    return 0;
+    return Objects.hashCode(mPermission);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).toString();
+    return Objects.toStringHelper(this)
+        .add("permission", mPermission)
+        .toString();
   }
 
   /**
@@ -108,11 +98,15 @@ public final class CompleteUfsFileOptions {
    */
   public CompleteUfsFileTOptions toThrift() {
     CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
-    if (hasGroup()) {
-      options.setGroup(mGroup);
+    if (!mPermission.getOwner().isEmpty()) {
+      options.setOwner(mPermission.getOwner());
     }
-    if (hasOwner()) {
-      options.setOwner(mOwner);
+    if (!mPermission.getGroup().isEmpty()) {
+      options.setGroup(mPermission.getGroup());
+    }
+    short mode = mPermission.getMode().toShort();
+    if (mode != Constants.INVALID_MODE) {
+      options.setMode(mode);
     }
     return options;
   }
