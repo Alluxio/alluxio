@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Contributing to Alluxio
-nickname: Contributor Guide
+title: Contributing Guidelines
+nickname: Contributing Guidelines
 group: Resources
 ---
 
@@ -9,6 +9,12 @@ group: Resources
 {:toc}
 
 Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
+
+### New Contributors
+
+If you are a new contributor to the Alluxio open source project, please visit the
+[Contributing Getting Started Guide](Contributing-Getting-Started.html) for a tutorial on how to
+contribute to Alluxio.
 
 ### Alluxio Getting Started Tasks
 
