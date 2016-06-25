@@ -91,12 +91,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
-    if (authMethod != null && authMethod.equals("keystone")) {
-      config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    } else if (authMethod != null && authMethod.equals("swiftauth")) {
-      config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+    if (authMethod != null) {
+      switch (authMethod) {
+        case "keystone":
+          config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+          break;
+        case "swiftauth":
+          config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+          break;
+      }
       config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
       config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
