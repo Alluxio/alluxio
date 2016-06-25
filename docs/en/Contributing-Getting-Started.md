@@ -152,14 +152,14 @@ JIRA ticket, in its own branch. Therefore, the following will show you how to cr
 First, make sure you are on the `master` branch in your clone. You switch to your `master` branch
 with:
 
-```
+```bash
 git checkout master
 ```
 
 Then, you should make sure your `master` branch is in sync with the latest changes from the evolving
 Alluxio code base. You pull in all the new changes in the project with the following command:
 
-```
+```bash
 git pull upstream master
 ```
 
@@ -169,7 +169,7 @@ branch.
 Now, you can create a new branch in order to work on the **New Contributor** task you took earlier.
 To create a branch name **awesome_feature**, run:
 
-```
+```bash
 git checkout -b awesome_feature
 ```
 
@@ -182,14 +182,14 @@ As you are addressing the ticket, you can create local commits of your code. Thi
 when you have finished a well-defined portion of the change. You can usually stage a file for commit
 with:
 
-```
+```bash
 git add <file to stage>
 ```
 
 Once all the appropriate files are staged, you can create a local commit of those modifications
 with:
 
-```
+```bash
 git commit -m “<concise but descriptive commit message>”
 ```
 
@@ -205,7 +205,7 @@ First, you have to push all of your local change to your repository in GitHub. A
 created all necessary local commits, you can push all your commits to your repository in GitHub.
 For your **awesome_feature** branch, you can push to GitHub with:
 
-```
+```bash
 git push origin awesome_feature
 ```
 
@@ -241,7 +241,7 @@ In the process, some may ask to modify parts of your pull request. In order to d
 have to make the change in the branch you were using for that pull request, create a new local
 commit, push to your remote branch, and the pull request will be automatically updated. In detail:
 
-```
+```bash
 git add <modified files>
 git commit -m “<another commit message>”
 git push origin awesome_feature
