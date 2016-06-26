@@ -1,6 +1,7 @@
 propertyName,defaultValue
 alluxio.integration.master.resource.cpu,1
 alluxio.integration.master.resource.mem,1024 MB
+alluxio.integration.mesos.constraints,
 alluxio.integration.mesos.executor.dependency.path,https://s3.amazonaws.com/alluxio-mesos
 alluxio.integration.mesos.jre.path,jre1.7.0_79
 alluxio.integration.mesos.jre.url,https://s3.amazonaws.com/alluxio-mesos/jre-7u79-linux-x64.tar.gz

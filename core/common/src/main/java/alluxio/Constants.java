@@ -191,6 +191,8 @@ public final class Constants {
       "alluxio.integration.mesos.role";
   public static final String INTEGRATION_MESOS_SECRET =
       "alluxio.integration.mesos.secret";
+  public static final String INTEGRATION_MESOS_SCHEDULER_CONSTRAINTS =
+      "alluxio.integration.mesos.constraints";
   public static final String INTEGRATION_MESOS_ALLUXIO_MASTER_NAME =
       "alluxio.integration.mesos.master.name";
   public static final String INTEGRATION_MESOS_ALLUXIO_WORKER_NAME =
