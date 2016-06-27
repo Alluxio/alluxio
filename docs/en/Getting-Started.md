@@ -26,7 +26,7 @@ For the following quick start guide, you will need:
 
 * Mac OS X or Linux
 * Java 7 or newer
-* AWS account and keys
+* **[AWS Bonus]** AWS account and keys
 
 ### Setup SSH (Mac OS X)
 
@@ -48,8 +48,7 @@ source files and Java binaries.
 
 ## Configuring Alluxio
 
-Before we start Alluxio, we have to configure it. We will be using most of the default settings, but
-we will have to add some parameters for accessing Amazon S3 later.
+Before we start Alluxio, we have to configure it. We will be using most of the default settings.
 
 Create the **conf/alluxio-env.sh** configuration file from the template. You can create the config
 file with the following command:
@@ -61,9 +60,9 @@ $ ./bin/alluxio bootstrap-conf localhost
 ### [AWS Bonus] Configuration for AWS
 
 If you have an Amazon AWS account with your access key id and secret key, you can modify the Alluxio
-configuration for performing other tasks later in this guide. Open the config file
-**conf/alluxio-env.sh** in your favorite editor to modify it. Add the following line to add your
-AWS access information.
+configuration now in preparation for interacting with Amazon S3 later in this guide. Open the config
+file **conf/alluxio-env.sh** in your favorite editor to modify it. Add the following line to add
+your AWS access information.
 
 ```
 ALLUXIO_JAVA_OPTS="-Dfs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID -Dfs.s3n.awsSecretAccessKey=AWS_SECRET_ACCESS_KEY"
@@ -190,7 +189,7 @@ $ ./bin/alluxio fs mkdir /mnt
 Successfully created directory /mnt
 ```
 
-Next, we will mount an S3 bucket to Alluxio. We have a sample bucket to use for this guide.
+Next, we will mount an existing sample S3 bucket to Alluxio.
 
 ```bash
 $ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3n://alluxio-quick-start/data
@@ -270,8 +269,8 @@ sys	0m1.048s
 ```
 
 As you can see, it takes a lot of time to access the data for each command. Alluxio can accelerate
-access to this data by using memory to store the data. However, the `cat` shell command prevents
-Alluxio from caching the data in memory. There is a separate shell command, `load`, which tells
+access to this data by using memory to store the data. However, the `cat` shell command does not
+cache data in Alluxio memory. There is a separate shell command, `load`, which tells
 Alluxio to store the data in memory. You can tell Alluxio to load the data into memory with the
 following command.
 
@@ -316,17 +315,24 @@ sys	0m0.240s
 Congratulations! You installed Alluxio locally and used Alluxio to accelerate access to data!
 
 ## Stopping Alluxio
-Now that you have installed and ran Alluxio locally, and ran a few simple examples, you can stop
-Alluxio with the following command:
+
+Once you are done with interacting with your local Alluxio installation, you can stop Alluxio with
+the following command:
 
 ```bash
 $ ./bin/alluxio-stop.sh all
 ```
 
-## Next Steps
+## Conclusion
 
-Now that you have successfully started and interacted with Alluxio locally, there are several next
-steps available.
+Congratulations on completing the quick start guide for Alluxio! You have successfully downloaded
+and installed Alluxio on your local computer, and performed some basic interactions via the Alluxio
+shell. This was a simple example on how to get started with Alluxio.
+
+There are several next steps available. You can learn more about the various features of Alluxio in
+our documentation. You can also deploy Alluxio in your environment, mount your existing
+storage systems to Alluxio, or configure your applications to work with Alluxio. Additional
+resources are below.
 
 ### Deploying Alluxio
 
@@ -355,7 +361,7 @@ There are many Under storage systems that can be accessed through Alluxio.
 * [Alluxio with OSS](Configuring-Alluxio-with-OSS.html)
 * [Alluxio with NFS](Configuring-Alluxio-with-NFS.html)
 
-### Frameworks
+### Frameworks and Applications
 
 Different frameworks and applications work with Alluxio.
 
