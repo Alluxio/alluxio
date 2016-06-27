@@ -16,7 +16,7 @@ support at the moment.
 
 ## Software and Account Preparation
 
-There are several accounts and setup required before contributing to Alluxio.
+There is some software and account setup required before contributing to Alluxio.
 
 ### Java 7 or 8
 
