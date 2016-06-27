@@ -20,14 +20,14 @@ There is some software and account setup required before contributing to Alluxio
 
 ### Java 7 or 8
 
-Developing Alluxio requires Java 7 or 8. If you are unsure of which version of java you have, you
+Developing Alluxio requires Java 7 or 8. If you are unsure of which version of Java you have, you
 can check with this command:
 
 ```bash
 $ java -version
 ```
 
-If you do not have java installed, download and install [the java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
+If you do not have Java installed, download and install [the Java SDK](http://www.oracle.com/technetwork/java/javase/downloads/index.html).
 
 ### Maven
 
