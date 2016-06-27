@@ -208,7 +208,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public boolean exists(String path) throws IOException {
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    return path.endsWith("_temporary") || isFile(path) || isDirectory(path);
+    if (path.endsWith("_temporary")) {
+      return true;
+    }
+    String strippedPath = stripPrefixIfPresent(path);
+    Container c = mAccount.getContainer(mContainerName);
+    StoredObject so = c.getObject(strippedPath);
+    return so.exists();
   }
 
   /**
@@ -264,14 +270,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    String strippedPath = stripPrefixIfPresent(path);
-    return mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
+    return exists(path) && !isDirectory(path);
   }
 
   @Override
   public String[] list(String path) throws IOException {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    return listInternal(path, false);
+    return listInternal(path);
   }
 
   /**
@@ -387,16 +392,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Checks if the path is a prefix of at least one object in Swift.
+   * Checks if the path corresponds to a Swift directory.
    *
    * @param path the path to check
    * @return boolean indicating if the path is a directory
    * @throws IOException if an error occurs listing the directory
    */
   private boolean isDirectory(String path) throws IOException {
-    String strippedPath = stripPrefixIfPresent(path);
-    String[] children = listInternal(strippedPath, true);
-    return children != null && children.length > 0;
+    String[] children = listInternal(path);
+    return children.length > 0;
   }
 
   /**
@@ -404,11 +408,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * folder suffix.
    *
    * @param path the key to list
-   * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private String[] listInternal(String path, boolean recursive) throws IOException {
+  private String[] listInternal(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
@@ -416,10 +419,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       Directory directory = new Directory(path, '/');
       Container c = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> res = c.listDirectory(directory);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       Iterator<DirectoryOrObject> iter = res.iterator();
       while (iter.hasNext()) {
-        DirectoryOrObject dirobj = (DirectoryOrObject) iter.next();
+        DirectoryOrObject dirobj = iter.next();
         String child = stripFolderSuffixIfPresent(dirobj.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
