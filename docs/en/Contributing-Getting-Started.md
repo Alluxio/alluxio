@@ -37,7 +37,7 @@ Alluxio uses Maven to manage the build process. If you do not have Maven already
 
 ### Git
 
-The Alluxio open source project uses the Git Distributed Version Control System for its source code.
+The Alluxio open source project uses the Git distributed version control system for its source code.
 Therefore, Git needs to be installed to contribute code to Alluxio.
 
 If you do not already have `git`, [install git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
@@ -55,7 +55,7 @@ You will also need to know which [email addresses you have associated with your 
 
 The [Alluxio open source project uses JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)
 to track features, bugs, and issues.
-[Please create a Alluxio JIRA account](https://alluxio.atlassian.net/projects/ALLUXIO/issues) in
+Please [create an Alluxio JIRA account](https://alluxio.atlassian.net/admin/users/sign-up) in
 order to open tickets, track tickets, and provide fixes for tickets.
 
 ## Forking the Alluxio Repository
@@ -180,8 +180,7 @@ JIRA ticket.
 ## Creating Local Commits
 
 As you are addressing the ticket, you can create local commits of your code. This can be useful for
-when you have finished a well-defined portion of the change. You can usually stage a file for commit
-with:
+when you have finished a well-defined portion of the change. You can stage a file for commit with:
 
 ```bash
 $ git add <file to stage>
@@ -202,9 +201,8 @@ After you have finished all the changes to address the JIRA ticket, you are read
 request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/), 
 but the following is a common way to do it.
 
-First, you have to push all of your local change to your repository in GitHub. After you have
-created all necessary local commits, you can push all your commits to your repository in GitHub.
-For your **awesome_feature** branch, you can push to GitHub with:
+After you have created all necessary local commits, you can push all your commits to your repository
+in GitHub. For your **awesome_feature** branch, you can push to GitHub with:
 
 ```bash
 $ git push origin awesome_feature
@@ -224,8 +222,8 @@ you want to submit the pull request for.
 For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
 the title will look something like **[ALLUXIO-1234] Awesome Feature**.
 
-In the description box, please add a link back to the JIRA ticket. The link will look something
-like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`
+In the first line of the description box, please add a link back to the JIRA ticket. The link will
+look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`
 
 Once everything is set, click on the **Create pull request** button. Congratulations! Your first
 pull request for Alluxio has been submitted!
