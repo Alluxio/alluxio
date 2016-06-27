@@ -421,6 +421,8 @@ public final class Constants {
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
   public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+  public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
