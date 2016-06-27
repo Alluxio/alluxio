@@ -11,7 +11,7 @@
 
 package alluxio.collections;
 
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,7 +67,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public Set<T> getByField(Object value) {
     Set<T> set = mIndexMap.get(value);
-    return set == null ? new HashSet<T>() : set;
+    return set == null ? Collections.<T>emptySet() : set;
   }
 
   @Override public T getFirst(Object value) {

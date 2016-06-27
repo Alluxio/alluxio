@@ -18,7 +18,6 @@ import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -255,7 +254,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
-    return index == null ? new HashSet<T>() : index.getByField(value);
+    return index == null ? Collections.<T>emptySet() : index.getByField(value);
   }
 
   /**
