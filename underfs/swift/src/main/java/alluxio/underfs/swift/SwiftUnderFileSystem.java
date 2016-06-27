@@ -91,17 +91,26 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
-    if (authMethod != null && authMethod.equals("keystone")) {
-      config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+    if (authMethod != null) {
       config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
       config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
-    } else {
-      config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
-      // tempauth requires authentication header to be of the form tenant:user.
-      // JOSS however generates header of the form user:tenant.
-      // To resolve this, we switch user with tenant
-      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
+      switch (authMethod) {
+        case Constants.SWIFT_AUTH_KEYSTONE:
+          config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+          break;
+        case Constants.SWIFT_AUTH_SWIFTAUTH:
+          // swiftauth authenticates directly against swift
+          // note: this method is supported in swift object storage api v1
+          config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+          break;
+        default:
+          config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+          // tempauth requires authentication header to be of the form tenant:user.
+          // JOSS however generates header of the form user:tenant.
+          // To resolve this, we switch user with tenant
+          config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
+          config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
+      }
     }
 
     ObjectMapper mapper = new ObjectMapper();
