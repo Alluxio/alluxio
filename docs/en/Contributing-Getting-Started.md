@@ -11,7 +11,8 @@ community.
 
 ## Requirements
 
-The main requirement is a computer with Mac OSX or Linux installed. Alluxio does not have Windows support at the moment.
+The main requirement is a computer with Mac OS X or Linux installed. Alluxio does not have Windows
+support at the moment.
 
 ## Software and Account Preparation
 
