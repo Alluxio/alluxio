@@ -191,7 +191,7 @@ Once all the appropriate files are staged, you can create a local commit of thos
 with:
 
 ```bash
-$ git commit -m “<concise but descriptive commit message>”
+$ git commit -m "<concise but descriptive commit message>"
 ```
 
 If you want more details, please visit [instructions on how to create commits](https://git-scm.com/book/en/v2/Git-Basics-Recording-Changes-to-the-Repository).
@@ -244,7 +244,7 @@ commit, push to your remote branch, and the pull request will be automatically u
 
 ```bash
 $ git add <modified files>
-$ git commit -m “<another commit message>”
+$ git commit -m "<another commit message>"
 $ git push origin awesome_feature
 ```
 
