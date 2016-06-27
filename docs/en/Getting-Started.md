@@ -59,18 +59,19 @@ $ ./bin/alluxio bootstrap-conf localhost
 
 ### [AWS Bonus] Configuration for AWS
 
-If you have an Amazon AWS account with your access key id and secret key, you can modify the Alluxio
-configuration now in preparation for interacting with Amazon S3 later in this guide. Open the config
-file **conf/alluxio-env.sh** in your favorite editor to modify it. Add the following line to add
-your AWS access information.
+If you have an Amazon AWS account with your access key id and secret key, you can update your
+Alluxio configuration now in preparation for interacting with Amazon S3 later in this guide. Add
+your AWS access information to the Alluxio configuration by adding to the
+**conf/alluxio-site.properties** file. The following commands will update the configuration.
 
-```
-ALLUXIO_JAVA_OPTS="-Dfs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID -Dfs.s3n.awsSecretAccessKey=AWS_SECRET_ACCESS_KEY"
+```bash
+$ echo "fs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
+$ echo "fs.s3n.awsSecretAccessKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
-**AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Those are all the Alluxio configuration
-changes required for the rest of this guide.
+**AWS_SECRET_ACCESS_KEY** with your AWS secret access key. Now, Alluxio is fully configured for the
+rest of this guide.
 
 ## Starting Alluxio
 
