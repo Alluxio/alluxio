@@ -1,6 +1,6 @@
 ---
 layout: global
-title: Getting Started
+title: Quick Start Guide
 group: User Guide
 priority: 0
 ---
@@ -11,9 +11,14 @@ perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
 * Start Alluxio locally
-* Mount a storage system in Alluxio
 * Perform basic tasks via Alluxio Shell
+* **[AWS Bonus]** Mount a public Amazon S3 bucket in Alluxio
 * Shutdown Alluxio
+
+**[AWS Bonus]** If you have an
+[AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
+you will be be able to perform additional tasks in this guide. Sections of the guide which require
+your AWS account information will be labeled with **[AWS Bonus]**.
 
 ## Prerequisites
 
@@ -46,15 +51,19 @@ source files and Java binaries.
 Before we start Alluxio, we have to configure it. We will be using most of the default settings, but
 we will have to add some parameters for accessing Amazon S3 later.
 
-First, create the **conf/alluxio-env.sh** file from the template. You can create the config file
-with the following command:
+Create the **conf/alluxio-env.sh** configuration file from the template. You can create the config
+file with the following command:
 
 ```bash
 $ ./bin/alluxio bootstrap-conf localhost
 ```
 
-Afterwards, open the config file **conf/alluxio-env.sh** in your favorite editor to modify it. Add
-the following line to add your AWS S3 access information.
+### [AWS Bonus] Configuration for AWS
+
+If you have an Amazon AWS account with your access key id and secret key, you can modify the Alluxio
+configuration for performing other tasks later in this guide. Open the config file
+**conf/alluxio-env.sh** in your favorite editor to modify it. Add the following line to add your
+AWS access information.
 
 ```
 ALLUXIO_JAVA_OPTS="-Dfs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID -Dfs.s3n.awsSecretAccessKey=AWS_SECRET_ACCESS_KEY"
@@ -164,7 +173,7 @@ If we browse the Alluxio file system in the [master's web UI](http://localhost:1
 see the LICENSE file as well as other useful information. Here, the **Persistence State** column
 shows the file as **PERSISTED**.
 
-## Mounting in Alluxio
+## [AWS Bonus] Mounting in Alluxio
 
 Alluxio unifies access to storage systems with the unified namespace feature. Read the [Unified
 Namespace blog post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
@@ -222,7 +231,7 @@ This shows all the files under the root of the Alluxio file system, from all of 
 systems. The `/LICENSE` file is in your local file system, while the files under `/mnt/s3/` are in
 S3.
 
-## Accelerating Data Access with Alluxio
+## [AWS Bonus] Accelerating Data Access with Alluxio
 
 Since Alluxio leverages memory to store data, it can accelerate access to data. First, let’s take a
 look at the status of a file in Alluxio (mounted from S3).
