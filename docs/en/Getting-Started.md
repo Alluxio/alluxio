@@ -6,7 +6,7 @@ priority: 0
 ---
 
 The simplest way to quickly try out Alluxio is to install it locally on a single machine. In this
-quick start guide, we will install Alluxio on your local machine, mount example data, and and
+quick start guide, we will install Alluxio on your local machine, mount example data, and
 perform basic tasks with the data in Alluxio. During this guide, you will:
 
 * Download and configure Alluxio
@@ -28,9 +28,9 @@ For the following quick start guide, you will need:
 * Java 7 or newer
 * AWS account and keys
 
-### Setup SSH (Mac OSX)
+### Setup SSH (Mac OS X)
 
-If you are using Mac OSX, you may have to enable the ability to ssh into localhost. To enable remote
+If you are using Mac OS X, you may have to enable the ability to ssh into localhost. To enable remote
 login, Open **System Preferences**, then open **Sharing**. Make sure **Remote Login** is enabled.
 
 ## Downloading Alluxio
@@ -180,7 +180,7 @@ Namespace blog post](http://www.alluxio.com/2016/04/unified-namespace-allowing-a
 and the [unified namespace documentation](Unified-and-Transparent-Namespace.html) for more detailed
 explanations of the feature.
 
-This feature allows users to mount different storage systems into the Alluxio namespace and simply
+This feature allows users to mount different storage systems into the Alluxio namespace and
 access the files across various storage systems through the Alluxio namespace seamlessly.
 
 First, we will create a directory in Alluxio to store our mount points.
@@ -212,7 +212,7 @@ $ ./bin/alluxio fs ls /mnt/s3
 
 We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well. 
 
-With Alluxio's unified namespace, you can easily interact with data from different storage systems
+With Alluxio's unified namespace, you can interact with data from different storage systems
 seamlessly. For example, with the `ls` shell command, you can recursively list all the files that
 exist under a directory.
 
@@ -272,7 +272,7 @@ sys	0m1.048s
 As you can see, it takes a lot of time to access the data for each command. Alluxio can accelerate
 access to this data by using memory to store the data. However, the `cat` shell command prevents
 Alluxio from caching the data in memory. There is a separate shell command, `load`, which tells
-Alluxio to store the data in memory. You can tell Alluxio load the data into memory with the
+Alluxio to store the data in memory. You can tell Alluxio to load the data into memory with the
 following command.
 
 ```bash
@@ -316,7 +316,7 @@ sys	0m0.240s
 Congratulations! You installed Alluxio locally and used Alluxio to accelerate access to data!
 
 ## Stopping Alluxio
-Now that you have installed and run Alluxio locally, and ran a few simple examples, you can stop
+Now that you have installed and ran Alluxio locally, and ran a few simple examples, you can stop
 Alluxio with the following command:
 
 ```bash
