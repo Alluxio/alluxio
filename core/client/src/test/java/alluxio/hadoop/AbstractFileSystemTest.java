@@ -161,30 +161,21 @@ public class AbstractFileSystemTest {
   }
   
   /**
-  * Tests for ALLUXIO-2036.
-  * Cause by ALLUXIO-2025
+  * Ensures that when ListStatusNonExisting should Throw FileNotFoundException.
   */
   @Test
-  public void shouldThrowFileNotFoundExceptionWhenListStatus4NoneExistFile() throws Exception {
-    // final Configuration conf = new Configuration();
+  public void shouldThrowFileNotFoundExceptionWhenListStatusNonExisting() throws Exception {
     StringBuilder path = new StringBuilder("/ALLUXIO-2036.");
     path.append(System.currentTimeMillis()).append(".txt");
     FileSystem fs = new FileSystem();
     try {
       fs.listStatus(new Path(path.toString()));
-    } catch (IOException e) {
-      Assert.assertTrue(e instanceof FileNotFoundException);
+      Assert.fail("Listing the status of a nonexistent file should throw an exception");
+    } catch (FileNotFoundException e) {
+      LOG.info(e.getMessage());
     } finally {
-      try {
-        fs.close();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
+      fs.close();
     }
-
-    PowerMockito.verifyStatic();
-    alluxio.client.file.FileSystem.Factory.get();
-    ClientTestUtils.resetClientContext();
   }
 
   /**
