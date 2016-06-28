@@ -534,13 +534,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } catch (ServiceException s) {
       // It is possible that the folder has not been encoded as a _$folder$ file
       try {
-        String dir = stripPrefixIfPresent(key);
-        String dirPrefix = dir.endsWith(PATH_SEPARATOR) ? dir : dir + PATH_SEPARATOR;
-        // Check if anything begins with <folder_path>/
-        S3Object[] objs = mClient.listObjects(mBucketName, dirPrefix, "");
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        // Check if anything begins with <path>/
+        S3Object[] objs = mClient.listObjects(mBucketName, path, "");
         // If there are, this is a folder and we can create the necessary metadata
         if (objs.length > 0) {
-          mkdirsInternal(dir);
+          mkdirsInternal(path);
           return true;
         } else {
           return false;
