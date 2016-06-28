@@ -281,7 +281,6 @@ public class FileUtilsTest {
     Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
   }
 
-
   /**
    * Tests invoking {@link FileUtils#createBlockPath} method concurrently. This simulates the case
    * when multiple blocks belonging to the same storage dir get created concurrently.
