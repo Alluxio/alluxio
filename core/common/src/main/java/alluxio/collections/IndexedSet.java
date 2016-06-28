@@ -277,12 +277,12 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public boolean remove(Object object) {
-    // Locking this object protects against removing the exact object that might be in the
-    // process of being added, but does not protect against removing a distinct, but equivalent
-    // object.
     if (object == null) {
       return false;
     }
+    // Locking this object protects against removing the exact object that might be in the
+    // process of being added, but does not protect against removing a distinct, but equivalent
+    // object.
     synchronized (object) {
       if (mObjects.contains(object)) {
         // This isn't technically typesafe. However, given that success is true, it's very unlikely
@@ -309,7 +309,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * Removes the object with the specified unique index field value.
+   * Removes the subset of objects with the specified index field value.
    *
    * @param indexDefinition the field index
    * @param value the field value
