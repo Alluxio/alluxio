@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class})
+    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
