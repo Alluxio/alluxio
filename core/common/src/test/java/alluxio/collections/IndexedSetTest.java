@@ -132,7 +132,9 @@ public class IndexedSetTest {
   }
 
   /**
-   * Tests the {@link IndexedSet#remove(Object)} method.
+   * Tests that {@link IndexedSet#remove(Object)} method and
+   * {@link IndexedSet#contains(IndexDefinition, Object)} method work correctly when trying to
+   * remove the data.
    */
   @Test
   public void removeTest() {
@@ -141,8 +143,34 @@ public class IndexedSetTest {
     Assert.assertEquals(9, mSet.size());
     Assert.assertTrue(mSet.remove(toRemove));
     Assert.assertEquals(8, mSet.size());
+
     Assert.assertEquals(2, mSet.getByField(mNonUniqueIntIndex, toRemove.intValue()).size());
+    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+        mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
+
     Assert.assertEquals(0, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
+    Assert.assertFalse("Element should not be in the mUniqueLongIndex",
+        mSet.contains(mUniqueLongIndex, toRemove.longValue()));
+
+    toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
+    Assert.assertTrue(mSet.remove(toRemove));
+    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+        mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
+
+    toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
+    Assert.assertTrue(mSet.remove(toRemove));
+    Assert.assertTrue("Element should be in the NonUniqueIntIndex",
+        mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
+
+    toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
+    Assert.assertTrue(mSet.remove(toRemove));
+    Assert.assertFalse("Element should not be in the NonUniqueIntIndex",
+        mSet.contains(mNonUniqueIntIndex, toRemove.intValue()));
+    Assert.assertFalse("Element should not be in the mNonUniqueIntIndex",
+        mSet.contains(mNonUniqueIntIndex, toRemove.longValue()));
+
+    toRemove = mSet.getFirstByField(mNonUniqueIntIndex, 2);
+    Assert.assertTrue(toRemove == null);
   }
 
   /**

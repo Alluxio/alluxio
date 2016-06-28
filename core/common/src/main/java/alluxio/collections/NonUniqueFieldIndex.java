@@ -40,12 +40,13 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
 
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
 
-    // Update the indexes.
+    // If there is no object set for the current value, creates a new one.
     if (objSet == null) {
       mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
       objSet = mIndexMap.get(fieldValue);
     }
 
+    // Adds the value to the object set.
     objSet.add(object);
   }
 
@@ -61,7 +62,8 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
 
   @Override
   public boolean contains(Object value) {
-    return mIndexMap.containsKey(value);
+    Set<T> set = mIndexMap.get(value);
+    return set != null && !set.isEmpty();
   }
 
   @Override
@@ -70,7 +72,8 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     return set == null ? Collections.<T>emptySet() : set;
   }
 
-  @Override public T getFirst(Object value) {
+  @Override
+  public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     try {
       return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
