@@ -1029,12 +1029,11 @@ public final class FileSystemMaster extends AbstractMaster {
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
               if (!ufs.delete(ufsUri, true)) {
-                if (!ufs.exists(ufsUri)) {
-                  LOG.warn("The file to delete does not exist in under file system: {}", ufsUri);
-                  return;
+                if (ufs.exists(ufsUri)) {
+                  LOG.error("Failed to delete {} from the under file system", ufsUri);
+                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
                 }
-                LOG.error("Failed to delete {} from the under file system", ufsUri);
-                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+                LOG.warn("The file to delete does not exist in under file system: {}", ufsUri);
               }
             }
           } catch (InvalidPathException e) {
