@@ -24,8 +24,12 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -255,5 +259,56 @@ public class FileUtilsTest {
     FileUtils.createDir(tempDir.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
     Assert.assertTrue(tempDir.delete());
+  }
+
+  /**
+   * Tests {@link FileUtils#createBlockPath} method when storage dir exists or not.
+   */
+  @Test
+  public void createStorageDirPathTest() throws IOException {
+    File storageDir = new File(mTestFolder.getRoot(), "tmp");
+    File blockFile = new File(storageDir, "200");
+
+    // When storage dir not exists
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    Assert.assertEquals(
+        PosixFilePermissions.fromString("rwxrwxrwx"),
+        Files.getPosixFilePermissions(Paths.get(storageDir.getAbsolutePath())));
+
+    // When storage dir exists
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+  }
+
+
+  /**
+   * Tests invoking {@link FileUtils#createBlockPath} method concurrently. This simulates the case
+   * when multiple blocks belonging to the same storage dir get created concurrently.
+   */
+  @Test
+  public void concurrentCreateStorageDirPathTest() throws Exception {
+    class ConcurrentCreator implements Callable<Void> {
+      private final String mPath;
+
+      ConcurrentCreator(String path) {
+        mPath = path;
+      }
+
+      @Override
+      public Void call() throws Exception {
+        FileUtils.createBlockPath(mPath);
+        return null;
+      }
+    }
+
+    File storageDir = new File(mTestFolder.getRoot(), "tmp");
+    File blockFile = new File(storageDir, "200");
+    for (int i = 0; i < 20; i++) {
+      ConcurrentCreator concurrentCreator =
+          new ConcurrentCreator(blockFile.getAbsolutePath());
+      concurrentCreator.call();
+    }
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
   }
 }
