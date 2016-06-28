@@ -30,6 +30,9 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -287,6 +290,9 @@ public class FileUtilsTest {
    */
   @Test
   public void concurrentCreateStorageDirPathTest() throws Exception {
+    /**
+     * A class provides multiple concurrent threads to invoke {@link FileUtils#createBlockPath}.
+     */
     class ConcurrentCreator implements Callable<Void> {
       private final String mPath;
 
@@ -301,16 +307,23 @@ public class FileUtilsTest {
       }
     }
 
-    for (int i = 0; i < 100; i++) {
-      File storageDir = new File(mTestFolder.getRoot(), "tmp" + i);
-      File blockFile = new File(storageDir, String.valueOf(i));
-      ConcurrentCreator concurrentCreator1 =
-          new ConcurrentCreator(blockFile.getAbsolutePath());
-      ConcurrentCreator concurrentCreator2 =
-          new ConcurrentCreator(blockFile.getAbsolutePath());
-      concurrentCreator1.call();
-      concurrentCreator2.call();
-      Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    int numCreators = 5;
+    List<Future<Void>> futures = new ArrayList<>(numCreators);
+    for (int iteration = 0; iteration < 5; iteration++) {
+      ExecutorService executor = Executors.newFixedThreadPool(numCreators);
+      try {
+        File storageDir = new File(mTestFolder.getRoot(), "tmp" + iteration);
+        for (int i = 0; i < numCreators; i++) {
+          File blockFile = new File(storageDir, String.valueOf(i));
+          futures.add(executor.submit(new ConcurrentCreator(blockFile.getAbsolutePath())));
+        }
+        for (Future<Void> f : futures) {
+          f.get();
+        }
+        Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+      } finally {
+        executor.shutdown();
+      }
     }
   }
 }
