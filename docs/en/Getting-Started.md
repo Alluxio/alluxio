@@ -76,7 +76,8 @@ rest of this guide.
 ## Starting Alluxio
 
 Next, we will format Alluxio in preparation for starting Alluxio. The following command will format
-the Alluxio journal in preparation for the Alluxio master to start.
+the Alluxio journal and the worker storage directory in preparation for the master and worker to
+start.
 
 ```bash
 $ ./bin/alluxio format
@@ -190,7 +191,8 @@ $ ./bin/alluxio fs mkdir /mnt
 Successfully created directory /mnt
 ```
 
-Next, we will mount an existing sample S3 bucket to Alluxio.
+Next, we will mount an existing sample S3 bucket to Alluxio. We have provided a sample S3 bucket for
+you to use in the rest of this guide.
 
 ```bash
 $ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3n://alluxio-quick-start/data
