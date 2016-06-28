@@ -217,7 +217,6 @@ public final class FileUtils {
    */
   public static void createStorageDirPath(String path) throws IOException {
     File dir = new File(path);
-    String absolutePath = dir.getAbsolutePath();
     if (dir.exists()) {
       return;
     }
@@ -228,6 +227,7 @@ public final class FileUtils {
       }
       throw new IOException("Failed to create folder " + path);
     }
+    String absolutePath = dir.getAbsolutePath();
     changeLocalFileToFullPermission(absolutePath);
     setLocalDirStickyBit(absolutePath);
     LOG.info("Folder {} was created!", path);
