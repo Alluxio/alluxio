@@ -98,10 +98,10 @@ public final class CreateUfsFileOptions {
    */
   public CreateUfsFileTOptions toThrift() {
     CreateUfsFileTOptions options = new CreateUfsFileTOptions();
-    if (!mPermission.getOwner().isEmpty()) {
+    if (mPermission.getOwner() != null && !mPermission.getOwner().isEmpty()) {
       options.setOwner(mPermission.getOwner());
     }
-    if (!mPermission.getGroup().isEmpty()) {
+    if (mPermission.getGroup() != null && !mPermission.getGroup().isEmpty()) {
       options.setGroup(mPermission.getGroup());
     }
     short mode = mPermission.getMode().toShort();

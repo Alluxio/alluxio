@@ -308,7 +308,8 @@ public final class UnderFileSystemManager {
       mStream.close();
       UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
       if (ufs.rename(mTemporaryUri, mUri)) {
-        if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
+        if ((perm.getOwner() != null && !perm.getOwner().isEmpty())
+            || (perm.getGroup() != null && !perm.getGroup().isEmpty())) {
           try {
             ufs.setOwner(mUri, perm.getOwner(), perm.getGroup());
           } catch (Exception e) {
