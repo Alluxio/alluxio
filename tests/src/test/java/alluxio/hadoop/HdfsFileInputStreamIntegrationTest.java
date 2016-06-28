@@ -44,12 +44,12 @@ import java.util.Arrays;
 public final class HdfsFileInputStreamIntegrationTest {
   private static final int FILE_LEN = 255;
   private static final int BUFFER_SIZE = 50;
+  private static final String IN_MEMORY_FILE = "/inMemoryFile";
+  private static final String UFS_ONLY_FILE = "/ufsOnlyFile";
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource();
-  private AlluxioURI mFile1;
-  private AlluxioURI mFile2;
   private static FileSystem sFileSystem;
   private HdfsFileInputStream mInMemInputStream;
   private HdfsFileInputStream mUfsInputStream;
@@ -60,26 +60,28 @@ public final class HdfsFileInputStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    FileSystemTestUtils
-        .createByteFile(sFileSystem, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile2", WriteType.THROUGH, FILE_LEN);
-    FileSystemTestUtils.createByteFile(sFileSystem, "/testFile3", WriteType.THROUGH, FILE_LEN);
   }
 
   @After
   public final void after() throws Exception {
     mInMemInputStream.close();
     mUfsInputStream.close();
+    sFileSystem.delete(new AlluxioURI(IN_MEMORY_FILE));
+    sFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
   }
 
   @Before
   public final void before() throws IOException, AlluxioException {
-    mFile1 = new AlluxioURI("/testFile1");
-    mInMemInputStream = new HdfsFileInputStream(mFile1, new Configuration(), BUFFER_SIZE, null);
+    FileSystemTestUtils
+        .createByteFile(sFileSystem, IN_MEMORY_FILE, WriteType.CACHE_THROUGH, FILE_LEN);
+    FileSystemTestUtils.createByteFile(sFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
+
+    mInMemInputStream = new HdfsFileInputStream(
+        new AlluxioURI(IN_MEMORY_FILE), new Configuration(), BUFFER_SIZE, null);
 
     ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, "NO_CACHE");
-    mFile2 = new AlluxioURI("/testFile2");
-    mUfsInputStream = new HdfsFileInputStream(mFile2, new Configuration(), BUFFER_SIZE, null);
+    mUfsInputStream = new HdfsFileInputStream(
+        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
   }
 
   /**
@@ -372,17 +374,17 @@ public final class HdfsFileInputStreamIntegrationTest {
   @Test
   public void readCacheTest() throws Exception {
     ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, "CACHE");
-    AlluxioURI mFile3 = new AlluxioURI("/testFile3");
-    mUfsInputStream = new HdfsFileInputStream(mFile3, new Configuration(), BUFFER_SIZE, null);
+    mUfsInputStream = new HdfsFileInputStream(
+        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
-    URIStatus statusFile3 = sFileSystem.getStatus(mFile3);
-    Assert.assertTrue(statusFile3.getInMemoryPercentage() == 100);
+    URIStatus statusUfsOnlyFile = sFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
+    Assert.assertTrue(statusUfsOnlyFile.getInMemoryPercentage() == 100);
   }
 
   @Test
   public void readNoCacheTest() throws Exception {
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
-    URIStatus statusFile2 = sFileSystem.getStatus(mFile2);
-    Assert.assertTrue(statusFile2.getInMemoryPercentage() == 0);
+    URIStatus statusUfsOnlyFIle = sFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
+    Assert.assertTrue(statusUfsOnlyFIle.getInMemoryPercentage() == 0);
   }
 }
