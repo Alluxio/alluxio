@@ -369,7 +369,7 @@ public class AlluxioFramework {
 
   private static Protos.Credential createCredential(Configuration conf) {
 
-    if (conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL) == null) {
+    if (!conf.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
       return null;
     }
 
@@ -406,15 +406,15 @@ public class AlluxioFramework {
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
         .setName("alluxio").setCheckpoint(true);
 
-    if (conf.get(Constants.INTEGRATION_MESOS_ROLE) != null) {
+    if (conf.containsKey(Constants.INTEGRATION_MESOS_ROLE)) {
       frameworkInfo.setRole(conf.get(Constants.INTEGRATION_MESOS_ROLE));
     }
 
-    if (conf.get(Constants.INTEGRATION_MESOS_USER) != null) {
+    if (conf.containsKey(Constants.INTEGRATION_MESOS_USER)) {
       frameworkInfo.setUser(conf.get(Constants.INTEGRATION_MESOS_USER));
     }
 
-    if (conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL) != null) {
+    if (conf.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
       frameworkInfo.setPrincipal(conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL));
     }
 
