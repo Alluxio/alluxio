@@ -221,7 +221,11 @@ public final class FileUtils {
     if (dir.exists()) {
       return;
     }
-    if (!dir.mkdirs() || !dir.exists()) {
+    if (!dir.mkdirs()) {
+      if (dir.exists()) {
+        // This dir has been created concurrently.
+        return;
+      }
       throw new IOException("Failed to create folder " + path);
     }
     changeLocalFileToFullPermission(absolutePath);
