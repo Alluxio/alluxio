@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -118,9 +117,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
     mAccess = mAccount.authenticate();
-    Container containerObj = mAccount.getContainer(containerName);
-    if (!containerObj.exists()) {
-      containerObj.create();
+    Container container = mAccount.getContainer(containerName);
+    if (!container.exists()) {
+      container.create();
     }
     mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
@@ -173,33 +172,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return create(path);
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @param path the file or folder name
-   * @param recursive whether we delete folder and its children
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
     String strippedPath = stripPrefixIfPresent(path);
-    Container c = mAccount.getContainer(mContainerName);
+    Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
       strippedPath = makeQualifiedPath(strippedPath);
-      PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
+      PaginationMap paginationMap = container.getPaginationMap(strippedPath, 100);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject obj : c.list(paginationMap, page)) {
-          if (obj.exists()) {
-            obj.delete();
+        for (StoredObject object : container.list(paginationMap, page)) {
+          if (object.exists()) {
+            object.delete();
           }
         }
       }
     }
-    StoredObject so = c.getObject(strippedPath);
-    if (so.exists()) {
-      so.delete();
+    StoredObject object = container.getObject(strippedPath);
+    if (object.exists()) {
+      object.delete();
     }
     return true;
   }
@@ -211,10 +202,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     if (path.endsWith("_temporary")) {
       return true;
     }
-    String strippedPath = stripPrefixIfPresent(path);
-    Container c = mAccount.getContainer(mContainerName);
-    StoredObject so = c.getObject(strippedPath);
-    return so.exists();
+    return getObject(path).exists();
   }
 
   /**
@@ -252,14 +240,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
-    return so.getContentLength();
+    return getObject(path).getContentLength();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
-    StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
-    return so.getLastModifiedAsDate().getTime();
+    return getObject(path).getLastModifiedAsDate().getTime();
   }
 
   // This call is currently only used for the web ui, where a negative value implies unknown.
@@ -295,11 +281,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
-    path = stripPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    StoredObject so = container.getObject(path);
-    InputStream  is = so.downloadObjectAsInputStream();
-    return is;
+    return getObject(path).downloadObjectAsInputStream();
   }
 
   /**
@@ -334,15 +316,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     if (exists(src) && copy(strippedSrcPath, strippedDstPath)) {
       return delete(src, true);
     }
-    Container c = mAccount.getContainer(mContainerName);
+    Container container = mAccount.getContainer(mContainerName);
     strippedSrcPath = makeQualifiedPath(strippedSrcPath);
     strippedDstPath = makeQualifiedPath(strippedDstPath);
-    PaginationMap paginationMap = c.getPaginationMap(strippedSrcPath, 100);
+    PaginationMap paginationMap = container.getPaginationMap(strippedSrcPath, 100);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      for (StoredObject obj : c.list(paginationMap, page)) {
-        if (obj.exists() && copy(obj.getName(),
-            obj.getName().replace(strippedSrcPath, strippedDstPath))) {
-          delete(obj.getName(), false);
+      for (StoredObject object : container.list(paginationMap, page)) {
+        if (object.exists() && copy(object.getName(),
+            object.getName().replace(strippedSrcPath, strippedDstPath))) {
+          delete(object.getName(), false);
         }
       }
     }
@@ -350,8 +332,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-  }
+  public void setConf(Object conf) {}
 
   // Not supported
   @Override
@@ -376,9 +357,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
+
         Container container = mAccount.getContainer(mContainerName);
-        container.getObject(strippedSrcPath).copyObject(container,
-            container.getObject(strippedDstPath));
+        container.getObject(strippedSrcPath)
+            .copyObject(container, container.getObject(strippedDstPath));
         return true;
       } catch (Exception e) {
         LOG.error("Failed to copy file {} to {}", src, dst, e.getMessage());
@@ -400,7 +382,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean isDirectory(String path) throws IOException {
     String[] children = listInternal(path);
-    return children.length > 0;
+    return children != null && children.length > 0;
   }
 
   /**
@@ -417,13 +399,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       Directory directory = new Directory(path, '/');
-      Container c = mAccount.getContainer(mContainerName);
-      Collection<DirectoryOrObject> res = c.listDirectory(directory);
+      Container container = mAccount.getContainer(mContainerName);
+      Collection<DirectoryOrObject> objects = container.listDirectory(directory);
       Set<String> children = new HashSet<>();
-      Iterator<DirectoryOrObject> iter = res.iterator();
-      while (iter.hasNext()) {
-        DirectoryOrObject dirobj = iter.next();
-        String child = stripFolderSuffixIfPresent(dirobj.getName());
+      for (DirectoryOrObject object : objects) {
+        String child = stripFolderSuffixIfPresent(object.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
       }
@@ -474,10 +454,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private String stripPrefixIfPresent(String path, String prefix) {
     if (path.startsWith(prefix)) {
-      String res =  path.substring(prefix.length());
-      return res;
+      return path.substring(prefix.length());
     }
     return path;
+  }
+
+  /**
+   * Retrieves a handle to an object identified by the given path.
+   *
+   * @param path the path to retrieve an object handle for
+   * @return the object handle
+   */
+  private StoredObject getObject(String path) {
+    String strippedPath = stripPrefixIfPresent(path);
+    Container container = mAccount.getContainer(mContainerName);
+    return container.getObject(strippedPath);
   }
 
   @Override
