@@ -135,3 +135,6 @@ in Spark WebUI below.
 
 ![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
 
+### Running Spark on Yarn
+
+When a Spark job is run on Yarn, Spark launches its task executors without taking data locality into account. Spark will then correctly take data locality into account when deciding how to distribute tasks to its executors. For example, if `host1` contains `blockA` and a job using `blockA` is launched on the yarn cluster with `--num-executors=1`, Spark might place the only executor on `host2` and have poor locality. However, if `--num-executors=2` and executors are started on `host1` and `host2`, Spark will be smart enough to prioritize placing the job on host1. This means that you should try to use enough Spark executors that some executor will be placed local to your data.
