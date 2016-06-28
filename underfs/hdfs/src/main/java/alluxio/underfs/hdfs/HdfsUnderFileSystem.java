@@ -55,7 +55,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   private static final FsPermission PERMISSION = new FsPermission((short) 0777)
       .applyUMask(FsPermission.createImmutable((short) 0000));
 
-  private final FileSystem mFileSystem;
+  private FileSystem mFileSystem;
 
   /**
    * Constructs a new HDFS {@link UnderFileSystem}.
@@ -65,20 +65,20 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    */
   public HdfsUnderFileSystem(AlluxioURI uri, Object conf) {
     super(uri);
-    String ufsPrefix = uri.toString();
-    org.apache.hadoop.conf.Configuration tConf;
+    final String ufsPrefix = uri.toString();
+    final org.apache.hadoop.conf.Configuration hadoopConf;
     if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
-      tConf = (org.apache.hadoop.conf.Configuration) conf;
+      hadoopConf = (org.apache.hadoop.conf.Configuration) conf;
     } else {
-      tConf = new org.apache.hadoop.conf.Configuration();
+      hadoopConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(ufsPrefix, tConf);
-    tConf.addResource(new Path(tConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
-    HdfsUnderFileSystemUtils.addS3Credentials(tConf);
+    prepareConfiguration(ufsPrefix, hadoopConf);
+    hadoopConf.addResource(new Path(hadoopConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
+    HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
 
     Path path = new Path(ufsPrefix);
     try {
-      mFileSystem = path.getFileSystem(tConf);
+      mFileSystem = path.getFileSystem(hadoopConf);
     } catch (IOException e) {
       LOG.error("Exception thrown when trying to get FileSystem for {}", ufsPrefix, e);
       throw Throwables.propagate(e);
