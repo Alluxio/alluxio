@@ -134,9 +134,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
         index = new NonUniqueFieldIndex<T>(indexDefinition);
       }
 
-      if (indices.put(indexDefinition, index) != null) {
-        throw new IllegalStateException("Adding two indices to indexedSet using same name.");
-      }
+      indices.put(indexDefinition, index);
     }
 
     mIndices = Collections.unmodifiableMap(indices);
