@@ -159,7 +159,7 @@ public class AbstractFileSystemTest {
     alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
   }
-  
+
   /**
   * Ensures that when ListStatusNonExisting should Throw FileNotFoundException.
   */
