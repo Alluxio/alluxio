@@ -12,7 +12,7 @@
 package alluxio.collections;
 
 /**
- * An class representing the definition of an index for this {@link IndexedSet}, each index for
+ * A class representing the definition of an index for this {@link IndexedSet}, each index for
  * this set must implement the interface to define how to get the value of the field chosen as
  * the index. Users must use the index name defined in this class as the
  * parameter in all methods of {@link IndexedSet} to represent the same index.
