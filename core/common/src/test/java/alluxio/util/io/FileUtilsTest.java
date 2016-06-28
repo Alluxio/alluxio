@@ -272,7 +272,7 @@ public class FileUtilsTest {
     File storageDir = new File(mTestFolder.getRoot(), "storageDir");
     File blockFile = new File(storageDir, "200");
 
-    // When storage dir doesn't exists
+    // When storage dir doesn't exist
     FileUtils.createBlockPath(blockFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
     Assert.assertEquals(
