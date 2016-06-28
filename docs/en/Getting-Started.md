@@ -43,14 +43,14 @@ $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
 $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
 
-This will create a directory **alluxio-{{site.ALLUXIO_RELEASED_VERSION}}** with all of the Alluxio
+This will create a directory `alluxio-{{site.ALLUXIO_RELEASED_VERSION}}` with all of the Alluxio
 source files and Java binaries.
 
 ## Configuring Alluxio
 
 Before we start Alluxio, we have to configure it. We will be using most of the default settings.
 
-Create the **conf/alluxio-env.sh** configuration file from the template. You can create the config
+Create the `conf/alluxio-env.sh` configuration file from the template. You can create the config
 file with the following command:
 
 ```bash
@@ -62,7 +62,7 @@ $ ./bin/alluxio bootstrap-conf localhost
 If you have an Amazon AWS account with your access key id and secret key, you can update your
 Alluxio configuration now in preparation for interacting with Amazon S3 later in this guide. Add
 your AWS access information to the Alluxio configuration by adding to the
-**conf/alluxio-site.properties** file. The following commands will update the configuration.
+`conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
 $ echo "fs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
@@ -121,7 +121,7 @@ $ ./bin/alluxio fs copyFromLocal LICENSE /LICENSE
 Copied LICENSE to /LICENSE
 ```
 
-After copying the **LICENSE** file, we should be able to see it in Alluxio. List the files in
+After copying the `LICENSE` file, we should be able to see it in Alluxio. List the files in
 Alluxio with the command:
 
 ```bash
