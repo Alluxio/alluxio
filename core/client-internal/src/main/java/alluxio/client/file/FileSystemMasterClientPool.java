@@ -23,6 +23,9 @@ import javax.annotation.concurrent.ThreadSafe;
 final class FileSystemMasterClientPool extends ResourcePool<FileSystemMasterClient> {
   private final InetSocketAddress mMasterAddress;
 
+  public InetSocketAddress getmMasterAddress() {
+    return mMasterAddress;
+  }
   /**
    * Creates a new file stream master client pool.
    *

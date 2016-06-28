@@ -72,11 +72,20 @@ public enum FileSystemContext {
    * {@link ClientContext}.
    */
   public void reset() {
-    if (null != mFileSystemMasterClientPool) {
+    if (null != mFileSystemMasterClientPool && isMasterChange()) {
       return;
     }
-    mFileSystemMasterClientPool.close();
-    mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+    mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+  }
+
+  private boolean isMasterChange() {
+    if (null == mFileSystemMasterClientPool.getmMasterAddress()) {
+      return true;
+    }
+
+    if (!mFileSystemMasterClientPool.getmMasterAddress().equals(ClientContext.getMasterAddress())) {
+      return true;
+    }
+    return false;
   }
 }
