@@ -159,6 +159,33 @@ public class AbstractFileSystemTest {
     alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClientContext();
   }
+  
+  /**
+  * Tests for ALLUXIO-2036.
+  * Cause by ALLUXIO-2025
+  */
+  @Test
+  public void shouldThrowFileNotFoundExceptionWhenListStatus4NoneExistFile() throws Exception {
+    // final Configuration conf = new Configuration();
+    StringBuilder path = new StringBuilder("/ALLUXIO-2036.");
+    path.append(System.currentTimeMillis()).append(".txt");
+    FileSystem fs = new FileSystem();
+    try {
+      fs.listStatus(new Path(path.toString()));
+    } catch (IOException e) {
+      Assert.assertTrue(e instanceof FileNotFoundException);
+    } finally {
+      try {
+        fs.close();
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    }
+
+    PowerMockito.verifyStatic();
+    alluxio.client.file.FileSystem.Factory.get();
+    ClientTestUtils.resetClientContext();
+  }
 
   /**
    * Tests that initializing the {@link AbstractFileSystem} will reinitialize contexts to pick up
