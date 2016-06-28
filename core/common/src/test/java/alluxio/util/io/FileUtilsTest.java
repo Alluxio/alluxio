@@ -262,14 +262,14 @@ public class FileUtilsTest {
   }
 
   /**
-   * Tests {@link FileUtils#createBlockPath} method when storage dir exists or not.
+   * Tests {@link FileUtils#createBlockPath} method when storage dir exists or doesn't exist.
    */
   @Test
   public void createStorageDirPathTest() throws IOException {
-    File storageDir = new File(mTestFolder.getRoot(), "tmp");
+    File storageDir = new File(mTestFolder.getRoot(), "storageDir");
     File blockFile = new File(storageDir, "200");
 
-    // When storage dir not exists
+    // When storage dir doesn't exists
     FileUtils.createBlockPath(blockFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
     Assert.assertEquals(
