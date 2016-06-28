@@ -18,10 +18,19 @@ import org.powermock.reflect.Whitebox;
 
 import java.util.Properties;
 
+/**
+ * Utility methods for the configuration tests.
+ */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Configuration.class)
 public final class ConfigurationTestUtils {
 
+  /**
+   * Resets the configuration to its initial state.
+   *
+   * This method should only be used as a cleanup mechanism between tests. It should not be used
+   * while any object may be using the {@link Configuration}.
+   */
   public static void resetConfiguration() {
     Properties properties = Whitebox.getInternalState(Configuration.class, "PROPERTIES");
     properties.clear();

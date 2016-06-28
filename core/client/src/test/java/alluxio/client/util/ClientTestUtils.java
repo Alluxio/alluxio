@@ -35,8 +35,7 @@ public final class ClientTestUtils {
   }
 
   /**
-   * Resets the client to its initial state, re-initializing all configuration and contexts.
-   * Resets the initialization flag in AbstractFileSystem.
+   * Resets the client to its initial state, re-initializing Alluxio and Hadoop contexts.
    *
    * This method should only be used as a cleanup mechanism between tests. It should not be used
    * while any object may be using the {@link ClientContext}.
