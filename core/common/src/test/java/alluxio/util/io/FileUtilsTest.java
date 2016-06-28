@@ -302,13 +302,16 @@ public class FileUtilsTest {
       }
     }
 
-    File storageDir = new File(mTestFolder.getRoot(), "tmp");
-    File blockFile = new File(storageDir, "200");
-    for (int i = 0; i < 20; i++) {
-      ConcurrentCreator concurrentCreator =
+    for (int i = 0; i < 100; i++) {
+      File storageDir = new File(mTestFolder.getRoot(), "tmp" + i);
+      File blockFile = new File(storageDir, String.valueOf(i));
+      ConcurrentCreator concurrentCreator1 =
           new ConcurrentCreator(blockFile.getAbsolutePath());
-      concurrentCreator.call();
+      ConcurrentCreator concurrentCreator2 =
+          new ConcurrentCreator(blockFile.getAbsolutePath());
+      concurrentCreator1.call();
+      concurrentCreator2.call();
+      Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
     }
-    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
   }
 }
