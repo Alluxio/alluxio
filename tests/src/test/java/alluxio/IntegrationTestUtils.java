@@ -55,8 +55,7 @@ public final class IntegrationTestUtils {
       final AlluxioURI uri, int timeoutMs) {
 
     try (FileSystemMasterClient client = new FileSystemMasterClient(
-        localAlluxioClusterResource.get().getMaster().getAddress(),
-        localAlluxioClusterResource.getTestConf())) {
+        localAlluxioClusterResource.get().getMaster().getAddress())) {
       CommonTestUtils.waitFor(uri + " to be persisted", new Function<Void, Boolean>() {
         @Override
         public Boolean apply(Void input) {

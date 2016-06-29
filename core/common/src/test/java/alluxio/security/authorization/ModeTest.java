@@ -12,9 +12,11 @@
 package alluxio.security.authorization;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +33,10 @@ public final class ModeTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private Configuration mConf = new Configuration();
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
 
   /**
    * Tests the {@link Mode#toShort()} method.
@@ -117,14 +122,14 @@ public final class ModeTest {
   }
 
   /**
-   * Tests the {@link Mode#getUMask(Configuration)} and
+   * Tests the {@link Mode#getUMask()} and
    * {@link Mode#applyUMask(Mode)} methods.
    */
   @Test
   public void umaskTest() {
     String umask = "0022";
-    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
-    Mode umaskMode = Mode.getUMask(mConf);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Mode umaskMode = Mode.getUMask();
     // after umask 0022, 0777 should change to 0755
     Mode mode = Mode.getDefault().applyUMask(umaskMode);
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
@@ -134,30 +139,28 @@ public final class ModeTest {
   }
 
   /**
-   * Tests the {@link Mode#getUMask(Configuration)} method to thrown an exception
-   * when it exceeds the length.
+   * Tests the {@link Mode#getUMask()} method to thrown an exception when it exceeds the length.
    */
   @Test
   public void umaskExceedLengthTest() {
     String umask = "00022";
-    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.getUMask(mConf);
+    Mode.getUMask();
   }
 
   /**
-   * Tests the {@link Mode#getUMask(Configuration)} method to thrown an exception
-   * when it is not an integer.
+   * Tests the {@link Mode#getUMask()} method to thrown an exception when it is not an integer.
    */
   @Test
   public void umaskNotIntegerTest() {
     String umask = "NotInteger";
-    mConf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
         Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
-    Mode.getUMask(mConf);
+    Mode.getUMask();
   }
 }

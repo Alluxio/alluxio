@@ -26,10 +26,9 @@ public final class LineageUtils {
   /**
    * Checks if lineage is enabled.
    *
-   * @param conf the configuration for Alluxio
    * @return true if lineage is enabled, false otherwise
    */
-  public static boolean isLineageEnabled(Configuration conf) {
-    return conf.getBoolean(Constants.USER_LINEAGE_ENABLED);
+  public static boolean isLineageEnabled() {
+    return Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED);
   }
 }

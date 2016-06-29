@@ -11,9 +11,9 @@
 
 package alluxio.master.keyvalue;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.master.Master;
-import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -40,7 +40,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public boolean isEnabled() {
-    return MasterContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED);
+    return Configuration.getBoolean(Constants.KEY_VALUE_ENABLED);
   }
 
   @Override

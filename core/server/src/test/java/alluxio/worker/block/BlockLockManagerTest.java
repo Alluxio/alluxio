@@ -11,11 +11,12 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
 import org.junit.After;
@@ -67,7 +68,7 @@ public class BlockLockManagerTest {
 
   @After
   public void after() throws Exception {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -306,7 +307,6 @@ public class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    WorkerContext.getConf().set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
+    Configuration.set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

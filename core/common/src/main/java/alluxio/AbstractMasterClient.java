@@ -36,11 +36,10 @@ public abstract class AbstractMasterClient extends AbstractClient {
    * Creates a new master client base.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public AbstractMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration, "master");
-    mUseZookeeper = mConfiguration.getBoolean(Constants.ZOOKEEPER_ENABLED);
+  public AbstractMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress, "master");
+    mUseZookeeper = Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED);
   }
 
   /**
@@ -54,6 +53,6 @@ public abstract class AbstractMasterClient extends AbstractClient {
     if (!mUseZookeeper) {
       return super.getAddress();
     }
-    return NetworkAddressUtils.getMasterAddressFromZK(mConfiguration);
+    return NetworkAddressUtils.getMasterAddressFromZK();
   }
 }

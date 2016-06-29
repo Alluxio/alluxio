@@ -14,7 +14,6 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.exception.AlluxioException;
@@ -36,11 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CreateLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CreateLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CreateLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -83,7 +81,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       cmd += args[i] + " ";
     }
 
-    String outputPath = ClientContext.getConf().get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
+    String outputPath = Configuration.get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
     if (outputPath == null) {
       throw new IOException("recompute output log is not configured");
     }

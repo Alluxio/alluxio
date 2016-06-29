@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
@@ -38,11 +37,10 @@ public final class LoadCommand extends WithWildCardPathCommand {
   /**
    * Constructs a new instance to load a file or directory in Alluxio space.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LoadCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LoadCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

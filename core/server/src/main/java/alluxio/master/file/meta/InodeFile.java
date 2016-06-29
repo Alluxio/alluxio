@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.InvalidFileSizeException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
@@ -304,8 +303,7 @@ public final class InodeFile extends Inode<InodeFile> {
    */
   public static InodeFile create(long id, long parentId, String name,
       CreateFileOptions fileOptions) {
-    Permission permission = new Permission(fileOptions.getPermission())
-        .applyFileUMask(MasterContext.getConf());
+    Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
     return new InodeFile(id)
         .setParentId(parentId)
         .setName(name)

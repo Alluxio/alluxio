@@ -40,8 +40,9 @@ public final class CreateOptionsTest {
   public void defaultsTest() throws IOException {
     CreateOptions options = new CreateOptions();
 
-    Permission expectedPs = Permission.defaults();
-    // Verify that the owner and group are not.
+    Permission expectedPs = Permission.defaults().applyFileUMask();
+
+    // Verify that the owner and group are not set.
     Assert.assertEquals("", options.getPermission().getOwner());
     Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
@@ -54,17 +55,16 @@ public final class CreateOptionsTest {
    */
   @Test
   public void securityEnabledTest() throws IOException {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
 
-    CreateOptions options = new CreateOptions(conf);
+    CreateOptions options = new CreateOptions();
 
-    Permission expectedPs = Permission.defaults().applyFileUMask(conf);
+    Permission expectedPs = Permission.defaults().applyFileUMask();
 
-    // Verify that the owner and group are not.
+    // Verify that the owner and group are not set.
     Assert.assertEquals("", options.getPermission().getOwner());
     Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
@@ -78,8 +78,7 @@ public final class CreateOptionsTest {
   public void fieldsTest() {
     Permission perm = Permission.defaults();
 
-    Configuration conf = new Configuration();
-    CreateOptions options = new CreateOptions(conf);
+    CreateOptions options = new CreateOptions();
     options.setPermission(perm);
 
     Assert.assertEquals(perm, options.getPermission());

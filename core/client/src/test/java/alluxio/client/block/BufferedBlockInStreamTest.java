@@ -32,9 +32,7 @@ public class BufferedBlockInStreamTest {
    */
   @Before
   public void before() {
-    mBufferSize =
-        Configuration.createDefaultConf().getBytes(
-            Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+    mBufferSize = Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     mBlockSize = mBufferSize * 10;
     mTestStream = new TestBufferedBlockInStream(1L, 0, mBlockSize);
   }

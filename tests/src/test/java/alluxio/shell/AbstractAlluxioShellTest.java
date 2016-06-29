@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.cli.AlluxioShell;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -72,7 +71,7 @@ public abstract class AbstractAlluxioShellTest {
     clearLoginUser();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new AlluxioShell(ClientContext.getConf());
+    mFsShell = new AlluxioShell();
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -160,7 +159,7 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   protected void clearAndLogin(String user) throws IOException {
-    LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), user);
+    LoginUserTestUtils.resetLoginUser(user);
   }
 
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {

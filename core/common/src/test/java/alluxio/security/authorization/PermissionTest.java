@@ -12,6 +12,7 @@
 package alluxio.security.authorization;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthType;
@@ -19,6 +20,7 @@ import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -41,6 +43,11 @@ public final class PermissionTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   /**
    * Tests the {@link Permission#applyUMask(Mode)} method.
    */
@@ -61,56 +68,52 @@ public final class PermissionTest {
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration conf = new Configuration();
-
     // no authentication
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Permission permission = Permission.defaults();
     verifyPermission("", "", (short) 0777, permission);
   }
 
   /**
-   * Tests the {@link Permission#setOwnerFromThriftClient(Configuration)} method.
+   * Tests the {@link Permission#setOwnerFromThriftClient()} method.
    */
   @Test
-  public void setUserFromThriftClientTest() throws Exception {
-    Configuration conf = new Configuration();
+  public void setOwnerFromThriftClientTest() throws Exception {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permission.setOwnerFromThriftClient(conf);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    permission.setOwnerFromThriftClient();
     verifyPermission("", "", (short) 0777, permission);
 
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
 
     // When authentication is enabled, user and group are inferred from thrift transport
-    permission.setOwnerFromThriftClient(conf);
+    permission.setOwnerFromThriftClient();
     verifyPermission("test_client_user", "test_client_user", (short) 0777, permission);
   }
 
   /**
-   * Tests the {@link Permission#setOwnerFromLoginModule(Configuration)} method.
+   * Tests the {@link Permission#setOwnerFromLoginModule()} method.
    */
   @Test
-  public void setUserFromLoginModuleTest() throws Exception {
-    Configuration conf = new Configuration();
+  public void setOwnerFromLoginModuleTest() throws Exception {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    permission.setOwnerFromThriftClient(conf);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    permission.setOwnerFromThriftClient();
     verifyPermission("", "", (short) 0777, permission);
 
     // When authentication is enabled, user and group are inferred from login module
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
 
-    permission.setOwnerFromLoginModule(conf);
+    permission.setOwnerFromLoginModule();
     verifyPermission("test_login_user", "test_login_user", (short) 0777, permission);
   }
 

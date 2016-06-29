@@ -11,7 +11,6 @@
 
 package alluxio.wire;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 
 import com.google.common.base.Objects;
@@ -139,11 +138,10 @@ public class MountPointInfo {
    * Sets information related to under filesystem, including its uri, type, storage usage.
    *
    * @param ufsUri the under filesystem uri
-   * @param configuration the alluxio configuration
    */
-  public void setUfsInfo(String ufsUri, Configuration configuration) {
+  public void setUfsInfo(String ufsUri) {
     mUfsUri = ufsUri;
-    UnderFileSystem ufs = UnderFileSystem.get(mUfsUri, configuration);
+    UnderFileSystem ufs = UnderFileSystem.get(mUfsUri);
     mUfsType = ufs.getUnderFSType().toString();
     try {
       mUfsCapacityBytes = ufs.getSpace(mUfsUri, UnderFileSystem.SpaceType.SPACE_TOTAL);
