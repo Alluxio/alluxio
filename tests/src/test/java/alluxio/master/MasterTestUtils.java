@@ -21,9 +21,9 @@ import alluxio.master.journal.ReadWriteJournal;
 import java.io.IOException;
 
 public class MasterTestUtils {
-  public static FileSystemMaster createFileSystemMasterFromJournal(Configuration configuration)
+  public static FileSystemMaster createFileSystemMasterFromJournal()
       throws IOException {
-    String masterJournal = configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+    String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
     Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
     BlockMaster blockMaster = new BlockMaster(blockJournal);

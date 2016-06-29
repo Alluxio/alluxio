@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
-
 import java.io.File;
 import java.io.IOException;
 
@@ -26,10 +24,9 @@ public final class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
-   * @param configuration the configuration for Alluxio
    */
-  public LocalFileSystemCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
+  public LocalFileSystemCluster(String baseDir) {
+    super(baseDir);
   }
 
   @Override

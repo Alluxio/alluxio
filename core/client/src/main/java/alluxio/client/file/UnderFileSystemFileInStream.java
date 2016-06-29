@@ -13,18 +13,18 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to read a file in the under file system through an Alluxio worker's data
@@ -151,9 +151,8 @@ public final class UnderFileSystemFileInStream extends InputStream {
    * @return a heap buffer of user configured size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
-        (int) conf.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

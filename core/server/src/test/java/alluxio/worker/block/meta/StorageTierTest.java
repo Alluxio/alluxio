@@ -11,12 +11,11 @@
 
 package alluxio.worker.block.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,14 +68,6 @@ public class StorageTierTest {
     mTier = StorageTier.newStorageTier("MEM");
     mDir1 = mTier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_BLOCK_SIZE, mDir1);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
@@ -149,7 +140,7 @@ public class StorageTierTest {
   public void blankStorageTierTest() throws Exception {
     String tierDirCapacityConf =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0);
-    WorkerContext.getConf().set(tierDirCapacityConf, "");
+    Configuration.set(tierDirCapacityConf, "");
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
     mTier = StorageTier.newStorageTier("MEM");

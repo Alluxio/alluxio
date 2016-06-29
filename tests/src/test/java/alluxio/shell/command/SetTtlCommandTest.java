@@ -25,7 +25,7 @@ import java.io.IOException;
 /**
  * Tests for setTtl command.
  */
-public class SetTtlCommandTest extends AbstractAlluxioShellTest {
+public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void setTtlTest() throws Exception {
     String filePath = "/testFile";

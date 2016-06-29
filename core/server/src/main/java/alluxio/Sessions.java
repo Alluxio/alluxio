@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.worker.WorkerContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@code Sessions} represents and manages all sessions contacting a worker.
  */
 @ThreadSafe
-public class Sessions {
+public final class Sessions {
   public static final int DATASERVER_SESSION_ID = -1;
   public static final int CHECKPOINT_SESSION_ID = -2;
   public static final int MIGRATE_DATA_SESSION_ID = -3;
@@ -88,8 +86,7 @@ public class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        Configuration conf = WorkerContext.getConf();
-        int sessionTimeoutMs = conf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = Configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

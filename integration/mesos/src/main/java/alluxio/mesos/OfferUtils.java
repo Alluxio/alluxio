@@ -20,11 +20,7 @@ import org.apache.mesos.Protos;
  * Mesos framework offer utils.
  */
 public final class OfferUtils {
-  private static final Configuration CONF = Configuration.createClientConf();
-
-  private OfferUtils() {
-
-  }
+  private OfferUtils() {} // prevent instantiation
 
   /**
    * @param offer Resource offer from Mesos
@@ -34,8 +30,8 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(CONF.getInt(Constants.MASTER_WEB_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.MASTER_RPC_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_RPC_PORT), ranges);
   }
 
   /**
@@ -46,9 +42,9 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_RPC_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_DATA_PORT), ranges);
   }
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {

@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.io.PathUtils;
 
@@ -77,31 +79,30 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Constructs a new Swift {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param configuration the configuration for Alluxio
    */
-  public SwiftUnderFileSystem(AlluxioURI uri, Configuration configuration) {
-    super(uri, configuration);
+  public SwiftUnderFileSystem(AlluxioURI uri) {
+    super(uri);
     String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    if (configuration.containsKey(Constants.SWIFT_API_KEY)) {
-      config.setPassword(configuration.get(Constants.SWIFT_API_KEY));
-    } else if (configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
-      config.setPassword(configuration.get(Constants.SWIFT_PASSWORD_KEY));
+    if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
+      config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
+    } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+      config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
     }
-    config.setAuthUrl(configuration.get(Constants.SWIFT_AUTH_URL_KEY));
-    String authMethod = configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
+    config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
+    String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
     if (authMethod != null && authMethod.equals("keystone")) {
       config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-      config.setUsername(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setTenantName(configuration.get(Constants.SWIFT_TENANT_KEY));
+      config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
+      config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
     } else {
       config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
       // tempauth requires authentication header to be of the form tenant:user.
       // JOSS however generates header of the form user:tenant.
       // To resolve this, we switch user with tenant
-      config.setTenantName(configuration.get(Constants.SWIFT_USER_KEY));
-      config.setUsername(configuration.get(Constants.SWIFT_TENANT_KEY));
+      config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
+      config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -122,17 +123,22 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     LOG.debug("connect from master");
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     LOG.debug("connect from worker");
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
     String newPath = path.substring(Constants.HEADER_SWIFT.length());
     if (newPath.endsWith("_SUCCESS")) {
@@ -145,22 +151,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       out.close();
     }
     return SwiftDirectClient.put(mAccess, newPath);
-  }
-
-  @Override
-  public OutputStream create(String path,
-      int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size is not supported"
-        + "with SwiftDirectUnderFileSystem. Block size will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.debug("Create with block size and replication is not"
-        + "supported with SwiftDirectUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   /**
@@ -211,7 +201,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -264,17 +254,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return listInternal(path, false);
   }
 
-  /**
-   * @inheritDoc
-   *
-   * @param path the folder to create
-   * @param createParent if true, the method creates any necessary but nonexistent parent
-   *        directories; otherwise, the method does not create nonexistent parent directories
-   * @return {@code true} if and only if the directory was created; {@code false} otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     return true;
   }
 
@@ -343,7 +329,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Copies an object to another name.

@@ -38,11 +38,10 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop or GlusterFS
    */
-  public GlusterFSUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
-    super(uri, configuration, conf);
+  public GlusterFSUnderFileSystem(AlluxioURI uri, Object conf) {
+    super(uri, conf);
   }
 
   @Override
@@ -51,24 +50,22 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  protected void prepareConfiguration(String path, Configuration conf,
+  protected void prepareConfiguration(String path,
       org.apache.hadoop.conf.Configuration hadoopConf) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS
-      hadoopConf.set("fs.glusterfs.impl", conf.get(Constants.UNDERFS_GLUSTERFS_IMPL));
-      hadoopConf.set("mapred.system.dir",
-          conf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
+      hadoopConf.set("fs.glusterfs.impl", Configuration.get(Constants.UNDERFS_GLUSTERFS_IMPL));
+      hadoopConf.set("mapred.system.dir", Configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
       hadoopConf
-          .set("fs.glusterfs.volumes", conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
+          .set("fs.glusterfs.volumes", Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
       hadoopConf.set(
-          "fs.glusterfs.volume.fuse." + conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
-          conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
+          "fs.glusterfs.volume.fuse." + Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
+          Configuration.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
-      super.prepareConfiguration(path, conf, hadoopConf);
+      super.prepareConfiguration(path, hadoopConf);
     }
   }
-
 }

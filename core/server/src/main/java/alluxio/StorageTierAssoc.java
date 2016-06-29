@@ -36,15 +36,14 @@ public abstract class StorageTierAssoc {
    * Constructs a new instance using the given {@link Configuration} object. The mapping cannot be
    * modified after creation.
    *
-   * @param conf the Alluxio configuration to build the mapping from
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */
-  protected StorageTierAssoc(Configuration conf, String levelsProperty, String aliasFormat) {
-    int levels = conf.getInt(levelsProperty);
+  protected StorageTierAssoc(String levelsProperty, String aliasFormat) {
+    int levels = Configuration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
-      String alias = conf.get(String.format(aliasFormat, i));
+      String alias = Configuration.get(String.format(aliasFormat, i));
       builder.put(alias, i);
     }
     mAliasToOrdinal = builder.build();

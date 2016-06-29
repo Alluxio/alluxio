@@ -64,7 +64,7 @@ public class FileSystemContract extends AbstractFSContract {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    URI uri = URI.create(mLocalAlluxioCluster.getMasterUri());
+    URI uri = URI.create(mLocalAlluxioCluster.getMasterURI());
 
     mFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }

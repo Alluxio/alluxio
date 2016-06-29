@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public FreeCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public FreeCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -46,14 +44,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    try {
-      FreeOptions options = FreeOptions.defaults().setRecursive(true);
-      mFileSystem.free(path, options);
-      System.out.println(path + " was successfully freed from memory.");
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    FreeOptions options = FreeOptions.defaults().setRecursive(true);
+    mFileSystem.free(path, options);
+    System.out.println(path + " was successfully freed from memory.");
   }
 
   @Override
