@@ -30,6 +30,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -295,27 +296,31 @@ public class FileUtilsTest {
      */
     class ConcurrentCreator implements Callable<Void> {
       private final String mPath;
+      private final CyclicBarrier mBarrier;
 
-      ConcurrentCreator(String path) {
+      ConcurrentCreator(String path, CyclicBarrier barrier) {
         mPath = path;
+        mBarrier = barrier;
       }
 
       @Override
       public Void call() throws Exception {
+        mBarrier.await(); // Await until all threads submitted
         FileUtils.createBlockPath(mPath);
         return null;
       }
     }
 
-    int numCreators = 5;
+    final int numCreators = 5;
     List<Future<Void>> futures = new ArrayList<>(numCreators);
     for (int iteration = 0; iteration < 5; iteration++) {
-      ExecutorService executor = Executors.newFixedThreadPool(numCreators);
+      final ExecutorService executor = Executors.newFixedThreadPool(numCreators);
+      final CyclicBarrier barrier = new CyclicBarrier(numCreators);
       try {
         File storageDir = new File(mTestFolder.getRoot(), "tmp" + iteration);
         for (int i = 0; i < numCreators; i++) {
           File blockFile = new File(storageDir, String.valueOf(i));
-          futures.add(executor.submit(new ConcurrentCreator(blockFile.getAbsolutePath())));
+          futures.add(executor.submit(new ConcurrentCreator(blockFile.getAbsolutePath(), barrier)));
         }
         for (Future<Void> f : futures) {
           f.get();
