@@ -200,7 +200,8 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   public void stopFS() throws Exception {
     mWorker.stop();
     for (int k = 0; k < mNumOfMasters; k++) {
-      mMasters.get(k).stop();
+      // TODO(jiri): use stop() instead of kill() (see ALLUXIO-2045)
+      mMasters.get(k).kill();
     }
     LOG.info("Stopping testing zookeeper: {}", mCuratorServer.getConnectString());
     mCuratorServer.stop();
