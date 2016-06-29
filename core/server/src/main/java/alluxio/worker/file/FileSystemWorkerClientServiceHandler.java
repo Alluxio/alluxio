@@ -112,8 +112,8 @@ public final class FileSystemWorkerClientServiceHandler
   public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      String owner = options.isSetOwner() ? options.getOwner() : null;
-      String group = options.isSetGroup() ? options.getGroup() : null;
+      String owner = options.isSetOwner() ? options.getOwner() : "";
+      String group = options.isSetGroup() ? options.getGroup() : "";
       short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
       return mWorker.completeUfsFile(sessionId, tempUfsFileId, new Permission(owner, group, mode));
     } catch (IOException e) {
@@ -138,8 +138,8 @@ public final class FileSystemWorkerClientServiceHandler
   public long createUfsFile(long sessionId, String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      String user = options.isSetOwner() ? options.getOwner() : null;
-      String group = options.isSetGroup() ? options.getGroup() : null;
+      String user = options.isSetOwner() ? options.getOwner() : "";
+      String group = options.isSetGroup() ? options.getGroup() : "";
       short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
       return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri),
           new Permission(user, group, mode));
