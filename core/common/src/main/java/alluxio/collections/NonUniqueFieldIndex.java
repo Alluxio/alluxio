@@ -38,16 +38,21 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   public void add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
 
-    ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
+    ConcurrentHashSet<T> objSet;
 
-    // If there is no object set for the current value, creates a new one.
-    if (objSet == null) {
-      mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
+    do {
       objSet = mIndexMap.get(fieldValue);
-    }
+      // If there is no object set for the current value, creates a new one.
+      while (objSet == null) {
+        mIndexMap.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
+        objSet = mIndexMap.get(fieldValue);
+      }
 
-    // Adds the value to the object set.
-    objSet.add(object);
+      synchronized (objSet) {
+        // Adds the value to the object set.
+        objSet.add(object);
+      }
+    } while (objSet != mIndexMap.get(fieldValue));
   }
 
   @Override
@@ -55,15 +60,19 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
     if (objSet != null) {
-      return objSet.remove(object);
+      synchronized (objSet) {
+        objSet.remove(object);
+        if (objSet.isEmpty()) {
+          mIndexMap.remove(fieldValue, objSet);
+        }
+      }
     }
     return false;
   }
 
   @Override
   public boolean contains(Object value) {
-    Set<T> set = mIndexMap.get(value);
-    return set != null && !set.isEmpty();
+    return mIndexMap.containsKey(value);
   }
 
   @Override
