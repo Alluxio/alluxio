@@ -80,8 +80,7 @@ public class IndexedSetConcurrencyTest {
     @Override
     public long runSingleTask() {
       TestInfo info =
-          mIndexedSet.getFirstByField(mSizeIndex,
-              ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
+          mIndexedSet.getFirstByField(mSizeIndex, ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
       if (info != null) {
         return mIndexedSet.remove(info) ? 1 : 0;
       }

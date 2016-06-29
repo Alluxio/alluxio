@@ -106,8 +106,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
 
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
-   * objects with that index value. A unique index is an index where each index value only maps to
-   * one object. A non-unique index is an index where an index value can map to one or more objects.
+   * objects with that index value.
    */
   private final Map<IndexDefinition<T>, FieldIndex<T>> mIndices;
 
@@ -171,8 +170,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
         return false;
       }
 
-      for (Map.Entry<IndexDefinition<T>, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
-        fieldInfo.getValue().add(object);
+      for (FieldIndex<T> fieldValue : mIndices.values()) {
+        fieldValue.add(object);
       }
     }
     return true;
@@ -231,7 +230,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * Whether there is an object with the specified unique index field value in the set.
+   * Whether there is an object with the specified index field value in the set.
    *
    * @param indexDefinition the field index definition
    * @param value the field value
@@ -239,7 +238,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public boolean contains(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
-    return index != null && index.contains(value);
+    if (index == null) {
+      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+    }
+    return index.contains(value);
   }
 
   /**
@@ -252,11 +254,14 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
-    return index == null ? Collections.<T>emptySet() : index.getByField(value);
+    if (index == null) {
+      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+    }
+    return index.getByField(value);
   }
 
   /**
-   * Gets the object from the set of objects with the specified non-unique field value.
+   * Gets the object from the set of objects with the specified field value.
    *
    * @param indexDefinition the field index definition
    * @param value the field value
@@ -264,7 +269,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
-    return index == null ? null : index.getFirst(value);
+    if (index == null) {
+      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+    }
+    return index.getFirst(value);
   }
 
   /**
@@ -301,8 +309,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {
-    for (Map.Entry<IndexDefinition<T>, FieldIndex<T>> fieldInfo : mIndices.entrySet()) {
-      fieldInfo.getValue().remove(object);
+    for (FieldIndex<T> fieldValue : mIndices.values()) {
+      fieldValue.remove(object);
     }
   }
 
@@ -314,16 +322,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @return the number of objects removed
    */
   public int removeByField(IndexDefinition<T> indexDefinition, Object value) {
-    FieldIndex<T> index = mIndices.get(indexDefinition);
+    Set<T> toRemove = getByField(indexDefinition, value);
 
-    if (index == null) {
-      return 0;
-    }
-
-    Set<T> toRemove = index.getByField(value);
-    if (toRemove == null) {
-      return 0;
-    }
     int removed = 0;
     for (T o : toRemove) {
       if (remove(o)) {
