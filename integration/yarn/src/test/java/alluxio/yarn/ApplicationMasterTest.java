@@ -41,7 +41,6 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -67,9 +66,7 @@ import java.util.concurrent.CountDownLatch;
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
-    YarnClient.class})
-@Ignore
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String RESOURCE_ADDRESS = "/tmp/resource";
@@ -132,7 +129,11 @@ public class ApplicationMasterTest {
     for (Entry<String, String> entry : properties.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS);
+
+    // Mock Yarn client
+    mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
+
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS, mYarnClient);
     mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Node Manager client
@@ -147,11 +148,6 @@ public class ApplicationMasterTest {
         (AMRMClientAsync<ContainerRequest>) Mockito.mock(AMRMClientAsync.class);
     mRMClient = amrm;
     Mockito.when(AMRMClientAsync.createAMRMClientAsync(100, mMaster)).thenReturn(mRMClient);
-
-    // Mock Yarn client
-    PowerMockito.mockStatic(YarnClient.class);
-    mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
-    Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
 
     // Partially mock Utils to avoid hdfs IO
     PowerMockito.mockStatic(YarnUtils.class);
@@ -441,7 +437,7 @@ public class ApplicationMasterTest {
     Configuration.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
     Configuration.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
     Configuration.set(Constants.WORKER_MEMORY_SIZE, "256gb");
-    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath");
+    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath", mYarnClient);
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
     Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
     Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
