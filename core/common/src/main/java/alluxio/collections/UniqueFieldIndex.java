@@ -12,19 +12,15 @@
 package alluxio.collections;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * An interface extending {@link FieldIndex}, represents a unique index. A unique index is an index
+ * A class representing a unique index. A unique index is an index
  * where each index value only maps to one object.
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-@NotThreadSafe
 class UniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, T> mIndexMap;
@@ -42,7 +38,8 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     if (mIndexMap.putIfAbsent(fieldValue, object) != null) {
-      throw new IllegalStateException("Adding more than one value to a unique index.");
+      throw new IllegalStateException("Adding more than one value to a unique index:"
+          + fieldValue.toString());
     }
   }
 
@@ -59,12 +56,11 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
 
   @Override
   public Set<T> getByField(Object value) {
-    Set<T> set = new HashSet<T>();
     T res = mIndexMap.get(value);
     if (res != null) {
-      set.add(res);
+      return Collections.singleton(res);
     }
-    return Collections.unmodifiableSet(set);
+    return Collections.emptySet();
   }
 
   @Override

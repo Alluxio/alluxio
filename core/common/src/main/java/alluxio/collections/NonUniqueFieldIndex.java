@@ -16,15 +16,12 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.concurrent.NotThreadSafe;
-
 /**
- * An interface extending {@link FieldIndex}, represents a non-unique index. A non-unique index is
- * an index where a index value can map to one or more objects.
+ * A class representing a non-unique index. A non-unique index is
+ * an index where an index value can map to one or more objects.
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-@NotThreadSafe
 class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
@@ -79,7 +76,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     try {
-      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
+      return !all.iterator().hasNext() ? null : all.iterator().next();
     } catch (NoSuchElementException e) {
       return null;
     }

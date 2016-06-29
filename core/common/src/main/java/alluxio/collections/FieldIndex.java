@@ -33,14 +33,14 @@ interface FieldIndex<T> {
    * Removes the object o from the index.
    *
    * @param o the object to remove from index
-   * @return true if success, false if this set did not already contain the specified element
+   * @return whether the specified element was in the index
    */
   boolean remove(T o);
 
   /**
-   * Whether there is an object with the specified index field value in the set.
+   * Returns whether there is an object with the specified index field value in the set.
    *
-   * @param value the field value
+   * @param value the field value to be satisfied
    * @return true if there is one such object, otherwise false
    */
   boolean contains(Object value);
@@ -55,9 +55,9 @@ interface FieldIndex<T> {
   Set<T> getByField(Object value);
 
   /**
-   * Gets an object from the set of objects with the specified unique field value.
+   * Gets an object from the set of objects with the specified field value.
    *
-   * @param value the field value
+   * @param value the field value to be satisfied
    * @return the object or null if there is no such object
    */
   T getFirst(Object value);
