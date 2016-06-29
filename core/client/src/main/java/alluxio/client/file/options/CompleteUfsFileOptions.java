@@ -98,10 +98,10 @@ public final class CompleteUfsFileOptions {
    */
   public CompleteUfsFileTOptions toThrift() {
     CompleteUfsFileTOptions options = new CompleteUfsFileTOptions();
-    if (mPermission.getOwner() != null && !mPermission.getOwner().isEmpty()) {
+    if (!mPermission.getOwner().isEmpty()) {
       options.setOwner(mPermission.getOwner());
     }
-    if (mPermission.getGroup() != null && !mPermission.getGroup().isEmpty()) {
+    if (!mPermission.getGroup().isEmpty()) {
       options.setGroup(mPermission.getGroup());
     }
     short mode = mPermission.getMode().toShort();
