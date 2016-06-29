@@ -489,13 +489,13 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
+
+      // TODO(jiri): currently we only retrieve the first 1000 objects stored under this path;
+      // support listing all objects
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
       listObjectsRequest.setPrefix(path);
+      listObjectsRequest.setMaxKeys(1000);
 
-      // recursive, so don't set the delimiter
-      // then list will return all files in this dir and subdirs
       if (recursive) {
         ObjectListing listing = mClient.listObjects(listObjectsRequest);
         List<OSSObjectSummary> objectSummaryList = listing.getObjectSummaries();
@@ -507,12 +507,14 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
           child = stripFolderSuffixIfPresent(child);
           ret[i] = child;
         }
+        // TODO(jiri): currently we do not list directories that were not created through
+        // Alluxio; support this by looping through all common prefixes
         return ret;
       }
 
       // Non recursive, so set the delimiter, let the listObjects only get the files in the folder
       listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       ObjectListing listing = mClient.listObjects(listObjectsRequest);
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
@@ -524,6 +526,18 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
         children.add(child);
+      }
+      // Loop through all common prefixes to account for directories that were not created through
+      // Alluxio.
+      for (String commonPrefix : listing.getCommonPrefixes()) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, path);
+        if (!children.contains(child)) {
+          // This directory has not been created through Alluxio.
+          if (mkdirsInternal(commonPrefix)) {
+            children.add(child);
+          }
+        }
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {

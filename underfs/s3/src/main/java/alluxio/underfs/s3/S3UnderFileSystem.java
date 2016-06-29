@@ -21,6 +21,7 @@ import com.google.common.base.Preconditions;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
+import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -561,12 +562,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      S3Object[] objs = mClient.listObjects(mBucketName, path, "");
+      // TODO(jiri): currently we only retrieve the first 1000 objects stored under this path;
+      // support listing all objects
       if (recursive) {
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "", 1000L, null);
         List<String> ret = new ArrayList<>();
-        for (S3Object obj : objs) {
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
@@ -576,11 +577,14 @@ public class S3UnderFileSystem extends UnderFileSystem {
             ret.add(child);
           }
         }
+        // TODO(jiri): currently we do not list directories that were not created through
+        // Alluxio; support this by looping through all common prefixes
         return ret.toArray(new String[ret.size()]);
       }
       // Non recursive list
       Set<String> children = new HashSet<String>();
-      for (S3Object obj : objs) {
+      StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "/", 1000L, null);
+      for (StorageObject obj : chunk.getObjects()) {
         // Remove parent portion of the key
         String child = getChildName(obj.getKey(), path);
         // Remove any portion after the path delimiter
@@ -591,6 +595,16 @@ public class S3UnderFileSystem extends UnderFileSystem {
         // Add to the set of children, the set will deduplicate.
         if (!child.isEmpty()) {
           children.add(child);
+        }
+      }
+      for (String commonPrefix : chunk.getCommonPrefixes()) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, path);
+        if (!children.contains(child)) {
+          // This directory has not been created through Alluxio.
+          if (mkdirsInternal(commonPrefix)) {
+            children.add(child);
+          }
         }
       }
       return children.toArray(new String[children.size()]);
