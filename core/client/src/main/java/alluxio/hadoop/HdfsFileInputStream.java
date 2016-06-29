@@ -98,6 +98,9 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
 
   @Override
   public int available() throws IOException {
+    if (mClosed) {
+      throw new IOException("Cannot query available bytes from a closed stream.");
+    }
     return (int) mAlluxioFileInputStream.remaining();
   }
 
