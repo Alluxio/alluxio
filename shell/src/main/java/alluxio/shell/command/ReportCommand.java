@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
@@ -30,11 +29,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ReportCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public ReportCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ReportCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

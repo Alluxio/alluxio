@@ -13,7 +13,6 @@ package alluxio.master.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.CommonTestUtils;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
@@ -71,13 +70,11 @@ public class LineageMasterIntegrationTest {
       Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
       );
 
-  protected Configuration mTestConf;
   protected CommandLineJob mJob;
 
   @Before
   public void before() throws Exception {
     mJob = new CommandLineJob("test", new JobConf("output"));
-    mTestConf = mLocalAlluxioClusterResource.get().getMasterConf();
   }
 
   @Test
@@ -204,12 +201,10 @@ public class LineageMasterIntegrationTest {
   }
 
   protected LineageMasterClient getLineageMasterClient() {
-    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-        mTestConf);
+    return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 
   protected FileSystemMasterClient getFileSystemMasterClient() {
-    return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-        mTestConf);
+    return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 }

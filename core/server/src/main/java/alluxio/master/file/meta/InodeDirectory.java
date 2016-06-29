@@ -13,7 +13,6 @@ package alluxio.master.file.meta;
 
 import alluxio.Constants;
 import alluxio.collections.IndexedSet;
-import alluxio.master.MasterContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -245,8 +244,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public static InodeDirectory create(long id, long parentId, String name,
       CreateDirectoryOptions directoryOptions) {
-    Permission permission = new Permission(directoryOptions.getPermission())
-        .applyDirectoryUMask(MasterContext.getConf());
+    Permission permission = new Permission(directoryOptions.getPermission()).applyDirectoryUMask();
     return new InodeDirectory(id)
         .setParentId(parentId)
         .setName(name)

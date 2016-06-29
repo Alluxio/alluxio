@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerSource;
 
 import java.util.List;
@@ -36,7 +35,7 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
    */
   public BlockMetricsReporter(WorkerSource workerSource) {
     mWorkerSource = workerSource;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override

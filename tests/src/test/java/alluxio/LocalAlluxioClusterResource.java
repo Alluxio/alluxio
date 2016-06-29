@@ -15,7 +15,6 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
 import com.google.common.base.Preconditions;
-import org.apache.commons.lang.ArrayUtils;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -81,8 +80,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  /** The {@link Configuration} object used by the cluster. */
-  private Configuration mTestConf = null;
 
   /**
    * Creates a new instance.
@@ -93,7 +90,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param confParams specific alluxio configuration parameters, specified as a list of strings,
    */
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster, String... confParams) {
+      boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -110,12 +107,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster) {
+      boolean startCluster) {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     String... confParams) {
+      String... confParams) {
     this(workerCapacityBytes, userBlockSize, true, confParams);
   }
 
@@ -130,28 +127,11 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return mLocalAlluxioCluster;
   }
 
-  /**
-   * @return the {@link Configuration} object used by the cluster
-   */
-  public Configuration getTestConf() {
-    return mTestConf;
-  }
-
-  /**
-   * Appends new parameters to mConfParams and applies to mTestConf.
-   *
-   * @param s string array to be added to mConfParams
-   */
-  public void addConfParams(String[] s) throws IOException {
-    ArrayUtils.addAll(mConfParams, s);
-    applyConfParams();
-  }
-
   private void applyConfParams() throws IOException {
-    mTestConf = mLocalAlluxioCluster.newTestConf();
+    mLocalAlluxioCluster.initializeTestConfiguration();
     // Override the configuration parameters with mConfParams
     for (int i = 0; i < mConfParams.length; i += 2) {
-      mTestConf.set(mConfParams[i], mConfParams[i + 1]);
+      Configuration.set(mConfParams[i], mConfParams[i + 1]);
     }
   }
 
@@ -159,7 +139,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws Exception {
-    mLocalAlluxioCluster.start(mTestConf);
+    mLocalAlluxioCluster.start();
   }
 
   @Override
@@ -174,13 +154,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
         Config config = (Config) configAnnotation;
         // Override the configuration parameters with any configuration params
         for (int i = 0; i < config.confParams().length; i += 2) {
-          mTestConf.set(config.confParams()[i], config.confParams()[i + 1]);
+          Configuration.set(config.confParams()[i], config.confParams()[i + 1]);
         }
         // Override startCluster
         startCluster = config.startCluster();
       }
       if (startCluster) {
-        mLocalAlluxioCluster.start(mTestConf);
+        mLocalAlluxioCluster.start();
       }
     } catch (IOException | ConnectionFailedException e) {
       throw new RuntimeException(e);

@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Objects;
 
@@ -168,8 +167,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
 
   private static final long serialVersionUID = -7454493761603179826L;
 
-  private final transient BlockMaster mBlockMaster;
-  private final transient Configuration mConfiguration;
+  private final BlockMaster mBlockMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceWorkersServlet}.
@@ -178,7 +176,6 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    */
   public WebInterfaceWorkersServlet(BlockMaster blockMaster) {
     mBlockMaster = blockMaster;
-    mConfiguration = WorkerContext.getConf();
   }
 
   /**
@@ -220,7 +217,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
 
     List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
@@ -230,6 +227,6 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 
-    request.setAttribute("workerWebPort", mConfiguration.getInt(Constants.WORKER_WEB_PORT));
+    request.setAttribute("workerWebPort", Configuration.getInt(Constants.WORKER_WEB_PORT));
   }
 }

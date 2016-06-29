@@ -14,7 +14,6 @@ package alluxio.worker.block;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
@@ -22,7 +21,6 @@ import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -70,14 +68,6 @@ public final class BlockMetadataManagerTest {
         TIER_PATH, TIER_CAPACITY_BYTES, null);
 
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**

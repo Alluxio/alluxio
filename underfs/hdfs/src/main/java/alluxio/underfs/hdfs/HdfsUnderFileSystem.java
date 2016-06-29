@@ -61,11 +61,10 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * Constructs a new HDFS {@link UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param configuration the configuration for Alluxio
    * @param conf the configuration for Hadoop
    */
-  public HdfsUnderFileSystem(AlluxioURI uri, Configuration configuration, Object conf) {
-    super(uri, configuration);
+  public HdfsUnderFileSystem(AlluxioURI uri, Object conf) {
+    super(uri);
     final String ufsPrefix = uri.toString();
     final org.apache.hadoop.conf.Configuration hadoopConf;
     if (conf != null && conf instanceof org.apache.hadoop.conf.Configuration) {
@@ -73,7 +72,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     } else {
       hadoopConf = new org.apache.hadoop.conf.Configuration();
     }
-    prepareConfiguration(ufsPrefix, configuration, hadoopConf);
+    prepareConfiguration(ufsPrefix, hadoopConf);
     hadoopConf.addResource(new Path(hadoopConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
 
@@ -101,16 +100,15 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
    * </p>
    *
    * @param path file system path
-   * @param conf Alluxio Configuration
    * @param hadoopConf Hadoop configuration
    */
-  protected void prepareConfiguration(String path, Configuration conf,
+  protected void prepareConfiguration(String path,
       org.apache.hadoop.conf.Configuration hadoopConf) {
     // On Hadoop 2.x this is strictly unnecessary since it uses ServiceLoader to automatically
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = mConfiguration.get(Constants.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = Configuration.get(Constants.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -121,7 +119,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     hadoopConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-    HdfsUnderFileSystemUtils.addKey(hadoopConf, conf, Constants.UNDERFS_HDFS_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(hadoopConf, Constants.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @Override
@@ -131,7 +129,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public FSDataOutputStream create(String path) throws IOException {
-    return create(path, new CreateOptions(mConfiguration));
+    return create(path, new CreateOptions());
   }
 
   @Override
@@ -300,26 +298,26 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String host) throws IOException {
-    if (!conf.containsKey(Constants.MASTER_KEYTAB_KEY)
-        || !conf.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
+  public void connectFromMaster(String host) throws IOException {
+    if (!Configuration.containsKey(Constants.MASTER_KEYTAB_KEY)
+        || !Configuration.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
       return;
     }
-    String masterKeytab = conf.get(Constants.MASTER_KEYTAB_KEY);
-    String masterPrincipal = conf.get(Constants.MASTER_PRINCIPAL_KEY);
+    String masterKeytab = Configuration.get(Constants.MASTER_KEYTAB_KEY);
+    String masterPrincipal = Configuration.get(Constants.MASTER_PRINCIPAL_KEY);
 
     login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
         masterPrincipal, host);
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String host) throws IOException {
-    if (!conf.containsKey(Constants.WORKER_KEYTAB_KEY)
-        || !conf.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
+  public void connectFromWorker(String host) throws IOException {
+    if (!Configuration.containsKey(Constants.WORKER_KEYTAB_KEY)
+        || !Configuration.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
       return;
     }
-    String workerKeytab = conf.get(Constants.WORKER_KEYTAB_KEY);
-    String workerPrincipal = conf.get(Constants.WORKER_PRINCIPAL_KEY);
+    String workerKeytab = Configuration.get(Constants.WORKER_KEYTAB_KEY);
+    String workerPrincipal = Configuration.get(Constants.WORKER_PRINCIPAL_KEY);
 
     login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
         workerPrincipal, host);
@@ -335,7 +333,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
-    return mkdirs(path, new MkdirsOptions(mConfiguration).setCreateParent(createParent));
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
   }
 
   @Override

@@ -17,7 +17,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
@@ -238,7 +237,7 @@ public final class MountTable implements JournalCheckpointStreamable {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
         // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), MasterContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString());
         ufs.setProperties(info.getOptions().getProperties());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs);

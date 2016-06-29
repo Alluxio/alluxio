@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
@@ -36,11 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public MountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public MountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

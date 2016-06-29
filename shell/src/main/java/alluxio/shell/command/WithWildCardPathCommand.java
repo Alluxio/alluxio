@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.shell.AlluxioShellUtils;
@@ -37,8 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractShellCommand {
 
-  protected WithWildCardPathCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  protected WithWildCardPathCommand(FileSystem fs) {
+    super(fs);
   }
 
   /**

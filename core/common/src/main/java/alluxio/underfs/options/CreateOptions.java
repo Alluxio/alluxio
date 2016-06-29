@@ -11,7 +11,6 @@
 
 package alluxio.underfs.options;
 
-import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Permission;
 
@@ -32,18 +31,7 @@ public final class CreateOptions {
    * Constructs a default {@link CreateOptions}.
    */
   public CreateOptions() {
-    mPermission = Permission.defaults();
-  }
-
-  /**
-   * Constructs a {@link CreateOptions} with specified configuration.
-   *
-   * @param conf the configuration
-   */
-  public CreateOptions(Configuration conf) {
-    // Only set the permission not the owner/group, because owner/group is not yet used for ufs
-    // file creation.
-    mPermission = Permission.defaults().applyFileUMask(conf);
+    mPermission = Permission.defaults().applyFileUMask();
   }
 
   /**

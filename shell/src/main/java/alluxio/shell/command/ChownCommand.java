@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class ChownCommand extends AbstractShellCommand {
   /**
    * Creates a new instance of {@link ChownCommand}.
    *
-   * @param conf an Alluxio configuration
    * @param fs an Alluxio file system handle
    */
-  public ChownCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ChownCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

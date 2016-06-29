@@ -41,13 +41,12 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   public GCSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
+  public UnderFileSystem create(String path, Object unusedConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckGoogleCredentials(configuration)) {
+    if (addAndCheckGoogleCredentials()) {
       try {
-        return new GCSUnderFileSystem(new AlluxioURI(path), configuration);
+        return new GCSUnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -60,7 +59,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_GCS);
   }
 
@@ -68,19 +67,17 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Google credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckGoogleCredentials(Configuration configuration) {
+  private boolean addAndCheckGoogleCredentials() {
     String accessKeyConf = Constants.GCS_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
-      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && Configuration.get(accessKeyConf) == null) {
+      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.GCS_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
-      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && Configuration.get(secretKeyConf) == null) {
+      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null;
+    return Configuration.get(accessKeyConf) != null && Configuration.get(secretKeyConf) != null;
   }
 }

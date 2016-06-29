@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.DeleteOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RmCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public RmCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public RmCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

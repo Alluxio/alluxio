@@ -21,10 +21,10 @@ import alluxio.thrift.PartitionInfo;
 
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
   private final KeyValueMasterClient mKeyValueMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+      new KeyValueMasterClient(ClientContext.getMasterAddress());
 
   /**
    * Constructs a new {@link KeyValueInputFormat}.

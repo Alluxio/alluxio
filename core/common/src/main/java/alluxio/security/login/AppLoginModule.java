@@ -152,11 +152,11 @@ public final class AppLoginModule implements LoginModule {
     private String mUserName;
 
     /**
-     * @param conf the configuration for Alluxio
+     * Creates a new instance of {@link AppCallbackHandler}.
      */
-    public AppCallbackHandler(Configuration conf) {
-      if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
-        mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+    public AppCallbackHandler() {
+      if (Configuration.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
+        mUserName = Configuration.get(Constants.SECURITY_LOGIN_USERNAME);
       } else {
         mUserName = "";
       }
