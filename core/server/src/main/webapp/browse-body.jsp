@@ -46,7 +46,7 @@
             <th>Block Size</th>
             <th>In-Memory</th>
             <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-              <th>Permission</th>
+              <th>Mode</th>
               <th>Owner</th>
               <th>Group</th>
             <% } %>
@@ -131,9 +131,9 @@
                     <% } %>
                   </th>
                   <% if ((Boolean)request.getAttribute("showPermissions")) { %>
-                    <th><%= fileInfo.getPermission() %></th>
-                    <th><%= fileInfo.getUserName() %></th>
-                    <th><%= fileInfo.getGroupName() %></th>
+                    <th><%= fileInfo.getMode() %></th>
+                    <th><%= fileInfo.getOwner() %></th>
+                    <th><%= fileInfo.getGroup() %></th>
                   <% } %>
                   <th><%= (fileInfo.getPersistenceState()) %></th>
                   <th><%= (fileInfo.isPinned() ? "YES" : "NO") %></th>

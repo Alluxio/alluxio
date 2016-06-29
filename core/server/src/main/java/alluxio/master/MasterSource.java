@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.metrics.source.Source;
 import alluxio.underfs.UnderFileSystem;
@@ -165,8 +166,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -180,8 +181,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -195,8 +196,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);

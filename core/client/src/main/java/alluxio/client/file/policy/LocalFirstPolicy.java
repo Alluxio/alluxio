@@ -11,7 +11,6 @@
 
 package alluxio.client.file.policy;
 
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -34,7 +33,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
    * Constructs a {@link LocalFirstPolicy}.
    */
   public LocalFirstPolicy() {
-    mLocalHostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    mLocalHostName = NetworkAddressUtils.getLocalHostName();
   }
 
   @Override

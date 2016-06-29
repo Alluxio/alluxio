@@ -110,10 +110,9 @@ public final class ConfigurationUtils {
   /**
    * Validates the configurations.
    *
-   * @param configuration Configuration to validate
    * @return true if the validation succeeds, false otherwise
    */
-  public static boolean validateConf(Configuration configuration) {
+  public static boolean validateConf() {
     Set<String> validProperties = new HashSet<>();
     try {
       // Iterate over the array of Field objects in alluxio.Constants by reflection
@@ -154,7 +153,7 @@ public final class ConfigurationUtils {
         Pattern.compile(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
             "\\d+").replace(".", "\\."));
     boolean valid = true;
-    for (Map.Entry<String, String> entry : configuration.toMap().entrySet()) {
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
       if (masterAliasPattern.matcher(propertyName).matches()
           || workerAliasPattern.matcher(propertyName).matches()

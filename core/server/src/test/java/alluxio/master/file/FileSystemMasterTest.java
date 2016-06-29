@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -23,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
@@ -112,7 +112,6 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.reset(new Configuration());
     sNestedFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
@@ -135,9 +134,9 @@ public final class FileSystemMasterTest {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
-    MasterContext.getConf()
+    Configuration
         .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
-    MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, mUnderFS);
+    Configuration.set(Constants.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
@@ -169,7 +168,7 @@ public final class FileSystemMasterTest {
   public void after() throws Exception {
     mFileSystemMaster.stop();
     mBlockMaster.stop();
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -685,8 +684,8 @@ public final class FileSystemMasterTest {
   @Test
   public void permissionTest() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**

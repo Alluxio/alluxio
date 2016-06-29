@@ -22,7 +22,6 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.exception.PreconditionMessage;
-import alluxio.master.MasterContext;
 import alluxio.master.block.ContainerIdGenerable;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -33,7 +32,7 @@ import alluxio.master.journal.JournalProtoUtils;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
@@ -137,13 +136,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /**
    * Initializes the root of the inode tree.
    *
-   * @param rootPermissionStatus the root {@link PermissionStatus}
+   * @param permission the root {@link Permission}
    */
-  public void initializeRoot(PermissionStatus rootPermissionStatus) {
+  public void initializeRoot(Permission permission) {
     if (mRoot == null) {
       mRoot = InodeDirectory
           .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
-              CreateDirectoryOptions.defaults().setPermissionStatus(rootPermissionStatus));
+              CreateDirectoryOptions.defaults().setPermission(permission));
       mRoot.setPersistenceState(PersistenceState.PERSISTED);
       mInodes.add(mRoot);
       mCachedInode = mRoot;
@@ -157,7 +156,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     if (mRoot == null) {
       return null;
     }
-    return mRoot.getUserName();
+    return mRoot.getOwner();
   }
 
   /**
@@ -550,7 +549,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     CreateDirectoryOptions missingDirOptions = CreateDirectoryOptions.defaults()
         .setMountPoint(false)
         .setPersisted(options.isPersisted())
-        .setPermissionStatus(options.getPermissionStatus());
+        .setPermission(options.getPermission());
     for (int k = pathIndex; k < (pathComponents.length - 1); k++) {
       InodeDirectory dir =
           InodeDirectory.create(mDirectoryIdGenerator.getNewDirectoryId(),
@@ -823,8 +822,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
       if (directory.getName().equals(ROOT_INODE_NAME)) {
         // This is the root inode. Clear all the state, and set the root.
-        if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-            && mRoot != null && !mRoot.getUserName().equals(directory.getUserName())) {
+        if (SecurityUtils.isSecurityEnabled() && mRoot != null && !mRoot.getOwner()
+            .equals(directory.getOwner())) {
           // user is not the owner of journal root entry
           throw new AccessControlException(
               ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));

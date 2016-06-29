@@ -11,7 +11,6 @@
 
 package alluxio.security.group.provider;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -41,10 +40,4 @@ public final class IdentityUserGroupsMapping implements GroupMappingService {
   public List<String> getGroups(String user) throws IOException {
     return Lists.newArrayList(user);
   }
-
-  @Override
-  public void setConf(Configuration conf) {
-    // does nothing in this provider of user to groups mapping
-  }
-
 }

@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
@@ -29,11 +28,10 @@ public final class LoadMetadataCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to load metadata for the given Alluxio path from UFS.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LoadMetadataCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LoadMetadataCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

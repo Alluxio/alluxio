@@ -26,6 +26,8 @@ import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import org.apache.thrift.TMultiplexedProcessor;
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
@@ -35,8 +37,6 @@ import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -73,8 +73,8 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
 
-    // validate the conf
-    if (!ConfigurationUtils.validateConf(Configuration.createServerConf())) {
+    // validate the configuration
+    if (!ConfigurationUtils.validateConf()) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
@@ -105,8 +105,6 @@ public final class AlluxioWorker {
     }
     return sAlluxioWorker;
   }
-
-  private Configuration mConfiguration;
 
   /** The worker serving blocks. */
   private BlockWorker mBlockWorker;
@@ -156,8 +154,6 @@ public final class AlluxioWorker {
   public AlluxioWorker() {
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mConfiguration = WorkerContext.getConf();
-
       mBlockWorker = new BlockWorker();
       mFileSystemWorker = new FileSystemWorker(mBlockWorker);
 
@@ -175,37 +171,33 @@ public final class AlluxioWorker {
       }
 
       // Setup metrics collection system
-      mWorkerMetricsSystem = new MetricsSystem("worker", mConfiguration);
+      mWorkerMetricsSystem = new MetricsSystem("worker");
       WorkerSource workerSource = WorkerContext.getWorkerSource();
       workerSource.registerGauges(mBlockWorker);
       mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
-      mWebServer =
-          new WorkerUIWebServer(ServiceType.WORKER_WEB, NetworkAddressUtils.getBindAddress(
-              ServiceType.WORKER_WEB, mConfiguration), this, mBlockWorker,
-              NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC, mConfiguration),
-              mStartTimeMs, mConfiguration);
+      mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
+          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
 
       // Setup Thrift server
-      mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+      mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
       mRPCPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
       // Reset worker RPC port based on assigned port number
-      mConfiguration.set(Constants.WORKER_RPC_PORT, Integer.toString(mRPCPort));
+      Configuration.set(Constants.WORKER_RPC_PORT, Integer.toString(mRPCPort));
       mThriftServer = createThriftServer();
 
       // Setup Data server
       mDataServer =
           DataServer.Factory.create(
-              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA, mConfiguration), this,
-              mConfiguration);
+              NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
       // Reset data server port
-      mConfiguration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
+      Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
 
       mWorkerAddress =
-          NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC,
-              mConfiguration);
+          NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC);
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
@@ -322,10 +314,10 @@ public final class AlluxioWorker {
     // Consequence: create a NetAddress object and set it into WorkerContext
     mNetAddress =
         new WorkerNetAddress()
-            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mConfiguration))
-            .setRpcPort(mConfiguration.getInt(Constants.WORKER_RPC_PORT))
+            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+            .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
             .setDataPort(getDataLocalPort())
-            .setWebPort(mConfiguration.getInt(Constants.WORKER_WEB_PORT));
+            .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
     WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker
@@ -409,8 +401,8 @@ public final class AlluxioWorker {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = mConfiguration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
-    int maxWorkerThreads = mConfiguration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
+    int minWorkerThreads = Configuration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = Configuration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     registerServices(processor, mBlockWorker.getServices());
@@ -431,7 +423,7 @@ public final class AlluxioWorker {
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (WorkerContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -446,8 +438,7 @@ public final class AlluxioWorker {
    */
   private TServerSocket createThriftServerSocket() {
     try {
-      return new TServerSocket(
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC, mConfiguration));
+      return new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_RPC));
     } catch (TTransportException e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);

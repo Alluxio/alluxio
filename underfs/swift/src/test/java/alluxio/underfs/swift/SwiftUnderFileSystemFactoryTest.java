@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -28,12 +27,8 @@ public class SwiftUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
-    UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("swift://localhost/test/path", conf);
-    UnderFileSystemFactory factory2 =
-        UnderFileSystemRegistry.find("file://localhost/test/path", conf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("swift://localhost/test/path");
+    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://localhost/test/path");
 
     Assert.assertNotNull("A UnderFileSystemFactory should exist for swift paths when using this "
         + "module", factory);

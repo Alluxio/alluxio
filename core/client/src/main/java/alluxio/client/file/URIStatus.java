@@ -73,8 +73,8 @@ public class URIStatus {
   /**
    * @return the group that owns the entity referenced by this uri, mutable
    */
-  public String getGroupName() {
-    return mInfo.getGroupName();
+  public String getGroup() {
+    return mInfo.getGroup();
   }
 
   /**
@@ -117,11 +117,11 @@ public class URIStatus {
   }
 
   /**
-   * @return the int representation of the ACL permissions of the entity referenced by this uri,
+   * @return the int representation of the ACL mode bits of the entity referenced by this uri,
    *         mutable
    */
-  public int getPermission() {
-    return mInfo.getPermission();
+  public int getMode() {
+    return mInfo.getMode();
   }
 
   /**
@@ -148,10 +148,10 @@ public class URIStatus {
   }
 
   /**
-   * @return the user which owns the entity referenced by this uri, mutable
+   * @return the owner of the entity referenced by this uri, mutable
    */
-  public String getUserName() {
-    return mInfo.getUserName();
+  public String getOwner() {
+    return mInfo.getOwner();
   }
 
   /**

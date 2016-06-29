@@ -14,7 +14,6 @@ package alluxio.worker.block.evictor;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.allocator.Allocator;
@@ -59,7 +58,6 @@ public final class LRFUEvictor extends AbstractEvictor {
   private final double mStepFactor;
   // In the range of [2, INF]
   private final double mAttenuationFactor;
-  private final Configuration mConfiguration;
 
   //logic time count
   private AtomicLong mLogicTimeCount = new AtomicLong(0L);
@@ -72,11 +70,8 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mConfiguration = WorkerContext.getConf();
-    mStepFactor = mConfiguration
-        .getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
-    mAttenuationFactor = mConfiguration
-        .getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mStepFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mAttenuationFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,

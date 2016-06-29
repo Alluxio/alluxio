@@ -11,7 +11,6 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.PreconditionMessage;
 import alluxio.underfs.UnderFileSystem;
@@ -39,10 +38,10 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   private boolean mStarted;
   private String mGCSBucket;
 
-  public GCSUnderStorageCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
-    mGCSBucket = PathUtils.concatPath(System.getProperty(INTEGRATION_GCS_BUCKET),
-        UUID.randomUUID());
+  public GCSUnderStorageCluster(String baseDir) {
+    super(baseDir);
+    mGCSBucket =
+        PathUtils.concatPath(System.getProperty(INTEGRATION_GCS_BUCKET), UUID.randomUUID());
     Preconditions.checkState(mGCSBucket != null && mGCSBucket != "",
         PreconditionMessage.GCS_BUCKET_MUST_BE_SET.toString(), INTEGRATION_GCS_BUCKET);
     mBaseDir = PathUtils.concatPath(mGCSBucket, UUID.randomUUID());
@@ -67,7 +66,7 @@ public class GCSUnderStorageCluster extends UnderFileSystemCluster {
   @Override
   public void shutdown() throws IOException {
     LOG.info("Shutting down GCS testing cluster, deleting bucket contents in: " + mGCSBucket);
-    UnderFileSystem ufs = UnderFileSystem.get(mGCSBucket, mConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(mGCSBucket);
     ufs.delete(mGCSBucket, true);
   }
 

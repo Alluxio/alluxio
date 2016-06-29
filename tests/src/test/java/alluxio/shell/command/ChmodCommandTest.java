@@ -25,16 +25,16 @@ import java.io.IOException;
 /**
  * Tests for chmod command.
  */
-public class ChmodCommandTest extends AbstractAlluxioShellTest {
+public final class ChmodCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void chmodTest() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
-    int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getPermission();
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "755", "/testFile");
-    permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testFile")).getMode();
     Assert.assertEquals((short) 0755, permission);
   }
 
@@ -46,12 +46,12 @@ public class ChmodCommandTest extends AbstractAlluxioShellTest {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "-R", "777", "/testDir");
-    int permission = mFileSystem.getStatus(new AlluxioURI("/testDir")).getPermission();
+    int permission = mFileSystem.getStatus(new AlluxioURI("/testDir")).getMode();
     Assert.assertEquals((short) 0777, permission);
-    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getMode();
     Assert.assertEquals((short) 0777, permission);
     mFsShell.run("chmod", "-R", "755", "/testDir");
-    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getPermission();
+    permission = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getMode();
     Assert.assertEquals((short) 0755, permission);
   }
 }

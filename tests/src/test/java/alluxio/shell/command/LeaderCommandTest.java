@@ -19,7 +19,7 @@ import org.junit.Test;
 /**
  * Tests for leader command.
  */
-public class LeaderCommandTest extends AbstractAlluxioShellTest {
+public final class LeaderCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void leaderTest() {
     mFsShell.run("leader");

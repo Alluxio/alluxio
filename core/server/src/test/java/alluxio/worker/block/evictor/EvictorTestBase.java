@@ -74,10 +74,9 @@ public class EvictorTestBase {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
+    Configuration.set(Constants.WORKER_EVICTOR_CLASS, evictorClassName);
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(mManagerView);
+    mEvictor = Evictor.Factory.create(mManagerView, mAllocator);
   }
 }
