@@ -75,6 +75,15 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
+   * Test {@link HdfsFileInputStream#available()}.
+   */
+  @Test
+  public void availableTest() throws IOException {
+    Assert.assertEquals(FILE_LEN, mInMemInputStream.available());
+    Assert.assertEquals(FILE_LEN, mUfsInputStream.available());
+  }
+
+  /**
    * Test {@link HdfsFileInputStream#read()}.
    */
   @Test

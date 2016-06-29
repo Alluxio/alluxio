@@ -104,7 +104,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
    */
   @Override
   public int available() throws IOException {
-    throw new IOException(ExceptionMessage.NOT_SUPPORTED.getMessage());
+    return (int) mAlluxioFileInputStream.remaining();
   }
 
   @Override
