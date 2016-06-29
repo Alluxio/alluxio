@@ -19,8 +19,10 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
+import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.security.GSCredentials;
 import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
@@ -33,6 +35,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -519,23 +522,29 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      GSObject[] objs = mClient.listObjects(mBucketName, path, "");
+      // TODO(jiri): currently we only retrieve the first 1000 objects stored under this path;
+      // support listing all objects
       if (recursive) {
-        String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i++) {
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "", 1000L, null);
+        List<String> ret = new ArrayList<>();
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
-          String child = getChildName(objs[i].getKey(), path);
+          String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
+          // Only add if the path is not empty (removes results equal to the path)
+          if (!child.isEmpty()) {
+            ret.add(child);
+          }
         }
-        return ret;
+        // TODO(jiri): currently we do not list directories that were not created through
+        // Alluxio; support this by looping through all common prefixes
+        return ret.toArray(new String[ret.size()]);
       }
       // Non recursive list
       Set<String> children = new HashSet<String>();
-      for (GSObject obj : objs) {
+      StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "/", 1000L, null);
+      for (StorageObject obj : chunk.getObjects()) {
         // Remove parent portion of the key
         String child = getChildName(obj.getKey(), path);
         // Remove any portion after the path delimiter
@@ -544,7 +553,19 @@ public class GCSUnderFileSystem extends UnderFileSystem {
         // Prune the special folder suffix
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
-        children.add(child);
+        if (!child.isEmpty()) {
+          children.add(child);
+        }
+      }
+      for (String commonPrefix : chunk.getCommonPrefixes()) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, path);
+        if (!children.contains(child)) {
+          // This directory has not been created through Alluxio.
+          if (mkdirsInternal(commonPrefix)) {
+            children.add(child);
+          }
+        }
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
