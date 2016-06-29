@@ -23,6 +23,7 @@ import alluxio.exception.FileDoesNotExistException;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.CommonUtils;
 
 import com.google.common.io.Closer;
@@ -160,10 +161,16 @@ public final class FileSystemUtils {
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
       UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), conf);
       String parentPath = dstPath.getParent().toString();
-      if (!ufs.exists(parentPath) && !ufs.mkdirs(parentPath, true)) {
-        throw new IOException("Failed to create " + parentPath);
+      if (!ufs.exists(parentPath)) {
+        URIStatus parentStatus = fs.getStatus(uri.getParent());
+        Permission parentPerm = new Permission(parentStatus.getOwner(), parentStatus.getGroup(),
+            (short) parentStatus.getMode());
+        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+            .setPermission(parentPerm);
+        if (!ufs.mkdirs(parentPath, parentMkdirsOptions)) {
+          throw new IOException("Failed to create " + parentPath);
+        }
       }
-      // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
       URIStatus uriStatus = fs.getStatus(uri);
       Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
           (short) uriStatus.getMode());
