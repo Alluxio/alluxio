@@ -239,7 +239,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   public boolean contains(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
     if (index == null) {
-      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
     return index.contains(value);
   }
@@ -255,7 +255,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
     if (index == null) {
-      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
     return index.getByField(value);
   }
@@ -270,7 +270,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
   public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
     FieldIndex<T> index = mIndices.get(indexDefinition);
     if (index == null) {
-      throw new IllegalStateException("use an index that isn't defined in the IndexedSet");
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
     return index.getFirst(value);
   }
