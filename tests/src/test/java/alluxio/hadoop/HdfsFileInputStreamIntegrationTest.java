@@ -81,6 +81,13 @@ public final class HdfsFileInputStreamIntegrationTest {
   public void availableTest() throws IOException {
     Assert.assertEquals(FILE_LEN, mInMemInputStream.available());
     Assert.assertEquals(FILE_LEN, mUfsInputStream.available());
+
+    // Advance the streams and check available() again.
+    byte[] buf = new byte[BUFFER_SIZE];
+    int length1 = mInMemInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN - length1, mInMemInputStream.available());
+    int length2 = mUfsInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN - length2, mUfsInputStream.available());
   }
 
   /**
