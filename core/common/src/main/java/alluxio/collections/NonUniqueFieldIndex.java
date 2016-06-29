@@ -76,7 +76,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     try {
-      return all == null && !all.iterator().hasNext() ? null : all.iterator().next();
+      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
     } catch (NoSuchElementException e) {
       return null;
     }
