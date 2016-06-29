@@ -22,6 +22,7 @@ import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.util.ClientTestUtils;
 
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.junit.After;
 import org.junit.Assert;
@@ -39,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -165,6 +167,28 @@ public class AbstractFileSystemTest {
     PowerMockito.verifyStatic();
     alluxio.client.file.FileSystem.Factory.get();
     ClientTestUtils.resetClient();
+  }
+
+  /**
+  * Ensures that FileNotFoundException is thrown when listStatus is called on a nonexistent path.
+  */
+  @Test
+  public void throwFileNotFoundExceptionWhenListStatusNonExistingTest() throws Exception {
+    final org.apache.hadoop.conf.Configuration conf = getConf();
+    conf.set(Constants.MASTER_HOSTNAME, "localhost");
+    conf.set(Constants.MASTER_RPC_PORT, "19998");
+    ClientContext.init();
+    org.apache.hadoop.fs.FileSystem fs = FileSystem.get(conf);
+    StringBuilder path = new StringBuilder("/ALLUXIO-2036.");
+    path.append(System.currentTimeMillis()).append(".txt");
+    try {
+      fs.listStatus(new Path(path.toString()));
+      Assert.fail("Listing the status of a nonexistent file should throw an exception");
+    } catch (FileNotFoundException e) {
+      // This exception is expected
+    } finally {
+      fs.close();
+    }
   }
 
   /**
