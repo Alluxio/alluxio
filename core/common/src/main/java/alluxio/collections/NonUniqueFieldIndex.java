@@ -49,11 +49,12 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       }
 
       synchronized (objSet) {
+        if (objSet != mIndexMap.get(fieldValue)) {
+          continue;
+        }
         // Adds the value to the object set.
         objSet.add(object);
-        if (objSet == mIndexMap.get(fieldValue)) {
-          break;
-        }
+        break;
       }
     }
   }
