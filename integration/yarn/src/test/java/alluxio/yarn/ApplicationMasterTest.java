@@ -72,7 +72,7 @@ import java.util.concurrent.CountDownLatch;
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class})
+@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class})
 @PowerMockIgnore({"org.apache.hadoop.security", "akka.*"})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
@@ -152,13 +152,11 @@ public class ApplicationMasterTest {
     // Mock Yarn client
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
 
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, resourceUri.toString(), mYarnClient);
-    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
-
     // Mock Node Manager client
-    PowerMockito.mockStatic(NMClient.class);
     mNMClient = Mockito.mock(NMClient.class);
-    Mockito.when(NMClient.createNMClient()).thenReturn(mNMClient);
+
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, resourceUri.toString(), mYarnClient, mNMClient);
+    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Application Master Resource Manager client
     PowerMockito.mockStatic(AMRMClientAsync.class);
@@ -457,7 +455,8 @@ public class ApplicationMasterTest {
     Configuration.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
     Configuration.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
     Configuration.set(Constants.WORKER_MEMORY_SIZE, "256gb");
-    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath", mYarnClient);
+    ApplicationMaster master =
+        new ApplicationMaster(1, "localhost", "resourcePath", mYarnClient, mNMClient);
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
     Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
     Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
