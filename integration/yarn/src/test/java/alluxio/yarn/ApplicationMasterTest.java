@@ -145,7 +145,6 @@ public class ApplicationMasterTest {
     URI resourceUri = folder.newFolder().toURI();
     FileUtils.createFile(PathUtils.concatPath(resourceUri.getPath(), "alluxio.tar.gz"));
     FileUtils.createFile(PathUtils.concatPath(resourceUri.getPath(), "alluxio-yarn-setup.sh"));
-    //FileSystem.get(resourceUri, new YarnConfiguration()).create(new Path(resourceUri)).close();
 
     // Mock Yarn client
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
@@ -163,15 +162,6 @@ public class ApplicationMasterTest {
         (AMRMClientAsync<ContainerRequest>) Mockito.mock(AMRMClientAsync.class);
     mRMClient = amrm;
     Mockito.when(AMRMClientAsync.createAMRMClientAsync(100, mMaster)).thenReturn(mRMClient);
-
-    // Partially mock Utils to avoid hdfs IO
-//    Mockito.when(
-//        YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
-//        .thenReturn(Records.newRecord(LocalResource.class));
-//    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_MASTER))
-//        .thenReturn(EXPECTED_MASTER_COMMAND);
-//    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_WORKER))
-//        .thenReturn(EXPECTED_WORKER_COMMAND);
 
     mMaster.start();
   }
