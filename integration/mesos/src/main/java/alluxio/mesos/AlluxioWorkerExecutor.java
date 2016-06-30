@@ -11,6 +11,7 @@
 
 package alluxio.mesos;
 
+import alluxio.Constants;
 import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
 import alluxio.worker.AlluxioWorker;
@@ -19,6 +20,8 @@ import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
 import org.apache.mesos.MesosExecutorDriver;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -28,6 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class AlluxioWorkerExecutor implements Executor {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Creates a new {@link AlluxioWorkerExecutor}.
@@ -36,22 +40,22 @@ public class AlluxioWorkerExecutor implements Executor {
 
   @Override
   public void disconnected(ExecutorDriver driver) {
-    System.out.println("Executor has disconnected from the Mesos slave.");
+    LOG.info("Executor has disconnected from the Mesos slave");
   }
 
   @Override
   public void error(ExecutorDriver driver, String message) {
-    System.out.println("A fatal error has occurred: " + message + ".");
+    LOG.error(String.format("A fatal error has occurred: %s", message));
   }
 
   @Override
   public void frameworkMessage(ExecutorDriver driver, byte[] data) {
-    System.out.println("Received a framework message.");
+    LOG.info("Received a framework message");
   }
 
   @Override
   public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
-    System.out.println("Killing task " + taskId.getValue() + ".");
+    LOG.info(String.format("Killing task %s", taskId.getValue()));
     // TODO(jiri): Implement.
   }
 
@@ -66,7 +70,7 @@ public class AlluxioWorkerExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
 
-          System.out.println("Launching task " + task.getTaskId().getValue());
+          LOG.info(String.format("Launching task %s", task.getTaskId().getValue()));
 
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
@@ -78,7 +82,6 @@ public class AlluxioWorkerExecutor implements Executor {
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())
                   .setState(Protos.TaskState.TASK_FINISHED).build();
-
           driver.sendStatusUpdate(status);
         } catch (Exception e) {
           e.printStackTrace();
@@ -89,19 +92,19 @@ public class AlluxioWorkerExecutor implements Executor {
 
   @Override
   public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
-      Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
-    System.out.println("Registered executor " + executorInfo.getName() + " with "
-        + slaveInfo.getHostname() + " through framework " + frameworkInfo.getName() + ".");
+                         Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
+    LOG.info(String.format("Registered executor %s with %s through framework %s",
+        executorInfo.getName(), slaveInfo.getHostname(), frameworkInfo.getName()));
   }
 
   @Override
   public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-    System.out.println("Re-registered executor with " + slaveInfo.getHostname() + ".");
+    LOG.info(String.format("Re-registered executor with %s", slaveInfo.getHostname()));
   }
 
   @Override
   public void shutdown(ExecutorDriver driver) {
-    System.out.println("Shutting down.");
+    LOG.info("Shutting down");
     // TODO(jiri): Implement.
   }
 
