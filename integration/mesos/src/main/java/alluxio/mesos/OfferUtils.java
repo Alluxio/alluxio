@@ -15,11 +15,15 @@ import alluxio.Configuration;
 import alluxio.Constants;
 
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mesos framework offer utils.
  */
 public final class OfferUtils {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private OfferUtils() {} // prevent instantiation
 
   /**
@@ -49,6 +53,7 @@ public final class OfferUtils {
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {
     for (Protos.Value.Range range : ranges.getRangeList()) {
+      LOG.debug("Port range {}", range);
       if (port >= range.getBegin() && port <= range.getEnd()) {
         return true;
       }
