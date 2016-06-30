@@ -40,7 +40,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
 
     ConcurrentHashSet<T> objSet;
 
-    do {
+    while (true) {
       objSet = mIndexMap.get(fieldValue);
       // If there is no object set for the current value, creates a new one.
       while (objSet == null) {
@@ -51,8 +51,11 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       synchronized (objSet) {
         // Adds the value to the object set.
         objSet.add(object);
+        if (objSet == mIndexMap.get(fieldValue)) {
+          break;
+        }
       }
-    } while (objSet != mIndexMap.get(fieldValue));
+    }
   }
 
   @Override
