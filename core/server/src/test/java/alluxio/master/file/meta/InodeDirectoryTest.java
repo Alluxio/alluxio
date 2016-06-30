@@ -190,8 +190,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeDirectory#getChild(String)}
-   * methods.
+   * Tests the {@link InodeDirectory#getChild(String)} methods.
    */
   @Test
   public void getChildTest() {
