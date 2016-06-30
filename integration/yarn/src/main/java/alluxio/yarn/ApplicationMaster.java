@@ -133,7 +133,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, YarnClient.createYarnClient(), NMClient.createNMClient());
+    this(numWorkers, masterAddress, resourcePath, YarnClient.createYarnClient(),
+        NMClient.createNMClient());
   }
 
   /**
@@ -168,6 +169,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mApplicationDoneLatch = new CountDownLatch(1);
     mYarnClient = yarnClient;
     mNMClient = nMClient;
+    mRMClient = AMRMClientAsync.createAMRMClientAsync(100, this);
   }
 
   /**
@@ -248,12 +250,9 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mNMClient.init(mYarnConf);
     mNMClient.start();
 
-    // Create a client to talk to the ResourceManager
-    mRMClient = AMRMClientAsync.createAMRMClientAsync(100, this);
     mRMClient.init(mYarnConf);
     mRMClient.start();
 
-    // Start the Yarn client.
     mYarnClient.init(mYarnConf);
     mYarnClient.start();
 
