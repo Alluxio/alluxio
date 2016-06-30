@@ -53,7 +53,7 @@ public class AlluxioFramework {
   public AlluxioFramework() {}
 
   static class AlluxioScheduler implements Scheduler {
-    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+    private static final Logger LOG = AlluxioFramework.LOG;
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
     private String mTaskName = "";
@@ -74,38 +74,38 @@ public class AlluxioFramework {
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-      LOG.error(String.format("Error: %s", message));
+      LOG.error("Error: {}", message);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, int status) {
-      LOG.info(String.format("Executor %s was lost", executorId.getValue()));
+      LOG.info("Executor {} was lost", executorId.getValue());
     }
 
     @Override
     public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
-                                 Protos.SlaveID slaveId, byte[] data) {
-      LOG.info(String.format("Executor: %s, slave: %s, data: %s",
-          executorId.getValue(), slaveId.getValue(), Arrays.toString(data)));
+        Protos.SlaveID slaveId, byte[] data) {
+      LOG.info("Executor: {}, slave: {}, data: {}",
+          executorId.getValue(), slaveId.getValue(), Arrays.toString(data));
     }
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-      LOG.info(String.format("Offered %s rescinded", offerId.getValue()));
+      LOG.info("Offered {} rescinded", offerId.getValue());
     }
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId,
-                           Protos.MasterInfo masterInfo) {
-      LOG.info(String.format("Registered framework %s with master %s:%d",
-          frameworkId.getValue(), masterInfo.getHostname(), masterInfo.getPort()));
+        Protos.MasterInfo masterInfo) {
+      LOG.info("Registered framework {} with master {}:{}",
+          frameworkId.getValue(), masterInfo.getHostname(), masterInfo.getPort());
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-      LOG.info(String.format("Registered framework with master %s:%d",
-          masterInfo.getHostname(), masterInfo.getPort()));
+      LOG.info("Registered framework with master {}:{}",
+          masterInfo.getHostname(), masterInfo.getPort());
     }
 
     @Override
@@ -117,9 +117,9 @@ public class AlluxioFramework {
       long workerMem =
           Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
 
-      LOG.info(String.format("Master launched %b, master count %d, "
-          + "requested master cpu %d and mem %d MB",
-          mMasterLaunched, mMasterCount, masterCpu, masterMem));
+      LOG.info("Master launched {}, master count {}, "
+          + "requested master cpu {} and mem {} MB",
+          mMasterLaunched, mMasterCount, masterCpu, masterMem);
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -135,9 +135,9 @@ public class AlluxioFramework {
           }
         }
 
-        LOG.info(String.format("Received offer %s with cpus %f and mem %f MB and hasMasterPorts %b",
+        LOG.info("Received offer {} with cpus {} and mem {} MB and hasMasterPorts {}",
             offer.getId().getValue(), offerCpu, offerMem,
-            OfferUtils.hasAvailableMasterPorts(offer)));
+            OfferUtils.hasAvailableMasterPorts(offer));
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         List<Protos.Resource> resources;
@@ -220,7 +220,7 @@ public class AlluxioFramework {
           mTaskName = Configuration.get(Constants.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
         } else {
           // The resource offer cannot be used to start either master or a worker.
-          LOG.info(String.format("Declining offer %s", offer.getId().getValue()));
+          LOG.info("Declining offer {}", offer.getId().getValue());
           driver.declineOffer(offer.getId());
           continue;
         }
@@ -228,8 +228,7 @@ public class AlluxioFramework {
         Protos.TaskID taskId =
             Protos.TaskID.newBuilder().setValue(String.valueOf(mLaunchedTasks)).build();
 
-        LOG.info(String.format("Launching task %s using offer %s",
-            taskId.getValue(), offer.getId().getValue()));
+        LOG.info("Launching task {} using offer {}", taskId.getValue(), offer.getId().getValue());
 
         Protos.TaskInfo task =
             Protos.TaskInfo
@@ -260,14 +259,14 @@ public class AlluxioFramework {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
       // TODO(jiri): Handle lost Mesos slaves.
-      LOG.info(String.format("Executor %s was lost", slaveId.getValue()));
+      LOG.info("Executor {} was lost", slaveId.getValue());
     }
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
-      LOG.info(String.format("Task %s is in state %s", taskId, state));
+      LOG.info("Task {} is in state {}", taskId, state);
       // TODO(jiri): Handle the case when an Alluxio master and/or worker task fails.
       // In particular, we should enable support for the fault tolerant mode of Alluxio to account
       // for Alluxio master process failures and keep track of the running number of Alluxio
@@ -367,7 +366,7 @@ public class AlluxioFramework {
     LOG.error("This is an implementation of a Mesos framework that is responsible for "
         + "starting Alluxio processes. The current implementation starts a single Alluxio master "
         + "and n Alluxio workers (one per Mesos slave).");
-    LOG.error("Usage: " + name + " <hostname>");
+    LOG.error("Usage: {} <hostname>", name);
   }
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
@@ -394,8 +393,7 @@ public class AlluxioFramework {
 
       return credentialBuilder.build();
     } catch (UnsupportedEncodingException ex) {
-      LOG.error(String.format("Failed to encode secret when creating Credential: %s",
-          ex.getMessage()));
+      LOG.error("Failed to encode secret when creating Credential.", ex);
     }
     return null;
   }
