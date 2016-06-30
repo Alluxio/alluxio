@@ -138,8 +138,9 @@ public class ApplicationMasterTest {
     }
 
     URI resourceUri = folder.newFolder().toURI();
-    FileUtils.createFile(PathUtils.concatPath(resourceUri.getPath(), "alluxio.tar.gz"));
-    FileUtils.createFile(PathUtils.concatPath(resourceUri.getPath(), "alluxio-yarn-setup.sh"));
+    String resourcePath = resourceUri.getPath();
+    FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_TARBALL));
+    FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_SETUP_SCRIPT));
 
     // Mock Yarn client
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
