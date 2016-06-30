@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
+import alluxio.client.ReadType;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -63,23 +64,26 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   @After
-  public final void after() throws Exception {
+  public final void after() throws IOException, AlluxioException {
     mInMemInputStream.close();
-    mUfsInputStream.close();
     sFileSystem.delete(new AlluxioURI(IN_MEMORY_FILE));
-    sFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
+    if (mUfsInputStream != null) {
+      mUfsInputStream.close();
+      sFileSystem.delete(new AlluxioURI(UFS_ONLY_FILE));
+    }
   }
 
   @Before
-  public final void before() throws IOException, AlluxioException {
+  public final void before() throws IOException {
     FileSystemTestUtils
         .createByteFile(sFileSystem, IN_MEMORY_FILE, WriteType.CACHE_THROUGH, FILE_LEN);
-    FileSystemTestUtils.createByteFile(sFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
-
     mInMemInputStream = new HdfsFileInputStream(
         new AlluxioURI(IN_MEMORY_FILE), new Configuration(), BUFFER_SIZE, null);
+  }
 
-    ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, "NO_CACHE");
+  private void openUfsInStream(ReadType readType) throws IOException {
+    ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    FileSystemTestUtils.createByteFile(sFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(
         new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
   }
@@ -105,6 +109,7 @@ public final class HdfsFileInputStreamIntegrationTest {
    */
   @Test
   public void readTest1() throws IOException {
+    openUfsInStream(ReadType.NO_CACHE);
     for (int i = 0; i < FILE_LEN; i++) {
       int value = mInMemInputStream.read();
       Assert.assertEquals(i & 0x00ff, value);
@@ -116,6 +121,7 @@ public final class HdfsFileInputStreamIntegrationTest {
 
     int value = mInMemInputStream.read();
     Assert.assertEquals(-1, value);
+
     value = mUfsInputStream.read();
     Assert.assertEquals(-1, value);
   }
@@ -130,6 +136,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
+    openUfsInStream(ReadType.NO_CACHE);
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(buf);
     Assert.assertEquals(FILE_LEN, length);
@@ -152,6 +159,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertEquals(FILE_LEN, length);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
 
+    openUfsInStream(ReadType.NO_CACHE);
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
@@ -175,6 +183,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
+    openUfsInStream(ReadType.NO_CACHE);
     Arrays.fill(buf, (byte) 0);
     length = mUfsInputStream.read(0, buf, 0, FILE_LEN);
     Assert.assertEquals(FILE_LEN, length);
@@ -216,6 +225,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
+    openUfsInStream(ReadType.NO_CACHE);
     Arrays.fill(buf, (byte) 0);
     mUfsInputStream.readFully(0, buf);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
@@ -274,6 +284,7 @@ public final class HdfsFileInputStreamIntegrationTest {
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
     Assert.assertEquals(0, mInMemInputStream.getPos());
 
+    openUfsInStream(ReadType.NO_CACHE);
     Arrays.fill(buf, (byte) 0);
     mUfsInputStream.readFully(0, buf, 0, FILE_LEN);
     Assert.assertTrue(BufferUtils.equalIncreasingByteArray(FILE_LEN, buf));
@@ -329,6 +340,7 @@ public final class HdfsFileInputStreamIntegrationTest {
 
   @Test
   public void ufsSeekTest() throws IOException {
+    openUfsInStream(ReadType.NO_CACHE);
     seekTest(mUfsInputStream);
   }
 
@@ -361,6 +373,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   public void seekNegativeUfsTest() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_NEGATIVE.getMessage(-1));
+    openUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.seek(-1);
   }
 
@@ -368,21 +381,21 @@ public final class HdfsFileInputStreamIntegrationTest {
   public void seekPastEofUfsTest() throws IOException {
     mThrown.expect(IOException.class);
     mThrown.expectMessage(ExceptionMessage.SEEK_PAST_EOF.getMessage(FILE_LEN + 1, FILE_LEN));
+    openUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.seek(FILE_LEN + 1);
   }
 
   @Test
-  public void readCacheTest() throws Exception {
-    ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, "CACHE");
-    mUfsInputStream = new HdfsFileInputStream(
-        new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
+  public void readCacheTest() throws IOException, AlluxioException {
+    openUfsInStream(ReadType.CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFile = sFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
     Assert.assertTrue(statusUfsOnlyFile.getInMemoryPercentage() == 100);
   }
 
   @Test
-  public void readNoCacheTest() throws Exception {
+  public void readNoCacheTest() throws IOException, AlluxioException {
+    openUfsInStream(ReadType.NO_CACHE);
     mUfsInputStream.readFully(0, new byte[FILE_LEN]);
     URIStatus statusUfsOnlyFIle = sFileSystem.getStatus(new AlluxioURI(UFS_ONLY_FILE));
     Assert.assertTrue(statusUfsOnlyFIle.getInMemoryPercentage() == 0);
