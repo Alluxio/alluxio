@@ -12,6 +12,7 @@
 package alluxio.yarn;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -39,8 +40,10 @@ import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Records;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -68,19 +71,21 @@ import java.util.concurrent.CountDownLatch;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
     YarnClient.class})
+@Ignore
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String RESOURCE_ADDRESS = "/tmp/resource";
-  private static final Configuration CONF = new Configuration();
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
-      (int) CONF.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-  private static final int MASTER_CPU = CONF.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      (int) Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+  private static final int MASTER_CPU =
+      Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
   private static final int WORKER_MEM_MB =
-      (int) CONF.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      (int) Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
   private static final int RAMDISK_MEM_MB =
-      (int) CONF.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
-  private static final int WORKER_CPU = CONF.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      (int) Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+  private static final int WORKER_CPU =
+      Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
   private static final Map<String, LocalResource> EXPECTED_LOCAL_RESOURCES = Maps.newHashMap();
 
   static {
@@ -125,12 +130,16 @@ public class ApplicationMasterTest {
     setupApplicationMaster(ImmutableMap.<String, String>of());
   }
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   private void setupApplicationMaster(Map<String, String> properties) throws Exception {
-    Configuration conf = new Configuration();
     for (Entry<String, String> entry : properties.entrySet()) {
-      conf.set(entry.getKey(), entry.getValue());
+      Configuration.set(entry.getKey(), entry.getValue());
     }
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS, conf);
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS);
     mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     // Mock Node Manager client
@@ -169,7 +178,7 @@ public class ApplicationMasterTest {
    */
   @Test
   public void startTest() throws Exception {
-    String hostname = NetworkAddressUtils.getLocalHostName(new Configuration());
+    String hostname = NetworkAddressUtils.getLocalHostName();
     Mockito.verify(mRMClient).registerApplicationMaster(hostname, 0, "");
   }
 
@@ -436,14 +445,14 @@ public class ApplicationMasterTest {
    */
   @Test
   public void bigContainerRequestTest() {
-    Configuration conf = new Configuration();
-    conf.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
-    conf.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
-    conf.set(Constants.WORKER_MEMORY_SIZE, "256gb");
-    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath", conf);
+    Configuration.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
+    Configuration.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
+    Configuration.set(Constants.WORKER_MEMORY_SIZE, "256gb");
+    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath");
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
     Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
     Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

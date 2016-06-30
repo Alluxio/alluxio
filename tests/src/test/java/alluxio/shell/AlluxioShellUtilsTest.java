@@ -12,7 +12,6 @@
 package alluxio.shell;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
@@ -36,11 +35,10 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Unit tests on alluxio.command.Utils.
+ * Unit tests on {@link alluxio.shell.AlluxioShellUtils}.
  *
- * Note that the test case for {@link AlluxioShellUtils#validatePath(String, Configuration)} is
- * already covered in {@link AlluxioShellUtils#getFilePath(String, Configuration)}. Hence only
- * getFilePathTest is specified.
+ * Note that the test case for {@link AlluxioShellUtils#validatePath(String)} is already covered
+ * in {@link AlluxioShellUtils#getFilePath(String)}. Hence only getFilePathTest is specified.
  */
 public final class AlluxioShellUtilsTest {
   public static final String TEST_DIR = "/testDir";
@@ -62,7 +60,7 @@ public final class AlluxioShellUtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = AlluxioShellUtils.getFilePath(path, new Configuration());
+      String result = AlluxioShellUtils.getFilePath(path);
       Assert.assertEquals(expected, result);
     }
   }

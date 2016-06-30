@@ -27,31 +27,28 @@ public final class SecurityUtils {
   /**
    * Checks if security is enabled.
    *
-   * @param conf the configuration for Alluxio
    * @return true if security is enabled, false otherwise
    */
-  public static boolean isSecurityEnabled(Configuration conf) {
-    return isAuthenticationEnabled(conf) && isAuthorizationEnabled(conf);
+  public static boolean isSecurityEnabled() {
+    return isAuthenticationEnabled() && isAuthorizationEnabled();
   }
 
   /**
    * Checks if authentication is enabled.
    *
-   * @param conf the configuration for Alluxio
    * @return true if authentication is enabled, false otherwise
    */
-  public static boolean isAuthenticationEnabled(Configuration conf) {
-    return !conf.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
+  public static boolean isAuthenticationEnabled() {
+    return !Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
         .equals(AuthType.NOSASL);
   }
 
   /**
    * Checks if authorization is enabled.
    *
-   * @param conf the configuration for Alluxio
    * @return true if authorization is enabled, false otherwise
    */
-  public static boolean isAuthorizationEnabled(Configuration conf) {
-    return conf.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+  public static boolean isAuthorizationEnabled() {
+    return Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }

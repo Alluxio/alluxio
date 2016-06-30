@@ -40,10 +40,10 @@ public final class MkdirsOptionsTest {
   public void defaultsTest() throws IOException {
     MkdirsOptions options = new MkdirsOptions();
 
-    Permission expectedPs = Permission.defaults();
+    Permission expectedPs = Permission.defaults().applyDirectoryUMask();
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
-    // Verify that the owner and group are not.
+    // Verify that the owner and group are not set.
     Assert.assertEquals("", options.getPermission().getOwner());
     Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
@@ -56,19 +56,18 @@ public final class MkdirsOptionsTest {
    */
   @Test
   public void securityEnabledTest() throws IOException {
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
-    conf.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
 
-    MkdirsOptions options = new MkdirsOptions(conf);
+    MkdirsOptions options = new MkdirsOptions();
 
-    Permission expectedPs = Permission.defaults().applyDirectoryUMask(conf);
+    Permission expectedPs = Permission.defaults().applyDirectoryUMask();
 
     // Verify the default createParent is true.
     Assert.assertTrue(options.getCreateParent());
-    // Verify that the owner and group are not.
+    // Verify that the owner and group are not set.
     Assert.assertEquals("", options.getPermission().getOwner());
     Assert.assertEquals("", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode().toShort(),
@@ -82,9 +81,7 @@ public final class MkdirsOptionsTest {
   public void fieldsTest() {
     boolean createParent = false;
     Permission perm = Permission.defaults();
-
-    Configuration conf = new Configuration();
-    MkdirsOptions options = new MkdirsOptions(conf);
+    MkdirsOptions options = new MkdirsOptions();
     options.setCreateParent(createParent);
     options.setPermission(perm);
 

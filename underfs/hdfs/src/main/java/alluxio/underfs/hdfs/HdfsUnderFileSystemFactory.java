@@ -12,7 +12,6 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -33,13 +32,13 @@ public final class HdfsUnderFileSystemFactory implements UnderFileSystemFactory 
   public HdfsUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object conf) {
+  public UnderFileSystem create(String path, Object conf) {
     Preconditions.checkNotNull(path);
-    return new HdfsUnderFileSystem(new AlluxioURI(path), configuration, conf);
+    return new HdfsUnderFileSystem(new AlluxioURI(path), conf);
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration conf) {
-    return path != null && UnderFileSystem.isHadoopUnderFS(path, conf);
+  public boolean supportsPath(String path) {
+    return path != null && UnderFileSystem.isHadoopUnderFS(path);
   }
 }

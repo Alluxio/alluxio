@@ -12,9 +12,9 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authorization.Permission;
 import alluxio.security.group.provider.IdentityUserGroupsMapping;
@@ -40,22 +40,19 @@ public final class CompleteUfsFileOptionsTest {
    */
   @Test
   public void defaultsTest() throws IOException {
-    ClientContext.getConf().set(Constants.SECURITY_AUTHENTICATION_TYPE,
-        AuthType.SIMPLE.getAuthName());
-    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, "foo");
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
-    ClientContext.getConf().set(Constants.SECURITY_GROUP_MAPPING,
-        IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
 
     CompleteUfsFileOptions options = CompleteUfsFileOptions.defaults();
 
-    Permission expectedPs =
-        Permission.defaults().applyFileUMask(ClientContext.getConf());
+    Permission expectedPs = Permission.defaults().applyFileUMask();
 
     Assert.assertEquals("foo", options.getPermission().getOwner());
     Assert.assertEquals("foo", options.getPermission().getGroup());
     Assert.assertEquals(expectedPs.getMode(), options.getPermission().getMode());
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

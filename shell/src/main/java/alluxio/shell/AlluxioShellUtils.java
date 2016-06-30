@@ -14,10 +14,10 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
-import alluxio.cli.AlluxioShell;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -45,12 +45,11 @@ public final class AlluxioShellUtils {
    * from a path, leaving only the local file path.
    *
    * @param path the path to obtain the local path from
-   * @param configuration the instance of {@link Configuration} to be used
-   * @return The local path in string format
+   * @return the local path in string format
    * @throws IOException if the given path is not valid
    */
-  public static String getFilePath(String path, Configuration configuration) throws IOException {
-    path = validatePath(path, configuration);
+  public static String getFilePath(String path) throws IOException {
+    path = validatePath(path);
     if (path.startsWith(Constants.HEADER)) {
       path = path.substring(Constants.HEADER.length());
     } else if (path.startsWith(Constants.HEADER_FT)) {
@@ -64,13 +63,12 @@ public final class AlluxioShellUtils {
    * {@link Constants#HEADER_FT} and a hostname:port specified.
    *
    * @param path the path to be verified
-   * @param configuration the instance of {@link Configuration} to be used
    * @return the verified path in a form like alluxio://host:port/dir. If only the "/dir" or "dir"
    *         part is provided, the host and port are retrieved from property,
    *         alluxio.master.hostname and alluxio.master.port, respectively.
    * @throws IOException if the given path is not valid
    */
-  public static String validatePath(String path, Configuration configuration) throws IOException {
+  public static String validatePath(String path) throws IOException {
     if (path.startsWith(Constants.HEADER) || path.startsWith(Constants.HEADER_FT)) {
       if (!path.contains(":")) {
         throw new IOException("Invalid Path: " + path + ". Use " + Constants.HEADER
@@ -79,9 +77,9 @@ public final class AlluxioShellUtils {
         return path;
       }
     } else {
-      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, configuration);
-      int port =  configuration.getInt(Constants.MASTER_RPC_PORT);
-      if (configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
+      int port =  Configuration.getInt(Constants.MASTER_RPC_PORT);
+      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);

@@ -12,11 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
@@ -44,7 +44,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void persistDirectoryTest() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert
@@ -62,7 +62,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar2"), 20);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -90,7 +90,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void persistMultiFilesAndDirsTest() throws Exception {
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
@@ -109,7 +109,7 @@ public final class PersistCommandTest extends AbstractAlluxioShellTest {
     checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
     checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
     checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

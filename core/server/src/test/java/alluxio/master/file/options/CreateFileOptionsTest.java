@@ -13,8 +13,8 @@ package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
@@ -32,14 +32,13 @@ import java.util.Random;
 // Need to mock Permission to use CommonTestUtils#testEquals.
 @PrepareForTest(Permission.class)
 public class CreateFileOptionsTest {
+
   /**
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateFileOptions options = CreateFileOptions.defaults();
 
@@ -47,7 +46,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

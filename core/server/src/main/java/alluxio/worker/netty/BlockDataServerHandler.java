@@ -56,11 +56,11 @@ public final class BlockDataServerHandler {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
+  BlockDataServerHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(configuration);
-    mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
-        FileTransferType.class);
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
+    mTransferType = Configuration
+        .getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**

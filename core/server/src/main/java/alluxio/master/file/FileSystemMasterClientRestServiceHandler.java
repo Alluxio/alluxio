@@ -16,7 +16,6 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
@@ -313,7 +312,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = new MountPointInfo();
-      info.setUfsInfo(mountInfo.getUfsUri().toString(), MasterContext.getConf());
+      info.setUfsInfo(mountInfo.getUfsUri().toString());
       info.setReadOnly(mountInfo.getOptions().isReadOnly());
       info.setProperties(mountInfo.getOptions().getProperties());
       mountPoints.put(mountPoint.getKey(), info);

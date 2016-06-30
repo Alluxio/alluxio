@@ -20,13 +20,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class WorkerStorageTierAssoc extends StorageTierAssoc {
+
   /**
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
-   *
-   * @param conf Alluxio configuration
    */
-  public WorkerStorageTierAssoc(Configuration conf) {
-    super(conf, Constants.WORKER_TIERED_STORE_LEVELS,
+  public WorkerStorageTierAssoc() {
+    super(Constants.WORKER_TIERED_STORE_LEVELS,
         Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 

@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -63,7 +62,6 @@ public class JournalIntegrationTest {
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
   private AlluxioURI mRootUri = new AlluxioURI(AlluxioURI.SEPARATOR);
-  private Configuration mMasterConfiguration = null;
 
   /**
    * Tests adding a block.
@@ -83,14 +81,14 @@ public class JournalIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createFileSystemMasterFromJournal();
   }
 
   private void deleteFsMasterJournalLogs() throws IOException {
     String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
     Journal journal = new ReadWriteJournal(
         PathUtils.concatPath(journalFolder, Constants.FILE_SYSTEM_MASTER_NAME));
-    UnderFileSystem.get(journalFolder, mMasterConfiguration).delete(journal.getCurrentLogFilePath(),
+    UnderFileSystem.get(journalFolder).delete(journal.getCurrentLogFilePath(),
         true);
   }
 
@@ -117,8 +115,8 @@ public class JournalIntegrationTest {
   @Test
   public void multipleFlushTest() throws Exception {
     // Set the max log size to 0 to force a flush to write a new file.
-    String existingMax = mMasterConfiguration.get(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-    mMasterConfiguration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
+    String existingMax = Configuration.get(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
       ReadWriteJournal journal = new ReadWriteJournal(
@@ -129,13 +127,13 @@ public class JournalIntegrationTest {
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
       writer.getEntryOutputStream().flush();
-      String[] paths = UnderFileSystem.get(journalFolder, mMasterConfiguration)
+      String[] paths = UnderFileSystem.get(journalFolder)
           .list(journal.getCompletedDirectory());
       // Make sure no new empty files were created.
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
       // Reset the max log size.
-      mMasterConfiguration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
+      Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
     }
   }
 
@@ -144,9 +142,8 @@ public class JournalIntegrationTest {
    */
   @Test
   public void loadMetadataTest() throws Exception {
-    String ufsRoot = PathUtils
-        .concatPath(mLocalAlluxioCluster.getMasterConf().get(Constants.UNDERFS_ADDRESS));
-    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot, mLocalAlluxioCluster.getMasterConf());
+    String ufsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);
     ufs.create(ufsRoot + "/xyz");
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/xyz"));
@@ -173,7 +170,6 @@ public class JournalIntegrationTest {
   public final void before() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    mMasterConfiguration = mLocalAlluxioCluster.getMasterConf();
   }
 
   /**
@@ -191,11 +187,9 @@ public class JournalIntegrationTest {
         FileSystemMaster.getJournalDirectory(mLocalAlluxioCluster.getMaster().getJournalFolder());
     Journal journal = new ReadWriteJournal(journalFolder);
     String completedPath = journal.getCompletedDirectory();
-    Assert.assertTrue(
-        UnderFileSystem.get(completedPath, mMasterConfiguration).list(completedPath).length > 1);
+    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length > 1);
     multiEditLogTestUtil();
-    Assert.assertTrue(
-        UnderFileSystem.get(completedPath, mMasterConfiguration).list(completedPath).length <= 1);
+    Assert.assertTrue(UnderFileSystem.get(completedPath).list(completedPath).length <= 1);
     multiEditLogTestUtil();
   }
 
@@ -545,9 +539,8 @@ public class JournalIntegrationTest {
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";
-    ClientContext.getConf().set(Constants.SECURITY_LOGIN_USERNAME, user);
-    CreateFileOptions op =
-        CreateFileOptions.defaults().setBlockSizeBytes(64);
+    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+    CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 
     // TODO(chaomin): also setOwner and setGroup once there's a way to fake the owner/group in UFS.
@@ -593,11 +586,6 @@ public class JournalIntegrationTest {
         return Lists.newArrayList(mUserGroups.get(user).split(","));
       }
       return Lists.newArrayList(mUserGroups.get("others").split(","));
-    }
-
-    @Override
-    public void setConf(Configuration conf) throws IOException {
-      // no-op
     }
   }
 }

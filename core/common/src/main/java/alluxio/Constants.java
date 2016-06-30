@@ -132,7 +132,7 @@ public final class Constants {
   public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
   public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
-  public static final String UNDERFS_HDFS_PREFIXS = "alluxio.underfs.hdfs.prefixes";
+  public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
   public static final String IN_TEST_MODE = "alluxio.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "alluxio.network.host.resolution.timeout.ms";

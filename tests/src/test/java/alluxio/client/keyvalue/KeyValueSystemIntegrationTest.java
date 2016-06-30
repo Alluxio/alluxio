@@ -12,6 +12,7 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.ClientContext;
@@ -246,8 +247,8 @@ public final class KeyValueSystemIntegrationTest {
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-        String.valueOf(maxPartitionSize));
+    Configuration
+        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
     byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
@@ -303,8 +304,7 @@ public final class KeyValueSystemIntegrationTest {
   }
 
   private int getPartitionNumber(AlluxioURI storeUri) throws Exception {
-    try (KeyValueMasterClient client = new KeyValueMasterClient(ClientContext.getMasterAddress(),
-        ClientContext.getConf())) {
+    try (KeyValueMasterClient client = new KeyValueMasterClient(ClientContext.getMasterAddress())) {
       return client.getPartitionInfo(storeUri).size();
     }
   }
@@ -323,8 +323,8 @@ public final class KeyValueSystemIntegrationTest {
       List<KeyValuePair> keyValuePairs) throws Exception {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX,
-        String.valueOf(maxPartitionSize));
+    Configuration
+        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 

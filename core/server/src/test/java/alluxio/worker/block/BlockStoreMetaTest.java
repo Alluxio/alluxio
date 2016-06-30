@@ -12,12 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -63,14 +61,6 @@ public class BlockStoreMetaTest {
     }
     mBlockStoreMeta = BlockStoreMeta.getBlockStoreMeta(mMetadataManager);
     mBlockStoreMetaFull = BlockStoreMeta.getBlockStoreMetaFull(mMetadataManager);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**

@@ -13,10 +13,8 @@ package alluxio.worker.block.meta;
 
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,14 +54,6 @@ public class BlockMetaTest {
     StorageTier tier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     StorageDir dir = tier.getDir(0);
     mTempBlockMeta = new TempBlockMeta(TEST_SESSION_ID, TEST_BLOCK_ID, TEST_BLOCK_SIZE, dir);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
