@@ -81,8 +81,6 @@ public class ApplicationMasterTest {
       (int) Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU =
       Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
-  private static final String ENV_CLASSPATH =
-      Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
 
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
@@ -401,7 +399,6 @@ public class ApplicationMasterTest {
   private ContainerLaunchContext getExpectedWorkerContext() {
     Map<String, String> expectedWorkerEnvironment =
         ImmutableMap.<String, String>builder()
-            .put("CLASSPATH", ENV_CLASSPATH)
             .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
             .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
             .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
@@ -415,7 +412,6 @@ public class ApplicationMasterTest {
   private ContainerLaunchContext getExpectedMasterContext() {
     Map<String, String> expectedMasterEnvironment =
         ImmutableMap.<String, String>builder()
-            .put("CLASSPATH", ENV_CLASSPATH)
             .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
             .build();
     String expectedMasterCommand =
