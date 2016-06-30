@@ -122,7 +122,7 @@ public class ApplicationMasterTest {
   private YarnClient mYarnClient;
 
   @Rule
-  public TemporaryFolder folder = new TemporaryFolder();
+  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
@@ -137,7 +137,7 @@ public class ApplicationMasterTest {
       Configuration.set(entry.getKey(), entry.getValue());
     }
 
-    URI resourceUri = folder.newFolder().toURI();
+    URI resourceUri = mTemporaryFolder.newFolder().toURI();
     String resourcePath = resourceUri.getPath();
     FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_TARBALL));
     FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_SETUP_SCRIPT));
