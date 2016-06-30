@@ -133,21 +133,22 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, YarnClient.createYarnClient());
+    this(numWorkers, masterAddress, resourcePath, YarnClient.createYarnClient(), NMClient.createNMClient());
   }
 
-
   /**
-   * Convenience constructor which uses the default Alluxio configuration.
+   * Constructs an {@link ApplicationMaster}
+   *
+   * Clients will be initialized and started during the {@link #start()} method.
    *
    * @param numWorkers the number of workers to launch
    * @param masterAddress the address at which to start the Alluxio master
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
-   * @param yarnClient the client to use for communicating with Yarn; it will be initialized and
-   *        started during the {@link #start()} method
+   * @param yarnClient the client to use for communicating with Yarn
+   * @param nMClient the client to use for communicating with the node manager
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
-      YarnClient yarnClient) {
+      YarnClient yarnClient, NMClient nMClient) {
     mMasterCpu = Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
         (int) (Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
@@ -166,6 +167,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mMasterContainerAllocatedLatch = new CountDownLatch(1);
     mApplicationDoneLatch = new CountDownLatch(1);
     mYarnClient = yarnClient;
+    mNMClient = nMClient;
   }
 
   /**
@@ -243,8 +245,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @throws YarnException if registering the application master fails due to an internal Yarn error
    */
   public void start() throws IOException, YarnException {
-    // Create a client to talk to NodeManager
-    mNMClient = NMClient.createNMClient();
     mNMClient.init(mYarnConf);
     mNMClient.start();
 
