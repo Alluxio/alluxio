@@ -30,6 +30,7 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
+import org.apache.commons.lang.StringUtils;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -238,11 +239,13 @@ public abstract class AbstractLocalAlluxioCluster {
     UnderFileSystemUtils
         .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()));
 
-    // If we are using the LocalMiniDFSCluster or S3UnderStorageCluster or OSSUnderStorageCluster,
+    // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
-    Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+    if (!StringUtils.isEmpty(UnderFileSystemCluster.getUnderFSClass())) {
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
+      Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+    }
   }
 
   /**
