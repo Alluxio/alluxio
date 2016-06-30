@@ -32,13 +32,6 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getId();
-    }
-  };
-
   private IndexedSet.FieldIndex<Inode<?>> mNameIndex = new IndexedSet.FieldIndex<Inode<?>>() {
     @Override
     public Object getFieldValue(Inode<?> o) {
@@ -47,7 +40,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mIdIndex, mNameIndex);
+  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mNameIndex);
 
   private boolean mMountPoint;
 
@@ -83,14 +76,6 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    */
   public void addChild(Inode<?> child) {
     mChildren.add(child);
-  }
-
-  /**
-   * @param id the inode id of the child
-   * @return the inode with the given id, or null if there is no child with that id
-   */
-  public Inode<?> getChild(long id) {
-    return mChildren.getFirstByField(mIdIndex, id);
   }
 
   /**
