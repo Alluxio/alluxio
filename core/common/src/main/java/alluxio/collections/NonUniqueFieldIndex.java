@@ -66,7 +66,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     ConcurrentHashSet<T> objSet = mIndexMap.get(fieldValue);
     if (objSet != null) {
       synchronized (objSet) {
-        objSet.remove(object);
+        res = objSet.remove(object);
         if (objSet.isEmpty()) {
           res =  mIndexMap.remove(fieldValue, objSet);
         }
