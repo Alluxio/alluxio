@@ -57,7 +57,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   private static final String PATH_SEPARATOR = "/";
 
   /** Length of each list request in S3. */
-  private static long LISTING_LENGTH = 1000L;
+  private static final long LISTING_LENGTH = 1000L;
 
   private static final byte[] DIR_HASH;
 
@@ -528,7 +528,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         S3Object[] objs = mClient.listObjects(mBucketName, path, "");
         // If there are, this is a folder and we can create the necessary metadata
         if (objs.length > 0) {
-          // TODO(binfan): Enable optimization "mkdirsInternal(path);"
+          mkdirsInternal(path);
           return true;
         } else {
           return false;
@@ -567,16 +567,25 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     String priorLastKey = null;
     Set<String> listResult = new HashSet<>();
     try {
-      while (true) {
+      boolean done = false;
+      while (!done) {
+        // Files/dirs in S3 UFS can be possibly encoded differently:
+        // (1) files are encoded as objects,
+        // (2) directories are encoded as objects with FOLDER_SUFFIX by Alluxio and
+        // (3) directories can also be encoded as prefixes by direct access to S3 not by Alluxio.
+        //
+        // We iterate over chunk.getObjects() for (1) and (2) and chunk.getCommonPrefixes() for (3).
+        // As an example, we list objects with prefix="ufs" and delimiter="/" (non-recursive):
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/default_tests_files_$folder$, child = default_tests_files
+        // - objects.key = ufs/shakespare_test, child = shakespare_test
+        // - commonPrefix: commonPrefix = ufs/default_tests_files/, child = default_tests_files
+        // - commonPrefix: commonPrefix = ufs/test1/, child = test1
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
             LISTING_LENGTH, priorLastKey);
-        StorageObject[] objects = chunk.getObjects();
-        if (objects.length == 0) {
-          break;
-        }
-        priorLastKey = objects[objects.length - 1].getKey();
-        // For files encoded as objects and directories encoded as objects by Alluxio
-        for (StorageObject obj : objects) {
+
+        // Handle (1) and (2)
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
@@ -586,12 +595,23 @@ public final class S3UnderFileSystem extends UnderFileSystem {
             listResult.add(child);
           }
         }
-        // For directories encoded as prefixes
+        // Handle (3)
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          listResult.add(child);
+          // Remove any portion after the path delimiter
+          int childNameIndex = child.indexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty()) {
+            if (!listResult.contains(child)) {
+              // This directory has not been created through Alluxio.
+              mkdirsInternal(commonPrefix);
+              listResult.add(child);
+            }
+          }
         }
+        done = chunk.isListingComplete();
+        priorLastKey = chunk.getPriorLastKey();
       }
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", path, e);
