@@ -12,6 +12,7 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
 import alluxio.client.file.FileOutStream;
@@ -39,9 +40,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(
-        mLocalAlluxioClusterResource.get().getMasterConf().get(Constants.UNDERFS_ADDRESS));
-    mUfs = UnderFileSystem.get(mUfsRoot, mLocalAlluxioClusterResource.get().getMasterConf());
+    mUfsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+    mUfs = UnderFileSystem.get(mUfsRoot);
   }
 
   @Test
