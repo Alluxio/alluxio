@@ -187,7 +187,8 @@ public class ApplicationMasterTest {
     }
     // We need to use anyVararg because Mockito is dumb and assumes that an array argument must be
     // vararg. Using regular any() will only match an array if it has length 1.
-    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg())).thenReturn(nodeReports);
+    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg()))
+        .thenReturn(nodeReports);
 
     // Mock the Resource Manager to "allocate" containers when they are requested and update
     // ApplicationMaster internal state
@@ -311,7 +312,10 @@ public class ApplicationMasterTest {
       Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
       nodeReports.add(report);
     }
-    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg())).thenReturn(nodeReports);
+    // We need to use anyVararg because Mockito is dumb and assumes that an array argument must be
+    // vararg. Using regular any() will only match an array if it has length 1.
+    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg()))
+        .thenReturn(nodeReports);
 
     // Pretend to be the Resource Manager, allocating containers when they are requested.
     Mockito.doAnswer(new Answer<Void>() {
