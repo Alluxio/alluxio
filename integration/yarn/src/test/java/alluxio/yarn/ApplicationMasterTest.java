@@ -12,6 +12,7 @@
 package alluxio.yarn;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
@@ -45,15 +46,11 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 import java.net.URI;
@@ -70,8 +67,6 @@ import java.util.concurrent.CountDownLatch;
  * Unit tests for {@link ApplicationMaster}.
  */
 // TODO(andrew): Add tests for failure cases
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final int NUM_WORKERS = 25;
@@ -152,16 +147,16 @@ public class ApplicationMasterTest {
     // Mock Node Manager client
     mNMClient = Mockito.mock(NMClient.class);
 
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, resourceUri.toString(), mYarnClient, mNMClient);
-    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
-
     // Mock Application Master Resource Manager client
-    PowerMockito.mockStatic(AMRMClientAsync.class);
     @SuppressWarnings("unchecked")
     AMRMClientAsync<ContainerRequest> amrm =
         (AMRMClientAsync<ContainerRequest>) Mockito.mock(AMRMClientAsync.class);
     mRMClient = amrm;
-    Mockito.when(AMRMClientAsync.createAMRMClientAsync(100, mMaster)).thenReturn(mRMClient);
+
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, resourceUri.toString(),
+        mYarnClient, mNMClient);
+    Whitebox.setInternalState(mMaster, "mRMClient", mRMClient);
+    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     mMaster.start();
   }
@@ -429,6 +424,7 @@ public class ApplicationMasterTest {
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
     Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
     Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
