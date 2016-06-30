@@ -14,7 +14,6 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -82,7 +81,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   private void openUfsInStream(ReadType readType) throws IOException {
-    ClientContext.getConf().set(Constants.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    alluxio.Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystemTestUtils.createByteFile(sFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(
         new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
@@ -94,6 +93,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   @Test
   public void availableTest() throws IOException {
     Assert.assertEquals(FILE_LEN, mInMemInputStream.available());
+    openUfsInStream(ReadType.NO_CACHE);
     Assert.assertEquals(FILE_LEN, mUfsInputStream.available());
 
     // Advance the streams and check available() again.
