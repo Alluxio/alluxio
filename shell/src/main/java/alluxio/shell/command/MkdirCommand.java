@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateDirectoryOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class MkdirCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to create a new directory.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public MkdirCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public MkdirCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

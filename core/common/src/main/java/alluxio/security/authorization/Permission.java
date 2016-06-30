@@ -11,7 +11,6 @@
 
 package alluxio.security.authorization;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.LoginUser;
@@ -47,6 +46,8 @@ public final class Permission {
    * @param mode the {@link Mode}
    */
   public Permission(String owner, String group, Mode mode) {
+    Preconditions.checkNotNull(owner, ExceptionMessage.OWNER_IS_NULL.getMessage());
+    Preconditions.checkNotNull(group, ExceptionMessage.GROUP_IS_NULL.getMessage());
     Preconditions.checkNotNull(mode, ExceptionMessage.MODE_IS_NULL.getMessage());
     mOwner = owner;
     mGroup = group;
@@ -108,22 +109,20 @@ public final class Permission {
   /**
    * Applies the default umask for newly created files to the mode bits.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return this {@link Permission} after umask applied
    */
-  public Permission applyFileUMask(Configuration conf) {
-    mMode = mMode.applyUMask(Mode.getUMask(conf)).applyUMask(FILE_UMASK);
+  public Permission applyFileUMask() {
+    mMode = mMode.applyUMask(Mode.getUMask()).applyUMask(FILE_UMASK);
     return this;
   }
 
   /**
    * Applies the default umask for newly created directories to the mode bits.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return this {@link Permission} after umask applied
    */
-  public Permission applyDirectoryUMask(Configuration conf) {
-    mMode = mMode.applyUMask(Mode.getUMask(conf));
+  public Permission applyDirectoryUMask() {
+    mMode = mMode.applyUMask(Mode.getUMask());
     return this;
   }
 
@@ -132,22 +131,21 @@ public final class Permission {
    * owner. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
    * no-op.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
    * @throws IOException when getting owner or group information fails
    */
-  public Permission setOwnerFromThriftClient(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
-      // no authentication, no owner is set
+  public Permission setOwnerFromThriftClient() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
+      // no authentication, no user to set
       return this;
     }
     // get the username through the authentication mechanism
-    User user = AuthenticatedClientUser.get(conf);
+    User user = AuthenticatedClientUser.get();
     if (user == null) {
       throw new IOException(ExceptionMessage.AUTHORIZED_CLIENT_USER_IS_NULL.getMessage());
     }
     mOwner = user.getName();
-    mGroup = CommonUtils.getPrimaryGroupName(conf, user.getName());
+    mGroup = CommonUtils.getPrimaryGroupName(user.getName());
     return this;
   }
 
@@ -156,19 +154,19 @@ public final class Permission {
    * owner. If authentication is {@link alluxio.security.authentication.AuthType#NOSASL}, this a
    * no-op.
    *
-   * @param conf the runtime configuration of Alluxio
    * @return the {@link Permission} for a file or a directory
    * @throws IOException when getting owner or group information fails
    */
-  public Permission setOwnerFromLoginModule(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+  public Permission setOwnerFromLoginModule() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
+      // no authentication, no user to set
       // no authentication, no owner is set
       return this;
     }
     // get the username through the login module
-    String user = LoginUser.get(conf).getName();
+    String user = LoginUser.get().getName();
     mOwner = user;
-    mGroup = CommonUtils.getPrimaryGroupName(conf, user);
+    mGroup = CommonUtils.getPrimaryGroupName(user);
     return this;
   }
 

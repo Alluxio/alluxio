@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -31,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DuCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DuCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DuCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

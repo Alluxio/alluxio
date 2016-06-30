@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class ChmodCommand extends AbstractShellCommand {
   /**
    * Creates a new instance of {@link ChmodCommand}.
    *
-   * @param conf an Alluxio configuration
    * @param fs an Alluxio file system handle
    */
-  public ChmodCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ChmodCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

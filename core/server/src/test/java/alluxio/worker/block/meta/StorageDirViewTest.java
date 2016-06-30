@@ -11,14 +11,12 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -64,14 +62,6 @@ public class StorageDirViewTest {
     mTestDir = testTier.getDir(TEST_DIR);
     mTestTierView = new StorageTierView(testTier, mMetaManagerView);
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**

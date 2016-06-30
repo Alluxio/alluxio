@@ -11,8 +11,6 @@
 
 package alluxio;
 
-import alluxio.worker.WorkerContext;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,8 +86,7 @@ public final class Sessions {
       if (mSessions.containsKey(sessionId)) {
         mSessions.get(sessionId).heartbeat();
       } else {
-        Configuration conf = WorkerContext.getConf();
-        int sessionTimeoutMs = conf.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+        int sessionTimeoutMs = Configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
         mSessions.put(sessionId, new SessionInfo(sessionId, sessionTimeoutMs));
       }
     }

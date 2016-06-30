@@ -11,14 +11,15 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 
 import com.google.common.base.Objects;
 
 import java.io.IOException;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -49,12 +50,12 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
-    mPermission = Permission.defaults().setOwnerFromThriftClient(MasterContext.getConf());
+    mPermission = Permission.defaults().setOwnerFromThriftClient();
   }
 
   private CreateFileOptions() {
     super();
-    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
   }
 

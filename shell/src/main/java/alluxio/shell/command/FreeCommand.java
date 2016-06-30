@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public FreeCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public FreeCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

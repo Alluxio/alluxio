@@ -43,17 +43,16 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
 
   public FaultTolerantAlluxioMaster() {
     super();
-    Configuration conf = MasterContext.getConf();
-    Preconditions.checkArgument(conf.getBoolean(Constants.ZOOKEEPER_ENABLED));
+    Preconditions.checkArgument(Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
-      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf) + ":"
+      String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC) + ":"
           + getMasterAddress().getPort();
-      String zkAddress = conf.get(Constants.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = conf.get(Constants.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = conf.get(Constants.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = Configuration.get(Constants.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = Configuration.get(Constants.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = Configuration.get(Constants.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {

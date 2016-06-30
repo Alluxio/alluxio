@@ -12,8 +12,8 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -28,9 +28,9 @@ import java.util.Random;
  * Tests for the {@link CreateFileOptions} class.
  */
 public class CreateFileOptionsTest {
-  private final long mDefaultBlockSizeBytes = ClientContext.getConf().getBytes(
+  private final long mDefaultBlockSizeBytes = Configuration.getBytes(
       Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  private final WriteType mDefaultWriteType = ClientContext.getConf().getEnum(
+  private final WriteType mDefaultWriteType = Configuration.getEnum(
       Constants.USER_FILE_WRITE_TYPE_DEFAULT, alluxio.client.WriteType.class);
 
   // TODO(calvin): Test location policy when a factory is created

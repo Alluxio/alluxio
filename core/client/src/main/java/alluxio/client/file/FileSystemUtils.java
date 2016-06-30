@@ -14,7 +14,6 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -105,8 +104,7 @@ public final class FileSystemUtils {
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod =
-        ClientContext.getConf().getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
+    final long pollPeriod = Configuration.getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
 
@@ -144,14 +142,13 @@ public final class FileSystemUtils {
    * @param fs {@link FileSystem} to carry out Alluxio operations
    * @param uri the uri of the file to persist
    * @param status the status info of the file
-   * @param conf Alluxio configuration
    * @return the size of the file persisted
    * @throws IOException if an I/O error occurs
    * @throws FileDoesNotExistException if the given file does not exist
    * @throws AlluxioException if an unexpected Alluxio error occurs
    */
-  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status,
-      Configuration conf) throws IOException, FileDoesNotExistException, AlluxioException {
+  public static long persistFile(FileSystem fs, AlluxioURI uri, URIStatus status)
+      throws IOException, FileDoesNotExistException, AlluxioException {
     // TODO(manugoyal) move this logic to the worker, as it deals with the under file system
     Closer closer = Closer.create();
     long ret;
@@ -159,7 +156,7 @@ public final class FileSystemUtils {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
       FileInStream in = closer.register(fs.openFile(uri, options));
       AlluxioURI dstPath = new AlluxioURI(status.getUfsPath());
-      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString(), conf);
+      UnderFileSystem ufs = UnderFileSystem.get(dstPath.toString());
       String parentPath = dstPath.getParent().toString();
       if (!ufs.exists(parentPath)) {
         URIStatus parentStatus = fs.getStatus(uri.getParent());

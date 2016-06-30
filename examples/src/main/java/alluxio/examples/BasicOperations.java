@@ -12,6 +12,7 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -64,9 +65,8 @@ public class BasicOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
-        Integer.toString(mMasterLocation.getPort()));
+    Configuration.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.init();
     FileSystem fs = FileSystem.Factory.get();
     writeFile(fs);

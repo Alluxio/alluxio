@@ -23,6 +23,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioFramework {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Creates a new {@link AlluxioFramework}.
@@ -50,7 +53,7 @@ public class AlluxioFramework {
   public AlluxioFramework() {}
 
   static class AlluxioScheduler implements Scheduler {
-    private static Configuration sConf = Configuration.createServerConf();
+    private static final Logger LOG = AlluxioFramework.LOG;
     private boolean mMasterLaunched = false;
     private String mMasterHostname = "";
     private String mTaskName = "";
@@ -66,51 +69,57 @@ public class AlluxioFramework {
 
     @Override
     public void disconnected(SchedulerDriver driver) {
-      System.out.println("Disconnected from master.");
+      LOG.info("Disconnected from master");
     }
 
     @Override
     public void error(SchedulerDriver driver, String message) {
-      System.out.println("Error: " + message);
+      LOG.error("Error: {}", message);
     }
 
     @Override
     public void executorLost(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, int status) {
-      System.out.println("Executor " + executorId.getValue() + " was lost.");
+      LOG.info("Executor {} was lost", executorId.getValue());
     }
 
     @Override
     public void frameworkMessage(SchedulerDriver driver, Protos.ExecutorID executorId,
         Protos.SlaveID slaveId, byte[] data) {
-      System.out.println("Executor: " + executorId.getValue() + ", " + "Slave: "
-          + slaveId.getValue() + ", " + "Data: " + Arrays.toString(data) + ".");
+      LOG.info("Executor: {}, slave: {}, data: {}",
+          executorId.getValue(), slaveId.getValue(), Arrays.toString(data));
     }
 
     @Override
     public void offerRescinded(SchedulerDriver driver, Protos.OfferID offerId) {
-      System.out.println("Offered " + offerId.getValue() + " rescinded.");
+      LOG.info("Offered {} rescinded", offerId.getValue());
     }
 
     @Override
     public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId,
         Protos.MasterInfo masterInfo) {
-      System.out.println("Registered framework " + frameworkId.getValue() + " with master "
-          + masterInfo.getHostname() + ":" + masterInfo.getPort() + ".");
+      LOG.info("Registered framework {} with master {}:{}",
+          frameworkId.getValue(), masterInfo.getHostname(), masterInfo.getPort());
     }
 
     @Override
     public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
-      System.out.println("Registered framework with master " + masterInfo.getHostname() + ":"
-          + masterInfo.getPort() + ".");
+      LOG.info("Registered framework with master {}:{}",
+          masterInfo.getHostname(), masterInfo.getPort());
     }
 
     @Override
     public void resourceOffers(SchedulerDriver driver, List<Protos.Offer> offers) {
-      long masterCpu = sConf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
-      long masterMem = sConf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
-      long workerCpu = sConf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
-      long workerMem = sConf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      long masterCpu = Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      long masterMem =
+          Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+      long workerCpu = Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      long workerMem =
+          Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+
+      LOG.info("Master launched {}, master count {}, "
+          + "requested master cpu {} and mem {} MB",
+          mMasterLaunched, mMasterCount, masterCpu, masterMem);
 
       for (Protos.Offer offer : offers) {
         Protos.Offer.Operation.Launch.Builder launch = Protos.Offer.Operation.Launch.newBuilder();
@@ -126,14 +135,17 @@ public class AlluxioFramework {
           }
         }
 
-        System.out.println("Received offer " + offer.getId().getValue() + " with cpus: " + offerCpu
-            + " and mem: " + offerMem + "MB.");
+        LOG.info("Received offer {} with cpus {} and mem {} MB and hasMasterPorts {}",
+            offer.getId().getValue(), offerCpu, offerMem,
+            OfferUtils.hasAvailableMasterPorts(offer));
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         List<Protos.Resource> resources;
         if (!mMasterLaunched && offerCpu >= masterCpu && offerMem >= masterMem
-            && mMasterCount < sConf.getInt(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT)
-            && OfferUtils.hasAvailableMasterPorts(offer)) {
+            && mMasterCount < Configuration
+            .getInt(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT) && OfferUtils
+            .hasAvailableMasterPorts(offer)) {
+          LOG.debug("Creating Alluxio Master executor");
           executorBuilder
               .setName("Alluxio Master Executor")
               .setSource("master")
@@ -144,7 +156,7 @@ public class AlluxioFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
+                              + Configuration.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
                               "alluxio-master-mesos.sh"))
@@ -155,19 +167,20 @@ public class AlluxioFramework {
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
                                       .setName("ALLUXIO_UNDERFS_ADDRESS")
-                                      .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
+                                      .setValue(Configuration.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
           // pre-build resource list here, then use it to build Protos.Task later.
           resources = getMasterRequiredResources(masterCpu, masterMem);
           mMasterHostname = offer.getHostname();
-          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
+          mTaskName = Configuration.get(Constants.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME);
           mMasterCount++;
           mMasterTaskId = mLaunchedTasks;
 
         } else if (mMasterLaunched && !mWorkers.contains(offer.getHostname())
             && offerCpu >= workerCpu && offerMem >= workerMem
             && OfferUtils.hasAvailableWorkerPorts(offer)) {
+          LOG.debug("Creating Alluxio Worker executor");
           final String memSize = FormatUtils.getSizeFromBytes((long) workerMem * Constants.MB);
           executorBuilder
               .setName("Alluxio Worker Executor")
@@ -179,7 +192,7 @@ public class AlluxioFramework {
                       .newBuilder()
                       .setValue(
                           "export JAVA_HOME="
-                              + sConf.get(Constants.INTEGRATION_MESOS_JRE_PATH)
+                              + Configuration.get(Constants.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
                               "alluxio-worker-mesos.sh"))
@@ -198,15 +211,16 @@ public class AlluxioFramework {
                               .addVariables(
                                   Protos.Environment.Variable.newBuilder()
                                       .setName("ALLUXIO_UNDERFS_ADDRESS")
-                                      .setValue(sConf.get(Constants.UNDERFS_ADDRESS))
+                                      .setValue(Configuration.get(Constants.UNDERFS_ADDRESS))
                                       .build())
                               .build()));
           // pre-build resource list here, then use it to build Protos.Task later.
           resources = getWorkerRequiredResources(workerCpu, workerMem);
           mWorkers.add(offer.getHostname());
-          mTaskName = sConf.get(Constants.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
+          mTaskName = Configuration.get(Constants.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME);
         } else {
           // The resource offer cannot be used to start either master or a worker.
+          LOG.info("Declining offer {}", offer.getId().getValue());
           driver.declineOffer(offer.getId());
           continue;
         }
@@ -214,8 +228,7 @@ public class AlluxioFramework {
         Protos.TaskID taskId =
             Protos.TaskID.newBuilder().setValue(String.valueOf(mLaunchedTasks)).build();
 
-        System.out.println("Launching task " + taskId.getValue() + " using offer "
-            + offer.getId().getValue());
+        LOG.info("Launching task {} using offer {}", taskId.getValue(), offer.getId().getValue());
 
         Protos.TaskInfo task =
             Protos.TaskInfo
@@ -246,14 +259,14 @@ public class AlluxioFramework {
     @Override
     public void slaveLost(SchedulerDriver driver, Protos.SlaveID slaveId) {
       // TODO(jiri): Handle lost Mesos slaves.
-      System.out.println("Executor " + slaveId.getValue() + " was lost.");
+      LOG.info("Executor {} was lost", slaveId.getValue());
     }
 
     @Override
     public void statusUpdate(SchedulerDriver driver, Protos.TaskStatus status) {
       String taskId = status.getTaskId().getValue();
       Protos.TaskState state = status.getState();
-      System.out.printf("Task %s is in state %s%n", taskId, state);
+      LOG.info("Task {} is in state {}", taskId, state);
       // TODO(jiri): Handle the case when an Alluxio master and/or worker task fails.
       // In particular, we should enable support for the fault tolerant mode of Alluxio to account
       // for Alluxio master process failures and keep track of the running number of Alluxio
@@ -286,11 +299,11 @@ public class AlluxioFramework {
           .setType(Protos.Value.Type.RANGES)
           .setRanges(Protos.Value.Ranges.newBuilder()
               .addRange(Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.MASTER_WEB_PORT))
-                  .setEnd(sConf.getLong(Constants.MASTER_WEB_PORT)))
+                  .setBegin(Configuration.getLong(Constants.MASTER_WEB_PORT))
+                  .setEnd(Configuration.getLong(Constants.MASTER_WEB_PORT)))
               .addRange((Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.MASTER_RPC_PORT))
-                  .setEnd(sConf.getLong(Constants.MASTER_RPC_PORT))))).build());
+                  .setBegin(Configuration.getLong(Constants.MASTER_RPC_PORT))
+                  .setEnd(Configuration.getLong(Constants.MASTER_RPC_PORT))))).build());
       return resources;
     }
 
@@ -303,14 +316,14 @@ public class AlluxioFramework {
           .setType(Protos.Value.Type.RANGES)
           .setRanges(Protos.Value.Ranges.newBuilder()
               .addRange(Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_RPC_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_RPC_PORT)))
+                  .setBegin(Configuration.getLong(Constants.WORKER_RPC_PORT))
+                  .setEnd(Configuration.getLong(Constants.WORKER_RPC_PORT)))
               .addRange(Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_DATA_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_DATA_PORT)))
+                  .setBegin(Configuration.getLong(Constants.WORKER_DATA_PORT))
+                  .setEnd(Configuration.getLong(Constants.WORKER_DATA_PORT)))
               .addRange((Protos.Value.Range.newBuilder()
-                  .setBegin(sConf.getLong(Constants.WORKER_WEB_PORT))
-                  .setEnd(sConf.getLong(Constants.WORKER_WEB_PORT))))).build());
+                  .setBegin(Configuration.getLong(Constants.WORKER_WEB_PORT))
+                  .setEnd(Configuration.getLong(Constants.WORKER_WEB_PORT))))).build());
       return resources;
     }
 
@@ -350,38 +363,37 @@ public class AlluxioFramework {
 
   private static void usage() {
     String name = AlluxioFramework.class.getName();
-    System.err.println("This is an implementation of a Mesos framework that is responsible for "
-        + "starting\nAlluxio processes. The current implementation starts a single Alluxio master "
-        + "and\n n Alluxio workers (one per Mesos slave).");
-    System.err.println("Usage: " + name + " <hostname>");
+    LOG.error("This is an implementation of a Mesos framework that is responsible for "
+        + "starting Alluxio processes. The current implementation starts a single Alluxio master "
+        + "and n Alluxio workers (one per Mesos slave).");
+    LOG.error("Usage: {} <hostname>", name);
   }
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
-    Configuration conf = Configuration.createServerConf();
-    String dependencyPath = conf.get(Constants.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
+    String dependencyPath = Configuration.get(Constants.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
     return Lists.newArrayList(
         CommandInfo.URI.newBuilder()
             .setValue(PathUtils.concatPath(dependencyPath, "alluxio.tar.gz")).setExtract(true)
-            .build(),
-        CommandInfo.URI.newBuilder().setValue(conf.get(Constants.INTEGRATION_MESOS_JRE_URL))
-            .setExtract(true).build());
+            .build(), CommandInfo.URI.newBuilder()
+            .setValue(Configuration.get(Constants.INTEGRATION_MESOS_JRE_URL)).setExtract(true)
+            .build());
   }
 
-  private static Protos.Credential createCredential(Configuration conf) {
+  private static Protos.Credential createCredential() {
 
-    if (!conf.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
+    if (!Configuration.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
       return null;
     }
 
     try {
       Protos.Credential.Builder credentialBuilder = Protos.Credential.newBuilder()
-          .setPrincipal(conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL))
-          .setSecret(ByteString.copyFrom(conf.get(Constants.INTEGRATION_MESOS_SECRET)
-                  .getBytes("UTF-8")));
+          .setPrincipal(Configuration.get(Constants.INTEGRATION_MESOS_PRINCIPAL)).setSecret(
+              ByteString.copyFrom(
+                  Configuration.get(Constants.INTEGRATION_MESOS_SECRET).getBytes("UTF-8")));
 
       return credentialBuilder.build();
     } catch (UnsupportedEncodingException ex) {
-      System.err.println("Failed to encode secret when creating Credential.");
+      LOG.error("Failed to encode secret when creating Credential.", ex);
     }
     return null;
   }
@@ -399,29 +411,27 @@ public class AlluxioFramework {
     }
     String hostname = args[0];
 
-    Configuration conf = Configuration.createServerConf();
-
     // Start Mesos master. Setting the user to an empty string will prompt Mesos to set it to the
     // current user.
     Protos.FrameworkInfo.Builder frameworkInfo = Protos.FrameworkInfo.newBuilder()
         .setName("alluxio").setCheckpoint(true);
 
-    if (conf.containsKey(Constants.INTEGRATION_MESOS_ROLE)) {
-      frameworkInfo.setRole(conf.get(Constants.INTEGRATION_MESOS_ROLE));
+    if (Configuration.containsKey(Constants.INTEGRATION_MESOS_ROLE)) {
+      frameworkInfo.setRole(Configuration.get(Constants.INTEGRATION_MESOS_ROLE));
     }
 
-    if (conf.containsKey(Constants.INTEGRATION_MESOS_USER)) {
-      frameworkInfo.setUser(conf.get(Constants.INTEGRATION_MESOS_USER));
+    if (Configuration.containsKey(Constants.INTEGRATION_MESOS_USER)) {
+      frameworkInfo.setUser(Configuration.get(Constants.INTEGRATION_MESOS_USER));
     }
 
-    if (conf.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
-      frameworkInfo.setPrincipal(conf.get(Constants.INTEGRATION_MESOS_PRINCIPAL));
+    if (Configuration.containsKey(Constants.INTEGRATION_MESOS_PRINCIPAL)) {
+      frameworkInfo.setPrincipal(Configuration.get(Constants.INTEGRATION_MESOS_PRINCIPAL));
     }
 
     Scheduler scheduler = new AlluxioScheduler();
 
-    Protos.Credential cred = createCredential(conf);
-    MesosSchedulerDriver driver = null;
+    Protos.Credential cred = createCredential();
+    MesosSchedulerDriver driver;
     if (cred == null) {
       driver = new MesosSchedulerDriver(scheduler, frameworkInfo.build(), hostname);
     } else {

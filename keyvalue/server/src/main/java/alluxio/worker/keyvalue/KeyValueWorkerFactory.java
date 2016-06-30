@@ -11,9 +11,9 @@
 
 package alluxio.worker.keyvalue;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.worker.Worker;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockWorker;
 
@@ -38,7 +38,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
   @Override
   public KeyValueWorker create(List<? extends Worker> workers) {
-    if (!WorkerContext.getConf().getBoolean(Constants.KEY_VALUE_ENABLED)) {
+    if (!Configuration.getBoolean(Constants.KEY_VALUE_ENABLED)) {
       return null;
     }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());

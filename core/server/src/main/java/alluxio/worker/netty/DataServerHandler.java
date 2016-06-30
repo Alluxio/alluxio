@@ -11,7 +11,6 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -52,14 +51,11 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
    * Creates a new instance of {@link DataServerHandler}.
    *
    * @param worker the Alluxio worker handle
-   * @param configuration Alluxio configuration
    */
-  public DataServerHandler(final AlluxioWorker worker, Configuration configuration) {
+  public DataServerHandler(final AlluxioWorker worker) {
     Preconditions.checkNotNull(worker);
-    Preconditions.checkNotNull(configuration);
-    mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker(), configuration);
-    mUnderFileSystemHandler =
-        new UnderFileSystemDataServerHandler(worker.getFileSystemWorker(), configuration);
+    mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker());
+    mUnderFileSystemHandler = new UnderFileSystemDataServerHandler(worker.getFileSystemWorker());
   }
 
   @Override

@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -210,7 +209,7 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getPrimaryGroupName(Configuration, String)} method.
+   * Test for the {@link CommonUtils#getPrimaryGroupName(String)} method.
    */
   @Test
   public void userPrimaryGroupTest() throws Throwable {
@@ -225,12 +224,10 @@ public class CommonUtilsTest {
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
     Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(Configuration.class)))
+        GroupMappingService.Factory.getUserToGroupsMappingService())
         .thenReturn(groupService);
 
-    Configuration conf = new Configuration();
-    String primaryGroup = CommonUtils.getPrimaryGroupName(conf, userName);
-
+    String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
     Assert.assertNotNull(primaryGroup);
     Assert.assertEquals(userGroup1, primaryGroup);
   }
