@@ -381,12 +381,13 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dirA)));
 
+    // Rename from fileA to fileB, file and its parent permission should be in sync with the source
+    // dirA.
     Path fileB = new Path("/root/dirB/fileB");
     Path dirB = fileB.getParent();
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
-    // TODO(chaomin): Add rename from fileA to fileB, a parent directory of fileB will be created
-    // recursively, and its permission should be in sync with the source dirA.
+    sTFS.rename(fileA, fileB);
   }
 }
