@@ -45,7 +45,7 @@ public class AlluxioMasterExecutor implements Executor {
 
   @Override
   public void error(ExecutorDriver driver, String message) {
-    LOG.error(String.format("A fatal error has occurred: %s", message));
+    LOG.error("A fatal error has occurred: {}", message);
   }
 
   @Override
@@ -55,7 +55,7 @@ public class AlluxioMasterExecutor implements Executor {
 
   @Override
   public void killTask(ExecutorDriver driver, Protos.TaskID taskId) {
-    LOG.info(String.format("Killing task %s", taskId.getValue()));
+    LOG.info("Killing task {}", taskId.getValue());
     // TODO(jiri): Implement.
   }
 
@@ -70,7 +70,7 @@ public class AlluxioMasterExecutor implements Executor {
 
           driver.sendStatusUpdate(status);
 
-          LOG.info(String.format("Launching task %s", task.getTaskId().getValue()));
+          LOG.info("Launching task {}", task.getTaskId().getValue());
 
           Thread.currentThread().setContextClassLoader(
               UnderFileSystemRegistry.class.getClassLoader());
@@ -93,14 +93,14 @@ public class AlluxioMasterExecutor implements Executor {
 
   @Override
   public void registered(ExecutorDriver driver, Protos.ExecutorInfo executorInfo,
-                         Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
-    LOG.info(String.format("Registered executor %s with %s through framework %s",
-        executorInfo.getName(), slaveInfo.getHostname(), frameworkInfo.getName()));
+      Protos.FrameworkInfo frameworkInfo, Protos.SlaveInfo slaveInfo) {
+    LOG.info("Registered executor {} with {} through framework {}",
+        executorInfo.getName(), slaveInfo.getHostname(), frameworkInfo.getName());
   }
 
   @Override
   public void reregistered(ExecutorDriver driver, Protos.SlaveInfo slaveInfo) {
-    LOG.info(String.format("Re-registered executor with %s", slaveInfo.getHostname()));
+    LOG.info("Re-registered executor with {}", slaveInfo.getHostname());
   }
 
   @Override
