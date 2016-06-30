@@ -72,7 +72,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       new StringBuilder(ApplicationConstants.Environment.CLASSPATH.$())
           .append(File.pathSeparatorChar).append("./*").toString();
   /** Maximum number of rounds of requesting and re-requesting worker containers. */
-  // TODO(andrew): make this configurable
   private static final int MAX_WORKER_CONTAINER_REQUEST_ROUNDS = 20;
   /**
    * Resources needed by the master and worker containers. Yarn will copy these to the container

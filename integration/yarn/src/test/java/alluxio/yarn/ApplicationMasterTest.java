@@ -81,40 +81,8 @@ public class ApplicationMasterTest {
       (int) Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU =
       Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
-  private static final Map<String, LocalResource> EXPECTED_LOCAL_RESOURCES = Maps.newHashMap();
-
-  static {
-    EXPECTED_LOCAL_RESOURCES.put(
-        (String) Whitebox.getInternalState(ApplicationMaster.class, "ALLUXIO_TARBALL"),
-        Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.ALLUXIO_SETUP_SCRIPT,
-        Records.newRecord(LocalResource.class));
-  }
-
   private static final String ENV_CLASSPATH =
       Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
-  private static final String EXPECTED_WORKER_COMMAND =
-      "./alluxio-yarn-setup.sh alluxio-worker 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
-  private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
-      ImmutableMap.<String, String>builder()
-          .put("CLASSPATH", ENV_CLASSPATH)
-          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
-          .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
-          .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
-          .build();
-  private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
-      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_WORKER_ENVIRONMENT,
-          Lists.newArrayList(EXPECTED_WORKER_COMMAND), null, null, null);
-  private static final String EXPECTED_MASTER_COMMAND =
-      "./alluxio-yarn-setup.sh alluxio-master 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
-  private static final Map<String, String> EXPECTED_MASTER_ENVIRONMENT =
-      ImmutableMap.<String, String>builder()
-          .put("CLASSPATH", ENV_CLASSPATH)
-          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
-          .build();
-  private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
-      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,
-          Lists.newArrayList(EXPECTED_MASTER_COMMAND), null, null, null);
 
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
@@ -391,7 +359,7 @@ public class ApplicationMasterTest {
     mMaster.onContainersAllocated(Lists.newArrayList(mockContainer));
 
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer),
-        Mockito.argThat(getContextMatcher(EXPECTED_MASTER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(getExpectedMasterContext())));
     Assert.assertEquals("1.2.3.4", mPrivateAccess.getMasterContainerNetAddress());
     Assert.assertTrue(mPrivateAccess.getMasterAllocated().getCount() == 0);
   }
@@ -415,11 +383,45 @@ public class ApplicationMasterTest {
     List<Container> containers = Lists.newArrayList(mockContainer1, mockContainer2);
 
     mMaster.onContainersAllocated(containers);
+    ContainerLaunchContext expectedWorkerContext = getExpectedWorkerContext();
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer1),
-        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(expectedWorkerContext)));
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer2),
-        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(expectedWorkerContext)));
     Assert.assertEquals(containers.size(), mPrivateAccess.getWorkerHosts().size());
+  }
+
+  private Map<String, LocalResource> getExpectedLocalResources() {
+    Map<String, LocalResource> resources = Maps.newHashMap();
+    resources.put(YarnUtils.ALLUXIO_TARBALL, Records.newRecord(LocalResource.class));
+    resources.put(YarnUtils.ALLUXIO_SETUP_SCRIPT, Records.newRecord(LocalResource.class));
+    return resources;
+  }
+
+  private ContainerLaunchContext getExpectedWorkerContext() {
+    Map<String, String> expectedWorkerEnvironment =
+        ImmutableMap.<String, String>builder()
+            .put("CLASSPATH", ENV_CLASSPATH)
+            .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+            .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
+            .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
+            .build();
+    String expectedWorkerCommand =
+        "./alluxio-yarn-setup.sh alluxio-worker 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
+    return ContainerLaunchContext.newInstance(getExpectedLocalResources(),
+        expectedWorkerEnvironment, Lists.newArrayList(expectedWorkerCommand), null, null, null);
+  }
+
+  private ContainerLaunchContext getExpectedMasterContext() {
+    Map<String, String> expectedMasterEnvironment =
+        ImmutableMap.<String, String>builder()
+            .put("CLASSPATH", ENV_CLASSPATH)
+            .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+            .build();
+    String expectedMasterCommand =
+        "./alluxio-yarn-setup.sh alluxio-master 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
+    return ContainerLaunchContext.newInstance(getExpectedLocalResources(),
+        expectedMasterEnvironment, Lists.newArrayList(expectedMasterCommand), null, null, null);
   }
 
   /**
