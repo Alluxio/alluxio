@@ -41,6 +41,7 @@ import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
 import org.apache.hadoop.yarn.util.Records;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -127,6 +128,11 @@ public class ApplicationMasterTest {
   @Before
   public void before() throws Exception {
     setupApplicationMaster(ImmutableMap.<String, String>of());
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   private void setupApplicationMaster(Map<String, String> properties) throws Exception {
