@@ -194,7 +194,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
       applicationMaster.requestContainers();
       applicationMaster.stop();
     } catch (Exception e) {
-      LOG.error("Error running Application Master ", e);
+      LOG.error("Error running Application Master", e);
       System.exit(1);
     }
   }
