@@ -190,8 +190,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeDirectory#getChild(long)} and {@link InodeDirectory#getChild(String)}
-   * methods.
+   * Tests the {@link InodeDirectory#getChild(String)} methods.
    */
   @Test
   public void getChildTest() {
@@ -209,13 +208,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
         runtime.totalMemory() - runtime.freeMemory(), nFiles));
 
     long start = System.currentTimeMillis();
-    for (int i = 0; i < nFiles; i++) {
-      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createInodeFileId(i + 1)));
-    }
-    LOG.info(String.format("getChild(int fid) called sequentially %d times, cost %d ms", nFiles,
-        System.currentTimeMillis() - start));
-
-    start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i++) {
       Assert.assertEquals(inodes[i], inodeDirectory.getChild(String.format("testFile%d", i + 1)));
     }
