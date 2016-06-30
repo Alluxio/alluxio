@@ -45,7 +45,6 @@ import org.apache.hadoop.yarn.util.Records;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -64,13 +63,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /**
-   * Because our jars are available as local resources in the working directory from which the
-   * command will be run, we need to append "." to the path.
-   */
-  private static final String ENV_CLASSPATH =
-      new StringBuilder(ApplicationConstants.Environment.CLASSPATH.$())
-          .append(File.pathSeparatorChar).append("./*").toString();
   /** Maximum number of rounds of requesting and re-requesting worker containers. */
   private static final int MAX_WORKER_CONTAINER_REQUEST_ROUNDS = 20;
   /**
@@ -481,7 +473,6 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private static Map<String, String> setupCommonEnvironment() {
     // Setup the environment needed for the launch context.
     Map<String, String> env = new HashMap<String, String>();
-    env.put("CLASSPATH", ENV_CLASSPATH);
     env.put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$());
     return env;
   }
