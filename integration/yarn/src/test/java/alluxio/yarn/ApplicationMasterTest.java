@@ -52,7 +52,6 @@ import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
@@ -72,8 +71,7 @@ import java.util.concurrent.CountDownLatch;
  */
 // TODO(andrew): Add tests for failure cases
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class})
-@PowerMockIgnore({"org.apache.hadoop.security", "akka.*"})
+@PrepareForTest({AMRMClientAsync.class})
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final int NUM_WORKERS = 25;
@@ -426,25 +424,6 @@ public class ApplicationMasterTest {
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer2),
         Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
     Assert.assertEquals(containers.size(), mPrivateAccess.getWorkerHosts().size());
-  }
-
-  /**
-   * Tests that the main method properly reads args and orchestrates negotiation.
-   */
-  @Test
-  public void mainTest() throws Exception {
-    ApplicationMaster mockMaster = Mockito.mock(ApplicationMaster.class);
-    PowerMockito.whenNew(ApplicationMaster.class)
-        .withArguments(Mockito.anyInt(), Mockito.anyString(), Mockito.anyString())
-        .thenReturn(mockMaster);
-
-    ApplicationMaster.main(new String[] {"-num_workers", "3",
-        "-master_address", "address", "-resource_path", "path"});
-    PowerMockito.verifyNew(ApplicationMaster.class).withArguments(3, "address", "path");
-
-    Mockito.verify(mockMaster).start();
-    Mockito.verify(mockMaster).requestContainers();
-    Mockito.verify(mockMaster).stop();
   }
 
   /**
