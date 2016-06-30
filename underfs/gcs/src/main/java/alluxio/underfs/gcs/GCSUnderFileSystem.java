@@ -35,8 +35,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -52,6 +53,9 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   /** Value used to indicate folder structure in GCS. */
   private static final String PATH_SEPARATOR = "/";
+
+  /** Length of each list request in GCS. */
+  private static long LISTING_LENGTH = 1000L;
 
   private static final byte[] DIR_HASH;
 
@@ -508,7 +512,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -521,11 +525,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     String priorLastKey = null;
-    List<String> listResult = new ArrayList<>();
+    Set<String> listResult = new HashSet<>();
     try {
       while (true) {
-        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter, 1000L,
-            priorLastKey);
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
+            LISTING_LENGTH, priorLastKey);
         StorageObject[] objects = chunk.getObjects();
         if (objects.length == 0) {
           break;

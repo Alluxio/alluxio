@@ -505,11 +505,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
         String child = getChildName(objectSummary.getKey(), path);
-        if (!recursive) {
-          // Remove any portion after the path delimiter
-          int childNameIndex = child.indexOf(PATH_SEPARATOR);
-          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        }
         // Prune the special folder suffix
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
