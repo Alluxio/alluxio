@@ -36,9 +36,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -46,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public class GCSUnderFileSystem extends UnderFileSystem {
+public final class GCSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -518,60 +516,44 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    String priorLastKey = null;
+    List<String> listResult = new ArrayList<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // TODO(jiri): currently we only retrieve the first 1000 objects stored under this path;
-      // support listing all objects
-      if (recursive) {
-        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "", 1000L, null);
-        List<String> ret = new ArrayList<>();
-        for (StorageObject obj : chunk.getObjects()) {
+      while (true) {
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter, 1000L,
+            priorLastKey);
+        StorageObject[] objects = chunk.getObjects();
+        if (objects.length == 0) {
+          break;
+        }
+        priorLastKey = objects[objects.length - 1].getKey();
+        // For files encoded as objects and directories encoded as objects by Alluxio
+        for (StorageObject obj : objects) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            ret.add(child);
+            listResult.add(child);
           }
         }
-        // TODO(jiri): currently we do not list directories that were not created through
-        // Alluxio; support this by looping through all common prefixes
-        return ret.toArray(new String[ret.size()]);
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, "/", 1000L, null);
-      for (StorageObject obj : chunk.getObjects()) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        if (!child.isEmpty()) {
-          children.add(child);
+        // For directories encoded as prefixes
+        for (String commonPrefix : chunk.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+          listResult.add(child);
         }
       }
-      for (String commonPrefix : chunk.getCommonPrefixes()) {
-        // Remove parent portion of the key
-        String child = getChildName(commonPrefix, path);
-        if (!children.contains(child)) {
-          // This directory has not been created through Alluxio.
-          if (mkdirsInternal(commonPrefix)) {
-            children.add(child);
-          }
-        }
-      }
-      return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", path, e);
       return null;
     }
+    return listResult.toArray(new String[listResult.size()]);
   }
 
   /**

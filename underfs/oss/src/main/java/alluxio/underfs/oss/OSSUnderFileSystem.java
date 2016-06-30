@@ -477,7 +477,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, due to the limitation of OSS client, this method can only return up
+   * to 1000 objects.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -489,39 +490,26 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
+      // If non-recursive, let the listObjects only get the files in the folder
+      String delimiter = recursive ? null : PATH_SEPARATOR;
 
-      // TODO(jiri): currently we only retrieve the first 1000 objects stored under this path;
-      // support listing all objects
+      // NOTE(binfan): currently OSS client only supports listing at most 1000 objects, without
+      // setting continuation
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
       listObjectsRequest.setPrefix(path);
       listObjectsRequest.setMaxKeys(1000);
+      listObjectsRequest.setDelimiter(delimiter);
 
-      if (recursive) {
-        ObjectListing listing = mClient.listObjects(listObjectsRequest);
-        List<OSSObjectSummary> objectSummaryList = listing.getObjectSummaries();
-        String[] ret = new String[objectSummaryList.size()];
-        for (int i = 0; i < objectSummaryList.size(); i++) {
-          // Remove parent portion of the key
-          String child = getChildName(objectSummaryList.get(i).getKey(), path);
-          // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
-        }
-        // TODO(jiri): currently we do not list directories that were not created through
-        // Alluxio; support this by looping through all common prefixes
-        return ret;
-      }
-
-      // Non recursive, so set the delimiter, let the listObjects only get the files in the folder
-      listObjectsRequest.setDelimiter(PATH_SEPARATOR);
       Set<String> children = new HashSet<>();
       ObjectListing listing = mClient.listObjects(listObjectsRequest);
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
         String child = getChildName(objectSummary.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+        if (!recursive) {
+          // Remove any portion after the path delimiter
+          int childNameIndex = child.indexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+        }
         // Prune the special folder suffix
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
@@ -532,12 +520,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       for (String commonPrefix : listing.getCommonPrefixes()) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, path);
-        if (!children.contains(child)) {
-          // This directory has not been created through Alluxio.
-          if (mkdirsInternal(commonPrefix)) {
-            children.add(child);
-          }
-        }
+        children.add(child);
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {

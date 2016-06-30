@@ -38,9 +38,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -558,14 +556,12 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
-
-    List<String> ret = new ArrayList<>();
     path = stripPrefixIfPresent(path);
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     String priorLastKey = null;
-
+    List<String> listResult = new ArrayList<>();
     try {
       while (true) {
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter, 1000L,
@@ -583,21 +579,21 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           child = stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            ret.add(child);
+            listResult.add(child);
           }
         }
         // For directories encoded as prefixes
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          ret.add(child);
+          listResult.add(child);
         }
       }
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", path, e);
       return null;
     }
-    return ret.toArray(new String[ret.size()]);
+    return listResult.toArray(new String[listResult.size()]);
   }
 
   /**
