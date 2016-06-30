@@ -602,12 +602,10 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           // Remove any portion after the path delimiter
           int childNameIndex = child.indexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty()) {
-            if (!listResult.contains(child)) {
-              // This directory has not been created through Alluxio.
-              mkdirsInternal(commonPrefix);
-              listResult.add(child);
-            }
+          if (!child.isEmpty() && !listResult.contains(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            listResult.add(child);
           }
         }
         done = chunk.isListingComplete();
