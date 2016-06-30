@@ -41,6 +41,7 @@ import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatcher;
@@ -68,6 +69,7 @@ import java.util.concurrent.CountDownLatch;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
     YarnClient.class})
+@Ignore
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final String RESOURCE_ADDRESS = "/tmp/resource";
