@@ -9,9 +9,8 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
 import alluxio.wire.LoadMetadataType;
 
@@ -20,9 +19,8 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for listing the status.
+ * Method options for list status.
  */
-@PublicApi
 @NotThreadSafe
 public final class ListStatusOptions {
   private LoadMetadataType mLoadMetadataType;
@@ -39,6 +37,15 @@ public final class ListStatusOptions {
   }
 
   /**
+   * Create an instance of {@link ListStatusOptions} from a {@link ListStatusTOptions}.
+   *
+   * @param options the thrift representation of list status options
+   */
+  public ListStatusOptions(ListStatusTOptions options) {
+    mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+  }
+
+  /**
    * @return the load metadata type. It specifies whether the direct children should
    *         be loaded from UFS in different scenarios.
    */
@@ -47,7 +54,9 @@ public final class ListStatusOptions {
   }
 
   /**
-   * @param loadMetadataType the loadMetataType
+   * Sets the {@link ListStatusOptions#mLoadMetadataType}.
+   *
+   * @param loadMetadataType the load metadata type
    * @return the updated options
    */
   public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
@@ -77,17 +86,5 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public ListStatusTOptions toThrift() {
-    ListStatusTOptions options = new ListStatusTOptions();
-    options.setLoadDirectChildren(
-        mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
-
-    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
-    return options;
   }
 }
