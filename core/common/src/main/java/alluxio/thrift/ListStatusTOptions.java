@@ -48,14 +48,14 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
   }
 
   private boolean loadDirectChildren; // optional
-  private LoadMetadataTypeT loadMetadataType; // optional
+  private LoadMetadataTType loadMetadataType; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
     LOAD_DIRECT_CHILDREN((short)1, "loadDirectChildren"),
     /**
      * 
-     * @see LoadMetadataTypeT
+     * @see LoadMetadataTType
      */
     LOAD_METADATA_TYPE((short)2, "loadMetadataType");
 
@@ -125,7 +125,7 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
     tmpMap.put(_Fields.LOAD_DIRECT_CHILDREN, new org.apache.thrift.meta_data.FieldMetaData("loadDirectChildren", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.BOOL)));
     tmpMap.put(_Fields.LOAD_METADATA_TYPE, new org.apache.thrift.meta_data.FieldMetaData("loadMetadataType", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
-        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, LoadMetadataTypeT.class)));
+        new org.apache.thrift.meta_data.EnumMetaData(org.apache.thrift.protocol.TType.ENUM, LoadMetadataTType.class)));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
     org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ListStatusTOptions.class, metaDataMap);
   }
@@ -180,17 +180,17 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
 
   /**
    * 
-   * @see LoadMetadataTypeT
+   * @see LoadMetadataTType
    */
-  public LoadMetadataTypeT getLoadMetadataType() {
+  public LoadMetadataTType getLoadMetadataType() {
     return this.loadMetadataType;
   }
 
   /**
    * 
-   * @see LoadMetadataTypeT
+   * @see LoadMetadataTType
    */
-  public ListStatusTOptions setLoadMetadataType(LoadMetadataTypeT loadMetadataType) {
+  public ListStatusTOptions setLoadMetadataType(LoadMetadataTType loadMetadataType) {
     this.loadMetadataType = loadMetadataType;
     return this;
   }
@@ -224,7 +224,7 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
       if (value == null) {
         unsetLoadMetadataType();
       } else {
-        setLoadMetadataType((LoadMetadataTypeT)value);
+        setLoadMetadataType((LoadMetadataTType)value);
       }
       break;
 
@@ -427,7 +427,7 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
             break;
           case 2: // LOAD_METADATA_TYPE
             if (schemeField.type == org.apache.thrift.protocol.TType.I32) {
-              struct.loadMetadataType = alluxio.thrift.LoadMetadataTypeT.findByValue(iprot.readI32());
+              struct.loadMetadataType = alluxio.thrift.LoadMetadataTType.findByValue(iprot.readI32());
               struct.setLoadMetadataTypeIsSet(true);
             } else { 
               org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
@@ -502,7 +502,7 @@ public class ListStatusTOptions implements org.apache.thrift.TBase<ListStatusTOp
         struct.setLoadDirectChildrenIsSet(true);
       }
       if (incoming.get(1)) {
-        struct.loadMetadataType = alluxio.thrift.LoadMetadataTypeT.findByValue(iprot.readI32());
+        struct.loadMetadataType = alluxio.thrift.LoadMetadataTType.findByValue(iprot.readI32());
         struct.setLoadMetadataTypeIsSet(true);
       }
     }
