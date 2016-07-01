@@ -304,6 +304,7 @@ public final class FileDataManager {
       final int maxRetry = 10;
       int numRetry = 0;
       // TODO(peis): Retry only if we are making progress.
+      // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
       for (; numRetry < maxRetry; numRetry++) {
         if (mUfs.mkdirs(parentPath, true) || mUfs.exists(parentPath)) {
           break;
