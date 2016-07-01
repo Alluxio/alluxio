@@ -586,7 +586,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
             LISTING_LENGTH, priorLastKey);
 
-        // Handle (1) and (2)
+        // Handle case (1)
         for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
@@ -597,7 +597,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
             children.add(child);
           }
         }
-        // Handle (3)
+        // Handle case (2)
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
