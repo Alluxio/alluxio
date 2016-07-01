@@ -19,8 +19,10 @@ import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
+import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.security.GSCredentials;
 import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
@@ -43,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public class GCSUnderFileSystem extends UnderFileSystem {
+public final class GCSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -51,6 +53,9 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   /** Value used to indicate folder structure in GCS. */
   private static final String PATH_SEPARATOR = "/";
+
+  /** Length of each list request in GCS. */
+  private static final long LISTING_LENGTH = 1000L;
 
   private static final byte[] DIR_HASH;
 
@@ -507,7 +512,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -515,36 +520,58 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    String priorLastKey = null;
+    Set<String> children = new HashSet<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      GSObject[] objs = mClient.listObjects(mBucketName, path, "");
-      if (recursive) {
-        String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i++) {
+      boolean done = false;
+      while (!done) {
+        // Directories in GCS UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
+        //
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
+            LISTING_LENGTH, priorLastKey);
+
+        // Handle case (1)
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
-          String child = getChildName(objs[i].getKey(), path);
+          String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
+          // Only add if the path is not empty (removes results equal to the path)
+          if (!child.isEmpty()) {
+            children.add(child);
+          }
         }
-        return ret;
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      for (GSObject obj : objs) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        children.add(child);
+        // Handle case (2)
+        for (String commonPrefix : chunk.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty() && !children.contains(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            children.add(child);
+          }
+        }
+        done = chunk.isListingComplete();
+        priorLastKey = chunk.getPriorLastKey();
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
