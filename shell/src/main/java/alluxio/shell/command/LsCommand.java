@@ -18,9 +18,9 @@ import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
-import alluxio.thrift.LoadMetadataType;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;

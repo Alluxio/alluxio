@@ -19,12 +19,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.GetFileInfoListOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -567,11 +567,11 @@ public final class PermissionCheckTest {
     if (isFile) {
       Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
       Assert.assertEquals(1,
-          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults())
+          mFileSystemMaster.listStatus(new AlluxioURI(path), ListStatusOptions.defaults())
               .size());
     } else {
       List<FileInfo> fileInfoList = mFileSystemMaster
-          .getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults());
+          .listStatus(new AlluxioURI(path), ListStatusOptions.defaults());
       if (fileInfoList.size() > 0) {
         Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
       }
