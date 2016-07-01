@@ -798,6 +798,20 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
   }
 
+  @Test
+  public void renameToNonExistentParent() throws Exception {
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    mFileSystemMaster.createFile(NESTED_URI, options);
+
+    try {
+      mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"));
+      Assert.fail("Rename to a non-existent parent path should not succeed.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case
+    }
+  }
+
   /**
    * Tests that an exception is thrown when trying to rename a file to a prefix of the original
    * file.
