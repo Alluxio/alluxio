@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.aliyun.oss.ClientConfiguration;
@@ -70,22 +72,22 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** The OSS endpoint. */
   private final String mEndPoint;
 
-  protected OSSUnderFileSystem(AlluxioURI uri, Configuration configuration) throws Exception {
-    super(uri, configuration);
+  protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
+    super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_ACCESS_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ACCESS_KEY),
         "Property " + Constants.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_SECRET_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_SECRET_KEY),
         "Property " + Constants.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(configuration.containsKey(Constants.OSS_ENDPOINT_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ENDPOINT_KEY),
         "Property " + Constants.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = configuration.get(Constants.OSS_ACCESS_KEY);
-    mAccessKey = configuration.get(Constants.OSS_SECRET_KEY);
+    mAccessId = Configuration.get(Constants.OSS_ACCESS_KEY);
+    mAccessKey = Configuration.get(Constants.OSS_SECRET_KEY);
     mBucketName = bucketName;
     mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = configuration.get(Constants.OSS_ENDPOINT_KEY);
+    mEndPoint = Configuration.get(Constants.OSS_ENDPOINT_KEY);
 
-    ClientConfiguration ossClientConf = initializeOSSClientConfig(configuration);
+    ClientConfiguration ossClientConf = initializeOSSClientConfig();
     mOssClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
   }
 
@@ -95,12 +97,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) throws IOException {
+  public void connectFromMaster(String hostname) throws IOException {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) throws IOException {
+  public void connectFromWorker(String hostname) throws IOException {
     // Authentication is taken care of in the constructor
   }
 
@@ -110,24 +112,16 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
       return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
     }
     return null;
-  }
-
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("blocksize is not supported with OSSUnderFileSystem. Block size will be ignored.");
-    return create(path);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    LOG.warn(
-        "blocksize and replication is not supported with OSSUnderFileSystem. Will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -168,27 +162,27 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using OSSUnderFileSystem, returning null.");
     return null;
   }
 
@@ -236,6 +230,12 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -246,7 +246,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -317,7 +317,25 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.
@@ -410,19 +428,18 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Creates an OSS {@code ClientConfiguration} using an Alluxio configuration.
+   * Creates an OSS {@code ClientConfiguration} using an Alluxio Configuration.
    *
-   * @param configuration Alluxio configuration
    * @return the OSS {@link ClientConfiguration}
    */
-  private ClientConfiguration initializeOSSClientConfig(Configuration configuration) {
+  private ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
-        configuration.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
+        Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout(
-        configuration.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(configuration.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
-    ossClientConf.setMaxConnections(configuration.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
+        Configuration.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setConnectionTTL(Configuration.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setMaxConnections(Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }
 

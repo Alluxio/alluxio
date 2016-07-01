@@ -25,17 +25,17 @@ import java.io.IOException;
 /**
  * Tests for chown command.
  */
-public class ChownCommandTest extends AbstractAlluxioShellTest {
+public final class ChownCommandTest extends AbstractAlluxioShellTest {
 
   @Test
   public void chownTest() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "user1", "/testFile");
-    String owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chown", "user2", "/testFile");
-    owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testFile")).getOwner();
     Assert.assertEquals("user2", owner);
   }
 
@@ -47,12 +47,12 @@ public class ChownCommandTest extends AbstractAlluxioShellTest {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "-R", "user1", "/testDir");
-    String owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getUserName();
+    String owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals("user1", owner);
-    owner = mFileSystem.getStatus(new AlluxioURI("/testDir")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testDir")).getOwner();
     Assert.assertEquals("user1", owner);
     mFsShell.run("chown", "-R", "user2", "/testDir");
-    owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getUserName();
+    owner = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getOwner();
     Assert.assertEquals("user2", owner);
   }
 }

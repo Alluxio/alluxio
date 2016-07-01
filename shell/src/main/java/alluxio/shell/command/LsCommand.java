@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -76,11 +75,10 @@ public final class LsCommand extends WithWildCardPathCommand {
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LsCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LsCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -103,16 +101,16 @@ public final class LsCommand extends WithWildCardPathCommand {
    *
    * @param path The {@link AlluxioURI} path as the input of the command
    * @param recursive Whether list the path recursively
-   * @throws IOException if a non-Alluxio related exception occurs
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  private void ls(AlluxioURI path, boolean recursive) throws IOException {
+  private void ls(AlluxioURI path, boolean recursive) throws AlluxioException, IOException {
     List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
     for (URIStatus status : statuses) {
-      System.out.format(
-          formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
-              FormatUtils.formatPermission((short) status.getPermission(), status.isFolder()),
-              status.getUserName(), status.getGroupName(), status.getLength(),
-              status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
+      System.out.format(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
+          FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
+          status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+          100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
         ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
       }
@@ -120,13 +118,8 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path)
-      throws IOException {
-    List<URIStatus> statuses;
-    try {
-      statuses = mFileSystem.listStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+      throws AlluxioException, IOException {
+    List<URIStatus> statuses = mFileSystem.listStatus(path);
     Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
       public int compare(URIStatus status1, URIStatus status2) {
@@ -145,7 +138,7 @@ public final class LsCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  public void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     ls(path, cl.hasOption("R"));
   }
 

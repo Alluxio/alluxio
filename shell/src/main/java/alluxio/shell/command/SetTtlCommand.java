@@ -12,8 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
@@ -30,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class SetTtlCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public SetTtlCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public SetTtlCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -48,7 +47,7 @@ public final class SetTtlCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     long ttlMs = Long.parseLong(args[1]);
     Preconditions.checkArgument(ttlMs >= 0, "TTL value must be >= 0");

@@ -71,9 +71,8 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMaster mMaster = AlluxioMaster.get();
   private final BlockMaster mBlockMaster = mMaster.getBlockMaster();
-  private final Configuration mMasterConf = MasterContext.getConf();
-  private final String mUfsRoot = mMasterConf.get(Constants.UNDERFS_ADDRESS);
-  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot, mMasterConf);
+  private final String mUfsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+  private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
@@ -88,12 +87,12 @@ public final class AlluxioMasterRestServiceHandler {
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   public Response getConfiguration() {
-    Set<Map.Entry<String, String>> properties = mMasterConf.toMap().entrySet();
+    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
-      String key = entry.getKey().toString();
+      String key = entry.getKey();
       if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
-        configuration.put(key, (String) entry.getValue());
+        configuration.put(key, entry.getValue());
       }
     }
     return RestUtils.createResponse(configuration);
@@ -260,7 +259,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private Comparator<String> getTierAliasComparator() {
     return new Comparator<String>() {
-      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc(mMasterConf);
+      private MasterStorageTierAssoc mTierAssoc = new MasterStorageTierAssoc();
 
       @Override
       public int compare(String tier1, String tier2) {

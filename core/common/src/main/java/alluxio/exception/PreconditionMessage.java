@@ -56,7 +56,7 @@ public enum PreconditionMessage {
   MUST_SET_PERSISTED("The persisted value must be set"),
   MUST_SET_OWNER("The owner must be set"),
   MUST_SET_GROUP("The group must be set"),
-  MUST_SET_PERMISSION("The permission must be set"),
+  MUST_SET_MODE("The mode must be set"),
   PERSIST_ONLY_FOR_FILE("Only files can be persisted"),
   PROTOCOL_NULL_WHEN_CONNECTED(
       "The client protocol should never be null when the client is connected"),

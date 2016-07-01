@@ -39,13 +39,12 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public OSSUnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object ufsConf) {
+  public UnderFileSystem create(String path, Object ufsConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckOSSCredentials(configuration)) {
+    if (addAndCheckOSSCredentials()) {
       try {
-        return new OSSUnderFileSystem(new AlluxioURI(path), configuration);
+        return new OSSUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
         LOG.error("Failed to create OSSUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -58,7 +57,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_OSS);
   }
 
@@ -66,24 +65,23 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds OSS credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckOSSCredentials(Configuration configuration) {
+  private boolean addAndCheckOSSCredentials() {
     String accessKeyConf = Constants.OSS_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
-      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && Configuration.get(accessKeyConf) == null) {
+      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.OSS_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
-      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && Configuration.get(secretKeyConf) == null) {
+      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
     String endPointConf = Constants.OSS_ENDPOINT_KEY;
-    if (System.getProperty(endPointConf) != null && configuration.get(endPointConf) == null) {
-      configuration.set(endPointConf, System.getProperty(endPointConf));
+    if (System.getProperty(endPointConf) != null && Configuration.get(endPointConf) == null) {
+      Configuration.set(endPointConf, System.getProperty(endPointConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null
-        && configuration.get(endPointConf) != null;
+    return Configuration.get(accessKeyConf) != null
+        && Configuration.get(secretKeyConf) != null
+        && Configuration.get(endPointConf) != null;
   }
 }

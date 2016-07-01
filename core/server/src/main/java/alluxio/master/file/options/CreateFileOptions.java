@@ -11,14 +11,15 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 
 import com.google.common.base.Objects;
 
 import java.io.IOException;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -38,7 +39,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
 
   /**
    * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
-   * option of permission status is constructed with the username obtained from thrift transport.
+   * option of permission is constructed with the username obtained from thrift transport.
    *
    * @param options the {@link CreateFileTOptions} to use
    * @throws IOException if it failed to retrieve users or groups from thrift transport
@@ -49,13 +50,12 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
-    mPermissionStatus =
-        PermissionStatus.defaults().setUserFromThriftClient(MasterContext.getConf());
+    mPermission = Permission.defaults().setOwnerFromThriftClient();
   }
 
   private CreateFileOptions() {
     super();
-    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
   }
 

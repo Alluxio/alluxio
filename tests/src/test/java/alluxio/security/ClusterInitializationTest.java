@@ -12,16 +12,13 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
-
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.file.FileSystemMaster;
-
 import alluxio.security.authentication.AuthenticatedClientUser;
 
 import org.junit.Assert;
@@ -58,8 +55,8 @@ public class ClusterInitializationTest {
   public void startClusterTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
-    Assert.assertEquals(SUPER_USER, status.getUserName());
-    Assert.assertEquals(0755, status.getPermission());
+    Assert.assertEquals(SUPER_USER, status.getOwner());
+    Assert.assertEquals(0755, status.getMode());
 
     Assert.assertEquals(0, fs.listStatus(new AlluxioURI("/")).size());
   }
@@ -76,15 +73,14 @@ public class ClusterInitializationTest {
     fs.createFile(new AlluxioURI("/testFile"));
     mLocalAlluxioClusterResource.get().stopFS();
 
-    Configuration conf = mLocalAlluxioClusterResource.get().getMasterConf();
-    LoginUserTestUtils.resetLoginUser(conf, SUPER_USER);
+    LoginUserTestUtils.resetLoginUser(SUPER_USER);
 
     // user alluxio can recover master from journal
-    FileSystemMaster fileSystemMaster = MasterTestUtils.createFileSystemMasterFromJournal(conf);
+    FileSystemMaster fileSystemMaster = MasterTestUtils.createFileSystemMasterFromJournal();
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
-        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getUserName());
+        fileSystemMaster.getFileInfo(new AlluxioURI("/testFile")).getOwner());
   }
 
   /**
@@ -103,10 +99,9 @@ public class ClusterInitializationTest {
     fs.createFile(new AlluxioURI("/testFile"));
     mLocalAlluxioClusterResource.get().stopFS();
 
-    Configuration conf = mLocalAlluxioClusterResource.get().getMasterConf();
-    LoginUserTestUtils.resetLoginUser(conf, USER);
+    LoginUserTestUtils.resetLoginUser(USER);
 
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
-    MasterTestUtils.createFileSystemMasterFromJournal(conf);
+    MasterTestUtils.createFileSystemMasterFromJournal();
   }
 }

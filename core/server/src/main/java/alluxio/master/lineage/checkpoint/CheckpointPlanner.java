@@ -32,16 +32,15 @@ public interface CheckpointPlanner {
     private Factory() {} // prevent instantiation
 
     /**
-     * @param conf Alluxio configuration to determine the planner type
      * @param lineageStoreView a view of the lineage store
      * @param fileSystemMasterView a view of the file system master
      * @return the generated planner
      */
-    public static CheckpointPlanner create(Configuration conf,
-        LineageStoreView lineageStoreView, FileSystemMasterView fileSystemMasterView) {
+    public static CheckpointPlanner create(LineageStoreView lineageStoreView,
+        FileSystemMasterView fileSystemMasterView) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<CheckpointPlanner>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
+            Configuration.<CheckpointPlanner>getClass(Constants.MASTER_LINEAGE_CHECKPOINT_CLASS),
             new Class[] {LineageStoreView.class, FileSystemMasterView.class},
             new Object[] {lineageStoreView, fileSystemMasterView});
       } catch (Exception e) {

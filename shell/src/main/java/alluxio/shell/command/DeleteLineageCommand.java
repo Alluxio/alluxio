@@ -11,10 +11,10 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.options.DeleteLineageOptions;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -29,11 +29,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DeleteLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DeleteLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DeleteLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -47,18 +46,13 @@ public final class DeleteLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get();
     long lineageId = Long.parseLong(args[0]);
     boolean cascade = Boolean.parseBoolean(args[1]);
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(cascade);
-    try {
-      tl.deleteLineage(lineageId, options);
-    } catch (Exception e) {
-      e.printStackTrace();
-      System.out.println("Lineage '" + lineageId + "' could not be deleted.");
-    }
+    tl.deleteLineage(lineageId, options);
     System.out.println("Lineage " + lineageId + " has been deleted.");
   }
 

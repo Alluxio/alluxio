@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -31,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DuCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DuCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DuCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -44,7 +42,7 @@ public final class DuCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
     long sizeInBytes = getFileOrFolderSize(mFileSystem, path);
     System.out.println(path + " is " + sizeInBytes + " bytes");
   }
@@ -52,20 +50,16 @@ public final class DuCommand extends WithWildCardPathCommand {
   /**
    * Calculates the size of a path (file or folder) specified by a {@link AlluxioURI}.
    *
-   * @param fs A {@link FileSystem}
-   * @param path A {@link AlluxioURI} denoting the path
+   * @param fs a {@link FileSystem}
+   * @param path a {@link AlluxioURI} denoting the path
    * @return total size of the specified path in byte
-   * @throws IOException if a non-Alluxio related exception occurs
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
   private long getFileOrFolderSize(FileSystem fs, AlluxioURI path)
-      throws IOException {
+      throws AlluxioException, IOException {
     long sizeInBytes = 0;
-    List<URIStatus> statuses;
-    try {
-      statuses = fs.listStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    List<URIStatus> statuses = fs.listStatus(path);
     for (URIStatus status : statuses) {
       if (status.isFolder()) {
         AlluxioURI subFolder = new AlluxioURI(status.getPath());

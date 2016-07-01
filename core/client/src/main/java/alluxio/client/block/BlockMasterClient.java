@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -46,10 +45,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * Creates a new block master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public BlockMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.CancelUfsFileTOptions;
 import alluxio.thrift.CloseUfsFileTOptions;
@@ -111,9 +112,10 @@ public final class FileSystemWorkerClientServiceHandler
   public long completeUfsFile(long sessionId, long tempUfsFileId, CompleteUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      String user = options.isSetUser() ? options.getUser() : null;
-      String group = options.isSetGroup() ? options.getGroup() : null;
-      return mWorker.completeUfsFile(sessionId, tempUfsFileId, user, group);
+      String owner = options.isSetOwner() ? options.getOwner() : "";
+      String group = options.isSetGroup() ? options.getGroup() : "";
+      short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
+      return mWorker.completeUfsFile(sessionId, tempUfsFileId, new Permission(owner, group, mode));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {
@@ -136,7 +138,11 @@ public final class FileSystemWorkerClientServiceHandler
   public long createUfsFile(long sessionId, String ufsUri, CreateUfsFileTOptions options)
       throws AlluxioTException, ThriftIOException {
     try {
-      return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri));
+      String user = options.isSetOwner() ? options.getOwner() : "";
+      String group = options.isSetGroup() ? options.getGroup() : "";
+      short mode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
+      return mWorker.createUfsFile(sessionId, new AlluxioURI(ufsUri),
+          new Permission(user, group, mode));
     } catch (IOException e) {
       throw new ThriftIOException(e.getMessage());
     } catch (AlluxioException e) {

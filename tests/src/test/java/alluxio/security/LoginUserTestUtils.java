@@ -23,7 +23,7 @@ import java.io.IOException;
  */
 public final class LoginUserTestUtils {
 
-  private LoginUserTestUtils() {} // This is a utils class not intended for instantiation
+  private LoginUserTestUtils() {} // prevent instantiation
 
   /**
    * Resets the singleton {@link LoginUser} to null.
@@ -35,15 +35,14 @@ public final class LoginUserTestUtils {
   /**
    * Resets the {@link LoginUser} and re-login with new user.
    *
-   * @param conf the instance of {@link Configuration}
    * @param user the new user
    * @throws IOException if login fails
    */
-  public static void resetLoginUser(Configuration conf, String user) throws IOException {
+  public static void resetLoginUser(String user) throws IOException {
     synchronized (LoginUser.class) {
       resetLoginUser();
-      conf.set(Constants.SECURITY_LOGIN_USERNAME, user);
-      LoginUser.get(conf);
+      Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+      LoginUser.get();
     }
   }
 }
