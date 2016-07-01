@@ -14,13 +14,18 @@ package alluxio.underfs.gcs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link GCSUnderFileSystem} that do not require an GCS
  * backend.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(GCSUnderFileSystem.class)
 public final class GCSUnderFileSystemTest {
   private GCSUnderFileSystem mMockGCSUnderFileSystem;
 
@@ -29,7 +34,7 @@ public final class GCSUnderFileSystemTest {
    */
   @Before
   public  final void before() {
-    mMockGCSUnderFileSystem = PowerMockito.mock(GCSUnderFileSystem.class);
+    mMockGCSUnderFileSystem = Mockito.mock(GCSUnderFileSystem.class);
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketName", "test-bucket");
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketPrefix", "gs://test-bucket/");
   }

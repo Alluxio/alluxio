@@ -52,6 +52,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
+  /** Length of each list request in S3. */
+  private static final int LISTING_LENGTH = 1000;
+
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
@@ -477,7 +480,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, due to the limitation of OSS client, this method can only return up
+   * to 1000 objects.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -489,40 +493,47 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
+      // If non-recursive, let the listObjects only get the files in the folder
+      String delimiter = recursive ? null : PATH_SEPARATOR;
+
+      // NOTE(binfan): currently OSS client only supports listing at most 1000 objects and does not
+      // support continuation
+      // Directories in OSS UFS can be possibly encoded in two different ways:
+      // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+      // (2) as "common prefixes" of other files objects for directories not created through
+      // Alluxio
+      //
+      // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+      // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+      //
+      // An example, with prefix="ufs" and delimiter="/"
+      // - objects.key = ufs/dir1_$folder$, child = dir1
+      // - objects.key = ufs/file, child = file
+      // - commonPrefix = ufs/dir1/, child = dir1
+      // - commonPrefix = ufs/dir2/, child = dir2
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
       listObjectsRequest.setPrefix(path);
+      listObjectsRequest.setMaxKeys(LISTING_LENGTH);
+      listObjectsRequest.setDelimiter(delimiter);
 
-      // recursive, so don't set the delimiter
-      // then list will return all files in this dir and subdirs
-      if (recursive) {
-        ObjectListing listing = mClient.listObjects(listObjectsRequest);
-        List<OSSObjectSummary> objectSummaryList = listing.getObjectSummaries();
-        String[] ret = new String[objectSummaryList.size()];
-        for (int i = 0; i < objectSummaryList.size(); i++) {
-          // Remove parent portion of the key
-          String child = getChildName(objectSummaryList.get(i).getKey(), path);
-          // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
-        }
-        return ret;
-      }
-
-      // Non recursive, so set the delimiter, let the listObjects only get the files in the folder
-      listObjectsRequest.setDelimiter(PATH_SEPARATOR);
-      Set<String> children = new HashSet<String>();
+      Set<String> children = new HashSet<>();
       ObjectListing listing = mClient.listObjects(listObjectsRequest);
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
         String child = getChildName(objectSummary.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
         // Prune the special folder suffix
         child = stripFolderSuffixIfPresent(child);
         // Add to the set of children, the set will deduplicate.
+        children.add(child);
+      }
+      // Loop through all common prefixes to account for directories that were not created through
+      // Alluxio.
+      for (String commonPrefix : listing.getCommonPrefixes()) {
+        // Remove parent portion of the key
+        String child = getChildName(commonPrefix, path);
+        // Remove any portion after the last path delimiter
+        int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
         children.add(child);
       }
       return children.toArray(new String[children.size()]);
