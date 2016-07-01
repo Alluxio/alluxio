@@ -601,8 +601,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          // Remove any portion after the path delimiter
-          int childNameIndex = child.indexOf(PATH_SEPARATOR);
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
           if (!child.isEmpty() && !children.contains(child)) {
             // This directory has not been created through Alluxio.
