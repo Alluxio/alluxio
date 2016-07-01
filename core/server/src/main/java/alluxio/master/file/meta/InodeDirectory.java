@@ -250,9 +250,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setMountPoint(isMountPoint())
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setOwner(getOwner())
-        .setGroup(getGroup())
-        .setMode(getMode())
+        .setOwner(getOwner()).setGroup(getGroup()).setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }

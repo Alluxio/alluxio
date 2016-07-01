@@ -16,12 +16,15 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A class representing a unique index. A unique index is an index
  * where each index value only maps to one object.
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
+@ThreadSafe
 class UniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, T> mIndexMap;

@@ -326,4 +326,66 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals(defaultOwner, fs.getOwner());
     Assert.assertEquals(defaultGroup, fs.getGroup());
   }
+
+  /**
+   * Tests the directory permission propagation to UFS.
+   */
+  @Test
+  public void directoryPermissionForUfsTest() throws IOException {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    Path dir = new Path("/root/dir/");
+    sTFS.mkdirs(dir);
+
+    FileStatus fs = sTFS.getFileStatus(dir);
+    String defaultOwner = fs.getOwner();
+    Short dirMode = fs.getPermission().toShort();
+    FileStatus parentFs = sTFS.getFileStatus(dir.getParent());
+    Short parentMode = parentFs.getPermission().toShort();
+
+    Assert.assertEquals(defaultOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, dir)));
+    Assert.assertEquals((int) dirMode,
+        (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir)));
+    Assert.assertEquals((int) parentMode,
+        (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir.getParent())));
+
+    short newMode = (short) 0755;
+    FsPermission newPermission = new FsPermission(newMode);
+    sTFS.setPermission(dir, newPermission);
+
+    Assert.assertEquals((int) newMode,
+        (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dir)));
+  }
+
+  /**
+   * Tests the parent directory permission when mkdirs recursively.
+   */
+  @Test
+  public void parentDirectoryPermissionForUfsTest() throws IOException {
+    if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
+      // Skip non-local and non-HDFS UFSs.
+      return;
+    }
+    Path fileA = new Path("/root/dirA/fileA");
+    Path dirA = fileA.getParent();
+    sTFS.mkdirs(dirA);
+    short parentMode = (short) 0700;
+    FsPermission newPermission = new FsPermission(parentMode);
+    sTFS.setPermission(dirA, newPermission);
+
+    create(sTFS, fileA);
+
+    Assert.assertEquals((int) parentMode,
+        (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, dirA)));
+
+    // Rename from dirA to dirB, file and its parent permission should be in sync with the source
+    // dirA.
+    Path fileB = new Path("/root/dirB/fileB");
+    Path dirB = fileB.getParent();
+    sTFS.rename(dirA, dirB);
+    Assert.assertEquals((int) parentMode,
+        (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
+  }
 }

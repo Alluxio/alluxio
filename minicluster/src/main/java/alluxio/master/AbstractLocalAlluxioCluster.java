@@ -21,6 +21,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
 import alluxio.security.LoginUser;
+import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -238,14 +239,10 @@ public abstract class AbstractLocalAlluxioCluster {
     UnderFileSystemUtils
         .touch(PathUtils.concatPath(journalFolder, "_format_" + System.currentTimeMillis()));
 
-    // If we are using the LocalMiniDFSCluster or S3UnderStorageCluster or OSSUnderStorageCluster,
+    // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    // TODO(andrew): Move logic to the alluxio-tests module so that we can use instanceof here
-    // instead of comparing classnames.
-    if (mUfsCluster.getClass().getSimpleName().equals("LocalMiniDFSCluster")
-        || mUfsCluster.getClass().getSimpleName().equals("S3UnderStorageCluster")
-        || mUfsCluster.getClass().getSimpleName().equals("OSSUnderStorageCluster")) {
+    if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
       Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }

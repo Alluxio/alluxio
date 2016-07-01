@@ -40,7 +40,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -92,17 +91,26 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
     String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
-    if (authMethod != null && authMethod.equals("keystone")) {
-      config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+    if (authMethod != null) {
       config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
       config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
-    } else {
-      config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
-      // tempauth requires authentication header to be of the form tenant:user.
-      // JOSS however generates header of the form user:tenant.
-      // To resolve this, we switch user with tenant
-      config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
-      config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+      switch (authMethod) {
+        case Constants.SWIFT_AUTH_KEYSTONE:
+          config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+          break;
+        case Constants.SWIFT_AUTH_SWIFTAUTH:
+          // swiftauth authenticates directly against swift
+          // note: this method is supported in swift object storage api v1
+          config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+          break;
+        default:
+          config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+          // tempauth requires authentication header to be of the form tenant:user.
+          // JOSS however generates header of the form user:tenant.
+          // To resolve this, we switch user with tenant
+          config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
+          config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+      }
     }
 
     ObjectMapper mapper = new ObjectMapper();
@@ -110,9 +118,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
     mAccess = mAccount.authenticate();
-    Container containerObj = mAccount.getContainer(containerName);
-    if (!containerObj.exists()) {
-      containerObj.create();
+    Container container = mAccount.getContainer(containerName);
+    if (!container.exists()) {
+      container.create();
     }
     mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
   }
@@ -153,33 +161,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     return SwiftDirectClient.put(mAccess, newPath);
   }
 
-  /**
-   * {@inheritDoc}
-   *
-   * @param path the file or folder name
-   * @param recursive whether we delete folder and its children
-   * @return true if succeed, false otherwise
-   * @throws IOException if a non-Alluxio error occurs
-   */
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
     String strippedPath = stripPrefixIfPresent(path);
-    Container c = mAccount.getContainer(mContainerName);
+    Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
       strippedPath = makeQualifiedPath(strippedPath);
-      PaginationMap paginationMap = c.getPaginationMap(strippedPath, 100);
+      PaginationMap paginationMap = container.getPaginationMap(strippedPath, 100);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject obj : c.list(paginationMap, page)) {
-          if (obj.exists()) {
-            obj.delete();
+        for (StoredObject object : container.list(paginationMap, page)) {
+          if (object.exists()) {
+            object.delete();
           }
         }
       }
     }
-    StoredObject so = c.getObject(strippedPath);
-    if (so.exists()) {
-      so.delete();
+    StoredObject object = container.getObject(strippedPath);
+    if (object.exists()) {
+      object.delete();
     }
     return true;
   }
@@ -188,7 +188,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public boolean exists(String path) throws IOException {
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    return path.endsWith("_temporary") || isFile(path) || isDirectory(path);
+    if (path.endsWith("_temporary")) {
+      return true;
+    }
+    return getObject(path).exists();
   }
 
   /**
@@ -226,14 +229,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
-    StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
-    return so.getContentLength();
+    return getObject(path).getContentLength();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
-    StoredObject so = mAccount.getContainer(mContainerName).getObject(stripPrefixIfPresent(path));
-    return so.getLastModifiedAsDate().getTime();
+    return getObject(path).getLastModifiedAsDate().getTime();
   }
 
   // This call is currently only used for the web ui, where a negative value implies unknown.
@@ -244,14 +245,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    String strippedPath = stripPrefixIfPresent(path);
-    return mAccount.getContainer(mContainerName).getObject(strippedPath).exists();
+    return exists(path) && !isDirectory(path);
   }
 
   @Override
   public String[] list(String path) throws IOException {
     path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-    return listInternal(path, false);
+    return listInternal(path);
   }
 
   @Override
@@ -266,10 +266,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
-    path = stripPrefixIfPresent(path);
-    Container container = mAccount.getContainer(mContainerName);
-    StoredObject so = container.getObject(path);
-    return so.downloadObjectAsInputStream();
+    return getObject(path).downloadObjectAsInputStream();
   }
 
   /**
@@ -304,15 +301,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     if (exists(src) && copy(strippedSrcPath, strippedDstPath)) {
       return delete(src, true);
     }
-    Container c = mAccount.getContainer(mContainerName);
+    Container container = mAccount.getContainer(mContainerName);
     strippedSrcPath = makeQualifiedPath(strippedSrcPath);
     strippedDstPath = makeQualifiedPath(strippedDstPath);
-    PaginationMap paginationMap = c.getPaginationMap(strippedSrcPath, 100);
+    PaginationMap paginationMap = container.getPaginationMap(strippedSrcPath, 100);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      for (StoredObject obj : c.list(paginationMap, page)) {
-        if (obj.exists() && copy(obj.getName(),
-            obj.getName().replace(strippedSrcPath, strippedDstPath))) {
-          delete(obj.getName(), false);
+      for (StoredObject object : container.list(paginationMap, page)) {
+        if (object.exists() && copy(object.getName(),
+            object.getName().replace(strippedSrcPath, strippedDstPath))) {
+          delete(object.getName(), false);
         }
       }
     }
@@ -320,8 +317,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void setConf(Object conf) {
-  }
+  public void setConf(Object conf) {}
 
   // Not supported
   @Override
@@ -364,9 +360,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
+
         Container container = mAccount.getContainer(mContainerName);
-        container.getObject(strippedSrcPath).copyObject(container,
-            container.getObject(strippedDstPath));
+        container.getObject(strippedSrcPath)
+            .copyObject(container, container.getObject(strippedDstPath));
         return true;
       } catch (Exception e) {
         LOG.error("Failed to copy file {} to {}", src, dst, e.getMessage());
@@ -380,15 +377,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Checks if the path is a prefix of at least one object in Swift.
+   * Checks if the path corresponds to a Swift directory.
    *
    * @param path the path to check
    * @return boolean indicating if the path is a directory
    * @throws IOException if an error occurs listing the directory
    */
   private boolean isDirectory(String path) throws IOException {
-    String strippedPath = stripPrefixIfPresent(path);
-    String[] children = listInternal(strippedPath, true);
+    String[] children = listInternal(path);
     return children != null && children.length > 0;
   }
 
@@ -397,23 +393,20 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * folder suffix.
    *
    * @param path the key to list
-   * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private String[] listInternal(String path, boolean recursive) throws IOException {
+  private String[] listInternal(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
       Directory directory = new Directory(path, '/');
-      Container c = mAccount.getContainer(mContainerName);
-      Collection<DirectoryOrObject> res = c.listDirectory(directory);
+      Container container = mAccount.getContainer(mContainerName);
+      Collection<DirectoryOrObject> objects = container.listDirectory(directory);
       Set<String> children = new HashSet<>();
-      Iterator<DirectoryOrObject> iter = res.iterator();
-      while (iter.hasNext()) {
-        DirectoryOrObject dirobj = iter.next();
-        String child = stripFolderSuffixIfPresent(dirobj.getName());
+      for (DirectoryOrObject object : objects) {
+        String child = stripFolderSuffixIfPresent(object.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
       }
@@ -467,6 +460,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return path.substring(prefix.length());
     }
     return path;
+  }
+
+  /**
+   * Retrieves a handle to an object identified by the given path.
+   *
+   * @param path the path to retrieve an object handle for
+   * @return the object handle
+   */
+  private StoredObject getObject(String path) {
+    String strippedPath = stripPrefixIfPresent(path);
+    Container container = mAccount.getContainer(mContainerName);
+    return container.getObject(strippedPath);
   }
 
   @Override

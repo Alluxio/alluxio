@@ -11,6 +11,8 @@
 
 package alluxio.collections;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  * A class representing the definition of an index for this {@link IndexedSet}. Each instance of
  * this class must implement the method to define how to get the value of the field chosen as
@@ -19,6 +21,7 @@ package alluxio.collections;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
+@ThreadSafe
 public abstract class IndexDefinition<T> {
   /** Whether it is a unique index. */
   //TODO(lei): change the mIsUnique to mIndexType enum
