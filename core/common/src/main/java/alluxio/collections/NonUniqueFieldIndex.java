@@ -85,13 +85,15 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean containsObject(Object object) {
-    for (ConcurrentHashSet<T> innerSet : mIndexMap.values()) {
-      if (innerSet.contains(object)) {
-        return true;
-      }
+  public boolean containsObject(T object) {
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
+
+    if(set == null) {
+      return false;
     }
-    return false;
+
+    return set.contains(object);
   }
 
   @Override
@@ -174,6 +176,5 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
         throw new IllegalStateException("next() was not called before remove()");
       }
     }
-
   }
 }

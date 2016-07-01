@@ -49,10 +49,10 @@ interface FieldIndex<T> {
   /**
    * Returns whether there is an object in the set.
    *
-   * @param object the object to be checked
+   * @param o the object to be checked
    * @return true if there is one such object, otherwise false
    */
-  boolean containsObject(Object object);
+  boolean containsObject(T o);
 
   /**
    * Gets a subset of objects with the specified field value. If there is no object with
