@@ -235,7 +235,7 @@ public class IndexedSetTest {
       Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
     }
     try {
-      mSet.add(new Pair(1 , 9L));
+      mSet.add(new Pair(1, 9L));
     } catch (IllegalStateException e) {
       Assert.assertTrue(true);
     }
@@ -249,13 +249,39 @@ public class IndexedSetTest {
    */
   @Test
   public void iteratorRemoveTest() {
-    Iterator<Pair> it =  mSet.iterator();
+    long removed = 0;
+    Iterator<Pair> it = mSet.iterator();
     Assert.assertTrue(it.hasNext());
     final Pair first = it.next();
-    Set<Pair> allWithSameIntValue = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertTrue("Element should be in the set", allWithSameIntValue.contains(first));
+
+    Set<Pair> valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
+    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+
+    valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
+    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+
     it.remove();
-    allWithSameIntValue = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertFalse("Element should not be in the set", allWithSameIntValue.contains(first));
+    removed++;
+    valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
+    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+
+    valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
+    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+
+    while (it.hasNext()) {
+      it.next();
+      it.remove();
+      removed++;
+    }
+    Assert.assertEquals(removed, 9L);
+    Assert.assertTrue(mSet.size() == 0);
+
+    long l = 0;
+    for (int i = 0; i < 3; i++) {
+      Assert.assertFalse(mSet.contains(mNonUniqueIntIndex, i));
+      for (int k = 0; k < 3; k++) {
+        Assert.assertFalse(mSet.contains(mUniqueLongIndex, l++));
+      }
+    }
   }
 }

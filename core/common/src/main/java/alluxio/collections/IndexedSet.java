@@ -191,7 +191,44 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public Iterator<T> iterator() {
-    return mFirstIndex.iterator();
+    return new IndexedSetIterator();
+  }
+
+  /**
+   * Specialized iterator for {@link IndexedSet}.
+   *
+   * This is needed to support consistent removal from the set and the indices.
+   */
+  private class IndexedSetIterator implements Iterator<T> {
+    private final Iterator<T> mSetIterator;
+    private T mObject;
+
+    public IndexedSetIterator() {
+      mSetIterator = mFirstIndex.iterator();
+      mObject = null;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return mSetIterator.hasNext();
+    }
+
+    @Override
+    public T next() {
+      final T next = mSetIterator.next();
+      mObject = next;
+      return next;
+    }
+
+    @Override
+    public void remove() {
+      if (mObject != null) {
+        IndexedSet.this.remove(mObject);
+        mObject = null;
+      } else {
+        throw new IllegalStateException("next() was not called before remove()");
+      }
+    }
   }
 
   /**
@@ -255,7 +292,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {
-      if (mFirstIndex.containsObject(object)) {
+      if (mFirstIndex.containsObject((T) object)) {
         // This isn't technically typesafe. However, given that success is true, it's very unlikely
         // that the object passed to remove is not of type <T>.
         @SuppressWarnings("unchecked")
