@@ -133,28 +133,17 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath) {
-    this(numWorkers, masterAddress, resourcePath, Configuration.createClientConf());
-  }
-
-  /**
-   * @param numWorkers the number of workers to launch
-   * @param masterAddress the address at which to start the Alluxio master
-   * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
-   * @param conf Alluxio configuration
-   */
-  public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
-      Configuration conf) {
-    mMasterCpu = conf.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    mMasterCpu = Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) (conf.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
-    mWorkerCpu = conf.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) (conf.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+        (int) (Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) (conf.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
-    mMaxWorkersPerHost = conf.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+    mRamdiskMemInMB = (int) (Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
+    mMaxWorkersPerHost = Configuration.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;
@@ -254,8 +243,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mYarnClient.start();
 
     // Register with ResourceManager
-    String hostname = NetworkAddressUtils.getLocalHostName(
-        Configuration.createServerConf());
+    String hostname = NetworkAddressUtils.getLocalHostName();
     mRMClient.registerApplicationMaster(hostname, 0 /* port */, "" /* tracking url */);
     LOG.info("ApplicationMaster registered");
   }
@@ -313,10 +301,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     String[] nodes = {mMasterAddress};
 
     // Make container request for Alluxio master to ResourceManager
-    boolean relaxLocality = true;
-    if (!mMasterAddress.equals("localhost")) {
-      relaxLocality = false;
-    }
+    boolean relaxLocality = mMasterAddress.equals("localhost");
     ContainerRequest masterContainerAsk = new ContainerRequest(masterResource, nodes,
         null /* any racks */, MASTER_PRIORITY, relaxLocality);
     LOG.info("Making resource request for Alluxio master: cpu {} memory {} MB on node {}",

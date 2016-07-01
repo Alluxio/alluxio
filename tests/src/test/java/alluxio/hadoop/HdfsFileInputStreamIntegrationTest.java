@@ -75,7 +75,23 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#read()}.
+   * Tests {@link HdfsFileInputStream#available()}.
+   */
+  @Test
+  public void availableTest() throws IOException {
+    Assert.assertEquals(FILE_LEN, mInMemInputStream.available());
+    Assert.assertEquals(FILE_LEN, mUfsInputStream.available());
+
+    // Advance the streams and check available() again.
+    byte[] buf = new byte[BUFFER_SIZE];
+    int length1 = mInMemInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN - length1, mInMemInputStream.available());
+    int length2 = mUfsInputStream.read(buf);
+    Assert.assertEquals(FILE_LEN - length2, mUfsInputStream.available());
+  }
+
+  /**
+   * Tests {@link HdfsFileInputStream#read()}.
    */
   @Test
   public void readTest1() throws IOException {
@@ -95,7 +111,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#read(byte[])}.
+   * Tests {@link HdfsFileInputStream#read(byte[])}.
    */
   @Test
   public void readTest2() throws IOException {
@@ -117,7 +133,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#read(byte[], int, int)}.
+   * Tests {@link HdfsFileInputStream#read(byte[], int, int)}.
    */
   @Test
   public void readTest3() throws IOException {
@@ -139,7 +155,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#read(long, byte[], int, int)}.
+   * Tests {@link HdfsFileInputStream#read(long, byte[], int, int)}.
    */
   @Test
   public void readTest4() throws IOException {
@@ -181,7 +197,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#readFully(long, byte[])}.
+   * Tests {@link HdfsFileInputStream#readFully(long, byte[])}.
    */
   @Test
   public void readFullyTest1() throws IOException {
@@ -239,7 +255,7 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   /**
-   * Test {@link HdfsFileInputStream#readFully(long, byte[], int, int)}.
+   * Tests {@link HdfsFileInputStream#readFully(long, byte[], int, int)}.
    */
   @Test
   public void readFullyTest2() throws IOException {

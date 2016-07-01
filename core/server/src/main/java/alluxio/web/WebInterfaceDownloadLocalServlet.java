@@ -37,14 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
   private static final long serialVersionUID = 7260819317567193560L;
 
-  private final transient Configuration mConfiguration;
-
   /**
    * Creates a new instance of {@link WebInterfaceDownloadLocalServlet}.
    */
-  public WebInterfaceDownloadLocalServlet() {
-    mConfiguration = Configuration.createServerConf();
-  }
+  public WebInterfaceDownloadLocalServlet() {}
 
   /**
    * Prepares for downloading a file.
@@ -63,7 +59,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
 
     // Download a file from the local filesystem.
-    File logsDir = new File(mConfiguration.get(Constants.LOGS_DIR));
+    File logsDir = new File(Configuration.get(Constants.LOGS_DIR));
 
     // Only allow filenames as the path, to avoid downloading arbitrary local files.
     requestPath = new File(requestPath).getName();

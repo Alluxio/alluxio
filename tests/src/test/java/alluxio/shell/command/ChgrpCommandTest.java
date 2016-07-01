@@ -25,16 +25,16 @@ import java.io.IOException;
 /**
  * Tests for chgrp command.
  */
-public class ChgrpCommandTest extends AbstractAlluxioShellTest {
+public final class ChgrpCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void chgrpTest() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chgrp", "group1", "/testFile");
-    String group = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroupName();
+    String group = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
     Assert.assertEquals("group1", group);
     mFsShell.run("chgrp", "group2", "/testFile");
-    group = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroupName();
+    group = mFileSystem.getStatus(new AlluxioURI("/testFile")).getGroup();
     Assert.assertEquals("group2", group);
   }
 
@@ -47,13 +47,13 @@ public class ChgrpCommandTest extends AbstractAlluxioShellTest {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     // "chgrp -R group1 /testDir" should apply to both dir and child file
     mFsShell.run("chgrp", "-R", "group1", "/testDir");
-    String group = mFileSystem.getStatus(new AlluxioURI("/testDir")).getGroupName();
+    String group = mFileSystem.getStatus(new AlluxioURI("/testDir")).getGroup();
     Assert.assertEquals("group1", group);
-    group = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getGroupName();
+    group = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getGroup();
     Assert.assertEquals("group1", group);
     // chgrp to another group.
     mFsShell.run("chgrp", "-R", "group2", "/testDir");
-    group = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getGroupName();
+    group = mFileSystem.getStatus(new AlluxioURI("/testDir/testFile")).getGroup();
     Assert.assertEquals("group2", group);
   }
 }

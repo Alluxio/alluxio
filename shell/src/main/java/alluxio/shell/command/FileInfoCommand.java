@@ -12,11 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.InvalidPathException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -31,11 +31,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class FileInfoCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public FileInfoCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public FileInfoCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -44,16 +43,11 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     if (status.isFolder()) {
-      throw new IOException(path + " is a directory path so does not have file blocks.");
+      throw new InvalidPathException(path + " is a directory path so does not have file blocks.");
     }
 
     System.out.println(status);

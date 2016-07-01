@@ -13,9 +13,9 @@ package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -29,24 +29,22 @@ import java.util.Random;
  * Unit tests for {@link CreateDirectoryOptions}.
  */
 @RunWith(PowerMockRunner.class)
-// Need to mock PermissionStatus to use CommonTestUtils#testEquals.
-@PrepareForTest(PermissionStatus.class)
+// Need to mock Permission to use CommonTestUtils#testEquals.
+@PrepareForTest(Permission.class)
 public class CreateDirectoryOptionsTest {
   /**
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    MasterContext.reset(conf);
+    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 
     Assert.assertEquals(false, options.isAllowExists());
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -58,7 +56,7 @@ public class CreateDirectoryOptionsTest {
     boolean allowExists = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();
     long operationTimeMs = random.nextLong();
-    PermissionStatus permissionStatus = PermissionStatus.defaults();
+    Permission permission = Permission.defaults();
     boolean persisted = random.nextBoolean();
     boolean recursive = random.nextBoolean();
 
@@ -67,13 +65,13 @@ public class CreateDirectoryOptionsTest {
         .setMountPoint(mountPoint)
         .setOperationTimeMs(operationTimeMs)
         .setPersisted(persisted)
-        .setPermissionStatus(permissionStatus)
+        .setPermission(permission)
         .setRecursive(recursive);
 
     Assert.assertEquals(allowExists, options.isAllowExists());
     Assert.assertEquals(mountPoint, options.isMountPoint());
     Assert.assertEquals(operationTimeMs, options.getOperationTimeMs());
-    Assert.assertEquals(permissionStatus, options.getPermissionStatus());
+    Assert.assertEquals(permission, options.getPermission());
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
   }

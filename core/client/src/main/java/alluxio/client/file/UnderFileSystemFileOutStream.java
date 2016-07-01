@@ -13,18 +13,18 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.netty.NettyUnderFileSystemFileWriter;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Provides a streaming API to write to a file in the under file system through an Alluxio
@@ -166,8 +166,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
-        (int) conf.getBytes(Constants.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(Constants.USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES));
   }
 }

@@ -11,8 +11,9 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -48,7 +49,7 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    ClientContext.getConf().set(Constants.USER_UFS_DELEGATION_ENABLED, "false");
+    Configuration.set(Constants.USER_UFS_DELEGATION_ENABLED, "false");
 
     File file = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(file);
@@ -68,7 +69,8 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
+    ClientTestUtils.resetClient();
   }
 
   /**

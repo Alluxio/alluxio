@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
@@ -27,12 +26,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class UnmountCommand extends AbstractShellCommand {
+
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public UnmountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public UnmountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -46,16 +45,12 @@ public final class UnmountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    try {
-      mFileSystem.unmount(inputPath);
-      System.out.println("Unmounted " + inputPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.unmount(inputPath);
+    System.out.println("Unmounted " + inputPath);
   }
 
   @Override

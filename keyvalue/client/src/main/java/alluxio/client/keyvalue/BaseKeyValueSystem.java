@@ -34,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class BaseKeyValueSystem implements KeyValueSystem {
   private final KeyValueMasterClient mMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+      new KeyValueMasterClient(ClientContext.getMasterAddress());
 
   /**
    * Constructs a new {@link BaseKeyValueSystem}.

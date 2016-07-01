@@ -13,7 +13,6 @@ package alluxio.client.file.policy;
 
 import alluxio.CommonTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -35,7 +34,7 @@ public final class LocalFirstPolicyTest {
    */
   @Test
   public void getLocalFirst() {
-    String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
@@ -51,7 +50,7 @@ public final class LocalFirstPolicyTest {
    */
   @Test
   public void getOthersWhenNotEnoughSpaceOnLocal() {
-    String localhostName = NetworkAddressUtils.getLocalHostName(ClientContext.getConf());
+    String localhostName = NetworkAddressUtils.getLocalHostName();
     LocalFirstPolicy policy = new LocalFirstPolicy();
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")

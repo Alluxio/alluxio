@@ -46,7 +46,7 @@ public class FileSystemBlockLocationIntegrationTest {
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }
 

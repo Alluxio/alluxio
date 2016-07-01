@@ -12,8 +12,8 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -26,7 +26,7 @@ import org.junit.Test;
  */
 public class OpenFileOptionsTest {
   private final ReadType mDefaultReadType =
-      ClientContext.getConf().getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+      Configuration.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
 
   @Test
   public void defaultsTest() {
