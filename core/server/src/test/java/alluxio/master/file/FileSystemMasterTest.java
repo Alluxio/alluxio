@@ -71,7 +71,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -414,6 +416,101 @@ public final class FileSystemMasterTest {
 
     // getFileId should have loaded another file, so now 4 paths exist.
     Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void getFileInfoListWithLoadMetadataNeverTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(uri,
+        GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+    Assert.assertEquals(0, fileInfoList.size());
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void getFileInfoListWithLoadMetadataOnceTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.getFileInfoList(uri, GetFileInfoListOptions.defaults());
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // getFileInfoList should have loaded another 3 files (dir1, dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void getFileInfoListWithLoadMetadataAlwaysTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.getFileInfoList(uri, GetFileInfoListOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // getFileInfoList should have loaded another files (dir1), so now 4 paths exist.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    // Add two files.
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+
+    fileInfoList = mFileSystemMaster.getFileInfoList(uri, GetFileInfoListOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // No file is loaded since dir1 has been loaded once.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    fileInfoList = mFileSystemMaster.getFileInfoList(uri,
+        GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // getFileInfoList should have loaded another 2 files (dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
   }
 
   @Test
