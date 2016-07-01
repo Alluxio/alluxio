@@ -254,7 +254,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the file descriptors for a path.
+   * @summary get the file descriptors for a path
    * @param path the file path
    * @param loadDirectChildren whether to load direct children of path
    * @param loadMetadataType the {@link LoadMetadataType}. It overrides loadDirectChildren if it
@@ -265,7 +265,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
   public Response listStatus(@QueryParam("path") String path,
-      @QueryParam("loadDirectChildren") boolean loadDirectChildren,
+      @Deprecated @QueryParam("loadDirectChildren") boolean loadDirectChildren,
       @DefaultValue("") @QueryParam("loadMetadataType") String loadMetadataType) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");

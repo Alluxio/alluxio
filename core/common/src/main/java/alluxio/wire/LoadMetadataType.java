@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
 import alluxio.thrift.LoadMetadataTypeT;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -18,6 +19,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * Types for loading metadata.
  */
+@PublicApi
 @ThreadSafe
 public enum LoadMetadataType {
   /**
