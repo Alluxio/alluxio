@@ -72,15 +72,15 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckAWSCredentials(Configuration configuration) {
+    // TODO(binfan): remove System.getProperty as it is covered by configuration
     String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
+    if (System.getProperty(accessKeyConf) != null && !configuration.containsKey(accessKeyConf)) {
       configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
+    if (System.getProperty(secretKeyConf) != null && !configuration.containsKey(secretKeyConf)) {
       configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null;
+    return configuration.containsKey(accessKeyConf) && configuration.containsKey(secretKeyConf);
   }
 }
