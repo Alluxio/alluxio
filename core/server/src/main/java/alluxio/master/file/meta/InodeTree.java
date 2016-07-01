@@ -985,9 +985,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
     for (int i = inodes.size(); i < pathComponents.length; i++) {
       Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
+        // true if the lock is allowed to be upgraded.
+        boolean upgradeAllowed = true;
+        if (lockHints != null && i - 1 < lockHints.size()
+            && lockHints.get(i - 1) == LockMode.READ) {
+          // If the hint is READ, the lock must be locked as READ and cannot be upgraded.
+          upgradeAllowed = false;
+        }
         if (lockMode != LockMode.READ
             && getLockModeForComponent(i - 1, pathComponents.length, lockMode, lockHints)
-            == LockMode.READ) {
+            == LockMode.READ && upgradeAllowed) {
           // The target lock mode is one of the WRITE modes, but READ lock is already held. The
           // READ lock cannot be upgraded atomically, it needs be released first before WRITE
           // lock can be acquired. As a consequence, we need to recheck if the child we are
