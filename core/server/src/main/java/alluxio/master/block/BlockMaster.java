@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -114,16 +115,16 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       new BlockContainerIdGenerator();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexDefinition<MasterWorkerInfo> mIdIndex = new
+      IndexDefinition<MasterWorkerInfo>(true) {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexDefinition<MasterWorkerInfo> mAddressIndex = new
+      IndexDefinition<MasterWorkerInfo>(true) {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();

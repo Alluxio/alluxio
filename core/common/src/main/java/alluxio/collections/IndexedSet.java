@@ -12,16 +12,15 @@
 package alluxio.collections;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -39,6 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Example usage:
  *
  * We have a set of puppies:
+ *
  * <pre>
  *   class Puppy {
  *     private final String mName;
@@ -65,14 +65,14 @@ import javax.annotation.concurrent.ThreadSafe;
  *
  * First, define the fields to be indexed:
  * <pre>
- *  FieldIndex<Puppy> idIndex = new FieldIndex<Puppy> {
+ *  IndexDefinition<Puppy> idIndex = new IndexDefinition<Puppy>(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.id();
  *    }
  *  }
  *
- *  FieldIndex<Puppy> nameIndex = new FieldIndex<Puppy> {
+ *  IndexDefinition<Puppy> nameIndex = new IndexDefinition<Puppy>(true) {
  *    {@literal @Override}
  *    Object getFieldValue(Puppy o) {
  *      return o.name();
@@ -103,46 +103,40 @@ public class IndexedSet<T> extends AbstractSet<T> {
   /** All objects in the set. This set is required to guarantee uniqueness of objects. */
   // TODO(gpang): remove this set, and just use the indexes.
   private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
-  /**
-   * Map from {@link FieldIndex} to the index. An index is a map from index value to set of
-   * objects with that index value.
-   */
-  private final Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> mIndexMap;
 
   /**
-   * An interface representing an index for this {@link IndexedSet}, each index for this set must
-   * implement the interface to define how to get the value of the field chosen as the index. Users
-   * must use the same instance of the implementation of this interface as the parameter in all
-   * methods of {@link IndexedSet} to represent the same index.
-   *
-   * @param <T> type of objects in this {@link IndexedSet}
+   * Map from index definition to the index. An index is a map from index value to one or a set of
+   * objects with that index value.
    */
-  public interface FieldIndex<T> {
-    /**
-     * Gets the value of the field that serves as index.
-     *
-     * @param o the instance to get the field value from
-     * @return the field value, which is just an Object
-     */
-    Object getFieldValue(T o);
-  }
+  private final Map<IndexDefinition<T>, FieldIndex<T>> mIndices;
 
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
    *
-   * @param field at least one field is needed to index the set of objects
-   * @param otherFields other fields to index the set
+   * @param firstIndexDefinition at least one field is needed to index the set of objects
+   * @param otherIndexDefinitions other index definitions to index the set
    */
   @SafeVarargs
-  public IndexedSet(FieldIndex<T> field, FieldIndex<T>... otherFields) {
-    Map<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> indexMap =
-        new HashMap<>(otherFields.length + 1);
-    indexMap.put(field, new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
-    for (FieldIndex<T> fieldIndex : otherFields) {
-      indexMap.put(fieldIndex, new ConcurrentHashMap<Object, ConcurrentHashSet<T>>(8, 0.95f, 8));
+  public IndexedSet(IndexDefinition<T> firstIndexDefinition, IndexDefinition<T>...
+      otherIndexDefinitions) {
+    Iterable<IndexDefinition<T>> indexDefinitions =
+        Iterables.concat(Arrays.asList(firstIndexDefinition), Arrays.asList(otherIndexDefinitions));
+
+    // initialization
+    Map<IndexDefinition<T>, FieldIndex<T>> indices = new HashMap<>();
+
+    for (IndexDefinition<T> indexDefinition : indexDefinitions) {
+      FieldIndex<T> index;
+      if (indexDefinition.isUnique()) {
+        index = new UniqueFieldIndex<T>(indexDefinition);
+      } else {
+        index = new NonUniqueFieldIndex<T>(indexDefinition);
+      }
+
+      indices.put(indexDefinition, index);
     }
-    // read only, so it is thread safe and allows concurrent access.
-    mIndexMap = Collections.unmodifiableMap(indexMap);
+
+    mIndices = Collections.unmodifiableMap(indices);
   }
 
   /**
@@ -176,27 +170,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
         return false;
       }
 
-      // Update the indexes.
-      for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo :
-          mIndexMap.entrySet()) {
-        // For this field, retrieve the value to index
-        Object fieldValue = fieldInfo.getKey().getFieldValue(object);
-        // Get the index for this field
-        ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
-        ConcurrentHashSet<T> objSet = index.get(fieldValue);
-        if (objSet == null) {
-          index.putIfAbsent(fieldValue, new ConcurrentHashSet<T>());
-          objSet = index.get(fieldValue);
-        }
-        if (!objSet.addIfAbsent(object)) {
-          // this call can never return false because:
-          //   a. the second-level sets in the indices are all
-          //      {@link java.util.Set} instances of unbounded space
-          //   b. We have already successfully added object on mObjects,
-          //      meaning that it cannot be already in any of the sets.
-          //      (mObjects is exactly the set-union of all the other second-level sets)
-          throw new IllegalStateException("Indexed Set is in an illegal state");
-        }
+      for (FieldIndex<T> fieldValue : mIndices.values()) {
+        fieldValue.add(object);
       }
     }
     return true;
@@ -255,46 +230,49 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * Whether there is an object with the specified field value in the set.
+   * Whether there is an object with the specified index field value in the set.
    *
-   * @param index the field index
+   * @param indexDefinition the field index definition
    * @param value the field value
    * @return true if there is one such object, otherwise false
    */
-  public boolean contains(FieldIndex<T> index, Object value) {
-    ConcurrentHashSet<T> set = getByFieldInternal(index, value);
-    return set != null && !set.isEmpty();
+  public boolean contains(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
+    if (index == null) {
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
+    }
+    return index.contains(value);
   }
 
   /**
    * Gets a subset of objects with the specified field value. If there is no object with the
-   * specified field value, a newly created empty set is returned. Otherwise, the returned set is
-   * backed up by an internal set, so changes in internal set will be reflected in returned set.
+   * specified field value, a newly created empty set is returned.
    *
-   * @param index the field index
+   * @param indexDefinition the field index definition
    * @param value the field value to be satisfied
    * @return the set of objects or an empty set if no such object exists
    */
-  // TODO(gpang): Remove this method, if it is not being used.
-  public Set<T> getByField(FieldIndex<T> index, Object value) {
-    Set<T> set = getByFieldInternal(index, value);
-    return set == null ? new HashSet<T>() : Collections.unmodifiableSet(set);
+  public Set<T> getByField(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
+    if (index == null) {
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
+    }
+    return index.getByField(value);
   }
 
   /**
-   * Gets the first object from the set of objects with the specified field value.
+   * Gets the object from the set of objects with the specified field value.
    *
-   * @param index the field index
+   * @param indexDefinition the field index definition
    * @param value the field value
    * @return the object or null if there is no such object
    */
-  public T getFirstByField(FieldIndex<T> index, Object value) {
-    Set<T> all = getByFieldInternal(index, value);
-    try {
-      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
-    } catch (NoSuchElementException e) {
-      return null;
+  public T getFirstByField(IndexDefinition<T> indexDefinition, Object value) {
+    FieldIndex<T> index = mIndices.get(indexDefinition);
+    if (index == null) {
+      throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
+    return index.getFirst(value);
   }
 
   /**
@@ -305,6 +283,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   @Override
   public boolean remove(Object object) {
+    if (object == null) {
+      return false;
+    }
     // Locking this object protects against removing the exact object that might be in the
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
@@ -328,29 +309,21 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * @param object the object to be removed
    */
   private void removeFromIndices(T object) {
-    for (Map.Entry<FieldIndex<T>, ConcurrentHashMap<Object, ConcurrentHashSet<T>>> fieldInfo :
-        mIndexMap.entrySet()) {
-      Object fieldValue = fieldInfo.getKey().getFieldValue(object);
-      ConcurrentHashMap<Object, ConcurrentHashSet<T>> index = fieldInfo.getValue();
-      ConcurrentHashSet<T> objSet = index.get(fieldValue);
-      if (objSet != null) {
-        objSet.remove(object);
-      }
+    for (FieldIndex<T> fieldValue : mIndices.values()) {
+      fieldValue.remove(object);
     }
   }
 
   /**
-   * Removes the subset of objects with the specified field value.
+   * Removes the subset of objects with the specified index field value.
    *
-   * @param index the field index
+   * @param indexDefinition the field index
    * @param value the field value
    * @return the number of objects removed
    */
-  public int removeByField(FieldIndex<T> index, Object value) {
-    ConcurrentHashSet<T> toRemove = getByFieldInternal(index, value);
-    if (toRemove == null) {
-      return 0;
-    }
+  public int removeByField(IndexDefinition<T> indexDefinition, Object value) {
+    Set<T> toRemove = getByField(indexDefinition, value);
+
     int removed = 0;
     for (T o : toRemove) {
       if (remove(o)) {
@@ -366,16 +339,5 @@ public class IndexedSet<T> extends AbstractSet<T> {
   @Override
   public int size() {
     return mObjects.size();
-  }
-
-  /**
-   * Gets the set of objects with the specified field value - internal function.
-   *
-   * @param index the field index
-   * @param value the field value
-   * @return the set of objects with the specified field value
-   */
-  private ConcurrentHashSet<T> getByFieldInternal(FieldIndex<T> index, Object value) {
-    return mIndexMap.get(index).get(value);
   }
 }

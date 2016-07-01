@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
@@ -32,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private IndexedSet.FieldIndex<Inode<?>> mNameIndex = new IndexedSet.FieldIndex<Inode<?>>() {
+  private final IndexDefinition<Inode<?>> mNameIndex = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getName();
@@ -249,9 +250,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
         .setLastModificationTimeMs(getLastModificationTimeMs())
         .setMountPoint(isMountPoint())
         .setDirectChildrenLoaded(isDirectChildrenLoaded())
-        .setOwner(getOwner())
-        .setGroup(getGroup())
-        .setMode(getMode())
+        .setOwner(getOwner()).setGroup(getGroup()).setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeDirectory(inodeDirectory).build();
   }
