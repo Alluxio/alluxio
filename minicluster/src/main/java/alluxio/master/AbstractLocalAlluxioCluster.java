@@ -21,6 +21,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
 import alluxio.security.LoginUser;
+import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
@@ -30,7 +31,6 @@ import alluxio.worker.AlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
-import org.apache.commons.lang.StringUtils;
 import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -242,7 +242,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    if (!StringUtils.isEmpty(UnderFileSystemCluster.getUnderFSClass())) {
+    if (!UnderFileSystemCluster.getUnderFSClass().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
       Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }

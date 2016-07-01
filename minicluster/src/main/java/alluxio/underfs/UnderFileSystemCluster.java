@@ -48,7 +48,7 @@ public abstract class UnderFileSystemCluster {
 
   private static final String INTEGRATION_UFS_PROFILE_KEY = "ufs";
 
-  private static String sUnderFSClass;
+  private static String sUnderFSClass = null;
 
   private static UnderFileSystemCluster sUnderFSCluster = null;
 
@@ -88,10 +88,11 @@ public abstract class UnderFileSystemCluster {
    * @return the {@link UnderFileSystemCluster}
    */
   public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
-    sUnderFSClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
+    final String ufsClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
-    if (!StringUtils.isEmpty(sUnderFSClass)) {
+    if (!StringUtils.isEmpty(ufsClass)) {
       try {
+        sUnderFSClass = ufsClass;
         UnderFileSystemCluster ufsCluster =
             (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
                 .newInstance(baseDir);
@@ -113,6 +114,9 @@ public abstract class UnderFileSystemCluster {
    * @return the {@link UnderFileSystem} class name
    */
   public static synchronized String getUnderFSClass() {
+    if (sUnderFSClass == null) {
+      sUnderFSClass = LocalFileSystemCluster.class.getName();
+    }
     return sUnderFSClass;
   }
 
