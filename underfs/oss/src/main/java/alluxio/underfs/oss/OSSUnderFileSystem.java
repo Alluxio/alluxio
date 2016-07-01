@@ -52,6 +52,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate folder structure in OSS. */
   private static final String PATH_SEPARATOR = "/";
 
+  /** Length of each list request in S3. */
+  private static final int LISTING_LENGTH = 1000;
+
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
@@ -493,11 +496,24 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       // If non-recursive, let the listObjects only get the files in the folder
       String delimiter = recursive ? null : PATH_SEPARATOR;
 
-      // NOTE(binfan): currently OSS client only supports listing at most 1000 objects, without
-      // setting continuation
+      // NOTE(binfan): currently OSS client only supports listing at most 1000 objects and does not
+      // support continuation
+      // Directories in OSS UFS can be possibly encoded in two different ways:
+      // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+      // (2) as "common prefixes" of other files objects for directories not created through
+      // Alluxio
+      //
+      // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+      // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+      //
+      // An example, with prefix="ufs" and delimiter="/"
+      // - objects.key = ufs/dir1_$folder$, child = dir1
+      // - objects.key = ufs/file, child = file
+      // - commonPrefix = ufs/dir1/, child = dir1
+      // - commonPrefix = ufs/dir2/, child = dir2
       ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
       listObjectsRequest.setPrefix(path);
-      listObjectsRequest.setMaxKeys(1000);
+      listObjectsRequest.setMaxKeys(LISTING_LENGTH);
       listObjectsRequest.setDelimiter(delimiter);
 
       Set<String> children = new HashSet<>();
@@ -515,6 +531,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       for (String commonPrefix : listing.getCommonPrefixes()) {
         // Remove parent portion of the key
         String child = getChildName(commonPrefix, path);
+        // Remove any portion after the path delimiter
+        int childNameIndex = child.indexOf(PATH_SEPARATOR);
+        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
         children.add(child);
       }
       return children.toArray(new String[children.size()]);

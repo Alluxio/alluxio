@@ -565,22 +565,24 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     path = path.equals(PATH_SEPARATOR) ? "" : path;
     String delimiter = recursive ? "" : PATH_SEPARATOR;
     String priorLastKey = null;
-    Set<String> listResult = new HashSet<>();
+    Set<String> children = new HashSet<>();
     try {
       boolean done = false;
       while (!done) {
-        // Files/dirs in S3 UFS can be possibly encoded differently:
-        // (1) files are encoded as objects,
-        // (2) directories are encoded as objects with FOLDER_SUFFIX by Alluxio and
-        // (3) directories can also be encoded as prefixes by direct access to S3 not by Alluxio.
+        // Directories in S3 UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
         //
-        // We iterate over chunk.getObjects() for (1) and (2) and chunk.getCommonPrefixes() for (3).
-        // As an example, we list objects with prefix="ufs" and delimiter="/" (non-recursive):
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
         // - objects.key = ufs/, child =
-        // - objects.key = ufs/default_tests_files_$folder$, child = default_tests_files
-        // - objects.key = ufs/shakespare_test, child = shakespare_test
-        // - commonPrefix = ufs/default_tests_files/, child = default_tests_files
-        // - commonPrefix = ufs/test1/, child = test1
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
             LISTING_LENGTH, priorLastKey);
 
@@ -592,7 +594,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           child = stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            listResult.add(child);
+            children.add(child);
           }
         }
         // Handle (3)
@@ -602,20 +604,20 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           // Remove any portion after the path delimiter
           int childNameIndex = child.indexOf(PATH_SEPARATOR);
           child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty() && !listResult.contains(child)) {
+          if (!child.isEmpty() && !children.contains(child)) {
             // This directory has not been created through Alluxio.
             mkdirsInternal(commonPrefix);
-            listResult.add(child);
+            children.add(child);
           }
         }
         done = chunk.isListingComplete();
         priorLastKey = chunk.getPriorLastKey();
       }
+      return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {
       LOG.error("Failed to list path {}", path, e);
       return null;
     }
-    return listResult.toArray(new String[listResult.size()]);
   }
 
   /**
