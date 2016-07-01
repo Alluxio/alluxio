@@ -55,7 +55,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   private static final String PATH_SEPARATOR = "/";
 
   /** Aliyun OSS client. */
-  private final OSSClient mOssClient;
+  private final OSSClient mClient;
 
   /** The accessId to connect OSS. */
   private final String mAccessId;
@@ -88,7 +88,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     mEndPoint = Configuration.get(Constants.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
-    mOssClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
+    mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
   }
 
   @Override
@@ -119,7 +119,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path, CreateOptions options) throws IOException {
     path = toURIPath(path);
     if (mkdirs(getParentKey(path), true)) {
-      return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mOssClient);
+      return new OSSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
   }
@@ -270,7 +270,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   public InputStream open(String path) throws IOException {
     try {
       path = stripPrefixIfPresent(path);
-      return new OSSInputStream(mBucketName, path, mOssClient);
+      return new OSSInputStream(mBucketName, path, mClient);
     } catch (ServiceException e) {
       LOG.error("Failed to open file: {}", path, e);
       return null;
@@ -364,7 +364,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       src = stripPrefixIfPresent(src);
       dst = stripPrefixIfPresent(dst);
       LOG.info("Copying {} to {}", src, dst);
-      mOssClient.copyObject(mBucketName, src, mBucketName, dst);
+      mClient.copyObject(mBucketName, src, mBucketName, dst);
       return true;
     } catch (ServiceException e) {
       LOG.error("Failed to rename file {} to {}", src, dst, e);
@@ -382,9 +382,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     try {
       if (isFolder(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        mOssClient.deleteObject(mBucketName, keyAsFolder);
+        mClient.deleteObject(mBucketName, keyAsFolder);
       } else {
-        mOssClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
+        mClient.deleteObject(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException e) {
       LOG.error("Failed to delete {}", key, e);
@@ -401,9 +401,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     try {
       if (isFolder(key)) {
         String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        return mOssClient.getObjectMetadata(mBucketName, keyAsFolder);
+        return mClient.getObjectMetadata(mBucketName, keyAsFolder);
       } else {
-        return mOssClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
+        return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
       }
     } catch (ServiceException e) {
       LOG.warn("Failed to get Object {}, return null", key, e);
@@ -457,11 +457,27 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     }
     try {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mOssClient.getObjectMetadata(mBucketName, keyAsFolder);
+      mClient.getObjectMetadata(mBucketName, keyAsFolder);
+      // If no exception is thrown, the key exists as a folder
       return true;
-    } catch (ServiceException e) {
-      // exception is thrown, the key is not exists, also not a folder
-      return false;
+    } catch (ServiceException s) {
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        // Check if anything begins with <path>/
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        ListObjectsRequest listObjectsRequest = new ListObjectsRequest(mBucketName);
+        listObjectsRequest.setPrefix(path);
+        listObjectsRequest.setDelimiter(PATH_SEPARATOR);
+        ObjectListing listing = mClient.listObjects(listObjectsRequest);
+        if (!listing.getObjectSummaries().isEmpty()) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
     }
   }
 
@@ -498,7 +514,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       // recursive, so don't set the delimiter
       // then list will return all files in this dir and subdirs
       if (recursive) {
-        ObjectListing listing = mOssClient.listObjects(listObjectsRequest);
+        ObjectListing listing = mClient.listObjects(listObjectsRequest);
         List<OSSObjectSummary> objectSummaryList = listing.getObjectSummaries();
         String[] ret = new String[objectSummaryList.size()];
         for (int i = 0; i < objectSummaryList.size(); i++) {
@@ -514,7 +530,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       // Non recursive, so set the delimiter, let the listObjects only get the files in the folder
       listObjectsRequest.setDelimiter(PATH_SEPARATOR);
       Set<String> children = new HashSet<>();
-      ObjectListing listing = mOssClient.listObjects(listObjectsRequest);
+      ObjectListing listing = mClient.listObjects(listObjectsRequest);
       for (OSSObjectSummary objectSummary : listing.getObjectSummaries()) {
         // Remove parent portion of the key
         String child = getChildName(objectSummary.getKey(), path);
@@ -560,10 +576,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
       String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
       ObjectMetadata objMeta = new ObjectMetadata();
       objMeta.setContentLength(0);
-      mOssClient.putObject(
-          mBucketName, keyAsFolder,
-          new ByteArrayInputStream(new byte[0]),
-          objMeta);
+      mClient.putObject(mBucketName, keyAsFolder, new ByteArrayInputStream(new byte[0]), objMeta);
       return true;
     } catch (ServiceException e) {
       LOG.error("Failed to create directory: {}", key, e);
