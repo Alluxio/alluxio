@@ -35,6 +35,7 @@ import alluxio.proto.journal.File.InodeFileEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.SecurityUtils;
 import alluxio.util.io.PathUtils;
 
@@ -627,7 +628,10 @@ public final class InodeTree implements JournalCheckpointStreamable {
       UnderFileSystem ufs = resolution.getUfs();
       // Persists only the last directory, recursively creating necessary parent directories. Even
       // if the directory already exists in the ufs, we mark it as persisted.
-      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, true)) {
+      Permission perm = new Permission(lastToPersistInode.getOwner(), lastToPersistInode.getGroup(),
+          lastToPersistInode.getMode());
+      MkdirsOptions mkdirsOptions = new MkdirsOptions().setCreateParent(true).setPermission(perm);
+      if (ufs.exists(ufsUri) || ufs.mkdirs(ufsUri, mkdirsOptions)) {
         for (Inode<?> inode : toPersistDirectories) {
           inode.setPersistenceState(PersistenceState.PERSISTED);
         }
@@ -986,9 +990,16 @@ public final class InodeTree implements JournalCheckpointStreamable {
     for (int i = inodes.size(); i < pathComponents.length; i++) {
       Inode<?> next = ((InodeDirectory) current).getChild(pathComponents[i]);
       if (next == null) {
+        // true if the lock is allowed to be upgraded.
+        boolean upgradeAllowed = true;
+        if (lockHints != null && i - 1 < lockHints.size()
+            && lockHints.get(i - 1) == LockMode.READ) {
+          // If the hint is READ, the lock must be locked as READ and cannot be upgraded.
+          upgradeAllowed = false;
+        }
         if (lockMode != LockMode.READ
             && getLockModeForComponent(i - 1, pathComponents.length, lockMode, lockHints)
-            == LockMode.READ) {
+            == LockMode.READ && upgradeAllowed) {
           // The target lock mode is one of the WRITE modes, but READ lock is already held. The
           // READ lock cannot be upgraded atomically, it needs be released first before WRITE
           // lock can be acquired. As a consequence, we need to recheck if the child we are

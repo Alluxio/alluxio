@@ -11,11 +11,14 @@
 
 package alluxio.collections;
 
+import com.google.common.collect.Iterables;
+
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A class representing a non-unique index. A non-unique index is
@@ -23,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
+@ThreadSafe
 class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
@@ -105,11 +109,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
-    try {
-      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
-    } catch (NoSuchElementException e) {
-      return null;
-    }
+    return all == null ? null : Iterables.getFirst(all, null);
   }
 
   @Override

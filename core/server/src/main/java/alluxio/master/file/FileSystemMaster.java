@@ -86,6 +86,7 @@ import alluxio.thrift.FileSystemMasterWorkerService;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
@@ -1032,11 +1033,12 @@ public final class FileSystemMaster extends AbstractMaster {
               MountTable.Resolution resolution = mMountTable.resolve(alluxioUriToDel);
               String ufsUri = resolution.getUri().toString();
               UnderFileSystem ufs = resolution.getUfs();
-              if (!ufs.exists(ufsUri)) {
-                LOG.warn("Deleted file does not exist in the underfs: {}", ufsUri);
-              } else if (!ufs.delete(ufsUri, true)) {
-                LOG.error("Failed to delete {} from the under file system", ufsUri);
-                throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+              if (!ufs.delete(ufsUri, true)) {
+                if (ufs.exists(ufsUri)) {
+                  LOG.error("Failed to delete {} from the under file system", ufsUri);
+                  throw new IOException(ExceptionMessage.DELETE_FAILED_UFS.getMessage(ufsUri));
+                }
+                LOG.warn("The file to delete does not exist in under file system: {}", ufsUri);
               }
             }
           } catch (InvalidPathException e) {
@@ -1478,6 +1480,7 @@ public final class FileSystemMaster extends AbstractMaster {
     AlluxioURI srcPath = srcInodePath.getUri();
     AlluxioURI dstPath = dstInodePath.getUri();
     LOG.debug("Renaming {} to {}", srcPath, dstPath);
+    InodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
 
     // If the source file is persisted, rename it in the UFS.
     if (!replayed && srcInode.isPersisted()) {
@@ -1487,8 +1490,14 @@ public final class FileSystemMaster extends AbstractMaster {
       UnderFileSystem ufs = resolution.getUfs();
       String ufsDstUri = mMountTable.resolve(dstPath).getUri().toString();
       String parentUri = new AlluxioURI(ufsDstUri).getParent().toString();
-      if (!ufs.exists(parentUri) && !ufs.mkdirs(parentUri, true)) {
-        throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
+      if (!ufs.exists(parentUri)) {
+        Permission parentPerm = new Permission(srcParentInode.getOwner(), srcParentInode.getGroup(),
+            srcParentInode.getMode());
+        MkdirsOptions parentMkdirsOptions = new MkdirsOptions().setCreateParent(true)
+            .setPermission(parentPerm);
+        if (!ufs.mkdirs(parentUri, parentMkdirsOptions)) {
+          throw new IOException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(parentUri));
+        }
       }
       if (!ufs.rename(ufsSrcUri, ufsDstUri)) {
         throw new IOException(
@@ -1498,7 +1507,6 @@ public final class FileSystemMaster extends AbstractMaster {
 
     // TODO(jiri): A crash between now and the time the rename operation is journaled will result in
     // an inconsistency between Alluxio and UFS.
-    InodeDirectory srcParentInode = srcInodePath.getParentInodeDirectory();
     InodeDirectory dstParentInode = dstInodePath.getParentInodeDirectory();
     srcParentInode.removeChild(srcInode);
     srcParentInode.setLastModificationTimeMs(opTimeMs);
