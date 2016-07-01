@@ -11,8 +11,9 @@
 
 package alluxio.collections;
 
+import com.google.common.collect.Iterables;
+
 import java.util.Collections;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -92,10 +93,6 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
-    try {
-      return all == null || !all.iterator().hasNext() ? null : all.iterator().next();
-    } catch (NoSuchElementException e) {
-      return null;
-    }
+    return all == null ? null : Iterables.getFirst(all, null);
   }
 }
