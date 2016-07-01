@@ -529,7 +529,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     try {
       boolean done = false;
       while (!done) {
-        // Files/dirs in S3 UFS can be possibly encoded differently:
+        // Files/dirs in GCS UFS can be possibly encoded differently:
         // (1) files are encoded as objects,
         // (2) directories are encoded as objects with FOLDER_SUFFIX by Alluxio and
         // (3) directories can also be encoded as prefixes by direct access to S3 not by Alluxio.
@@ -540,9 +540,8 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
         // - objects.key = ufs/, child =
         // - objects.key = ufs/default_tests_files_$folder$, child = default_tests_files
         // - objects.key = ufs/shakespare_test, child = shakespare_test
-        // - commonPrefix: commonPrefix = ufs/default_tests_files/, child = default_tests_files
-        // - commonPrefix: commonPrefix = ufs/test1/, child = test1
-        LOG.info("begin: priorLastKey {}, delimiter {}", priorLastKey,delimiter);
+        // - commonPrefix = ufs/default_tests_files/, child = default_tests_files
+        // - commonPrefix = ufs/test1/, child = test1
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
             LISTING_LENGTH, priorLastKey);
 

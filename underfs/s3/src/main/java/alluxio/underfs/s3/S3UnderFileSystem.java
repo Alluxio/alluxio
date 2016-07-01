@@ -579,8 +579,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         // - objects.key = ufs/, child =
         // - objects.key = ufs/default_tests_files_$folder$, child = default_tests_files
         // - objects.key = ufs/shakespare_test, child = shakespare_test
-        // - commonPrefix: commonPrefix = ufs/default_tests_files/, child = default_tests_files
-        // - commonPrefix: commonPrefix = ufs/test1/, child = test1
+        // - commonPrefix = ufs/default_tests_files/, child = default_tests_files
+        // - commonPrefix = ufs/test1/, child = test1
         StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
             LISTING_LENGTH, priorLastKey);
 
