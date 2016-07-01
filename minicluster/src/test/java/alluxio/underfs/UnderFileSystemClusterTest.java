@@ -64,20 +64,13 @@ public class UnderFileSystemClusterTest {
   }
 
   /**
-   * Tests that the {UnderFileSystemCluster{@link #readEOFReturnsNegativeTest()} method will return
-   * true only when the cluster type is "alluxio.underfs.hdfs.LocalMiniDFSCluster".
+   * Tests that the {@link UnderFileSystemCluster#getUnderFSClass()} method will return
+   * LocalFileSystemCluster by default.
    */
   @Test
-  public void readEOFReturnsNegativeTest() {
-    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
-        (String) null);
+  public void getUnderFSClassTest() {
     String underFSClass = UnderFileSystemCluster.getUnderFSClass();
-    Assert.assertNull(underFSClass);
-
-    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
-        "XXXX");
-    underFSClass = UnderFileSystemCluster.getUnderFSClass();
-    Assert.assertFalse("alluxio.underfs.hdfs.LocalMiniDFSCluster".equals(underFSClass));
+    Assert.assertEquals("alluxio.underfs.LocalFileSystemCluster", underFSClass);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "alluxio.underfs.hdfs.LocalMiniDFSCluster");
