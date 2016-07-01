@@ -60,7 +60,7 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     T res = mIndexMap.get(fieldValue);
 
-    if(res == null) {
+    if (res == null) {
       return false;
     }
 
