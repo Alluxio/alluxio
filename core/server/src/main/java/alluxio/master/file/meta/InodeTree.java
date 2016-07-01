@@ -14,6 +14,7 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
@@ -93,7 +94,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final IndexedSet.FieldIndex<Inode<?>> mIdIndex = new IndexedSet.FieldIndex<Inode<?>>() {
+  private final IndexDefinition<Inode<?>> mIdIndex = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getId();
