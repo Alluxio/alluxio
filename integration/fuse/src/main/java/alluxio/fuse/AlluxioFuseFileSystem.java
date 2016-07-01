@@ -61,7 +61,6 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private static final int MAX_OPEN_FILES = Integer.MAX_VALUE;
   private static final long[] UID_AND_GID = AlluxioFuseUtils.getUidAndGid();
 
-  private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
   // base path within Alluxio namespace that is used for FUSE operations
   // For example, if alluxio-fuse is mounted in /mnt/alluxio and mAlluxioRootPath
@@ -76,16 +75,21 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   private final Map<Long, OpenFileEntry> mOpenFiles;
   private long mNextOpenFileId;
 
-  AlluxioFuseFileSystem(Configuration conf, FileSystem fs, AlluxioFuseOptions opts) {
+  /**
+   * Creates a new instance of {@link AlluxioFuseFileSystem}.
+   *
+   * @param fs Alluxio file system
+   * @param opts options
+   */
+  AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
-    mConfiguration = conf;
     mFileSystem = fs;
-    mAlluxioMaster = mConfiguration.get(Constants.MASTER_ADDRESS);
+    mAlluxioMaster = Configuration.get(Constants.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
 
-    final int maxCachedPaths = mConfiguration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
+    final int maxCachedPaths = Configuration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -214,8 +218,8 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
       stat.st_mtim.tv_sec.set(ctime_sec);
       stat.st_mtim.tv_nsec.set(ctime_nsec);
 
-      // TODO(andreareale): understand how to map FileInfo#getUserName()
-      // and FileInfo#getGroupName() to UIDs and GIDs of the node
+      // TODO(andreareale): understand how to map FileInfo#getOwner()
+      // and FileInfo#getGroup() to UIDs and GIDs of the node
       // where alluxio-fuse is mounted.
       // While this is not done, just use uid and gid of the user
       // running alluxio-fuse.
@@ -255,7 +259,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return mConfiguration.get(Constants.FUSE_FS_NAME);
+    return Configuration.get(Constants.FUSE_FS_NAME);
   }
 
   /**

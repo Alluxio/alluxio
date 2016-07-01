@@ -52,7 +52,6 @@ public class MetricsSystem {
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private Configuration mConfiguration;
   private MetricsServlet mMetricsServlet;
 
   /**
@@ -93,12 +92,10 @@ public class MetricsSystem {
    * Creates a {@code MetricsSystem} using the default metrics config.
    *
    * @param instance the instance name
-   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, Configuration configuration) {
+  public MetricsSystem(String instance) {
     mInstance = instance;
-    mConfiguration = configuration;
-    String metricsConfFile = mConfiguration.get(Constants.METRICS_CONF_FILE);
+    String metricsConfFile = Configuration.get(Constants.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 
@@ -107,12 +104,10 @@ public class MetricsSystem {
    *
    * @param instance the instance name
    * @param metricsConfig the {@code MetricsConfig} object
-   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, MetricsConfig metricsConfig, Configuration configuration) {
+  public MetricsSystem(String instance, MetricsConfig metricsConfig) {
     mInstance = instance;
     mMetricsConfig = metricsConfig;
-    mConfiguration = configuration;
   }
 
   /***

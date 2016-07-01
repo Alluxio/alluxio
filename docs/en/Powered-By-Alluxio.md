@@ -6,7 +6,7 @@ group: Resources
 
 There are many companies and organizations that use Alluxio. Here is a list of some of the Alluxio
 users. If your organization is using Alluxio, please feel free to 
-[add yourself to this list](https://github.com/alluxio/alluxio/blob/master/docs/en/Powered-By-Alluxio.md)
+[edit this list](https://github.com/alluxio/alluxio/edit/master/docs/en/Powered-By-Alluxio.md)
 or let us know by email (project.alluxio@gmail.com) or
 [survey](http://alluxio.org/resources/survey-users/).
 
@@ -19,6 +19,7 @@ or let us know by email (project.alluxio@gmail.com) or
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
+* [JD](http://www.jd.com/)
 * [Neusoft](http://www.neusoft.com/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)

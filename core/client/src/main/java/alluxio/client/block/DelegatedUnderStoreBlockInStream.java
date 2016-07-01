@@ -23,8 +23,9 @@ import alluxio.exception.PreconditionMessage;
 
 import com.google.common.base.Preconditions;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
+
+import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * Implementation of {@link UnderStoreBlockInStream} which accesses the under storage through an

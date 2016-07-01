@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -31,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CountCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -49,7 +47,7 @@ public final class CountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
@@ -59,13 +57,8 @@ public final class CountCommand extends AbstractShellCommand {
     System.out.format(format, values[0], values[1], values[2]);
   }
 
-  private long[] countHelper(AlluxioURI path) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  private long[] countHelper(AlluxioURI path) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     if (!status.isFolder()) {
       return new long[] { 1L, 0L, status.getLength() };

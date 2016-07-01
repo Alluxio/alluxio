@@ -38,15 +38,14 @@ public interface Allocator {
     /**
      * Factory for {@link Allocator}.
      *
-     * @param conf Alluxio configuration used to define the {@link Allocator} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Allocator}
      * @return the generated {@link Allocator}, it will be a {@link MaxFreeAllocator} by default
      */
-    public static Allocator create(Configuration conf, BlockMetadataManagerView view) {
+    public static Allocator create(BlockMetadataManagerView view) {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<Allocator>getClass(Constants.WORKER_ALLOCATOR_CLASS),
+            Configuration.<Allocator>getClass(Constants.WORKER_ALLOCATOR_CLASS),
             new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
       } catch (Exception e) {
         throw Throwables.propagate(e);

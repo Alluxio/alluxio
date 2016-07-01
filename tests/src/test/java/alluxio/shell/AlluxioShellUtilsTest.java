@@ -12,7 +12,6 @@
 package alluxio.shell;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
@@ -36,13 +35,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Unit tests on alluxio.command.Utils.
+ * Unit tests on {@link alluxio.shell.AlluxioShellUtils}.
  *
- * Note that the test case for {@link AlluxioShellUtils#validatePath(String, Configuration)} is
- * already covered in {@link AlluxioShellUtils#getFilePath(String, Configuration)}. Hence only
- * getFilePathTest is specified.
+ * Note that the test case for {@link AlluxioShellUtils#validatePath(String)} is already covered
+ * in {@link AlluxioShellUtils#getFilePath(String)}. Hence only getFilePathTest is specified.
  */
 public final class AlluxioShellUtilsTest {
+  public static final String TEST_DIR = "/testDir";
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource();
@@ -60,7 +60,7 @@ public final class AlluxioShellUtilsTest {
             Constants.HEADER_FT + "localhost:19998/dir", "/dir", "dir"};
     String expected = "/dir";
     for (String path : paths) {
-      String result = AlluxioShellUtils.getFilePath(path, new Configuration());
+      String result = AlluxioShellUtils.getFilePath(path);
       Assert.assertEquals(expected, result);
     }
   }
@@ -76,7 +76,7 @@ public final class AlluxioShellUtilsTest {
   public static String resetFileHierarchy(FileSystem fs)
       throws IOException, AlluxioException {
     /**
-     * Generate such local structure /testWildCards
+     * Generate such local structure TEST_DIR
      *                                ├── foo |
      *                                        ├── foobar1
      *                                        └── foobar2
@@ -84,18 +84,18 @@ public final class AlluxioShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    if (fs.exists(new AlluxioURI("/testWildCards"))) {
-      fs.delete(new AlluxioURI("/testWildCards"), DeleteOptions.defaults().setRecursive(true));
+    if (fs.exists(new AlluxioURI(TEST_DIR))) {
+      fs.delete(new AlluxioURI(TEST_DIR), DeleteOptions.defaults().setRecursive(true));
     }
-    fs.createDirectory(new AlluxioURI("/testWildCards"));
-    fs.createDirectory(new AlluxioURI("/testWildCards/foo"));
-    fs.createDirectory(new AlluxioURI("/testWildCards/bar"));
+    fs.createDirectory(new AlluxioURI(TEST_DIR));
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/foo"));
+    fs.createDirectory(new AlluxioURI(TEST_DIR + "/bar"));
 
-    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foo/foobar1", WriteType.MUST_CACHE, 10);
-    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foo/foobar2", WriteType.MUST_CACHE, 20);
-    FileSystemTestUtils.createByteFile(fs, "/testWildCards/bar/foobar3", WriteType.MUST_CACHE, 30);
-    FileSystemTestUtils.createByteFile(fs, "/testWildCards/foobar4", WriteType.MUST_CACHE, 40);
-    return "/testWildCards";
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar1", WriteType.MUST_CACHE, 10);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foo/foobar2", WriteType.MUST_CACHE, 20);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/bar/foobar3", WriteType.MUST_CACHE, 30);
+    FileSystemTestUtils.createByteFile(fs, TEST_DIR + "/foobar4", WriteType.MUST_CACHE, 40);
+    return TEST_DIR;
   }
 
   public String resetLocalFileHierarchy() throws IOException {
@@ -105,7 +105,7 @@ public final class AlluxioShellUtilsTest {
   public static String resetLocalFileHierarchy(LocalAlluxioCluster localAlluxioCluster)
       throws IOException {
     /**
-     * Generate such local structure /testWildCards
+     * Generate such local structure TEST_DIR
      *                                ├── foo |
      *                                        ├── foobar1
      *                                        └── foobar2
@@ -113,17 +113,17 @@ public final class AlluxioShellUtilsTest {
      *                                        └── foobar3
      *                                └── foobar4
      */
-    FileUtils.deleteDirectory(new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards"));
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards").mkdir();
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo").mkdir();
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/bar").mkdir();
+    FileUtils.deleteDirectory(new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR));
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR).mkdir();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/foo").mkdir();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/bar").mkdir();
 
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo/foobar1").createNewFile();
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foo/foobar2").createNewFile();
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/bar/foobar3").createNewFile();
-    new File(localAlluxioCluster.getAlluxioHome() + "/testWildCards/foobar4").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/foo/foobar1").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/foo/foobar2").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/bar/foobar3").createNewFile();
+    new File(localAlluxioCluster.getAlluxioHome() + TEST_DIR + "/foobar4").createNewFile();
 
-    return localAlluxioCluster.getAlluxioHome() + "/testWildCards";
+    return localAlluxioCluster.getAlluxioHome() + TEST_DIR;
   }
 
   public List<String> getPaths(String path, FsType fsType) throws IOException, TException {

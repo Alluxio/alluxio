@@ -11,19 +11,17 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Multimap;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -36,8 +34,6 @@ import java.util.Scanner;
  * Tests the web server is up when Alluxio starts.
  */
 public class WebServerIntegrationTest {
-  private Configuration mMasterConf;
-  private Configuration mWorkerConf;
 
   // Web pages that will be verified.
   private static final Multimap<ServiceType, String> PAGES =
@@ -54,17 +50,11 @@ public class WebServerIntegrationTest {
   @Before
   public final void before() throws Exception {
     LocalAlluxioCluster localAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mMasterConf = localAlluxioCluster.getMasterConf();
-    mWorkerConf = localAlluxioCluster.getWorkerConf();
   }
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    Configuration conf =
-        serviceType == ServiceType.MASTER_WEB ? mMasterConf : mWorkerConf;
-
-    InetSocketAddress webAddr =
-        NetworkAddressUtils.getConnectAddress(serviceType, conf);
+    InetSocketAddress webAddr = NetworkAddressUtils.getConnectAddress(serviceType);
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();

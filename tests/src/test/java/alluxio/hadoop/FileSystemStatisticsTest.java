@@ -49,7 +49,7 @@ public class FileSystemStatisticsTest {
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WriteType.CACHE_THROUGH,
         FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sStatistics = org.apache.hadoop.fs.FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
   }

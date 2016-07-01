@@ -13,7 +13,6 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 
@@ -206,9 +205,8 @@ public abstract class BufferedBlockInStream extends BlockInStream {
    * @return a heap buffer of user configured size
    */
   private ByteBuffer allocateBuffer() {
-    Configuration conf = ClientContext.getConf();
     return ByteBuffer.allocate(
-        (int) conf.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

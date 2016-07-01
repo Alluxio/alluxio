@@ -40,16 +40,15 @@ public interface DataServer extends Closeable {
      *
      * @param dataAddress the address of the data server
      * @param worker the Alluxio worker handle
-     * @param conf Alluxio configuration
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final AlluxioWorker worker, final Configuration conf) {
+        final AlluxioWorker worker) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] { InetSocketAddress.class, AlluxioWorker.class, Configuration.class },
-            new Object[] { dataAddress, worker, conf });
+            Configuration.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
+            new Class[] {InetSocketAddress.class, AlluxioWorker.class},
+            new Object[] {dataAddress, worker});
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

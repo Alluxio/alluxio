@@ -11,7 +11,6 @@
 
 package alluxio.worker.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -23,7 +22,6 @@ import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.resource.LockResource;
 import alluxio.util.io.FileUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.BlockTransferInfo;
 import alluxio.worker.block.evictor.EvictionPlan;
@@ -85,7 +83,6 @@ public final class TieredBlockStore implements BlockStore {
   // TODO(bin): Change maxRetry to be configurable.
   private static final int MAX_RETRIES = 3;
 
-  private final Configuration mConfiguration;
   private final BlockMetadataManager mMetaManager;
   private final BlockLockManager mLockManager;
   private final Allocator mAllocator;
@@ -112,25 +109,24 @@ public final class TieredBlockStore implements BlockStore {
    * Creates a new instance of {@link TieredBlockStore}.
    */
   public TieredBlockStore() {
-    mConfiguration = WorkerContext.getConf();
     mMetaManager = BlockMetadataManager.createBlockMetadataManager();
     mLockManager = new BlockLockManager();
 
     BlockMetadataManagerView initManagerView = new BlockMetadataManagerView(mMetaManager,
         Collections.<Long>emptySet(), Collections.<Long>emptySet());
-    mAllocator = Allocator.Factory.create(mConfiguration, initManagerView);
+    mAllocator = Allocator.Factory.create(initManagerView);
     if (mAllocator instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mAllocator);
     }
 
     initManagerView = new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
         Collections.<Long>emptySet());
-    mEvictor = Evictor.Factory.create(mConfiguration, initManagerView, mAllocator);
+    mEvictor = Evictor.Factory.create(initManagerView, mAllocator);
     if (mEvictor instanceof BlockStoreEventListener) {
       registerBlockStoreEventListener((BlockStoreEventListener) mEvictor);
     }
 
-    mStorageTierAssoc = new WorkerStorageTierAssoc(mConfiguration);
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override

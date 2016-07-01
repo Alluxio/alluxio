@@ -132,7 +132,7 @@ public final class Constants {
   public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
   public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
-  public static final String UNDERFS_HDFS_PREFIXS = "alluxio.underfs.hdfs.prefixes";
+  public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
   public static final String IN_TEST_MODE = "alluxio.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "alluxio.network.host.resolution.timeout.ms";
@@ -459,7 +459,7 @@ public final class Constants {
   // Authorization
   public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       "alluxio.security.authorization.permission.enabled";
-  public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       "alluxio.security.authorization.permission.umask";
   public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       "alluxio.security.authorization.permission.supergroup";
@@ -467,10 +467,10 @@ public final class Constants {
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
 
   // Security related constant value
-  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
-  public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
+  public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
+  public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
-  public static final short INVALID_PERMISSION = -1;
+  public static final short INVALID_MODE = -1;
 
   private Constants() {} // prevent instantiation
 }

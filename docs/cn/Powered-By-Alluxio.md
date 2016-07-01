@@ -15,6 +15,7 @@ group: Resources
 * [Huawei](http://www.huawei.com/)
 * [IBM Research](http://www.research.ibm.com/)
 * [Intel](http://www.intel.com/)
+* [JD](http://www.jd.com/)
 * [Neusoft](http://www.neusoft.com/)
 * [Qunar](http://www.qunar.com/)
 * [Radicalbit](http://www.radicalbit.io)
@@ -23,12 +24,13 @@ group: Resources
 
 以下是一些将Alluxio加入到自身的生态系统以增强功能的第三方软件项目。
 
-* [Apache Spark](http://spark.apache.org/)
-* [Apache Hadoop MapReduce](https://hadoop.apache.org/)
-* [Apache Flink](https://flink.apache.org/)
-* [Apache Zeppelin](http://zeppelin-project.org/)
-* [Amazon S3](https://aws.amazon.com/s3/)
-* [Openstack Swift](http://docs.openstack.org/developer/swift/)
-* [GlusterFS](http://www.gluster.org/)
 * [Alibaba OSS](http://www.aliyun.com/product/oss/?lang=en)
+* [Amazon S3](https://aws.amazon.com/s3/)
+* [Alluxio C++ Client](https://github.com/stormspirit/libtachyon)
 * [Alluxio Service for Ambari](https://github.com/chuyqa/tachyon-ambari-service)
+* [Apache Flink](https://flink.apache.org/)
+* [Apache Hadoop](https://hadoop.apache.org/)
+* [Apache Spark](http://spark.apache.org/)
+* [Apache Zeppelin](http://zeppelin-project.org/)
+* [GlusterFS](http://www.gluster.org/)
+* [Openstack Swift](http://docs.openstack.org/developer/swift/)
