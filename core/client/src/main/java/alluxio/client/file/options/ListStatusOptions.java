@@ -13,7 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
-import alluxio.thrift.LoadMetadataType;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
 
@@ -87,7 +87,7 @@ public final class ListStatusOptions {
     options.setLoadDirectChildren(
         mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
 
-    options.setLoadMetadataType(mLoadMetadataType);
+    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
     return options;
   }
 }

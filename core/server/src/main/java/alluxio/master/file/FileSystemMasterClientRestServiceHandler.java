@@ -19,10 +19,10 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.GetFileInfoListOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
-import alluxio.thrift.LoadMetadataType;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -63,7 +63,6 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String GET_STATUS_INTERNAL = "status_internal";
   public static final String GET_UFS_ADDRESS = "ufs_address";
   public static final String LIST_STATUS = "list_status";
-  public static final String LIST_STATUS2 = "list_status2";
   public static final String LOAD_METADATA = "load_metadata";
   public static final String MOUNT = "mount";
   public static final String REMOVE = "remove";
@@ -255,47 +254,32 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the file descriptors for a path. This is deprecated since 1.1.1 and will be
-   * removed in 2.0. Use LIST_STATUS2.
+   * @summary get the file descriptors for a path.
    * @param path the file path
    * @param loadDirectChildren whether to load direct children of path
+   * @param loadMetadataType the {@link LoadMetadataType}. It overrides loadDirectChildren if it
+   *        is set.
    * @return the response object
-   * @deprecated since 1.1.1 and will be removed in 2.0
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
-  @Deprecated
   public Response listStatus(@QueryParam("path") String path,
-      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
+      @QueryParam("loadDirectChildren") boolean loadDirectChildren,
+      @DefaultValue("") @QueryParam("loadMetadataType") String loadMetadataType) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path),
-          GetFileInfoListOptions.defaults().setLoadMetadataType(
-              loadDirectChildren ? LoadMetadataType.Once : LoadMetadataType.Never)));
-    } catch (AlluxioException | NullPointerException e) {
-      LOG.warn(e.getMessage());
-      return RestUtils.createErrorResponse(e.getMessage());
-    }
-  }
-
-  /**
-   * @summary get the file descriptors for a path.
-   * @param path the file path
-   * @param loadMetadataType the loadMetadataType (Never, Once or Always)
-   * @return the response object
-   */
-  @GET
-  @Path(LIST_STATUS2)
-  @ReturnType("java.util.List<alluxio.wire.FileInfo>")
-  public Response listStatus2(@QueryParam("path") String path,
-      @DefaultValue("Once") @QueryParam("loadMetadataType") String loadMetadataType) {
-    try {
-      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(
-          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults()
-              .setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType))));
-    } catch (AlluxioException | NullPointerException e) {
+      ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+      if (!loadDirectChildren) {
+        listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
+      }
+      // loadMetadataType overrides loadDirectChildren if it is set.
+      if (!loadMetadataType.isEmpty()) {
+        listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
+      }
+      return RestUtils
+          .createResponse(mFileSystemMaster.listStatus(new AlluxioURI(path), listStatusOptions));
+    } catch (AlluxioException | NullPointerException | IllegalArgumentException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }

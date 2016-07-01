@@ -17,7 +17,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
-import alluxio.master.file.options.GetFileInfoListOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.RestApiTest;
@@ -173,28 +173,6 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Map<String, String> params = new HashMap<>();
     params.put("path", "test");
     params.put("loadDirectChildren", "false");
-
-    Random random = new Random();
-    List<FileInfo> fileInfos = new ArrayList<>();
-    int numFileInfos = random.nextInt(10);
-    for (int i = 0; i < numFileInfos; i++) {
-      fileInfos.add(FileInfoTest.createRandom());
-    }
-    Mockito.doReturn(fileInfos).when(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
-
-    new TestCase(mHostname, mPort,
-        getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS), params, HttpMethod.GET,
-        fileInfos).run();
-
-    Mockito.verify(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
-  }
-
-  @Test
-  public void listStatus2Test() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("path", "test");
     params.put("loadMetadataType", "Always");
 
     Random random = new Random();
@@ -204,14 +182,14 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
       fileInfos.add(FileInfoTest.createRandom());
     }
     Mockito.doReturn(fileInfos).when(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
+        .listStatus(Mockito.<AlluxioURI>any(), Mockito.<ListStatusOptions>any());
 
     new TestCase(mHostname, mPort,
-        getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS2), params, HttpMethod.GET,
+        getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS), params, HttpMethod.GET,
         fileInfos).run();
 
     Mockito.verify(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
+        .listStatus(Mockito.<AlluxioURI>any(), Mockito.<ListStatusOptions>any());
   }
 
   @Test

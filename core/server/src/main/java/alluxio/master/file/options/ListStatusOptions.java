@@ -11,40 +11,38 @@
 
 package alluxio.master.file.options;
 
-import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
-import alluxio.thrift.LoadMetadataType;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for get file info list.
+ * Method options for list status.
  */
-@PublicApi
 @NotThreadSafe
-public final class GetFileInfoListOptions {
+public final class ListStatusOptions {
   private LoadMetadataType mLoadMetadataType;
 
   /**
-   * @return the default {@link GetFileInfoListOptions}
+   * @return the default {@link ListStatusOptions}
    */
-  public static GetFileInfoListOptions defaults() {
-    return new GetFileInfoListOptions();
+  public static ListStatusOptions defaults() {
+    return new ListStatusOptions();
   }
 
-  private GetFileInfoListOptions() {
+  private ListStatusOptions() {
     mLoadMetadataType = LoadMetadataType.Once;
   }
 
   /**
-   * Create an instance of {@link GetFileInfoListOptions} from a {@link ListStatusTOptions}.
+   * Create an instance of {@link ListStatusOptions} from a {@link ListStatusTOptions}.
    *
    * @param options the thrift representation of list status options
    */
-  public GetFileInfoListOptions(ListStatusTOptions options) {
-    mLoadMetadataType = options.getLoadMetadataType();
+  public ListStatusOptions(ListStatusTOptions options) {
+    mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
   }
 
   /**
@@ -56,12 +54,12 @@ public final class GetFileInfoListOptions {
   }
 
   /**
-   * Sets the {@link GetFileInfoListOptions#mLoadMetadataType}.
+   * Sets the {@link ListStatusOptions#mLoadMetadataType}.
    *
    * @param loadMetadataType the load metadata type
    * @return the updated options
    */
-  public GetFileInfoListOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+  public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
     mLoadMetadataType = loadMetadataType;
     return this;
   }
@@ -71,10 +69,10 @@ public final class GetFileInfoListOptions {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof GetFileInfoListOptions)) {
+    if (!(o instanceof ListStatusOptions)) {
       return false;
     }
-    GetFileInfoListOptions that = (GetFileInfoListOptions) o;
+    ListStatusOptions that = (ListStatusOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
