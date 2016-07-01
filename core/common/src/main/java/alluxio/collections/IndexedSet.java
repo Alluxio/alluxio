@@ -145,7 +145,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
    */
   public void clear() {
     T obj = null;
-    for (Iterator<T> i = mFirstIndex.iterator(); i.hasNext(); obj = i.next()) {
+    Iterator<T> iter = mFirstIndex.iterator();
+    while (iter.hasNext()) {
+      obj = iter.next();
       remove(obj);
     }
   }
