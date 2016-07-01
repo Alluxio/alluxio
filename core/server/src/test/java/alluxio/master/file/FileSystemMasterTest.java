@@ -31,6 +31,7 @@ import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -39,6 +40,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
+import alluxio.thrift.LoadMetadataType;
 import alluxio.util.IdUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -424,7 +426,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(ROOT_URI, false);
+    infos = mFileSystemMaster.getFileInfoList(ROOT_URI,
+        GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -439,7 +442,8 @@ public final class FileSystemMasterTest {
 
     // Test single file.
     createFileWithSingleBlock(ROOT_FILE_URI);
-    infos = mFileSystemMaster.getFileInfoList(ROOT_FILE_URI, false);
+    infos = mFileSystemMaster.getFileInfoList(ROOT_FILE_URI,
+        GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(1, infos.size());
     Assert.assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
 
@@ -447,7 +451,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(NESTED_URI, false);
+    infos = mFileSystemMaster.getFileInfoList(NESTED_URI,
+        GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -462,7 +467,8 @@ public final class FileSystemMasterTest {
 
     // Test non-existent URIs.
     try {
-      mFileSystemMaster.getFileInfoList(NESTED_URI.join("DNE"), false);
+      mFileSystemMaster.getFileInfoList(NESTED_URI.join("DNE"),
+          GetFileInfoListOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
       Assert.fail("getFileInfoList() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.

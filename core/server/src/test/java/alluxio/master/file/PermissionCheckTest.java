@@ -24,6 +24,7 @@ import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
@@ -565,9 +566,12 @@ public final class PermissionCheckTest {
     AuthenticatedClientUser.set(user.getUser());
     if (isFile) {
       Assert.assertEquals(path, mFileSystemMaster.getFileInfo(new AlluxioURI(path)).getPath());
-      Assert.assertEquals(1, mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true).size());
+      Assert.assertEquals(1,
+          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults())
+              .size());
     } else {
-      List<FileInfo> fileInfoList = mFileSystemMaster.getFileInfoList(new AlluxioURI(path), true);
+      List<FileInfo> fileInfoList = mFileSystemMaster
+          .getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults());
       if (fileInfoList.size() > 0) {
         Assert.assertTrue(PathUtils.getParent(fileInfoList.get(0).getPath()).equals(path));
       }

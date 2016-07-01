@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.thrift.ListStatusTOptions;
+import alluxio.thrift.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,20 +26,20 @@ public class ListStatusOptionsTest {
   public void defaultsTest() {
     ListStatusOptions options = ListStatusOptions.defaults();
 
-    Assert.assertTrue(options.isLoadDirectChildren());
+    Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
   public void fieldsTest() {
     ListStatusOptions options = ListStatusOptions.defaults();
-    Assert.assertEquals(true, options.isLoadDirectChildren());
+    Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
   public void toThriftTest() {
     ListStatusOptions options = ListStatusOptions.defaults();
     ListStatusTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(true, options.isLoadDirectChildren());
+    Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test

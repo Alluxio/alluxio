@@ -28,6 +28,12 @@ enum CommandType {
   Persist = 5,  // Ask the worker to persist a file for lineage
 }
 
+enum LoadMetadataType {
+  Never = 0,  // Never load metadata.
+  Once = 1,  // Load metadata only once.
+  Always = 2,  // Always load metadata.
+}
+
 struct Command {
   1: CommandType commandType
   2: list<i64> data

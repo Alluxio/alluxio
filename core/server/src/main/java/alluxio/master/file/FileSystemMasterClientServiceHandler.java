@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -192,7 +193,7 @@ public final class FileSystemMasterClientServiceHandler implements
       public List<FileInfo> call() throws AlluxioException {
         List<FileInfo> result = new ArrayList<FileInfo>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
-            .getFileInfoList(new AlluxioURI(path), options.isLoadDirectChildren())) {
+            .getFileInfoList(new AlluxioURI(path), new GetFileInfoListOptions(options))) {
           result.add(ThriftUtils.toThrift(fileInfo));
         }
         return result;

@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
@@ -121,7 +122,9 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR), true).size();
+    int actualFiles =
+        fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR), GetFileInfoListOptions.defaults())
+            .size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(

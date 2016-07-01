@@ -19,8 +19,10 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.thrift.LoadMetadataType;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -251,20 +253,47 @@ public final class FileSystemMasterClientRestServiceHandler {
   }
 
   /**
-   * @summary get the file descriptors for a path
+   * @summary get the file descriptors for a path. This is deprecated since 1.1.1 and will be
+   * removed in 2.0.
    * @param path the file path
    * @param loadDirectChildren whether to load direct children of path
+   * @return the response object
+   * @deprecated since 1.1.1 and will be removed in 2.0
+   */
+  @GET
+  @Path(LIST_STATUS)
+  @ReturnType("java.util.List<alluxio.wire.FileInfo>")
+  @Deprecated
+  public Response listStatus(@QueryParam("path") String path,
+      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
+    try {
+      Preconditions.checkNotNull(path, "required 'path' parameter is missing");
+      return RestUtils.createResponse(mFileSystemMaster.getFileInfoList(new AlluxioURI(path),
+          GetFileInfoListOptions.defaults().setLoadMetadataType(
+              loadDirectChildren ? LoadMetadataType.Once : LoadMetadataType.Never)));
+    } catch (AlluxioException | NullPointerException e) {
+      LOG.warn(e.getMessage());
+      return RestUtils.createErrorResponse(e.getMessage());
+    }
+  }
+
+    /**
+   * @summary get the file descriptors for a path. This is deprecated since 1.1.1 and will be
+   * removed in 2.0.
+   * @param path the file path
+   * @param loadMetadataType the loadMetadataType
    * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
   public Response listStatus(@QueryParam("path") String path,
-      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
+      @QueryParam("LoadMetadataType") String loadMetadataType) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       return RestUtils.createResponse(
-          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), loadDirectChildren));
+          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), GetFileInfoListOptions.defaults()
+              .setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType))));
     } catch (AlluxioException | NullPointerException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());

@@ -17,6 +17,7 @@ import alluxio.master.AlluxioMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.RestApiTest;
@@ -179,14 +180,14 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
       fileInfos.add(FileInfoTest.createRandom());
     }
     Mockito.doReturn(fileInfos).when(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
 
     new TestCase(mHostname, mPort,
         getEndpoint(FileSystemMasterClientRestServiceHandler.LIST_STATUS), params, HttpMethod.GET,
         fileInfos).run();
 
     Mockito.verify(mFileSystemMaster)
-        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.anyBoolean());
+        .getFileInfoList(Mockito.<AlluxioURI>any(), Mockito.<GetFileInfoListOptions>any());
   }
 
   @Test

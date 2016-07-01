@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
@@ -20,22 +20,31 @@ import com.google.common.base.Objects;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * Method options for listing the status.
+ * Method options for get file info list.
  */
 @PublicApi
 @NotThreadSafe
-public final class ListStatusOptions {
+public final class GetFileInfoListOptions {
   private LoadMetadataType mLoadMetadataType;
 
   /**
-   * @return the default {@link ListStatusOptions}
+   * @return the default {@link GetFileInfoListOptions}
    */
-  public static ListStatusOptions defaults() {
-    return new ListStatusOptions();
+  public static GetFileInfoListOptions defaults() {
+    return new GetFileInfoListOptions();
   }
 
-  private ListStatusOptions() {
+  private GetFileInfoListOptions() {
     mLoadMetadataType = LoadMetadataType.Once;
+  }
+
+  /**
+   * Create an instance of {@link GetFileInfoListOptions} from a {@link ListStatusTOptions}.
+   *
+   * @param options the thrift representation of list status options
+   */
+  public GetFileInfoListOptions(ListStatusTOptions options) {
+    mLoadMetadataType = options.getLoadMetadataType();
   }
 
   /**
@@ -46,15 +55,26 @@ public final class ListStatusOptions {
     return mLoadMetadataType;
   }
 
+  /**
+   * Sets the {@link GetFileInfoListOptions#mLoadMetadataType}.
+   *
+   * @param loadMetadataType the load metadata type
+   * @return the updated options
+   */
+  public GetFileInfoListOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+    mLoadMetadataType = loadMetadataType;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof ListStatusOptions)) {
+    if (!(o instanceof GetFileInfoListOptions)) {
       return false;
     }
-    ListStatusOptions that = (ListStatusOptions) o;
+    GetFileInfoListOptions that = (GetFileInfoListOptions) o;
     return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
@@ -68,17 +88,5 @@ public final class ListStatusOptions {
     return Objects.toStringHelper(this)
         .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
-  }
-
-  /**
-   * @return thrift representation of the options
-   */
-  public ListStatusTOptions toThrift() {
-    ListStatusTOptions options = new ListStatusTOptions();
-    options.setLoadDirectChildren(
-        mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
-
-    options.setLoadMetadataType(mLoadMetadataType);
-    return options;
   }
 }
