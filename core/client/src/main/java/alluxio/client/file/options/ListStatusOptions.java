@@ -46,6 +46,15 @@ public final class ListStatusOptions {
     return mLoadMetadataType;
   }
 
+  /**
+   * @param loadMetadataType the loadMetataType
+   * @return the updated options
+   */
+  public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+    mLoadMetadataType = loadMetadataType;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {

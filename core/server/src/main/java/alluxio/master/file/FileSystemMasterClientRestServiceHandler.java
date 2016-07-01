@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -62,6 +63,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String GET_STATUS_INTERNAL = "status_internal";
   public static final String GET_UFS_ADDRESS = "ufs_address";
   public static final String LIST_STATUS = "list_status";
+  public static final String LIST_STATUS2 = "list_status2";
   public static final String LOAD_METADATA = "load_metadata";
   public static final String MOUNT = "mount";
   public static final String REMOVE = "remove";
@@ -254,7 +256,7 @@ public final class FileSystemMasterClientRestServiceHandler {
 
   /**
    * @summary get the file descriptors for a path. This is deprecated since 1.1.1 and will be
-   * removed in 2.0.
+   * removed in 2.0. Use LIST_STATUS2.
    * @param path the file path
    * @param loadDirectChildren whether to load direct children of path
    * @return the response object
@@ -277,18 +279,17 @@ public final class FileSystemMasterClientRestServiceHandler {
     }
   }
 
-    /**
-   * @summary get the file descriptors for a path. This is deprecated since 1.1.1 and will be
-   * removed in 2.0.
+  /**
+   * @summary get the file descriptors for a path.
    * @param path the file path
-   * @param loadMetadataType the loadMetadataType
+   * @param loadMetadataType the loadMetadataType (Never, Once or Always)
    * @return the response object
    */
   @GET
-  @Path(LIST_STATUS)
+  @Path(LIST_STATUS2)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
-  public Response listStatus(@QueryParam("path") String path,
-      @QueryParam("LoadMetadataType") String loadMetadataType) {
+  public Response listStatus2(@QueryParam("path") String path,
+      @DefaultValue("Once") @QueryParam("loadMetadataType") String loadMetadataType) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       return RestUtils.createResponse(
