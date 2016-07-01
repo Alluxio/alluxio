@@ -89,7 +89,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
 
-    if(set == null) {
+    if (set == null) {
       return false;
     }
 
