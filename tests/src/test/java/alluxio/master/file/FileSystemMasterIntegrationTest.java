@@ -25,13 +25,14 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
@@ -395,7 +396,8 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"), true)) {
+      for (FileInfo info : mFsMaster
+          .listStatus(new AlluxioURI("/"), ListStatusOptions.defaults())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -421,7 +423,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
   @Test
@@ -441,14 +443,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH, true).size();
+    int numFiles = mFsMaster.listStatus(ROOT_PATH, ListStatusOptions.defaults()).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(ROOT_PATH2, true).size());
+        mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
   @Test
@@ -693,11 +695,13 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = new HashSet<>();
     HashSet<Long> listedDirIds = new HashSet<>();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"), true);
+    List<FileInfo> infoList =
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()), true)) {
+      for (FileInfo fileInfo : mFsMaster
+          .listStatus(new AlluxioURI(info.getPath()), ListStatusOptions.defaults())) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -717,13 +721,15 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/i0/j0"), ListStatusOptions.defaults())
+            .size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i), true).size());
+          mFsMaster.listStatus(new AlluxioURI("/i" + i), ListStatusOptions.defaults())
+              .size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
   @Test

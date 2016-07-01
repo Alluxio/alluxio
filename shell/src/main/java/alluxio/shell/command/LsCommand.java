@@ -16,9 +16,11 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -95,7 +97,7 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION).addOption(FORCE_OPTION);
   }
 
   /**
@@ -105,8 +107,13 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @param recursive Whether list the path recursively
    * @throws IOException if a non-Alluxio related exception occurs
    */
-  private void ls(AlluxioURI path, boolean recursive) throws IOException {
-    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
+  private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata)
+      throws IOException {
+    ListStatusOptions options = ListStatusOptions.defaults();
+    if (forceLoadMetadata) {
+      options.setLoadMetadataType(LoadMetadataType.Always);
+    }
+    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
       System.out.format(
           formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
@@ -114,16 +121,18 @@ public final class LsCommand extends WithWildCardPathCommand {
               status.getUserName(), status.getGroupName(), status.getLength(),
               status.getCreationTimeMs(), 100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
+        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
+            forceLoadMetadata);
       }
     }
   }
 
-  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path)
+  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path,
+      ListStatusOptions options)
       throws IOException {
     List<URIStatus> statuses;
     try {
-      statuses = mFileSystem.listStatus(path);
+      statuses = mFileSystem.listStatus(path, options);
     } catch (AlluxioException e) {
       throw new IOException(e.getMessage());
     }
@@ -146,17 +155,18 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    ls(path, cl.hasOption("R"));
+    ls(path, cl.hasOption("R"), cl.hasOption("f"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R] <path>";
+    return "ls [-R] [-f] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
-        + " Specify -R to display files and directories recursively.";
+        + " Specify -R to display files and directories recursively."
+        + " Specify -f to force loading files in the directory.";
   }
 }
