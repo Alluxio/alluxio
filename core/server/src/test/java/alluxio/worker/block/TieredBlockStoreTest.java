@@ -17,14 +17,12 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.FileUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 
 import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -86,14 +84,6 @@ public final class TieredBlockStoreTest {
     mTestDir1 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(0);
     mTestDir2 = mMetaManager.getTier(FIRST_TIER_ALIAS).getDir(1);
     mTestDir3 = mMetaManager.getTier(SECOND_TIER_ALIAS).getDir(1);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**

@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockWriter;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.WorkerNetAddress;
@@ -42,7 +41,7 @@ public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   public RemoteBlockOutStream(long blockId, long blockSize, WorkerNetAddress address)
       throws IOException {
     super(blockId, blockSize);
-    mRemoteWriter = RemoteBlockWriter.Factory.create(ClientContext.getConf());
+    mRemoteWriter = RemoteBlockWriter.Factory.create();
     mBlockWorkerClient = mContext.acquireWorkerClient(address);
     try {
       mBlockWorkerClient.connect();

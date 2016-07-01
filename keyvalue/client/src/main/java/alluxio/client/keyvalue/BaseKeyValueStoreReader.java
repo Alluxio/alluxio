@@ -12,7 +12,6 @@
 package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
@@ -37,7 +36,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 class BaseKeyValueStoreReader implements KeyValueStoreReader {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private final Configuration mConf = ClientContext.getConf();
   private final InetSocketAddress mMasterAddress = ClientContext.getMasterAddress();
   private final KeyValueMasterClient mMasterClient;
 
@@ -54,7 +52,7 @@ class BaseKeyValueStoreReader implements KeyValueStoreReader {
   BaseKeyValueStoreReader(AlluxioURI uri) throws IOException, AlluxioException {
     // TODO(binfan): use a thread pool to manage the client.
     LOG.info("Create KeyValueStoreReader for {}", uri);
-    mMasterClient = new KeyValueMasterClient(mMasterAddress, mConf);
+    mMasterClient = new KeyValueMasterClient(mMasterAddress);
     mPartitions = mMasterClient.getPartitionInfo(uri);
     mMasterClient.close();
   }

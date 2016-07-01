@@ -36,13 +36,13 @@ public interface RemoteBlockWriter extends Closeable {
     /**
      * Factory for {@link RemoteBlockWriter}.
      *
-     * @param conf Alluxio configuration
      * @return a new instance of {@link RemoteBlockWriter}
      */
-    public static RemoteBlockWriter create(Configuration conf) {
+    public static RemoteBlockWriter create() {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null, null);
+            Configuration.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null,
+            null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

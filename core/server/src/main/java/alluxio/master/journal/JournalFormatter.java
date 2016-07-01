@@ -23,7 +23,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * This describes the interface for serializing and deserializing entries in the journal.
+ * This describes the interface for serializing and de-serializing entries in the journal.
  */
 public interface JournalFormatter {
 
@@ -37,13 +37,13 @@ public interface JournalFormatter {
     /**
      * Factory method for {@link JournalFormatter}.
      *
-     * @param conf Alluxio configuration to get the type of {@link JournalFormatter}
      * @return the created formatter
      */
-    public static JournalFormatter create(Configuration conf) {
+    public static JournalFormatter create() {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS), null, null);
+            Configuration.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS),
+            null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }

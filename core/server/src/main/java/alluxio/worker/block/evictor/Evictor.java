@@ -40,16 +40,14 @@ public interface Evictor {
     /**
      * Factory for {@link Evictor}.
      *
-     * @param conf {@link Configuration} to determine the {@link Evictor} type
      * @param view {@link BlockMetadataManagerView} to pass to {@link Evictor}
      * @param allocator an allocation policy
      * @return the generated {@link Evictor}
      */
-    public static Evictor create(Configuration conf, BlockMetadataManagerView view,
-                                 Allocator allocator) {
+    public static Evictor create(BlockMetadataManagerView view, Allocator allocator) {
       try {
         return CommonUtils.createNewClassInstance(
-            conf.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
+            Configuration.<Evictor>getClass(Constants.WORKER_EVICTOR_CLASS),
             new Class[]{BlockMetadataManagerView.class, Allocator.class},
             new Object[]{view, allocator});
       } catch (Exception e) {

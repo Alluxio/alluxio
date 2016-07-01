@@ -12,11 +12,11 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
 import alluxio.shell.AbstractAlluxioShellTest;
 import alluxio.shell.AlluxioShellUtilsTest;
@@ -27,7 +27,7 @@ import org.junit.Test;
 /**
  * Tests for persist command.
  */
-public class PersistCommandTest extends AbstractAlluxioShellTest {
+public final class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void persistTest() throws Exception {
     String testFilePath = "/testPersist/testFile";
@@ -44,25 +44,25 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void persistDirectoryTest() throws Exception {
     // Set the default write type to MUST_CACHE, so that directories are not persisted by default
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert
-        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
     Assert
-        .assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
-    int ret = mFsShell.run("persist", "/testWildCards");
+        .assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
+    int ret = mFsShell.run("persist", testDir);
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
     Assert
-        .assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
+        .assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
     Assert
-        .assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
-    checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar1"), 10);
-    checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar2"), 20);
-    checkFilePersisted(new AlluxioURI("/testWildCards/bar/foobar3"), 30);
-    checkFilePersisted(new AlluxioURI("/testWildCards/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+        .assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
+    checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
+    checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar2"), 20);
+    checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
+    checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test
@@ -90,26 +90,26 @@ public class PersistCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void persistMultiFilesAndDirsTest() throws Exception {
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
-    AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "MUST_CACHE");
+    String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
     Assert.assertFalse(
-        mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo/foobar2")).isPersisted());
-    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
+        mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar2")).isPersisted());
+    Assert.assertFalse(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
 
-    int ret = mFsShell.run("persist", "/testWildCards/foo/foobar1", "/testWildCards/foobar4",
-        "/testWildCards/bar", "/testWildCards/bar/foobar3");
+    int ret = mFsShell.run("persist", testDir + "/foo/foobar1", testDir + "/foobar4",
+        testDir + "/bar", testDir + "/bar/foobar3");
     Assert.assertEquals(0, ret);
-    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards")).isPersisted());
-    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir)).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir + "/foo")).isPersisted());
     Assert.assertFalse(
-        mFileSystem.getStatus(new AlluxioURI("/testWildCards/foo/foobar2")).isPersisted());
-    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI("/testWildCards/bar")).isPersisted());
-    checkFilePersisted(new AlluxioURI("/testWildCards/foo/foobar1"), 10);
-    checkFilePersisted(new AlluxioURI("/testWildCards/bar/foobar3"), 30);
-    checkFilePersisted(new AlluxioURI("/testWildCards/foobar4"), 40);
-    ClientTestUtils.resetClientContext();
+        mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar2")).isPersisted());
+    Assert.assertTrue(mFileSystem.getStatus(new AlluxioURI(testDir + "/bar")).isPersisted());
+    checkFilePersisted(new AlluxioURI(testDir + "/foo/foobar1"), 10);
+    checkFilePersisted(new AlluxioURI(testDir + "/bar/foobar3"), 30);
+    checkFilePersisted(new AlluxioURI(testDir + "/foobar4"), 40);
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

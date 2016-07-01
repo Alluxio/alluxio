@@ -11,8 +11,9 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Constants;
 import alluxio.master.journal.JournalEntryRepresentable;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
 
 import com.google.common.base.Objects;
@@ -32,15 +33,16 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   protected long mCreationTimeMs;
   private boolean mDeleted;
   protected boolean mDirectory;
-  private String mGroupName;
   protected long mId;
   private long mLastModificationTimeMs;
   private String mName;
   private long mParentId;
-  private short mPermission;
   private PersistenceState mPersistenceState;
   private boolean mPinned;
-  private String mUserName;
+
+  private String mOwner;
+  private String mGroup;
+  private short mMode;
 
   private final ReentrantReadWriteLock mLock;
 
@@ -48,15 +50,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
     mDirectory = false;
-    mGroupName = "";
+    mGroup = "";
     mId = id;
     mLastModificationTimeMs = mCreationTimeMs;
     mName = null;
     mParentId = InodeTree.NO_PARENT;
-    mPermission = 0;
+    mMode = Constants.INVALID_MODE;
     mPersistenceState = PersistenceState.NOT_PERSISTED;
     mPinned = false;
-    mUserName = "";
+    mOwner = "";
     mLock = new ReentrantReadWriteLock();
   }
 
@@ -68,10 +70,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the group name of the inode
+   * @return the group of the inode
    */
-  public String getGroupName() {
-    return mGroupName;
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
@@ -96,10 +98,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the permission of the inode
+   * @return the mode of the inode
    */
-  public short getPermission() {
-    return mPermission;
+  public short getMode() {
+    return mMode;
   }
 
   /**
@@ -117,10 +119,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @return the user name of the inode
+   * @return the owner of the inode
    */
-  public String getUserName() {
-    return mUserName;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
@@ -168,11 +170,11 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param groupName the group name of the inode
+   * @param group the group of the inode
    * @return the updated object
    */
-  public T setGroupName(String groupName) {
-    mGroupName = groupName;
+  public T setGroup(String group) {
+    mGroup = group;
     return getThis();
   }
 
@@ -213,24 +215,24 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param permissionStatus the {@link PermissionStatus} to use
+   * @param permission the {@link Permission} to use
    * @return the updated object
    */
-  public T setPermissionStatus(PermissionStatus permissionStatus) {
-    if (permissionStatus != null) {
-      mGroupName = permissionStatus.getGroupName();
-      mPermission = permissionStatus.getPermission().toShort();
-      mUserName = permissionStatus.getUserName();
+  public T setPermission(Permission permission) {
+    if (permission != null) {
+      mOwner = permission.getOwner();
+      mGroup = permission.getGroup();
+      mMode = permission.getMode().toShort();
     }
     return getThis();
   }
 
   /**
-   * @param permission the permission of the inode
+   * @param mode the mode of the inode
    * @return the updated object
    */
-  public T setPermission(short permission) {
-    mPermission = permission;
+  public T setPermission(short mode) {
+    mMode = mode;
     return getThis();
   }
 
@@ -244,11 +246,11 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
-   * @param userName the user name of the inode
+   * @param owner the owner name of the inode
    * @return the updated object
    */
-  public T setUserName(String userName) {
-    mUserName = userName;
+  public T setOwner(String owner) {
+    mOwner = owner;
     return getThis();
   }
 
@@ -328,7 +330,7 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
     return Objects.toStringHelper(this).add("id", mId).add("name", mName).add("parentId", mParentId)
         .add("creationTimeMs", mCreationTimeMs).add("pinned", mPinned).add("deleted", mDeleted)
         .add("directory", mDirectory).add("persistenceState", mPersistenceState)
-        .add("lastModificationTimeMs", mLastModificationTimeMs).add("userName", mUserName)
-        .add("groupName", mGroupName).add("permission", mPermission);
+        .add("lastModificationTimeMs", mLastModificationTimeMs).add("owner", mOwner)
+        .add("group", mGroup).add("permission", mMode);
   }
 }
