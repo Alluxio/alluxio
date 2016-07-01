@@ -242,7 +242,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // If we are using anything except LocalFileSystemCluster as UnderFS,
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
-    if (!UnderFileSystemCluster.getUnderFSClass().equals(LocalFileSystemCluster.class.getName())) {
+    if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
       Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
     }

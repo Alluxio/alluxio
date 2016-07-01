@@ -64,13 +64,14 @@ public class UnderFileSystemClusterTest {
   }
 
   /**
-   * Tests that the {@link UnderFileSystemCluster#getUnderFSClass()} method will return
-   * LocalFileSystemCluster by default.
+   * Tests the {@link UnderFileSystemCluster#getUnderFSClass()} method.
    */
   @Test
   public void getUnderFSClassTest() {
+    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
+        (String) null);
     String underFSClass = UnderFileSystemCluster.getUnderFSClass();
-    Assert.assertEquals("alluxio.underfs.LocalFileSystemCluster", underFSClass);
+    Assert.assertNull(underFSClass);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "alluxio.underfs.hdfs.LocalMiniDFSCluster");
