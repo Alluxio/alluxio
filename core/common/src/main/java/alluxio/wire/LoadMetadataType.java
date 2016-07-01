@@ -12,7 +12,7 @@
 package alluxio.wire;
 
 import alluxio.annotation.PublicApi;
-import alluxio.thrift.LoadMetadataTypeT;
+import alluxio.thrift.LoadMetadataTType;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -23,7 +23,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum LoadMetadataType {
   /**
-   *  Never loads metadata.
+   * Never loads metadata.
    */
   Never(0),
   /**
@@ -52,16 +52,16 @@ public enum LoadMetadataType {
    * @param loadMetadataType the {@link LoadMetadataType}
    * @return the thrift representation of this enum
    */
-  public static LoadMetadataTypeT toThrift(LoadMetadataType loadMetadataType) {
-    return LoadMetadataTypeT.findByValue(loadMetadataType.getValue());
+  public static LoadMetadataTType toThrift(LoadMetadataType loadMetadataType) {
+    return LoadMetadataTType.findByValue(loadMetadataType.getValue());
   }
 
   /**
-   * @param loadMetadataTypeT the thrift representation of loadMetadataType
+   * @param loadMetadataTType the thrift representation of loadMetadataType
    * @return the {@link LoadMetadataType}
    */
-  public static LoadMetadataType fromThrift(LoadMetadataTypeT loadMetadataTypeT) {
-    switch (loadMetadataTypeT.getValue()) {
+  public static LoadMetadataType fromThrift(LoadMetadataTType loadMetadataTType) {
+    switch (loadMetadataTType.getValue()) {
       case 0:
         return Never;
       case 1:

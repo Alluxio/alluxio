@@ -25,7 +25,7 @@ struct MountTOptions {
   2: optional map<string, string> properties
 }
 
-enum LoadMetadataTypeT {
+enum LoadMetadataTType {
   Never = 0,  // Never load metadata.
   Once = 1,  // Load metadata only once.
   Always = 2,  // Always load metadata.
@@ -34,7 +34,7 @@ enum LoadMetadataTypeT {
 struct ListStatusTOptions {
   // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
   1: optional bool loadDirectChildren
-  2: optional LoadMetadataTypeT loadMetadataType
+  2: optional LoadMetadataTType loadMetadataType
 }
 
 /**
