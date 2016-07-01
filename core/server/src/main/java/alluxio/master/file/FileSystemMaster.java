@@ -53,6 +53,7 @@ import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.CreatePathOptions;
+import alluxio.master.file.options.GetFileInfoListOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -82,6 +83,7 @@ import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.FileSystemCommandOptions;
 import alluxio.thrift.FileSystemMasterClientService;
 import alluxio.thrift.FileSystemMasterWorkerService;
+import alluxio.thrift.LoadMetadataType;
 import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
@@ -510,15 +512,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * {@link FileSystemAction#EXECUTE} permission on the path if it is a directory.
    *
    * @param path the path to get the {@link FileInfo} list for
-   * @param loadDirectChildren whether to load the direct children if path is a directory if its
-   *        direct children have not beed loaded before
+   * @param getFileInfoListOptions the {@link GetFileInfoListOptions}
    * @return the list of {@link FileInfo}s
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the file does not exist
    * @throws InvalidPathException if the path is invalid
    */
-  // TODO(peis): Create GetFileInfoListOptions and add an option not to load metadata.
-  public List<FileInfo> getFileInfoList(AlluxioURI path, boolean loadDirectChildren)
+  public List<FileInfo> getFileInfoList(AlluxioURI path,
+      GetFileInfoListOptions getFileInfoListOptions)
       throws AccessControlException, FileDoesNotExistException, InvalidPathException {
     MasterContext.getMasterSource().incGetFileInfoOps(1);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
@@ -527,12 +528,14 @@ public final class FileSystemMaster extends AbstractMaster {
       mPermissionChecker.checkPermission(FileSystemAction.READ, inodePath);
 
       LoadMetadataOptions loadMetadataOptions =
-          LoadMetadataOptions.defaults().setCreateAncestors(true)
-              .setLoadDirectChildren(loadDirectChildren);
+          LoadMetadataOptions.defaults().setCreateAncestors(true).setLoadDirectChildren(
+              getFileInfoListOptions.getLoadMetadataType() != LoadMetadataType.Never);
       Inode<?> inode = null;
       if (inodePath.fullPathExists()) {
         inode = inodePath.getInode();
-        if (inode.isDirectory() && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
+        if (inode.isDirectory()
+            && getFileInfoListOptions.getLoadMetadataType() != LoadMetadataType.Always
+            && ((InodeDirectory) inode).isDirectChildrenLoaded()) {
           loadMetadataOptions.setLoadDirectChildren(false);
         }
       }

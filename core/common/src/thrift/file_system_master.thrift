@@ -26,7 +26,9 @@ struct MountTOptions {
 }
 
 struct ListStatusTOptions {
+  // This is deprecated since 1.1.1 and will be removed in 2.0. Use loadMetadataType.
   1: optional bool loadDirectChildren
+  2: optional common.LoadMetadataType loadMetadataType
 }
 
 /**
