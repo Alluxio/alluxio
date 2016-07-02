@@ -46,21 +46,26 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library. This
- * implementation does not support the concept of directories due to Swift being an object store.
- * All mkdir operations will no-op and return true and empty directories will not exist.
- * Directories with objects inside will be inferred through the prefix.
+ * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
+ * mkdir operations create zero-byte objects ending with the folder suffix.
  */
 //TODO(calvin): Reconsider the directory limitations of this class.
+//TODO(adit): Abstract out functionality common with other object under storage.
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
+  /** Value used to indicate nested structure in Swift. */
+  private static final char PATH_SEPARATOR_CHAR = '/';
 
   /** Value used to indicate nested structure in Swift. */
-  private static final String PATH_SEPARATOR = "/";
+  private static final String PATH_SEPARATOR = Character.toString(PATH_SEPARATOR_CHAR);
+
+  /** Max Number of directory entries to fetch at once. */
+  private static final int DIR_PAGE_SIZE = 100;
+
+  /** Number of retries in case of Swift internal errors. */
+  private static final int NUM_RETRIES = 3;
 
   /** Swift account. */
   private final Account mAccount;
@@ -148,17 +153,23 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
-    String newPath = path.substring(Constants.HEADER_SWIFT.length());
-    if (newPath.endsWith("_SUCCESS")) {
+
+    if (!mkdirs(getParentKey(path), true)) {
+      return null;
+    }
+
+    final String strippedPath = stripPrefixIfPresent(path, Constants.HEADER_SWIFT);
+    //TODO(adit): this hack should not be here
+    if (strippedPath.endsWith("_SUCCESS")) {
       // when path/_SUCCESS is created, there is need to create path as
       // an empty object. This is required by Spark in case Spark
       // accesses path directly, bypassing Alluxio
-      String plainName = newPath.substring(0, newPath.indexOf("_SUCCESS"));
+      String plainName = strippedPath.substring(0, strippedPath.indexOf("_SUCCESS"));
       LOG.debug("Plain name: {}", plainName);
       SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
       out.close();
     }
-    return SwiftDirectClient.put(mAccess, newPath);
+    return SwiftDirectClient.put(mAccess, strippedPath);
   }
 
   @Override
@@ -168,7 +179,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
       strippedPath = makeQualifiedPath(strippedPath);
-      PaginationMap paginationMap = container.getPaginationMap(strippedPath, 100);
+      PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject object : container.list(paginationMap, page)) {
           if (object.exists()) {
@@ -186,12 +197,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+    //TODO(adit): this hack should not be here
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
     if (path.endsWith("_temporary")) {
       return true;
     }
-    return getObject(path).exists();
+    return isRoot(path) || isFile(path) || isDirectory(path);
   }
 
   /**
@@ -245,12 +257,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path) && !isDirectory(path);
+    String pathAsFile = stripFolderSuffixIfPresent(stripPrefixIfPresent(path));
+    return getObject(pathAsFile).exists();
   }
 
   @Override
   public String[] list(String path) throws IOException {
-    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
     return listInternal(path);
   }
 
@@ -261,7 +273,92 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
-    return true;
+    if (path == null) {
+      return false;
+    }
+    if (isDirectory(path)) {
+      return true;
+    }
+    if (isFile(path)) {
+      LOG.error("Cannot create directory {} because it is already a file.", path);
+      return false;
+    }
+    if (!options.getCreateParent()) {
+      if (parentExists(path)) {
+        return mkdirsInternal(path);
+      } else {
+        LOG.error("Cannot create directory {} because parent does not exist", path);
+        return false;
+      }
+    }
+    // Parent directories should be created
+    if (parentExists(path)) {
+      return mkdirsInternal(path);
+    } else {
+      String parentKey = getParentKey(path);
+      // Recursively make the parent folders
+      return mkdirs(parentKey, true) && mkdirsInternal(path);
+    }
+  }
+
+  /**
+   * Creates a directory flagged file with the folder suffix.
+   *
+   * @param path the path to create a folder
+   * @return true if the operation was successful, false otherwise
+   */
+  private boolean mkdirsInternal(String path) {
+    try {
+      String keyAsFolder = makeQualifiedPath(stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+      SwiftOutputStream out = SwiftDirectClient.put(mAccess, keyAsFolder);
+      out.close();
+      return true;
+    } catch (IOException e) {
+      LOG.error("Failed to create directory: {}", path, e);
+      return false;
+    }
+  }
+
+  /**
+   * Treating Swift as a file system, checks if the parent directory exists.
+   *
+   * @param path the path to check
+   * @return true if the parent exists or if the path is root, false otherwise
+   */
+  private boolean parentExists(String path) throws IOException {
+    // Assume root always has a parent
+    if (isRoot(path)) {
+      return true;
+    }
+    String parentKey = getParentKey(path);
+    return parentKey != null && isDirectory(parentKey);
+  }
+
+  /**
+   * @param path the path to get the parent of
+   * @return the parent path, or null if the parent does not exist
+   */
+  private String getParentKey(String path) {
+    // Root does not have a parent.
+    if (isRoot(path)) {
+      return null;
+    }
+    int separatorIndex = path.lastIndexOf(PATH_SEPARATOR);
+    if (separatorIndex < 0) {
+      return null;
+    }
+    return path.substring(0, separatorIndex);
+  }
+
+  /**
+   * Checks if the key is the root.
+   *
+   * @param key the key to check
+   * @return true if the key is the root, false otherwise
+   */
+  private boolean isRoot(String key) {
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
+        PathUtils.normalizePath(mContainerPrefix, PATH_SEPARATOR));
   }
 
   @Override
@@ -296,24 +393,39 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public boolean rename(String src, String dst) throws IOException {
+    if (!exists(src)) {
+      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+      return false;
+    }
+    if (exists(dst)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+      return false;
+    }
+
     String strippedSrcPath = stripPrefixIfPresent(src);
     String strippedDstPath = stripPrefixIfPresent(dst);
-    if (exists(src) && copy(strippedSrcPath, strippedDstPath)) {
-      return delete(src, true);
-    }
-    Container container = mAccount.getContainer(mContainerName);
-    strippedSrcPath = makeQualifiedPath(strippedSrcPath);
-    strippedDstPath = makeQualifiedPath(strippedDstPath);
-    PaginationMap paginationMap = container.getPaginationMap(strippedSrcPath, 100);
-    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      for (StoredObject object : container.list(paginationMap, page)) {
-        if (object.exists() && copy(object.getName(),
-            object.getName().replace(strippedSrcPath, strippedDstPath))) {
-          delete(object.getName(), false);
+
+    // Source exists and destination does not exist
+    if (isDirectory(src)) {
+      strippedSrcPath = makeQualifiedPath(strippedSrcPath);
+      strippedDstPath = makeQualifiedPath(strippedDstPath);
+
+      // Rename the source folder first
+      if (!copy(strippedSrcPath, strippedDstPath)) {
+        return false;
+      }
+      // Rename each child in the src folder to destination/child
+      String [] children = list(src);
+      for (String child: children) {
+        if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          return false;
         }
       }
+      // Delete src and everything under src
+      return delete(src, true);
     }
-    return true;
+    // Source is a file and Destination does not exist
+    return copy(strippedSrcPath, strippedDstPath) && delete(src, false);
   }
 
   @Override
@@ -356,23 +468,20 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("copy from {} to {}", src, dst);
     String strippedSrcPath = stripPrefixIfPresent(src);
     String strippedDstPath = stripPrefixIfPresent(dst);
-    // Retry copy for a few times, in case some Swift internal errors happened during copy.
-    int retries = 3;
-    for (int i = 0; i < retries; i++) {
+    for (int i = 0; i < NUM_RETRIES; i++) {
       try {
-
         Container container = mAccount.getContainer(mContainerName);
         container.getObject(strippedSrcPath)
             .copyObject(container, container.getObject(strippedDstPath));
         return true;
       } catch (Exception e) {
         LOG.error("Failed to copy file {} to {}", src, dst, e.getMessage());
-        if (i != retries - 1) {
+        if (i != NUM_RETRIES - 1) {
           LOG.error("Retrying copying file {} to {}", src, dst);
         }
       }
     }
-    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, retries);
+    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, NUM_RETRIES);
     return false;
   }
 
@@ -384,8 +493,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an error occurs listing the directory
    */
   private boolean isDirectory(String path) throws IOException {
-    String[] children = listInternal(path);
-    return children != null && children.length > 0;
+    // Root is always a folder
+    if (isRoot(path)) {
+      return true;
+    }
+
+    String pathAsFolder = makeQualifiedPath(stripPrefixIfPresent(path));
+    return getObject(pathAsFolder).exists();
   }
 
   /**
@@ -401,15 +515,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       path = stripPrefixIfPresent(path);
       path = PathUtils.normalizePath(path, PATH_SEPARATOR);
       path = path.equals(PATH_SEPARATOR) ? "" : path;
-      Directory directory = new Directory(path, '/');
+      Directory directory = new Directory(path, PATH_SEPARATOR_CHAR);
       Container container = mAccount.getContainer(mContainerName);
       Collection<DirectoryOrObject> objects = container.listDirectory(directory);
       Set<String> children = new HashSet<>();
+      boolean foundSelf = false;
       for (DirectoryOrObject object : objects) {
         String child = stripFolderSuffixIfPresent(object.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
-        children.add(noPrefix);
+        if (!noPrefix.equals(stripFolderSuffixIfPresent(path))) {
+          children.add(noPrefix);
+        } else {
+          foundSelf = true;
+        }
       }
+
+      if (!foundSelf && (children.size() == 0)) {
+        return null;
+      }
+
       return children.toArray(new String[children.size()]);
     } catch (Exception e) {
       LOG.error("Failed to list path {}", path, e);
@@ -425,8 +549,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
   private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
+    if (key.endsWith(PATH_SEPARATOR)) {
+      return key.substring(0, key.length() - PATH_SEPARATOR.length());
     }
     return key;
   }
