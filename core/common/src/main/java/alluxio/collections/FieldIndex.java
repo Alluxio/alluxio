@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-interface FieldIndex<T> {
+interface FieldIndex<T> extends Iterable<T> {
   /**
    * Adds an object o to the index.
    *
@@ -75,7 +75,7 @@ interface FieldIndex<T> {
    * Returns an iterator over the elements in this index. The elements are returned in no particular
    * order.
    *
-   * Note that the behaviour of the iterator is unspecified if the underlying collection is modified
+   * Note that the behavior of the iterator is unspecified if the underlying collection is modified
    * while a thread is going through the iterator.
    *
    * @return an iterator over the elements in this {@link FieldIndex}
