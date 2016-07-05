@@ -24,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.SaslException;
 
 /**
- * If authentication type is {@link AuthType#NOSASL), we use this transport provider which simply
+ * If authentication type is {@link AuthType#NOSASL}, we use this transport provider which simply
  * uses default Thrift {@link TFramedTransport}.
  */
 @ThreadSafe
@@ -35,7 +35,7 @@ public final class NoSaslTransportProvider implements TransportProvider {
   private final int mThriftFrameSizeMax;
 
   /**
-   * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
+   * Constructor for transport provider when authentication type is {@link AuthType#NOSASL}.
    */
   public NoSaslTransportProvider() {
     mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
