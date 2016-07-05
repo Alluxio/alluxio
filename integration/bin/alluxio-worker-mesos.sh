@@ -16,8 +16,11 @@ source "${SCRIPT_DIR}/common.sh"
 ALLUXIO_WORKER_JAVA_OPTS="${ALLUXIO_WORKER_JAVA_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 MESOS_LIBRARY_PATH="${MESOS_LIBRARY_PATH:-/usr/local/lib}"
 
-echo Mount ramdisk on worker
-${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount
+# Try to mount ramdisk
+if [[ "${ALLUXIO_RAM_FOLDER}" == "/mnt/ramdisk" ]]; then
+    echo Mount ramdisk on worker
+    ${ALLUXIO_HOME}/bin/alluxio-mount.sh SudoMount
+fi
 
 mkdir -p "${ALLUXIO_LOGS_DIR}"
 
@@ -30,6 +33,6 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
   -Dalluxio.worker.tieredstore.levels=1 \
   -Dalluxio.worker.tieredstore.level0.alias=MEM \
-  -Dalluxio.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
+  -Dalluxio.worker.tieredstore.level0.dirs.path="${ALLUXIO_RAM_FOLDER}" \
   -Dalluxio.worker.tieredstore.level0.dirs.quota="${ALLUXIO_WORKER_MEMORY_SIZE}" \
   alluxio.mesos.AlluxioWorkerExecutor > "${ALLUXIO_LOGS_DIR}"/worker.out 2>&1

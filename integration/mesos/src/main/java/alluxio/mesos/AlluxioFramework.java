@@ -135,9 +135,10 @@ public class AlluxioFramework {
           }
         }
 
-        LOG.info("Received offer {} with cpus {} and mem {} MB and hasMasterPorts {}",
-            offer.getId().getValue(), offerCpu, offerMem,
-            OfferUtils.hasAvailableMasterPorts(offer));
+        LOG.info("Received offer {} with cpus {} and mem {} MB, hasAvailableMasterPorts {}, "
+            + "hasAvailableWorkerPorts {}", offer.getId().getValue(), offerCpu, offerMem,
+            OfferUtils.hasAvailableMasterPorts(offer),
+            OfferUtils.hasAvailableWorkerPorts(offer));
 
         Protos.ExecutorInfo.Builder executorBuilder = Protos.ExecutorInfo.newBuilder();
         List<Protos.Resource> resources;
