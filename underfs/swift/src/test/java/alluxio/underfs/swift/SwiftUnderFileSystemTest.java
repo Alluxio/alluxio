@@ -63,7 +63,7 @@ public class SwiftUnderFileSystemTest {
   public void stripFolderSuffixIfPresentTest() throws Exception {
     String input1 = mMockContainerPrefix;
     String input2 = mMockContainerPrefix + "dir/file";
-    String input3 = mMockContainerPrefix + "dir_$folder$";
+    String input3 = mMockContainerPrefix + "dir/";
     String result1 =
         Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input1);
     String result2 =
@@ -71,7 +71,7 @@ public class SwiftUnderFileSystemTest {
     String result3 =
         Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input3);
 
-    Assert.assertEquals(mMockContainerPrefix, result1);
+    Assert.assertEquals(mMockContainerPrefix, result1 + "/");
     Assert.assertEquals(mMockContainerPrefix + "dir/file", result2);
     Assert.assertEquals(mMockContainerPrefix + "dir", result3);
   }

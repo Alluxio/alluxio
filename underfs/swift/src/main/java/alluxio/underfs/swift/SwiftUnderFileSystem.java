@@ -47,10 +47,10 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
- * mkdir operations create zero-byte objects ending with the folder suffix.
+ * The mkdir operation creates a zero-byte object.
+ * A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the object name denotes a folder.
  */
-//TODO(calvin): Reconsider the directory limitations of this class.
-//TODO(adit): Abstract out functionality common with other object under storage.
+// TODO(adit): Abstract out functionality common with other object under storage systems.
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -59,9 +59,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final char PATH_SEPARATOR_CHAR = '/';
 
   /** Value used to indicate nested structure in Swift. */
-  private static final String PATH_SEPARATOR = Character.toString(PATH_SEPARATOR_CHAR);
+  private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
-  /** Max Number of directory entries to fetch at once. */
+  /** Maximum number of directory entries to fetch at once. */
   private static final int DIR_PAGE_SIZE = 100;
 
   /** Number of retries in case of Swift internal errors. */
@@ -154,20 +154,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
+    // create will attempt to create the parent directory if it does not already exist
     if (!mkdirs(getParentKey(path), true)) {
+      // fail if the parent directory does not exist and creation was unsuccessful
+      LOG.error("Parent directory creation unsuccessful for path", path);
       return null;
     }
 
     final String strippedPath = stripPrefixIfPresent(path, Constants.HEADER_SWIFT);
-    //TODO(adit): this hack should not be here
+    // TODO(adit): remove special handling of */_SUCCESS objects
     if (strippedPath.endsWith("_SUCCESS")) {
       // when path/_SUCCESS is created, there is need to create path as
       // an empty object. This is required by Spark in case Spark
       // accesses path directly, bypassing Alluxio
       String plainName = strippedPath.substring(0, strippedPath.indexOf("_SUCCESS"));
-      LOG.debug("Plain name: {}", plainName);
-      SwiftOutputStream out = SwiftDirectClient.put(mAccess, plainName);
-      out.close();
+      SwiftDirectClient.put(mAccess, plainName).close();
     }
     return SwiftDirectClient.put(mAccess, strippedPath);
   }
@@ -197,7 +198,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    //TODO(adit): this hack should not be here
+    // TODO(adit): remove special treatment of the _temporary suffix
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
     if (path.endsWith("_temporary")) {
@@ -274,6 +275,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
+      LOG.error("Attempting to create directory with a null path");
       return false;
     }
     if (isDirectory(path)) {
@@ -310,8 +312,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private boolean mkdirsInternal(String path) {
     try {
       String keyAsFolder = makeQualifiedPath(stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
-      SwiftOutputStream out = SwiftDirectClient.put(mAccess, keyAsFolder);
-      out.close();
+      SwiftDirectClient.put(mAccess, keyAsFolder).close();
       return true;
     } catch (IOException e) {
       LOG.error("Failed to create directory: {}", path, e);
@@ -386,46 +387,49 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * @inheritDoc
    *
-   * @param src the source file or folder name
-   * @param dst the destination file or folder name
+   * @param source the source file or folder name
+   * @param destination the destination file or folder name
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
   @Override
-  public boolean rename(String src, String dst) throws IOException {
-    if (!exists(src)) {
-      LOG.error("Unable to rename {} to {} because source does not exist.", src, dst);
+  public boolean rename(String source, String destination) throws IOException {
+    if (!exists(source)) {
+      LOG.error("Unable to rename {} to {} because source does not exist.",
+          source, destination);
       return false;
     }
-    if (exists(dst)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.", src, dst);
+    if (exists(destination)) {
+      LOG.error("Unable to rename {} to {} because destination already exists.",
+          source, destination);
       return false;
     }
 
-    String strippedSrcPath = stripPrefixIfPresent(src);
-    String strippedDstPath = stripPrefixIfPresent(dst);
+    String strippedSourcePath = stripPrefixIfPresent(source);
+    String strippedDestinationPath = stripPrefixIfPresent(destination);
 
     // Source exists and destination does not exist
-    if (isDirectory(src)) {
-      strippedSrcPath = makeQualifiedPath(strippedSrcPath);
-      strippedDstPath = makeQualifiedPath(strippedDstPath);
+    if (isDirectory(source)) {
+      strippedSourcePath = makeQualifiedPath(strippedSourcePath);
+      strippedDestinationPath = makeQualifiedPath(strippedDestinationPath);
 
       // Rename the source folder first
-      if (!copy(strippedSrcPath, strippedDstPath)) {
+      if (!copy(strippedSourcePath, strippedDestinationPath)) {
         return false;
       }
-      // Rename each child in the src folder to destination/child
-      String [] children = list(src);
+      // Rename each child in the source folder to destination/child
+      String [] children = list(source);
       for (String child: children) {
-        if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+        if (!rename(PathUtils.concatPath(source, child),
+            PathUtils.concatPath(destination, child))) {
           return false;
         }
       }
-      // Delete src and everything under src
-      return delete(src, true);
+      // Delete source and everything under source
+      return delete(source, true);
     }
-    // Source is a file and Destination does not exist
-    return copy(strippedSrcPath, strippedDstPath) && delete(src, false);
+    // Source is a file and destination does not exist
+    return copy(strippedSourcePath, strippedDestinationPath) && delete(source, false);
   }
 
   @Override
@@ -460,28 +464,29 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Copies an object to another name.
    *
-   * @param src the source key to copy
-   * @param dst the destination key to copy to
+   * @param source the source key to copy
+   * @param destination the destination key to copy to
    * @return true if the operation was successful, false otherwise
    */
-  private boolean copy(String src, String dst) {
-    LOG.debug("copy from {} to {}", src, dst);
-    String strippedSrcPath = stripPrefixIfPresent(src);
-    String strippedDstPath = stripPrefixIfPresent(dst);
+  private boolean copy(String source, String destination) {
+    LOG.debug("copy from {} to {}", source, destination);
+    String strippedSourcePath = stripPrefixIfPresent(source);
+    String strippedDestinationPath = stripPrefixIfPresent(destination);
+    // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
         Container container = mAccount.getContainer(mContainerName);
-        container.getObject(strippedSrcPath)
-            .copyObject(container, container.getObject(strippedDstPath));
+        container.getObject(strippedSourcePath)
+            .copyObject(container, container.getObject(strippedDestinationPath));
         return true;
       } catch (Exception e) {
-        LOG.error("Failed to copy file {} to {}", src, dst, e.getMessage());
+        LOG.error("Failed to copy file {} to {}", source, destination, e.getMessage());
         if (i != NUM_RETRIES - 1) {
-          LOG.error("Retrying copying file {} to {}", src, dst);
+          LOG.error("Retrying copying file {} to {}", source, destination);
         }
       }
     }
-    LOG.error("Failed to copy file {} to {}, after {} retries", src, dst, NUM_RETRIES);
+    LOG.error("Failed to copy file {} to {}, after {} retries", source, destination, NUM_RETRIES);
     return false;
   }
 
