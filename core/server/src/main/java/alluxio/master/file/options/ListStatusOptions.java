@@ -42,7 +42,12 @@ public final class ListStatusOptions {
    * @param options the thrift representation of list status options
    */
   public ListStatusOptions(ListStatusTOptions options) {
-    mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+    mLoadMetadataType = LoadMetadataType.Once;
+    if (options.isSetLoadMetadataType()) {
+      mLoadMetadataType = LoadMetadataType.fromThrift(options.getLoadMetadataType());
+    } else if (!options.isLoadDirectChildren()) {
+      mLoadMetadataType = LoadMetadataType.Never;
+    }
   }
 
   /**
