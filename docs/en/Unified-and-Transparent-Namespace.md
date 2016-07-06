@@ -88,3 +88,7 @@ Finally, let's unmount the mounted directory and verify that the directory is re
 Alluxio namespace, but its content is preserved in the underlying file system:
 
 {% include Unified-and-Transparent-Namespace/unmount.md %}
+
+## Resources
+
+[Unified Namespace Blog Post](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
