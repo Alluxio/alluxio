@@ -41,10 +41,10 @@ interface FieldIndex<T> extends Iterable<T> {
   /**
    * Returns whether there is an object with the specified index field value in the set.
    *
-   * @param value the field value to be satisfied
+   * @param fieldValue the field value to be satisfied
    * @return true if there is one such object, otherwise false
    */
-  boolean contains(Object value);
+  boolean containsField(Object fieldValue);
 
   /**
    * Returns whether there is an object in the set.
@@ -83,7 +83,8 @@ interface FieldIndex<T> extends Iterable<T> {
   Iterator<T> iterator();
 
   /**
-   * @return the number of objects in this indexed set (O(1) time)
+   * @return the number of objects in this indexed set (O(1) time for unique index, O(#fieldValue)
+   *         for non-unique index)
    */
   int size();
 }

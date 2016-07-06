@@ -84,8 +84,8 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean contains(Object value) {
-    return mIndexMap.containsKey(value);
+  public boolean containsField(Object fieldValue) {
+    return mIndexMap.containsKey(fieldValue);
   }
 
   @Override
@@ -132,12 +132,22 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
    * This is needed to support consistent removal from the set and the indices.
    */
   private class NonUniqueFieldIndexIterator implements Iterator<T> {
-    private final Iterator<ConcurrentHashSet<T>> mSetIterator;
+    /**
+     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
+     * inner set which is under iteration.
+     */
+    private final Iterator<ConcurrentHashSet<T>> mIndexMapIterator;
+    /**
+     * Iterator inside each inner set. This iterator keeps track of the objects.
+     */
     private Iterator<T> mIndexIterator;
+    /**
+     * Keeps track of current object. It is used to do the remove.
+     */
     private T mObject;
 
     public NonUniqueFieldIndexIterator() {
-      mSetIterator = mIndexMap.values().iterator();
+      mIndexMapIterator = mIndexMap.values().iterator();
       mIndexIterator = null;
       mObject = null;
     }
@@ -147,8 +157,8 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       if (mIndexIterator != null && mIndexIterator.hasNext()) {
         return true;
       }
-      while (mSetIterator.hasNext()) {
-        mIndexIterator = mSetIterator.next().iterator();
+      while (mIndexMapIterator.hasNext()) {
+        mIndexIterator = mIndexMapIterator.next().iterator();
         if (mIndexIterator.hasNext()) {
           return true;
         }
@@ -159,7 +169,7 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
     @Override
     public T next() {
       while (mIndexIterator == null || !mIndexIterator.hasNext()) {
-        mIndexIterator = mSetIterator.next().iterator();
+        mIndexIterator = mIndexMapIterator.next().iterator();
       }
 
       final T next = mIndexIterator.next();

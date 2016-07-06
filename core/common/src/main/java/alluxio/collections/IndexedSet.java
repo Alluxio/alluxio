@@ -247,7 +247,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     if (index == null) {
       throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
-    return index.contains(value);
+    return index.containsField(value);
   }
 
   /**
@@ -340,7 +340,8 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * @return the number of objects in this indexed set (O(1) time)
+   * @return the number of objects in this indexed set (O(1) time for unique index, O(#fieldValue)
+   *         for non-unique index)
    */
   @Override
   public int size() {

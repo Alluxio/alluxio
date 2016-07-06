@@ -276,6 +276,10 @@ public class IndexedSetTest {
     Assert.assertEquals(removed, 9L);
     Assert.assertTrue(mSet.size() == 0);
 
+    for (Pair o : mSet) {
+      Assert.assertTrue(true);
+    }
+
     long l = 0;
     for (int i = 0; i < 3; i++) {
       Assert.assertFalse(mSet.contains(mNonUniqueIntIndex, i));

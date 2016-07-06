@@ -54,8 +54,8 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean contains(Object value) {
-    return mIndexMap.containsKey(value);
+  public boolean containsField(Object fieldValue) {
+    return mIndexMap.containsKey(fieldValue);
   }
 
   @Override
