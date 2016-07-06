@@ -181,7 +181,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String strippedPath = stripPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
-      strippedPath = makeQualifiedPath(strippedPath);
+      strippedPath = addFolderSuffixIfNotPresent(strippedPath);
       PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject object : container.list(paginationMap, page)) {
@@ -260,7 +260,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    String pathAsFile = stripFolderSuffixIfPresent(stripPrefixIfPresent(path));
+    String pathAsFile = stripFolderSuffixIfPresent(path);
     return getObject(pathAsFile).exists();
   }
 
@@ -313,7 +313,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdirsInternal(String path) {
     try {
-      String keyAsFolder = makeQualifiedPath(
+      String keyAsFolder = addFolderSuffixIfNotPresent(
           UnderFileSystemUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
       SwiftDirectClient.put(mAccess, keyAsFolder).close();
       return true;
@@ -371,18 +371,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Each path is checked both for leading "/" and ending "/". Leading "/" is removed, and "/" is
-   * added at the end if not present.
+   * A trailing {@link SwiftUnderFileSystem#PATH_SEPARATOR} is added if not present.
    *
    * @param path URI to the object
-   * @return qualified path
+   * @return folder path
    */
-  private String makeQualifiedPath(String path) {
-    if (!path.endsWith("/")) {
-      path = path + "/";
-    }
-    if (path.startsWith("/")) {
-      path = path.substring(1);
+  private String addFolderSuffixIfNotPresent(String path) {
+    if (!path.endsWith(PATH_SEPARATOR)) {
+      path = path + PATH_SEPARATOR;
     }
     return path;
   }
@@ -413,8 +409,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     // Source exists and destination does not exist
     if (isDirectory(source)) {
-      strippedSourcePath = makeQualifiedPath(strippedSourcePath);
-      strippedDestinationPath = makeQualifiedPath(strippedDestinationPath);
+      strippedSourcePath = addFolderSuffixIfNotPresent(strippedSourcePath);
+      strippedDestinationPath = addFolderSuffixIfNotPresent(strippedDestinationPath);
 
       // Rename the source folder first
       if (!copy(strippedSourcePath, strippedDestinationPath)) {
@@ -506,7 +502,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return true;
     }
 
-    String pathAsFolder = makeQualifiedPath(stripPrefixIfPresent(path));
+    final String pathAsFolder = addFolderSuffixIfNotPresent(path);
     return getObject(pathAsFolder).exists();
   }
 
@@ -578,10 +574,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the path to retrieve an object handle for
    * @return the object handle
    */
-  private StoredObject getObject(String path) {
-    String strippedPath = stripPrefixIfPresent(path);
+  private StoredObject getObject(final String path) {
     Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(strippedPath);
+    return container.getObject(stripPrefixIfPresent(path));
   }
 
   @Override
