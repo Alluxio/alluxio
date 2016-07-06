@@ -14,6 +14,7 @@ package alluxio.yarn;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -44,6 +45,7 @@ import org.apache.hadoop.yarn.util.Records;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -88,6 +90,11 @@ public class ApplicationMasterTest {
   private AMRMClientAsync<ContainerRequest> mRMClient;
   private YarnClient mYarnClient;
 
+  // This is needed for when the ApplicationMaster calls hadoop's FileSystem.get().
+  @ClassRule
+  public static SystemPropertyRule sSystemPropertyRule =
+      new SystemPropertyRule("HADOOP_USER_NAME", "testuser");
+
   @Rule
   public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
 
@@ -102,9 +109,6 @@ public class ApplicationMasterTest {
   }
 
   private void setupApplicationMaster(Map<String, String> properties) throws Exception {
-    // This is needed for when the ApplicationMaster calls hadoop's FileSystem.get().
-    System.setProperty("HADOOP_USER_NAME", "testuser");
-
     for (Entry<String, String> entry : properties.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
