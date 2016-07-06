@@ -35,10 +35,10 @@ following contents:
 
 {% include Running-Flink-on-Alluxio/create-core-site.md %}
 
-#### Specify path to `core-site.xml` in `conf/flink-config.yaml`
+#### Specify path to `core-site.xml` in `conf/flink-conf.yaml`
 
 Next, you have to specify the path to the Hadoop configuration in Flink. Open the
-`conf/flink-config.yaml` file in the Flink root directory and set the `fs.hdfs.hadoopconf`
+`conf/flink-conf.yaml` file in the Flink root directory and set the `fs.hdfs.hadoopconf`
 configuration value to the **directory** containing the `core-site.xml`. (For newer Hadoop versions,
 the directory usually ends with `etc/hadoop`.)
 
@@ -64,6 +64,12 @@ There are different ways to achieve that:
 available on all cluster nodes as well). For example like this:
 
 {% include Running-Flink-on-Alluxio/hadoop-classpath.md %}
+
+#### Translate additional Alluxio site properties to Flink
+
+In addition, if there are any properties specified in `conf/alluxio-site.properties`,
+translate those to `env.java.opts` in `{FLINK_HOME}/conf/flink-conf.yaml` for Flink to pick up
+Alluxio configuration.
 
 # Using Alluxio with Flink
 
