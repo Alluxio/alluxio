@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.client.file.options;
+package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
 import alluxio.thrift.ListStatusTOptions;
@@ -26,7 +26,6 @@ public class ListStatusOptionsTest {
   @Test
   public void defaultsTest() {
     ListStatusOptions options = ListStatusOptions.defaults();
-
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
@@ -34,13 +33,16 @@ public class ListStatusOptionsTest {
   public void fieldsTest() {
     ListStatusOptions options = ListStatusOptions.defaults();
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
+    options.setLoadMetadataType(LoadMetadataType.Always);
+    Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
   }
 
   @Test
-  public void toThriftTest() {
-    ListStatusOptions options = ListStatusOptions.defaults();
-    ListStatusTOptions thriftOptions = options.toThrift();
-    Assert.assertEquals(LoadMetadataTType.Once, thriftOptions.getLoadMetadataType());
+  public void fromThriftTest() {
+    ListStatusTOptions listStatusTOptions = new ListStatusTOptions();
+    listStatusTOptions.setLoadMetadataType(LoadMetadataTType.Always);
+    ListStatusOptions options = new ListStatusOptions(listStatusTOptions);
+    Assert.assertEquals(LoadMetadataType.Always, options.getLoadMetadataType());
   }
 
   @Test
