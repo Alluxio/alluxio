@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
@@ -58,7 +57,6 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected CreateFileOptions mWriteAsync;
   protected CreateFileOptions mWriteUnderStore;
 
-  protected Configuration mTestConf;
   protected FileSystem mFileSystem = null;
 
   @Before
