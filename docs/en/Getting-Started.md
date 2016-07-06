@@ -35,10 +35,14 @@ login, Open **System Preferences**, then open **Sharing**. Make sure **Remote Lo
 
 ## Downloading Alluxio
 
-First, download the Alluxio release, and unpack it.
+First, [download the Alluxio release](http://www.alluxio.org/download). You can
+download the latest {{site.ALLUXIO_RELEASED_VERSION}} release pre-built for various versions of
+Hadoop from the [Alluxio download page](http://www.alluxio.org/download).
+
+Next, you can unpack the download with the following commands. Your filename may be different
+depending on which pre-built binaries you have downloaded.
 
 ```bash
-$ curl -O http://alluxio.org/downloads/files/{{site.ALLUXIO_RELEASED_VERSION}}/alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
 $ tar -xzf alluxio-{{site.ALLUXIO_RELEASED_VERSION}}-bin.tar.gz
 $ cd alluxio-{{site.ALLUXIO_RELEASED_VERSION}}
 ```
