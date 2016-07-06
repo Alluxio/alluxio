@@ -18,6 +18,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -161,7 +162,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return null;
     }
 
-    final String strippedPath = stripPrefixIfPresent(path, Constants.HEADER_SWIFT);
+    final String strippedPath = UnderFileSystemUtils.stripPrefixIfPresent(path,
+        Constants.HEADER_SWIFT);
     // TODO(adit): remove special handling of */_SUCCESS objects
     if (strippedPath.endsWith("_SUCCESS")) {
       // when path/_SUCCESS is created, there is need to create path as
@@ -311,7 +313,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdirsInternal(String path) {
     try {
-      String keyAsFolder = makeQualifiedPath(stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+      String keyAsFolder = makeQualifiedPath(
+          UnderFileSystemUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
       SwiftDirectClient.put(mAccess, keyAsFolder).close();
       return true;
     } catch (IOException e) {
@@ -527,7 +530,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       boolean foundSelf = false;
       for (DirectoryOrObject object : objects) {
         String child = stripFolderSuffixIfPresent(object.getName());
-        String noPrefix = stripPrefixIfPresent(child, path);
+        String noPrefix = UnderFileSystemUtils.stripPrefixIfPresent(child, path);
         if (!noPrefix.equals(stripFolderSuffixIfPresent(path))) {
           children.add(noPrefix);
         } else {
@@ -554,10 +557,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
   private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(PATH_SEPARATOR)) {
-      return key.substring(0, key.length() - PATH_SEPARATOR.length());
-    }
-    return key;
+    return UnderFileSystemUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
   }
 
   /**
@@ -569,26 +569,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(String path) {
-    if (path.startsWith(PATH_SEPARATOR)) {
-      return stripPrefixIfPresent(path, PATH_SEPARATOR);
-    }
-    return stripPrefixIfPresent(path, mContainerPrefix);
-  }
-
-  /**
-   * Strips the Swift container prefix from the key if it is present. For example, for input key
-   * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
-   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
-   *
-   * @param path the key to strip
-   * @param prefix prefix to remove
-   * @return the key without the Swift container prefix
-   */
-  private String stripPrefixIfPresent(String path, String prefix) {
-    if (path.startsWith(prefix)) {
-      return path.substring(prefix.length());
-    }
-    return path;
+    return UnderFileSystemUtils.stripPrefixIfPresent(path, mContainerPrefix);
   }
 
   /**
