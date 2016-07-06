@@ -100,11 +100,11 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   private final CountDownLatch mApplicationDoneLatch;
 
   /** Client to talk to Resource Manager. */
-  private AMRMClientAsync<ContainerRequest> mRMClient;
+  private final AMRMClientAsync<ContainerRequest> mRMClient;
   /** Client to talk to Node Manager. */
-  private NMClient mNMClient;
+  private final NMClient mNMClient;
   /** Client Resource Manager Service. */
-  private YarnClient mYarnClient;
+  private final YarnClient mYarnClient;
   /** Network address of the container allocated for Alluxio master. */
   private String mMasterContainerNetAddress;
   /**
@@ -127,7 +127,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
   }
 
   /**
-   * Constructs an {@link ApplicationMaster}
+   * Constructs an {@link ApplicationMaster}.
    *
    * Clients will be initialized and started during the {@link #start()} method.
    *
@@ -158,7 +158,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     mApplicationDoneLatch = new CountDownLatch(1);
     mYarnClient = yarnClient;
     mNMClient = nMClient;
-    mRMClient = AMRMClientAsync.createAMRMClientAsync(100, this);
+    // Heartbeat to the resource manager every 500ms.
+    mRMClient = AMRMClientAsync.createAMRMClientAsync(500, this);
   }
 
   /**
