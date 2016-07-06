@@ -377,12 +377,10 @@ public final class BlockWorkerClient extends AbstractClient {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);
         }
       });
+    } catch (WorkerOutOfSpaceException e) {
+      return false;
     } catch (AlluxioException e) {
-      if (e instanceof WorkerOutOfSpaceException) {
-        return false;
-      } else {
-        throw new IOException(e);
-      }
+      throw new IOException(e);
     }
   }
 
