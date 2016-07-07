@@ -287,22 +287,24 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!options.getCreateParent()) {
-      if (parentExists(path)) {
-        return mkdirsInternal(path);
-      } else {
+    if (isRoot(path)) {
+      // nothing to do for root
+      return true;
+    }
+
+    if (!parentExists(path)) {
+      if (!options.getCreateParent()) {
         LOG.error("Cannot create directory {} because parent does not exist", path);
         return false;
       }
-    }
-    // Parent directories should be created
-    if (parentExists(path)) {
-      return mkdirsInternal(path);
-    } else {
-      String parentKey = getParentKey(path);
+      final String parentKey = getParentKey(path);
       // Recursively make the parent folders
-      return mkdirs(parentKey, true) && mkdirsInternal(path);
+      if (!mkdirs(parentKey, true)) {
+        LOG.error("Unable to create parent directory", path);
+        return false;
+      }
     }
+    return mkdirsInternal(path);
   }
 
   /**
@@ -330,17 +332,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return true if the parent exists or if the path is root, false otherwise
    */
   private boolean parentExists(String path) throws IOException {
-    // Assume root always has a parent
-    if (isRoot(path)) {
-      return true;
-    }
-    String parentKey = getParentKey(path);
+    final String parentKey = getParentKey(path);
     return parentKey != null && isDirectory(parentKey);
   }
 
   /**
    * @param path the path to get the parent of
-   * @return the parent path, or null if the parent does not exist
+   * @return the parent path, or null if path is root
    */
   private String getParentKey(String path) {
     // Root does not have a parent.
