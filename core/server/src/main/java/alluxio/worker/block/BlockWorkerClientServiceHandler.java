@@ -19,6 +19,7 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
@@ -196,23 +197,34 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Used to request space for some block file.
+   * Requests space for a block.
    *
    * @param sessionId the id of the client requesting space
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
    *         false if there is no enough space
+   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public boolean requestSpace(long sessionId, long blockId, long requestBytes) {
-    try {
-      mWorker.requestSpace(sessionId, blockId, requestBytes);
-      return true;
-    } catch (Exception e) {
-      LOG.error("Failed to request {} bytes for block: {}", requestBytes, blockId, e);
-    }
-    return false;
+  public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
+      throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException, IOException {
+        try {
+          mWorker.requestSpace(sessionId, blockId, requestBytes);
+          return true;
+        } catch (WorkerOutOfSpaceException e) {
+          LOG.warn("Worker is out of space, failed to serve request for {} bytes", requestBytes);
+          return false;
+        } catch (Exception e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          throw e;
+        }
+      }
+    });
   }
 
   /**

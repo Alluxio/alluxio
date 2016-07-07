@@ -365,8 +365,9 @@ public final class BlockWorkerClient extends AbstractClient {
    *
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
-   * @return true if success, false otherwise
-   * @throws IOException if a non-Alluxio exception occurs
+   * @return true if space was successfully allocated, false if the worker is unable to allocate
+   *         space due to space exhaustion
+   * @throws IOException if an exception occurs
    */
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
@@ -377,8 +378,6 @@ public final class BlockWorkerClient extends AbstractClient {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);
         }
       });
-    } catch (WorkerOutOfSpaceException e) {
-      return false;
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
