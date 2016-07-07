@@ -203,10 +203,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     // TODO(adit): remove special treatment of the _temporary suffix
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    if (path.endsWith("_temporary")) {
+    if (isRoot(path) || path.endsWith("_temporary")) {
       return true;
     }
-    return isRoot(path) || isFile(path) || isDirectory(path);
+
+    // Query file or folder using single listing query
+    Collection<DirectoryOrObject> objects =
+        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)));
+    return objects != null && objects.size() != 0;
   }
 
   /**
@@ -266,7 +270,29 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
-    return listInternal(path);
+    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+
+    Collection<DirectoryOrObject> objects = listInternal(prefix);
+    Set<String> children = new HashSet<>();
+    final String self = stripFolderSuffixIfPresent(prefix);
+    boolean foundSelf = false;
+    for (DirectoryOrObject object : objects) {
+      String child = stripFolderSuffixIfPresent(object.getName());
+      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
+      if (!noPrefix.equals(self)) {
+        children.add(noPrefix);
+      } else {
+        foundSelf = true;
+      }
+    }
+
+    if (!foundSelf && (children.size() == 0)) {
+      // Path does not exist
+      return null;
+    }
+
+    return children.toArray(new String[children.size()]);
   }
 
   @Override
@@ -499,40 +525,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Lists the files in the given path, the returned paths will be their logical names and
-   * not contain the folder suffix.
+   * Lists the files or folders which match the given prefix.
    *
-   * @param path the path to list
-   * @return an array of the file or folder names in this directory,
-   * or null if the path does not exist
+   * @param prefix the prefix to match
+   * @return a collection of the files or folders matching the prefix
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private String[] listInternal(final String path) throws IOException {
-    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
-    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
-
+  private Collection<DirectoryOrObject> listInternal(final String prefix) throws IOException {
     Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
     Container container = mAccount.getContainer(mContainerName);
-    Collection<DirectoryOrObject> objects = container.listDirectory(directory);
-    Set<String> children = new HashSet<>();
-    boolean foundSelf = false;
-    final String self = stripFolderSuffixIfPresent(prefix);
-    for (DirectoryOrObject object : objects) {
-      String child = stripFolderSuffixIfPresent(object.getName());
-      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
-      if (!noPrefix.equals(self)) {
-        children.add(noPrefix);
-      } else {
-        foundSelf = true;
-      }
-    }
-
-    if (!foundSelf && (children.size() == 0)) {
-      // Path does not exist
-      return null;
-    }
-
-    return children.toArray(new String[children.size()]);
+    // Reset cache to avoid stale listings
+    mAccount.resetContainerCache();
+    return container.listDirectory(directory);
   }
 
   /**
