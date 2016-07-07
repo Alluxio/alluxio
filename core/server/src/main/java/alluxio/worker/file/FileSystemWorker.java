@@ -256,6 +256,7 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   @Override
   public void stop() {
+    mSessionCleaner.stop();
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
