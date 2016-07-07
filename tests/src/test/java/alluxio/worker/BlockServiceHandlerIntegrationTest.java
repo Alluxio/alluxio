@@ -21,6 +21,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -237,7 +238,13 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
-    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
+    try {
+      mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize);
+      Assert.fail();
+    } catch (AlluxioTException e) {
+      Assert.assertEquals(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(blockId2),
+          e.getMessage());
+    }
 
     // Request for impossible initial space should fail
     Exception exception = null;
