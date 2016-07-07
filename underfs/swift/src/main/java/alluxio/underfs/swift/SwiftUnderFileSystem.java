@@ -156,7 +156,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("Create method: {}", path);
 
     // create will attempt to create the parent directory if it does not already exist
-    if (!mkdirs(getParentKey(path), true)) {
+    if (!mkdirs(getParentPath(path), true)) {
       // fail if the parent directory does not exist and creation was unsuccessful
       LOG.error("Parent directory creation unsuccessful for {}", path);
       return null;
@@ -178,7 +178,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
-    String strippedPath = stripPrefixIfPresent(path);
+    String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
       strippedPath = addFolderSuffixIfNotPresent(strippedPath);
@@ -293,9 +293,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         LOG.error("Cannot create directory {} because parent does not exist", path);
         return false;
       }
-      final String parentKey = getParentKey(path);
+      final String parentPath = getParentPath(path);
       // Recursively make the parent folders
-      if (!mkdirs(parentKey, true)) {
+      if (!mkdirs(parentPath, true)) {
         LOG.error("Unable to create parent directory {}", path);
         return false;
       }
@@ -328,15 +328,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return true if the parent exists or if the path is root, false otherwise
    */
   private boolean parentExists(String path) throws IOException {
-    final String parentKey = getParentKey(path);
-    return parentKey != null && isDirectory(parentKey);
+    final String parentPath = getParentPath(path);
+    return parentPath != null && isDirectory(parentPath);
   }
 
   /**
    * @param path the path to get the parent of
    * @return the parent path, or null if path is root
    */
-  private String getParentKey(String path) {
+  private String getParentPath(String path) {
     // Root does not have a parent.
     if (isRoot(path)) {
       return null;
@@ -350,13 +350,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Checks if the key is the root.
+   * Checks if the path is the root.
    *
-   * @param key the key to check
-   * @return true if the key is the root, false otherwise
+   * @param path the path to check
+   * @return true if the path is the root, false otherwise
    */
-  private boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(mContainerPrefix);
+  private boolean isRoot(String path) {
+    return addFolderSuffixIfNotPresent(path).equals(mContainerPrefix);
   }
 
   @Override
@@ -395,8 +395,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return false;
     }
 
-    String strippedSourcePath = stripPrefixIfPresent(source);
-    String strippedDestinationPath = stripPrefixIfPresent(destination);
+    String strippedSourcePath = stripContainerPrefixIfPresent(source);
+    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
 
     // Source exists and destination does not exist
     if (isDirectory(source)) {
@@ -455,14 +455,14 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /**
    * Copies an object to another name.
    *
-   * @param source the source key to copy
-   * @param destination the destination key to copy to
+   * @param source the source path to copy
+   * @param destination the destination path to copy to
    * @return true if the operation was successful, false otherwise
    */
   private boolean copy(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
-    String strippedSourcePath = stripPrefixIfPresent(source);
-    String strippedDestinationPath = stripPrefixIfPresent(destination);
+    String strippedSourcePath = stripContainerPrefixIfPresent(source);
+    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
     // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
@@ -502,13 +502,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Lists the files in the given path, the returned paths will be their logical names and
    * not contain the folder suffix.
    *
-   * @param path the key to list
+   * @param path the path to list
    * @return an array of the file or folder names in this directory,
    * or null if the path does not exist
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private String[] listInternal(final String path) throws IOException {
-    String prefix = addFolderSuffixIfNotPresent(stripPrefixIfPresent(path));
+    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
     prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
 
     Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
@@ -537,24 +537,24 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
+   * guarantee the existence of the folder. This method will leave paths without a suffix unaltered.
    *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   * @param path the path to strip the suffix from
+   * @return the path with the suffix removed, or the path unaltered if the suffix is not present
    */
-  private String stripFolderSuffixIfPresent(final String key) {
-    return CommonUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
+  private String stripFolderSuffixIfPresent(final String path) {
+    return CommonUtils.stripSuffixIfPresent(path, PATH_SEPARATOR);
   }
 
   /**
-   * Strips the Swift container prefix from the key if it is present. For example, for input key
+   * Strips the Swift container prefix from the path if it is present. For example, for input path
    * swift://my-container-name/my-path/file, the output would be my-path/file. This method will
-   * leave keys without a prefix unaltered, ie. my-path/file returns my-path/file.
+   * leave paths without a prefix unaltered, ie. my-path/file returns my-path/file.
    *
-   * @param path the key to strip
-   * @return the key without the Swift container prefix
+   * @param path the path to strip
+   * @return the path without the Swift container prefix
    */
-  private String stripPrefixIfPresent(final String path) {
+  private String stripContainerPrefixIfPresent(final String path) {
     return CommonUtils.stripPrefixIfPresent(path, mContainerPrefix);
   }
 
@@ -566,7 +566,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private StoredObject getObject(final String path) {
     Container container = mAccount.getContainer(mContainerName);
-    return container.getObject(stripPrefixIfPresent(path));
+    return container.getObject(stripContainerPrefixIfPresent(path));
   }
 
   @Override
