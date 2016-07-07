@@ -23,10 +23,10 @@ import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -71,6 +71,13 @@ public abstract class UIWebServer {
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
     int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
+
+    mServer = new Server();
+    SelectChannelConnector connector = new SelectChannelConnector();
+    connector.setHost(address.getHostName());
+    connector.setPort(address.getPort());
+    connector.setAcceptors(webThreadCount);
+    mServer.setConnectors(new Connector[] {connector});
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
