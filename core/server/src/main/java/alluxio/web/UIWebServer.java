@@ -18,6 +18,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
+import org.eclipse.jetty.apache.jsp.JettyJasperInitializer;
+import org.eclipse.jetty.plus.annotation.ContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
@@ -32,6 +34,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
 /**
@@ -80,10 +84,29 @@ public abstract class UIWebServer {
 
     mServer.addConnector(mServerConnector);
 
+    System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
+
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
     File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
+    if (!warPath.exists()) {
+      throw new RuntimeException("No War file found at : " + warPath.getAbsolutePath());
+    }
     mWebAppContext.setWar(warPath.getAbsolutePath());
+
+    //mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
+
+    org.eclipse.jetty.webapp.Configuration.ClassList classList =
+        org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(mServer);
+    classList.addBefore(
+        "org.eclipse.jetty.webapp.JettyWebXmlConfiguration",
+        "org.eclipse.jetty.annotations.AnnotationConfiguration");
+
+    mWebAppContext.setAttribute(
+        "org.eclipse.jetty.server.webapp.ContainerIncludeJarPattern",
+        ".*/[^/]*servlet-api-[^/]*\\.jar$|.*/javax.servlet.jsp.jstl-.*\\.jar$"
+         + "|.*/[^/]*taglibs.*\\.jar$");
+
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
     mServer.setHandler(handlers);
@@ -101,6 +124,14 @@ public abstract class UIWebServer {
       handlers.addHandler(h);
     }
     mServer.setHandler(handlers);
+  }
+
+  private List<ContainerInitializer> jspInitializers() {
+    JettyJasperInitializer sci = new JettyJasperInitializer();
+    ContainerInitializer initializer = new ContainerInitializer(sci, null);
+    List<ContainerInitializer> initializers = new ArrayList<ContainerInitializer>();
+    initializers.add(initializer);
+    return initializers;
   }
 
   /**
