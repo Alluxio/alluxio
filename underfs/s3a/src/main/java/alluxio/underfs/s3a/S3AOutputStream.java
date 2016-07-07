@@ -11,10 +11,10 @@
 
 package alluxio.underfs.s3a;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
 
-import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.internal.Mimetypes;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -44,6 +44,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class S3AOutputStream extends OutputStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  private static final boolean SSE_ENABLED =
+      Configuration.getBoolean(Constants.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED);
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;
@@ -127,6 +130,9 @@ public class S3AOutputStream extends OutputStream {
     mLocalOutputStream.close();
     try {
       ObjectMetadata meta = new ObjectMetadata();
+      if (SSE_ENABLED) {
+        meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+      }
       meta.setContentLength(mFile.length());
       meta.setContentEncoding(Mimetypes.MIMETYPE_OCTET_STREAM);
       if (mHash != null) {
