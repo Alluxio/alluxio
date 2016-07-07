@@ -211,8 +211,7 @@ public class RPCMessageIntegrationTest {
     // Write the message to the outgoing channel.
     mOutgoingChannel.writeAndFlush(msg);
     // Read the decoded message from the incoming side.
-    RPCMessage outputMessage = sIncomingHandler.getMessage();
-    return outputMessage;
+    return sIncomingHandler.getMessage();
   }
 
   @Test
@@ -253,16 +252,12 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadResponseFileChannelTest() throws IOException {
-    FileInputStream inputStream = getTempFileInputStream();
-    try {
+    try (FileInputStream inputStream = getTempFileInputStream()) {
       FileChannel payload = inputStream.getChannel();
-      RPCBlockReadResponse msg =
-          new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
-              LENGTH), RPCResponse.Status.SUCCESS);
+      RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
+          new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
       RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
       assertValid(msg, decoded);
-    } finally {
-      inputStream.close();
     }
   }
 

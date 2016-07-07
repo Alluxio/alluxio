@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.master.block.meta.MasterWorkerInfo;
 
@@ -29,7 +30,7 @@ public final class BlockMasterPrivateAccess {
    */
   public static boolean isWorkerRegistered(BlockMaster master, long workerId) {
     IndexedSet<MasterWorkerInfo> workers = Whitebox.getInternalState(master, "mWorkers");
-    IndexedSet.FieldIndex<MasterWorkerInfo> idIndex = Whitebox.getInternalState(master, "mIdIndex");
+    IndexDefinition<MasterWorkerInfo> idIndex = Whitebox.getInternalState(master, "mIdIndex");
     synchronized (workers) {
       MasterWorkerInfo workerInfo = workers.getFirstByField(idIndex, workerId);
       return workerInfo != null && workerInfo.isRegistered();

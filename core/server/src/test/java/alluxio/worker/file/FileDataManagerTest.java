@@ -14,15 +14,16 @@ package alluxio.worker.file;
 import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
@@ -54,18 +55,13 @@ import java.util.Set;
 @PrepareForTest({BlockWorker.class, BufferUtils.class, BlockMeta.class})
 public final class FileDataManagerTest {
 
-  /**
-   * Resets the worker context.
-   */
   @After
   public void after() throws IOException {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
    * Tests that a file gets persisted.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   @SuppressWarnings("unchecked")
@@ -82,8 +78,7 @@ public final class FileDataManagerTest {
     for (long blockId : blockIds) {
       Mockito.when(blockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId))
           .thenReturn(blockId);
-      Mockito
-          .when(blockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
+      Mockito.when(blockWorker.readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId))
           .thenReturn(reader);
     }
 
@@ -91,7 +86,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -101,6 +96,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -166,21 +163,20 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    Configuration conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
-    conf.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
 
     FileDataManager manager = new FileDataManager(blockWorker);
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
 
     // Setup a mock rate limiter.
     MockRateLimiter mockRateLimiter = new MockRateLimiter(
-        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(
         manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 
@@ -191,6 +187,8 @@ public final class FileDataManagerTest {
 
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     manager.persistFile(fileId, blockIds);
@@ -210,7 +208,7 @@ public final class FileDataManagerTest {
 
     // Repeat persistence without sleeping.
     mockRateLimiter = new MockRateLimiter(
-        WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     Whitebox.setInternalState(
         manager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 
@@ -230,8 +228,6 @@ public final class FileDataManagerTest {
   /**
    * Tests the blocks are unlocked correctly when exception is encountered in
    * {@link FileDataManager#lockBlocks(long, List)}.
-   *
-   * @throws Exception when an exception occurs
    */
   @Test
   public void lockBlocksErrorHandlingTest() throws Exception {
@@ -263,8 +259,6 @@ public final class FileDataManagerTest {
 
   /**
    * Tests that the correct error message is provided when persisting a file fails.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void errorHandlingTest() throws Exception {
@@ -287,7 +281,7 @@ public final class FileDataManagerTest {
 
     // mock ufs
     UnderFileSystem ufs = Mockito.mock(UnderFileSystem.class);
-    String ufsRoot = new Configuration().get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(ufs.exists(ufsRoot)).thenReturn(true);
     Whitebox.setInternalState(manager, "mUfs", ufs);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -296,6 +290,8 @@ public final class FileDataManagerTest {
     PowerMockito.mockStatic(BufferUtils.class);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     Mockito.when(ufs.create(dstPath)).thenReturn(outputStream);
+    Mockito.when(ufs.create(Mockito.anyString(), Mockito.any(CreateOptions.class)))
+        .thenReturn(outputStream);
 
     manager.lockBlocks(fileId, blockIds);
     try {

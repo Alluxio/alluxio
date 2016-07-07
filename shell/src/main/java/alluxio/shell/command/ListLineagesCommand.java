@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.wire.LineageInfo;
@@ -32,11 +31,10 @@ public final class ListLineagesCommand extends AbstractShellCommand {
   /**
    * Constructs a new instance to list all the lineages.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public ListLineagesCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public ListLineagesCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

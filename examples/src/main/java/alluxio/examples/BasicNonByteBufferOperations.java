@@ -12,6 +12,7 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
@@ -70,9 +71,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
-        Integer.toString(mMasterLocation.getPort()));
+    Configuration.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.init();
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);
@@ -81,14 +81,11 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
-    DataOutputStream os = new DataOutputStream(fileOutStream);
-    try {
+    try (DataOutputStream os = new DataOutputStream(fileOutStream)) {
       os.writeInt(mLength);
       for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
-    } finally {
-      os.close();
     }
   }
 
@@ -110,16 +107,13 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
 
-    DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options));
-    try {
+    try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {
       int length = input.readInt();
       for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
           return false;
         }
       }
-    } finally {
-      input.close();
     }
     return true;
   }

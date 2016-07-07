@@ -39,7 +39,7 @@ public final class HeartbeatContext {
   public static final String WORKER_PIN_LIST_SYNC = "Worker Pin List Sync";
 
   static {
-    sTimerClasses = new HashMap<String, Class<? extends HeartbeatTimer>>();
+    sTimerClasses = new HashMap<>();
     sTimerClasses.put(MASTER_CHECKPOINT_SCHEDULING, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_FILE_RECOMPUTATION, SLEEPING_TIMER_CLASS);
     sTimerClasses.put(MASTER_LOST_FILES_DETECTION, SLEEPING_TIMER_CLASS);

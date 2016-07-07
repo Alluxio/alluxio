@@ -11,8 +11,8 @@
 
 package alluxio.master.file.meta;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 
 import com.google.common.base.Objects;
 
@@ -29,8 +29,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class TtlBucket implements Comparable<TtlBucket> {
   /** The time interval of this bucket is the same as ttl checker's interval. */
-  private static long sTtlIntervalMs = MasterContext.getConf().getInt(
-      Constants.MASTER_TTL_CHECKER_INTERVAL_MS);
+  private static long sTtlIntervalMs =
+      Configuration.getInt(Constants.MASTER_TTL_CHECKER_INTERVAL_MS);
   /**
    * Each bucket has a time to live interval, this value is the start of the interval, interval
    * value is the same as the configuration of {@link Constants#MASTER_TTL_CHECKER_INTERVAL_MS}.
@@ -46,7 +46,7 @@ public final class TtlBucket implements Comparable<TtlBucket> {
    */
   public TtlBucket(long startTimeMs) {
     mTtlIntervalStartTimeMs = startTimeMs;
-    mFiles = new HashSet<InodeFile>();
+    mFiles = new HashSet<>();
   }
 
   /**

@@ -11,8 +11,9 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
@@ -48,7 +49,7 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    ClientContext.getConf().set(Constants.USER_UFS_DELEGATION_ENABLED, "false");
+    Configuration.set(Constants.USER_UFS_DELEGATION_ENABLED, "false");
 
     File file = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(file);
@@ -68,13 +69,12 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
+    ClientTestUtils.resetClient();
   }
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the first block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void singleByteReadTest() throws IOException {
@@ -83,8 +83,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the last block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void singleByteReadEOFTest() throws IOException {
@@ -113,8 +111,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the first block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayReadTest() throws IOException {
@@ -123,8 +119,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the last block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayReadEOFTest() throws IOException {
@@ -165,8 +159,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the array read when completely reading the first block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadTest() throws IOException {
@@ -175,8 +167,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the array read when completely reading the last block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadEOFTest() throws IOException {
@@ -207,8 +197,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void skipTest() throws IOException {
@@ -217,8 +205,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void skipEOFTest() throws IOException {
@@ -261,8 +247,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void seekTest() throws Exception {
@@ -271,8 +255,6 @@ public class DirectUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void seekEOFTest() throws IOException {

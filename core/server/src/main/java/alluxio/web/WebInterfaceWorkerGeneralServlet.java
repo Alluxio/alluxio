@@ -235,8 +235,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("version", RuntimeConstants.VERSION);
 
-    List<UIStorageDir> storageDirs =
-        new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
+    List<UIStorageDir> storageDirs = new ArrayList<>(storeMeta.getCapacityBytesOnDirs().size());
     for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {
       storageDirs.add(new UIStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
           storeMeta.getCapacityBytesOnDirs().get(tierAndDirPath), storeMeta.getUsedBytesOnDirs()

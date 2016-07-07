@@ -36,7 +36,7 @@ while getopts "hw" o; do
       wait="true"
       ;;
     *)
-      echo -e "${Usage}"
+      echo -e "${Usage}" >&2
       exit 1
       ;;
   esac
@@ -46,7 +46,7 @@ shift $((OPTIND-1))
 
 MESOS_MASTER_ADDRESS="$1"
 if [[ ! "${MESOS_MASTER_ADDRESS}" ]]; then
-  echo -e "${Usage}"
+  echo -e "${Usage}" >&2
   exit 1
 fi
 
@@ -56,6 +56,7 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   ${ALLUXIO_FRAMEWORK_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
   -Dalluxio.home="${ALLUXIO_HOME}" \
+  -Dalluxio.logger.type="Console" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
   alluxio.mesos.AlluxioFramework "${MESOS_MASTER_ADDRESS}" > "${ALLUXIO_LOGS_DIR}"/framework.out 2>&1 &
 

@@ -73,7 +73,7 @@ function mem_size_to_bytes() {
       BYTE_SIZE=${SIZE}
       ;;
     *)
-      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form."
+      echo "Please specify ALLUXIO_WORKER_MEMORY_SIZE in a correct form." >&2
       exit 1
   esac
 }
@@ -148,7 +148,7 @@ function mount_ramfs_linux() {
   TOTAL_MEM=$(($(cat /proc/meminfo | awk 'NR==1{print $2}') * 1024))
   if [[ ${TOTAL_MEM} -lt ${BYTE_SIZE} ]]; then
     echo "ERROR: Memory(${TOTAL_MEM}) is less than requested ramdisk size(${BYTE_SIZE}). Please
-    reduce ALLUXIO_WORKER_MEMORY_SIZE"
+    reduce ALLUXIO_WORKER_MEMORY_SIZE" >&2
     exit 1
   fi
 
@@ -157,7 +157,7 @@ function mount_ramfs_linux() {
   if mount | grep ${F} > /dev/null; then
     umount -f ${F}
     if [[ $? -ne 0 ]]; then
-      echo "ERROR: umount RamFS ${F} failed"
+      echo "ERROR: umount RamFS ${F} failed" >&2
       exit 1
     fi
   else
@@ -176,8 +176,8 @@ function mount_ramfs_mac() {
   fi
 
   if [[ ${ALLUXIO_RAM_FOLDER} != "/Volumes/"* ]]; then
-    echo "Invalid ALLUXIO_RAM_FOLDER: ${ALLUXIO_RAM_FOLDER}"
-    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X."
+    echo "Invalid ALLUXIO_RAM_FOLDER: ${ALLUXIO_RAM_FOLDER}" >&2
+    echo "ALLUXIO_RAM_FOLDER must set to /Volumes/[name] on Mac OS X." >&2
     exit 1
   fi
 
@@ -228,6 +228,6 @@ case "${1}" in
     esac
     ;;
   *)
-    echo -e ${USAGE}
+    echo -e ${USAGE} >&2
     exit 1
 esac

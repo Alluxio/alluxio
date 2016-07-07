@@ -13,7 +13,6 @@ package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -49,7 +48,6 @@ public class LRFUEvictorTest {
   private BlockMetadataManager mMetaManager;
   private BlockMetadataManagerView mManagerView;
   private Evictor mEvictor;
-  private Allocator mAllocator;
 
   private double mStepFactor;
   private double mAttenuationFactor;
@@ -60,8 +58,6 @@ public class LRFUEvictorTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public final void before() throws Exception {
@@ -70,14 +66,13 @@ public class LRFUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, mManagerView);
-    mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    Configuration.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
+    mStepFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, mAllocator);
+        Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mEvictor = Evictor.Factory.create(mManagerView, allocator);
   }
 
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)
@@ -120,8 +115,6 @@ public class LRFUEvictorTest {
 
   /**
    * Tests that the eviction in the bottom tier works.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void evictInBottomTierTest() throws Exception {
@@ -178,8 +171,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first tier filled and the second tier empty resulting in
    * no eviction.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest1() throws Exception {
@@ -236,8 +227,6 @@ public class LRFUEvictorTest {
   /**
    * Tests the cascading eviction with the first and second tier filled resulting in blocks in the
    * second tier are evicted.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void cascadingEvictionTest2() throws Exception {

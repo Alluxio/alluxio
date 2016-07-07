@@ -20,7 +20,6 @@ import alluxio.client.file.options.OpenFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -68,9 +67,8 @@ public final class WebInterfaceDownloadServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (SecurityUtils.isSecurityEnabled(MasterContext.getConf())
-        && AuthenticatedClientUser.get(MasterContext.getConf()) == null) {
-      AuthenticatedClientUser.set(LoginUser.get(MasterContext.getConf()).getName());
+    if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+      AuthenticatedClientUser.set(LoginUser.get().getName());
     }
     String requestPath = request.getParameter("path");
     if (requestPath == null || requestPath.isEmpty()) {

@@ -30,9 +30,12 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.GroupPrincipal;
 import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.PosixFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
+import java.util.Set;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -86,6 +89,51 @@ public final class FileUtils {
   }
 
   /**
+   * Gets local file's owner.
+   *
+   * @param filePath the file path
+   * @return the owner of the local file
+   * @throws IOException when fails to get the owner
+   */
+  public static String getLocalFileOwner(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.owner().getName();
+  }
+
+  /**
+   * Gets local file's group.
+   *
+   * @param filePath the file path
+   * @return the group of the local file
+   * @throws IOException when fails to get the group
+   */
+  public static String getLocalFileGroup(String filePath) throws IOException {
+    PosixFileAttributes attr =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class);
+    return attr.group().getName();
+  }
+
+  /**
+   * Gets local file's permission mode.
+   *
+   * @param filePath the file path
+   * @return the file mode in short, e.g. 0777
+   * @throws IOException when fails to get the permission
+   */
+  public static short getLocalFileMode(String filePath) throws IOException {
+    Set<PosixFilePermission> permission =
+        Files.readAttributes(Paths.get(filePath), PosixFileAttributes.class).permissions();
+    // Translate posix file permissions to short mode.
+    int mode = 0;
+    for (PosixFilePermission action : PosixFilePermission.values()) {
+      mode = mode << 1;
+      mode += permission.contains(action) ? 1 : 0;
+    }
+    return (short) mode;
+  }
+
+  /**
    * Changes the local file's user.
    *
    * @param path that will change owner
@@ -98,7 +146,7 @@ public final class FileUtils {
     PosixFileAttributeView view =
         Files.getFileAttributeView(Paths.get(path), PosixFileAttributeView.class,
             LinkOption.NOFOLLOW_LINKS);
-    UserPrincipal userPrincipal = lookupService.lookupPrincipalByGroupName(user);
+    UserPrincipal userPrincipal = lookupService.lookupPrincipalByName(user);
     view.setOwner(userPrincipal);
   }
 
@@ -217,16 +265,20 @@ public final class FileUtils {
    */
   public static void createStorageDirPath(String path) throws IOException {
     File dir = new File(path);
-    String absolutePath = dir.getAbsolutePath();
-    if (!dir.exists()) {
-      if (dir.mkdirs()) {
-        changeLocalFileToFullPermission(absolutePath);
-        setLocalDirStickyBit(absolutePath);
-        LOG.info("Folder {} was created!", path);
-      } else {
-        throw new IOException("Failed to create folder " + path);
-      }
+    if (dir.exists()) {
+      return;
     }
+    if (!dir.mkdirs()) {
+      if (dir.exists()) {
+        // This dir has been created concurrently.
+        return;
+      }
+      throw new IOException("Failed to create folder " + path);
+    }
+    String absolutePath = dir.getAbsolutePath();
+    changeLocalFileToFullPermission(absolutePath);
+    setLocalDirStickyBit(absolutePath);
+    LOG.info("Folder {} was created!", path);
   }
 
   /**

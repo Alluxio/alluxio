@@ -31,11 +31,10 @@ public class BufferUtilsTest {
   public void cloneByteBufferTest() {
     final int bufferSize = 10;
     ByteBuffer buf = ByteBuffer.allocate(bufferSize);
-    ByteBuffer bufClone = null;
     for (byte i = 0; i < bufferSize; i++) {
       buf.put(i);
     }
-    bufClone = BufferUtils.cloneByteBuffer(buf);
+    ByteBuffer bufClone = BufferUtils.cloneByteBuffer(buf);
     Assert.assertEquals(buf, bufClone);
   }
 
@@ -69,11 +68,10 @@ public class BufferUtilsTest {
   public void cloneDirectByteBufferTest() {
     final int bufferSize = 10;
     ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
-    ByteBuffer bufClone = null;
     for (byte i = 0; i < bufferSize; i++) {
       bufDirect.put(i);
     }
-    bufClone = BufferUtils.cloneByteBuffer(bufDirect);
+    ByteBuffer bufClone = BufferUtils.cloneByteBuffer(bufDirect);
     Assert.assertEquals(bufDirect, bufClone);
   }
 
@@ -134,7 +132,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase((byte) 0x00, 0x00));
     testCases.add(new TestCase((byte) 0x12, 0x12));
     testCases.add(new TestCase((byte) 0x34, 0x1234));
@@ -165,7 +163,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(new byte[] {}, 0, 0));
     testCases.add(new TestCase(new byte[] {}, 0, 3));
     testCases.add(new TestCase(new byte[] {0}, 1, 0));
@@ -201,7 +199,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, new byte[] {}, 0, 0));
     testCases.add(new TestCase(false, new byte[] {1}, 0, 0));
@@ -242,7 +240,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0}), 1, 0));
@@ -278,7 +276,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(false, null, 0, 0));
     testCases.add(new TestCase(true, ByteBuffer.wrap(new byte[] {}), 0, 0));
     testCases.add(new TestCase(false, ByteBuffer.wrap(new byte[] {1}), 0, 0));
@@ -319,7 +317,7 @@ public class BufferUtilsTest {
       }
     }
 
-    LinkedList<TestCase> testCases = new LinkedList<TestCase>();
+    LinkedList<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 0));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {}), 0, 3));
     testCases.add(new TestCase(ByteBuffer.wrap(new byte[] {0, 0, 0, 0}), 1, 0));

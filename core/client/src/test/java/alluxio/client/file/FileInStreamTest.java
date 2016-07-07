@@ -12,8 +12,8 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.BufferedBlockInStream;
@@ -88,7 +88,7 @@ public class FileInStreamTest {
   @Before
   public void before() throws AlluxioException, IOException {
     mInfo = new FileInfo().setBlockSizeBytes(BLOCK_LENGTH).setLength(FILE_LENGTH);
-    mDelegateUfsOps = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
+    mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     ClientTestUtils.setSmallBufferSizes();
 
@@ -137,13 +137,11 @@ public class FileInStreamTest {
 
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ClientTestUtils.resetClient();
   }
 
   /**
    * Tests that reading through the file one byte at a time will yield the correct data.
-   *
-   * @throws Exception when reading from the stream or closing the stream fails
    */
   @Test
   public void singleByteReadTest() throws Exception {
@@ -157,8 +155,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading half of a file works.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void readHalfFileTest() throws Exception {
@@ -167,8 +163,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading a part of a file works.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void readPartialBlockTest() throws Exception {
@@ -177,8 +171,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading the complete block works.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void readBlockTest() throws Exception {
@@ -187,8 +179,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading the complete file works.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void readFileTest() throws Exception {
@@ -197,8 +187,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading a buffer at an offset writes the bytes to the correct places.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readOffsetTest() throws IOException {
@@ -214,8 +202,6 @@ public class FileInStreamTest {
 
   /**
    * Read through the file in small chunks and verify each chunk.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readManyChunks() throws IOException {
@@ -235,8 +221,6 @@ public class FileInStreamTest {
   /**
    * Tests that {@link FileInStream#remaining()} is correctly updated during reads, skips, and
    * seeks.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testRemaining() throws IOException {
@@ -256,8 +240,6 @@ public class FileInStreamTest {
   /**
    * Tests seek, particularly that seeking over part of a block will cause us not to cache it, and
    * cancels the existing cache stream.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testSeek() throws IOException {
@@ -393,8 +375,6 @@ public class FileInStreamTest {
 
   /**
    * Tests skipping backwards when the seek buffer size is smaller than block size.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void seekBackwardSmallSeekBuffer() throws IOException {
@@ -415,9 +395,7 @@ public class FileInStreamTest {
   /**
    * Tests skip, particularly that skipping the start of a block will cause us not to cache it, and
    * cancels the existing cache stream.
-   *
-   * @throws IOException when an operation on the stream fails
-  */
+   */
   @Test
   public void testSkip() throws IOException {
     int skipAmount = (int) (BLOCK_LENGTH / 2);
@@ -442,8 +420,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that we promote blocks when they are read.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void testPromote() throws IOException {
@@ -460,8 +436,6 @@ public class FileInStreamTest {
   /**
    * Tests that {@link IOException}s thrown by the {@link AlluxioBlockStore} are properly
    * propagated.
-   *
-   * @throws IOException when an operation on the BlockStore or on the stream fails
    */
   @Test
   public void failGetInStreamTest() throws IOException {
@@ -477,8 +451,6 @@ public class FileInStreamTest {
 
   /**
    * Tests the capability to fall back to a ufs stream when getting an alluxio stream fails.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void failToUnderFsTest() throws AlluxioException, IOException {
@@ -509,8 +481,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that reading out of bounds properly returns -1.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readOutOfBoundsTest() throws IOException {
@@ -521,8 +491,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that specifying an invalid offset/length for a buffer read throws the right exception.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void readBadBufferTest() throws IOException {
@@ -537,8 +505,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that seeking to a negative position will throw the right exception.
-   *
-   * @throws IOException when seeking from the stream fails
    */
   @Test
   public void seekNegativeTest() throws IOException {
@@ -553,8 +519,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that seeking past the end of the stream will throw the right exception.
-   *
-   * @throws IOException when seeking from the stream fails
    */
   @Test
   public void seekPastEndTest() throws IOException {
@@ -569,8 +533,6 @@ public class FileInStreamTest {
 
   /**
    * Tests that skipping a negative amount correctly reports that 0 bytes were skipped.
-   *
-   * @throws IOException when skipping on the stream fails
    */
   @Test
   public void skipNegativeTest() throws IOException {

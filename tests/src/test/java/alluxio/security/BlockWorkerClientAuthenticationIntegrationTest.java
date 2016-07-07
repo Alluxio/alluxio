@@ -13,7 +13,6 @@ package alluxio.security;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
@@ -89,31 +88,25 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
-    BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
-        mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, ClientContext.getConf(),
-        1 /* fake session id */, true, new ClientMetrics());
-    try {
+    try (BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
+        mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
+        1 /* fake session id */, true, new ClientMetrics())) {
       Assert.assertFalse(blockWorkerClient.isConnected());
       // Using no-alluxio as loginUser to connect to Worker, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
+      LoginUserTestUtils.resetLoginUser("no-alluxio");
       blockWorkerClient.connect();
     } finally {
-      blockWorkerClient.close();
-      ClientTestUtils.resetClientContext();
+      ClientTestUtils.resetClient();
     }
   }
 
   /**
    * Tests Alluxio Worker client connects or disconnects to the Worker.
-   *
-   * @throws Exception
    */
   private void authenticationOperationTest() throws Exception {
     BlockWorkerClient blockWorkerClient = new BlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(),
-        mExecutorService, mLocalAlluxioClusterResource.get().getWorkerConf(),
-        1 /* fake session id */, true, new ClientMetrics());
+        mExecutorService, 1 /* fake session id */, true, new ClientMetrics());
 
     Assert.assertFalse(blockWorkerClient.isConnected());
     blockWorkerClient.connect();

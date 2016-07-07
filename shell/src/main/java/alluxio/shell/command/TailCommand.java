@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
@@ -38,11 +37,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TailCommand extends WithWildCardPathCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public TailCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public TailCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -51,13 +49,8 @@ public final class TailCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    URIStatus status;
-    try {
-      status = mFileSystem.getStatus(path);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    URIStatus status = mFileSystem.getStatus(path);
 
     int numOfBytes = Constants.KB;
     if (cl.hasOption('c')) {
@@ -65,30 +58,23 @@ public final class TailCommand extends WithWildCardPathCommand {
       Preconditions.checkArgument(numOfBytes > 0, "specified bytes must be > 0");
     }
 
-    if (!status.isFolder()) {
-      OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream is = null;
-      try {
-        is = mFileSystem.openFile(path, options);
-        byte[] buf = new byte[numOfBytes];
-        long bytesToRead = 0L;
-        if (status.getLength() > numOfBytes) {
-          bytesToRead = numOfBytes;
-        } else {
-          bytesToRead = status.getLength();
-        }
-        is.skip(status.getLength() - bytesToRead);
-        int read = is.read(buf);
-        if (read != -1) {
-          System.out.write(buf, 0, read);
-        }
-      } catch (AlluxioException e) {
-        throw new IOException(e.getMessage());
-      } finally {
-        is.close();
-      }
-    } else {
+    if (status.isFolder()) {
       throw new IOException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(path));
+    }
+    OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    try (FileInStream is = mFileSystem.openFile(path, options)) {
+      byte[] buf = new byte[numOfBytes];
+      long bytesToRead;
+      if (status.getLength() > numOfBytes) {
+        bytesToRead = numOfBytes;
+      } else {
+        bytesToRead = status.getLength();
+      }
+      is.skip(status.getLength() - bytesToRead);
+      int read = is.read(buf);
+      if (read != -1) {
+        System.out.write(buf, 0, read);
+      }
     }
   }
 
@@ -105,11 +91,7 @@ public final class TailCommand extends WithWildCardPathCommand {
   @Override
   protected Options getOptions() {
     Option bytesOption =
-        Option.builder("c")
-              .required(false)
-              .numberOfArgs(1)
-              .desc("user specified option")
-              .build();
+        Option.builder("c").required(false).numberOfArgs(1).desc("user specified option").build();
     return new Options().addOption(bytesOption);
   }
 }

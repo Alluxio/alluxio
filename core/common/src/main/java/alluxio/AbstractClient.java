@@ -48,7 +48,6 @@ public abstract class AbstractClient implements Closeable {
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
-  protected final Configuration mConfiguration;
   protected final String mMode;
 
   protected InetSocketAddress mAddress = null;
@@ -75,15 +74,13 @@ public abstract class AbstractClient implements Closeable {
    * Creates a new client base.
    *
    * @param address the address
-   * @param configuration the Alluxio configuration
    * @param mode the mode of the client for display
    */
-  public AbstractClient(InetSocketAddress address, Configuration configuration, String mode) {
-    mConfiguration = Preconditions.checkNotNull(configuration);
+  public AbstractClient(InetSocketAddress address, String mode) {
     mAddress = Preconditions.checkNotNull(address);
     mMode = mode;
     mServiceVersion = Constants.UNKNOWN_SERVICE_VERSION;
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
   }
 
   /**
@@ -158,7 +155,7 @@ public abstract class AbstractClient implements Closeable {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = mConfiguration.getInt(Constants.MASTER_RETRY_COUNT);
+    int maxConnectsTry = Configuration.getInt(Constants.MASTER_RETRY_COUNT);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);

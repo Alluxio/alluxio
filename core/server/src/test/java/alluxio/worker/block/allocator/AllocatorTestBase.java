@@ -11,7 +11,6 @@
 
 package alluxio.worker.block.allocator;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -22,7 +21,6 @@ import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.TempBlockMeta;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -34,7 +32,7 @@ import java.util.HashSet;
 /**
  * Base class for allocator tests.
  */
-public class BaseAllocatorTest {
+public class AllocatorTestBase {
 
   protected static final long SESSION_ID = 1;
   protected int mTestBlockId = 0;
@@ -70,20 +68,10 @@ public class BaseAllocatorTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the dependencies fails
    */
   @Before
   public void before() throws Exception {
     resetManagerView();
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   protected void resetManagerView() throws Exception {

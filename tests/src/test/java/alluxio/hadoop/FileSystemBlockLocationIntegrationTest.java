@@ -46,7 +46,7 @@ public class FileSystemBlockLocationIntegrationTest {
     alluxio.client.file.FileSystem alluxioFS = sLocalAlluxioClusterResource.get().getClient();
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile1", WriteType.CACHE_THROUGH, FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
   }
 
@@ -56,13 +56,11 @@ public class FileSystemBlockLocationIntegrationTest {
    */
   @Test
   public void basicBlockLocationTest() throws Exception {
-    long start = 0;
-    long len = 0;
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 
     // block0.offset = start < start+len < block1.offset
-    start = 0;
-    len = BLOCK_SIZE - 1;
+    long start = 0;
+    long len = BLOCK_SIZE - 1;
     Assert.assertEquals(1, sTFS.getFileBlockLocations(fStatus, start, len).length);
 
     // block0.offset < start < start+len < block1.offset

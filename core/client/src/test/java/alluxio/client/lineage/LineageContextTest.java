@@ -11,8 +11,8 @@
 
 package alluxio.client.lineage;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 
 import org.junit.Test;
 
@@ -26,16 +26,13 @@ public final class LineageContextTest {
 
   /**
    * Tests the concurrency of the {@link LineageContext}.
-   *
-   * @throws Exception when the thread fails to wait
    */
   @Test
   public void concurrencyTest() throws Exception {
     final List<LineageMasterClient> clients = new ArrayList<>();
 
     // acquire all the clients
-    for (int i = 0; i < ClientContext.getConf()
-        .getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS); i++) {
       clients.add(LineageContext.INSTANCE.acquireMasterClient());
     }
 

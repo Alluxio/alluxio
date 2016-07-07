@@ -59,7 +59,7 @@ public final class FileWorkerMasterSyncExecutorTest {
   }
 
   /**
-   * Verifies {@link FileDataManager.#clearPersistedFiles(java.util.List)} is called when the
+   * Verifies {@link FileDataManager#clearPersistedFiles(java.util.List)} is called when the
    * heartbeat is successful.
    */
   @Test

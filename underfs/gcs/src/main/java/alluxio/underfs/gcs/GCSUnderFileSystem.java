@@ -15,14 +15,18 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.ServiceException;
-import org.jets3t.service.utils.Mimetypes;
+import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.GoogleStorageService;
 import org.jets3t.service.model.GSObject;
+import org.jets3t.service.model.StorageObject;
 import org.jets3t.service.security.GSCredentials;
+import org.jets3t.service.utils.Mimetypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +47,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * GCS FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public class GCSUnderFileSystem extends UnderFileSystem {
+public final class GCSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -51,6 +55,9 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   /** Value used to indicate folder structure in GCS. */
   private static final String PATH_SEPARATOR = "/";
+
+  /** Length of each list request in GCS. */
+  private static final long LISTING_LENGTH = 1000L;
 
   private static final byte[] DIR_HASH;
 
@@ -75,18 +82,17 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
-    super(uri, conf);
+  public GCSUnderFileSystem(AlluxioURI uri) throws ServiceException {
+    super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_ACCESS_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_ACCESS_KEY),
         "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(conf.containsKey(Constants.GCS_SECRET_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_SECRET_KEY),
         "Property " + Constants.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials = new GSCredentials(conf.get(Constants.GCS_ACCESS_KEY),
-        conf.get(Constants.GCS_SECRET_KEY));
+    GSCredentials googleCredentials = new GSCredentials(Configuration.get(Constants.GCS_ACCESS_KEY),
+        Configuration.get(Constants.GCS_SECRET_KEY));
     mBucketName = bucketName;
 
     // TODO(chaomin): maybe add proxy support for GCS.
@@ -104,38 +110,26 @@ public class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new GCSOutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with GCSUnderFileSystem. Block size will be "
-        + "ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.warn("Create with block size and replication is not supported with GCSUnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -176,27 +170,27 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using GCSUnderFileSystem, returning null.");
     return null;
   }
 
@@ -244,6 +238,11 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -254,7 +253,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -343,7 +342,25 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.
@@ -477,7 +494,20 @@ public class GCSUnderFileSystem extends UnderFileSystem {
       // If no exception is thrown, the key exists as a folder
       return true;
     } catch (ServiceException s) {
-      return false;
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        // Check if anything begins with <path>/
+        GSObject[] objs = mClient.listObjects(mBucketName, path, "");
+        if (objs.length > 0) {
+          mkdirsInternal(path);
+          return true;
+        } else {
+          return false;
+        }
+      } catch (ServiceException s2) {
+        return false;
+      }
     }
   }
 
@@ -494,7 +524,7 @@ public class GCSUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -502,36 +532,58 @@ public class GCSUnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    String priorLastKey = null;
+    Set<String> children = new HashSet<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      GSObject[] objs = mClient.listObjects(mBucketName, path, "");
-      if (recursive) {
-        String[] ret = new String[objs.length];
-        for (int i = 0; i < objs.length; i++) {
+      boolean done = false;
+      while (!done) {
+        // Directories in GCS UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
+        //
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
+            LISTING_LENGTH, priorLastKey);
+
+        // Handle case (1)
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
-          String child = getChildName(objs[i].getKey(), path);
+          String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
-          ret[i] = child;
+          // Only add if the path is not empty (removes results equal to the path)
+          if (!child.isEmpty()) {
+            children.add(child);
+          }
         }
-        return ret;
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      for (GSObject obj : objs) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        children.add(child);
+        // Handle case (2)
+        for (String commonPrefix : chunk.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty() && !children.contains(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            children.add(child);
+          }
+        }
+        done = chunk.isListingComplete();
+        priorLastKey = chunk.getPriorLastKey();
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {

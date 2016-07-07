@@ -12,13 +12,13 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemUtils;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -64,9 +64,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           for (int i = 0; i < numWrites; i++) {
@@ -116,9 +115,8 @@ public class FileSystemUtilsIntegrationTest {
     final Runnable writer = new Runnable() {
       @Override
       public void run() {
-        FileOutStream os = null;
         try {
-          os = sFileSystem.createFile(uri, sWriteBoth);
+          FileOutStream os = sFileSystem.createFile(uri, sWriteBoth);
           boolean completed = sFileSystem.getStatus(uri).isCompleted();
           Assert.assertFalse(completed);
           // four writes that will take > 600ms due to the sleeps
@@ -141,7 +139,8 @@ public class FileSystemUtilsIntegrationTest {
         try {
           // set the slow default polling period to a more sensible value, in order
           // to speed up the tests artificial waiting times
-          ClientContext.getConf().set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
+          String original = Configuration.get(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
+          Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, "100");
           try {
             // The write will take at most 600ms I am waiting for at most 400ms - epsilon.
             boolean completed = FileSystemUtils.waitCompleted(sFileSystem, uri, 300,
@@ -150,7 +149,7 @@ public class FileSystemUtilsIntegrationTest {
             completed = sFileSystem.getStatus(uri).isCompleted();
             Assert.assertFalse(completed);
           } finally {
-            ClientTestUtils.resetClientContext();
+            Configuration.set(Constants.USER_FILE_WAITCOMPLETED_POLL_MS, original);
           }
         } catch (Exception e) {
           e.printStackTrace();

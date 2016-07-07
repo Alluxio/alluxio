@@ -29,15 +29,19 @@ public final class ShowKeyValueStore {
         pair.getKey()));
     String value = FormatUtils.byteArrayToHexString(BufferUtils.newByteArrayFromByteBuffer(
         pair.getValue()));
-    if (scope.equals("key")) {
-      System.out.println(key);
-    } else if (scope.equals("value")) {
-      System.out.println(value);
-    } else if (scope.equals("all")) {
-      System.out.printf("%s %s%n", key, value);
-    } else {
-      throw new RuntimeException(String.format("Unknown scope: %s, should be one of key/value/all",
-          scope));
+    switch (scope) {
+      case "key":
+        System.out.println(key);
+        break;
+      case "value":
+        System.out.println(value);
+        break;
+      case "all":
+        System.out.printf("%s %s%n", key, value);
+        break;
+      default:
+        throw new RuntimeException(
+                String.format("Unknown scope: %s, should be one of key/value/all", scope));
     }
   }
 

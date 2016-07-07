@@ -11,8 +11,8 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
@@ -32,7 +32,7 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
    * @param masterAddress the master address
    */
   public FileSystemMasterClientPool(InetSocketAddress masterAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS));
+    super(Configuration.getInt(Constants.USER_FILE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 
@@ -54,6 +54,6 @@ public final class FileSystemMasterClientPool extends ResourcePool<FileSystemMas
 
   @Override
   protected FileSystemMasterClient createNewResource() {
-    return new FileSystemMasterClient(mMasterAddress, ClientContext.getConf());
+    return new FileSystemMasterClient(mMasterAddress);
   }
 }

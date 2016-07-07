@@ -14,7 +14,6 @@ package alluxio.security;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
@@ -84,16 +83,12 @@ public final class MasterClientAuthenticationIntegrationTest {
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
-    FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            ClientContext.getConf());
-    try {
+    try (FileSystemMasterClient masterClient = new FileSystemMasterClient(
+        mLocalAlluxioClusterResource.get().getMaster().getAddress())) {
       Assert.assertFalse(masterClient.isConnected());
       // Using no-alluxio as loginUser to connect to Master, the IOException will be thrown
-      LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), "no-alluxio");
+      LoginUserTestUtils.resetLoginUser("no-alluxio");
       masterClient.connect();
-    } finally {
-      masterClient.close();
     }
   }
 
@@ -101,13 +96,12 @@ public final class MasterClientAuthenticationIntegrationTest {
    * Tests Alluxio client connects or disconnects to the Master. When the client connects
    * successfully to the Master, it can successfully create file or not.
    *
-   * @param filename
-   * @throws Exception
+   * @param filename the name of the file
+   * @throws Exception if a {@link FileSystemMasterClient} operation fails
    */
   private void authenticationOperationTest(String filename) throws Exception {
     FileSystemMasterClient masterClient =
-        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress(),
-            mLocalAlluxioClusterResource.get().getMasterConf());
+        new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
     Assert.assertFalse(masterClient.isConnected());
     masterClient.connect();
     Assert.assertTrue(masterClient.isConnected());

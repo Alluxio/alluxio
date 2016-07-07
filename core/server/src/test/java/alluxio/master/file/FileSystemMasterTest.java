@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -23,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
@@ -31,6 +31,7 @@ import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -44,6 +45,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -69,7 +71,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +116,6 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.reset(new Configuration());
     sNestedFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
@@ -128,27 +131,16 @@ public final class FileSystemMasterTest {
   }
 
   /**
-   * Resets the {@link MasterContext} after a test ran.
-   */
-  @After
-  public void after() {
-    MasterContext.reset();
-  }
-
-  /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if creating the temporary folder, starting the masters or register the
-   *                   workers fails.
    */
   @Before
   public void before() throws Exception {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
-    MasterContext.getConf()
+    Configuration
         .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
-    MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, mUnderFS);
+    Configuration.set(Constants.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
@@ -174,9 +166,17 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Resets global state after each test run.
+   */
+  @After
+  public void after() throws Exception {
+    mFileSystemMaster.stop();
+    mBlockMaster.stop();
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method.
-   *
-   * @throws Exception if deleting a file fails
    */
   @Test
   public void deleteFileTest() throws Exception {
@@ -210,8 +210,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method with a non-empty
    * directory.
-   *
-   * @throws Exception if deleting a directory fails
    */
   @Test
   public void deleteNonemptyDirectoryTest() throws Exception {
@@ -232,8 +230,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#delete(AlluxioURI, boolean)} method for a directory.
-   *
-   * @throws Exception if deleting the directory fails
    */
   @Test
   public void deleteDirTest() throws Exception {
@@ -247,8 +243,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#getNewBlockIdForFile(AlluxioURI)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
@@ -415,7 +409,102 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void getFileInfoListTest() throws Exception {
+  public void listStatusWithLoadMetadataNeverTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+    Assert.assertEquals(0, fileInfoList.size());
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusWithLoadMetadataOnceTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // listStatus should have loaded another 3 files (dir1, dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusWithLoadMetadataAlwaysTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // listStatus should have loaded another files (dir1), so now 4 paths exist.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    // Add two files.
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+
+    fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // No file is loaded since dir1 has been loaded once.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    fileInfoList = mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // listStatus should have loaded another 2 files (dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusTest() throws Exception {
     final int files = 10;
     List<FileInfo> infos;
     List<String> filenames;
@@ -424,7 +513,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(ROOT_URI, false);
+    infos = mFileSystemMaster.listStatus(ROOT_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -439,7 +529,8 @@ public final class FileSystemMasterTest {
 
     // Test single file.
     createFileWithSingleBlock(ROOT_FILE_URI);
-    infos = mFileSystemMaster.getFileInfoList(ROOT_FILE_URI, false);
+    infos = mFileSystemMaster.listStatus(ROOT_FILE_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(1, infos.size());
     Assert.assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
 
@@ -447,7 +538,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(NESTED_URI, false);
+    infos = mFileSystemMaster.listStatus(NESTED_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -462,8 +554,9 @@ public final class FileSystemMasterTest {
 
     // Test non-existent URIs.
     try {
-      mFileSystemMaster.getFileInfoList(NESTED_URI.join("DNE"), false);
-      Assert.fail("getFileInfoList() for a non-existent URI should fail.");
+      mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
+          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+      Assert.fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -564,8 +657,6 @@ public final class FileSystemMasterTest {
    * Tests that an exception is in the
    * {@link FileSystemMaster#createFile(AlluxioURI, CreateFileOptions)} with a TTL set in the
    * {@link CreateFileOptions} after the TTL check was done once.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void createFileWithTtlTest() throws Exception {
@@ -583,8 +674,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted because of a TTL of 0.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   @Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-1914")
@@ -606,8 +695,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to get information about a file after it has been
    * deleted after the TTL has been set to 0.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setSmallerTtlForFileWithTtlTest() throws Exception {
@@ -628,8 +715,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that a file has not been deleted after the TTL has been reset to a valid value.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setLargerTtlForFileWithTtlTest() throws Exception {
@@ -647,8 +732,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that the original TTL is removed after setting it to {@link Constants#NO_TTL} for a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setNoTtlForFileWithTtlTest() throws Exception {
@@ -666,8 +749,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests the {@link FileSystemMaster#setAttribute(AlluxioURI, SetAttributeOptions)} method and
    * that an exception is thrown when trying to set a TTL for a directory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setAttributeTest() throws Exception {
@@ -706,14 +787,12 @@ public final class FileSystemMasterTest {
   @Test
   public void permissionTest() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
-    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getPermission());
-    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getPermission());
+    Assert.assertEquals(0755, mFileSystemMaster.getFileInfo(NESTED_URI).getMode());
+    Assert.assertEquals(0644, mFileSystemMaster.getFileInfo(NESTED_FILE_URI).getMode());
   }
 
   /**
    * Tests that a file is fully written to memory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void isFullyInMemoryTest() throws Exception {
@@ -738,8 +817,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#rename(AlluxioURI, AlluxioURI)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameTest() throws Exception {
@@ -783,8 +860,6 @@ public final class FileSystemMasterTest {
   /**
    * Tests that an exception is thrown when trying to create a file in a non-existing directory
    * without setting the {@code recursive} flag.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameUnderNonexistingDir() throws Exception {
@@ -798,11 +873,23 @@ public final class FileSystemMasterTest {
     mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
   }
 
+  @Test
+  public void renameToNonExistentParent() throws Exception {
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    mFileSystemMaster.createFile(NESTED_URI, options);
+
+    try {
+      mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"));
+      Assert.fail("Rename to a non-existent parent path should not succeed.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case
+    }
+  }
+
   /**
    * Tests that an exception is thrown when trying to rename a file to a prefix of the original
    * file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameToSubpathTest() throws Exception {
@@ -815,8 +902,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void freeTest() throws Exception {
@@ -839,8 +924,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#free(AlluxioURI, boolean)} method with a directory.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void freeDirTest() throws Exception {
@@ -860,8 +943,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#mount(AlluxioURI, AlluxioURI, MountOptions)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountTest() throws Exception {
@@ -872,8 +953,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting an existing dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountExistingDirTest() throws Exception {
@@ -886,8 +965,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a shadow Alluxio dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountShadowDirTest() throws Exception {
@@ -902,8 +979,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a prefix UFS dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountPrefixUfsDirTest() throws Exception {
@@ -918,8 +993,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests mounting a suffix UFS dir.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountSuffixUfsDirTest() throws Exception {
@@ -934,8 +1007,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests unmounting operation.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void unmountTest() throws Exception {
@@ -957,7 +1028,6 @@ public final class FileSystemMasterTest {
    *
    * @param ufsPath the UFS path of the temp dir needed to created
    * @return the AlluxioURI of the temp dir
-   * @throws IOException if {@link TemporaryFolder#newFolder(String...)} operation fails
    */
   private AlluxioURI createTempUfsDir(String ufsPath) throws IOException {
     String path = mTestFolder.newFolder(ufsPath.split("/")).getPath();
@@ -966,8 +1036,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#stop()} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void stopTest() throws Exception {
@@ -984,8 +1052,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests the {@link FileSystemMaster#workerHeartbeat(long, List)} method.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void workerHeartbeatTest() throws Exception {
@@ -1008,12 +1074,11 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests that lost files can successfully be detected.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void lostFilesDetectionTest() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
+        TimeUnit.SECONDS));
 
     createFileWithSingleBlock(NESTED_FILE_URI);
     long fileId = mFileSystemMaster.getFileId(NESTED_FILE_URI);
@@ -1038,8 +1103,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests load metadata logic.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void testLoadMetadataTest() throws Exception {
@@ -1086,8 +1149,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests load root metadata. It should not fail.
-   *
-    * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void loadRootTest() throws Exception {

@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for mkdir command.
  */
-public class MkdirCommandTest extends AbstractAlluxioShellTest {
+public final class MkdirCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void mkdirTest() throws IOException, AlluxioException {
     String qualifiedPath =

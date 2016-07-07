@@ -79,17 +79,17 @@ public final class MasterWorkerInfo {
     mLastUpdatedTimeMs = System.currentTimeMillis();
     mIsRegistered = false;
     mStorageTierAssoc = null;
-    mTotalBytesOnTiers = new HashMap<String, Long>();
-    mUsedBytesOnTiers = new HashMap<String, Long>();
-    mBlocks = new HashSet<Long>();
-    mToRemoveBlocks = new HashSet<Long>();
+    mTotalBytesOnTiers = new HashMap<>();
+    mUsedBytesOnTiers = new HashMap<>();
+    mBlocks = new HashSet<>();
+    mToRemoveBlocks = new HashSet<>();
   }
 
   /**
    * Marks the worker as registered, while updating all of its metadata.
    *
    * @param globalStorageTierAssoc global mapping between storage aliases and ordinal position
-   * @param storageTierAliases list of storage tier alises in order of their position in the
+   * @param storageTierAliases list of storage tier aliases in order of their position in the
    *        hierarchy
    * @param totalBytesOnTiers mapping from storage tier alias to total bytes
    * @param usedBytesOnTiers mapping from storage tier alias to used byes
@@ -121,8 +121,8 @@ public final class MasterWorkerInfo {
     }
 
     // defensive copy
-    mTotalBytesOnTiers = new HashMap<String, Long>(totalBytesOnTiers);
-    mUsedBytesOnTiers = new HashMap<String, Long>(usedBytesOnTiers);
+    mTotalBytesOnTiers = new HashMap<>(totalBytesOnTiers);
+    mUsedBytesOnTiers = new HashMap<>(usedBytesOnTiers);
     mCapacityBytes = 0;
     for (long bytes : mTotalBytesOnTiers.values()) {
       mCapacityBytes += bytes;
@@ -145,7 +145,7 @@ public final class MasterWorkerInfo {
     }
 
     // Set the new block information.
-    mBlocks = new HashSet<Long>(blocks);
+    mBlocks = new HashSet<>(blocks);
 
     mIsRegistered = true;
     return removedBlocks;
@@ -201,7 +201,7 @@ public final class MasterWorkerInfo {
    * @return ids of all blocks the worker contains
    */
   public Set<Long> getBlocks() {
-    return new HashSet<Long>(mBlocks);
+    return new HashSet<>(mBlocks);
   }
 
   /**
@@ -229,7 +229,7 @@ public final class MasterWorkerInfo {
    * @return ids of blocks the worker should remove
    */
   public List<Long> getToRemoveBlocks() {
-    return new ArrayList<Long>(mToRemoveBlocks);
+    return new ArrayList<>(mToRemoveBlocks);
   }
 
   /**
@@ -278,7 +278,7 @@ public final class MasterWorkerInfo {
    * @return the free bytes on each storage tier
    */
   public Map<String, Long> getFreeBytesOnTiers() {
-    Map<String, Long> freeCapacityBytes = new HashMap<String, Long>();
+    Map<String, Long> freeCapacityBytes = new HashMap<>();
     for (Map.Entry<String, Long> entry : mTotalBytesOnTiers.entrySet()) {
       freeCapacityBytes.put(entry.getKey(),
           entry.getValue() - mUsedBytesOnTiers.get(entry.getKey()));

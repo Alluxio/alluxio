@@ -117,7 +117,7 @@ public final class LineageMasterClientServiceHandler implements LineageMasterCli
     return RpcUtils.call(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws AlluxioException {
-        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        List<LineageInfo> result = new ArrayList<>();
         for (alluxio.wire.LineageInfo lineageInfo : mLineageMaster.getLineageInfoList()) {
           result.add(ThriftUtils.toThrift(lineageInfo));
         }

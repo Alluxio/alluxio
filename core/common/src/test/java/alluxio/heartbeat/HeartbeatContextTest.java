@@ -67,8 +67,7 @@ public class HeartbeatContextTest {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
-    Map<Class<? extends HeartbeatTimer>, List<String>> timerMap =
-        new HashMap<Class<? extends HeartbeatTimer>, List<String>>();
+    Map<Class<? extends HeartbeatTimer>, List<String>> timerMap = new HashMap<>();
     timerMap.put(HeartbeatContext.SLEEPING_TIMER_CLASS,
         Arrays.asList(String.format(testSleeping, "1"), String.format(testSleeping, "2")));
     timerMap.put(HeartbeatContext.SCHEDULED_TIMER_CLASS,

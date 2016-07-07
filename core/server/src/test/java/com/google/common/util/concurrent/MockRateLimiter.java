@@ -77,7 +77,7 @@ public final class MockRateLimiter {
 
     private List<String> readEventsAndClear() {
       try {
-        return new ArrayList<String>(mEvents);
+        return new ArrayList<>(mEvents);
       } finally {
         mEvents.clear();
       }

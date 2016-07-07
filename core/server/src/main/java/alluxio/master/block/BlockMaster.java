@@ -11,10 +11,12 @@
 
 package alluxio.master.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -23,7 +25,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -114,16 +115,16 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       new BlockContainerIdGenerator();
 
   // Worker metadata management.
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexDefinition<MasterWorkerInfo> mIdIndex = new
+      IndexDefinition<MasterWorkerInfo>(true) {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getId();
         }
       };
 
-  private final IndexedSet.FieldIndex<MasterWorkerInfo> mAddressIndex =
-      new IndexedSet.FieldIndex<MasterWorkerInfo>() {
+  private final IndexDefinition<MasterWorkerInfo> mAddressIndex = new
+      IndexDefinition<MasterWorkerInfo>(true) {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
           return o.getWorkerAddress();
@@ -139,10 +140,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   /** All worker information. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
   /** Keeps track of workers which are no longer in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mLostWorkers =
-      new IndexedSet<MasterWorkerInfo>(mIdIndex, mAddressIndex);
+      new IndexedSet<>(mIdIndex, mAddressIndex);
 
   /**
    * The service that detects lost worker nodes, and tries to restart the failed workers.
@@ -234,11 +235,11 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   @Override
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
-    mGlobalStorageTierAssoc = new MasterStorageTierAssoc(MasterContext.getConf());
+    mGlobalStorageTierAssoc = new MasterStorageTierAssoc();
     if (isLeader) {
       mLostWorkerDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_WORKER_DETECTION, new LostWorkerDetectionHeartbeatExecutor(),
-          MasterContext.getConf().getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          Configuration.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -317,13 +318,12 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param delete whether to delete blocks metadata in Master
    */
   public void removeBlocks(List<Long> blockIds, boolean delete) {
-    HashSet<Long> workerIds = new HashSet<>();
     for (long blockId : blockIds) {
       MasterBlockInfo block = mBlocks.get(blockId);
       if (block == null) {
         continue;
       }
-      workerIds.clear();
+      HashSet<Long> workerIds = new HashSet<>();
       synchronized (block) {
         // Technically, 'block' should be confirmed to still be in the data structure. A
         // concurrent removeBlock call can remove it. However, we are intentionally ignoring this
@@ -803,8 +803,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
     @Override
     public void heartbeat() {
-      int masterWorkerTimeoutMs =
-          MasterContext.getConf().getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
+      int masterWorkerTimeoutMs = Configuration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         synchronized (worker) {
           final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();

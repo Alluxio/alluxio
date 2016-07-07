@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -48,17 +47,14 @@ public class MasterFaultToleranceIntegrationTest {
   @After
   public final void after() throws Exception {
     mMultiMasterLocalAlluxioCluster.stop();
-    // Reset the master conf.
-    MasterContext.getConf().merge(new Configuration());
   }
 
   @Before
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
-    // Reset the master conf.
-    MasterContext.getConf().merge(new Configuration());
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
+    mMultiMasterLocalAlluxioCluster.initializeTestConfiguration();
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }
@@ -68,19 +64,17 @@ public class MasterFaultToleranceIntegrationTest {
    *
    * @param folderName the folder name to create
    * @param answer the results, the mapping from file id to file path
-   * @throws IOException if an error occurs creating the file
    */
   private void faultTestDataCreation(AlluxioURI folderName, List<Pair<Long, AlluxioURI>> answer)
       throws IOException, AlluxioException {
     mFileSystem.createDirectory(folderName);
-    answer
-        .add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(folderName).getFileId(), folderName));
+    answer.add(new Pair<>(mFileSystem.getStatus(folderName).getFileId(), folderName));
 
     for (int k = 0; k < 10; k++) {
       AlluxioURI path =
           new AlluxioURI(PathUtils.concatPath(folderName, folderName.toString().substring(1) + k));
       mFileSystem.createFile(path).close();
-      answer.add(new Pair<Long, AlluxioURI>(mFileSystem.getStatus(path).getFileId(), path));
+      answer.add(new Pair<>(mFileSystem.getStatus(path).getFileId(), path));
     }
   }
 
@@ -88,7 +82,6 @@ public class MasterFaultToleranceIntegrationTest {
    * Tells if the results can match the answer.
    *
    * @param answer the correct results
-   * @throws IOException if an error occurs opening the file
    */
   private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answer) throws IOException,
       AlluxioException {

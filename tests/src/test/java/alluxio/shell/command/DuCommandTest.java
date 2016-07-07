@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Test for du command.
  */
-public class DuCommandTest extends AbstractAlluxioShellTest {
+public final class DuCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void duTest() throws IOException {
     FileSystemTestUtils

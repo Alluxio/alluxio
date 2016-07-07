@@ -12,7 +12,12 @@ priority: 1
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有配置文件，可以由template文件创建配置文件：
+然后，如果你还没有配置文件，可以使用`bootstrap-conf` 命令来创建自己的配置文件。
+举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
+              
+{% include Configuring-Alluxio-with-Swift/bootstrap-conf.md %}
+              
+另外你也可以由template文件创建配置文件然后手动修改它的内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 

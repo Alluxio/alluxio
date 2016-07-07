@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.worker.WorkerContext;
+import alluxio.ConfigurationTestUtils;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 import alluxio.worker.block.meta.StorageDir;
@@ -87,8 +87,6 @@ public final class EvictorContractTest extends EvictorTestBase {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public final void before() throws Exception {
@@ -103,13 +101,11 @@ public final class EvictorContractTest extends EvictorTestBase {
    */
   @After
   public void after() {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
    * Tests that no eviction plan is created whn there is no cached block in the evictor.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void noNeedToEvictTest1() throws Exception {
@@ -126,8 +122,6 @@ public final class EvictorContractTest extends EvictorTestBase {
 
   /**
    * Tests that no eviction plan is created when there is enough space in a directory.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void noNeedToEvictTest2() throws Exception {
@@ -144,8 +138,6 @@ public final class EvictorContractTest extends EvictorTestBase {
   /**
    * Tests that no eviction plan is created when all directories are filled except for one
    * directory.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void noNeedToEvictTest3() throws Exception {
@@ -171,8 +163,6 @@ public final class EvictorContractTest extends EvictorTestBase {
   /**
    * Tests that an eviction plan is created when a directory is filled and the request size is the
    * capacity of the directory.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void needToEvictTest() throws Exception {
@@ -191,8 +181,6 @@ public final class EvictorContractTest extends EvictorTestBase {
   /**
    * Tests that an eviction plan is created when all capacity is used in each directory in a tier
    * and the request size is the capacity of the largest directory.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void needToEvictAnyDirInTierTest() throws Exception {
@@ -218,8 +206,6 @@ public final class EvictorContractTest extends EvictorTestBase {
   /**
    * Tests that an eviction plan is created when all capacity is used in each directory in all tiers
    * and the request size is the minimum capacity of all directories.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void needToEvictAnyTierTest() throws Exception {
@@ -244,8 +230,6 @@ public final class EvictorContractTest extends EvictorTestBase {
 
   /**
    * Tests that no eviction plan is available when requesting more space than capacity available.
-   *
-   * @throws Exception if the caching fails
    */
   @Test
   public void requestSpaceLargerThanCapacityTest() throws Exception {

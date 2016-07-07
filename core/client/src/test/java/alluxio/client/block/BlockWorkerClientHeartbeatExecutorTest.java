@@ -27,8 +27,6 @@ public class BlockWorkerClientHeartbeatExecutorTest {
 
   /**
    * Tests to ensure heartbeat calls BlockWorkerClient.periodicHeartbeat.
-   *
-   * @throws Exception when the periodicHeartbeat is not called once
    */
   @Test
   public void heartbeatCallsPeriodicHeartbeat() throws Exception {

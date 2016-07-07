@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * Tests for count command.
  */
-public class CountCommandTest extends AbstractAlluxioShellTest {
+public final class CountCommandTest extends AbstractAlluxioShellTest {
   @Test
   public void countNotExistTest() throws IOException {
     int ret = mFsShell.run("count", "/NotExistFile");

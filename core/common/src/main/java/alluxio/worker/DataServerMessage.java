@@ -332,7 +332,7 @@ public final class DataServerMessage {
   public int recv(SocketChannel socketChannel) throws IOException {
     isSend(false);
 
-    int numRead = 0;
+    int numRead;
     if (mHeader.remaining() > 0) {
       numRead = socketChannel.read(mHeader);
       if (numRead == -1 && mHeader.position() >= ERROR_RESPONSE_HEADER_LENGTH) {

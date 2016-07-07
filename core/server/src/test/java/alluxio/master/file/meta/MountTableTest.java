@@ -16,11 +16,15 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Unit tests for {@link MountTable}.
@@ -39,8 +43,6 @@ public class MountTableTest {
 
   /**
    * Tests the different methods of the {@link MountTable} class with a path.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void pathTest() throws Exception {
@@ -108,8 +110,6 @@ public class MountTableTest {
 
   /**
    * Tests the different methods of the {@link MountTable} class with an URI.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void uriTest() throws Exception {
@@ -182,8 +182,6 @@ public class MountTableTest {
 
   /**
    * Tests check of readonly mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void readOnlyMountTest() throws Exception {
@@ -215,8 +213,6 @@ public class MountTableTest {
 
   /**
    * Tests check of writable mount points.
-   *
-   * @throws Exception if a {@link MountTable} operation fails
    */
   @Test
   public void writableMountTest() throws Exception {
@@ -238,5 +234,25 @@ public class MountTableTest {
     } catch (AccessControlException e) {
       Assert.fail("Default mount point should be writable.");
     }
+  }
+
+  /**
+   * Tests the method for getting a copy of the current mount table.
+   */
+  @Test
+  public void getMountTableTest() throws Exception {
+    Map<String, MountInfo> mountTable = new HashMap<>(2);
+    mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("hdfs://localhost:5678/foo"),
+        MountOptions.defaults()));
+    mountTable.put("/mnt/bar", new MountInfo(new AlluxioURI("hdfs://localhost:5678/bar"),
+        MountOptions.defaults()));
+
+    for (Map.Entry<String, MountInfo> mountPoint : mountTable.entrySet()) {
+      MountInfo mountInfo = mountPoint.getValue();
+      mMountTable.add(new AlluxioURI("alluxio://localhost:1234" + mountPoint.getKey()),
+          mountInfo.getUfsUri(), mountInfo.getOptions());
+    }
+
+    Assert.assertEquals(mountTable, mMountTable.getMountTable());
   }
 }

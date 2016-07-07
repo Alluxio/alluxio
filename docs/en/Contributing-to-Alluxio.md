@@ -1,7 +1,7 @@
 ---
 layout: global
-title: Contributing to Alluxio
-nickname: Contributor Guide
+title: Contributing Guidelines
+nickname: Contributing Guidelines
 group: Resources
 ---
 
@@ -9,6 +9,12 @@ group: Resources
 {:toc}
 
 Thank you for your interest in Alluxio! We greatly appreciate any new features or fixes.
+
+### New Contributors
+
+If you are a new contributor to the Alluxio open source project, please visit the
+[Contributing Getting Started Guide](Contributing-Getting-Started.html) for a tutorial on how to
+contribute to Alluxio.
 
 ### Alluxio Getting Started Tasks
 
@@ -164,24 +170,3 @@ If you are using IntelliJ IDEA, you may need to change the Maven profile to 'dev
 to avoid import errors. You can do this by going to
 
     View > Tool Windows > Maven Projects
-
-### Presentations
-
--   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
--   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
--   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
--   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
--   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
-
-### Readings
-
--   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.

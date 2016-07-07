@@ -14,14 +14,12 @@ package alluxio.worker.block;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,8 +55,6 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -66,14 +62,6 @@ public final class BlockMetadataManagerViewTest {
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
         new HashSet<Long>(), new HashSet<Long>()));
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
@@ -137,8 +125,6 @@ public final class BlockMetadataManagerViewTest {
   /**
    * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
    * method when the block does not exist.
-   *
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   @Test
   public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
@@ -161,8 +147,6 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
-   *
-   * @throws Exception if an operation on the metadata of the block fails
    */
   @Test
   public void getBlockMetaTest() throws Exception {
