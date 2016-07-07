@@ -14,9 +14,11 @@ package alluxio.yarn;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.util.CommonUtils;
+import alluxio.util.io.FileUtils;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.yarn.YarnUtils.YarnContainerType;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -32,29 +34,29 @@ import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.NodeId;
 import org.apache.hadoop.yarn.api.records.NodeReport;
+import org.apache.hadoop.yarn.api.records.NodeState;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.NMClient;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
-import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.util.Records;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentMatcher;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -68,13 +70,8 @@ import java.util.concurrent.CountDownLatch;
  * Unit tests for {@link ApplicationMaster}.
  */
 // TODO(andrew): Add tests for failure cases
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AMRMClientAsync.class, ApplicationMaster.class, NMClient.class, YarnUtils.class,
-    YarnClient.class})
-@Ignore
 public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
-  private static final String RESOURCE_ADDRESS = "/tmp/resource";
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
       (int) Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
@@ -86,44 +83,20 @@ public class ApplicationMasterTest {
       (int) Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU =
       Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
-  private static final Map<String, LocalResource> EXPECTED_LOCAL_RESOURCES = Maps.newHashMap();
-
-  static {
-    EXPECTED_LOCAL_RESOURCES.put(
-        (String) Whitebox.getInternalState(ApplicationMaster.class, "ALLUXIO_TARBALL"),
-        Records.newRecord(LocalResource.class));
-    EXPECTED_LOCAL_RESOURCES.put(YarnUtils.ALLUXIO_SETUP_SCRIPT,
-        Records.newRecord(LocalResource.class));
-  }
-
-  private static final String ENV_CLASSPATH =
-      Whitebox.getInternalState(ApplicationMaster.class, "ENV_CLASSPATH");
-  private static final String EXPECTED_WORKER_COMMAND = "test-worker-command";
-  private static final Map<String, String> EXPECTED_WORKER_ENVIRONMENT =
-      ImmutableMap.<String, String>builder()
-          .put("CLASSPATH", ENV_CLASSPATH)
-          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
-          .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
-          .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
-          .build();
-  private static final ContainerLaunchContext EXPECTED_WORKER_CONTEXT =
-      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_WORKER_ENVIRONMENT,
-          Lists.newArrayList(EXPECTED_WORKER_COMMAND), null, null, null);
-  private static final String EXPECTED_MASTER_COMMAND = "test-master-command";
-  private static final Map<String, String> EXPECTED_MASTER_ENVIRONMENT =
-      ImmutableMap.<String, String>builder()
-          .put("CLASSPATH", ENV_CLASSPATH)
-          .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
-          .build();
-  private static final ContainerLaunchContext EXPECTED_MASTER_CONTEXT =
-      ContainerLaunchContext.newInstance(EXPECTED_LOCAL_RESOURCES, EXPECTED_MASTER_ENVIRONMENT,
-          Lists.newArrayList(EXPECTED_MASTER_COMMAND), null, null, null);
 
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
   private NMClient mNMClient;
   private AMRMClientAsync<ContainerRequest> mRMClient;
   private YarnClient mYarnClient;
+
+  // This is needed for when the ApplicationMaster calls hadoop's FileSystem.get().
+  @ClassRule
+  public static SystemPropertyRule sSystemPropertyRule =
+      new SystemPropertyRule("HADOOP_USER_NAME", "testuser");
+
+  @Rule
+  public TemporaryFolder mTemporaryFolder = new TemporaryFolder();
 
   @Before
   public void before() throws Exception {
@@ -139,36 +112,28 @@ public class ApplicationMasterTest {
     for (Entry<String, String> entry : properties.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
-    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, RESOURCE_ADDRESS);
-    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
+
+    URI resourceUri = mTemporaryFolder.newFolder().toURI();
+    String resourcePath = resourceUri.getPath();
+    FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_TARBALL));
+    FileUtils.createFile(PathUtils.concatPath(resourcePath, YarnUtils.ALLUXIO_SETUP_SCRIPT));
+
+    // Mock Yarn client
+    mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
 
     // Mock Node Manager client
-    PowerMockito.mockStatic(NMClient.class);
     mNMClient = Mockito.mock(NMClient.class);
-    Mockito.when(NMClient.createNMClient()).thenReturn(mNMClient);
 
     // Mock Application Master Resource Manager client
-    PowerMockito.mockStatic(AMRMClientAsync.class);
     @SuppressWarnings("unchecked")
     AMRMClientAsync<ContainerRequest> amrm =
         (AMRMClientAsync<ContainerRequest>) Mockito.mock(AMRMClientAsync.class);
     mRMClient = amrm;
-    Mockito.when(AMRMClientAsync.createAMRMClientAsync(100, mMaster)).thenReturn(mRMClient);
 
-    // Mock Yarn client
-    PowerMockito.mockStatic(YarnClient.class);
-    mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
-    Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
-
-    // Partially mock Utils to avoid hdfs IO
-    PowerMockito.mockStatic(YarnUtils.class);
-    Mockito.when(
-        YarnUtils.createLocalResourceOfFile(Mockito.<YarnConfiguration>any(), Mockito.anyString()))
-        .thenReturn(Records.newRecord(LocalResource.class));
-    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_MASTER))
-        .thenReturn(EXPECTED_MASTER_COMMAND);
-    Mockito.when(YarnUtils.buildCommand(YarnContainerType.ALLUXIO_WORKER))
-        .thenReturn(EXPECTED_WORKER_COMMAND);
+    mMaster = new ApplicationMaster(NUM_WORKERS, MASTER_ADDRESS, resourceUri.toString(),
+        mYarnClient, mNMClient);
+    Whitebox.setInternalState(mMaster, "mRMClient", mRMClient);
+    mPrivateAccess = new ApplicationMasterPrivateAccess(mMaster);
 
     mMaster.start();
   }
@@ -197,7 +162,10 @@ public class ApplicationMasterTest {
       nodeReports.add(report);
       nodeHosts.add(host);
     }
-    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(nodeHosts));
+    // We need to use anyVararg because Mockito is dumb and assumes that an array argument must be
+    // vararg. Using regular any() will only match an array if it has length 1.
+    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg()))
+        .thenReturn(nodeReports);
 
     // Mock the Resource Manager to "allocate" containers when they are requested and update
     // ApplicationMaster internal state
@@ -256,7 +224,7 @@ public class ApplicationMasterTest {
    * already used by other workers. This tests {@link ApplicationMaster} as a whole, only mocking
    * its clients.
    */
-  @Test(timeout = 100000)
+  @Test(timeout = 10000)
   public void spreadWorkersEvenlyOverHostsTest() throws Exception {
     int workersPerHost = 5;
     Assert.assertEquals("NUM_WORKERS should be a multiple of workersPerHost", 0,
@@ -321,7 +289,10 @@ public class ApplicationMasterTest {
       Mockito.when(report.getNodeId()).thenReturn(NodeId.newInstance(host, 0));
       nodeReports.add(report);
     }
-    Mockito.when(YarnUtils.getNodeHosts(mYarnClient)).thenReturn(Sets.newHashSet(hosts));
+    // We need to use anyVararg because Mockito is dumb and assumes that an array argument must be
+    // vararg. Using regular any() will only match an array if it has length 1.
+    Mockito.when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg()))
+        .thenReturn(nodeReports);
 
     // Pretend to be the Resource Manager, allocating containers when they are requested.
     Mockito.doAnswer(new Answer<Void>() {
@@ -389,8 +360,19 @@ public class ApplicationMasterTest {
 
     mMaster.onContainersAllocated(Lists.newArrayList(mockContainer));
 
+    // Generate the context that we expect Yarn to launch master with.
+    Map<String, String> expectedMasterEnvironment =
+        ImmutableMap.<String, String>builder()
+            .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+            .build();
+    String expectedMasterCommand =
+        "./alluxio-yarn-setup.sh alluxio-master 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
+    ContainerLaunchContext expectedMasterContext =
+        ContainerLaunchContext.newInstance(getExpectedLocalResources(), expectedMasterEnvironment,
+            Lists.newArrayList(expectedMasterCommand), null, null, null);
+
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer),
-        Mockito.argThat(getContextMatcher(EXPECTED_MASTER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(expectedMasterContext)));
     Assert.assertEquals("1.2.3.4", mPrivateAccess.getMasterContainerNetAddress());
     Assert.assertTrue(mPrivateAccess.getMasterAllocated().getCount() == 0);
   }
@@ -414,30 +396,32 @@ public class ApplicationMasterTest {
     List<Container> containers = Lists.newArrayList(mockContainer1, mockContainer2);
 
     mMaster.onContainersAllocated(containers);
+
+    // Generate the context that we expect Yarn to launch workers with.
+    Map<String, String> expectedWorkerEnvironment =
+        ImmutableMap.<String, String>builder()
+            .put("ALLUXIO_HOME", ApplicationConstants.Environment.PWD.$())
+            .put("ALLUXIO_MASTER_HOSTNAME", "masterAddress")
+            .put("ALLUXIO_WORKER_MEMORY_SIZE", Integer.toString(RAMDISK_MEM_MB) + ".00MB")
+            .build();
+    String expectedWorkerCommand =
+        "./alluxio-yarn-setup.sh alluxio-worker 1><LOG_DIR>/stdout 2><LOG_DIR>/stderr ";
+    ContainerLaunchContext expectedWorkerContext =
+        ContainerLaunchContext.newInstance(getExpectedLocalResources(), expectedWorkerEnvironment,
+            Lists.newArrayList(expectedWorkerCommand), null, null, null);
+
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer1),
-        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(expectedWorkerContext)));
     Mockito.verify(mNMClient).startContainer(Mockito.same(mockContainer2),
-        Mockito.argThat(getContextMatcher(EXPECTED_WORKER_CONTEXT)));
+        Mockito.argThat(getContextMatcher(expectedWorkerContext)));
     Assert.assertEquals(containers.size(), mPrivateAccess.getWorkerHosts().size());
   }
 
-  /**
-   * Tests that the main method properly reads args and orchestrates negotiation.
-   */
-  @Test
-  public void mainTest() throws Exception {
-    ApplicationMaster mockMaster = Mockito.mock(ApplicationMaster.class);
-    PowerMockito.whenNew(ApplicationMaster.class)
-        .withArguments(Mockito.anyInt(), Mockito.anyString(), Mockito.anyString())
-        .thenReturn(mockMaster);
-
-    ApplicationMaster.main(new String[] {"-num_workers", "3",
-        "-master_address", "address", "-resource_path", "path"});
-    PowerMockito.verifyNew(ApplicationMaster.class).withArguments(3, "address", "path");
-
-    Mockito.verify(mockMaster).start();
-    Mockito.verify(mockMaster).requestContainers();
-    Mockito.verify(mockMaster).stop();
+  private static Map<String, LocalResource> getExpectedLocalResources() {
+    Map<String, LocalResource> resources = Maps.newHashMap();
+    resources.put(YarnUtils.ALLUXIO_TARBALL, Records.newRecord(LocalResource.class));
+    resources.put(YarnUtils.ALLUXIO_SETUP_SCRIPT, Records.newRecord(LocalResource.class));
+    return resources;
   }
 
   /**
@@ -448,7 +432,8 @@ public class ApplicationMasterTest {
     Configuration.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
     Configuration.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
     Configuration.set(Constants.WORKER_MEMORY_SIZE, "256gb");
-    ApplicationMaster master = new ApplicationMaster(1, "localhost", "resourcePath");
+    ApplicationMaster master =
+        new ApplicationMaster(1, "localhost", "resourcePath", mYarnClient, mNMClient);
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));
     Assert.assertEquals(64 * 1024, Whitebox.getInternalState(master, "mWorkerMemInMB"));
     Assert.assertEquals(256 * 1024, Whitebox.getInternalState(master, "mRamdiskMemInMB"));
@@ -507,7 +492,8 @@ public class ApplicationMasterTest {
           return false;
         }
         ContainerLaunchContext ctx = (ContainerLaunchContext) arg;
-        return ctx.getLocalResources().equals(expectedContext.getLocalResources())
+        // Compare only keys for local resources because values include timestamps.
+        return ctx.getLocalResources().keySet().equals(expectedContext.getLocalResources().keySet())
             && ctx.getCommands().equals(expectedContext.getCommands())
             && ctx.getEnvironment().equals(expectedContext.getEnvironment());
       }
