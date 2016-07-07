@@ -12,9 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
@@ -97,21 +97,22 @@ public class JournalShutdownIntegrationTest {
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
 
-  private ClientThread mCreateFileThread = null;
+  private ClientThread mCreateFileThread;
   /** Executor for running client threads. */
-  private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
-  private Configuration mMasterConfiguration = null;
+  private ExecutorService mExecutorsForClient;
+
+  public SystemPropertyRule disableHdfsCacheRule =
+      new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
     ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before
   public final void before() throws Exception {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    mExecutorsForClient = Executors.newFixedThreadPool(1);
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
