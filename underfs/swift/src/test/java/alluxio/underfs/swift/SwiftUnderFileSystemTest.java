@@ -37,23 +37,27 @@ public class SwiftUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link SwiftUnderFileSystem#makeQualifiedPath(String)} method.
+   * Tests the {@link SwiftUnderFileSystem#addFolderSuffixIfNotPresent(String)} (String)} method.
    */
   @Test
-  public void makeQualifiedPathTest() throws Exception {
+  public void addFolderSuffixIfNotPresentTest() throws Exception {
     String input1 = "a/b";
     String input2 = "/a/b";
     String input3 = "a/b/";
     String input4 = "/a/b/";
-    String result1 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input1);
-    String result2 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input2);
-    String result3 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input3);
-    String result4 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input4);
+    String result1 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input1);
+    String result2 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input2);
+    String result3 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input3);
+    String result4 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input4);
 
     Assert.assertEquals(result1, "a/b/");
-    Assert.assertEquals(result2, "a/b/");
+    Assert.assertEquals(result2, "/a/b/");
     Assert.assertEquals(result3, "a/b/");
-    Assert.assertEquals(result4, "a/b/");
+    Assert.assertEquals(result4, "/a/b/");
   }
 
   /**
