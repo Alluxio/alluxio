@@ -18,7 +18,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
-import alluxio.util.UnderFileSystemUtils;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -158,18 +158,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     // create will attempt to create the parent directory if it does not already exist
     if (!mkdirs(getParentKey(path), true)) {
       // fail if the parent directory does not exist and creation was unsuccessful
-      LOG.error("Parent directory creation unsuccessful for path", path);
+      LOG.error("Parent directory creation unsuccessful for {}", path);
       return null;
     }
 
-    final String strippedPath = UnderFileSystemUtils.stripPrefixIfPresent(path,
+    final String strippedPath = CommonUtils.stripPrefixIfPresent(path,
         Constants.HEADER_SWIFT);
     // TODO(adit): remove special handling of */_SUCCESS objects
     if (strippedPath.endsWith("_SUCCESS")) {
       // when path/_SUCCESS is created, there is need to create path as
       // an empty object. This is required by Spark in case Spark
       // accesses path directly, bypassing Alluxio
-      String plainName = strippedPath.substring(0, strippedPath.indexOf("_SUCCESS"));
+      String plainName = CommonUtils.stripSuffixIfPresent(strippedPath, "_SUCCESS");
       SwiftDirectClient.put(mAccess, plainName).close();
     }
     return SwiftDirectClient.put(mAccess, strippedPath);
@@ -287,10 +287,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (isRoot(path)) {
-      // nothing to do for root
-      return true;
-    }
 
     if (!parentExists(path)) {
       if (!options.getCreateParent()) {
@@ -300,7 +296,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       final String parentKey = getParentKey(path);
       // Recursively make the parent folders
       if (!mkdirs(parentKey, true)) {
-        LOG.error("Unable to create parent directory", path);
+        LOG.error("Unable to create parent directory {}", path);
         return false;
       }
     }
@@ -316,7 +312,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private boolean mkdirsInternal(String path) {
     try {
       String keyAsFolder = addFolderSuffixIfNotPresent(
-          UnderFileSystemUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+          CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
       SwiftDirectClient.put(mAccess, keyAsFolder).close();
       return true;
     } catch (IOException e) {
@@ -347,6 +343,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     }
     int separatorIndex = path.lastIndexOf(PATH_SEPARATOR);
     if (separatorIndex < 0) {
+      LOG.error("Path {} is malformed", path);
       return null;
     }
     return path.substring(0, separatorIndex);
@@ -359,8 +356,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return true if the key is the root, false otherwise
    */
   private boolean isRoot(String key) {
-    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(
-        PathUtils.normalizePath(mContainerPrefix, PATH_SEPARATOR));
+    return PathUtils.normalizePath(key, PATH_SEPARATOR).equals(mContainerPrefix);
   }
 
   @Override
@@ -414,6 +410,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       // Rename each child in the source folder to destination/child
       String [] children = list(source);
       for (String child: children) {
+        // Recursive call
         if (!rename(PathUtils.concatPath(source, child),
             PathUtils.concatPath(destination, child))) {
           return false;
@@ -502,42 +499,40 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * Lists the files in the given path, the returned paths will be their logical names and
+   * not contain the folder suffix.
    *
    * @param path the key to list
-   * @return an array of the file and folder names in this directory
+   * @return an array of the file or folder names in this directory,
+   * or null if the path does not exist
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private String[] listInternal(String path) throws IOException {
-    try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      Directory directory = new Directory(path, PATH_SEPARATOR_CHAR);
-      Container container = mAccount.getContainer(mContainerName);
-      Collection<DirectoryOrObject> objects = container.listDirectory(directory);
-      Set<String> children = new HashSet<>();
-      boolean foundSelf = false;
-      for (DirectoryOrObject object : objects) {
-        String child = stripFolderSuffixIfPresent(object.getName());
-        String noPrefix = UnderFileSystemUtils.stripPrefixIfPresent(child, path);
-        if (!noPrefix.equals(stripFolderSuffixIfPresent(path))) {
-          children.add(noPrefix);
-        } else {
-          foundSelf = true;
-        }
-      }
+  private String[] listInternal(final String path) throws IOException {
+    String prefix = addFolderSuffixIfNotPresent(stripPrefixIfPresent(path));
+    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
 
-      if (!foundSelf && (children.size() == 0)) {
-        return null;
+    Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
+    Container container = mAccount.getContainer(mContainerName);
+    Collection<DirectoryOrObject> objects = container.listDirectory(directory);
+    Set<String> children = new HashSet<>();
+    boolean foundSelf = false;
+    final String self = stripFolderSuffixIfPresent(prefix);
+    for (DirectoryOrObject object : objects) {
+      String child = stripFolderSuffixIfPresent(object.getName());
+      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
+      if (!noPrefix.equals(self)) {
+        children.add(noPrefix);
+      } else {
+        foundSelf = true;
       }
+    }
 
-      return children.toArray(new String[children.size()]);
-    } catch (Exception e) {
-      LOG.error("Failed to list path {}", path, e);
+    if (!foundSelf && (children.size() == 0)) {
+      // Path does not exist
       return null;
     }
+
+    return children.toArray(new String[children.size()]);
   }
 
   /**
@@ -548,7 +543,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
   private String stripFolderSuffixIfPresent(final String key) {
-    return UnderFileSystemUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
+    return CommonUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
   }
 
   /**
@@ -560,7 +555,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the key without the Swift container prefix
    */
   private String stripPrefixIfPresent(final String path) {
-    return UnderFileSystemUtils.stripPrefixIfPresent(path, mContainerPrefix);
+    return CommonUtils.stripPrefixIfPresent(path, mContainerPrefix);
   }
 
   /**
