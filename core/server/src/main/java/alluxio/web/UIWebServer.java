@@ -89,12 +89,9 @@ public abstract class UIWebServer {
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
     File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
-    if (!warPath.exists()) {
-      throw new RuntimeException("No War file found at : " + warPath.getAbsolutePath());
-    }
     mWebAppContext.setWar(warPath.getAbsolutePath());
 
-    //mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
+    mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
 
     org.eclipse.jetty.webapp.Configuration.ClassList classList =
         org.eclipse.jetty.webapp.Configuration.ClassList.setServerDefault(mServer);
