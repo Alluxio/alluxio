@@ -40,7 +40,7 @@ public class PairTest {
 
     for (int j = 0; j < mObjs.length - 1; j++) {
       for (int k = j + 1; k < mObjs.length; k++) {
-        Pair<Object, Object> tPair = new Pair<Object, Object>(mObjs[j], mObjs[k]);
+        Pair<Object, Object> tPair = new Pair<>(mObjs[j], mObjs[k]);
         Assert.assertEquals(mObjs[j], tPair.getFirst());
         Assert.assertEquals(mObjs[k], tPair.getSecond());
         Assert.assertNotSame(mObjs[k], tPair.getFirst());

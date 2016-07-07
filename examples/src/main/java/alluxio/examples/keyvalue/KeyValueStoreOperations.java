@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
 import alluxio.cli.CliUtils;
-import alluxio.client.ClientContext;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
@@ -40,7 +39,6 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final int mPartitionLength = Constants.MB;
-  private final int mValueLength = mPartitionLength / 2;
   private final int mNumKeyValuePairs = 10;
 
   private AlluxioURI mStoreUri;
@@ -56,9 +54,9 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration conf = ClientContext.getConf();
-    conf.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
-    conf.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
+    Configuration.set(Constants.KEY_VALUE_ENABLED, String.valueOf(true));
+    Configuration
+        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(mPartitionLength));
 
     KeyValueSystem kvs = KeyValueSystem.Factory.create();
 
@@ -80,7 +78,8 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       // Keys are 0, 1, 2, etc.
       byte[] key = ByteBuffer.allocate(4).putInt(i).array();
       // Values are byte arrays of length {@link #mValueLength}.
-      byte[] value = BufferUtils.getIncreasingByteArray(mValueLength);
+      int valueLength = mPartitionLength / 2;
+      byte[] value = BufferUtils.getIncreasingByteArray(valueLength);
       writer.put(key, value);
       mKeyValuePairs.put(ByteBuffer.wrap(key), ByteBuffer.wrap(value));
     }

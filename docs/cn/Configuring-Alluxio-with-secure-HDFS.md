@@ -28,7 +28,12 @@ priority: 3
 
 # 配置Alluxio
 
-要运行二进制包，一定要先创建配置文件，从template文件创建一个配置文件：
+要运行二进制包，一定要先创建配置文件，，你可以使用`bootstrap-conf` 命令来创建自己的配置文件。
+举个例子，假如你正在本地运行Alluxio，那么就应该把`ALLUXIO_MASTER_HOSTNAME`设置为`localhost`
+                   
+{% include Configuring-Alluxio-with-HDFS/bootstrap-conf.md %}
+                   
+另外你也可以从template文件创建一个配置文件然后手动修改它的内容：
 
 {% include Common-Commands/copy-alluxio-env.md %}
 

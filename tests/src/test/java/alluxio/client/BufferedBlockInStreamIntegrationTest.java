@@ -64,7 +64,7 @@ public final class BufferedBlockInStreamIntegrationTest {
   }
 
   private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
+    List<CreateFileOptions> ret = new ArrayList<>(3);
     ret.add(sWriteBoth);
     ret.add(sWriteAlluxio);
     ret.add(sWriteUnderStore);

@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AlluxioException;
@@ -36,11 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public MountCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public MountCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -59,7 +57,7 @@ public final class MountCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI alluxioPath = new AlluxioURI(args[0]);
     AlluxioURI ufsPath = new AlluxioURI(args[1]);
@@ -89,12 +87,8 @@ public final class MountCommand extends AbstractShellCommand {
       options.setReadOnly(true);
     }
 
-    try {
-      mFileSystem.mount(alluxioPath, ufsPath, options);
-      System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.mount(alluxioPath, ufsPath, options);
+    System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
   }
 
   @Override

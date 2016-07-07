@@ -25,13 +25,14 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.MasterTestUtils;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.wire.FileInfo;
@@ -87,22 +88,22 @@ public class FileSystemMasterIntegrationTest {
         Assert.assertEquals(fileId, mFsMaster.getFileId(path));
         // verify the user permission for file
         FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-        Assert.assertEquals("", fileInfo.getUserName());
-        Assert.assertEquals(0644, (short) fileInfo.getPermission());
+        Assert.assertEquals("", fileInfo.getOwner());
+        Assert.assertEquals(0644, (short) fileInfo.getMode());
       } else {
         mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults());
         Assert.assertNotNull(mFsMaster.getFileId(path));
         long dirId = mFsMaster.getFileId(path);
         Assert.assertNotEquals(-1, dirId);
         FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
-        Assert.assertEquals("", dirInfo.getUserName());
-        Assert.assertEquals(0755, (short) dirInfo.getPermission());
+        Assert.assertEquals("", dirInfo.getOwner());
+        Assert.assertEquals(0755, (short) dirInfo.getMode());
       }
 
       if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
                 path.join(Integer.toString(i))));
@@ -158,7 +159,7 @@ public class FileSystemMasterIntegrationTest {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
-            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
             for (int i = 0; i < FILES_PER_NODE; i++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
@@ -215,7 +216,7 @@ public class FileSystemMasterIntegrationTest {
         if (concurrencyDepth > 0) {
           ExecutorService executor = Executors.newCachedThreadPool();
           try {
-            ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
             for (int i = 0; i < FILES_PER_NODE; i++) {
               Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
                   path.join(Integer.toString(i))));
@@ -273,18 +274,18 @@ public class FileSystemMasterIntegrationTest {
         try {
           CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
           mFsMaster.createDirectory(dstPath.getParent(), options);
-        } catch (FileAlreadyExistsException e) {
-          // This is an acceptable exception to get, since we don't know if the parent has been
-          // created yet by another thread.
-        } catch (InvalidPathException e) {
-          // This could happen if we are renaming something that's a child of the root.
+        } catch (FileAlreadyExistsException | InvalidPathException e) {
+          // FileAlreadyExistsException: This is an acceptable exception to get, since we don't know
+          // if the parent has been created yet by another thread.
+          // InvalidPathException: This could happen if we are renaming something that's a child of
+          // the root.
         }
         mFsMaster.rename(srcPath, dstPath);
         Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
       } else if (concurrencyDepth > 0) {
         ExecutorService executor = Executors.newCachedThreadPool();
         try {
-          ArrayList<Future<Void>> futures = new ArrayList<Future<Void>>(FILES_PER_NODE);
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
           for (int i = 0; i < FILES_PER_NODE; i++) {
             Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
                 mRootPath2, path.join(Integer.toString(i))));
@@ -329,7 +330,6 @@ public class FileSystemMasterIntegrationTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  private Configuration mMasterConfiguration;
   private FileSystemMaster mFsMaster;
   private InodeTree mInodeTree;
 
@@ -338,10 +338,9 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
 
     TtlBucketPrivateAccess
-        .setTtlIntervalMs(mMasterConfiguration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
+        .setTtlIntervalMs(Configuration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
   }
 
   @Test
@@ -358,8 +357,8 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertTrue(fileInfo.isFolder());
     Assert.assertFalse(fileInfo.isPersisted());
     Assert.assertFalse(fileInfo.isPinned());
-    Assert.assertEquals("", fileInfo.getUserName());
-    Assert.assertEquals(0755, (short) fileInfo.getPermission());
+    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
   @Test
@@ -375,12 +374,12 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertFalse(fileInfo.isPersisted());
     Assert.assertFalse(fileInfo.isPinned());
     Assert.assertEquals(Constants.NO_TTL, fileInfo.getTtl());
-    Assert.assertEquals("", fileInfo.getUserName());
-    Assert.assertEquals(0644, (short) fileInfo.getPermission());
+    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createFileSystemMasterFromJournal();
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
@@ -395,7 +394,8 @@ public class FileSystemMasterIntegrationTest {
       concurrentCreator.call();
 
       FileSystemMaster fsMaster = createFileSystemMasterFromJournal();
-      for (FileInfo info : mFsMaster.getFileInfoList(new AlluxioURI("/"), true)) {
+      for (FileInfo info : mFsMaster
+          .listStatus(new AlluxioURI("/"), ListStatusOptions.defaults())) {
         AlluxioURI path = new AlluxioURI(info.getPath());
         Assert.assertEquals(mFsMaster.getFileId(path), fsMaster.getFileId(path));
       }
@@ -421,7 +421,7 @@ public class FileSystemMasterIntegrationTest {
     concurrentDeleter.call();
 
     Assert.assertEquals(0,
-        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
   @Test
@@ -441,14 +441,14 @@ public class FileSystemMasterIntegrationTest {
         new ConcurrentCreator(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH);
     concurrentCreator.call();
 
-    int numFiles = mFsMaster.getFileInfoList(ROOT_PATH, true).size();
+    int numFiles = mFsMaster.listStatus(ROOT_PATH, ListStatusOptions.defaults()).size();
 
     ConcurrentRenamer concurrentRenamer = new ConcurrentRenamer(DEPTH, CONCURRENCY_DEPTH, ROOT_PATH,
         ROOT_PATH2, AlluxioURI.EMPTY_URI);
     concurrentRenamer.call();
 
     Assert.assertEquals(numFiles,
-        mFsMaster.getFileInfoList(ROOT_PATH2, true).size());
+        mFsMaster.listStatus(ROOT_PATH2, ListStatusOptions.defaults()).size());
   }
 
   @Test
@@ -463,8 +463,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createDirectory(new AlluxioURI("/testFolder"), CreateDirectoryOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFolder")));
     Assert.assertTrue(fileInfo.isFolder());
-    Assert.assertEquals("", fileInfo.getUserName());
-    Assert.assertEquals(0755, (short) fileInfo.getPermission());
+    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(0755, (short) fileInfo.getMode());
   }
 
   @Test
@@ -505,8 +505,8 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster.createFile(new AlluxioURI("/testFile"), CreateFileOptions.defaults());
     FileInfo fileInfo = mFsMaster.getFileInfo(mFsMaster.getFileId(new AlluxioURI("/testFile")));
     Assert.assertFalse(fileInfo.isFolder());
-    Assert.assertEquals("", fileInfo.getUserName());
-    Assert.assertEquals(0644, (short) fileInfo.getPermission());
+    Assert.assertEquals("", fileInfo.getOwner());
+    Assert.assertEquals(0644, (short) fileInfo.getMode());
   }
 
   @Test
@@ -681,8 +681,8 @@ public class FileSystemMasterIntegrationTest {
   public void listFilesTest() throws Exception {
     CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(64);
 
-    HashSet<Long> ids = new HashSet<Long>();
-    HashSet<Long> dirIds = new HashSet<Long>();
+    HashSet<Long> ids = new HashSet<>();
+    HashSet<Long> dirIds = new HashSet<>();
     for (int i = 0; i < 10; i++) {
       AlluxioURI dir = new AlluxioURI("/i" + i);
       mFsMaster.createDirectory(dir, CreateDirectoryOptions.defaults());
@@ -693,11 +693,13 @@ public class FileSystemMasterIntegrationTest {
     }
     HashSet<Long> listedIds = new HashSet<>();
     HashSet<Long> listedDirIds = new HashSet<>();
-    List<FileInfo> infoList = mFsMaster.getFileInfoList(new AlluxioURI("/"), true);
+    List<FileInfo> infoList =
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults());
     for (FileInfo info : infoList) {
       long id = info.getFileId();
       listedDirIds.add(id);
-      for (FileInfo fileInfo : mFsMaster.getFileInfoList(new AlluxioURI(info.getPath()), true)) {
+      for (FileInfo fileInfo : mFsMaster
+          .listStatus(new AlluxioURI(info.getPath()), ListStatusOptions.defaults())) {
         listedIds.add(fileInfo.getFileId());
       }
     }
@@ -717,13 +719,15 @@ public class FileSystemMasterIntegrationTest {
     }
 
     Assert.assertEquals(1,
-        mFsMaster.getFileInfoList(new AlluxioURI("/i0/j0"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/i0/j0"), ListStatusOptions.defaults())
+            .size());
     for (int i = 0; i < 10; i++) {
       Assert.assertEquals(10,
-          mFsMaster.getFileInfoList(new AlluxioURI("/i" + i), true).size());
+          mFsMaster.listStatus(new AlluxioURI("/i" + i), ListStatusOptions.defaults())
+              .size());
     }
     Assert.assertEquals(10,
-        mFsMaster.getFileInfoList(new AlluxioURI("/"), true).size());
+        mFsMaster.listStatus(new AlluxioURI("/"), ListStatusOptions.defaults()).size());
   }
 
   @Test

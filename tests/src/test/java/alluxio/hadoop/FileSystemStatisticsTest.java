@@ -49,7 +49,7 @@ public class FileSystemStatisticsTest {
     FileSystemTestUtils.createByteFile(alluxioFS, "/testFile-read", WriteType.CACHE_THROUGH,
         FILE_LEN);
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     sStatistics = org.apache.hadoop.fs.FileSystem.getStatistics(uri.getScheme(), sTFS.getClass());
   }
@@ -100,10 +100,14 @@ public class FileSystemStatisticsTest {
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.getDefaultBlockSize(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultBlockSize();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());
 
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FileSystem.geDefaultReplication(new Path("/testFile-create")) will be the new one.
     sTFS.getDefaultReplication();
     Assert.assertEquals(exceptedReadOps, sStatistics.getReadOps());
     Assert.assertEquals(exceptedWriteOps, sStatistics.getWriteOps());

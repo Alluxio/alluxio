@@ -12,8 +12,9 @@
 package alluxio.client.block;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.FileSystemWorkerClient;
@@ -65,7 +66,8 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws Exception {
-    ClientContext.getConf().set(Constants.USER_UFS_DELEGATION_ENABLED, "true");
+    Configuration.set(Constants.USER_UFS_DELEGATION_ENABLED, "true");
+
     mFile = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(mFile);
     // Create a file of 2 block sizes.
@@ -93,13 +95,12 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @After
   public void after() {
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
+    ClientTestUtils.resetClient();
   }
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the first block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void singleByteReadTest() throws IOException {
@@ -108,8 +109,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Verifies the byte-by-byte read returns the correct data, for the last block in the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void singleByteReadEOFTest() throws IOException {
@@ -138,8 +137,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the first block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayReadTest() throws IOException {
@@ -148,8 +145,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests that array read methods read the correct data, for the last block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayReadEOFTest() throws IOException {
@@ -190,8 +185,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the array read when completely reading the first block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadTest() throws IOException {
@@ -200,8 +193,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the array read when completely reading the last block of the file.
-   *
-   * @throws IOException when reading from the stream fails
    */
   @Test
   public void arrayFullReadEOFTest() throws IOException {
@@ -232,8 +223,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void skipTest() throws IOException {
@@ -242,8 +231,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void skipEOFTest() throws IOException {
@@ -286,8 +273,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the first block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void seekTest() throws Exception {
@@ -296,8 +281,6 @@ public class DelegatedUnderStoreBlockInStreamTest {
 
   /**
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the last block of the file.
-   *
-   * @throws IOException when an operation on the stream fails
    */
   @Test
   public void seekEOFTest() throws Exception {

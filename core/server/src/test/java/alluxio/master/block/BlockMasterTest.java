@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -75,8 +76,6 @@ public class BlockMasterTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if the test folder cannot be created or the master fails to start
    */
   @Before
   public void before() throws Exception {
@@ -88,8 +87,6 @@ public class BlockMasterTest {
 
   /**
    * Stops the master after a test ran.
-   *
-   * @throws Exception if the master fails to stop
    */
   @After
   public void after() throws Exception {
@@ -98,8 +95,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the different different byte methods of the {@link BlockMaster}.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void countBytesTest() throws Exception {
@@ -149,8 +144,6 @@ public class BlockMasterTest {
   /**
    * Tests that after {@link PrivateAccess#addLostWorker(MasterWorkerInfo)} a worker can be
    * registered via {@link BlockMaster#workerRegister(long, List, Map, Map, Map)}.
-   *
-   * @throws Exception if registering a worker fails
    */
   @Test
   public void registerLostWorkerTest() throws Exception {
@@ -176,8 +169,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link BlockMaster#removeBlocks(List, boolean)} method.
-   *
-   * @throws Exception if registering a worker fails
    */
   @Test
   public void removeBlocksTest() throws Exception {
@@ -235,8 +226,6 @@ public class BlockMasterTest {
   /**
    * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method where the master
    * tells the worker to remove a block.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void workerHeartbeatTest() throws Exception {
@@ -287,8 +276,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void heartbeatStatusTest() throws Exception {
@@ -325,8 +312,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link HeartbeatContext#MASTER_LOST_WORKER_DETECTION} to detect a lost worker.
-   *
-   * @throws Exception if waiting for the detector fails
    */
   @Test
   public void detectLostWorkerTest() throws Exception {
@@ -375,8 +360,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link BlockMaster#stop()} method.
-   *
-   * @throws Exception if stopping the master fails
    */
   @Test
   public void stopTest() throws Exception {
@@ -399,7 +382,7 @@ public class BlockMasterTest {
   /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
+    private final IndexDefinition<MasterWorkerInfo> mIdIndex;
     private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 

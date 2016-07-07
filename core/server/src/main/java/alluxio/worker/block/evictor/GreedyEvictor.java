@@ -78,8 +78,8 @@ public final class GreedyEvictor implements Evictor {
     }
 
     // 2. Check if the selected StorageDirView already has enough space.
-    List<BlockTransferInfo> toTransfer = new ArrayList<BlockTransferInfo>();
-    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<Pair<Long, BlockStoreLocation>>();
+    List<BlockTransferInfo> toTransfer = new ArrayList<>();
+    List<Pair<Long, BlockStoreLocation>> toEvict = new ArrayList<>();
     long bytesAvailableInDir = selectedDirView.getAvailableBytes();
     if (bytesAvailableInDir >= availableBytes) {
       // No need to evict anything, return an eviction plan with empty instructions.
@@ -88,7 +88,7 @@ public final class GreedyEvictor implements Evictor {
 
     // 3. Collect victim blocks from the selected StorageDirView. They could either be evicted or
     // moved.
-    List<BlockMeta> victimBlocks = new ArrayList<BlockMeta>();
+    List<BlockMeta> victimBlocks = new ArrayList<>();
     for (BlockMeta block : selectedDirView.getEvictableBlocks()) {
       victimBlocks.add(block);
       bytesAvailableInDir += block.getBlockSize();
@@ -98,7 +98,7 @@ public final class GreedyEvictor implements Evictor {
     }
 
     // 4. Make best effort to transfer victim blocks to lower tiers rather than evict them.
-    Map<StorageDirView, Long> pendingBytesInDir = new HashMap<StorageDirView, Long>();
+    Map<StorageDirView, Long> pendingBytesInDir = new HashMap<>();
     for (BlockMeta block : victimBlocks) {
       // TODO(qifan): Should avoid calling getParentDir.
       String fromTierAlias = block.getParentDir().getParentTier().getTierAlias();
@@ -106,8 +106,7 @@ public final class GreedyEvictor implements Evictor {
       StorageDirView dstDir = selectAvailableDir(block, candidateTiers, pendingBytesInDir);
       if (dstDir == null) {
         // Not possible to transfer
-        toEvict.add(new Pair<Long, BlockStoreLocation>(block.getBlockId(),
-            block.getBlockLocation()));
+        toEvict.add(new Pair<>(block.getBlockId(), block.getBlockLocation()));
       } else {
         StorageTierView dstTier = dstDir.getParentTierView();
         toTransfer.add(new BlockTransferInfo(block.getBlockId(), block.getBlockLocation(),

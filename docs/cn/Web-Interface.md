@@ -41,7 +41,7 @@ Alluxio master 主页如下所示:
 
 ## 配置页面
 
-查看当前系统的配置信息，点击屏幕上方导航栏的"System Configuration"。
+查看当前系统的配置信息，点击屏幕上方导航栏的"Configuration"。
 
 ![configurations]({{site.data.img.screenshot_systemConfiguration}})
 
@@ -55,7 +55,7 @@ Alluxio master 主页如下所示:
 
     包含所有符合要求的可以存储在Alluxio上的Alluxio路径前缀。用户可以访问路径前缀不在白名单上的文件。只有白名单中的文件可以存储在Alluxio上。
 
-## 浏览文件系统页面
+## 浏览
 
 你可以通过Web UI浏览Alluxio文件系统。当你点击导航栏上的"Browse File System"选项卡，你可以看到如下的页面：
 

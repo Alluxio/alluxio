@@ -39,11 +39,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<String>(
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
-  private final transient FileSystemMaster mFsMaster;
-  private final transient Configuration mConfiguration;
+  private final FileSystemMaster mFsMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
@@ -52,7 +51,6 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
-    mConfiguration = Configuration.createServerConf();
   }
 
   /**
@@ -74,10 +72,10 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
 
   private SortedSet<Pair<String, String>> getSortedProperties() {
     TreeSet<Pair<String, String>> rtn = new TreeSet<>();
-    for (Map.Entry<String, String> entry : mConfiguration.toMap().entrySet()) {
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<>(key, mConfiguration.get(key)));
+        rtn.add(new ImmutablePair<>(key, Configuration.get(key)));
       }
     }
     return rtn;

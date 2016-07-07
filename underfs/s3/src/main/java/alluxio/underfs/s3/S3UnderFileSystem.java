@@ -15,12 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
+import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -36,7 +39,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -47,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * S3 FS {@link UnderFileSystem} implementation based on the jets3t library.
  */
 @ThreadSafe
-public class S3UnderFileSystem extends UnderFileSystem {
+public final class S3UnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Suffix for an empty file to flag it as a directory. */
@@ -55,6 +57,9 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /** Value used to indicate folder structure in S3. */
   private static final String PATH_SEPARATOR = "/";
+
+  /** Length of each list request in S3. */
+  private static final long LISTING_LENGTH = 1000L;
 
   private static final byte[] DIR_HASH;
 
@@ -79,55 +84,56 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri, Configuration conf) throws ServiceException {
-    super(uri, conf);
+  public S3UnderFileSystem(AlluxioURI uri) throws ServiceException {
+    super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(conf.containsKey(Constants.S3_ACCESS_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.S3_ACCESS_KEY),
         "Property " + Constants.S3_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(conf.containsKey(Constants.S3_SECRET_KEY),
+    Preconditions.checkArgument(Configuration.containsKey(Constants.S3_SECRET_KEY),
         "Property " + Constants.S3_SECRET_KEY + " is required to connect to S3");
-    AWSCredentials awsCredentials =
-        new AWSCredentials(conf.get(Constants.S3_ACCESS_KEY), conf.get(
-            Constants.S3_SECRET_KEY));
+    AWSCredentials awsCredentials = new AWSCredentials(Configuration.get(Constants.S3_ACCESS_KEY),
+        Configuration.get(Constants.S3_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
-    if (conf.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props.setProperty("httpclient.proxy-host", conf.get(Constants.UNDERFS_S3_PROXY_HOST));
-      props.setProperty("httpclient.proxy-port", conf.get(Constants.UNDERFS_S3_PROXY_PORT));
+      props
+          .setProperty("httpclient.proxy-host", Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
+      props
+          .setProperty("httpclient.proxy-port", Configuration.get(Constants.UNDERFS_S3_PROXY_PORT));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          Boolean.toString(conf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+          Boolean.toString(Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
-      props.setProperty("s3service.s3-endpoint", conf.get(Constants.UNDERFS_S3_ENDPOINT));
-      if (conf.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
+      props.setProperty("s3service.s3-endpoint", Configuration.get(Constants.UNDERFS_S3_ENDPOINT));
+      if (Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
         props.setProperty("s3service.s3-endpoint-https-port",
-            conf.get(Constants.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
+            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
       } else {
         props.setProperty("s3service.s3-endpoint-http-port",
-            conf.get(Constants.UNDERFS_S3_ENDPOINT_HTTP_PORT));
+            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTP_PORT));
       }
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
       props.setProperty("s3service.disable-dns-buckets",
-          conf.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+          Configuration.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
       props.setProperty("threaded-service.max-thread-count",
-          conf.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));
+          Configuration.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_ADMIN_THREADS_MAX)) {
+    if (Configuration.containsKey(Constants.UNDERFS_S3_ADMIN_THREADS_MAX)) {
       props.setProperty("threaded-service.admin-max-thread-count",
-          conf.get(Constants.UNDERFS_S3_ADMIN_THREADS_MAX));
+          Configuration.get(Constants.UNDERFS_S3_ADMIN_THREADS_MAX));
     }
-    if (conf.containsKey(Constants.UNDERFS_S3_THREADS_MAX)) {
-      props.setProperty("httpclient.max-connections", conf.get(Constants.UNDERFS_S3_THREADS_MAX));
+    if (Configuration.containsKey(Constants.UNDERFS_S3_THREADS_MAX)) {
+      props.setProperty("httpclient.max-connections",
+          Configuration.get(Constants.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
@@ -144,38 +150,26 @@ public class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new S3OutputStream(mBucketName, stripPrefixIfPresent(path), mClient);
     }
     return null;
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.warn("Create with block size is not supported with S3UnderFileSystem. Block size will be "
-        + "ignored.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.warn("Create with block size and replication is not supported with S3UnderFileSystem."
-        + " Block size and replication will be ignored.");
-    return create(path);
   }
 
   @Override
@@ -217,27 +211,27 @@ public class S3UnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
   @Override
   public Object getConf() {
-    LOG.warn("getConf is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getConf is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
   // Not supported
   @Override
   public List<String> getFileLocations(String path, long offset) throws IOException {
-    LOG.warn("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
+    LOG.debug("getFileLocations is not supported when using S3UnderFileSystem, returning null.");
     return null;
   }
 
@@ -285,6 +279,11 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -295,7 +294,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -384,7 +383,25 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.
@@ -520,13 +537,12 @@ public class S3UnderFileSystem extends UnderFileSystem {
     } catch (ServiceException s) {
       // It is possible that the folder has not been encoded as a _$folder$ file
       try {
-        String dir = stripPrefixIfPresent(key);
-        String dirPrefix = dir.endsWith(PATH_SEPARATOR) ? dir : dir + PATH_SEPARATOR;
-        // Check if anything begins with <folder_path>/
-        S3Object[] objs = mClient.listObjects(mBucketName, dirPrefix, "");
+        String path = PathUtils.normalizePath(stripPrefixIfPresent(key), PATH_SEPARATOR);
+        // Check if anything begins with <path>/
+        S3Object[] objs = mClient.listObjects(mBucketName, path, "");
         // If there are, this is a folder and we can create the necessary metadata
         if (objs.length > 0) {
-          mkdirsInternal(dir);
+          mkdirsInternal(path);
           return true;
         } else {
           return false;
@@ -550,7 +566,7 @@ public class S3UnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
@@ -558,41 +574,58 @@ public class S3UnderFileSystem extends UnderFileSystem {
    * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    String priorLastKey = null;
+    Set<String> children = new HashSet<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      S3Object[] objs = mClient.listObjects(mBucketName, path, "");
-      if (recursive) {
-        List<String> ret = new ArrayList<>();
-        for (S3Object obj : objs) {
+      boolean done = false;
+      while (!done) {
+        // Directories in S3 UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
+        //
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
+        StorageObjectsChunk chunk = mClient.listObjectsChunked(mBucketName, path, delimiter,
+            LISTING_LENGTH, priorLastKey);
+
+        // Handle case (1)
+        for (StorageObject obj : chunk.getObjects()) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            ret.add(child);
+            children.add(child);
           }
         }
-        return ret.toArray(new String[ret.size()]);
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      for (S3Object obj : objs) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        if (!child.isEmpty()) {
-          children.add(child);
+        // Handle case (2)
+        for (String commonPrefix : chunk.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty() && !children.contains(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            children.add(child);
+          }
         }
+        done = chunk.isListingComplete();
+        priorLastKey = chunk.getPriorLastKey();
       }
       return children.toArray(new String[children.size()]);
     } catch (ServiceException e) {

@@ -14,7 +14,6 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.exception.AlluxioException;
@@ -36,11 +35,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CreateLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CreateLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CreateLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -64,7 +62,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioLineage tl = AlluxioLineage.get();
     // TODO(yupeng) more validation
@@ -83,17 +81,12 @@ public final class CreateLineageCommand extends AbstractShellCommand {
       cmd += args[i] + " ";
     }
 
-    String outputPath = ClientContext.getConf().get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
+    String outputPath = Configuration.get(Constants.MASTER_LINEAGE_RECOMPUTE_LOG_PATH);
     if (outputPath == null) {
       throw new IOException("recompute output log is not configured");
     }
     CommandLineJob job = new CommandLineJob(cmd, new JobConf(outputPath));
-    long lineageId;
-    try {
-      lineageId = tl.createLineage(inputFiles, outputFiles, job);
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    long lineageId = tl.createLineage(inputFiles, outputFiles, job);
     System.out.println("Lineage " + lineageId + " has been created.");
   }
 

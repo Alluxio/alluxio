@@ -38,7 +38,7 @@ public final class LineageIdGenerator implements JournalEntryRepresentable {
    *
    * @return the new id for lineage
    */
-  synchronized long generateId() {
+  long generateId() {
     return mSequenceNumber.getAndIncrement();
   }
 

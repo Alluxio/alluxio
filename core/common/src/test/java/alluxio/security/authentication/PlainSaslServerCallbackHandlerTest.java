@@ -12,8 +12,10 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -30,7 +32,6 @@ import javax.security.sasl.AuthorizeCallback;
  * Tests the {@link PlainSaslServerCallbackHandler} class.
  */
 public class PlainSaslServerCallbackHandlerTest {
-  private Configuration mConf;
   private CallbackHandler mPlainServerCBHandler;
 
   /**
@@ -46,11 +47,15 @@ public class PlainSaslServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    mConf = new Configuration();
-    mConf.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
-        AuthenticationProvider.Factory.create(AuthType.CUSTOM, mConf));
+        AuthenticationProvider.Factory.create(AuthType.CUSTOM));
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

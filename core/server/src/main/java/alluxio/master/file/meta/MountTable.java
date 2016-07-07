@@ -17,7 +17,6 @@ import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.journal.JournalCheckpointStreamable;
@@ -198,6 +197,18 @@ public final class MountTable implements JournalCheckpointStreamable {
   }
 
   /**
+   * Returns a copy of the current mount table, the mount table is a map from Alluxio file system
+   * URIs to the corresponding mount point information.
+   *
+   * @return a copy of the current mount table
+   */
+  public Map<String, MountInfo> getMountTable() {
+    try (LockResource r = new LockResource(mReadLock)) {
+      return new HashMap<>(mMountTable);
+    }
+  }
+
+  /**
    * @param uri an Alluxio path URI
    * @return whether the given uri is a mount point
    */
@@ -213,7 +224,7 @@ public final class MountTable implements JournalCheckpointStreamable {
    * no-op.
    *
    * @param uri an Alluxio path URI
-   * @return the {@link Resolution} respresenting the UFS path
+   * @return the {@link Resolution} representing the UFS path
    * @throws InvalidPathException if an invalid path is encountered
    */
   public Resolution resolve(AlluxioURI uri) throws InvalidPathException {
@@ -226,7 +237,7 @@ public final class MountTable implements JournalCheckpointStreamable {
         MountInfo info = mMountTable.get(mountPoint);
         AlluxioURI ufsUri = info.getUfsUri();
         // TODO(gpang): this ufs should probably be cached.
-        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString(), MasterContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString());
         ufs.setProperties(info.getOptions().getProperties());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
         return new Resolution(resolvedUri, ufs);

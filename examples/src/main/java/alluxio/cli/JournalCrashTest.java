@@ -22,9 +22,9 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
 
-import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
@@ -129,8 +129,6 @@ public final class JournalCrashTest {
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
-            } catch (Exception e) {
-              throw e;
             }
             sFileSystem.delete(testURI);
           } else if (ClientOpType.CREATE_RENAME_FILE == mOpType) {
@@ -141,8 +139,6 @@ public final class JournalCrashTest {
               if (!(e instanceof FileAlreadyExistsException)) {
                 throw e;
               }
-            } catch (Exception e) {
-              throw e;
             }
             sFileSystem.rename(testURI, new AlluxioURI(testURI + "-rename"));
           }
@@ -328,7 +324,7 @@ public final class JournalCrashTest {
     options.addOption("renames", true,
         "Number of Client Threads to request create/rename operations");
     options.addOption("testDir", true, "Test Directory on Alluxio");
-    CommandLineParser parser = new BasicParser();
+    CommandLineParser parser = new DefaultParser();
     CommandLine cmd = null;
     boolean ret = true;
     try {
@@ -360,7 +356,7 @@ public final class JournalCrashTest {
    * Setups all the client threads.
    */
   private static void setupClientThreads() {
-    sClientThreadList = new ArrayList<ClientThread>();
+    sClientThreadList = new ArrayList<>();
     for (int i = 0; i < sCreateFileClientNum; i++) {
       ClientThread thread = new ClientThread(sTestDir + "/createFile" + i + "/",
           ClientOpType.CREATE_FILE);
@@ -382,7 +378,7 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = Configuration.createServerConf().get(Constants.HOME)
+    String startMasterCommand = Configuration.get(Constants.HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -397,7 +393,7 @@ public final class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = Configuration.createServerConf().get(Constants.HOME)
+    String stopClusterCommand = Configuration.get(Constants.HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

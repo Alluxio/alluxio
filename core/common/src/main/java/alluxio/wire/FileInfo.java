@@ -41,9 +41,9 @@ public final class FileInfo {
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
-  private String mUserName = "";
-  private String mGroupName = "";
-  private int mPermission;
+  private String mOwner = "";
+  private String mGroup = "";
+  private int mMode;
   private String mPersistenceState = "";
   private boolean mMountPoint;
   private List<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
@@ -75,9 +75,9 @@ public final class FileInfo {
     mInMemoryPercentage = fileInfo.getInMemoryPercentage();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mTtl = fileInfo.getTtl();
-    mUserName = fileInfo.getUserName();
-    mGroupName = fileInfo.getGroupName();
-    mPermission = fileInfo.getPermission();
+    mOwner = fileInfo.getOwner();
+    mGroup = fileInfo.getGroup();
+    mMode = fileInfo.getMode();
     mPersistenceState = fileInfo.getPersistenceState();
     mMountPoint = fileInfo.isMountPoint();
     mFileBlockInfos = new ArrayList<>();
@@ -201,24 +201,24 @@ public final class FileInfo {
   }
 
   /**
-   * @return the file owner user name
+   * @return the file owner
    */
-  public String getUserName() {
-    return mUserName;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
-   * @return the file owner group name
+   * @return the file owner group
    */
-  public String getGroupName() {
-    return mGroupName;
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
-   * @return the file permission bits
+   * @return the file mode bits
    */
-  public int getPermission() {
-    return mPermission;
+  public int getMode() {
+    return mMode;
   }
 
   /**
@@ -391,31 +391,31 @@ public final class FileInfo {
   }
 
   /**
-   * @param userName the file owner user name to use
+   * @param owner the file owner
    * @return the file descriptor
    */
-  public FileInfo setUserName(String userName) {
-    Preconditions.checkNotNull(userName);
-    mUserName = userName;
+  public FileInfo setOwner(String owner) {
+    Preconditions.checkNotNull(owner);
+    mOwner = owner;
     return this;
   }
 
   /**
-   * @param groupName the file owner group name to use
+   * @param group the file group
    * @return the file descriptor
    */
-  public FileInfo setGroupName(String groupName) {
-    Preconditions.checkNotNull(groupName);
-    mGroupName = groupName;
+  public FileInfo setGroup(String group) {
+    Preconditions.checkNotNull(group);
+    mGroup = group;
     return this;
   }
 
   /**
-   * @param permission the file permission bits to use
+   * @param mode the file mode bits
    * @return the file descriptor
    */
-  public FileInfo setPermission(int permission) {
-    mPermission = permission;
+  public FileInfo setMode(int mode) {
+    mMode = mode;
     return this;
   }
 
@@ -457,7 +457,7 @@ public final class FileInfo {
     }
     return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
         mPersistenceState, mMountPoint, fileBlockInfos);
   }
 
@@ -474,32 +474,32 @@ public final class FileInfo {
         && mUfsPath.equals(that.mUfsPath) && mLength == that.mLength
         && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
-        && mCacheable == that.mCacheable && mPersisted == that.mPersisted
-        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
-        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mUserName
-        .equals(that.mUserName) && mGroupName.equals(that.mGroupName)
-        && mPermission == that.mPermission && mPersistenceState.equals(that.mPersistenceState)
-        && mMountPoint == that.mMountPoint && mFileBlockInfos.equals(that.mFileBlockInfos);
+        && mCacheable == that.mCacheable && mPersisted == that.mPersisted && mBlockIds
+        .equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
+        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mOwner
+        .equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
+        && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
+        && mFileBlockInfos.equals(that.mFileBlockInfos);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
-        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
-        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mUserName, mGroupName, mPermission,
-        mPersistenceState, mMountPoint, mFileBlockInfos);
+    return Objects
+        .hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes, mCreationTimeMs,
+            mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds, mInMemoryPercentage,
+            mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mPersistenceState, mMountPoint,
+            mFileBlockInfos);
   }
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("fileId", mFileId).add("name", mName)
-        .add("path", mPath).add("ufsPath", mUfsPath).add("length", mLength)
-        .add("blockSizeBytes", mBlockSizeBytes).add("creationTimeMs", mCreationTimeMs)
-        .add("completed", mCompleted).add("folder", mFolder).add("pinned", mPinned)
-        .add("cacheable", mCacheable).add("persisted", mPersisted)
+    return Objects.toStringHelper(this).add("fileId", mFileId).add("name", mName).add("path", mPath)
+        .add("ufsPath", mUfsPath).add("length", mLength).add("blockSizeBytes", mBlockSizeBytes)
+        .add("creationTimeMs", mCreationTimeMs).add("completed", mCompleted).add("folder", mFolder)
+        .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
-        .add("userName", mUserName).add("groupName", mGroupName).add("permission", mPermission)
+        .add("owner", mOwner).add("group", mGroup).add("mode", mMode)
         .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
         .add("fileBlockInfos", mFileBlockInfos).toString();
   }

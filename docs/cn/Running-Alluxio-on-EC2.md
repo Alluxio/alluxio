@@ -100,7 +100,7 @@ Alluxio Web UI的默认端口为**19999**。
 {% include Running-Alluxio-on-EC2/runTests.md %}
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点
-击`Browse File System`，你应该能看到测试过程中写入到Alluxio的文件。
+击`Browse`，你应该能看到测试过程中写入到Alluxio的文件。
 
 如果你登录[AWS web console](https://console.aws.amazon.com/console)，进入S3管理界面，
 在你之前新创建的桶中，你应该可以看到由以上测试所写入的文件。

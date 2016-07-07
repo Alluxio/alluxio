@@ -14,14 +14,19 @@ package alluxio.underfs.s3;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link S3UnderFileSystem} that do not require an S3
  * backend.
  */
-public class S3UnderFileSystemTest {
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(S3UnderFileSystem.class)
+public final class S3UnderFileSystemTest {
   private S3UnderFileSystem mMockS3UnderFileSystem;
 
   /**
@@ -29,15 +34,13 @@ public class S3UnderFileSystemTest {
    */
   @Before
   public  final void before() {
-    mMockS3UnderFileSystem = PowerMockito.mock(S3UnderFileSystem.class);
+    mMockS3UnderFileSystem = Mockito.mock(S3UnderFileSystem.class);
     Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketName", "test-bucket");
     Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
   }
 
   /**
    * Tests the {@link S3UnderFileSystem#convertToFolderName(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void convertToFolderNameTest() throws Exception {
@@ -49,8 +52,6 @@ public class S3UnderFileSystemTest {
 
   /**
    * Tests the {@link S3UnderFileSystem#getChildName(String, String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getChildNameTest() throws Exception {
@@ -74,8 +75,6 @@ public class S3UnderFileSystemTest {
 
   /**
    * Tests the {@link S3UnderFileSystem#getParentKey(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getParentKeyTest() throws Exception {
@@ -96,8 +95,6 @@ public class S3UnderFileSystemTest {
 
   /**
    * Tests the {@link S3UnderFileSystem#isRoot(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void isRootTest() throws Exception {
@@ -124,8 +121,6 @@ public class S3UnderFileSystemTest {
 
   /**
    * Tests the {@link S3UnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
@@ -146,8 +141,6 @@ public class S3UnderFileSystemTest {
 
   /**
    * Tests the {@link S3UnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {

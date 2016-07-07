@@ -160,7 +160,7 @@ public final class MetricsConfig {
    * @return a {@code Map} maps from the prefix to its properties
    */
   public Map<String, Properties> subProperties(Properties prop, String regex) {
-    Map<String, Properties> subProperties = new HashMap<String, Properties>();
+    Map<String, Properties> subProperties = new HashMap<>();
     Pattern pattern = Pattern.compile(regex);
 
     for (Map.Entry<Object, Object> entry : prop.entrySet()) {

@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
@@ -65,22 +64,17 @@ public class BlockServiceHandlerIntegrationTest {
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
-  private Configuration mMasterConfiguration;
-  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()),
-        mWorkerConfiguration);
+            mLocalAlluxioClusterResource.get().getMasterPort()));
   }
 
   @After
@@ -160,7 +154,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(localPath);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -281,7 +275,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(filename);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

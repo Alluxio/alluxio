@@ -40,15 +40,13 @@ public final class ShellBasedUnixGroupsMappingTest {
 
   /**
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
-   *
-   * @throws Throwable when retrieval of the groups fails
    */
   @Test
   public void userGroupTest() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<String>();
+    List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
     setupShellMocks(userName, userGroups);

@@ -24,8 +24,16 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 /**
  * Tests for the {@link FileUtils} class.
@@ -46,8 +54,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void changeLocalFilePermissionTest() throws IOException {
@@ -71,8 +77,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a non-existent
    * file to thrown an exception.
-   *
-   * @throws IOException thrown when trying to change the file permissions of a non-existent file
    */
   @Test
   public void changeNonExistentFileTest() throws IOException {
@@ -85,8 +89,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method for a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void changeLocalDirPermissionTests() throws IOException {
@@ -100,8 +102,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#move(String, String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void moveFileTest() throws IOException {
@@ -116,8 +116,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#move(String, String)} method to thrown an exception when trying to
    * move a non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void moveNonExistentFileTest() throws IOException {
@@ -131,8 +129,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deleteFileTest() throws IOException {
@@ -148,8 +144,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#deletePathRecursively(String)} method when trying to delete
    * directories.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deletePathRecursivelyTest() throws IOException {
@@ -175,8 +169,6 @@ public class FileUtilsTest {
   /**
    * Tests the {@link FileUtils#delete(String)} method to throw an exception when trying to delete a
    * non-existent file.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void deleteNonExistentFileTest() throws IOException {
@@ -189,8 +181,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void setLocalDirStickyBitTest() throws IOException {
@@ -199,7 +189,7 @@ public class FileUtilsTest {
     // which implies the host should support "chmod".
     if (tempFolder.getAbsolutePath().startsWith(AlluxioURI.SEPARATOR)) {
       FileUtils.setLocalDirStickyBit(tempFolder.getAbsolutePath());
-      List<String> commands = new ArrayList<String>();
+      List<String> commands = new ArrayList<>();
       commands.add("/bin/ls");
       commands.add("-ld");
       commands.add(tempFolder.getAbsolutePath());
@@ -220,8 +210,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createBlockPath(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createBlockPathTest() throws IOException {
@@ -233,8 +221,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createFile(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createFileTest() throws IOException {
@@ -246,8 +232,6 @@ public class FileUtilsTest {
 
   /**
    * Tests the {@link FileUtils#createDir(String)} method.
-   *
-   * @throws IOException thrown if a non-Alluxio related exception occurs
    */
   @Test
   public void createDirTest() throws IOException {
@@ -255,5 +239,99 @@ public class FileUtilsTest {
     FileUtils.createDir(tempDir.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
     Assert.assertTrue(tempDir.delete());
+  }
+
+  /**
+   * Tests the {@link FileUtils#getLocalFileMode(String)}} method.
+   */
+  @Test
+  public void getLocalFileModeTest() throws IOException {
+    File tmpDir = mTestFolder.newFolder("dir");
+    File tmpFile777 = mTestFolder.newFile("dir/0777");
+    tmpFile777.setReadable(true, false /* owner only */);
+    tmpFile777.setWritable(true, false /* owner only */);
+    tmpFile777.setExecutable(true, false /* owner only */);
+
+    File tmpFile755 = mTestFolder.newFile("dir/0755");
+    tmpFile755.setReadable(true, false /* owner only */);
+    tmpFile755.setWritable(true, true /* owner only */);
+    tmpFile755.setExecutable(true, false /* owner only */);
+
+    File tmpFile444 = mTestFolder.newFile("dir/0444");
+    tmpFile444.setReadOnly();
+
+    Assert.assertEquals((short) 0777, FileUtils.getLocalFileMode(tmpFile777.getPath()));
+    Assert.assertEquals((short) 0755, FileUtils.getLocalFileMode(tmpFile755.getPath()));
+    Assert.assertEquals((short) 0444, FileUtils.getLocalFileMode(tmpFile444.getPath()));
+
+    // Delete all of these.
+    FileUtils.deletePathRecursively(tmpDir.getAbsolutePath());
+  }
+
+  /**
+   * Tests {@link FileUtils#createBlockPath} method when storage dir exists or doesn't exist.
+   */
+  @Test
+  public void createStorageDirPathTest() throws IOException {
+    File storageDir = new File(mTestFolder.getRoot(), "storageDir");
+    File blockFile = new File(storageDir, "200");
+
+    // When storage dir doesn't exist
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+    Assert.assertEquals(
+        PosixFilePermissions.fromString("rwxrwxrwx"),
+        Files.getPosixFilePermissions(Paths.get(storageDir.getAbsolutePath())));
+
+    // When storage dir exists
+    FileUtils.createBlockPath(blockFile.getAbsolutePath());
+    Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+  }
+
+  /**
+   * Tests invoking {@link FileUtils#createBlockPath} method concurrently. This simulates the case
+   * when multiple blocks belonging to the same storage dir get created concurrently.
+   */
+  @Test
+  public void concurrentCreateStorageDirPathTest() throws Exception {
+    /**
+     * A class provides multiple concurrent threads to invoke {@link FileUtils#createBlockPath}.
+     */
+    class ConcurrentCreator implements Callable<Void> {
+      private final String mPath;
+      private final CyclicBarrier mBarrier;
+
+      ConcurrentCreator(String path, CyclicBarrier barrier) {
+        mPath = path;
+        mBarrier = barrier;
+      }
+
+      @Override
+      public Void call() throws Exception {
+        mBarrier.await(); // Await until all threads submitted
+        FileUtils.createBlockPath(mPath);
+        return null;
+      }
+    }
+
+    final int numCreators = 5;
+    List<Future<Void>> futures = new ArrayList<>(numCreators);
+    for (int iteration = 0; iteration < 5; iteration++) {
+      final ExecutorService executor = Executors.newFixedThreadPool(numCreators);
+      final CyclicBarrier barrier = new CyclicBarrier(numCreators);
+      try {
+        File storageDir = new File(mTestFolder.getRoot(), "tmp" + iteration);
+        for (int i = 0; i < numCreators; i++) {
+          File blockFile = new File(storageDir, String.valueOf(i));
+          futures.add(executor.submit(new ConcurrentCreator(blockFile.getAbsolutePath(), barrier)));
+        }
+        for (Future<Void> f : futures) {
+          f.get();
+        }
+        Assert.assertTrue(FileUtils.exists(storageDir.getAbsolutePath()));
+      } finally {
+        executor.shutdown();
+      }
+    }
   }
 }

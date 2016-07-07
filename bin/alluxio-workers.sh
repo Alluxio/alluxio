@@ -21,7 +21,7 @@ USAGE="Usage: alluxio-workers.sh command..."
 
 # if no args specified, show usage
 if [[ $# -le 0 ]]; then
-  echo ${USAGE}
+  echo ${USAGE} >&2
   exit 1
 fi
 

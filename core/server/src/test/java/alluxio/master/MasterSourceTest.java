@@ -12,6 +12,8 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
@@ -39,6 +41,7 @@ import com.codahale.metrics.Counter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -46,6 +49,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -92,12 +96,10 @@ public final class MasterSourceTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if setting up the dependencies fails
    */
   @Before
   public void before() throws Exception {
-    MasterContext.getConf().set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
+    Configuration.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
@@ -117,17 +119,22 @@ public final class MasterSourceTest {
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
         new HashMap<String, List<Long>>());
 
-    MasterContext.reset();
+    Whitebox.setInternalState(MasterContext.class, "sMasterSource", new MasterSource());
     mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
 
-    mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR, MasterContext.getConf());
+    mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR);
+  }
+
+  @After
+  public void after() throws Exception {
+    mBlockMaster.stop();
+    mFileSystemMaster.stop();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
    * Tests the {@code CreateFileOps}, {@code FilesCreated}, {@code CreateDirectoryOps} and the
    * {@code DirectoriesCreated} counters when creating a file.
-   *
-   * @throws Exception if creating a file fails
    */
   @Test
   public void createFileTest() throws Exception {
@@ -159,8 +166,6 @@ public final class MasterSourceTest {
   /**
    * Tests the {@code CreateDirectoryOps} and the {@code DirectoryCreated} counters when creating a
    * directory.
-   *
-   * @throws Exception if creating a directory fails
    */
   @Test
   public void mkdirTest() throws Exception {
@@ -184,8 +189,6 @@ public final class MasterSourceTest {
   /**
    * Tests the {@code GetFileInfoOps} and {@code FileInfosGot} counters when retrieving information
    * about a file.
-   *
-   * @throws Exception if creating a file or retrieving its information fails
    */
   @Test
   public void getFileInfoTest() throws Exception {
@@ -211,8 +214,6 @@ public final class MasterSourceTest {
   /**
    * Tests the {@code GetFileBlockInfoOps} and {@code FileBlockInfosGot} counters when retrieving
    * information about a block of a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void getFileBlockInfoTest() throws Exception {
@@ -250,8 +251,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code CompleteFileOps} and {@code FilesCompleted} counters when completing a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void completeFileTest() throws Exception {
@@ -280,8 +279,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code DeletePathOps} and {@code PathsDeleted} counters when deleting a path.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void deletePathTest() throws Exception {
@@ -306,8 +303,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code GetNewBlockOps} counter when retrieving a new block id for a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void getNewBlockIdForFileTest() throws Exception {
@@ -316,13 +311,11 @@ public final class MasterSourceTest {
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
     Assert.assertEquals(Lists.newArrayList(blockId), fileInfo.getBlockIds());
 
-    Assert.assertEquals(1, mCounters.get("GetNewBlockOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.GET_NEW_BLOCK_OPS).getCount());
   }
 
   /**
    * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void setAttributeTest() throws Exception {
@@ -335,8 +328,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code FilesPersisted} counter when setting a file to persisted.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void filePersistedTest() throws Exception {
@@ -350,8 +341,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code RenamePathOps} and {@code PathsRenamed} counters when renaming a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void renameTest() throws Exception {
@@ -377,8 +366,6 @@ public final class MasterSourceTest {
 
   /**
    * Tests the {@code FreeFileOps} and {@code FielsFreed} counters when freeing a file.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void freeTest() throws Exception {
@@ -409,8 +396,6 @@ public final class MasterSourceTest {
   /**
    * Tests the {@code PathsMounted} and the {@code MountOps} counters when mounting or unmounting a
    * path.
-   *
-   * @throws Exception if a {@link FileSystemMaster} operation fails
    */
   @Test
   public void mountUnmountTest() throws Exception {
@@ -419,8 +404,8 @@ public final class MasterSourceTest {
 
     mFileSystemMaster.mount(TEST_URI, MOUNT_URI, MountOptions.defaults());
 
-    Assert.assertEquals(1, mCounters.get("PathsMounted").getCount());
-    Assert.assertEquals(1, mCounters.get("MountOps").getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.PATHS_MOUNTED).getCount());
+    Assert.assertEquals(1, mCounters.get(MasterSource.MOUNT_OPS).getCount());
 
     // trying to mount an existing file
     try {

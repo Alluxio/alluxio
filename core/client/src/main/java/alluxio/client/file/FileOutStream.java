@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
@@ -28,7 +29,9 @@ import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -94,16 +97,17 @@ public class FileOutStream extends AbstractOutStream {
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
-    mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
-    mUfsDelegation = ClientContext.getConf().getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
+    mPreviousBlockOutStreams = new LinkedList<>();
+    mUfsDelegation = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
         updateUfsPath();
         mFileSystemWorkerClient = mContext.createWorkerClient();
         try {
+          Permission perm = options.getPermission();
           mUfsFileId =
               mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
-                  CreateUfsFileOptions.defaults());
+                  CreateUfsFileOptions.defaults().setPermission(perm));
         } catch (AlluxioException e) {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
@@ -114,9 +118,10 @@ public class FileOutStream extends AbstractOutStream {
       } else {
         updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
         // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-        mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
+        CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
+        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
 
         // Set delegation related vars to null as we are not using worker delegation for ufs ops
         mFileSystemWorkerClient = null;
@@ -171,7 +176,7 @@ public class FileOutStream extends AbstractOutStream {
         }
       } else {
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-        UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
         if (mCanceled) {
           // TODO(yupeng): Handle this special case in under storage integrations.
           mUnderStorageOutputStream.close();

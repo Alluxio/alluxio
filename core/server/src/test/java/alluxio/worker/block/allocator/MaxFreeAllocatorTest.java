@@ -12,6 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 
 import org.junit.Test;
@@ -19,18 +20,15 @@ import org.junit.Test;
 /**
  * Unit tests for {@link MaxFreeAllocator}.
  */
-public class MaxFreeAllocatorTest extends BaseAllocatorTest {
+public class MaxFreeAllocatorTest extends AllocatorTestBase {
 
   /**
    * Tests that blocks are allocated in the storage directory with the most available free space.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    mAllocator = Allocator.Factory.create(conf, getManagerView());
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3
     //  0    1000
@@ -80,5 +78,6 @@ public class MaxFreeAllocatorTest extends BaseAllocatorTest {
     //  1               ├─── 3000
     //  2               └─── 3000
     //
+    ConfigurationTestUtils.resetConfiguration();
   }
 }

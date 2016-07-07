@@ -13,13 +13,13 @@ package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -27,11 +27,12 @@ import alluxio.master.file.options.CreatePathOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 import alluxio.util.CommonUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -53,8 +54,7 @@ public final class InodeTreeTest {
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
-  private static final PermissionStatus TEST_PERMISSION_STATUS =
-      new PermissionStatus("user1", "", (short) 0755);
+  private static final Permission TEST_PERMISSION = new Permission("user1", "", (short) 0755);
   private static CreateFileOptions sFileOptions;
   private static CreateDirectoryOptions sDirectoryOptions;
   private static CreateFileOptions sNestedFileOptions;
@@ -71,8 +71,6 @@ public final class InodeTreeTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -85,11 +83,14 @@ public final class InodeTreeTest {
 
     blockMaster.start(true);
 
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
-    MasterContext.reset(conf);
-    mTree.initializeRoot(TEST_PERMISSION_STATUS);
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test-supergroup");
+    mTree.initializeRoot(TEST_PERMISSION);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -98,27 +99,24 @@ public final class InodeTreeTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS);
+        .setPermission(TEST_PERMISSION);
     sDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS);
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION);
     sNestedFileOptions = CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-        .setPermissionStatus(TEST_PERMISSION_STATUS).setRecursive(true);
+        .setPermission(TEST_PERMISSION).setRecursive(true);
     sNestedDirectoryOptions =
-        CreateDirectoryOptions.defaults().setPermissionStatus(TEST_PERMISSION_STATUS)
-            .setRecursive(true);
+        CreateDirectoryOptions.defaults().setPermission(TEST_PERMISSION).setRecursive(true);
   }
 
   /**
    * Tests that initializing the root twice results in the same root.
-   *
-   * @throws Exception if getting the Inode by path fails
    */
   @Test
   public void initializeRootTwiceTest() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
-    mTree.initializeRoot(TEST_PERMISSION_STATUS);
-    Assert.assertEquals(TEST_PERMISSION_STATUS.getUserName(), root.getUserName());
+    mTree.initializeRoot(TEST_PERMISSION);
+    Assert.assertEquals(TEST_PERMISSION.getOwner(), root.getOwner());
     Inode<?> newRoot = getInodeByPath(mTree, new AlluxioURI("/"));
     Assert.assertEquals(root, newRoot);
   }
@@ -126,8 +124,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for creating
    * directories.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createDirectoryTest() throws Exception {
@@ -137,9 +133,9 @@ public final class InodeTreeTest {
     Inode<?> test = getInodeByPath(mTree, TEST_URI);
     Assert.assertEquals(TEST_PATH, test.getName());
     Assert.assertTrue(test.isDirectory());
-    Assert.assertEquals("user1", test.getUserName());
-    Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0755, test.getPermission());
+    Assert.assertEquals("user1", test.getOwner());
+    Assert.assertTrue(test.getGroup().isEmpty());
+    Assert.assertEquals((short) 0755, test.getMode());
 
     // create nested directory
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
@@ -148,16 +144,14 @@ public final class InodeTreeTest {
     Assert.assertEquals(TEST_PATH, nested.getName());
     Assert.assertEquals(2, nested.getParentId());
     Assert.assertTrue(test.isDirectory());
-    Assert.assertEquals("user1", test.getUserName());
-    Assert.assertTrue(test.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0755, test.getPermission());
+    Assert.assertEquals("user1", test.getOwner());
+    Assert.assertTrue(test.getGroup().isEmpty());
+    Assert.assertEquals((short) 0755, test.getMode());
   }
 
   /**
    * Tests that an exception is thrown when trying to create an already existing directory with the
    * {@code allowExists} flag set to {@code false}.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createExistingDirectoryTest() throws Exception {
@@ -175,8 +169,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that creating a file under a pinned directory works.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createFileUnderPinnedDirectoryTest() throws Exception {
@@ -199,8 +191,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method for
    * creating a file.
-   *
-   * @throws Exception if creating the directory fails
    */
   @Test
   public void createFileTest() throws Exception {
@@ -210,15 +200,13 @@ public final class InodeTreeTest {
     Assert.assertEquals("file", nestedFile.getName());
     Assert.assertEquals(2, nestedFile.getParentId());
     Assert.assertTrue(nestedFile.isFile());
-    Assert.assertEquals("user1", nestedFile.getUserName());
-    Assert.assertTrue(nestedFile.getGroupName().isEmpty());
-    Assert.assertEquals((short) 0644, nestedFile.getPermission());
+    Assert.assertEquals("user1", nestedFile.getOwner());
+    Assert.assertTrue(nestedFile.getGroup().isEmpty());
+    Assert.assertEquals((short) 0644, nestedFile.getMode());
   }
 
   /**
    * Tests the {@link InodeTree#createPath(LockedInodePath, CreatePathOptions)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createPathTest() throws Exception {
@@ -273,8 +261,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create the root path twice.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createRootPathTest() throws Exception {
@@ -286,8 +272,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with invalid block size.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileWithInvalidBlockSizeTest() throws Exception {
@@ -300,8 +284,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file with a negative block size.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileWithNegativeBlockSizeTest() throws Exception {
@@ -314,8 +296,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a non-existing directory.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileUnderNonexistingDirTest() throws Exception {
@@ -327,8 +307,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file twice.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileTwiceTest() throws Exception {
@@ -341,8 +319,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to create a file under a file path.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void createFileUnderFileTest() throws Exception {
@@ -385,8 +361,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
-   *
-   * @throws Exception if getting the Inode by path fails
    */
   @Test
   public void getInodeByNonexistingPathTest() throws Exception {
@@ -399,8 +373,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested path.
-   *
-   * @throws Exception if creating the path or getting the Inode by path fails
    */
   @Test
   public void getInodeByNonexistingNestedPathTest() throws Exception {
@@ -414,8 +386,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that an exception is thrown when trying to get an Inode with an invalid id.
-   *
-   * @throws Exception if getting the Inode by its id fails
    */
   @Test
   public void getInodeByInvalidIdTest() throws Exception {
@@ -439,8 +409,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#getPath(Inode)} method.
-   *
-   * @throws Exception if creating the path or getting the Inode by its id fails
    */
   @Test
   public void getPathTest() throws Exception {
@@ -465,8 +433,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#lockDescendants(LockedInodePath, InodeTree.LockMode)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void getInodeChildrenRecursiveTest() throws Exception {
@@ -487,8 +453,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#deleteInode(LockedInodePath)} method.
-   *
-   * @throws Exception if an {@link InodeTree} operation fails
    */
   @Test
   public void deleteInodeTest() throws Exception {
@@ -518,8 +482,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests the {@link InodeTree#setPinned(LockedInodePath, boolean)} method.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void setPinnedTest() throws Exception {
@@ -547,8 +509,6 @@ public final class InodeTreeTest {
 
   /**
    * Tests that streaming to a journal checkpoint works.
-   *
-   * @throws Exception if creating the path fails
    */
   @Test
   public void streamToJournalCheckpointTest() throws Exception {
@@ -574,8 +534,6 @@ public final class InodeTreeTest {
   /**
    * Tests the {@link InodeTree#addInodeFromJournal(alluxio.proto.journal.Journal.JournalEntry)}
    * method.
-   *
-   * @throws Exception if creating a path fails
    */
   @Test
   public void addInodeFromJournalTest() throws Exception {

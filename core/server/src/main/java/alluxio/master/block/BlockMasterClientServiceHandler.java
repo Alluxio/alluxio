@@ -52,7 +52,7 @@ public class BlockMasterClientServiceHandler implements BlockMasterClientService
 
   @Override
   public List<WorkerInfo> getWorkerInfoList() {
-    List<WorkerInfo> workerInfos = new ArrayList<WorkerInfo>();
+    List<WorkerInfo> workerInfos = new ArrayList<>();
     for (alluxio.wire.WorkerInfo workerInfo : mBlockMaster.getWorkerInfoList()) {
       workerInfos.add(ThriftUtils.toThrift(workerInfo));
     }

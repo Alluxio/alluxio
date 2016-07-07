@@ -65,7 +65,6 @@ public final class EvictorUtils {
         if (dirView.getCommittedBytes() + dirView.getAvailableBytes() >= bytesToBeAvailable
             && dirView.getAvailableBytes() > maxFreeSize) {
           selectedDirView = dirView;
-          maxFreeSize = dirView.getAvailableBytes();
         }
       }
     }

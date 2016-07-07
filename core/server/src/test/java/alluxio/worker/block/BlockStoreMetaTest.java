@@ -12,12 +12,10 @@
 package alluxio.worker.block;
 
 import alluxio.collections.Pair;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageTier;
 
 import com.google.common.collect.ImmutableMap;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,8 +47,6 @@ public class BlockStoreMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -68,21 +64,13 @@ public class BlockStoreMetaTest {
   }
 
   /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
-  /**
    * Tests the {@link BlockStoreMeta#getBlockList()} method.
    */
   @Test
   public void getBlockListTest() {
-    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<String, List<Long>>();
+    Map<String, List<Long>> tierAliasToBlockIds = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
-      List<Long> blockIdsOnTier = new ArrayList<Long>();
+      List<Long> blockIdsOnTier = new ArrayList<>();
       for (StorageDir dir : tier.getStorageDirs()) {
         blockIdsOnTier.addAll(dir.getBlockIds());
       }
@@ -107,10 +95,10 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getCapacityBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<Pair<String, String>, Long>();
+    Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToCapacityBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToCapacityBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes());
       }
     }
@@ -150,10 +138,10 @@ public class BlockStoreMetaTest {
    */
   @Test
   public void getUsedBytesOnDirsTest() {
-    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<Pair<String, String>, Long>();
+    Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
-        dirsToUsedBytes.put(new Pair<String, String>(tier.getTierAlias(), dir.getDirPath()),
+        dirsToUsedBytes.put(new Pair<>(tier.getTierAlias(), dir.getDirPath()),
             dir.getCapacityBytes() - dir.getAvailableBytes());
       }
     }

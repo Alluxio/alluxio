@@ -11,11 +11,9 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -57,8 +55,6 @@ public class AbstractBlockMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
@@ -70,14 +66,6 @@ public class AbstractBlockMetaTest {
     mTier = StorageTier.newStorageTier(TEST_TIER_ALIAS);
     mDir = mTier.getDir(0);
     mBlockMeta = new AbstractBlockMetaForTest(TEST_BLOCK_ID, mDir);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**

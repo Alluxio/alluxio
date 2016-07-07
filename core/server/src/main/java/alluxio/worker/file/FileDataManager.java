@@ -17,11 +17,12 @@ import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
@@ -68,7 +69,6 @@ public final class FileDataManager {
   @GuardedBy("mLock")
   private final Set<Long> mPersistedFiles;
 
-  private final Configuration mConfiguration;
   private final Object mLock = new Object();
 
   /** A per worker rate limiter to throttle async persistence. */
@@ -83,10 +83,9 @@ public final class FileDataManager {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
-    mConfiguration = WorkerContext.getConf();
     // Create Under FileSystem Client
-    String ufsAddress = mConfiguration.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(ufsAddress, mConfiguration);
+    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(ufsAddress);
   }
 
   /**
@@ -155,7 +154,7 @@ public final class FileDataManager {
    * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
-    String ufsRoot = mConfiguration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
@@ -176,32 +175,34 @@ public final class FileDataManager {
       if (mPersistingInProgressFiles.containsKey(fileId)) {
         throw new IOException("the file " + fileId + " is already being persisted");
       }
-      try {
-        // lock all the blocks to prevent any eviction
-        for (long blockId : blockIds) {
-          long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
-          blockIdToLockId.put(blockId, lockId);
-        }
-      } catch (BlockDoesNotExistException e) {
-        errors.add(e);
-        // make sure all the locks are released
-        for (long lockId : blockIdToLockId.values()) {
-          try {
-            mBlockWorker.unlockBlock(lockId);
-          } catch (BlockDoesNotExistException bdnee) {
-            errors.add(bdnee);
-          }
-        }
-
-        if (!errors.isEmpty()) {
-          StringBuilder errorStr = new StringBuilder();
-          errorStr.append("failed to lock all blocks of file ").append(fileId).append("\n");
-          for (Throwable error : errors) {
-            errorStr.append(error).append('\n');
-          }
-          throw new IOException(errorStr.toString());
+    }
+    try {
+      // lock all the blocks to prevent any eviction
+      for (long blockId : blockIds) {
+        long lockId = mBlockWorker.lockBlock(Sessions.CHECKPOINT_SESSION_ID, blockId);
+        blockIdToLockId.put(blockId, lockId);
+      }
+    } catch (BlockDoesNotExistException e) {
+      errors.add(e);
+      // make sure all the locks are released
+      for (long lockId : blockIdToLockId.values()) {
+        try {
+          mBlockWorker.unlockBlock(lockId);
+        } catch (BlockDoesNotExistException bdnee) {
+          errors.add(bdnee);
         }
       }
+
+      if (!errors.isEmpty()) {
+        StringBuilder errorStr = new StringBuilder();
+        errorStr.append("failed to lock all blocks of file ").append(fileId).append("\n");
+        for (Throwable error : errors) {
+          errorStr.append(error).append('\n');
+        }
+        throw new IOException(errorStr.toString());
+      }
+    }
+    synchronized (mLock) {
       mPersistingInProgressFiles.put(fileId, blockIdToLockId);
     }
   }
@@ -223,7 +224,11 @@ public final class FileDataManager {
     }
 
     String dstPath = prepareUfsFilePath(fileId);
-    OutputStream outputStream = mUfs.create(dstPath);
+    // TODO(chaomin): should also propagate ancestor dirs permission to UFS.
+    FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
+    Permission perm = new Permission(fileInfo.getOwner(), fileInfo.getGroup(),
+        (short) fileInfo.getMode());
+    OutputStream outputStream = mUfs.create(dstPath, new CreateOptions().setPermission(perm));
     final WritableByteChannel outputChannel = Channels.newChannel(outputStream);
 
     List<Throwable> errors = new ArrayList<>();
@@ -231,7 +236,7 @@ public final class FileDataManager {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
 
-        if (mConfiguration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+        if (Configuration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
           BlockMeta blockMeta =
               mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
           getRateLimiter().acquire((int) blockMeta.getBlockSize());
@@ -288,15 +293,29 @@ public final class FileDataManager {
    * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws IOException {
-    String ufsRoot = mConfiguration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
     LOG.info("persist file {} at {}", fileId, dstPath);
     String parentPath = PathUtils.concatPath(ufsRoot, uri.getParent().getPath());
     // creates the parent folder if it does not exist
-    if (!mUfs.exists(parentPath) && !mUfs.mkdirs(parentPath, true)) {
-      throw new IOException("Failed to create " + parentPath);
+    if (!mUfs.exists(parentPath)) {
+      final int maxRetry = 10;
+      int numRetry = 0;
+      // TODO(peis): Retry only if we are making progress.
+      // TODO(chaomin): figure out a way to get parent permission in Alluxio namespace.
+      for (; numRetry < maxRetry; numRetry++) {
+        if (mUfs.mkdirs(parentPath, true) || mUfs.exists(parentPath)) {
+          break;
+        }
+        // The parentPath can be created between the exists check and mkdirs call by other threads.
+        LOG.warn("Failed to create dir: {}, retrying", parentPath);
+      }
+      if (numRetry == maxRetry && !mUfs.exists(parentPath)) {
+        throw new IOException(
+            String.format("Failed to create dir: %s after %d retries.", parentPath, numRetry));
+      }
     }
     return dstPath;
   }
@@ -331,7 +350,7 @@ public final class FileDataManager {
   private synchronized RateLimiter getRateLimiter() {
     if (mPersistenceRateLimiter == null) {
       mPersistenceRateLimiter = RateLimiter.create(
-          WorkerContext.getConf().getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+          Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     }
     return mPersistenceRateLimiter;
   }

@@ -35,7 +35,7 @@ public final class ClientMetrics {
 
   private List<Long> createDefaultMetrics() {
     List<Long> defaultMetrics =
-        new ArrayList<Long>(Collections.nCopies(Constants.CLIENT_METRICS_SIZE, 0L));
+        new ArrayList<>(Collections.nCopies(Constants.CLIENT_METRICS_SIZE, 0L));
     defaultMetrics.set(Constants.CLIENT_METRICS_VERSION_INDEX, Constants.CLIENT_METRICS_VERSION);
     return defaultMetrics;
   }

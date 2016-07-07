@@ -43,7 +43,7 @@ public final class JournalTool {
   /** Amount of time to wait before giving up on the user supplying a journal log via stdin. */
   private static final long TIMEOUT_MS = 2000;
   private static final int EXIT_FAILED = -1;
-  private static final int EXIT_SUCCEEDED = -1;
+  private static final int EXIT_SUCCEEDED = 0;
   private static final Options OPTIONS = new Options()
       .addOption("help", false, "Show help for this test")
       .addOption("noTimeout", false, "Wait indefinitely for stdin to supply input");
@@ -93,7 +93,7 @@ public final class JournalTool {
    */
   private static boolean parseInputArgs(String[] args) {
     CommandLineParser parser = new BasicParser();
-    CommandLine cmd = null;
+    CommandLine cmd;
     try {
       cmd = parser.parse(OPTIONS, args);
     } catch (ParseException e) {

@@ -17,13 +17,11 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.util.io.BufferUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreLocation;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,8 +63,6 @@ public final class StorageDirTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -85,14 +81,6 @@ public final class StorageDirTest {
         new TempBlockMeta(TEST_SESSION_ID, TEST_TEMP_BLOCK_ID, TEST_TEMP_BLOCK_SIZE, mDir);
   }
 
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
   private StorageDir newStorageDir(File testDir) throws Exception {
     return StorageDir.newStorageDir(mTier, TEST_DIR_INDEX, TEST_DIR_CAPACITY,
         testDir.getAbsolutePath());
@@ -107,8 +95,6 @@ public final class StorageDirTest {
 
   /**
    * Tests that a new storage directory has metadata for a created block.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
   public void initializeMetaNoExceptionTest() throws Exception {
@@ -146,8 +132,6 @@ public final class StorageDirTest {
   /**
    * Tests that the metadata of the files and directory is empty when creating an inappropriate
    * file.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
   public void initializeMetaDeleteInappropriateFileTest() throws Exception {
@@ -162,8 +146,6 @@ public final class StorageDirTest {
   /**
    * Tests that the metadata of the files and directory is empty when creating an inappropriate
    * directory.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
   public void initializeMetaDeleteInappropriateDirTest() throws Exception {
@@ -180,8 +162,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to initialize a block that is larger than the
    * capacity.
-   *
-   * @throws Exception if creating a new storage directory or block file fails
    */
   @Test
   public void initializeMetaBlockLargerThanCapacityTest() throws Exception {
@@ -203,8 +183,6 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#getCapacityBytes()}, the {@link StorageDir#getAvailableBytes()} and
    * the {@link StorageDir#getCommittedBytes()} methods.
-   *
-   * @throws Exception if adding or removing the metadata of a block fails
    */
   @Test
   public void getBytesTest() throws Exception {
@@ -265,8 +243,6 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#getBlockIds()} method.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void getBlockIdsTest() throws Exception {
@@ -284,8 +260,6 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#getBlocks()} method.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void getBlocksTest() throws Exception {
@@ -303,8 +277,6 @@ public final class StorageDirTest {
 
   /**
    * Tests that an exception is thrown when trying to add metadata of a block that is too big.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void addBlockMetaTooBigTest() throws Exception {
@@ -319,8 +291,6 @@ public final class StorageDirTest {
 
   /**
    * Tests that an exception is thrown when trying to add metadata of a block that already exists.
-   *
-   * @throws Exception if adding the metadata of the block fails
    */
   @Test
   public void addBlockMetaExistingTest() throws Exception {
@@ -334,8 +304,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a block which does not
    * exist.
-   *
-   * @throws Exception if removing the metadata of the block fails
    */
   @Test
   public void removeBlockMetaNotExistingTest() throws Exception {
@@ -347,8 +315,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to get the metadata of a block which does not
    * exist.
-   *
-   * @throws Exception if getting the metadata of the block fails
    */
   @Test
   public void getBlockMetaNotExistingTest() throws Exception {
@@ -360,8 +326,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to add the metadata of a temporary block which is
    * too big.
-   *
-   * @throws Exception if adding the metadata of the tempoary block fails
    */
   @Test
   public void addTempBlockMetaTooBigTest() throws Exception {
@@ -378,8 +342,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to add the metadata of a termpoary block which
    * already exists.
-   *
-   * @throws Exception if adding the metadata of the temporary block fails
    */
   @Test
   public void addTempBlockMetaExistingTest() throws Exception {
@@ -395,8 +357,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a tempoary block which
    * does not exist.
-   *
-   * @throws Exception if removing the metadata of the temporary block fails
    */
   @Test
   public void removeTempBlockMetaNotExistingTest() throws Exception {
@@ -408,8 +368,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to remove the metadata of a temporary block which
    * is not owned.
-   *
-   * @throws Exception if adding or removing the metadata of a temporary block fails
    */
   @Test
   public void removeTempBlockMetaNotOwnerTest() throws Exception {
@@ -427,8 +385,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to get the metadata of a temporary block that
    * does not exist.
-   *
-   * @throws Exception if getting the metadata of the block fails
    */
   @Test
   public void getTempBlockMetaNotExistingTest() throws Exception {
@@ -440,8 +396,6 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#addBlockMeta(BlockMeta)} and the
    * {@link StorageDir#removeBlockMeta(BlockMeta)} methods.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void blockMetaTest() throws Exception {
@@ -461,8 +415,6 @@ public final class StorageDirTest {
   /**
    * Tests the {@link StorageDir#addTempBlockMeta(TempBlockMeta)} and the
    * {@link StorageDir#removeTempBlockMeta(TempBlockMeta)} methods.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void tempBlockMetaTest() throws Exception {
@@ -481,8 +433,6 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void resizeTempBlockMetaTest() throws Exception {
@@ -496,8 +446,6 @@ public final class StorageDirTest {
   /**
    * Tests that an {@link InvalidWorkerStateException} is thrown when trying to shrink a block via
    * the {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void resizeTempBlockMetaInvalidStateExceptionTest() throws Exception {
@@ -516,8 +464,6 @@ public final class StorageDirTest {
   /**
    * Tests that an exception is thrown when trying to resize a temporary block via the
    * {@link StorageDir#resizeTempBlockMeta(TempBlockMeta, long)} method without no available bytes.
-   *
-   * @throws Exception if an operation on the metadata of the temporary block fails
    */
   @Test
   public void resizeTempBlockMetaNoAvailableBytesTest() throws Exception {
@@ -533,8 +479,6 @@ public final class StorageDirTest {
 
   /**
    * Tests the {@link StorageDir#cleanupSessionTempBlocks(long, List)} method.
-   *
-   * @throws Exception if adding metadata of a block fails
    */
   @Test
   public void cleanupSessionTest() throws Exception {

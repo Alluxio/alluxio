@@ -64,8 +64,6 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests writing an increasing byte array one byte at a time.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void singleByteWriteTest() throws Exception {
@@ -79,8 +77,6 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests writing an increasing byte array.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void byteArrayWriteTest() throws Exception {
@@ -93,8 +89,6 @@ public class BufferedBlockOutStreamTest {
   /**
    * Tests writing the middle half of an increasing byte array and test writing more than half the
    * buffer limit. This causes an unbuffered write and flush.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void byteArrayAtOffsetTest() throws Exception {
@@ -115,8 +109,6 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests that writing to a closed stream throws an exception.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void writeToClosed() throws Exception {
@@ -128,8 +120,6 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests that writing past a block throws an exception.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void writePastBlock() throws Exception {
@@ -141,8 +131,6 @@ public class BufferedBlockOutStreamTest {
 
   /**
    * Tests that flushing twice works.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void doubleFlush() throws Exception {

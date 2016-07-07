@@ -13,10 +13,12 @@ package alluxio.master;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
@@ -104,6 +106,7 @@ public class JournalShutdownIntegrationTest {
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
     System.clearProperty("fs.hdfs.impl.disable.cache");
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before
@@ -112,7 +115,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal(mMasterConfiguration);
+    return MasterTestUtils.createFileSystemMasterFromJournal();
   }
 
   /**
@@ -121,7 +124,9 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR), true).size();
+    int actualFiles =
+        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
+            .size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(
@@ -135,8 +140,8 @@ public class JournalShutdownIntegrationTest {
     // Setup and start the alluxio-ft cluster.
     MultiMasterLocalAlluxioCluster cluster =
         new MultiMasterLocalAlluxioCluster(100, TEST_NUM_MASTERS, TEST_BLOCK_SIZE);
+    cluster.initializeTestConfiguration();
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;
@@ -146,8 +151,8 @@ public class JournalShutdownIntegrationTest {
       throws IOException, ConnectionFailedException {
     // Setup and start the local alluxio cluster.
     LocalAlluxioCluster cluster = new LocalAlluxioCluster(100, TEST_BLOCK_SIZE);
+    cluster.initializeTestConfiguration();
     cluster.start();
-    mMasterConfiguration = cluster.getMasterConf();
     mCreateFileThread = new ClientThread(0, cluster.getClient());
     mExecutorsForClient.submit(mCreateFileThread);
     return cluster;

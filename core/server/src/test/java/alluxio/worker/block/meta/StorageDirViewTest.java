@@ -11,14 +11,12 @@
 
 package alluxio.worker.block.meta;
 
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
 import com.google.common.collect.Lists;
 import org.hamcrest.CoreMatchers;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -42,7 +40,6 @@ public class StorageDirViewTest {
   private static final long TEST_BLOCK_SIZE = 20;
   private StorageDir mTestDir;
   private StorageDirView mTestDirView;
-  private StorageTier mTestTier;
   private StorageTierView mTestTierView;
   private BlockMetadataManagerView mMetaManagerView;
 
@@ -52,8 +49,6 @@ public class StorageDirViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -63,18 +58,10 @@ public class StorageDirViewTest {
     mMetaManagerView =
         Mockito.spy(new BlockMetadataManagerView(metaManager, new HashSet<Long>(),
           new HashSet<Long>()));
-    mTestTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
-    mTestDir = mTestTier.getDir(TEST_DIR);
-    mTestTierView = new StorageTierView(mTestTier, mMetaManagerView);
+    StorageTier testTier = metaManager.getTiers().get(TEST_TIER_LEVEL);
+    mTestDir = testTier.getDir(TEST_DIR);
+    mTestTierView = new StorageTierView(testTier, mMetaManagerView);
     mTestDirView = new StorageDirView(mTestDir, mTestTierView, mMetaManagerView);
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
   }
 
   /**
@@ -127,8 +114,6 @@ public class StorageDirViewTest {
 
   /**
    * Tests the {@link StorageDirView#getEvictableBlocks()} method.
-   *
-   * @throws Exception if adding the temporary block metadata fails
    */
   @Test
   public void getEvictableBlocksTest() throws Exception {

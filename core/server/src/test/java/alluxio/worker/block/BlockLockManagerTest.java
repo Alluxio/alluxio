@@ -11,11 +11,12 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Throwables;
 import org.junit.After;
@@ -57,8 +58,6 @@ public class BlockLockManagerTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -69,7 +68,7 @@ public class BlockLockManagerTest {
 
   @After
   public void after() throws Exception {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -86,8 +85,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to unlock a block via
    * {@link BlockLockManager#unlockBlock(long)} which is not locked.
-   *
-   * @throws Exception if unlocking the block fails
    */
   @Test
   public void unlockNonExistingLockTest() throws Exception {
@@ -101,8 +98,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} which is not locked.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithNoRecordTest() throws Exception {
@@ -116,8 +111,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect session ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithWrongSessionIdTest() throws Exception {
@@ -133,8 +126,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} with an incorrect block ID.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void validateLockIdWithWrongBlockIdTest() throws Exception {
@@ -150,8 +141,6 @@ public class BlockLockManagerTest {
   /**
    * Tests that an exception is thrown when trying to validate a lock of a block via
    * {@link BlockLockManager#validateLock(long, long, long)} after the session was cleaned up.
-   *
-   * @throws Exception if the validation of the lock fails
    */
   @Test
   public void cleanupSessionTest() throws Exception {
@@ -231,7 +220,8 @@ public class BlockLockManagerTest {
    * Calls {@link BlockLockManager#lockBlock(long, long, BlockLockType)} and fails if it doesn't
    * hang.
    *
-   * @param the block id to try locking
+   * @param manager the manager to call lock on
+   * @param blockId block id to try locking
    */
   private void lockExpectingHang(final BlockLockManager manager, final long blockId)
       throws Exception {
@@ -317,7 +307,6 @@ public class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    WorkerContext.getConf().set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS,
-        Integer.toString(maxLocks));
+    Configuration.set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

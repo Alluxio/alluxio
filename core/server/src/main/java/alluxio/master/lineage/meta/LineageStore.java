@@ -50,7 +50,7 @@ public final class LineageStore implements JournalCheckpointStreamable {
    */
   public LineageStore(LineageIdGenerator lineageIdGenerator) {
     mLineageIdGenerator = lineageIdGenerator;
-    mLineageDAG = new DirectedAcyclicGraph<Lineage>();
+    mLineageDAG = new DirectedAcyclicGraph<>();
     mOutputFileIndex = new HashMap<>();
     mIdIndex = new HashMap<>();
   }

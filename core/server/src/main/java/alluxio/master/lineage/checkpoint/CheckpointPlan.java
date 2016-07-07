@@ -44,7 +44,7 @@ public final class CheckpointPlan {
   }
 
   /**
-   * @return true if the chekcpoint plan is empty, false otherwise
+   * @return true if the checkpoint plan is empty, false otherwise
    */
   public boolean isEmpty() {
     return mToCheckPoint.isEmpty();

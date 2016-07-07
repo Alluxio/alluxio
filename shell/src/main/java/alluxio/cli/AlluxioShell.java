@@ -11,9 +11,9 @@
 
 package alluxio.cli;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.command.ShellCommand;
 import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
@@ -56,27 +56,24 @@ public final class AlluxioShell implements Closeable {
    * @throws IOException if closing the shell fails
    */
   public static void main(String[] argv) throws IOException {
-    Configuration conf = Configuration.createClientConf();
-    if (!ConfigurationUtils.validateConf(conf)) {
+    if (!ConfigurationUtils.validateConf()) {
       System.out.println("Invalid configuration found, please check user log for details");
       System.exit(-1);
     }
     int ret;
-    try (AlluxioShell shell = new AlluxioShell(conf)) {
+    try (AlluxioShell shell = new AlluxioShell()) {
       ret = shell.run(argv);
     }
     System.exit(ret);
   }
 
   private final Map<String, ShellCommand> mCommands = new HashMap<>();
-  private final Configuration mConfiguration;
   private final FileSystem mFileSystem;
 
   /**
-   * @param configuration the configuration for Alluxio
+   * Creates a new instance of {@link AlluxioShell}.
    */
-  public AlluxioShell(Configuration configuration) {
-    mConfiguration = configuration;
+  public AlluxioShell() {
     mFileSystem = FileSystem.Factory.get();
     loadCommands();
   }
@@ -97,8 +94,8 @@ public final class AlluxioShell implements Closeable {
         ShellCommand cmd;
         try {
           cmd = CommonUtils.createNewClassInstance(cls,
-              new Class[] { Configuration.class, FileSystem.class },
-              new Object[] {mConfiguration, mFileSystem });
+              new Class[] { FileSystem.class },
+              new Object[] {mFileSystem });
         } catch (Exception e) {
           throw Throwables.propagate(e);
         }
@@ -126,7 +123,7 @@ public final class AlluxioShell implements Closeable {
    */
   private void printUsage() {
     System.out.println("Usage: java AlluxioShell");
-    SortedSet<String> sortedCmds = new TreeSet<String>(mCommands.keySet());
+    SortedSet<String> sortedCmds = new TreeSet<>(mCommands.keySet());
     for (String cmd : sortedCmds) {
       System.out.format("%-60s%-95s%n", "       [" + mCommands.get(cmd).getUsage() + "]   ",
           mCommands.get(cmd).getDescription());
@@ -179,7 +176,7 @@ public final class AlluxioShell implements Closeable {
     try {
       command.run(cmdline);
       return 0;
-    } catch (IOException e) {
+    } catch (AlluxioException | IOException e) {
       System.out.println(e.getMessage());
       LOG.error("Error running " + StringUtils.join(argv, " "), e);
       return -1;

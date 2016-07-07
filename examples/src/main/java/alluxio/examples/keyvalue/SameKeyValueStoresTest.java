@@ -14,11 +14,11 @@ package alluxio.examples.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.cli.CliUtils;
 import alluxio.client.keyvalue.KeyValueIterator;
 import alluxio.client.keyvalue.KeyValuePair;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueSystem;
-import alluxio.cli.CliUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.BufferUtils;
 

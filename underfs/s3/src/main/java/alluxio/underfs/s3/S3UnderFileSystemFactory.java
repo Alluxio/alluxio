@@ -41,13 +41,12 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public S3UnderFileSystemFactory() {}
 
   @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
+  public UnderFileSystem create(String path, Object unusedConf) {
     Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
 
-    if (addAndCheckAWSCredentials(configuration)) {
+    if (addAndCheckAWSCredentials()) {
       try {
-        return new S3UnderFileSystem(new AlluxioURI(path), configuration);
+        return new S3UnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -60,7 +59,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_S3N);
   }
 
@@ -68,19 +67,18 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds AWS credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckAWSCredentials(Configuration configuration) {
+  private boolean addAndCheckAWSCredentials() {
+    // TODO(binfan): remove System.getProperty as it is covered by configuration
     String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
-      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
+      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
-      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
+      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null;
+    return Configuration.containsKey(accessKeyConf) && Configuration.containsKey(secretKeyConf);
   }
 }

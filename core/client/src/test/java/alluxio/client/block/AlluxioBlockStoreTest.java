@@ -11,7 +11,6 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.resource.DummyCloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
@@ -111,41 +110,34 @@ public final class AlluxioBlockStoreTest {
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when a local block exists, making sure that
    * the local block is preferred.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
     Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
-        .thenReturn(WORKER_HOSTNAME_LOCAL);
+    Mockito.when(NetworkAddressUtils.getLocalHostName()).thenReturn(WORKER_HOSTNAME_LOCAL);
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
   }
 
   /**
    * Tests {@link AlluxioBlockStore#getInStream(long)} when no local block exists, making sure that
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
-   *
-   * @throws Exception when getting the reading stream fails
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
     Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
     PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName(Mockito.<Configuration>any()))
+    Mockito.when(NetworkAddressUtils.getLocalHostName())
         .thenReturn(WORKER_HOSTNAME_LOCAL + "_different");
     BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
 
     Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals(BLOCK_ID, Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH,
-        Whitebox.getInternalState(stream, "mBlockSize"));
+    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
+    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
     Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
         Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
   }

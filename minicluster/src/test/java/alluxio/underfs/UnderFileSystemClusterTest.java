@@ -11,8 +11,6 @@
 
 package alluxio.underfs;
 
-import alluxio.Configuration;
-
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +28,6 @@ import java.io.IOException;
 public class UnderFileSystemClusterTest {
 
   private static final String BASE_DIR = "/tmp";
-  private static final Configuration ALLUXIO_CONF = new Configuration();
   private UnderFileSystemCluster mUnderFileSystemCluster;
 
   @Before
@@ -46,8 +43,8 @@ public class UnderFileSystemClusterTest {
   public void getTest() throws IOException {
     PowerMockito.spy(UnderFileSystemCluster.class);
 
-    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR,
-        ALLUXIO_CONF)).thenReturn(mUnderFileSystemCluster);
+    Mockito.when(UnderFileSystemCluster.getUnderFilesystemCluster(BASE_DIR))
+        .thenReturn(mUnderFileSystemCluster);
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSCluster",
         (UnderFileSystemCluster) null);
@@ -55,7 +52,7 @@ public class UnderFileSystemClusterTest {
     Mockito.when(mUnderFileSystemCluster.isStarted()).thenReturn(false);
 
     // execute test
-    UnderFileSystemCluster.get(BASE_DIR, ALLUXIO_CONF);
+    UnderFileSystemCluster.get(BASE_DIR);
 
     UnderFileSystemCluster underFSCluster = Whitebox.getInternalState(UnderFileSystemCluster
         .class, "sUnderFSCluster");
@@ -67,20 +64,14 @@ public class UnderFileSystemClusterTest {
   }
 
   /**
-   * Tests that the {UnderFileSystemCluster{@link #readEOFReturnsNegativeTest()} method will return
-   * true only when the cluster type is "alluxio.underfs.hdfs.LocalMiniDFSCluster".
+   * Tests the {@link UnderFileSystemCluster#getUnderFSClass()} method.
    */
   @Test
-  public void readEOFReturnsNegativeTest() {
+  public void getUnderFSClassTest() {
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         (String) null);
     String underFSClass = UnderFileSystemCluster.getUnderFSClass();
     Assert.assertNull(underFSClass);
-
-    Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
-        "XXXX");
-    underFSClass = UnderFileSystemCluster.getUnderFSClass();
-    Assert.assertFalse("alluxio.underfs.hdfs.LocalMiniDFSCluster".equals(underFSClass));
 
     Whitebox.setInternalState(UnderFileSystemCluster.class, "sUnderFSClass",
         "alluxio.underfs.hdfs.LocalMiniDFSCluster");

@@ -135,7 +135,7 @@ On the leader master node, you can run tests against Alluxio to check its health
 {% include Running-Alluxio-Fault-Tolerant-on-EC2/runTests.md %}
 
 After the tests finish, visit Alluxio web UI at `http://{MASTER_IP}:19999` again. Click
-`Browse File System` in the navigation bar, and you should see the files written to Alluxio by the
+`Browse` in the navigation bar, and you should see the files written to Alluxio by the
 above tests.
 
 You can ssh into the current Alluxio master leader, and find process ID of the AlluxioMaster
@@ -160,7 +160,7 @@ The output of the command should show the new leader. You may need to wait for a
 new leader to be elected. You can query the public IP for the new leader based on its name in
 [AWS web console](https://console.aws.amazon.com/console/home?region=us-east-1).
 
-Visit Alluxio web UI at `http://{NEW_LEADER_MASTER_IP}:19999`. Click `Browse File System` in the
+Visit Alluxio web UI at `http://{NEW_LEADER_MASTER_IP}:19999`. Click `Browse` in the
 navigation bar, and you should see all files are still there.
 
 From a node in the cluster, you can ssh to other nodes in the cluster without password with:

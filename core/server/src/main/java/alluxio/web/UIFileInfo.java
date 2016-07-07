@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.client.file.URIStatus;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.security.authorization.FileSystemPermission;
+import alluxio.security.authorization.Mode;
 import alluxio.util.FormatUtils;
 import alluxio.wire.FileInfo;
 
@@ -90,15 +90,14 @@ public final class UIFileInfo {
   private final int mInMemoryPercent;
   private final boolean mIsDirectory;
   private final boolean mPinned;
-  private final String mUserName;
-  private final String mGroupName;
-  private final String mPermission;
+  private final String mOwner;
+  private final String mGroup;
+  private final String mMode;
   private final String mPersistenceState;
   private final List<String> mFileLocations;
 
-  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier =
-      new HashMap<String, List<UIFileBlockInfo>>();
-  private final Map<String, Long> mSizeOnTier = new HashMap<String, Long>();
+  private final Map<String, List<UIFileBlockInfo>> mBlocksOnTier = new HashMap<>();
+  private final Map<String, Long> mSizeOnTier = new HashMap<>();
 
   /**
    * Creates a new instance of {@link UIFileInfo}.
@@ -117,10 +116,9 @@ public final class UIFileInfo {
     mInMemoryPercent = status.getInMemoryPercentage();
     mIsDirectory = status.isFolder();
     mPinned = status.isPinned();
-    mUserName = status.getUserName();
-    mGroupName = status.getGroupName();
-    mPermission =
-        FormatUtils.formatPermission((short) status.getPermission(), status.isFolder());
+    mOwner = status.getOwner();
+    mGroup = status.getGroup();
+    mMode = FormatUtils.formatMode((short) status.getMode(), status.isFolder());
     mPersistenceState = status.getPersistenceState();
     mFileLocations = new ArrayList<>();
   }
@@ -151,13 +149,11 @@ public final class UIFileInfo {
     mInMemoryPercent = 0;
     mIsDirectory = fileInfo.mIsDirectory;
     mPinned = false;
-    mUserName = "";
-    mGroupName = "";
-    mPermission =
-        FormatUtils.formatPermission((short) FileSystemPermission.getNoneFsPermission()
-            .toShort(), true);
+    mOwner = "";
+    mGroup = "";
+    mMode = FormatUtils.formatMode(Mode.createNoAccess().toShort(), true);
     mPersistenceState = PersistenceState.NOT_PERSISTED.name();
-    mFileLocations = new ArrayList<String>();
+    mFileLocations = new ArrayList<>();
   }
 
   /**
@@ -173,7 +169,7 @@ public final class UIFileInfo {
         new UIFileBlockInfo(blockId, blockSize, blockLastAccessTimeMs, tierAlias);
     List<UIFileBlockInfo> blocksOnTier = mBlocksOnTier.get(tierAlias);
     if (blocksOnTier == null) {
-      blocksOnTier = new ArrayList<UIFileBlockInfo>();
+      blocksOnTier = new ArrayList<>();
       mBlocksOnTier.put(tierAlias, blocksOnTier);
     }
     blocksOnTier.add(block);
@@ -313,23 +309,23 @@ public final class UIFileInfo {
   }
 
   /**
-   * @return the user name of the file
+   * @return the owner of the file
    */
-  public String getUserName() {
-    return mUserName;
+  public String getOwner() {
+    return mOwner;
   }
 
   /**
-   * @return the group name of the file
+   * @return the group of the file
    */
-  public String getGroupName() {
-    return mGroupName;
+  public String getGroup() {
+    return mGroup;
   }
 
   /**
-   * @return the permission of the file
+   * @return the mode of the file
    */
-  public String getPermission() {
-    return mPermission;
+  public String getMode() {
+    return mMode;
   }
 }

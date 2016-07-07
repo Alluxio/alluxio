@@ -32,9 +32,7 @@ public class BufferedBlockInStreamTest {
    */
   @Before
   public void before() {
-    mBufferSize =
-        Configuration.createDefaultConf().getBytes(
-            Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+    mBufferSize = Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     mBlockSize = mBufferSize * 10;
     mTestStream = new TestBufferedBlockInStream(1L, 0, mBlockSize);
   }
@@ -42,8 +40,6 @@ public class BufferedBlockInStreamTest {
   /**
    * Verifies the byte by byte read is equal to an increasing byte array, where the written data is
    * an increasing byte array.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void singleByteReadTest() throws Exception {
@@ -54,8 +50,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests for the {@link BufferedBlockInStream#skip(long)} method.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void skipTest() throws Exception {
@@ -70,8 +64,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests for the {@link BufferedBlockInStream#seek(long)} method.
-   *
-   * @throws Exception when an operation on the stream fails
    */
   @Test
   public void seekTest() throws Exception {
@@ -90,8 +82,6 @@ public class BufferedBlockInStreamTest {
 
   /**
    * Tests that {@link BufferedBlockInStream#read(byte[], int, int)} works for bulk reads.
-   *
-   * @throws Exception when reading from the stream fails
    */
   @Test
   public void bulkReadTest() throws Exception {

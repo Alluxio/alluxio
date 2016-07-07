@@ -31,14 +31,14 @@ public final class BlockContainerIdGenerator implements ContainerIdGenerable {
   }
 
   @Override
-  public synchronized long getNewContainerId() {
+  public long getNewContainerId() {
     return mNextContainerId.getAndIncrement();
   }
 
   /**
    * @param id the next container id to use
    */
-  public synchronized void setNextContainerId(long id) {
+  public void setNextContainerId(long id) {
     mNextContainerId.set(id);
   }
 }

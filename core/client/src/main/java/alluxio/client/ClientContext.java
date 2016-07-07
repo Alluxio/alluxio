@@ -32,21 +32,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientContext {
   private static ExecutorService sBlockClientExecutorService;
   private static ExecutorService sFileClientExecutorService;
-  private static Configuration sConf;
-  private static InetSocketAddress sMasterAddress;
   private static ClientMetrics sClientMetrics;
+  private static InetSocketAddress sMasterAddress;
 
   static {
-    reset();
-  }
-
-  /**
-   * Resets to the default Alluxio configuration and initializes the client context singleton.
-   *
-   * This method is useful for undoing changes to {@link Configuration} made by unit tests.
-   */
-  private static void reset() {
-    sConf = Configuration.createClientConf();
     init();
   }
 
@@ -59,25 +48,18 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    String masterHostname = Preconditions.checkNotNull(sConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sConf.getInt(Constants.MASTER_RPC_PORT);
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
+    sBlockClientExecutorService = Executors
+        .newFixedThreadPool(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    sFileClientExecutorService = Executors
+        .newFixedThreadPool(Configuration.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
     sClientMetrics = new ClientMetrics();
 
-    sBlockClientExecutorService =
-        Executors.newFixedThreadPool(sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-    sFileClientExecutorService =
-        Executors.newFixedThreadPool(sConf.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
-            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
-  }
-
-  /**
-   * @return the {@link Configuration} for the client process
-   */
-  public static Configuration getConf() {
-    return sConf;
+    String masterHostname =
+        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
+    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
+    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
   }
 
   /**
