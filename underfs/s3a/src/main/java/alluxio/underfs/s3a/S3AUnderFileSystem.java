@@ -27,6 +27,8 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.ListObjectsV2Request;
+import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -43,7 +45,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   /** Static hash for a directory's empty contents. */
   private static final String DIR_HASH;
+
+  /** Length of each list request in S3. */
+  private static final int LISTING_LENGTH = 1000;
 
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
@@ -536,48 +540,68 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   /**
    * Lists the files in the given path, the paths will be their logical names and not contain the
-   * folder suffix.
+   * folder suffix. Note that, the list results are unsorted.
    *
    * @param path the key to list
    * @param recursive if true will list children directories as well
    * @return an array of the file and folder names in this directory
-   * @throws java.io.IOException if an I/O error occurs
+   * @throws IOException if an I/O error occurs
    */
   private String[] listInternal(String path, boolean recursive) throws IOException {
+    path = stripPrefixIfPresent(path);
+    path = PathUtils.normalizePath(path, PATH_SEPARATOR);
+    path = path.equals(PATH_SEPARATOR) ? "" : path;
+    String delimiter = recursive ? "" : PATH_SEPARATOR;
+    Set<String> children = new HashSet<>();
     try {
-      path = stripPrefixIfPresent(path);
-      path = PathUtils.normalizePath(path, PATH_SEPARATOR);
-      path = path.equals(PATH_SEPARATOR) ? "" : path;
-      // Gets all the objects under the path, because we have no idea if there are non Alluxio
-      // managed "directories"
-      ObjectListing objs = mClient.listObjects(mBucketName, path);
-      if (recursive) {
-        List<String> ret = new ArrayList<>();
-        for (S3ObjectSummary obj : objs.getObjectSummaries()) {
+      ListObjectsV2Request request =
+          new ListObjectsV2Request().withBucketName(mBucketName).withPrefix(path)
+              .withDelimiter(delimiter).withMaxKeys(LISTING_LENGTH);
+      ListObjectsV2Result result = null;
+      while (result == null || result.isTruncated()) {
+        // Query S3 for the next batch of objects
+        result = mClient.listObjectsV2(request);
+        // Advance the request continuation token to the next set of objects
+        request.setContinuationToken(result.getNextContinuationToken());
+
+        // Directories in S3 UFS can be possibly encoded in two different ways:
+        // (1) as file objects with FOLDER_SUFFIX for directories created through Alluxio or
+        // (2) as "common prefixes" of other files objects for directories not created through
+        // Alluxio
+        //
+        // Case (1) (and file objects) is accounted for by iterating over chunk.getObjects() while
+        // case (2) is accounted for by iterating over chunk.getCommonPrefixes().
+        //
+        // An example, with prefix="ufs" and delimiter="/" and LISTING_LENGTH=5
+        // - objects.key = ufs/, child =
+        // - objects.key = ufs/dir1_$folder$, child = dir1
+        // - objects.key = ufs/file, child = file
+        // - commonPrefix = ufs/dir1/, child = dir1
+        // - commonPrefix = ufs/dir2/, child = dir2
+
+        // Handle case (1)
+        for (S3ObjectSummary obj : result.getObjectSummaries()) {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
           child = stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
-            ret.add(child);
+            children.add(child);
           }
         }
-        return ret.toArray(new String[ret.size()]);
-      }
-      // Non recursive list
-      Set<String> children = new HashSet<String>();
-      for (S3ObjectSummary obj : objs.getObjectSummaries()) {
-        // Remove parent portion of the key
-        String child = getChildName(obj.getKey(), path);
-        // Remove any portion after the path delimiter
-        int childNameIndex = child.indexOf(PATH_SEPARATOR);
-        child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-        // Prune the special folder suffix
-        child = stripFolderSuffixIfPresent(child);
-        // Add to the set of children, the set will deduplicate.
-        if (!child.isEmpty()) {
-          children.add(child);
+        // Handle case (2)
+        for (String commonPrefix : result.getCommonPrefixes()) {
+          // Remove parent portion of the key
+          String child = getChildName(commonPrefix, path);
+          // Remove any portion after the last path delimiter
+          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+          if (!child.isEmpty() && !children.contains(child)) {
+            // This directory has not been created through Alluxio.
+            mkdirsInternal(commonPrefix);
+            children.add(child);
+          }
         }
       }
       return children.toArray(new String[children.size()]);
