@@ -377,10 +377,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return folder path
    */
   private String addFolderSuffixIfNotPresent(String path) {
-    if (!path.endsWith(PATH_SEPARATOR)) {
-      path = path + PATH_SEPARATOR;
-    }
-    return path;
+    return PathUtils.normalizePath(path, PATH_SEPARATOR);
   }
 
   /**
@@ -552,7 +549,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param key the key to strip the suffix from
    * @return the key with the suffix removed, or the key unaltered if the suffix is not present
    */
-  private String stripFolderSuffixIfPresent(String key) {
+  private String stripFolderSuffixIfPresent(final String key) {
     return UnderFileSystemUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
   }
 
@@ -564,7 +561,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the key to strip
    * @return the key without the Swift container prefix
    */
-  private String stripPrefixIfPresent(String path) {
+  private String stripPrefixIfPresent(final String path) {
     return UnderFileSystemUtils.stripPrefixIfPresent(path, mContainerPrefix);
   }
 
