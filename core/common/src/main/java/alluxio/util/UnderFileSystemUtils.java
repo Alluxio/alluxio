@@ -67,36 +67,5 @@ public final class UnderFileSystemUtils {
     os.close();
   }
 
-  /**
-   * Strips the suffix if it exists. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @param suffix suffix to remove
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  public static String stripSuffixIfPresent(final String key, final String suffix) {
-    if (key.endsWith(suffix)) {
-      return key.substring(0, key.length() - suffix.length());
-    }
-    return key;
-  }
-
-  /**
-   * Strips the prefix from the path if it is present. For example, for input path
-   * ufs://my-bucket-name/my-path/file and prefix ufs://my-bucket-name/, the output would be
-   * my-path/file. This method will leave keys without a prefix unaltered, ie. my-path/file
-   * returns my-path/file.
-   *
-   * @param path the key to strip
-   * @param prefix prefix to remove
-   * @return the key without the prefix
-   */
-  public static String stripPrefixIfPresent(final String path, final String prefix) {
-    if (path.startsWith(prefix)) {
-      return path.substring(prefix.length());
-    }
-    return path;
-  }
-
   private UnderFileSystemUtils() {} // prevent instantiation
 }
