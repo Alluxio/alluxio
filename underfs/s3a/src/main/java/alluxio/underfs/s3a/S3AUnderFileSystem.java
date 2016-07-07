@@ -103,7 +103,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     ClientConfiguration clientConf = new ClientConfiguration();
     clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
-    if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP)) {
+    if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
