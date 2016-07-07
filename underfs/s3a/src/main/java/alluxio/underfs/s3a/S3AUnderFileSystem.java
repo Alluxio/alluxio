@@ -96,10 +96,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   public S3AUnderFileSystem(AlluxioURI uri) {
     super(uri);
-    AWSCredentialsProvider credentials =
-        new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
+
+    AWSCredentialsProvider credentials =
+        new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     ClientConfiguration clientConf = new ClientConfiguration();
     clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
     if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP)) {
@@ -107,8 +108,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
+
     mClient = new AmazonS3Client(credentials, clientConf);
     mManager = new TransferManager(mClient);
+
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     mManager.setConfiguration(transferConf);
