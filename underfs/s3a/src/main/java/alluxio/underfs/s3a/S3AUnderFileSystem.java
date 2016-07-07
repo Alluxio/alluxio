@@ -15,6 +15,8 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
@@ -87,17 +89,16 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
-   * @param conf the configuration for Alluxio
    */
-  public S3AUnderFileSystem(AlluxioURI uri, Configuration conf) {
-    super(uri, conf);
+  public S3AUnderFileSystem(AlluxioURI uri) {
+    super(uri);
     AWSCredentialsProvider credentials =
         new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
     ClientConfiguration clientConf = new ClientConfiguration();
-    clientConf.setSocketTimeout(conf.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
-    if (conf.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP)) {
+    clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP)) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
@@ -119,37 +120,26 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) {
+  public void connectFromMaster(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) {
+  public void connectFromWorker(String hostname) {
     // Authentication is taken care of in the constructor
   }
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
     if (mkdirs(getParentKey(path), true)) {
       return new S3AOutputStream(mBucketName, stripPrefixIfPresent(path), mManager);
     }
     return null;
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    LOG.debug("S3AUnderFileSystem does not support create with block size, ignoring the argument.");
-    return create(path);
-  }
-
-  // Same as create(path)
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte)
-      throws IOException {
-    LOG.debug("S3AUnderFileSystem does not support create with block size or replication, " +
-        "ignoring the arguments.");
-    return create(path);
   }
 
   @Override
@@ -187,11 +177,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    *
    * @param path the file name
    * @return the default Alluxio user block size
-   * @throws java.io.IOException this implementation will not throw this exception, but subclasses may
+   * @throws IOException this implementation will not throw this exception, but subclasses may
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return mConfiguration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -259,6 +249,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
     if (path == null) {
       return false;
     }
@@ -269,7 +264,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       LOG.error("Cannot create directory {} because it is already a file.", path);
       return false;
     }
-    if (!createParent) {
+    if (!options.getCreateParent()) {
       if (parentExists(path)) {
         // Parent directory exists
         return mkdirsInternal(path);
@@ -358,7 +353,25 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   // Not supported
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {}
+
+  // Not supported
+  @Override
+  public String getOwner(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public String getGroup(String path) throws IOException {
+    return null;
+  }
+
+  // Not supported
+  @Override
+  public short getMode(String path) throws IOException {
+    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+  }
 
   /**
    * Appends the directory suffix to the key.
