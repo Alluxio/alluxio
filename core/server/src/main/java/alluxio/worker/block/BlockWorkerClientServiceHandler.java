@@ -217,7 +217,8 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
           mWorker.requestSpace(sessionId, blockId, requestBytes);
           return true;
         } catch (WorkerOutOfSpaceException e) {
-          LOG.warn("Worker is out of space, failed to serve request for {} bytes", requestBytes);
+          LOG.warn("Worker is out of space, failed to serve request for {} bytes for block {}",
+              requestBytes, blockId);
           return false;
         } catch (Exception e) {
           LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
