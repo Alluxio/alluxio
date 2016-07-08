@@ -187,20 +187,28 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
     String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
-    if (recursive) {
-      strippedPath = addFolderSuffixIfNotPresent(strippedPath);
-      PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
-      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-        for (StoredObject object : container.list(paginationMap, page)) {
-          object.delete();
+    try {
+      if (recursive) {
+        strippedPath = addFolderSuffixIfNotPresent(strippedPath);
+        PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
+        for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+          for (StoredObject object : container.list(paginationMap, page)) {
+            object.delete();
+          }
         }
       }
-    }
-    StoredObject object = container.getObject(strippedPath);
-    if (object.exists()) {
+      StoredObject object = container.getObject(strippedPath);
       object.delete();
+      return true;
+    } catch (CommandException e) {
+      // StoredObject.delete will return with exception if the object does not exist
+      if (e.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+        LOG.error("Path {} or child not found for deletion", path);
+      } else {
+        LOG.error("Unknown error during delete");
+      }
+      return false;
     }
-    return true;
   }
 
   @Override
@@ -441,6 +449,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       // Rename each child in the source folder to destination/child
       String [] children = list(source);
       for (String child: children) {
+        // TODO(adit): See how we can do this with better performance
         // Recursive call
         if (!rename(PathUtils.concatPath(source, child),
             PathUtils.concatPath(mContainerPrefix,
