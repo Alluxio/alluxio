@@ -53,6 +53,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * OpenStack Swift {@link UnderFileSystem} implementation based on the JOSS library.
  * The mkdir operation creates a zero-byte object.
  * A suffix {@link SwiftUnderFileSystem#PATH_SEPARATOR} in the object name denotes a folder.
+ * JOSS directory listing API requires that the suffix be a single character.
  */
 // TODO(adit): Abstract out functionality common with other object under storage systems.
 @ThreadSafe
@@ -191,7 +192,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject object : container.list(paginationMap, page)) {
-            object.delete();
+          object.delete();
         }
       }
     }
