@@ -130,15 +130,20 @@ public class S3AOutputStream extends OutputStream {
     }
     mLocalOutputStream.close();
     try {
+      // Generate the object metadata by setting server side encryption, md5 checksum, the file
+      // length, and encoding as octet stream since no assumptions are made about the file type
       ObjectMetadata meta = new ObjectMetadata();
       if (SSE_ENABLED) {
         meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
       }
-      meta.setContentLength(mFile.length());
-      meta.setContentEncoding(Mimetypes.MIMETYPE_OCTET_STREAM);
       if (mHash != null) {
         meta.setContentMD5(new String(Base64.encode(mHash.digest())));
       }
+      meta.setContentLength(mFile.length());
+      meta.setContentEncoding(Mimetypes.MIMETYPE_OCTET_STREAM);
+
+      // Generate the put request and wait for the transfer manager to complete the upload, then
+      // delete the temporary file on the local machine
       PutObjectRequest putReq = new PutObjectRequest(mBucketName, mKey, mFile).withMetadata(meta);
       mManager.upload(putReq).waitForUploadResult();
       if (!mFile.delete()) {
