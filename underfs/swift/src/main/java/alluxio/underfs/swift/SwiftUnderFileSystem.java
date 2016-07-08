@@ -333,6 +333,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         return false;
       }
       final String parentPath = getParentPath(path);
+      // TODO(adit): See how we can do this with better performance
       // Recursively make the parent folders
       if (!mkdirs(parentPath, true)) {
         LOG.error("Unable to create parent directory {}", path);
