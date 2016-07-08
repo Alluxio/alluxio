@@ -101,7 +101,7 @@ public class JournalShutdownIntegrationTest {
   /** Executor for running client threads. */
   private ExecutorService mExecutorsForClient;
 
-  public SystemPropertyRule disableHdfsCacheRule =
+  public SystemPropertyRule mDisableHdfsCacheRule =
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @After
