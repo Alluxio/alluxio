@@ -21,11 +21,14 @@ import alluxio.underfs.swift.http.SwiftDirectClient;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.http.HttpStatus;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
+import org.javaswift.joss.exception.CommandException;
 import org.javaswift.joss.model.Access;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
@@ -123,6 +126,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     mapper.configure(SerializationConfig.Feature.WRAP_ROOT_VALUE, true);
     mContainerName = containerName;
     mAccount = new AccountFactory(config).createAccount();
+    // Do not allow container cache to avoid stale directory listings
+    mAccount.setAllowContainerCaching(false);
     mAccess = mAccount.authenticate();
     Container container = mAccount.getContainer(containerName);
     if (!container.exists()) {
@@ -172,6 +177,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       String plainName = CommonUtils.stripSuffixIfPresent(strippedPath, "_SUCCESS");
       SwiftDirectClient.put(mAccess, plainName).close();
     }
+    // We do not check if a folder with the same name exists
     return SwiftDirectClient.put(mAccess, strippedPath);
   }
 
@@ -339,6 +345,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     try {
       String keyAsFolder = addFolderSuffixIfNotPresent(
           CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
+      // We do not check if a file with same name exists, i.e. a file with name
+      // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
+      // may both exist simultaneously
       SwiftDirectClient.put(mAccess, keyAsFolder).close();
       return true;
     } catch (IOException e) {
@@ -402,6 +411,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * @inheritDoc
+   * Rename will overwrite destination if it already exists
    *
    * @param source the source file or folder name
    * @param destination the destination file or folder name
@@ -410,22 +420,17 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public boolean rename(String source, String destination) throws IOException {
-    if (!exists(source)) {
-      LOG.error("Unable to rename {} to {} because source does not exist.",
-          source, destination);
-      return false;
-    }
-    if (exists(destination)) {
-      LOG.error("Unable to rename {} to {} because destination already exists.",
-          source, destination);
-      return false;
-    }
-
     String strippedSourcePath = stripContainerPrefixIfPresent(source);
     String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
 
-    // Source exists and destination does not exist
+    if (isDirectory(destination)) {
+      // If destination is a directory target is a file or folder within that directory
+      strippedDestinationPath = PathUtils.concatPath(strippedDestinationPath,
+          FilenameUtils.getName(stripFolderSuffixIfPresent(strippedSourcePath)));
+    }
+
     if (isDirectory(source)) {
+      // Source is a directory
       strippedSourcePath = addFolderSuffixIfNotPresent(strippedSourcePath);
       strippedDestinationPath = addFolderSuffixIfNotPresent(strippedDestinationPath);
 
@@ -438,14 +443,17 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       for (String child: children) {
         // Recursive call
         if (!rename(PathUtils.concatPath(source, child),
-            PathUtils.concatPath(destination, child))) {
+            PathUtils.concatPath(mContainerPrefix,
+                PathUtils.concatPath(strippedDestinationPath, child)))) {
           return false;
         }
       }
+      // TODO(adit): delete makes another list call. can be optimized
       // Delete source and everything under source
       return delete(source, true);
     }
-    // Source is a file and destination does not exist
+
+    // Source is a file and destination is also a file
     return copy(strippedSourcePath, strippedDestinationPath) && delete(source, false);
   }
 
@@ -480,6 +488,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * Copies an object to another name.
+   * Destination will be overwritten if it already exists
    *
    * @param source the source path to copy
    * @param destination the destination path to copy to
@@ -487,8 +496,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean copy(String source, String destination) {
     LOG.debug("copy from {} to {}", source, destination);
-    String strippedSourcePath = stripContainerPrefixIfPresent(source);
-    String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
+    final String strippedSourcePath = stripContainerPrefixIfPresent(source);
+    final String strippedDestinationPath = stripContainerPrefixIfPresent(destination);
     // Retry copy for a few times, in case some Swift internal errors happened during copy.
     for (int i = 0; i < NUM_RETRIES; i++) {
       try {
@@ -496,6 +505,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         container.getObject(strippedSourcePath)
             .copyObject(container, container.getObject(strippedDestinationPath));
         return true;
+      } catch (CommandException e) {
+        if (e.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
+          LOG.error("Source path {} does not exist", source);
+        } else {
+          LOG.error("Unknown error during copy");
+        }
+        return false;
       } catch (Exception e) {
         LOG.error("Failed to copy file {} to {}", source, destination, e.getMessage());
         if (i != NUM_RETRIES - 1) {
@@ -534,8 +550,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private Collection<DirectoryOrObject> listInternal(final String prefix) throws IOException {
     Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
     Container container = mAccount.getContainer(mContainerName);
-    // Reset cache to avoid stale listings
-    mAccount.resetContainerCache();
     return container.listDirectory(directory);
   }
 
