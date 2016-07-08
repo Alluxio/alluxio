@@ -136,30 +136,30 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
      * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
      * inner set which is under iteration.
      */
-    private final Iterator<ConcurrentHashSet<T>> mIndexMapIterator;
+    private final Iterator<ConcurrentHashSet<T>> mIndexIterator;
     /**
      * Iterator inside each inner set. This iterator keeps track of the objects.
      */
-    private Iterator<T> mIndexIterator;
+    private Iterator<T> mObjectIterator;
     /**
      * Keeps track of current object. It is used to do the remove.
      */
     private T mObject;
 
     public NonUniqueFieldIndexIterator() {
-      mIndexMapIterator = mIndexMap.values().iterator();
-      mIndexIterator = null;
+      mIndexIterator = mIndexMap.values().iterator();
+      mObjectIterator = null;
       mObject = null;
     }
 
     @Override
     public boolean hasNext() {
-      if (mIndexIterator != null && mIndexIterator.hasNext()) {
+      if (mObjectIterator != null && mObjectIterator.hasNext()) {
         return true;
       }
-      while (mIndexMapIterator.hasNext()) {
-        mIndexIterator = mIndexMapIterator.next().iterator();
-        if (mIndexIterator.hasNext()) {
+      while (mIndexIterator.hasNext()) {
+        mObjectIterator = mIndexIterator.next().iterator();
+        if (mObjectIterator.hasNext()) {
           return true;
         }
       }
@@ -168,11 +168,11 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
 
     @Override
     public T next() {
-      while (mIndexIterator == null || !mIndexIterator.hasNext()) {
-        mIndexIterator = mIndexMapIterator.next().iterator();
+      while (mObjectIterator == null || !mObjectIterator.hasNext()) {
+        mObjectIterator = mIndexIterator.next().iterator();
       }
 
-      final T next = mIndexIterator.next();
+      final T next = mObjectIterator.next();
       mObject = next;
       return next;
     }

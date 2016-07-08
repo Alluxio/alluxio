@@ -267,17 +267,32 @@ public class IndexedSetTest {
 
     valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
     Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+  }
+
+  /**
+   * Tests that foreach works correctly with the iterator gathered by
+   * {@link IndexedSet#iterator()} method.
+   */
+  @Test
+  public void iteratorForeachTest() {
+    long removed = 0;
+    Iterator<Pair> it = mSet.iterator();
+    Assert.assertTrue(it.hasNext());
+    final Pair first = it.next();
+
+    it.remove();
+    removed++;
 
     while (it.hasNext()) {
       it.next();
       it.remove();
       removed++;
     }
-    Assert.assertEquals(removed, 9L);
+    Assert.assertEquals(9L, removed);
     Assert.assertTrue(mSet.size() == 0);
 
     for (Pair o : mSet) {
-      Assert.assertTrue(true);
+      Assert.assertTrue(false);
     }
 
     long l = 0;
