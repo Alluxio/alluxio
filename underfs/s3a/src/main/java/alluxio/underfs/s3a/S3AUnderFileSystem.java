@@ -73,7 +73,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Threshold to do multipart copy. */
   private static final long MULTIPART_COPY_THRESHOLD = 100 * Constants.MB;
 
-  /** Jets3t S3 client. */
+  /** AWS-SDK S3 client. */
   private final AmazonS3Client mClient;
 
   /** Bucket name of user's configured Alluxio bucket. */
