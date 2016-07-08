@@ -356,7 +356,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Treating Swift as a file system, checks if the parent directory exists.
+   * Checks if the parent directory exists, treating Swift as a file system.
    *
    * @param path the path to check
    * @return true if the parent exists or if the path is root, false otherwise
@@ -486,8 +486,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Copies an object to another name.
-   * Destination will be overwritten if it already exists
+   * Copies an object to another name. Destination will be overwritten if it already exists.
    *
    * @param source the source path to copy
    * @param destination the destination path to copy to
