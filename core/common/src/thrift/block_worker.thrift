@@ -69,13 +69,13 @@ service BlockWorkerClientService extends common.AlluxioService {
 
   /**
    * Used to request space for some block file. return true if the worker successfully allocates
-   * space for the block on block’s location, false if there is not enough space, if there is no
+   * space for the block on block’s location, false if there is no enough space, if there is no
    * information of the block on worker, FileDoesNotExistException will be thrown.
    */
   bool requestSpace( /** the id of the current session */ 1: i64 sessionId,
       /** the id of the block being accessed */ 2: i64 blockId,
       /** the number of bytes requested */ 3: i64 requestBytes)
-    throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+    throws (1: exception.AlluxioTException e)
 
   /**
    * Local session send heartbeat to local worker to keep its temporary folder. It also sends client
