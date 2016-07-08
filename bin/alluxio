@@ -42,7 +42,7 @@ function printUsage {
 }
 
 function bootstrapConf {
-  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift]"
+  local usage="Usage: $0 bootstrapConf <alluxio_master_hostname> [local|hdfs|s3|gcs|glusterfs|swift|oss]"
   if [[ $# -lt 1 ]]; then
     echo ${usage} >&2
     exit 1
@@ -99,6 +99,9 @@ function bootstrapConf {
       ;;
     swift)
       ALLUXIO_UNDERFS_ADDRESS="swift://swift-container/"
+      ;;
+    oss)
+      ALLUXIO_UNDERFS_ADDRESS="oss://bucket/directory/"
       ;;
     *)
       echo ${usage} >&2
