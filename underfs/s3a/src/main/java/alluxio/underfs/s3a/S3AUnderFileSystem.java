@@ -242,7 +242,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
-    return exists(path) && !isFolder(path);
+    // Directly try to get the file metadata, if we fail it either is a folder or does not exist
+    try {
+      mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(path));
+      return true;
+    } catch (AmazonClientException e) {
+      return false;
+    }
   }
 
   @Override
