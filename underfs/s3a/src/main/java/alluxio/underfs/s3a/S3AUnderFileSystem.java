@@ -79,10 +79,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
-  /** Prefix of the bucket, for example s3a://my-bucket-name/ . */
+  /** Prefix of the bucket, for example s3a://my-bucket-name/. */
   private final String mBucketPrefix;
 
-  /** Transfer Manager for efficient I/O to s3 */
+  /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
 
   static {

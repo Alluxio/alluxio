@@ -99,7 +99,8 @@ public class S3AOutputStream extends OutputStream {
     } catch (NoSuchAlgorithmException e) {
       LOG.warn("Algorithm not available for MD5 hash.", e);
       mHash = null;
-      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));    }
+      mLocalOutputStream = new BufferedOutputStream(new FileOutputStream(mFile));
+    }
   }
 
   @Override
