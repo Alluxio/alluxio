@@ -19,6 +19,8 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.UnexpectedAlluxioException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
@@ -210,9 +212,9 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   @Override
   public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
       throws AlluxioTException, ThriftIOException {
-    return RpcUtils.call(new RpcCallableThrowsIOException<Boolean>() {
+    return RpcUtils.call(new RpcCallable<Boolean>() {
       @Override
-      public Boolean call() throws AlluxioException, IOException {
+      public Boolean call() throws AlluxioException {
         try {
           mWorker.requestSpace(sessionId, blockId, requestBytes);
           return true;
@@ -220,7 +222,12 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
           LOG.warn("Worker is out of space, failed to serve request for {} bytes for block {}",
               requestBytes, blockId);
           return false;
-        } catch (Exception e) {
+        } catch (IOException e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          // We must wrap IOException in an AlluxioException here for backwards compatibility with
+          // previous versions of our API.
+          throw new UnexpectedAlluxioException(e);
+        } catch (BlockDoesNotExistException e) {
           LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
           throw e;
         }
