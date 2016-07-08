@@ -37,6 +37,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
+import com.google.common.base.Preconditions;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -468,19 +469,51 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   /**
+   * Gets the metadata associated with a non-root key if it represents a folder. This method will
+   * return null if the key is not a folder. If the key exists as a prefix but does not have the
+   * folder dummy file, a folder dummy file will be created.
+   *
+   * @param key the key to get the metadata for
+   * @return the metadata of the folder, or null if the key does not represent a folder
+   */
+  private ObjectMetadata getFolderMetadata(String key) {
+    Preconditions.checkArgument(!isRoot(key));
+    String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
+    ObjectMetadata meta = null;
+    try {
+      meta = mClient.getObjectMetadata(mBucketName, keyAsFolder);
+      // If no exception is thrown, the key exists as a folder
+    } catch (AmazonClientException e) {
+      // It is possible that the folder has not been encoded as a _$folder$ file
+      try {
+        String dir = stripPrefixIfPresent(key);
+        String dirPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
+        // Check if anything begins with <folder_path>/
+        ObjectListing objs = mClient.listObjects(mBucketName, dirPrefix);
+        // If there are, this is a folder and we can create the necessary metadata
+        if (objs.getObjectSummaries().size() > 0) {
+          mkdirsInternal(dir);
+          meta = mClient.getObjectMetadata(mBucketName, keyAsFolder);
+        }
+      } catch (AmazonClientException ace) {
+        return null;
+      }
+    }
+    return meta;
+  }
+
+  /**
    * @param key the key to get the object details of
    * @return {@link ObjectMetadata} of the key, or null if the key does not exist
    */
   private ObjectMetadata getObjectDetails(String key) {
+    // We try to get the metadata as a file and then a folder without checking isFolder to reduce
+    // the number of calls to S3.
     try {
-      if (isFolder(key)) {
-        String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-        return mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      } else {
-        return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
-      }
+      return mClient.getObjectMetadata(mBucketName, stripPrefixIfPresent(key));
     } catch (AmazonClientException e) {
-      return null;
+      // Its possible that the object is not a file but a folder
+      return getFolderMetadata(stripPrefixIfPresent(key));
     }
   }
 
@@ -509,32 +542,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   private boolean isFolder(String key) {
     // Root is always a folder
-    if (isRoot(key)) {
-      return true;
-    }
-    try {
-      String keyAsFolder = convertToFolderName(stripPrefixIfPresent(key));
-      mClient.getObjectMetadata(mBucketName, keyAsFolder);
-      // If no exception is thrown, the key exists as a folder
-      return true;
-    } catch (AmazonClientException e) {
-      // It is possible that the folder has not been encoded as a _$folder$ file
-      try {
-        String dir = stripPrefixIfPresent(key);
-        String dirPrefix = PathUtils.normalizePath(dir, PATH_SEPARATOR);
-        // Check if anything begins with <folder_path>/
-        ObjectListing objs = mClient.listObjects(mBucketName, dirPrefix);
-        // If there are, this is a folder and we can create the necessary metadata
-        if (objs.getObjectSummaries().size() > 0) {
-          mkdirsInternal(dir);
-          return true;
-        } else {
-          return false;
-        }
-      } catch (AmazonClientException ace) {
-        return false;
-      }
-    }
+    return isRoot(key) || getFolderMetadata(key) != null;
   }
 
   /**
