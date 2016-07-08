@@ -81,7 +81,7 @@ public class SwiftUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link SwiftUnderFileSystem#stripPrefixIfPresent(String)} method.
+   * Tests the {@link SwiftUnderFileSystem#stripContainerPrefixIfPresent(String)} method.
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
@@ -105,7 +105,7 @@ public class SwiftUnderFileSystemTest {
     };
     for (int i = 0; i < inputs.length; i++) {
       Assert.assertEquals(results[i], Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
-          "stripPrefixIfPresent", inputs[i]));
+          "stripContainerPrefixIfPresent", inputs[i]));
     }
   }
 }
