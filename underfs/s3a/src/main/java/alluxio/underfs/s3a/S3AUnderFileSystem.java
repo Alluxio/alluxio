@@ -27,6 +27,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
 import com.amazonaws.services.s3.model.ObjectListing;
@@ -365,13 +366,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public String getOwner(String path) throws IOException {
-    return null;
+    return "";
   }
 
   // Not supported
   @Override
   public String getGroup(String path) throws IOException {
-    return null;
+    return "";
   }
 
   // Not supported
@@ -410,7 +411,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     int retries = 3;
     for (int i = 0; i < retries; i++) {
       try {
-        mManager.copy(mBucketName, src, mBucketName, dst).waitForCopyResult();
+        CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
+        if (Configuration.getBoolean(Constants.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)) {
+          ObjectMetadata meta = new ObjectMetadata();
+          meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+          request.setNewObjectMetadata(meta);
+        }
+        mManager.copy(request).waitForCopyResult();
         return true;
       } catch (AmazonClientException | InterruptedException e) {
         LOG.error("Failed to copy file {} to {}", src, dst, e);
