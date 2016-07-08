@@ -74,7 +74,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
     mLeaderSelectorClient.setCurrentMasterThread(currentThread);
     boolean started = false;
 
-    while (true) {
+    while (!Thread.interrupted()) {
       if (mLeaderSelectorClient.isLeader()) {
         stopServing();
         stopMasters();
