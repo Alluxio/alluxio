@@ -24,17 +24,39 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3AInputStream extends InputStream {
+  /** Client for operations with s3. */
   private final AmazonS3 mClient;
+  /** Name of the bucket the object resides in. */
   private final String mBucketName;
+  /** The path of the object to read. */
   private final String mKey;
 
+  /** The backing input stream from s3. */
   private S3ObjectInputStream mIn;
+  /** The current position of the stream. */
   private long mPos;
 
+  /**
+   * Constructor for a input stream of an object in s3 using the aws-sdk implementation to read
+   * the data. The stream will be positioned at the start of the file.
+   *
+   * @param bucketName the bucket the object resides in
+   * @param key the path of the object to read
+   * @param client the s3 client to use for operations
+   */
   public S3AInputStream(String bucketName, String key, AmazonS3 client) {
     this(bucketName, key, client, 0L);
   }
 
+  /**
+   * Constructor for a input stream of an object in s3 using the aws-sdk implementation to read
+   * the data. The stream will be positioned at the specified position.
+   *
+   * @param bucketName the bucket the object resides in
+   * @param key the path of the object to read
+   * @param client the s3 client to use for operations
+   * @param position the position to begin reading from
+   */
   public S3AInputStream(String bucketName, String key, AmazonS3 client, long position) {
     mBucketName = bucketName;
     mKey = key;
@@ -102,6 +124,9 @@ public class S3AInputStream extends InputStream {
     mIn = mClient.getObject(getReq).getObjectContent();
   }
 
+  /**
+   * Closes the current stream.
+   */
   private void closeStream() {
     if (mIn == null) {
       return;
