@@ -83,8 +83,7 @@ interface FieldIndex<T> extends Iterable<T> {
   Iterator<T> iterator();
 
   /**
-   * @return the number of objects in this indexed set (O(1) time for unique index, O(#fieldValue)
-   *         for non-unique index)
+   * @return the number of objects in this indexed set
    */
   int size();
 }
