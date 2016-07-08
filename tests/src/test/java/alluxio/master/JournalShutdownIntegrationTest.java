@@ -25,6 +25,7 @@ import alluxio.util.IdUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -101,7 +102,8 @@ public class JournalShutdownIntegrationTest {
   /** Executor for running client threads. */
   private ExecutorService mExecutorsForClient;
 
-  public SystemPropertyRule mDisableHdfsCacheRule =
+  @ClassRule
+  public static SystemPropertyRule mDisableHdfsCacheRule =
       new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @After
