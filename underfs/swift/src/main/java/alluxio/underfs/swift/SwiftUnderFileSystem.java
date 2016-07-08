@@ -330,13 +330,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   // Not supported
   @Override
   public String getOwner(String path) throws IOException {
-    return null;
+    return "";
   }
 
   // Not supported
   @Override
   public String getGroup(String path) throws IOException {
-    return null;
+    return "";
   }
 
   // Not supported
