@@ -191,9 +191,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject object : container.list(paginationMap, page)) {
-          if (object.exists()) {
             object.delete();
-          }
         }
       }
     }
@@ -438,6 +436,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       if (!copy(strippedSourcePath, strippedDestinationPath)) {
         return false;
       }
+      // TODO(adit): Use pagination to list large directories and merge duplicate call in delete
       // Rename each child in the source folder to destination/child
       String [] children = list(source);
       for (String child: children) {
@@ -448,7 +447,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
           return false;
         }
       }
-      // TODO(adit): delete makes another list call. can be optimized
       // Delete source and everything under source
       return delete(source, true);
     }
@@ -548,6 +546,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private Collection<DirectoryOrObject> listInternal(final String prefix) throws IOException {
+    // TODO(adit): UnderFileSystem interface should be changed to support pagination
     Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
     Container container = mAccount.getContainer(mContainerName);
     return container.listDirectory(directory);
