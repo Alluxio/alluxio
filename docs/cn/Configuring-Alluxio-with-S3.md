@@ -28,7 +28,7 @@ priority: 0
 
 若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
-{% include Configuring-Alluxio-with-S3/underfs-address.md %}
+{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
 
 接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 
