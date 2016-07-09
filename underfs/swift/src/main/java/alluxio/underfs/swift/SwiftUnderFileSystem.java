@@ -22,13 +22,12 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.commons.io.FilenameUtils;
-import org.apache.http.HttpStatus;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.SerializationConfig;
 import org.javaswift.joss.client.factory.AccountConfig;
 import org.javaswift.joss.client.factory.AccountFactory;
 import org.javaswift.joss.client.factory.AuthenticationMethod;
-import org.javaswift.joss.exception.CommandException;
+import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.model.Access;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
@@ -66,8 +65,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
+  /** Suffix for an empty file to flag it as a directory. */
+  private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
+
   /** Maximum number of directory entries to fetch at once. */
-  private static final int DIR_PAGE_SIZE = 100;
+  private static final int DIR_PAGE_SIZE = 1000;
 
   /** Number of retries in case of Swift internal errors. */
   private static final int NUM_RETRIES = 3;
@@ -185,30 +187,35 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     LOG.debug("Delete method: {}, recursive {}", path, recursive);
-    String strippedPath = stripContainerPrefixIfPresent(path);
+    final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
-    try {
-      if (recursive) {
-        strippedPath = addFolderSuffixIfNotPresent(strippedPath);
-        PaginationMap paginationMap = container.getPaginationMap(strippedPath, DIR_PAGE_SIZE);
-        for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-          for (StoredObject object : container.list(paginationMap, page)) {
-            object.delete();
-          }
+    if (recursive) {
+      // For a file, recursive delete will not find any children
+      PaginationMap paginationMap = container.getPaginationMap(
+          addFolderSuffixIfNotPresent(strippedPath), DIR_PAGE_SIZE);
+      for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+        for (StoredObject childObject : container.list(paginationMap, page)) {
+          deleteObject(childObject);
         }
       }
-      StoredObject object = container.getObject(strippedPath);
-      object.delete();
-      return true;
-    } catch (CommandException e) {
-      // StoredObject.delete will return with exception if the object does not exist
-      if (e.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
-        LOG.error("Path {} or child not found for deletion", path);
-      } else {
-        LOG.error("Unknown error during delete");
+    } else {
+      String[] children = list(path);
+      if (children != null && children.length != 0) {
+        LOG.error("Attempting to non-recursively delete a non-empty directory.");
+        return false;
       }
-      return false;
     }
+
+    // Path is a file or folder with no children
+    if (!deleteObject(container.getObject(strippedPath))) {
+      // Path may be a folder
+      final String strippedFolderPath = addFolderSuffixIfNotPresent(strippedPath);
+      if (strippedFolderPath.equals(strippedPath)) {
+        return false;
+      }
+      return deleteObject(container.getObject(strippedFolderPath));
+    }
+    return true;
   }
 
   @Override
@@ -408,13 +415,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * A trailing {@link SwiftUnderFileSystem#PATH_SEPARATOR} is added if not present.
+   * A trailing {@link SwiftUnderFileSystem#FOLDER_SUFFIX} is added if not present.
    *
    * @param path URI to the object
    * @return folder path
    */
   private String addFolderSuffixIfNotPresent(String path) {
-    return PathUtils.normalizePath(path, PATH_SEPARATOR);
+    return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 
   /**
@@ -513,12 +520,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         container.getObject(strippedSourcePath)
             .copyObject(container, container.getObject(strippedDestinationPath));
         return true;
-      } catch (CommandException e) {
-        if (e.getHttpStatusCode() == HttpStatus.SC_NOT_FOUND) {
-          LOG.error("Source path {} does not exist", source);
-        } else {
-          LOG.error("Unknown error during copy");
-        }
+      } catch (NotFoundException e) {
+        LOG.error("Source path {} does not exist", source);
         return false;
       } catch (Exception e) {
         LOG.error("Failed to copy file {} to {}", source, destination, e.getMessage());
@@ -552,7 +555,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Lists the files or folders which match the given prefix.
    *
    * @param prefix the prefix to match
-   * @return a collection of the files or folders matching the prefix
+   * @return a collection of the files or folders matching the prefix, or null if not found
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private Collection<DirectoryOrObject> listInternal(final String prefix) throws IOException {
@@ -570,7 +573,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return the path with the suffix removed, or the path unaltered if the suffix is not present
    */
   private String stripFolderSuffixIfPresent(final String path) {
-    return CommonUtils.stripSuffixIfPresent(path, PATH_SEPARATOR);
+    return CommonUtils.stripSuffixIfPresent(path, FOLDER_SUFFIX);
   }
 
   /**
@@ -594,6 +597,22 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   private StoredObject getObject(final String path) {
     Container container = mAccount.getContainer(mContainerName);
     return container.getObject(stripContainerPrefixIfPresent(path));
+  }
+
+  /**
+   * Delete an object if it exists.
+   *
+   * @param object object handle to delete
+   * @return true if object deletion was successful
+   */
+  private boolean deleteObject(final StoredObject object) {
+    try {
+      object.delete();
+      return true;
+    } catch (NotFoundException e) {
+      LOG.error("Object not found {}", e);
+    }
+    return false;
   }
 
   @Override
