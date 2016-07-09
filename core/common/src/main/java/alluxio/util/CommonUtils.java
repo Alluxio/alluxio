@@ -133,33 +133,21 @@ public final class CommonUtils {
   /**
    * Sleeps for the given number of milliseconds, reporting interruptions using the given logger.
    *
-   * @param logger logger for reporting interruptions
+   * Unlike Thread.sleep(), this method responds to interrupts by setting the thread interrupt
+   * status. This means that callers must check the interrupt status if they need to handle
+   * interrupts.
+   *
+   * @param logger logger for reporting interruptions; no reporting is done if the logger is null
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    sleepMs(logger, timeMs, false);
-  }
-
-  /**
-   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger,
-   * and optionally pass the interruption to the caller.
-   *
-   * @param logger logger for reporting interruptions
-   * @param timeMs sleep duration in milliseconds
-   * @param shouldInterrupt determines if interruption should be passed to the caller
-   */
-  public static void sleepMs(Logger logger, long timeMs, boolean shouldInterrupt) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      // The null check is needed otherwise #sleeMs(long) will cause a NullPointerException
-      // if the thread is interrupted
       if (logger != null) {
         logger.warn(e.getMessage(), e);
       }
-      if (shouldInterrupt) {
-        Thread.currentThread().interrupt();
-      }
+      Thread.currentThread().interrupt();
     }
   }
 
