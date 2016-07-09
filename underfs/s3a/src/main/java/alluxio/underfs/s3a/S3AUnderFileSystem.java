@@ -128,7 +128,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       clientConf.setProxyPort(Configuration.getInt(Constants.UNDERFS_S3_PROXY_PORT));
     }
 
-
     mClient = new AmazonS3Client(credentials, clientConf);
     mManager = new TransferManager(mClient);
 
@@ -376,7 +375,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     return copy(src, dst) && deleteInternal(src);
   }
 
-  // Not supported
+  // This UFS does not provide a mechanism for updating the configuration, this method is a no-op
   @Override
   public void setConf(Object conf) {}
 
