@@ -289,7 +289,7 @@ public class IndexedSetTest {
       removed++;
     }
     Assert.assertEquals(9L, removed);
-    Assert.assertTrue(mSet.size() == 0);
+    Assert.assertEquals(0, mSet.size());
 
     for (Pair o : mSet) {
       Assert.assertTrue(false);
