@@ -33,13 +33,14 @@ import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A stream for writing a file into S3. The data will be persisted to a temporary directory on the
- * local disk and copied as a complete file when the {@link #close()} method is called.
+ * local disk and copied as a complete file when the {@link #close()} method is called. The data
+ * transfer is done using a {@link TransferManager} which manages the upload threads and handles
+ * multipart upload.
  */
 @NotThreadSafe
 public class S3AOutputStream extends OutputStream {
@@ -58,7 +59,7 @@ public class S3AOutputStream extends OutputStream {
   private final File mFile;
 
   /** Flag to indicate this stream has been closed, to ensure close is only done once. */
-  private final AtomicBoolean mClosed = new AtomicBoolean(false);
+  private boolean mClosed = false;
 
   /**
    * A {@link TransferManager} to upload the file to S3 using Multipart Uploads. Multipart Uploads
@@ -68,6 +69,7 @@ public class S3AOutputStream extends OutputStream {
    * It is recommended (http://docs.aws.amazon.com/AmazonS3/latest/dev/UploadingObjects.html)
    * to upload file larger than 100MB using Multipart Uploads.
    */
+  // TODO(calvin): Investigate if the lower level API can be more efficient.
   private final TransferManager mManager;
 
   /** The output stream to a local file where the file will be buffered until closed. */
@@ -125,7 +127,7 @@ public class S3AOutputStream extends OutputStream {
 
   @Override
   public void close() throws IOException {
-    if (mClosed.getAndSet(true)) {
+    if (mClosed) {
       return;
     }
     mLocalOutputStream.close();
@@ -153,5 +155,8 @@ public class S3AOutputStream extends OutputStream {
       LOG.error("Failed to upload {}. Temporary file @ {}", mKey, mFile.getPath());
       throw new IOException(e);
     }
+
+    // Set the closed flag, close can be retried until mFile.delete is called successfully
+    mClosed = true;
   }
 }
