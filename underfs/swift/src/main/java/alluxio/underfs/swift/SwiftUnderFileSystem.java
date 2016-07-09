@@ -319,27 +319,27 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // Not supported
+  // No ACL integration currently, no-op
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // Not supported
+  // No ACL integration currently, no-op
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Not supported
+  // No ACL integration currently, returns default empty value
   @Override
   public String getOwner(String path) throws IOException {
     return "";
   }
 
-  // Not supported
+  // No ACL integration currently, returns default empty value
   @Override
   public String getGroup(String path) throws IOException {
     return "";
   }
 
-  // Not supported
+  // No ACL integration currently, returns default value
   @Override
   public short getMode(String path) throws IOException {
     return Constants.DEFAULT_FILE_SYSTEM_MODE;
