@@ -101,15 +101,33 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
 
+    // Checks, in order, env variables, system properties, profile file, and instance profile
     AWSCredentialsProvider credentials =
         new AWSCredentialsProviderChain(new DefaultAWSCredentialsProviderChain());
+
+    // Set the client configuration based on Alluxio configuration values
     ClientConfiguration clientConf = new ClientConfiguration();
+
+    // Socket timeout
     clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+
+    // HTTP protocol
     if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
+
+    // Proxy host
+    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+      clientConf.setProxyHost(Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
+    }
+
+    // Proxy port
+    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_PORT)) {
+      clientConf.setProxyPort(Configuration.getInt(Constants.UNDERFS_S3_PROXY_PORT));
+    }
+
 
     mClient = new AmazonS3Client(credentials, clientConf);
     mManager = new TransferManager(mClient);
