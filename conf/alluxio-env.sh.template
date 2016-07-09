@@ -55,7 +55,7 @@
 # ALLUXIO_MASTER_JAVA_OPTS
 
 # Config properties set for Alluxio worker daemon. (Default: "")
-# E.g. "-Dalluxio.worker.port=49999"
+# E.g. "-Dalluxio.worker.port=49999" to set worker port, "-Xms2048M -Xmx2048M" to limit the heap size of worker. 
 # ALLUXIO_WORKER_JAVA_OPTS
 
 # Config properties set for Alluxio shell. (Default: "")
