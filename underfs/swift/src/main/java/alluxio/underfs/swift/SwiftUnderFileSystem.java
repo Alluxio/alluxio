@@ -307,7 +307,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
 
-    if (!foundSelf && (children.size() == 0)) {
+    if (!foundSelf) {
       // Path does not exist
       return null;
     }
@@ -610,7 +610,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       object.delete();
       return true;
     } catch (NotFoundException e) {
-      LOG.error("Object not found {}", e);
+      LOG.debug("Object {} not found", object.getPath());
     }
     return false;
   }
