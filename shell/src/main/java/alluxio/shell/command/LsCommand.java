@@ -36,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
-  public static final String STATE_FOLDER = "";
+  public static final String STATE_FOLDER = "Directory";
   public static final String STATE_FILE_IN_MEMORY = "In Memory";
   public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
 

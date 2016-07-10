@@ -14,11 +14,11 @@ First download the `Alluxio` tar file, and extract it.
 
 # Configure Alluxio
 
-## Using the bootstrap-conf argument to the bin/alluxio script
+## Using the bootstrapConf argument to the bin/alluxio script
 
 The alluxio script also contains logic to create a basic config for a cluster. If you run:
 
-{% include Running-Alluxio-on-a-Cluster/bootstrap-conf.md %}
+{% include Running-Alluxio-on-a-Cluster/bootstrapConf.md %}
 
 and there is no existing `alluxio/conf/alluxio-env.sh` file, then the script will create one
 with the appropriate settings for a cluster with a master node running at `<alluxio_master_hostname>`.
@@ -30,7 +30,7 @@ can be changed by editing the created `alluxio/conf/alluxio-env.sh` file on the 
 
 ## Using alluxio-env.sh.template script
 
-There is another way to create `alluxio-env.sh` file instead of using `bootstrap-conf` command.
+There is another way to create `alluxio-env.sh` file instead of using `bootstrapConf` command.
 In the `alluxio/conf` directory, copy `alluxio-env.sh.template` to `alluxio-env.sh`.
 Update `ALLUXIO_MASTER_HOSTNAME` to the hostname
 of the machine you plan to run Alluxio Master on. Add the IP addresses of all the worker nodes to

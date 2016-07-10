@@ -256,10 +256,12 @@ public final class FileSystemWorker extends AbstractWorker {
    */
   @Override
   public void stop() {
+    mSessionCleaner.stop();
     if (mFilePersistenceService != null) {
       mFilePersistenceService.cancel(true);
     }
     mFileSystemMasterWorkerClient.close();
-    getExecutorService().shutdown();
+    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
+    getExecutorService().shutdownNow();
   }
 }
