@@ -63,10 +63,21 @@ public class S3AOutputStreamTest {
    * Tests to ensure {@link S3AOutputStream#write(int)} calls the underlying output stream.
    */
   @Test
-  public void testWriteByte() throws Exception {
+  public void writeByteTest() throws Exception {
     mStream.write(1);
     mStream.close();
     Mockito.verify(mLocalOutputStream).write(1);
+  }
+
+  /**
+   * Tests to ensure {@link S3AOutputStream#write(byte[])} calls the underlying output stream.
+   */
+  @Test
+  public void writeByteArrayTest() throws Exception {
+    byte[] b = new byte[10];
+    mStream.write(b);
+    mStream.close();
+    Mockito.verify(mLocalOutputStream).write(b, 0, b.length);
   }
 
   /**
@@ -74,20 +85,9 @@ public class S3AOutputStreamTest {
    * output stream.
    */
   @Test
-  public void testWrite2() throws Exception {
+  public void writeByteArrayWithRangeTest() throws Exception {
     byte[] b = new byte[10];
     mStream.write(b, 0, b.length);
-    mStream.close();
-    Mockito.verify(mLocalOutputStream).write(b, 0, b.length);
-  }
-
-  /**
-   * Tests to ensure {@link S3AOutputStream#write(byte[])} calls the underlying output stream.
-   */
-  @Test
-  public void testWrite3() throws Exception {
-    byte[] b = new byte[10];
-    mStream.write(b);
     mStream.close();
     Mockito.verify(mLocalOutputStream).write(b, 0, b.length);
   }
@@ -96,7 +96,7 @@ public class S3AOutputStreamTest {
    * Tests to ensure {@link File#delete()} is called when the stream is closed.
    */
   @Test
-  public void testCloseSuccess() throws Exception {
+  public void closeTest() throws Exception {
     mStream.close();
     Mockito.verify(mFile).delete();
   }
@@ -105,7 +105,7 @@ public class S3AOutputStreamTest {
    * Tests to ensure {@link S3AOutputStream#flush()} calls the underlying output stream.
    */
   @Test
-  public void testFlush() throws Exception {
+  public void flushTest() throws Exception {
     mStream.flush();
     mStream.close();
     Mockito.verify(mLocalOutputStream).flush();
