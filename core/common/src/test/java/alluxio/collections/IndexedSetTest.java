@@ -237,7 +237,7 @@ public class IndexedSetTest {
     try {
       mSet.add(new Pair(1, 9L));
     } catch (IllegalStateException e) {
-      Assert.assertTrue(true);
+      Assert.fail();
     }
     Assert.assertEquals(10, mSet.size());
     Assert.assertEquals(4, mSet.getByField(mNonUniqueIntIndex, 1).size());
@@ -292,7 +292,7 @@ public class IndexedSetTest {
     Assert.assertEquals(0, mSet.size());
 
     for (Pair o : mSet) {
-      Assert.assertTrue(false);
+      Assert.fail();
     }
 
     long l = 0;
@@ -301,6 +301,64 @@ public class IndexedSetTest {
       for (int k = 0; k < 3; k++) {
         Assert.assertFalse(mSet.contains(mUniqueLongIndex, l++));
       }
+    }
+  }
+
+  /**
+   * Tests that next works correctly with the iterator gathered by {@link IndexedSet#iterator()}
+   * method.
+   */
+  @Test
+  public void iteratorNextTest() {
+    Iterator<Pair> it = mSet.iterator();
+    int intSum = 0;
+    int expectedIntSum = 0;
+    long longSum = 0;
+    long expectedLongSum = 0;
+
+    try {
+      long l = 0;
+      for (int i = 0; i < 3; i++) {
+        for (int k = 0; k < 3; k++) {
+          Pair pair = it.next();
+          intSum += pair.intValue();
+          longSum += pair.longValue();
+          expectedIntSum += i;
+          expectedLongSum += l++;
+        }
+      }
+    } catch (Exception e) {
+      Assert.fail();
+    }
+
+    Assert.assertEquals(expectedIntSum, intSum);
+    Assert.assertEquals(expectedLongSum, longSum);
+
+    Assert.assertFalse(it.hasNext());
+  }
+
+  /**
+   * Tests that hasNext works correctly with the iterator gathered by {@link IndexedSet#iterator()}
+   * method.
+   */
+  @Test
+  public void iteratorhasNextTest() {
+    Iterator<Pair> it = mSet.iterator();
+    long size = mSet.size();
+    try {
+      for (int i = 0; i < size * 2; i++) {
+        Assert.assertTrue(it.hasNext());
+      }
+      for (int i = 0; i < 3; i++) {
+        for (int k = 0; k < 3; k++) {
+          it.next();
+        }
+      }
+      for (int i = 0; i < size; i++) {
+        Assert.assertFalse(it.hasNext());
+      }
+    } catch (Exception e) {
+      Assert.fail();
     }
   }
 }
