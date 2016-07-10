@@ -18,6 +18,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
 import alluxio.underfs.swift.http.SwiftDirectClient;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -55,9 +56,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
 
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = "/";
@@ -406,7 +404,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       Collection<DirectoryOrObject> objects = container.listDirectory(directory);
       Set<String> children = new HashSet<>();
       for (DirectoryOrObject object : objects) {
-        String child = stripFolderSuffixIfPresent(object.getName());
+        String child = UnderFileSystemUtils.stripFolderSuffixIfPresent(object.getName());
         String noPrefix = stripPrefixIfPresent(child, path);
         children.add(noPrefix);
       }
@@ -415,20 +413,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.error("Failed to list path {}", path, e);
       return null;
     }
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
   }
 
   /**

@@ -25,6 +25,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class UnderFileSystemUtils {
 
+  /** Suffix for an empty file to flag it as a directory. */
+  public static final String FOLDER_SUFFIX = "_$folder$";
+
   /**
    * Deletes the directory at the given path.
    *
@@ -65,6 +68,20 @@ public final class UnderFileSystemUtils {
     UnderFileSystem ufs = UnderFileSystem.get(path);
     OutputStream os = ufs.create(path);
     os.close();
+  }
+
+  /**
+   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
+   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
+   *
+   * @param key the key to strip the suffix from
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  public static String stripFolderSuffixIfPresent(String key) {
+    if (key.endsWith(FOLDER_SUFFIX)) {
+      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
+    }
+    return key;
   }
 
   private UnderFileSystemUtils() {} // prevent instantiation
