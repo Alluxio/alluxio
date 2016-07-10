@@ -58,7 +58,7 @@ Create the `conf/alluxio-env.sh` configuration file from the template. You can c
 file with the following command:
 
 ```bash
-$ ./bin/alluxio bootstrap-conf localhost
+$ ./bin/alluxio bootstrapConf localhost
 ```
 
 ### [Bonus] Configuration for AWS
