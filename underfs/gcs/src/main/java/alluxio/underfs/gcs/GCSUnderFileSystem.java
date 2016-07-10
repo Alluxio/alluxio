@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -49,9 +50,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GCSUnderFileSystem extends UnderFileSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  /** Suffix for an empty file to flag it as a directory. */
-  private static final String FOLDER_SUFFIX = "_$folder$";
 
   /** Value used to indicate folder structure in GCS. */
   private static final String PATH_SEPARATOR = "/";
@@ -374,7 +372,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     if (key.endsWith(PATH_SEPARATOR)) {
       key = key.substring(0, key.length() - PATH_SEPARATOR.length());
     }
-    return key + FOLDER_SUFFIX;
+    return key + UnderFileSystemUtils.FOLDER_SUFFIX;
   }
 
   /**
@@ -563,7 +561,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
+          child = UnderFileSystemUtils.stripFolderSuffixIfPresent(child);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
             children.add(child);
@@ -627,20 +625,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isFolder(parentKey);
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
   }
 
   /**
