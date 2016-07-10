@@ -231,4 +231,81 @@ public class CommonUtilsTest {
     Assert.assertNotNull(primaryGroup);
     Assert.assertEquals(userGroup1, primaryGroup);
   }
+
+  /**
+   * Tests the {@link CommonUtils#stripSuffixIfPresent(String,String)} method.
+   */
+  @Test
+  public void stripSuffixIfPresentTest() throws Exception {
+    final String[] inputs = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket/",
+        "ufs://bucket/file_SUCCESS",
+        "ufs://bucket-2/dir/file/",
+        "dir/file",
+        "/dir/file/",
+        "ufs://bucket/file_$folder"
+    };
+    final String[] suffixToStrip = new String[]{
+        "ufs://bucket/",
+        "/",
+        "_SUCCESS",
+        "/",
+        "/",
+        "/",
+        "_$folder"
+    };
+    final String[] results = new String[]{
+        "",
+        "ufs://bucket",
+        "ufs://bucket/file",
+        "ufs://bucket-2/dir/file",
+        "dir/file",
+        "/dir/file",
+        "ufs://bucket/file"
+    };
+    for (int i = 0; i < inputs.length; i++) {
+      Assert.assertEquals(results[i],
+          CommonUtils.stripSuffixIfPresent(inputs[i], suffixToStrip[i]));
+    }
+  }
+
+  /**
+   * Tests the {@link CommonUtils#stripPrefixIfPresent(String, String)} method.
+   */
+  @Test
+  public void stripPrefixIfPresentTest() throws Exception {
+    final String[] inputs = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket",
+        "ufs://bucket/",
+        "ufs://bucket-2/dir/file",
+        "dir/file",
+        "/dir/file",
+        "ufs://bucket/file"
+    };
+    final String[] prefixToStrip = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket/",
+        "",
+        "ufs://bucket-2/",
+        "ufs://bucket",
+        "/",
+        "ufs://bucket/"
+    };
+    final String[] results = new String[]{
+        "",
+        "ufs://bucket",
+        "ufs://bucket/",
+        "dir/file",
+        "dir/file",
+        "dir/file",
+        "file"
+    };
+    for (int i = 0; i < inputs.length; i++) {
+      Assert.assertEquals(results[i],
+          CommonUtils.stripPrefixIfPresent(inputs[i], prefixToStrip[i]));
+    }
+  }
+
 }

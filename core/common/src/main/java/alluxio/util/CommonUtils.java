@@ -224,5 +224,36 @@ public final class CommonUtils {
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
+  /**
+   * Strips the suffix if it exists. This method will leave keys without a suffix unaltered.
+   *
+   * @param key the key to strip the suffix from
+   * @param suffix suffix to remove
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  public static String stripSuffixIfPresent(final String key, final String suffix) {
+    if (key.endsWith(suffix)) {
+      return key.substring(0, key.length() - suffix.length());
+    }
+    return key;
+  }
+
+  /**
+   * Strips the prefix from the key if it is present. For example, for input key
+   * ufs://my-bucket-name/my-key/file and prefix ufs://my-bucket-name/, the output would be
+   * my-key/file. This method will leave keys without a prefix unaltered, ie. my-key/file
+   * returns my-key/file.
+   *
+   * @param key the key to strip
+   * @param prefix prefix to remove
+   * @return the key without the prefix
+   */
+  public static String stripPrefixIfPresent(final String key, final String prefix) {
+    if (key.startsWith(prefix)) {
+      return key.substring(prefix.length());
+    }
+    return key;
+  }
+
   private CommonUtils() {} // prevent instantiation
 }
