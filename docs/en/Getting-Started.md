@@ -69,8 +69,8 @@ your AWS access information to the Alluxio configuration by adding to the
 `conf/alluxio-site.properties` file. The following commands will update the configuration.
 
 ```bash
-$ echo "fs.s3n.awsAccessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
-$ echo "fs.s3n.awsSecretAccessKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
+$ echo "aws.accessKeyId=AWS_ACCESS_KEY_ID" >> conf/alluxio-site.properties
+$ echo "aws.secretKey=AWS_SECRET_ACCESS_KEY" >> conf/alluxio-site.properties
 ```
 
 You will have to replace **AWS_ACCESS_KEY_ID** with your AWS access key id, and
@@ -199,8 +199,8 @@ Next, we will mount an existing sample S3 bucket to Alluxio. We have provided a 
 you to use in the rest of this guide.
 
 ```bash
-$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3n://alluxio-quick-start/data
-Mounted s3n://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
+$ ./bin/alluxio fs mount -readonly alluxio://localhost:19998/mnt/s3 s3a://alluxio-quick-start/data
+Mounted s3a://alluxio-quick-start/data at alluxio://localhost:19998/mnt/s3
 ```
 
 Now, the S3 bucket is mounted into the Alluxio namespace.
@@ -216,7 +216,7 @@ $ ./bin/alluxio fs ls /mnt/s3
 9.61MB    06-20-2016 12:50:55:821  Not In Memory  /mnt/s3/sample_tweets_10m.csv
 ```
 
-We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well. 
+We can see the [newly mounted files and directories in the Alluxio web UI](http://localhost:19999/browse?path=%2Fmnt%2Fs3) as well.
 
 With Alluxio's unified namespace, you can interact with data from different storage systems
 seamlessly. For example, with the `ls` shell command, you can recursively list all the files that
