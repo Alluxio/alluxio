@@ -37,7 +37,7 @@ public class S3AInputStream extends InputStream {
   private long mPos;
 
   /**
-   * Constructor for a input stream of an object in s3 using the aws-sdk implementation to read
+   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
    * the data. The stream will be positioned at the start of the file.
    *
    * @param bucketName the bucket the object resides in
@@ -49,7 +49,7 @@ public class S3AInputStream extends InputStream {
   }
 
   /**
-   * Constructor for a input stream of an object in s3 using the aws-sdk implementation to read
+   * Constructor for an input stream of an object in s3 using the aws-sdk implementation to read
    * the data. The stream will be positioned at the specified position.
    *
    * @param bucketName the bucket the object resides in
@@ -127,6 +127,7 @@ public class S3AInputStream extends InputStream {
   /**
    * Closes the current stream.
    */
+  // TODO(calvin): Investigate if close instead of abort will bring performance benefits.
   private void closeStream() {
     if (mIn == null) {
       return;

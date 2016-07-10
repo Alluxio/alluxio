@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.amazonaws.AmazonClientException;
@@ -414,9 +415,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   private String convertToFolderName(String key) {
     // Strips the slash if it is the end of the key string. This is because the slash at
     // the end of the string is not part of the Object key in S3.
-    if (key.endsWith(PATH_SEPARATOR)) {
-      key = key.substring(0, key.length() - PATH_SEPARATOR.length());
-    }
+    key = CommonUtils.stripSuffixIfPresent(key, PATH_SEPARATOR);
     return key + FOLDER_SUFFIX;
   }
 
@@ -625,7 +624,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
+          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
             children.add(child);
@@ -687,20 +686,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isFolder(parentKey);
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
   }
 
   /**

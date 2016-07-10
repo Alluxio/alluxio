@@ -89,6 +89,12 @@ function bootstrapConf {
       ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000/alluxio/"
       ;;
     s3)
+      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
+      ;;
+    s3a)
+      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
+      ;;
+    s3n)
       ALLUXIO_UNDERFS_ADDRESS="s3n://bucket/directory/"
       ;;
     gcs)
