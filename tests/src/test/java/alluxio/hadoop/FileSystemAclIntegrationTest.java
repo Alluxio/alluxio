@@ -15,8 +15,12 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.security.authentication.AuthType;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.s3.S3UnderFileSystem;
+import alluxio.underfs.s3a.S3AUnderFileSystem;
+import alluxio.underfs.swift.SwiftUnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -387,5 +391,33 @@ public final class FileSystemAclIntegrationTest {
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
+  }
+
+  /**
+   * Tests for the permission of object storage UFS files.
+   */
+  @Test
+  public void objectStoragePermissionTest() throws Exception {
+    if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)
+        && !(sUfs instanceof SwiftUnderFileSystem) && !(sUfs instanceof GCSUnderFileSystem)) {
+      // Only test object storage UFSs.
+      return;
+    }
+    Path fileA = new Path("/objectfileA");
+
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Verify the owner, group and permission of UFS is not supported and thus returns default
+    // values.
+    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
+        sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // chmod to Alluxio file would not affect the permission of UFS file.
+    sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0700));
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
+        sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 }
