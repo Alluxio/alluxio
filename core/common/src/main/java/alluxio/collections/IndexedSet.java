@@ -100,10 +100,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class IndexedSet<T> extends AbstractSet<T> {
-  /** All objects in the set. This set is required to guarantee uniqueness of objects. */
-  // TODO(gpang): remove this set, and just use the indexes.
-  private final ConcurrentHashSet<T> mObjects = new ConcurrentHashSet<>(8, 0.95f, 8);
-
+  /**
+   * The first index of the indexed set. This index is used to guarantee uniqueness of objects,
+   * support iterator and provide quick lookup.
+   */
+  private final FieldIndex<T> mPrimaryIndex;
   /**
    * Map from index definition to the index. An index is a map from index value to one or a set of
    * objects with that index value.
@@ -113,14 +114,18 @@ public class IndexedSet<T> extends AbstractSet<T> {
   /**
    * Constructs a new {@link IndexedSet} instance with at least one field as the index.
    *
-   * @param firstIndexDefinition at least one field is needed to index the set of objects
+   * @param primaryIndexDefinition at least one field is needed to index the set of objects. This
+   *        primaryIndexDefinition is used to initialize {@link IndexedSet#mPrimaryIndex} and is
+   *        recommended to be unique in consideration of performance.
    * @param otherIndexDefinitions other index definitions to index the set
    */
   @SafeVarargs
-  public IndexedSet(IndexDefinition<T> firstIndexDefinition, IndexDefinition<T>...
+  public IndexedSet(IndexDefinition<T> primaryIndexDefinition,
+      IndexDefinition<T>...
       otherIndexDefinitions) {
     Iterable<IndexDefinition<T>> indexDefinitions =
-        Iterables.concat(Arrays.asList(firstIndexDefinition), Arrays.asList(otherIndexDefinitions));
+        Iterables.concat(Arrays.asList(primaryIndexDefinition),
+            Arrays.asList(otherIndexDefinitions));
 
     // initialization
     Map<IndexDefinition<T>, FieldIndex<T>> indices = new HashMap<>();
@@ -136,6 +141,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
       indices.put(indexDefinition, index);
     }
 
+    mPrimaryIndex = indices.get(primaryIndexDefinition);
     mIndices = Collections.unmodifiableMap(indices);
   }
 
@@ -145,7 +151,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
    * This is an expensive operation, and concurrent adds are permitted.
    */
   public void clear() {
-    for (T obj : mObjects) {
+    for (T obj : mPrimaryIndex) {
       remove(obj);
     }
   }
@@ -165,13 +171,13 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // Locking this object protects against removing the exact object, but does not protect against
     // removing a distinct, but equivalent object.
     synchronized (object) {
-      if (!mObjects.addIfAbsent(object)) {
+      if (mPrimaryIndex.containsObject(object)) {
         // This object is already added, possibly by another concurrent thread.
         return false;
       }
 
-      for (FieldIndex<T> fieldValue : mIndices.values()) {
-        fieldValue.add(object);
+      for (FieldIndex<T> fieldIndex : mIndices.values()) {
+        fieldIndex.add(object);
       }
     }
     return true;
@@ -193,16 +199,16 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   *  Specialized iterator for {@link IndexedSet}.
+   * Specialized iterator for {@link IndexedSet}.
    *
-   *  This is needed to support consistent removal from the set and the indices.
+   * This is needed to support consistent removal from the set and the indices.
    */
   private class IndexedSetIterator implements Iterator<T> {
     private final Iterator<T> mSetIterator;
     private T mObject;
 
     public IndexedSetIterator() {
-      mSetIterator = mObjects.iterator();
+      mSetIterator = mPrimaryIndex.iterator();
       mObject = null;
     }
 
@@ -241,7 +247,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     if (index == null) {
       throw new IllegalStateException("the given index isn't defined for this IndexedSet");
     }
-    return index.contains(value);
+    return index.containsField(value);
   }
 
   /**
@@ -290,13 +296,13 @@ public class IndexedSet<T> extends AbstractSet<T> {
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {
-      if (mObjects.contains(object)) {
+      if (mPrimaryIndex.containsObject((T) object)) {
         // This isn't technically typesafe. However, given that success is true, it's very unlikely
         // that the object passed to remove is not of type <T>.
         @SuppressWarnings("unchecked")
         T tObj = (T) object;
         removeFromIndices(tObj);
-        return mObjects.remove(tObj);
+        return true;
       } else {
         return false;
       }
@@ -334,10 +340,10 @@ public class IndexedSet<T> extends AbstractSet<T> {
   }
 
   /**
-   * @return the number of objects in this indexed set (O(1) time)
+   * @return the number of objects in this indexed set
    */
   @Override
   public int size() {
-    return mObjects.size();
+    return mPrimaryIndex.size();
   }
 }

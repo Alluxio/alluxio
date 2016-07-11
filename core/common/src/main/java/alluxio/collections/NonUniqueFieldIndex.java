@@ -14,6 +14,7 @@ package alluxio.collections;
 import com.google.common.collect.Iterables;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -83,8 +84,20 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean contains(Object value) {
-    return mIndexMap.containsKey(value);
+  public boolean containsField(Object fieldValue) {
+    return mIndexMap.containsKey(fieldValue);
+  }
+
+  @Override
+  public boolean containsObject(T object) {
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    ConcurrentHashSet<T> set = mIndexMap.get(fieldValue);
+
+    if (set == null) {
+      return false;
+    }
+
+    return set.contains(object);
   }
 
   @Override
@@ -97,5 +110,81 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   public T getFirst(Object value) {
     Set<T> all = mIndexMap.get(value);
     return all == null ? null : Iterables.getFirst(all, null);
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return new NonUniqueFieldIndexIterator();
+  }
+
+  @Override
+  public int size() {
+    int totalSize = 0;
+    for (ConcurrentHashSet<T> innerSet : mIndexMap.values()) {
+      totalSize += innerSet.size();
+    }
+    return totalSize;
+  }
+
+  /**
+   * Specialized iterator for {@link NonUniqueFieldIndex}.
+   *
+   * This is needed to support consistent removal from the set and the indices.
+   */
+  private class NonUniqueFieldIndexIterator implements Iterator<T> {
+    /**
+     * Iterator of {@link NonUniqueFieldIndex#mIndexMap}. This Iterator keeps track of the
+     * inner set which is under iteration.
+     */
+    private final Iterator<ConcurrentHashSet<T>> mIndexIterator;
+    /**
+     * Iterator inside each inner set. This iterator keeps track of the objects.
+     */
+    private Iterator<T> mObjectIterator;
+    /**
+     * Keeps track of current object. It is used to do the remove.
+     */
+    private T mObject;
+
+    public NonUniqueFieldIndexIterator() {
+      mIndexIterator = mIndexMap.values().iterator();
+      mObjectIterator = null;
+      mObject = null;
+    }
+
+    @Override
+    public boolean hasNext() {
+      if (mObjectIterator != null && mObjectIterator.hasNext()) {
+        return true;
+      }
+      while (mIndexIterator.hasNext()) {
+        mObjectIterator = mIndexIterator.next().iterator();
+        if (mObjectIterator.hasNext()) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    @Override
+    public T next() {
+      while (mObjectIterator == null || !mObjectIterator.hasNext()) {
+        mObjectIterator = mIndexIterator.next().iterator();
+      }
+
+      final T next = mObjectIterator.next();
+      mObject = next;
+      return next;
+    }
+
+    @Override
+    public void remove() {
+      if (mObject != null) {
+        NonUniqueFieldIndex.this.remove(mObject);
+        mObject = null;
+      } else {
+        throw new IllegalStateException("next() was not called before remove()");
+      }
+    }
   }
 }
