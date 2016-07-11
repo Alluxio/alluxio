@@ -120,26 +120,6 @@ public final class S3AUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link S3AUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   */
-  @Test
-  public void stripFolderSuffixIfPresentTest() throws Exception {
-    String input1 = "s3a://test-bucket/";
-    String input2 = "s3a://test-bucket/dir/file";
-    String input3 = "s3a://test-bucket/dir_$folder$";
-    String result1 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input1);
-    String result2 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
-    String result3 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
-
-    Assert.assertEquals("s3a://test-bucket/", result1);
-    Assert.assertEquals("s3a://test-bucket/dir/file", result2);
-    Assert.assertEquals("s3a://test-bucket/dir", result3);
-  }
-
-  /**
    * Tests the {@link S3AUnderFileSystem#stripPrefixIfPresent(String)} method.
    */
   @Test
