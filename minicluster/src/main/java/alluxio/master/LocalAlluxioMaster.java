@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -21,7 +22,6 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import com.google.common.base.Supplier;
 import org.powermock.reflect.Whitebox;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -219,7 +219,7 @@ public final class LocalAlluxioMaster {
   }
 
   private static String uniquePath() throws IOException {
-    return File.createTempFile("Alluxio", "").getAbsoluteFile() + "U" + System.nanoTime();
+    return AlluxioTestDirectory.createTemporaryDirectory("alluxio-master").getAbsolutePath();
   }
 
   /**
