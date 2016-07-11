@@ -29,7 +29,7 @@ public final class UnexpectedAlluxioException extends AlluxioException {
   /**
    * @param e an exception to wrap
    */
-  public UnexpectedAlluxioException(RuntimeException e) {
+  public UnexpectedAlluxioException(Exception e) {
     super(e);
   }
 }
