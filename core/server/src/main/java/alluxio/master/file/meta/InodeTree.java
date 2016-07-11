@@ -14,8 +14,10 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -100,8 +102,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       return o.getId();
     }
   };
-  @SuppressWarnings("unchecked")
-  private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
+  // @SuppressWarnings("unchecked")
+  // private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
+  FieldIndex<Inode<?>> singleindex = new UniqueFieldIndex<Inode<?>>(mIdIndex);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -146,7 +149,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
           .create(mDirectoryIdGenerator.getNewDirectoryId(), NO_PARENT, ROOT_INODE_NAME,
               CreateDirectoryOptions.defaults().setPermission(permission));
       mRoot.setPersistenceState(PersistenceState.PERSISTED);
-      mInodes.add(mRoot);
+      singleindex.add(mRoot);
       mCachedInode = mRoot;
     }
   }
@@ -165,7 +168,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return the number of total inodes
    */
   public int getSize() {
-    return mInodes.size();
+    return singleindex.size();
   }
 
   /**
@@ -180,7 +183,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
-    return mInodes.getFirstByField(mIdIndex, id) != null;
+    return singleindex.getFirst(id) != null;
   }
 
   /**
@@ -346,7 +349,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws FileDoesNotExistException {
     int count = 0;
     while (true) {
-      Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
+      Inode<?> inode = singleindex.getFirst(id);
       if (inode == null) {
         throw new FileDoesNotExistException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
       }
@@ -423,7 +426,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     } else {
-      Inode<?> parentInode = mInodes.getFirstByField(mIdIndex, parentId);
+      Inode<?> parentInode = singleindex.getFirst(parentId);
       if (parentInode == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
@@ -566,7 +569,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
         toPersistDirectories.add(dir);
       }
       createdInodes.add(dir);
-      mInodes.add(dir);
+      singleindex.add(dir);
       currentInodeDirectory = dir;
     }
 
@@ -616,7 +619,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       lastInode.setPinned(currentInodeDirectory.isPinned());
 
       createdInodes.add(lastInode);
-      mInodes.add(lastInode);
+      singleindex.add(lastInode);
       currentInodeDirectory.addChild(lastInode);
       currentInodeDirectory.setLastModificationTimeMs(options.getOperationTimeMs());
     }
@@ -706,7 +709,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void deleteInode(LockedInodePath inodePath, long opTimeMs)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
-    InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+    InodeDirectory parent = (InodeDirectory) singleindex.getFirst(inode.getParentId());
     if (parent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
@@ -714,7 +717,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     parent.removeChild(inode);
     parent.setLastModificationTimeMs(opTimeMs);
 
-    mInodes.remove(inode);
+    singleindex.remove(inode);
     mPinnedInodeFileIds.remove(inode.getId());
     inode.setDeleted(true);
   }
@@ -833,11 +836,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
           throw new AccessControlException(
               ExceptionMessage.PERMISSION_DENIED.getMessage("Unauthorized user on root"));
         }
-        mInodes.clear();
+        singleindex.clear();
         mPinnedInodeFileIds.clear();
         mRoot = directory;
         mCachedInode = mRoot;
-        mInodes.add(mRoot);
+        singleindex.add(mRoot);
       } else {
         addInodeFromJournalInternal(directory);
       }
@@ -856,11 +859,11 @@ public final class InodeTree implements JournalCheckpointStreamable {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
       parentDirectory =
-          (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+          (InodeDirectory) singleindex.getFirst(inode.getParentId());
       mCachedInode = parentDirectory;
     }
     parentDirectory.addChild(inode);
-    mInodes.add(inode);
+    singleindex.add(inode);
     // Update indexes.
     if (inode.isFile() && inode.isPinned()) {
       mPinnedInodeFileIds.add(inode.getId());
@@ -869,7 +872,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+    return Objects.hashCode(mRoot, mIdIndex, singleindex, mPinnedInodeFileIds,
+        mContainerIdGenerator,
         mDirectoryIdGenerator, mCachedInode);
   }
 
@@ -884,7 +888,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
     InodeTree that = (InodeTree) o;
     return Objects.equal(mRoot, that.mRoot)
         && Objects.equal(mIdIndex, that.mIdIndex)
-        && Objects.equal(mInodes, that.mInodes)
+        && Objects.equal(singleindex, that.singleindex)
         && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
         && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
         && Objects.equal(mDirectoryIdGenerator, that.mDirectoryIdGenerator)
