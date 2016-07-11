@@ -56,8 +56,8 @@ contain your credentials.
 
 If you are using s3a, you can specify credentials in 4 ways, from highest to lowest priority:
 
-* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` and `AWS_SECRET_ACCESS_KEY` or
-`AWS_SECRET_KEY`
+* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
+`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
 * System Properties `aws.accessKeyId` and `aws.secretKey`
 * Profile file containing credentials at `~/.aws/credentials`
 * AWS Instance profile credentials, if you are using an EC2 instance
@@ -68,7 +68,7 @@ for more details.
 ## Enabling Server Side Encryption
 
 If you are using s3a, you may encrypt your data stored in S3. The encryption is only valid for data
-at rest in s3 and will be decrypted when read by clients.
+at rest in s3 and will be transferred in decrypted form when read by clients.
 
 Enable this feature by configuring `conf/alluxio-env.sh`:
 
