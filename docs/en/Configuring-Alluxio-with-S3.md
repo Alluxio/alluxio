@@ -7,7 +7,9 @@ priority: 0
 ---
 
 This guide describes how to configure Alluxio with [Amazon S3](https://aws.amazon.com/s3/) as the
-under storage system.
+under storage system. Alluxio natively provides two different client implementations for accessing
+s3, aws-sdk-java-s3 through the s3a:// scheme (recommended for better performance) and jets3t
+through the s3n:// scheme.
 
 # Initial Setup
 
@@ -20,7 +22,7 @@ For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_H
 
 {% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
 
-Alternatively, you can also create the configuration file from the template and set the contents manually. 
+Alternatively, you can also create the configuration file from the template and set the contents manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
@@ -36,15 +38,43 @@ To configure Alluxio to use S3 as its under storage system, modifications to the
 bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-env.sh`
 to include:
 
-{% include Configuring-Alluxio-with-S3/underfs-address.md %}
+{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
 
-Next, you need to specify the AWS credentials for S3 access. In `conf/alluxio-env.sh`, add:
+or
+
+{% include Configuring-Alluxio-with-S3/underfs-address-s3a.md}
+
+Next, you need to specify the AWS credentials for S3 access.
+
+If you are using s3n, in `conf/alluxio-env.sh`, add:
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
 Here, `<AWS_ACCESS_KEY_ID>` and `<AWS_SECRET_ACCESS_KEY>` should be replaced with your actual
 [AWS keys](https://aws.amazon.com/developers/access-keys), or other environment variables that
 contain your credentials.
+
+If you are using s3a, you can specify credentials in 4 ways, from highest to lowest priority:
+
+* Environment Variables `AWS_ACCESS_KEY_ID` or `AWS_ACCESS_KEY` (either is acceptable) and
+`AWS_SECRET_ACCESS_KEY` or `AWS_SECRET_KEY` (either is acceptable)
+* System Properties `aws.accessKeyId` and `aws.secretKey`
+* Profile file containing credentials at `~/.aws/credentials`
+* AWS Instance profile credentials, if you are using an EC2 instance
+
+See [Amazon's documentation](http://docs.aws.amazon.com/java-sdk/latest/developer-guide/credentials.html#id6)
+for more details.
+
+## Enabling Server Side Encryption
+
+If you are using s3a, you may encrypt your data stored in S3. The encryption is only valid for data
+at rest in s3 and will be transferred in decrypted form when read by clients.
+
+Enable this feature by configuring `conf/alluxio-env.sh`:
+
+{% include Configuring-Alluxio-with-S3/server-side-encryption-conf.md %}
+
+## Disable DNS-Buckets
 
 The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host
 name of its requests. You can optionally configure this behavior in the `ALLUXIO_JAVA_OPTS` section
@@ -124,7 +154,7 @@ the provider, and remove the `alluxio.underfs.s3.endpoint.https.port` parameter.
 port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>` defaults to port 443.
 
 ## Configuring Distributed Applications Runtime
-When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true, 
+When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true,
 which is by default since Alluxio 1.1), you do not have to do any thing special for your applications.
 Otherwise since you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
 a separate JVM), then you need to make sure that your AWS credentials are provided to the

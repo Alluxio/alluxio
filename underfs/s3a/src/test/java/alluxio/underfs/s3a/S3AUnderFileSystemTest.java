@@ -9,7 +9,7 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.s3;
+package alluxio.underfs.s3a;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -21,26 +21,26 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Tests for the private helper methods in {@link S3UnderFileSystem} that do not require an S3
+ * Tests for the private helper methods in {@link S3AUnderFileSystem} that do not require an S3
  * backend.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(S3UnderFileSystem.class)
-public final class S3UnderFileSystemTest {
-  private S3UnderFileSystem mMockS3UnderFileSystem;
+@PrepareForTest(S3AUnderFileSystem.class)
+public final class S3AUnderFileSystemTest {
+  private S3AUnderFileSystem mMockS3UnderFileSystem;
 
   /**
    * Sets up the mock before a test runs.
    */
   @Before
   public  final void before() {
-    mMockS3UnderFileSystem = Mockito.mock(S3UnderFileSystem.class);
+    mMockS3UnderFileSystem = Mockito.mock(S3AUnderFileSystem.class);
     Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketName", "test-bucket");
-    Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketPrefix", "s3n://test-bucket/");
+    Whitebox.setInternalState(mMockS3UnderFileSystem, "mBucketPrefix", "s3a://test-bucket/");
   }
 
   /**
-   * Tests the {@link S3UnderFileSystem#convertToFolderName(String)} method.
+   * Tests the {@link S3AUnderFileSystem#convertToFolderName(String)} method.
    */
   @Test
   public void convertToFolderNameTest() throws Exception {
@@ -51,16 +51,16 @@ public final class S3UnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link S3UnderFileSystem#getChildName(String, String)} method.
+   * Tests the {@link S3AUnderFileSystem#getChildName(String, String)} method.
    */
   @Test
   public void getChildNameTest() throws Exception {
-    String input11 = "s3n://test-bucket/child";
-    String input12 = "s3n://test-bucket/";
-    String input21 = "s3n://test-bucket/parent/child";
-    String input22 = "s3n://test-bucket/parent/";
-    String input31 = "s3n://test-bucket/child";
-    String input32 = "s3n://test-bucket/not-parent";
+    String input11 = "s3a://test-bucket/child";
+    String input12 = "s3a://test-bucket/";
+    String input21 = "s3a://test-bucket/parent/child";
+    String input22 = "s3a://test-bucket/parent/";
+    String input31 = "s3a://test-bucket/child";
+    String input32 = "s3a://test-bucket/not-parent";
     String result1 =
         Whitebox.invokeMethod(mMockS3UnderFileSystem, "getChildName", input11, input12);
     String result2 =
@@ -74,36 +74,36 @@ public final class S3UnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link S3UnderFileSystem#getParentKey(String)} method.
+   * Tests the {@link S3AUnderFileSystem#getParentKey(String)} method.
    */
   @Test
   public void getParentKeyTest() throws Exception {
-    String input1 = "s3n://test-bucket/parent-is-root";
-    String input2 = "s3n://test-bucket/";
-    String input3 = "s3n://test-bucket/parent/child";
-    String input4 = "s3n://test-bucket";
+    String input1 = "s3a://test-bucket/parent-is-root";
+    String input2 = "s3a://test-bucket/";
+    String input3 = "s3a://test-bucket/parent/child";
+    String input4 = "s3a://test-bucket";
     String result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input1);
     String result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input2);
     String result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input3);
     String result4 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "getParentKey", input4);
 
-    Assert.assertEquals("s3n://test-bucket", result1);
+    Assert.assertEquals("s3a://test-bucket", result1);
     Assert.assertNull(result2);
-    Assert.assertEquals("s3n://test-bucket/parent", result3);
+    Assert.assertEquals("s3a://test-bucket/parent", result3);
     Assert.assertNull(result4);
   }
 
   /**
-   * Tests the {@link S3UnderFileSystem#isRoot(String)} method.
+   * Tests the {@link S3AUnderFileSystem#isRoot(String)} method.
    */
   @Test
   public void isRootTest() throws Exception {
-    String input1 = "s3n://";
-    String input2 = "s3n://test-bucket";
-    String input3 = "s3n://test-bucket/";
-    String input4 = "s3n://test-bucket/file";
-    String input5 = "s3n://test-bucket/dir/file";
-    String input6 = "s3n://test-bucket-wrong/";
+    String input1 = "s3a://";
+    String input2 = "s3a://test-bucket";
+    String input3 = "s3a://test-bucket/";
+    String input4 = "s3a://test-bucket/file";
+    String input5 = "s3a://test-bucket/dir/file";
+    String input6 = "s3a://test-bucket-wrong/";
     Boolean result1 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input1);
     Boolean result2 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input2);
     Boolean result3 = Whitebox.invokeMethod(mMockS3UnderFileSystem, "isRoot", input3);
@@ -120,44 +120,25 @@ public final class S3UnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link S3UnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   */
-  @Test
-  public void stripFolderSuffixIfPresentTest() throws Exception {
-    String input1 = "s3n://test-bucket/";
-    String input2 = "s3n://test-bucket/dir/file";
-    String input3 = "s3n://test-bucket/dir_$folder$";
-    String result1 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input1);
-    String result2 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
-    String result3 =
-        Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
-    Assert.assertEquals("s3n://test-bucket/", result1);
-    Assert.assertEquals("s3n://test-bucket/dir/file", result2);
-    Assert.assertEquals("s3n://test-bucket/dir", result3);
-  }
-
-  /**
-   * Tests the {@link S3UnderFileSystem#stripPrefixIfPresent(String)} method.
+   * Tests the {@link S3AUnderFileSystem#stripPrefixIfPresent(String)} method.
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
     String[] inputs = new String[]{
-        "s3n://test-bucket",
-        "s3n://test-bucket/",
-        "s3n://test-bucket/file",
-        "s3n://test-bucket/dir/file",
-        "s3n://test-bucket-wrong/dir/file",
+        "s3a://test-bucket",
+        "s3a://test-bucket/",
+        "s3a://test-bucket/file",
+        "s3a://test-bucket/dir/file",
+        "s3a://test-bucket-wrong/dir/file",
         "dir/file",
         "/dir/file",
     };
     String[] results = new String[]{
-        "s3n://test-bucket",
+        "s3a://test-bucket",
         "",
         "file",
         "dir/file",
-        "s3n://test-bucket-wrong/dir/file",
+        "s3a://test-bucket-wrong/dir/file",
         "dir/file",
         "dir/file",
     };
