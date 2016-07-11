@@ -86,6 +86,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** JOSS access object. */
   private final Access mAccess;
 
+  /** Determine whether to run JOSS in simulation mode. */
+  private boolean mSimulationMode;
+
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
@@ -96,32 +99,45 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     String containerName = uri.getHost();
     LOG.debug("Constructor init: {}", containerName);
     AccountConfig config = new AccountConfig();
-    if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
-      config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
-    } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
-      config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
+
+    // Whether to run against a simulated Swift backend
+    mSimulationMode = false;
+    if (Configuration.containsKey(Constants.SWIFT_SIMULATION)) {
+      mSimulationMode = Configuration.getBoolean(Constants.SWIFT_SIMULATION);
     }
-    config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
-    String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
-    if (authMethod != null) {
-      config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
-      config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
-      switch (authMethod) {
-        case Constants.SWIFT_AUTH_KEYSTONE:
-          config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
-          break;
-        case Constants.SWIFT_AUTH_SWIFTAUTH:
-          // swiftauth authenticates directly against swift
-          // note: this method is supported in swift object storage api v1
-          config.setAuthenticationMethod(AuthenticationMethod.BASIC);
-          break;
-        default:
-          config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
-          // tempauth requires authentication header to be of the form tenant:user.
-          // JOSS however generates header of the form user:tenant.
-          // To resolve this, we switch user with tenant
-          config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
-          config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+
+    if (mSimulationMode) {
+      // In simulation mode we do not need access credentials
+      config.setMock(true);
+      config.setMockAllowEveryone(true);
+    } else {
+      if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
+        config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
+      } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
+        config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
+      }
+      config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
+      String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
+      if (authMethod != null) {
+        config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
+        config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
+        switch (authMethod) {
+          case Constants.SWIFT_AUTH_KEYSTONE:
+            config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+            break;
+          case Constants.SWIFT_AUTH_SWIFTAUTH:
+            // swiftauth authenticates directly against swift
+            // note: this method is supported in swift object storage api v1
+            config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+            break;
+          default:
+            config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
+            // tempauth requires authentication header to be of the form tenant:user.
+            // JOSS however generates header of the form user:tenant.
+            // To resolve this, we switch user with tenant
+            config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+        }
       }
     }
 
@@ -170,18 +186,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return null;
     }
 
-    final String strippedPath = CommonUtils.stripPrefixIfPresent(path,
-        Constants.HEADER_SWIFT);
-    // TODO(adit): remove special handling of */_SUCCESS objects
-    if (strippedPath.endsWith("_SUCCESS")) {
-      // when path/_SUCCESS is created, there is need to create path as
-      // an empty object. This is required by Spark in case Spark
-      // accesses path directly, bypassing Alluxio
-      String plainName = CommonUtils.stripSuffixIfPresent(strippedPath, "_SUCCESS");
-      SwiftDirectClient.put(mAccess, plainName).close();
-    }
     // We do not check if a folder with the same name exists
-    return SwiftDirectClient.put(mAccess, strippedPath);
+    return createOutputStream(path);
   }
 
   @Override
@@ -307,7 +313,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
 
-    if (!foundSelf) {
+    if (!foundSelf && children.size() == 0) {
+      if (mSimulationMode && isDirectory(path)) {
+        // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
+        // so we need the extra isDirectory call
+        return new String[0];
+      }
       // Path does not exist
       return null;
     }
@@ -358,17 +369,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private boolean mkdirsInternal(String path) {
     try {
-      String keyAsFolder = addFolderSuffixIfNotPresent(
-          CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
       // We do not check if a file with same name exists, i.e. a file with name
       // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
       // may both exist simultaneously
-      SwiftDirectClient.put(mAccess, keyAsFolder).close();
-      return true;
+      final OutputStream out = createOutputStream(addFolderSuffixIfNotPresent(path));
+      if (out != null) {
+        out.close();
+        return true;
+      }
     } catch (IOException e) {
       LOG.error("Failed to create directory: {}", path, e);
-      return false;
     }
+    return false;
   }
 
   /**
@@ -613,6 +625,25 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       LOG.debug("Object {} not found", object.getPath());
     }
     return false;
+  }
+
+  /**
+   * Create a simulated or actual OutputStream for object uploads.
+   * @return new OutputStream
+   */
+  private OutputStream createOutputStream(String path) {
+    if (mSimulationMode) {
+      try {
+        return new SwiftMockOutputStream(mAccount, mContainerName,
+            stripContainerPrefixIfPresent(path));
+      } catch (IOException e) {
+        LOG.error("Unable to create mock output stream with message {} ", e.getMessage());
+        return null;
+      }
+    }
+
+    return SwiftDirectClient.put(mAccess,
+        CommonUtils.stripPrefixIfPresent(path, Constants.HEADER_SWIFT));
   }
 
   @Override

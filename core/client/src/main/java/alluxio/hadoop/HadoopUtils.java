@@ -200,6 +200,11 @@ public final class HadoopUtils {
         && configuration.get(passwordKeyConf) == null) {
       configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
+    String swiftSimulationConf = Constants.SWIFT_SIMULATION;
+    if (System.getProperty(swiftSimulationConf) != null
+        && configuration.get(swiftSimulationConf) == null) {
+      configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
+    }
   }
 
   private HadoopUtils() {} // prevent instantiation
