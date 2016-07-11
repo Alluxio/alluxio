@@ -42,7 +42,7 @@ to include:
 
 or
 
-{% include Configuring-Alluxio-with-S3/underfs-address-s3a.md}
+{% include Configuring-Alluxio-with-S3/underfs-address-s3a.md %}
 
 Next, you need to specify the AWS credentials for S3 access.
 
