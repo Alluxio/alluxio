@@ -11,6 +11,7 @@
 
 package alluxio.collections;
 
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -21,7 +22,7 @@ import java.util.Set;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-interface FieldIndex<T> {
+interface FieldIndex<T> extends Iterable<T> {
   /**
    * Adds an object o to the index.
    *
@@ -40,10 +41,18 @@ interface FieldIndex<T> {
   /**
    * Returns whether there is an object with the specified index field value in the set.
    *
-   * @param value the field value to be satisfied
+   * @param fieldValue the field value to be satisfied
    * @return true if there is one such object, otherwise false
    */
-  boolean contains(Object value);
+  boolean containsField(Object fieldValue);
+
+  /**
+   * Returns whether there is an object in the set.
+   *
+   * @param o the object to be checked
+   * @return true if there is one such object, otherwise false
+   */
+  boolean containsObject(T o);
 
   /**
    * Gets a subset of objects with the specified field value. If there is no object with
@@ -61,4 +70,20 @@ interface FieldIndex<T> {
    * @return the object or null if there is no such object
    */
   T getFirst(Object value);
+
+  /**
+   * Returns an iterator over the elements in this index. The elements are returned in no particular
+   * order.
+   *
+   * Note that the behavior of the iterator is unspecified if the underlying collection is modified
+   * while a thread is going through the iterator.
+   *
+   * @return an iterator over the elements in this {@link FieldIndex}
+   */
+  Iterator<T> iterator();
+
+  /**
+   * @return the number of objects in this indexed set
+   */
+  int size();
 }

@@ -12,6 +12,7 @@
 package alluxio.collections;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -53,8 +54,20 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean contains(Object value) {
-    return mIndexMap.containsKey(value);
+  public boolean containsField(Object fieldValue) {
+    return mIndexMap.containsKey(fieldValue);
+  }
+
+  @Override
+  public boolean containsObject(T object) {
+    Object fieldValue = mIndexDefinition.getFieldValue(object);
+    T res = mIndexMap.get(fieldValue);
+
+    if (res == null) {
+      return false;
+    }
+
+    return res == object;
   }
 
   @Override
@@ -69,5 +82,15 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public T getFirst(Object value) {
     return mIndexMap.get(value);
+  }
+
+  @Override
+  public Iterator<T> iterator() {
+    return mIndexMap.values().iterator();
+  }
+
+  @Override
+  public int size() {
+    return mIndexMap.size();
   }
 }
