@@ -296,6 +296,7 @@ public abstract class UnderFileSystem {
    *         relative to that address. For local FS (with prefixes file:// or /), the under FS
    *         address is "/" and the path starts with "/".
    */
+  // TODO(calvin): See if this method is still necessary
   public static Pair<String, String> parse(AlluxioURI path) {
     Preconditions.checkArgument(path != null, "path may not be null");
 
@@ -304,8 +305,8 @@ public abstract class UnderFileSystem {
       String authority = (path.hasAuthority()) ? path.getAuthority() : "";
       if (header.equals(Constants.HEADER) || header.equals(Constants.HEADER_FT)
           || isHadoopUnderFS(header) || header.equals(Constants.HEADER_S3)
-          || header.equals(Constants.HEADER_S3N) || header.equals(Constants.HEADER_OSS)
-          || header.equals(Constants.HEADER_GCS)) {
+          || header.equals(Constants.HEADER_S3A) || header.equals(Constants.HEADER_S3N)
+          || header.equals(Constants.HEADER_OSS) || header.equals(Constants.HEADER_GCS)) {
         if (path.getPath().isEmpty()) {
           return new Pair<>(header + authority, AlluxioURI.SEPARATOR);
         } else {
