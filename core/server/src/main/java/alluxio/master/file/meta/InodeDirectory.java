@@ -12,8 +12,10 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
+import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -41,7 +43,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mNameIndex);
+//  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mNameIndex);
+  FieldIndex<Inode<?>> singleindex = new UniqueFieldIndex<Inode<?>>(mNameIndex);
 
   private boolean mMountPoint;
 
@@ -76,7 +79,12 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param child the inode to add
    */
   public void addChild(Inode<?> child) {
-    mChildren.add(child);
+    synchronized (child) {
+      if (singleindex.containsObject(child)) {
+        return;
+      }
+      singleindex.add(child);
+    }
   }
 
   /**
@@ -84,22 +92,22 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public Inode<?> getChild(String name) {
-    return mChildren.getFirstByField(mNameIndex, name);
+    return singleindex.getFirst(name);
   }
 
   /**
    * @return an unmodifiable set of the children inodes
    */
   public Set<Inode<?>> getChildren() {
-    return ImmutableSet.copyOf(mChildren.iterator());
+    return ImmutableSet.copyOf(singleindex.iterator());
   }
 
   /**
    * @return the ids of the children
    */
   public Set<Long> getChildrenIds() {
-    Set<Long> ret = new HashSet<>(mChildren.size());
-    for (Inode<?> child : mChildren) {
+    Set<Long> ret = new HashSet<>(singleindex.size());
+    for (Inode<?> child : singleindex) {
       ret.add(child.getId());
     }
     return ret;
@@ -109,7 +117,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the number of children in the directory
    */
   public int getNumberOfChildren() {
-    return mChildren.size();
+    return singleindex.size();
   }
 
   /**
@@ -133,7 +141,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(Inode<?> child) {
-    return mChildren.remove(child);
+    return singleindex.remove(child);
   }
 
   /**
@@ -143,7 +151,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    return mChildren.removeByField(mNameIndex, name) == 0;
+    Inode<?> child = singleindex.getFirst(name);
+    return singleindex.remove(child);
   }
 
   /**
@@ -176,7 +185,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     ret.setFileId(getId());
     ret.setName(getName());
     ret.setPath(path);
-    ret.setLength(mChildren.size());
+    ret.setLength(singleindex.size());
     ret.setBlockSizeBytes(0);
     ret.setCreationTimeMs(getCreationTimeMs());
     ret.setCompleted(true);
@@ -196,7 +205,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
 
   @Override
   public String toString() {
-    return toStringHelper().add("mountPoint", mMountPoint).add("children", mChildren).toString();
+    return toStringHelper().add("mountPoint", mMountPoint).add("children", singleindex).toString();
   }
 
   /**
