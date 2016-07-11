@@ -404,6 +404,8 @@ public final class FileSystemAclIntegrationTest {
       return;
     }
     Path fileA = new Path("/objectfileA");
+    final String newOwner = "new-user1";
+    final String newGroup = "new-group1";
 
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -415,7 +417,8 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    // chmod to Alluxio file would not affect the permission of UFS file.
+    // chown and chmod to Alluxio file would not affect the permission of UFS file.
+    sTFS.setOwner(fileA, newOwner, newGroup);
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0700));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
