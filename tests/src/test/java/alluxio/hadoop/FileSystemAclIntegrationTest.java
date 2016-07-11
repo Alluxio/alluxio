@@ -420,6 +420,8 @@ public final class FileSystemAclIntegrationTest {
     // chown and chmod to Alluxio file would not affect the permission of UFS file.
     sTFS.setOwner(fileA, newOwner, newGroup);
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0700));
+    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
   }
