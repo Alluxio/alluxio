@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
@@ -47,7 +48,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
     mNumOfMasters = masters;
 
     try {
-      mCuratorServer = new TestingServer();
+      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
       LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
     } catch (Exception e) {
       throw Throwables.propagate(e);
