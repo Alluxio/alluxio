@@ -222,7 +222,8 @@ you want to submit the pull request for.
 For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
 the title will look something like **[ALLUXIO-1234] Awesome Feature**.
 
-Add a GitHub label for whichever Alluxio component you think your change best falls under.
+Add a GitHub label for whichever Alluxio component your pull request fits into. Components correspond 
+with root-level directories in the Alluxio repository.
 
 In the first line of the description box, please add a link back to the JIRA ticket. The link will
 look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`
