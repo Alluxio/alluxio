@@ -65,8 +65,8 @@ For a tutorial, see the GitHub guides on
 ~~~~~
 
 -   Add a GitHub label describing which component of Alluxio your change falls under. If you're
-    unsure, pick whichever component you think fits best, and the maintainer of the component
-    will relabel the pull request if necessary.
+    unsure, pick whichever component you modified the most (components correspond with root-level 
+    directories).
 
 -   In the description field of the pull request, please include a link to the JIRA ticket.
 
