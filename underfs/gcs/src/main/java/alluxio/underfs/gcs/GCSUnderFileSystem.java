@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -653,12 +654,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return the key without the gcs bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
-    }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    key = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
 }
