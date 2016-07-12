@@ -45,7 +45,7 @@ public final class AlluxioTestDirectory {
   public static File createTemporaryDirectory(String prefix) {
     final File file = new File(ALLUXIO_TEST_DIRECTORY, prefix + "-" + UUID.randomUUID());
     if (!file.mkdir()) {
-      throw new RuntimeException("Failed to created directory " + file.getAbsolutePath());
+      throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
 
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
