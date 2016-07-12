@@ -127,7 +127,7 @@ public class LineageMasterIntegrationTest {
   /**
    * Tests that a lineage job is executed when the output file for the lineage is reported as lost.
    */
-  @Test(timeout = 30000)
+  @Test(timeout = 100000)
   public void lineageRecoveryTest() throws Exception {
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the
@@ -157,7 +157,7 @@ public class LineageMasterIntegrationTest {
           throw Throwables.propagate(e);
         }
       }
-    }, 20 * Constants.SECOND_MS);
+    }, 100 * Constants.SECOND_MS);
   }
 
   /**
