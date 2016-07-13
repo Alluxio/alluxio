@@ -40,6 +40,10 @@ categoryInfo:
     en: User Guides
     cn: 用户指南
     pt: Guias do Usuário
+  Deploying Alluxio:
+    en: Deploying Alluxio
+    cn: Deploying Alluxio
+    pt: Deploying Alluxio
   Features:
     en: Features
     cn: 特性
