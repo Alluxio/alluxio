@@ -19,6 +19,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -312,7 +313,14 @@ public final class Configuration {
   public static boolean getBoolean(String key) {
     if (PROPERTIES.containsKey(key)) {
       String rawValue = PROPERTIES.getProperty(key);
-      return Boolean.parseBoolean(lookup(rawValue));
+      String value = lookup(rawValue);
+      if (value.equalsIgnoreCase("true")) {
+        return true;
+      } else if (value.equalsIgnoreCase("false")) {
+        return false;
+      } else {
+        throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(key));
+      }
     }
     // if key is not found among the default properties
     throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -378,15 +386,16 @@ public final class Configuration {
    * @param <T> the type of the class
    * @return the value for the given key as a class
    */
-  @SuppressWarnings("unchecked")
   public static <T> Class<T> getClass(String key) {
     if (PROPERTIES.containsKey(key)) {
       String rawValue = PROPERTIES.getProperty(key);
       try {
-        return (Class<T>) Class.forName(rawValue);
+        @SuppressWarnings("unchecked")
+        Class<T> clazz = (Class<T>) Class.forName(rawValue);
+        return clazz;
       } catch (Exception e) {
-        String msg = "requested class could not be loaded";
-        LOG.error("{} : {} , {}", msg, rawValue, e);
+        LOG.error("requested class could not be loaded: {}", rawValue, e);
+        throw Throwables.propagate(e);
       }
     }
     // if key is not found among the default properties
@@ -401,7 +410,7 @@ public final class Configuration {
   }
 
   /**
-   * Lookup key names to handle ${key} stuff. Set as package private for testing.
+   * Lookup key names to handle ${key} stuff.
    *
    * @param base string to look for
    * @return the key name with the ${key} substituted
