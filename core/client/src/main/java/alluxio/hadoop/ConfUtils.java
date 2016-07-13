@@ -68,6 +68,8 @@ public final class ConfUtils {
       if (propertyName.startsWith("alluxio.")
           || propertyName.equals(Constants.S3N_ACCESS_KEY)
           || propertyName.equals(Constants.S3N_SECRET_KEY)
+          || propertyName.equals(Constants.S3A_ACCESS_KEY)
+          || propertyName.equals(Constants.S3A_SECRET_KEY)
           || propertyName.equals(Constants.GCS_ACCESS_KEY)
           || propertyName.equals(Constants.GCS_SECRET_KEY)
           || propertyName.equals(Constants.SWIFT_API_KEY)
