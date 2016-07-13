@@ -36,12 +36,12 @@ public class IndexedSetConcurrencyTest {
   /** The maximum value for the size value for the test object. */
   private static final int MAX_SIZE = 30;
   /** The duration for each test. */
-  private static final int TEST_CASE_DURATION_MS = 30000;
+  private static final int TEST_CASE_DURATION_MS = 5000;
   /** The minimum number of threads for each task type. */
   private static final int MIN_TASKS = 3;
   /** The maximum number of threads for each task type. */
   private static final int MAX_TASKS = 6;
-  /** the maximun repeatable times in one task of size in {@link TestInfo}. */
+  /** the maximum repeatable times in one task of size in {@link TestInfo}. */
   private static final int MAX_REPEAT_TIMES = 6;
 
   private IndexedSet<TestInfo> mIndexedSet;
@@ -230,14 +230,19 @@ public class IndexedSetConcurrencyTest {
     List<ConcurrentTask> removeTasks = new ArrayList<>();
 
     // Add random number of each task type.
-    for (int i = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+    int tasksNumber = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       // Try to balance adds and removes
       addTasks.add(new ConcurrentAdd());
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       removeTasks.add(new ConcurrentRemove());
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       removeTasks.add(new ConcurrentRemoveByField());
     }
 
@@ -273,20 +278,29 @@ public class IndexedSetConcurrencyTest {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
-    for (int i = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+    int tasksNumber = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       // Try to balance adds and removes
       futures.add(mThreadPool.submit(new ConcurrentAdd()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemove()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentClear()));
     }
 
@@ -304,8 +318,8 @@ public class IndexedSetConcurrencyTest {
     List<ConcurrentTask> addTasks = new ArrayList<>();
 
     // Add random number of each task type.
-    for (int i = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
-      // Try to balance adds and removes
+    int tasksNumber = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       addTasks.add(new ConcurrentAddWithCheck());
     }
 
@@ -323,7 +337,7 @@ public class IndexedSetConcurrencyTest {
   }
 
   /**
-   * Use the mSizeIndex as prime index, test the correctness of using non-unique index as prime
+   * Use the mSizeIndex as primary index, test the correctness of using non-unique index as primary
    * index.
    */
   @Test
@@ -332,20 +346,29 @@ public class IndexedSetConcurrencyTest {
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
-    for (int i = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+    int tasksNumber = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       // Try to balance adds and removes
       futures.add(mThreadPool.submit(new ConcurrentAdd()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemove()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
     }
-    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+
+    tasksNumber = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
+    for (int i = 0; i < tasksNumber; i++) {
       futures.add(mThreadPool.submit(new ConcurrentClear()));
     }
 
