@@ -23,9 +23,6 @@ import org.junit.rules.ExpectedException;
  * Unit tests for the {@link Configuration} class.
  */
 public class ConfigurationTest {
-  /**
-   * The exception expected to be thrown.
-   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
 
