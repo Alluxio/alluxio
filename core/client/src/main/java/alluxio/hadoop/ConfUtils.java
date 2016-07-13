@@ -66,8 +66,8 @@ public final class ConfUtils {
       String propertyName = entry.getKey();
       // TODO(gene): use a better way to enumerate every Alluxio configuration parameter
       if (propertyName.startsWith("alluxio.")
-          || propertyName.equals(Constants.S3_ACCESS_KEY)
-          || propertyName.equals(Constants.S3_SECRET_KEY)
+          || propertyName.equals(Constants.S3N_ACCESS_KEY)
+          || propertyName.equals(Constants.S3N_SECRET_KEY)
           || propertyName.equals(Constants.GCS_ACCESS_KEY)
           || propertyName.equals(Constants.GCS_SECRET_KEY)
           || propertyName.equals(Constants.SWIFT_API_KEY)

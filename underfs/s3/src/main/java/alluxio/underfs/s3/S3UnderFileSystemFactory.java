@@ -71,11 +71,11 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    */
   private boolean addAndCheckAWSCredentials() {
     // TODO(binfan): remove System.getProperty as it is covered by configuration
-    String accessKeyConf = Constants.S3_ACCESS_KEY;
+    String accessKeyConf = Constants.S3N_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
       Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = Constants.S3_SECRET_KEY;
+    String secretKeyConf = Constants.S3N_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
       Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
