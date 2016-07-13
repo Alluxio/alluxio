@@ -77,7 +77,7 @@ public final class UnderFileSystemRegistry {
   /**
    * Constructs a new {@link UnderFileSystemRegistry}.
    */
-  public UnderFileSystemRegistry() {}
+  private UnderFileSystemRegistry() {}
 
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes
