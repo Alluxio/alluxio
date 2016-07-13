@@ -36,7 +36,7 @@ public class IndexedSetConcurrencyTest {
   /** The maximum value for the size value for the test object. */
   private static final int MAX_SIZE = 30;
   /** The duration for each test. */
-  private static final int TEST_CASE_DURATION_MS = 5000;
+  private static final int TEST_CASE_DURATION_MS = 30000;
   /** The minimum number of threads for each task type. */
   private static final int MIN_TASKS = 3;
   /** The maximum number of threads for each task type. */
@@ -45,7 +45,6 @@ public class IndexedSetConcurrencyTest {
   private static final int MAX_REPEAT_TIMES = 6;
 
   private IndexedSet<TestInfo> mIndexedSet;
-
   private ExecutorService mThreadPool;
   /** Used to stop concurrent threads. */
   private AtomicBoolean mStopThreads;
