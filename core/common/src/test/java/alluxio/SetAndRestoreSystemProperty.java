@@ -11,36 +11,30 @@
 
 package alluxio;
 
-import org.junit.rules.TestRule;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-
 /**
- * A rule for setting a system property to a value and then restoring the property to its old value.
+ * An AutoCloseable which temporarily modifies a system property when it is constructed and
+ * restores the property when it is closed.
  */
-public final class SystemPropertyRule implements TestRule {
+public final class SetAndRestoreSystemProperty implements AutoCloseable {
   private final String mPropertyName;
-  private final String mValue;
+  private final String mPreviousValue;
 
   /**
    * @param propertyName the name of the property to set
    * @param value the value to set it to
    */
-  public SystemPropertyRule(String propertyName, String value) {
+  public SetAndRestoreSystemProperty(String propertyName, String value) {
     mPropertyName = propertyName;
-    mValue = value;
+    mPreviousValue = System.getProperty(propertyName);
+    System.setProperty(mPropertyName, value);
   }
 
   @Override
-  public Statement apply(final Statement statement, Description description) {
-    return new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        try (SetAndRestoreSystemProperty c =
-            new SetAndRestoreSystemProperty(mPropertyName, mValue)) {
-          statement.evaluate();
-        }
-      }
-    };
+  public void close() throws Exception {
+    if (mPreviousValue == null) {
+      System.clearProperty(mPropertyName);
+    } else {
+      System.setProperty(mPropertyName, mPreviousValue);
+    }
   }
 }
