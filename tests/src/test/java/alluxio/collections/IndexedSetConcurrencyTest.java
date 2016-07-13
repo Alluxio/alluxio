@@ -41,8 +41,11 @@ public class IndexedSetConcurrencyTest {
   private static final int MIN_TASKS = 3;
   /** The maximum number of threads for each task type. */
   private static final int MAX_TASKS = 6;
+  /** the maximun repeatable times in one task of size in {@link TestInfo}. */
+  private static final int MAX_REPEAT_TIMES = 6;
 
   private IndexedSet<TestInfo> mIndexedSet;
+
   private ExecutorService mThreadPool;
   /** Used to stop concurrent threads. */
   private AtomicBoolean mStopThreads;
@@ -73,6 +76,25 @@ public class IndexedSetConcurrencyTest {
     @Override
     public long runSingleTask() {
       return mIndexedSet.add(new TestInfo()) ? 1 : 0;
+    }
+  }
+
+  private class ConcurrentAddWithCheck extends ConcurrentTask {
+    @Override
+    public long runSingleTask() {
+      long result = 0;
+      int size = ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
+
+      for (int i = ThreadLocalRandom.current().nextInt(1, MAX_REPEAT_TIMES + 1); i > 0; i--) {
+        TestInfo instance = new TestInfo(size);
+        result += (mIndexedSet.add(instance) ? 1 : 0);
+        Assert.assertTrue(mIndexedSet.contains(mIdIndex, instance.getId()));
+        Assert.assertEquals(1, mIndexedSet.getByField(mIdIndex, instance.getId()).size());
+      }
+
+      Assert.assertTrue(result <= mIndexedSet.getByField(mSizeIndex, size).size());
+
+      return result;
     }
   }
 
@@ -125,6 +147,11 @@ public class IndexedSetConcurrencyTest {
     private TestInfo() {
       mId = ThreadLocalRandom.current().nextLong();
       mSize = ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
+    }
+
+    private TestInfo(int size) {
+      mId = ThreadLocalRandom.current().nextLong();
+      mSize = size;
     }
 
     public long getId() {
@@ -244,6 +271,65 @@ public class IndexedSetConcurrencyTest {
 
   @Test
   public void concurrentUpdateTest() throws Exception {
+    List<Future<?>> futures = new ArrayList<>();
+
+    // Add random number of each task type.
+    for (int i = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      // Try to balance adds and removes
+      futures.add(mThreadPool.submit(new ConcurrentAdd()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemove()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
+    }
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentClear()));
+    }
+
+    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    mStopThreads.set(true);
+    for (Future<?> future : futures) {
+      future.get();
+    }
+    verifySet();
+  }
+
+  @Test
+  public void ConcurrentAddTest() throws Exception {
+    List<Future<?>> futures = new ArrayList<>();
+    List<ConcurrentTask> addTasks = new ArrayList<>();
+
+    // Add random number of each task type.
+    for (int i = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      // Try to balance adds and removes
+      addTasks.add(new ConcurrentAddWithCheck());
+    }
+
+    for (ConcurrentTask task : addTasks) {
+      futures.add(mThreadPool.submit(task));
+    }
+
+    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
+    mStopThreads.set(true);
+    for (Future<?> future : futures) {
+      future.get();
+    }
+
+    verifySet();
+  }
+
+  /**
+   * Use the mSizeIndex as prime index, test the correctness of using non-unique index as prime
+   * index.
+   */
+  @Test
+  public void nonUniqueConcurrentUpdateTest() throws Exception {
+    mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
     List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
