@@ -414,8 +414,12 @@ public final class Constants {
   public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
   public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
 
-  public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
-  public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+  public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
+  public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+
+  // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
+  public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
+  public static final String S3A_SECRET_KEY = "aws.secretKey";
 
   public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
   public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
