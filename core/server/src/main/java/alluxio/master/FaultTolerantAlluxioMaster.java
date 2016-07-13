@@ -79,7 +79,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
         stopServing();
         stopMasters();
 
-        // Transitioning from standby to master, replace readonly journal with writable journal.
+        // Transitioning from standby to master, replace read-only journal with writable journal.
         mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
         mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
         mLineageMaster.upgradeToReadWriteJournal(mLineageMasterJournal);
@@ -94,7 +94,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
           stopServing();
           stopMasters();
 
-          // When transitioning from master to standby, recreate the masters with a readonly
+          // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
           mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
           mFileSystemMaster = new FileSystemMaster(mBlockMaster,
