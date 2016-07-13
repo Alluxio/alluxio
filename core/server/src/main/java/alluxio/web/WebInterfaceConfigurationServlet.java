@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -39,11 +39,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
-  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<String>(
+  private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
       Arrays.asList(Constants.MASTER_WHITELIST));
 
-  private final transient FileSystemMaster mFsMaster;
-  private final transient Configuration mConfiguration;
+  private final FileSystemMaster mFsMaster;
 
   /**
    * Creates a new instance of {@link WebInterfaceConfigurationServlet}.
@@ -52,7 +51,6 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
    */
   public WebInterfaceConfigurationServlet(FileSystemMaster fsMaster) {
     mFsMaster = fsMaster;
-    mConfiguration = new Configuration();
   }
 
   /**
@@ -73,11 +71,11 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   }
 
   private SortedSet<Pair<String, String>> getSortedProperties() {
-    TreeSet<Pair<String, String>> rtn = new TreeSet<Pair<String, String>>();
-    for (Map.Entry<Object, Object> entry : mConfiguration.getInternalProperties().entrySet()) {
+    TreeSet<Pair<String, String>> rtn = new TreeSet<>();
+    for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String key = entry.getKey().toString();
       if (key.startsWith(ALLUXIO_CONF_PREFIX) && !ALLUXIO_CONF_EXCLUDES.contains(key)) {
-        rtn.add(new ImmutablePair<String, String>(key, mConfiguration.get(key)));
+        rtn.add(new ImmutablePair<>(key, Configuration.get(key)));
       }
     }
     return rtn;

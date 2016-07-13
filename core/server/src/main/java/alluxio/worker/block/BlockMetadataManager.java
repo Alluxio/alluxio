@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -19,7 +19,6 @@ import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.allocator.Allocator;
 import alluxio.worker.block.evictor.Evictor;
 import alluxio.worker.block.meta.AbstractBlockMeta;
@@ -60,19 +59,15 @@ public final class BlockMetadataManager {
 
   private BlockMetadataManager() {
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
-      mAliasToTiers = new HashMap<String, StorageTier>(storageTierAssoc.size());
-      mTiers = new ArrayList<StorageTier>(storageTierAssoc.size());
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
+      mAliasToTiers = new HashMap<>(storageTierAssoc.size());
+      mTiers = new ArrayList<>(storageTierAssoc.size());
       for (int tierOrdinal = 0; tierOrdinal < storageTierAssoc.size(); tierOrdinal++) {
         StorageTier tier = StorageTier.newStorageTier(storageTierAssoc.getAlias(tierOrdinal));
         mTiers.add(tier);
         mAliasToTiers.put(tier.getTierAlias(), tier);
       }
-    } catch (BlockAlreadyExistsException e) {
-      throw new RuntimeException(e);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    } catch (WorkerOutOfSpaceException e) {
+    } catch (BlockAlreadyExistsException | IOException | WorkerOutOfSpaceException e) {
       throw new RuntimeException(e);
     }
   }
@@ -217,7 +212,16 @@ public final class BlockMetadataManager {
    * @return the metadata of this block store
    */
   public BlockStoreMeta getBlockStoreMeta() {
-    return new BlockStoreMeta(this);
+    return BlockStoreMeta.getBlockStoreMeta(this);
+  }
+
+  /**
+   * Gets a full summary of block store meta data. This is an expensive operation.
+   *
+   * @return the full metadata of this block store
+   */
+  public BlockStoreMeta getBlockStoreMetaFull() {
+    return BlockStoreMeta.getBlockStoreMetaFull(this);
   }
 
   /**
@@ -300,7 +304,7 @@ public final class BlockMetadataManager {
    * @return A list of temp blocks associated with the session
    */
   public List<TempBlockMeta> getSessionTempBlocks(long sessionId) {
-    List<TempBlockMeta> sessionTempBlocks = new ArrayList<TempBlockMeta>();
+    List<TempBlockMeta> sessionTempBlocks = new ArrayList<>();
     for (StorageTier tier : mTiers) {
       for (StorageDir dir : tier.getStorageDirs()) {
         sessionTempBlocks.addAll(dir.getSessionTempBlocks(sessionId));

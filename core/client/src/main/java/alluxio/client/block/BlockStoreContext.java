@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -73,13 +73,13 @@ public enum BlockStoreContext {
   }
 
   /**
-   * Initializes {@link #mLocalBlockWorkerClientPool}. This method is supposed be called in a lazy
-   * manner.
+   * Initializes {@link #mLocalBlockWorkerClientPoolMap}. This method is supposed be called in a
+   * lazy manner.
    */
   private synchronized void initializeLocalBlockWorkerClientPool() {
     if (!mLocalBlockWorkerClientPoolInitialized) {
       for (WorkerNetAddress localWorkerAddress : getWorkerAddresses(
-          NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+          NetworkAddressUtils.getLocalHostName())) {
         mLocalBlockWorkerClientPoolMap.put(localWorkerAddress,
             new BlockWorkerClientPool(localWorkerAddress));
       }
@@ -92,7 +92,7 @@ public enum BlockStoreContext {
    * addresses, if the hostname is an empty string.
    *
    * @param hostname hostname of the worker to query, empty string denotes any worker
-   * @return List of {@link WorkerNetAddress} of hostname
+   * @return a list of {@link WorkerNetAddress} with the given hostname
    */
   private List<WorkerNetAddress> getWorkerAddresses(String hostname) {
     List<WorkerNetAddress> addresses = new ArrayList<>();
@@ -136,7 +136,7 @@ public enum BlockStoreContext {
     if (address == null) {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf()))) {
+    if (address.getHost().equals(NetworkAddressUtils.getLocalHostName())) {
       client = acquireLocalWorkerClient(address);
       if (client == null) {
         throw new IOException(
@@ -192,12 +192,11 @@ public enum BlockStoreContext {
       // TODO(calvin): Better exception usage.
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
-    Preconditions.checkArgument(
-        !address.getHost().equals(NetworkAddressUtils.getLocalHostName(ClientContext.getConf())),
+    Preconditions.checkArgument(!address.getHost().equals(NetworkAddressUtils.getLocalHostName()),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(address, ClientContext.getExecutorService(),
-        ClientContext.getConf(), clientId, false, new ClientMetrics());
+    return new BlockWorkerClient(address, ClientContext.getBlockClientExecutorService(), clientId,
+        false, new ClientMetrics());
   }
 
   /**
@@ -224,6 +223,14 @@ public enum BlockStoreContext {
       // Destroy remote worker client.
       blockWorkerClient.close();
     }
+  }
+
+  /**
+   * @return if there is a local worker running the same machine
+   */
+  public boolean hasLocalWorker() {
+    initializeLocalBlockWorkerClientPool();
+    return !mLocalBlockWorkerClientPoolMap.isEmpty();
   }
 
   /**

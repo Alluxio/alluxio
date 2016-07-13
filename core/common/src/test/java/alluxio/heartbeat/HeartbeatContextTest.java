@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -67,8 +67,7 @@ public class HeartbeatContextTest {
     String testSleeping = "TEST_SLEEPING_%s";
     String testScheduled = "TEST_SCHEDULED_%s";
 
-    Map<Class<? extends HeartbeatTimer>, List<String>> timerMap =
-        new HashMap<Class<? extends HeartbeatTimer>, List<String>>();
+    Map<Class<? extends HeartbeatTimer>, List<String>> timerMap = new HashMap<>();
     timerMap.put(HeartbeatContext.SLEEPING_TIMER_CLASS,
         Arrays.asList(String.format(testSleeping, "1"), String.format(testSleeping, "2")));
     timerMap.put(HeartbeatContext.SCHEDULED_TIMER_CLASS,

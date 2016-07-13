@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -37,31 +37,23 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+    // prevent instantiation
+    private Factory() {}
+
     /**
      * Gets the groups being used to map user-to-groups.
      *
      * @return the groups being used to map user-to-groups
      */
     public static GroupMappingService getUserToGroupsMappingService() {
-      return getUserToGroupsMappingService(new Configuration());
-    }
-
-    /**
-     * Gets the groups being used to map user-to-groups.
-     *
-     * @param conf Alluxio configuration
-     * @return the groups being used to map user-to-groups
-     */
-    public static GroupMappingService getUserToGroupsMappingService(Configuration conf) {
       GroupMappingService mGroupMappingService;
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating new Groups object");
       }
       try {
-        mGroupMappingService =
-            CommonUtils.createNewClassInstance(
-                conf.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null, null);
-        mGroupMappingService.setConf(conf);
+        mGroupMappingService = CommonUtils.createNewClassInstance(
+            Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null,
+            null);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
@@ -78,13 +70,4 @@ public interface GroupMappingService {
    * @throws IOException if can't get user's groups
    */
   List<String> getGroups(String user) throws IOException;
-
-  /**
-   * Sets the configuration to GroupMappingService. For example, when we get user-groups mapping
-   * from LDAP, we will need configuration to set up the connection to LDAP server.
-   *
-   * @param conf The alluxio configuration set to GroupMappingService
-   * @throws IOException if failed config GroupMappingService
-   */
-  void setConf(Configuration conf) throws IOException;
 }

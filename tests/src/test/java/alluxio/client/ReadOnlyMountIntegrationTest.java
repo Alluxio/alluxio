@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,7 +22,6 @@ import alluxio.client.file.options.MountOptions;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
-import alluxio.exception.InvalidPathException;
 import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
@@ -53,17 +52,14 @@ public class ReadOnlyMountIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    Configuration testConf = mLocalAlluxioClusterResource.getTestConf();
 
     // Add a readonly mount point.
     mAlternateUfsRoot = createAlternateUfs();
     String ufsMountDir = PathUtils.concatPath(mAlternateUfsRoot, MOUNT_PATH);
-    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir, testConf);
-    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH), testConf);
-    UnderFileSystemUtils
-        .mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH), testConf);
-    UnderFileSystemUtils
-        .touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH), testConf);
+    UnderFileSystemUtils.mkdirIfNotExists(ufsMountDir);
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, FILE_PATH));
+    UnderFileSystemUtils.mkdirIfNotExists(PathUtils.concatPath(mAlternateUfsRoot, SUB_DIR_PATH));
+    UnderFileSystemUtils.touch(PathUtils.concatPath(mAlternateUfsRoot, SUB_FILE_PATH));
     mFileSystem.createDirectory(new AlluxioURI("/mnt"));
     mFileSystem.mount(new AlluxioURI(MOUNT_PATH), new AlluxioURI(ufsMountDir),
         MountOptions.defaults().setReadOnly(true));
@@ -277,26 +273,22 @@ public class ReadOnlyMountIntegrationTest {
   /**
    * Creates another directory on the local filesystem, alongside the existing Ufs, to be used as a
    * second Ufs.
+   *
    * @return the path of the alternate Ufs directory
-   * @throws InvalidPathException if the UNDERFS_ADDRESS is not properly formed
-   * @throws IOException if a UnderFS I/O error occurs
    */
-  private String createAlternateUfs() throws InvalidPathException, IOException {
-    AlluxioURI parentURI =
-        new AlluxioURI(mLocalAlluxioClusterResource.getTestConf().get(Constants.UNDERFS_ADDRESS))
-            .getParent();
+  private String createAlternateUfs() throws Exception {
+    AlluxioURI parentURI = new AlluxioURI(Configuration.get(Constants.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
-    UnderFileSystemUtils
-        .mkdirIfNotExists(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+    UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;
   }
 
   /**
    * Deletes the alternate under file system directory.
+   *
    * @param alternateUfsRoot the root of the alternate Ufs
-   * @throws IOException if an UnderFS I/O error occurs
    */
-  private void destroyAlternateUfs(String alternateUfsRoot) throws IOException {
-    UnderFileSystemUtils.deleteDir(alternateUfsRoot, mLocalAlluxioClusterResource.getTestConf());
+  private void destroyAlternateUfs(String alternateUfsRoot) throws Exception {
+    UnderFileSystemUtils.deleteDir(alternateUfsRoot);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,13 +14,18 @@ package alluxio.underfs.gcs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link GCSUnderFileSystem} that do not require an GCS
  * backend.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(GCSUnderFileSystem.class)
 public final class GCSUnderFileSystemTest {
   private GCSUnderFileSystem mMockGCSUnderFileSystem;
 
@@ -29,15 +34,13 @@ public final class GCSUnderFileSystemTest {
    */
   @Before
   public  final void before() {
-    mMockGCSUnderFileSystem = PowerMockito.mock(GCSUnderFileSystem.class);
+    mMockGCSUnderFileSystem = Mockito.mock(GCSUnderFileSystem.class);
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketName", "test-bucket");
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketPrefix", "gs://test-bucket/");
   }
 
   /**
    * Tests the {@link GCSUnderFileSystem#convertToFolderName(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void convertToFolderNameTest() throws Exception {
@@ -49,8 +52,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#getChildName(String, String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getChildNameTest() throws Exception {
@@ -74,8 +75,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#getParentKey(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void getParentKeyTest() throws Exception {
@@ -96,8 +95,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#isRoot(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void isRootTest() throws Exception {
@@ -124,8 +121,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
@@ -146,8 +141,6 @@ public final class GCSUnderFileSystemTest {
 
   /**
    * Tests the {@link GCSUnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {

@@ -57,7 +57,11 @@ priority: 4
 
 在 `deploy/vagrant/conf/gce.yml`配置文件中,设置你的 项目 id,服务账号, JSON密钥的位置和已经创建好的ssh用户名.
 
-目前GCE默认使用 Hadoop2 作为它的底层文件系统, 因为目前Alluxio并不支持GCS作为底层文件系统。
+对于GCE，默认的底层文件系统是Google Cloud Storage(GCS)。你需要登入你的[Google云控制台](https://console.cloud.google.com)，新建一个GCS bucket并将该bucket的名称写到`conf/ufs.yml`里面的`GCS:Bucket`字段中。要使用其他底层存储系统的话，配置`conf/ufs.yml`里面`Type`字段及其相关字段。
+
+为了使用访问密钥访问GCS，你需要在GCS的控制台[互操作性设置](https://console.cloud.google.com/storage/settings)里面创建[开发者密钥](https://cloud.google.com/storage/docs/migrating#keys)，并将shell环境变量`GCS_ACCESS_KEY_ID`和`GCS_SECRET_ACCESS_KEY`进行如下设置：
+
+{% include Running-Alluxio-on-GCE/access-key.md %}
 
 现在你可以启动Alluxio集群了，通过在 `deploy/vagrant`目录下运行:
 

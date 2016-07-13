@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,6 +14,8 @@ package alluxio.master.file.options;
 import alluxio.Constants;
 import alluxio.thrift.SetAttributeTOptions;
 
+import com.google.common.base.Objects;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -26,7 +28,7 @@ public class SetAttributeOptions {
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private Short mPermission;
+  private Short mMode;
   private boolean mRecursive;
   private long mOperationTimeMs;
 
@@ -48,8 +50,7 @@ public class SetAttributeOptions {
     mPersisted = options.isSetPersisted() ? options.isPersisted() : null;
     mOwner = options.isSetOwner() ? options.getOwner() : null;
     mGroup = options.isSetGroup() ? options.getGroup() : null;
-    mPermission =
-        options.isSetPermission() ? options.getPermission() : Constants.INVALID_PERMISSION;
+    mMode = options.isSetMode() ? options.getMode() : Constants.INVALID_MODE;
     mRecursive = options.isRecursive();
     mOperationTimeMs = System.currentTimeMillis();
   }
@@ -60,7 +61,7 @@ public class SetAttributeOptions {
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mPermission = Constants.INVALID_PERMISSION;
+    mMode = Constants.INVALID_MODE;
     mRecursive = false;
     mOperationTimeMs = System.currentTimeMillis();
   }
@@ -101,10 +102,10 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @return the permission bits
+   * @return the mode bits
    */
-  public Short getPermission() {
-    return mPermission;
+  public Short getMode() {
+    return mMode;
   }
 
   /**
@@ -167,16 +168,16 @@ public class SetAttributeOptions {
   }
 
   /**
-   * @param permission the permission bits to use
+   * @param mode the mode bits to use
    * @return the updated options object
    */
-  public SetAttributeOptions setPermission(short permission) {
-    mPermission = permission;
+  public SetAttributeOptions setMode(short mode) {
+    mMode = mode;
     return this;
   }
 
   /**
-   * @param recursive whether owner / group / permission should be updated recursively
+   * @param recursive whether owner / group / mode should be updated recursively
    * @return the updated options object
    */
   public SetAttributeOptions setRecursive(boolean recursive) {
@@ -191,5 +192,42 @@ public class SetAttributeOptions {
   public SetAttributeOptions setOperationTimeMs(long operationTimeMs) {
     mOperationTimeMs = operationTimeMs;
     return this;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    SetAttributeOptions that = (SetAttributeOptions) o;
+    return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("mPinned", mPinned)
+        .add("ttl", mTtl)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode)
+        .add("recursive", mRecursive)
+        .add("operationTimeMs", mOperationTimeMs)
+        .toString();
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.security.group.provider;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -26,6 +25,11 @@ import java.util.List;
 public final class IdentityUserGroupsMapping implements GroupMappingService {
 
   /**
+   * Constructs a new {@link IdentityUserGroupsMapping}.
+   */
+  public IdentityUserGroupsMapping() {}
+
+  /**
    * Returns list of groups for a user.
    *
    * @param user get groups for this user
@@ -36,10 +40,4 @@ public final class IdentityUserGroupsMapping implements GroupMappingService {
   public List<String> getGroups(String user) throws IOException {
     return Lists.newArrayList(user);
   }
-
-  @Override
-  public void setConf(Configuration conf) {
-    // does nothing in this provider of user to groups mapping
-  }
-
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
@@ -37,8 +36,8 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
 
   private String mSwiftContainer;
 
-  public SwiftUnderStorageCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
+  public SwiftUnderStorageCluster(String baseDir) {
+    super(baseDir);
     String swiftAPIKey = System.getProperty(INTEGRATION_SWIFT_API_KEY);
     String tenantKey = System.getProperty(INTEGRATION_SWIFT_TENANT_KEY);
     String userKey = System.getProperty(INTEGRATION_SWIFT_USER_KEY);
@@ -59,7 +58,7 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
   public void cleanup() throws IOException {
     String oldDir = mBaseDir;
     mBaseDir = mSwiftContainer + UUID.randomUUID();
-    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir, mConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(mBaseDir);
     ufs.delete(oldDir, true);
   }
 

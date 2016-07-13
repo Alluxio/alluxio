@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,14 @@
 
 package alluxio.underfs.local;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.security.authorization.Mode;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
+import alluxio.underfs.options.MkdirsOptions;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -47,10 +52,10 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   /**
    * Constructs a new {@link LocalUnderFileSystem}.
    *
-   * @param conf the configuration for Alluxio
+   * @param uri the {@link AlluxioURI} for this UFS
    */
-  public LocalUnderFileSystem(Configuration conf) {
-    super(conf);
+  public LocalUnderFileSystem(AlluxioURI uri) {
+    super(uri);
   }
 
   @Override
@@ -63,9 +68,15 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public OutputStream create(String path) throws IOException {
+    return create(path, new CreateOptions());
+  }
+
+  @Override
+  public OutputStream create(String path, CreateOptions options) throws IOException {
+    path = stripPath(path);
     FileOutputStream stream = new FileOutputStream(path);
     try {
-      setPermission(path, "777");
+      setMode(path, options.getPermission().getMode().toShort());
     } catch (IOException e) {
       stream.close();
       throw e;
@@ -74,21 +85,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public OutputStream create(String path, int blockSizeByte) throws IOException {
-    return create(path, (short) 1, blockSizeByte);
-  }
-
-  @Override
-  public OutputStream create(String path, short replication, int blockSizeByte) throws IOException {
-    if (replication != 1) {
-      throw new IOException("UnderFileSystemSingleLocal does not provide more than one"
-          + " replication factor");
-    }
-    return create(path);
-  }
-
-  @Override
   public boolean delete(String path, boolean recursive) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     boolean success = true;
     if (recursive && file.isDirectory()) {
@@ -103,17 +101,19 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.exists();
   }
 
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     if (!file.exists()) {
       throw new FileNotFoundException(path);
     }
-    return Constants.GB * 2L;
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -123,8 +123,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public List<String> getFileLocations(String path) throws IOException {
-    List<String> ret = new ArrayList<String>();
-    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC, mConfiguration));
+    List<String> ret = new ArrayList<>();
+    ret.add(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC));
     return ret;
   }
 
@@ -135,18 +135,21 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.length();
   }
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.lastModified();
   }
 
   @Override
   public long getSpace(String path, SpaceType type) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     switch (type) {
       case SPACE_TOTAL:
@@ -162,12 +165,14 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean isFile(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     return file.isFile();
   }
 
   @Override
   public String[] list(String path) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
     File[] files = file.listFiles();
     if (files != null) {
@@ -184,17 +189,24 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, boolean createParent) throws IOException {
+    return mkdirs(path, new MkdirsOptions().setCreateParent(createParent));
+  }
+
+  @Override
+  public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    path = stripPath(path);
     File file = new File(path);
-    if (!createParent) {
+    Permission perm = options.getPermission();
+    if (!options.getCreateParent()) {
       if (file.mkdir()) {
-        setPermission(file.getPath(), "777");
+        setMode(file.getPath(), perm.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
         return true;
       }
       return false;
     }
-    // create parent directories one by one and set their permissions to 777
-    Stack<File> dirsToMake = new Stack<File>();
+    // Create parent directories one by one and set their permissions to rwxrwxrwx.
+    Stack<File> dirsToMake = new Stack<>();
     dirsToMake.push(file);
     File parent = file.getParentFile();
     while (!parent.exists()) {
@@ -204,7 +216,7 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     while (!dirsToMake.empty()) {
       File dirToMake = dirsToMake.pop();
       if (dirToMake.mkdir()) {
-        setPermission(dirToMake.getAbsolutePath(), "777");
+        setMode(dirToMake.getAbsolutePath(), perm.getMode().toShort());
         FileUtils.setLocalDirStickyBit(file.getPath());
       } else {
         return false;
@@ -215,11 +227,14 @@ public class LocalUnderFileSystem extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
+    path = stripPath(path);
     return new FileInputStream(path);
   }
 
   @Override
   public boolean rename(String src, String dst) throws IOException {
+    src = stripPath(src);
+    dst = stripPath(dst);
     File file = new File(src);
     return file.renameTo(new File(dst));
   }
@@ -228,17 +243,56 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   public void setConf(Object conf) {}
 
   @Override
-  public void setPermission(String path, String posixPerm) throws IOException {
+  public void setOwner(String path, String user, String group) throws IOException {
+    path = stripPath(path);
+    if (user != null) {
+      FileUtils.changeLocalFileUser(path, user);
+    }
+    if (group != null) {
+      FileUtils.changeLocalFileGroup(path, group);
+    }
+  }
+
+  @Override
+  public void setMode(String path, short mode) throws IOException {
+    path = stripPath(path);
+    String posixPerm = new Mode(mode).toString();
     FileUtils.changeLocalFilePermission(path, posixPerm);
   }
 
   @Override
-  public void connectFromMaster(Configuration conf, String hostname) throws IOException {
+  public String getOwner(String path) throws IOException {
+    path = stripPath(path);
+    return FileUtils.getLocalFileOwner(path);
+  }
+
+  @Override
+  public String getGroup(String path) throws IOException {
+    path = stripPath(path);
+    return FileUtils.getLocalFileGroup(path);
+  }
+
+  @Override
+  public short getMode(String path) throws IOException {
+    path = stripPath(path);
+    return FileUtils.getLocalFileMode(path);
+  }
+
+  @Override
+  public void connectFromMaster(String hostname) throws IOException {
     // No-op
   }
 
   @Override
-  public void connectFromWorker(Configuration conf, String hostname) throws IOException {
+  public void connectFromWorker(String hostname) throws IOException {
     // No-op
+  }
+
+  /**
+   * @param path the path to strip the scheme from
+   * @return the path, with the optional scheme stripped away
+   */
+  private String stripPath(String path) {
+    return new AlluxioURI(path).getPath();
   }
 }

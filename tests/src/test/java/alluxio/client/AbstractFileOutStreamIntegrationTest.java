@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
@@ -21,16 +20,15 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
+import alluxio.underfs.hdfs.LocalMiniDFSCluster;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,12 +57,10 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   protected CreateFileOptions mWriteAsync;
   protected CreateFileOptions mWriteUnderStore;
 
-  protected Configuration mTestConf;
   protected FileSystem mFileSystem = null;
 
   @Before
   public void before() throws Exception {
-    mTestConf = mLocalAlluxioClusterResource.get().getWorkerConf();
     mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
     mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
     mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
@@ -80,10 +76,9 @@ public abstract class AbstractFileOutStreamIntegrationTest {
    * @param underStorageType type of under storage write
    * @param fileLen length of the file
    * @param increasingByteArrayLen expected length of increasing bytes written in the file
-   * @throws IOException if an I/O exception occurs
    */
   protected void checkWrite(AlluxioURI filePath, UnderStorageType underStorageType, int fileLen,
-                            int increasingByteArrayLen) throws IOException, AlluxioException {
+      int increasingByteArrayLen) throws Exception {
     for (CreateFileOptions op : getOptionSet()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       Assert.assertEquals(fileLen, status.getLength());
@@ -97,12 +92,12 @@ public abstract class AbstractFileOutStreamIntegrationTest {
     if (underStorageType.isSyncPersist() || underStorageType.isAsyncPersist()) {
       URIStatus status = mFileSystem.getStatus(filePath);
       String checkpointPath = status.getUfsPath();
-      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath, mTestConf);
+      UnderFileSystem ufs = UnderFileSystem.get(checkpointPath);
 
       InputStream is = ufs.open(checkpointPath);
       byte[] res = new byte[(int) status.getLength()];
       String underFSClass = UnderFileSystemCluster.getUnderFSClass();
-      if ("alluxio.underfs.hdfs.LocalMiniDFSCluster".equals(underFSClass)
+      if (LocalMiniDFSCluster.class.getName().equals(underFSClass)
           && 0 == res.length) {
         // Returns -1 for zero-sized byte array to indicate no more bytes available here.
         Assert.assertEquals(-1, is.read(res));
@@ -115,7 +110,7 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   }
 
   protected List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(3);
+    List<CreateFileOptions> ret = new ArrayList<>(3);
     ret.add(mWriteBoth);
     ret.add(mWriteAlluxio);
     ret.add(mWriteUnderStore);

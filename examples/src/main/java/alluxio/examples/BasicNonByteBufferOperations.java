@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,8 +12,8 @@
 package alluxio.examples;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.Version;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -71,9 +71,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    ClientContext.getConf().set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    ClientContext.getConf().set(Constants.MASTER_RPC_PORT,
-        Integer.toString(mMasterLocation.getPort()));
+    Configuration.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
+    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.init();
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);
@@ -82,14 +81,11 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   private void write(FileSystem alluxioClient) throws IOException, AlluxioException {
     FileOutStream fileOutStream = createFile(alluxioClient, mFilePath, mDeleteIfExists);
-    DataOutputStream os = new DataOutputStream(fileOutStream);
-    try {
+    try (DataOutputStream os = new DataOutputStream(fileOutStream)) {
       os.writeInt(mLength);
       for (int i = 0; i < mLength; i++) {
         os.writeInt(i);
       }
-    } finally {
-      os.close();
     }
   }
 
@@ -111,45 +107,14 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
   private boolean read(FileSystem alluxioClient) throws IOException, AlluxioException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(mReadType);
 
-    DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options));
-    try {
+    try (DataInputStream input = new DataInputStream(alluxioClient.openFile(mFilePath, options))) {
       int length = input.readInt();
       for (int i = 0; i < length; i++) {
         if (input.readInt() != i) {
           return false;
         }
       }
-    } finally {
-      input.close();
     }
     return true;
-  }
-
-  /**
-   * Runs the example.
-   *
-   * Usage: {@code java -cp <ALLUXIO-VERSION> BasicNonByteBufferOperations <master address>
-   *   <file path> <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)>
-   *   <WriteType (MUST_CACHE | CACHE_THROUGH | THROUGH)> <delete file> <number of files>}
-   *
-   * @param args the parameters to run the example
-   * @throws IOException if the example fails to run
-   */
-  public static void main(final String[] args) throws IOException {
-    if (args.length < 2 || args.length > 6) {
-      usage();
-    }
-
-    Utils.runExample(new BasicNonByteBufferOperations(new AlluxioURI(args[0]), new AlluxioURI(
-        args[1]), Utils.option(args, 2, ReadType.CACHE), Utils.option(args, 3,
-        WriteType.CACHE_THROUGH), Utils.option(args, 4, true), Utils.option(args, 5, 20)));
-  }
-
-  private static void usage() {
-    System.out.println("java -cp " + Version.ALLUXIO_JAR + " "
-        + BasicNonByteBufferOperations.class.getName() + " <master address> <file path> "
-        + " <ReadType (CACHE_PROMOTE | CACHE | NO_CACHE)> <WriteType (MUST_CACHE | CACHE_THROUGH"
-        + " | THROUGH)> <delete file> <number of files>");
-    System.exit(-1);
   }
 }

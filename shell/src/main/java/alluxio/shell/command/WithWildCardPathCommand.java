@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,8 +12,8 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
+import alluxio.exception.AlluxioException;
 import alluxio.shell.AlluxioShellUtils;
 
 import com.google.common.base.Joiner;
@@ -36,8 +36,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class WithWildCardPathCommand extends AbstractShellCommand {
 
-  protected WithWildCardPathCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  protected WithWildCardPathCommand(FileSystem fs) {
+    super(fs);
   }
 
   /**
@@ -47,7 +47,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
    * @param cl the parsed command line object including options
    * @throws IOException if the command fails
    */
-  abstract void runCommand(AlluxioURI path, CommandLine cl) throws IOException;
+  abstract void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException;
 
   @Override
   protected int getNumOfArgs() {
@@ -55,7 +55,7 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
@@ -65,11 +65,11 @@ public abstract class WithWildCardPathCommand extends AbstractShellCommand {
     }
     Collections.sort(paths, createAlluxioURIComparator());
 
-    List<String> errorMessages = new ArrayList<String>();
+    List<String> errorMessages = new ArrayList<>();
     for (AlluxioURI path : paths) {
       try {
         runCommand(path, cl);
-      } catch (IOException e) {
+      } catch (AlluxioException | IOException e) {
         errorMessages.add(e.getMessage());
       }
     }

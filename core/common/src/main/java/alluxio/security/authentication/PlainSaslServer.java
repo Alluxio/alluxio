@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -161,6 +161,12 @@ public final class PlainSaslServer implements SaslServer {
    */
   @ThreadSafe
   public static class Factory implements SaslServerFactory {
+
+    /**
+     * Constructs a new {@link Factory} for the {@link PlainSaslServer}.
+     */
+    public Factory() {}
+
     /**
      * Creates a {@link SaslServer} using the parameters supplied. It returns null if no SaslServer
      * can be created using the parameters supplied. Throws {@link SaslException} if it cannot

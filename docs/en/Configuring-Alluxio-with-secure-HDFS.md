@@ -29,7 +29,8 @@ of Alluxio source code.
 
 * Modify the `hadoop.version` tag defined in `${ALLUXIO_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
-"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
+"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven. 
+To make compiling faster, you can add `-DskipTests` option to skip unit tests.
 
 {% include Configuring-Alluxio-with-HDFS/mvn-package.md %}
 
@@ -44,13 +45,17 @@ If everything succeeds, you should see
 
 # Configuring Alluxio
 
-To run the Alluxio binary, we must setup configuration files. Create your configuration file from
- the template:
+To run Alluxio binary, we must setup configuration files. Create your configuration file with `bootstrapConf` command.
+For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_HOSTNAME` should be set to `localhost`
+
+{% include Configuring-Alluxio-with-HDFS/bootstrapConf.md %}
+
+Alternatively, you can also create the configuration file from the template and set the contents manually. 
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
 Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
-(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with the default port).
+(e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
 

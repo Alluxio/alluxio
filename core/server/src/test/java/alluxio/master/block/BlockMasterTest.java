@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -29,7 +30,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
@@ -76,8 +76,6 @@ public class BlockMasterTest {
 
   /**
    * Sets up the dependencies before a test runs.
-   *
-   * @throws Exception if the test folder cannot be created or the master fails to start
    */
   @Before
   public void before() throws Exception {
@@ -89,8 +87,6 @@ public class BlockMasterTest {
 
   /**
    * Stops the master after a test ran.
-   *
-   * @throws Exception if the master fails to stop
    */
   @After
   public void after() throws Exception {
@@ -99,8 +95,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the different different byte methods of the {@link BlockMaster}.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void countBytesTest() throws Exception {
@@ -150,8 +144,6 @@ public class BlockMasterTest {
   /**
    * Tests that after {@link PrivateAccess#addLostWorker(MasterWorkerInfo)} a worker can be
    * registered via {@link BlockMaster#workerRegister(long, List, Map, Map, Map)}.
-   *
-   * @throws Exception if registering a worker fails
    */
   @Test
   public void registerLostWorkerTest() throws Exception {
@@ -177,8 +169,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link BlockMaster#removeBlocks(List, boolean)} method.
-   *
-   * @throws Exception if registering a worker fails
    */
   @Test
   public void removeBlocksTest() throws Exception {
@@ -187,7 +177,7 @@ public class BlockMasterTest {
     MasterWorkerInfo workerInfo1 = mPrivateAccess.getWorkerById(worker1);
     MasterWorkerInfo workerInfo2 = mPrivateAccess.getWorkerById(worker2);
     List<Long> workerBlocks = Arrays.asList(1L, 2L, 3L);
-    HashMap<String, List<Long>> noBlocksInTiers = Maps.newHashMap();
+    HashMap<String, List<Long>> noBlocksInTiers = new HashMap<>();
     mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 0L), noBlocksInTiers);
     mMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
@@ -236,8 +226,6 @@ public class BlockMasterTest {
   /**
    * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method where the master
    * tells the worker to remove a block.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void workerHeartbeatTest() throws Exception {
@@ -282,14 +270,12 @@ public class BlockMasterTest {
     workerInfo.updateToRemovedBlock(true, BLOCK_TO_FREE);
     Command heartBeat3 = mMaster.workerHeartbeat(workerId, USED_BYTES_ON_TIERS,
         ImmutableList.<Long>of(), ImmutableMap.<String, List<Long>>of());
-    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.<Long>of(BLOCK_TO_FREE)),
+    Assert.assertEquals(new Command(CommandType.Free, ImmutableList.of(BLOCK_TO_FREE)),
         heartBeat3);
   }
 
   /**
    * Tests the {@link BlockMaster#workerHeartbeat(long, Map, List, Map)} method.
-   *
-   * @throws Exception if adding a worker fails
    */
   @Test
   public void heartbeatStatusTest() throws Exception {
@@ -326,8 +312,6 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link HeartbeatContext#MASTER_LOST_WORKER_DETECTION} to detect a lost worker.
-   *
-   * @throws Exception if waiting for the detector fails
    */
   @Test
   public void detectLostWorkerTest() throws Exception {
@@ -376,15 +360,11 @@ public class BlockMasterTest {
 
   /**
    * Tests the {@link BlockMaster#stop()} method.
-   *
-   * @throws Exception if stopping the master fails
    */
   @Test
   public void stopTest() throws Exception {
-    ExecutorService service =
-        (ExecutorService) Whitebox.getInternalState(mMaster, "mExecutorService");
-    Future<?> lostWorkerThread =
-        (Future<?>) Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
+    ExecutorService service = Whitebox.getInternalState(mMaster, "mExecutorService");
+    Future<?> lostWorkerThread = Whitebox.getInternalState(mMaster, "mLostWorkerDetectionService");
     Assert.assertFalse(lostWorkerThread.isDone());
     Assert.assertFalse(service.isShutdown());
     mMaster.stop();
@@ -396,13 +376,13 @@ public class BlockMasterTest {
       Map<String, Long> totalBytesOnTiers, Map<String, Long> usedBytesOnTiers)
           throws AlluxioException {
     master.workerRegister(workerId, storageTierAliases, totalBytesOnTiers, usedBytesOnTiers,
-        Maps.<String, List<Long>>newHashMap());
+        new HashMap<String, List<Long>>());
   }
 
   /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
+    private final IndexDefinition<MasterWorkerInfo> mIdIndex;
     private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -44,7 +44,6 @@ public abstract class UIWebServer {
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
   private final ServiceType mService;
-  private final Configuration mConfiguration;
   private InetSocketAddress mAddress;
 
   /**
@@ -53,19 +52,16 @@ public abstract class UIWebServer {
    *
    * @param service name of the web service
    * @param address address of the server
-   * @param conf Alluxio configuration
    */
-  public UIWebServer(ServiceType service, InetSocketAddress address, Configuration conf) {
+  public UIWebServer(ServiceType service, InetSocketAddress address) {
     Preconditions.checkNotNull(service, "Service type cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
-    Preconditions.checkNotNull(conf, "Configuration cannot be null");
 
     mAddress = address;
     mService = service;
-    mConfiguration = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
+    int webThreadCount = Configuration.getInt(Constants.WEB_THREAD_COUNT);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -81,7 +77,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
+    File warPath = new File(Configuration.get(Constants.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
@@ -161,7 +157,7 @@ public abstract class UIWebServer {
         int webPort = mServer.getConnectors()[0].getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
-        mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
+        Configuration.set(mService.getPortKey(), Integer.toString(webPort));
       }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {

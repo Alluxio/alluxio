@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TransportProviderUtils {
 
   /**
-   * Creates a new Thrift socket what will connect to the given address.
+   * Creates a new Thrift socket that will connect to the given address.
    *
    * @param address The given address to connect
    * @param timeoutMs the timeout in milliseconds
@@ -36,6 +36,5 @@ public final class TransportProviderUtils {
     return new TSocket(NetworkAddressUtils.getFqdnHost(address), address.getPort(), timeoutMs);
   }
 
-  private TransportProviderUtils() {
-  } // prevent instantiation
+  private TransportProviderUtils() {} // prevent instantiation
 }

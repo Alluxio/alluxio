@@ -81,12 +81,21 @@ public final class KeyValue {
      * <code>optional int64 block_id = 4;</code>
      */
     long getBlockId();
+
+    /**
+     * <code>optional int32 key_count = 5;</code>
+     */
+    boolean hasKeyCount();
+    /**
+     * <code>optional int32 key_count = 5;</code>
+     */
+    int getKeyCount();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
    *
    * <pre>
-   * next available id: 5
+   * next available id: 6
    * </pre>
    */
   public static final class CompletePartitionEntry extends
@@ -158,6 +167,11 @@ public final class KeyValue {
             case 32: {
               bitField0_ |= 0x00000008;
               blockId_ = input.readInt64();
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000010;
+              keyCount_ = input.readInt32();
               break;
             }
           }
@@ -338,11 +352,27 @@ public final class KeyValue {
       return blockId_;
     }
 
+    public static final int KEY_COUNT_FIELD_NUMBER = 5;
+    private int keyCount_;
+    /**
+     * <code>optional int32 key_count = 5;</code>
+     */
+    public boolean hasKeyCount() {
+      return ((bitField0_ & 0x00000010) == 0x00000010);
+    }
+    /**
+     * <code>optional int32 key_count = 5;</code>
+     */
+    public int getKeyCount() {
+      return keyCount_;
+    }
+
     private void initFields() {
       storeId_ = 0L;
       keyStart_ = "";
       keyLimit_ = "";
       blockId_ = 0L;
+      keyCount_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -369,6 +399,9 @@ public final class KeyValue {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         output.writeInt64(4, blockId_);
       }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeInt32(5, keyCount_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -393,6 +426,10 @@ public final class KeyValue {
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
           .computeInt64Size(4, blockId_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(5, keyCount_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -476,7 +513,7 @@ public final class KeyValue {
      * Protobuf type {@code alluxio.proto.journal.CompletePartitionEntry}
      *
      * <pre>
-     * next available id: 5
+     * next available id: 6
      * </pre>
      */
     public static final class Builder extends
@@ -523,6 +560,8 @@ public final class KeyValue {
         bitField0_ = (bitField0_ & ~0x00000004);
         blockId_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000008);
+        keyCount_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -567,6 +606,10 @@ public final class KeyValue {
           to_bitField0_ |= 0x00000008;
         }
         result.blockId_ = blockId_;
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000010;
+        }
+        result.keyCount_ = keyCount_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -598,6 +641,9 @@ public final class KeyValue {
         }
         if (other.hasBlockId()) {
           setBlockId(other.getBlockId());
+        }
+        if (other.hasKeyCount()) {
+          setKeyCount(other.getKeyCount());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -886,6 +932,38 @@ public final class KeyValue {
       public Builder clearBlockId() {
         bitField0_ = (bitField0_ & ~0x00000008);
         blockId_ = 0L;
+        onChanged();
+        return this;
+      }
+
+      private int keyCount_ ;
+      /**
+       * <code>optional int32 key_count = 5;</code>
+       */
+      public boolean hasKeyCount() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional int32 key_count = 5;</code>
+       */
+      public int getKeyCount() {
+        return keyCount_;
+      }
+      /**
+       * <code>optional int32 key_count = 5;</code>
+       */
+      public Builder setKeyCount(int value) {
+        bitField0_ |= 0x00000010;
+        keyCount_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional int32 key_count = 5;</code>
+       */
+      public Builder clearKeyCount() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        keyCount_ = 0;
         onChanged();
         return this;
       }
@@ -3122,15 +3200,16 @@ public final class KeyValue {
   static {
     java.lang.String[] descriptorData = {
       "\n\017key_value.proto\022\025alluxio.proto.journal" +
-      "\"b\n\026CompletePartitionEntry\022\020\n\010store_id\030\001" +
+      "\"u\n\026CompletePartitionEntry\022\020\n\010store_id\030\001" +
       " \001(\003\022\021\n\tkey_start\030\002 \001(\t\022\021\n\tkey_limit\030\003 \001" +
-      "(\t\022\020\n\010block_id\030\004 \001(\003\"&\n\022CompleteStoreEnt" +
-      "ry\022\020\n\010store_id\030\001 \001(\003\"$\n\020CreateStoreEntry" +
-      "\022\020\n\010store_id\030\001 \001(\003\"$\n\020DeleteStoreEntry\022\020" +
-      "\n\010store_id\030\001 \001(\003\">\n\020RenameStoreEntry\022\024\n\014" +
-      "old_store_id\030\001 \001(\003\022\024\n\014new_store_id\030\002 \001(\003" +
-      "\"=\n\017MergeStoreEntry\022\025\n\rfrom_store_id\030\001 \001" +
-      "(\003\022\023\n\013to_store_id\030\002 \001(\003"
+      "(\t\022\020\n\010block_id\030\004 \001(\003\022\021\n\tkey_count\030\005 \001(\005\"" +
+      "&\n\022CompleteStoreEntry\022\020\n\010store_id\030\001 \001(\003\"" +
+      "$\n\020CreateStoreEntry\022\020\n\010store_id\030\001 \001(\003\"$\n" +
+      "\020DeleteStoreEntry\022\020\n\010store_id\030\001 \001(\003\">\n\020R" +
+      "enameStoreEntry\022\024\n\014old_store_id\030\001 \001(\003\022\024\n" +
+      "\014new_store_id\030\002 \001(\003\"=\n\017MergeStoreEntry\022\025" +
+      "\n\rfrom_store_id\030\001 \001(\003\022\023\n\013to_store_id\030\002 \001",
+      "(\003"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -3149,7 +3228,7 @@ public final class KeyValue {
     internal_static_alluxio_proto_journal_CompletePartitionEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_CompletePartitionEntry_descriptor,
-        new java.lang.String[] { "StoreId", "KeyStart", "KeyLimit", "BlockId", });
+        new java.lang.String[] { "StoreId", "KeyStart", "KeyLimit", "BlockId", "KeyCount", });
     internal_static_alluxio_proto_journal_CompleteStoreEntry_descriptor =
       getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_proto_journal_CompleteStoreEntry_fieldAccessorTable = new

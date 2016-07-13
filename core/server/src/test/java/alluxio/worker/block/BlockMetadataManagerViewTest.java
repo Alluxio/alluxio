@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,15 +14,12 @@ package alluxio.worker.block;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.master.block.BlockId;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.StorageDirView;
 import alluxio.worker.block.meta.StorageTier;
 import alluxio.worker.block.meta.StorageTierView;
 
-import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -32,6 +29,8 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -56,23 +55,13 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the meta manager, the lock manager or the evictor fails
    */
   @Before
   public void before() throws Exception {
     File tempFolder = mTestFolder.newFolder();
     mMetaManager = TieredBlockStoreTestUtils.defaultMetadataManager(tempFolder.getAbsolutePath());
     mMetaManagerView = Mockito.spy(new BlockMetadataManagerView(mMetaManager,
-        Sets.<Long>newHashSet(), Sets.<Long>newHashSet()));
-  }
-
-  /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
+        new HashSet<Long>(), new HashSet<Long>()));
   }
 
   /**
@@ -136,8 +125,6 @@ public final class BlockMetadataManagerViewTest {
   /**
    * Tests that an exception is thrown in the {@link BlockMetadataManagerView#getBlockMeta(long)}
    * method when the block does not exist.
-   *
-   * @throws BlockDoesNotExistException if no {@link BlockMeta} for this block id is found
    */
   @Test
   public void getBlockMetaNotExistingTest() throws BlockDoesNotExistException {
@@ -160,8 +147,6 @@ public final class BlockMetadataManagerViewTest {
 
   /**
    * Tests the {@link BlockMetadataManagerView#getBlockMeta(long)}  method.
-   *
-   * @throws Exception if an operation on the metadata of the block fails
    */
   @Test
   public void getBlockMetaTest() throws Exception {
@@ -206,20 +191,25 @@ public final class BlockMetadataManagerViewTest {
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin block by passing its inode to mMetaManagerView
+    HashSet<Long> pinnedInodes = new HashSet<>();
+    Collections.addAll(pinnedInodes, inode);
     mMetaManagerView =
-        new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode), Sets.<Long>newHashSet());
+        new BlockMetadataManagerView(mMetaManager, pinnedInodes, new HashSet<Long>());
     Assert.assertFalse(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.<Long>newHashSet(),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+    HashSet<Long> testBlockIdSet = new HashSet<>();
+    Collections.addAll(testBlockIdSet, TEST_BLOCK_ID);
+    Collections.addAll(pinnedInodes, TEST_BLOCK_ID);
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, new HashSet<Long>(),
+        testBlockIdSet);
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertFalse(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
 
     // Pin and lock block
-    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, Sets.newHashSet(inode),
-        Sets.<Long>newHashSet(TEST_BLOCK_ID));
+    mMetaManagerView = new BlockMetadataManagerView(mMetaManager, pinnedInodes,
+        testBlockIdSet);
     Assert.assertTrue(mMetaManagerView.isBlockLocked(TEST_BLOCK_ID));
     Assert.assertTrue(mMetaManagerView.isBlockPinned(TEST_BLOCK_ID));
   }

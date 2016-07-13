@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,10 +11,10 @@
 
 package alluxio.client.block;
 
-import alluxio.client.ClientContext;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.ClientMetrics;
 
@@ -62,10 +62,11 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
 
     try {
-      mLockId = mBlockWorkerClient.lockBlock(blockId).getLockId();
-      if (mLockId == null) {
+      LockBlockResult result = mBlockWorkerClient.lockBlock(blockId);
+      if (result == null) {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
+      mLockId = result.getLockId();
       mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
@@ -79,9 +80,9 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
       return;
     }
 
-    // TODO(calvin): Perhaps verify that something was read from this stream
-    mMetrics.incBlocksReadRemote(1);
-
+    if (mBlockIsRead) {
+      mMetrics.incBlocksReadRemote(1);
+    }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
     } catch (ConnectionFailedException e) {
@@ -137,8 +138,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     int bytesLeft = toRead;
     while (bytesLeft > 0) {
       // TODO(calvin): Fix needing to recreate reader each time.
-      RemoteBlockReader reader =
-          RemoteBlockReader.Factory.create(ClientContext.getConf());
+      RemoteBlockReader reader = RemoteBlockReader.Factory.create();
       try {
         ByteBuffer data = reader.readRemoteBlock(mWorkerInetSocketAddress, mBlockId, getPosition(),
             bytesLeft, mLockId, mBlockWorkerClient.getSessionId());

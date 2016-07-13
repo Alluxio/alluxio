@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,10 +11,10 @@
 
 package alluxio.client.keyvalue;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.ByteArrayOutStream;
-import alluxio.client.ClientContext;
-import alluxio.client.util.ClientTestUtils;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -127,12 +127,12 @@ public final class BaseKeyValuePartitionWriterTest {
   @Test
   public void canPutKeyValueTest() throws Exception {
     long size = mWriter.byteCount() + KEY1.length + VALUE1.length + 2 * Constants.BYTES_IN_INTEGER;
-    ClientContext.getConf().set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
+    Configuration.set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(size));
     mWriter = new BaseKeyValuePartitionWriter(mOutStream);
     Assert.assertTrue(mWriter.canPut(KEY1, VALUE1));
     mWriter.put(KEY1, VALUE1);
     Assert.assertFalse(mWriter.canPut(KEY1, VALUE1));
-    ClientTestUtils.resetClientContext();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -39,6 +39,11 @@ public final class AppLoginModule implements LoginModule {
   private Subject mSubject;
   private User mUser;
   private CallbackHandler mCallbackHandler;
+
+  /**
+   * Constructs a new {@link AppLoginModule}.
+   */
+  public AppLoginModule() {}
 
   @Override
   public void initialize(Subject subject, CallbackHandler callbackHandler,
@@ -99,7 +104,7 @@ public final class AppLoginModule implements LoginModule {
    * implementation first checks if there is already Alluxio user in the subject. If not, it adds
    * the previously logged in Alluxio user into the subject.
    *
-   * @return true if an Alluxio user if found or created
+   * @return true if an Alluxio user is found or created
    * @throws LoginException not Alluxio user is found or created
    */
   @Override
@@ -147,11 +152,11 @@ public final class AppLoginModule implements LoginModule {
     private String mUserName;
 
     /**
-     * @param conf the configuration for Alluxio
+     * Creates a new instance of {@link AppCallbackHandler}.
      */
-    public AppCallbackHandler(Configuration conf) {
-      if (conf.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
-        mUserName = conf.get(Constants.SECURITY_LOGIN_USERNAME);
+    public AppCallbackHandler() {
+      if (Configuration.containsKey(Constants.SECURITY_LOGIN_USERNAME)) {
+        mUserName = Configuration.get(Constants.SECURITY_LOGIN_USERNAME);
       } else {
         mUserName = "";
       }

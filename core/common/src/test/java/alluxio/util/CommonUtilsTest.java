@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -79,7 +78,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase(""));
     testCases.add(new TestCase("foo", "foo"));
     testCases.add(new TestCase("foo bar", "foo", "bar"));
@@ -104,13 +103,13 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase());
     testCases.add(new TestCase("foo"));
     testCases.add(new TestCase("foo", "bar"));
 
     for (TestCase testCase : testCases) {
-      ArrayList<String> input = new ArrayList<String>();
+      ArrayList<String> input = new ArrayList<>();
       Collections.addAll(input, testCase.mExpected);
       String[] got = CommonUtils.toStringArray(input);
       Assert.assertEquals(testCase.mExpected.length, got.length);
@@ -139,7 +138,7 @@ public class CommonUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("hello", TestClassA.class, null));
     testCases.add(new TestCase("1", TestClassB.class, new Class[] {int.class}, 1));
 
@@ -158,6 +157,7 @@ public class CommonUtilsTest {
   static class TestClassA {
     public TestClassA() {}
 
+    @Override
     public String toString() {
       return "hello";
     }
@@ -170,6 +170,7 @@ public class CommonUtilsTest {
       mX = x;
     }
 
+    @Override
     public String toString() {
       return Integer.toString(mX);
     }
@@ -188,15 +189,13 @@ public class CommonUtilsTest {
 
   /**
    * Tests the {@link CommonUtils#getUnixGroups(String)} method.
-   *
-   * @throws Throwable when the retrieval of the UNIX groups fails
    */
   @Test
   public void userGroupTest() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<String>();
+    List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
     setupShellMocks(userName, userGroups);
@@ -210,16 +209,14 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getPrimaryGroupName(Configuration, String)} method.
-   *
-   * @throws Throwable if getting the primary group name fails
+   * Test for the {@link CommonUtils#getPrimaryGroupName(String)} method.
    */
   @Test
   public void userPrimaryGroupTest() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
-    List<String> userGroups = new ArrayList<String>();
+    List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
     GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
@@ -227,13 +224,88 @@ public class CommonUtilsTest {
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
     Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService(Mockito.any(Configuration.class)))
+        GroupMappingService.Factory.getUserToGroupsMappingService())
         .thenReturn(groupService);
 
-    Configuration conf = new Configuration();
-    String primaryGroup = CommonUtils.getPrimaryGroupName(conf, userName);
-
+    String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
     Assert.assertNotNull(primaryGroup);
     Assert.assertEquals(userGroup1, primaryGroup);
   }
+
+  /**
+   * Tests the {@link CommonUtils#stripSuffixIfPresent(String,String)} method.
+   */
+  @Test
+  public void stripSuffixIfPresentTest() throws Exception {
+    final String[] inputs = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket/",
+        "ufs://bucket/file_SUCCESS",
+        "ufs://bucket-2/dir/file/",
+        "dir/file",
+        "/dir/file/",
+        "ufs://bucket/file_$folder"
+    };
+    final String[] suffixToStrip = new String[]{
+        "ufs://bucket/",
+        "/",
+        "_SUCCESS",
+        "/",
+        "/",
+        "/",
+        "_$folder"
+    };
+    final String[] results = new String[]{
+        "",
+        "ufs://bucket",
+        "ufs://bucket/file",
+        "ufs://bucket-2/dir/file",
+        "dir/file",
+        "/dir/file",
+        "ufs://bucket/file"
+    };
+    for (int i = 0; i < inputs.length; i++) {
+      Assert.assertEquals(results[i],
+          CommonUtils.stripSuffixIfPresent(inputs[i], suffixToStrip[i]));
+    }
+  }
+
+  /**
+   * Tests the {@link CommonUtils#stripPrefixIfPresent(String, String)} method.
+   */
+  @Test
+  public void stripPrefixIfPresentTest() throws Exception {
+    final String[] inputs = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket",
+        "ufs://bucket/",
+        "ufs://bucket-2/dir/file",
+        "dir/file",
+        "/dir/file",
+        "ufs://bucket/file"
+    };
+    final String[] prefixToStrip = new String[]{
+        "ufs://bucket/",
+        "ufs://bucket/",
+        "",
+        "ufs://bucket-2/",
+        "ufs://bucket",
+        "/",
+        "ufs://bucket/"
+    };
+    final String[] results = new String[]{
+        "",
+        "ufs://bucket",
+        "ufs://bucket/",
+        "dir/file",
+        "dir/file",
+        "dir/file",
+        "file"
+    };
+    for (int i = 0; i < inputs.length; i++) {
+      Assert.assertEquals(results[i],
+          CommonUtils.stripPrefixIfPresent(inputs[i], prefixToStrip[i]));
+    }
+  }
+
 }

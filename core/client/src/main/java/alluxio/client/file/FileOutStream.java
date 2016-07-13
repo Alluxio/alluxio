@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
@@ -19,13 +20,18 @@ import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.block.BufferedBlockOutStream;
+import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
+import alluxio.client.file.options.CompleteUfsFileOptions;
+import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
+import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.options.CreateOptions;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.WorkerNetAddress;
@@ -59,6 +65,13 @@ public class FileOutStream extends AbstractOutStream {
   private final FileSystemContext mContext;
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
+  /** Whether this stream should delegate operations to the ufs to a worker. */
+  private final boolean mUfsDelegation;
+  /** The client to a file system worker, null if mUfsDelegation is false. */
+  private final FileSystemWorkerClient mFileSystemWorkerClient;
+  /** The worker file id for the ufs file, null if mUfsDelegation is false. */
+  private final Long mUfsFileId;
+
   private String mUfsPath;
   private FileWriteLocationPolicy mLocationPolicy;
 
@@ -84,16 +97,41 @@ public class FileOutStream extends AbstractOutStream {
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
     mContext = FileSystemContext.INSTANCE;
-    mPreviousBlockOutStreams = new LinkedList<BufferedBlockOutStream>();
+    mPreviousBlockOutStreams = new LinkedList<>();
+    mUfsDelegation = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
-      updateUfsPath();
-      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-      UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
-      // TODO(jiri): Implement collection of temporary files left behind by dead clients.
-      mUnderStorageOutputStream = ufs.create(tmpPath, (int) mBlockSize);
+      if (mUfsDelegation) {
+        updateUfsPath();
+        mFileSystemWorkerClient = mContext.createWorkerClient();
+        try {
+          Permission perm = options.getPermission();
+          mUfsFileId =
+              mFileSystemWorkerClient.createUfsFile(new AlluxioURI(mUfsPath),
+                  CreateUfsFileOptions.defaults().setPermission(perm));
+        } catch (AlluxioException e) {
+          mFileSystemWorkerClient.close();
+          throw new IOException(e);
+        }
+        mUnderStorageOutputStream =
+            new UnderFileSystemFileOutStream(mFileSystemWorkerClient.getWorkerDataServerAddress(),
+                mUfsFileId);
+      } else {
+        updateUfsPath();
+        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
+        // TODO(jiri): Implement collection of temporary files left behind by dead clients.
+        CreateOptions createOptions = new CreateOptions().setPermission(options.getPermission());
+        mUnderStorageOutputStream = ufs.create(tmpPath, createOptions);
+
+        // Set delegation related vars to null as we are not using worker delegation for ufs ops
+        mFileSystemWorkerClient = null;
+        mUfsFileId = null;
+      }
     } else {
       mUfsPath = null;
       mUnderStorageOutputStream = null;
+      mFileSystemWorkerClient = null;
+      mUfsFileId = null;
     }
     mClosed = false;
     mCanceled = false;
@@ -120,29 +158,47 @@ public class FileOutStream extends AbstractOutStream {
 
     CompleteFileOptions options = CompleteFileOptions.defaults();
     if (mUnderStorageType.isSyncPersist()) {
-      String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
-      UnderFileSystem ufs = UnderFileSystem.get(tmpPath, ClientContext.getConf());
-      if (mCanceled) {
-        // TODO(yupeng): Handle this special case in under storage integrations.
+      if (mUfsDelegation) {
         mUnderStorageOutputStream.close();
-        if (!ufs.exists(tmpPath)) {
-          // Location of the temporary file has changed, recompute it.
-          updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+        try {
+          if (mCanceled) {
+            mFileSystemWorkerClient.cancelUfsFile(mUfsFileId, CancelUfsFileOptions.defaults());
+          } else {
+            long len =
+                mFileSystemWorkerClient.completeUfsFile(mUfsFileId,
+                    CompleteUfsFileOptions.defaults());
+            options.setUfsLength(len);
+          }
+        } catch (AlluxioException e) {
+          throw new IOException(e);
+        } finally {
+          mFileSystemWorkerClient.close();
         }
-        ufs.delete(tmpPath, false);
       } else {
-        mUnderStorageOutputStream.flush();
-        mUnderStorageOutputStream.close();
-        if (!ufs.exists(tmpPath)) {
-          // Location of the temporary file has changed, recompute it.
-          updateUfsPath();
-          tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+        String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+        UnderFileSystem ufs = UnderFileSystem.get(tmpPath);
+        if (mCanceled) {
+          // TODO(yupeng): Handle this special case in under storage integrations.
+          mUnderStorageOutputStream.close();
+          if (!ufs.exists(tmpPath)) {
+            // Location of the temporary file has changed, recompute it.
+            updateUfsPath();
+            tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+          }
+          ufs.delete(tmpPath, false);
+        } else {
+          mUnderStorageOutputStream.flush();
+          mUnderStorageOutputStream.close();
+          if (!ufs.exists(tmpPath)) {
+            // Location of the temporary file has changed, recompute it.
+            updateUfsPath();
+            tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
+          }
+          if (!ufs.rename(tmpPath, mUfsPath)) {
+            throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
+          }
+          options.setUfsLength(ufs.getFileSize(mUfsPath));
         }
-        if (!ufs.rename(tmpPath, mUfsPath)) {
-          throw new IOException("Failed to rename " + tmpPath + " to " + mUfsPath);
-        }
-        options.setUfsLength(ufs.getFileSize(mUfsPath));
       }
     }
 
@@ -218,7 +274,7 @@ public class FileOutStream extends AbstractOutStream {
   public void write(byte[] b, int off, int len) throws IOException {
     Preconditions.checkArgument(b != null, PreconditionMessage.ERR_WRITE_BUFFER_NULL);
     Preconditions.checkArgument(off >= 0 && len >= 0 && len + off <= b.length,
-        PreconditionMessage.ERR_BUFFER_STATE, b.length, off, len);
+        PreconditionMessage.ERR_BUFFER_STATE.toString(), b.length, off, len);
 
     if (mShouldCacheCurrentBlock) {
       try {

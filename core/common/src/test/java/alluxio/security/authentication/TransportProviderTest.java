@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils;
 
@@ -21,6 +22,7 @@ import org.apache.thrift.transport.TServerSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 import org.apache.thrift.transport.TTransportFactory;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,7 +43,6 @@ import javax.security.sasl.SaslException;
 public final class TransportProviderTest {
 
   private TThreadPoolServer mServer;
-  private Configuration mConfiguration;
   private InetSocketAddress mServerAddress;
   private TServerSocket mServerTSocket;
   private TransportProvider mTransportProvider;
@@ -57,12 +58,16 @@ public final class TransportProviderTest {
    */
   @Before
   public void before() throws Exception {
-    mConfiguration = new Configuration();
     // Use port 0 to assign each test case an available port (possibly different)
-    String localhost = NetworkAddressUtils.getLocalHostName(new Configuration());
+    String localhost = NetworkAddressUtils.getLocalHostName();
     mServerTSocket = new TServerSocket(new InetSocketAddress(localhost, 0));
     int port = NetworkAddressUtils.getThriftPort(mServerTSocket);
     mServerAddress = new InetSocketAddress(localhost, port);
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -70,8 +75,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void nosaslAuthentricationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -92,8 +97,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void simpleAuthenticationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -113,8 +118,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void simpleAuthenticationNullUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
     mThrown.expect(SaslException.class);
@@ -128,8 +133,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void simpleAuthenticationNullPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
     mThrown.expect(SaslException.class);
@@ -143,8 +148,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void simpleAuthenticationEmptyUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -169,8 +174,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void simpleAuthenticationEmptyPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -195,10 +200,10 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -221,10 +226,10 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -248,8 +253,8 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationNullUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // check case that user is null
     mThrown.expect(SaslException.class);
@@ -260,13 +265,11 @@ public final class TransportProviderTest {
 
   /**
    * In CUSTOM mode, if client's password is null, an exception should be thrown in client side.
-   *
-   * @throws Exception thrown when the retrieval of the plain client transport fails
    */
   @Test
   public void customAuthenticationNullPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    mTransportProvider = TransportProvider.Factory.create();
 
     // check case that password is null
     mThrown.expect(SaslException.class);
@@ -280,10 +283,10 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationEmptyUserTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -306,10 +309,10 @@ public final class TransportProviderTest {
    */
   @Test
   public void customAuthenticationEmptyPasswordTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
         ExactlyMatchAuthenticationProvider.class.getName());
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
 
     // start server
     startServerThread();
@@ -333,12 +336,12 @@ public final class TransportProviderTest {
    */
   @Test
   public void kerberosAuthenticationTest() throws Exception {
-    mConfiguration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.KERBEROS.getAuthName());
 
     // throw unsupported exception currently
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("Kerberos is not supported currently.");
-    mTransportProvider = TransportProvider.Factory.create(mConfiguration);
+    mTransportProvider = TransportProvider.Factory.create();
   }
 
   private void startServerThread() throws Exception {

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -220,8 +220,8 @@ public class TieredStoreIntegrationTest {
     Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
         TimeUnit.SECONDS));
 
-    AlluxioURI toPromote = null;
-    int toPromoteLen = 0;
+    AlluxioURI toPromote;
+    int toPromoteLen;
     URIStatus file1Info = mFileSystem.getStatus(uri1);
     URIStatus file2Info = mFileSystem.getStatus(uri2);
     URIStatus file3Info = mFileSystem.getStatus(uri3);

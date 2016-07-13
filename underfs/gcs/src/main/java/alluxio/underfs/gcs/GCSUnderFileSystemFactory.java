@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -35,15 +35,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
+  /**
+   * Constructs a new {@link GCSUnderFileSystemFactory}.
+   */
+  public GCSUnderFileSystemFactory() {}
 
-    if (addAndCheckGoogleCredentials(configuration)) {
-      AlluxioURI uri = new AlluxioURI(path);
+  @Override
+  public UnderFileSystem create(String path, Object unusedConf) {
+    Preconditions.checkNotNull(path);
+
+    if (addAndCheckGoogleCredentials()) {
       try {
-        return new GCSUnderFileSystem(uri.getHost(), configuration);
+        return new GCSUnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -56,7 +59,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_GCS);
   }
 
@@ -64,19 +67,18 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Google credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckGoogleCredentials(Configuration configuration) {
+  private boolean addAndCheckGoogleCredentials() {
+    // TODO(binfan): remove System.getProperty as it is covered by configuration
     String accessKeyConf = Constants.GCS_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
-      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
+      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.GCS_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
-      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
+      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null;
+    return Configuration.containsKey(accessKeyConf) && Configuration.containsKey(secretKeyConf);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -26,13 +26,12 @@ import java.nio.channels.WritableByteChannel;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Utilities related to buffers, not only {@link ByteBuffer}.
  */
-@NotThreadSafe
-// TODO(jsimsa): Make this class thread-safe.
+@ThreadSafe
 public final class BufferUtils {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static Method sCleanerCleanMethod;
@@ -50,7 +49,7 @@ public final class BufferUtils {
 
   /**
    * Forces to unmap a direct buffer if this buffer is no longer used. After calling this method,
-   * this direct buffer should be discarded. This is unsafe operation and currently a walk-around to
+   * this direct buffer should be discarded. This is unsafe operation and currently a work-around to
    * avoid huge memory occupation caused by memory map.
    *
    * <p>
@@ -62,7 +61,7 @@ public final class BufferUtils {
    *
    * @param buffer the byte buffer to be unmapped, this must be a direct buffer
    */
-  public static void cleanDirectBuffer(ByteBuffer buffer) {
+  public static synchronized void cleanDirectBuffer(ByteBuffer buffer) {
     Preconditions.checkNotNull(buffer);
     Preconditions.checkArgument(buffer.isDirect(), "buffer isn't a DirectByteBuffer");
     try {
@@ -118,7 +117,7 @@ public final class BufferUtils {
    * @return the new list of ByteBuffers
    */
   public static List<ByteBuffer> cloneByteBufferList(List<ByteBuffer> source) {
-    List<ByteBuffer> ret = new ArrayList<ByteBuffer>(source.size());
+    List<ByteBuffer> ret = new ArrayList<>(source.size());
     for (ByteBuffer b : source) {
       ret.add(cloneByteBuffer(b));
     }
@@ -176,8 +175,30 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given byte array starts with an increasing sequence of bytes starting at zero of
-   * length equal to or greater than the given length.
+   * Checks if the given byte array starts with a constant sequence of bytes of the given value
+   * and length.
+   *
+   * @param value the value to check for
+   * @param len the target length of the sequence
+   * @param arr the byte array to check
+   * @return true if the byte array has a prefix of length {@code len} that is a constant
+   *         sequence of bytes of the given value
+   */
+  public static boolean equalConstantByteArray(byte value, int len, byte[] arr) {
+    if (arr == null || arr.length != len) {
+      return false;
+    }
+    for (int k = 0; k < len; k++) {
+      if (arr[k] != value) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Checks if the given byte array starts with an increasing sequence of bytes of the given
+   * length, starting from 0.
    *
    * @param len the target length of the sequence
    * @param arr the byte array to check
@@ -189,8 +210,8 @@ public final class BufferUtils {
   }
 
   /**
-   * Checks if the given byte array starts with an increasing sequence of bytes starting at the
-   * given value of length equal to or greater than the given length.
+   * Checks if the given byte array starts with an increasing sequence of bytes of the given
+   * length, starting from the given value.
    *
    * @param start the starting value to use
    * @param len the target length of the sequence

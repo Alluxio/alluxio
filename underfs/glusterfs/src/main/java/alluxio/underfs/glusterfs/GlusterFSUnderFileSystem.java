@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.underfs.glusterfs;
 
+import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem;
@@ -36,12 +37,11 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   /**
    * Constructs a new Gluster FS {@link UnderFileSystem}.
    *
-   * @param fsDefaultName the under FS prefix
-   * @param configuration the configuration for Alluxio
+   * @param uri the {@link AlluxioURI} for this UFS
    * @param conf the configuration for Hadoop or GlusterFS
    */
-  public GlusterFSUnderFileSystem(String fsDefaultName, Configuration configuration, Object conf) {
-    super(fsDefaultName, configuration, conf);
+  public GlusterFSUnderFileSystem(AlluxioURI uri, Object conf) {
+    super(uri, conf);
   }
 
   @Override
@@ -50,24 +50,22 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  protected void prepareConfiguration(String path, Configuration conf,
+  protected void prepareConfiguration(String path,
       org.apache.hadoop.conf.Configuration hadoopConf) {
     if (path.startsWith(SCHEME)) {
       // Configure for Gluster FS
-      hadoopConf.set("fs.glusterfs.impl", conf.get(Constants.UNDERFS_GLUSTERFS_IMPL));
-      hadoopConf.set("mapred.system.dir",
-          conf.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
+      hadoopConf.set("fs.glusterfs.impl", Configuration.get(Constants.UNDERFS_GLUSTERFS_IMPL));
+      hadoopConf.set("mapred.system.dir", Configuration.get(Constants.UNDERFS_GLUSTERFS_MR_DIR));
       hadoopConf
-          .set("fs.glusterfs.volumes", conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
+          .set("fs.glusterfs.volumes", Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES));
       hadoopConf.set(
-          "fs.glusterfs.volume.fuse." + conf.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
-          conf.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
+          "fs.glusterfs.volume.fuse." + Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES),
+          Configuration.get(Constants.UNDERFS_GLUSTERFS_MOUNTS));
     } else {
       // If not Gluster FS fall back to default HDFS behaviour
       // This should only happen if someone creates an instance of this directly rather than via the
       // registry and factory which enforces the GlusterFS prefix being present.
-      super.prepareConfiguration(path, conf, hadoopConf);
+      super.prepareConfiguration(path, hadoopConf);
     }
   }
-
 }

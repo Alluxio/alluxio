@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -35,15 +35,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
+  /**
+   * Constructs a new {@link S3UnderFileSystemFactory}.
+   */
+  public S3UnderFileSystemFactory() {}
 
-    if (addAndCheckAWSCredentials(configuration)) {
-      AlluxioURI uri = new AlluxioURI(path);
+  @Override
+  public UnderFileSystem create(String path, Object unusedConf) {
+    Preconditions.checkNotNull(path);
+
+    if (addAndCheckAWSCredentials()) {
       try {
-        return new S3UnderFileSystem(uri.getHost(), configuration);
+        return new S3UnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -56,7 +59,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_S3N);
   }
 
@@ -64,19 +67,18 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds AWS credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckAWSCredentials(Configuration configuration) {
+  private boolean addAndCheckAWSCredentials() {
+    // TODO(binfan): remove System.getProperty as it is covered by configuration
     String accessKeyConf = Constants.S3_ACCESS_KEY;
-    if (System.getProperty(accessKeyConf) != null && configuration.get(accessKeyConf) == null) {
-      configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
+    if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
+      Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
     String secretKeyConf = Constants.S3_SECRET_KEY;
-    if (System.getProperty(secretKeyConf) != null && configuration.get(secretKeyConf) == null) {
-      configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
+    if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
+      Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    return configuration.get(accessKeyConf) != null
-        && configuration.get(secretKeyConf) != null;
+    return Configuration.containsKey(accessKeyConf) && Configuration.containsKey(secretKeyConf);
   }
 }

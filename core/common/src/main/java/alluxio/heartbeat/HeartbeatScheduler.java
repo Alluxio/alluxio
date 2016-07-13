@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,6 +10,8 @@
  */
 
 package alluxio.heartbeat;
+
+import alluxio.resource.LockResource;
 
 import com.google.common.base.Preconditions;
 
@@ -40,7 +42,11 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class HeartbeatScheduler {
-  private static Map<String, ScheduledTimer> sTimers = new HashMap<String, ScheduledTimer>();
+  /**
+   * A map from thread name to active timer for that thread. A timer is active when its thread is
+   * waiting to be scheduled.
+   */
+  private static Map<String, ScheduledTimer> sTimers = new HashMap<>();
   private static Lock sLock = new ReentrantLock();
   private static Condition sCondition = sLock.newCondition();
 
@@ -51,37 +57,48 @@ public final class HeartbeatScheduler {
    */
   public static void addTimer(ScheduledTimer timer) {
     Preconditions.checkNotNull(timer);
-    sLock.lock();
-    try {
+    try (LockResource r = new LockResource(sLock)) {
+      Preconditions.checkState(!sTimers.containsKey(timer.getThreadName()),
+          "The timer for thread %s is already waiting to be scheduled", timer.getThreadName());
       sTimers.put(timer.getThreadName(), timer);
       sCondition.signalAll();
-    } finally {
-      sLock.unlock();
     }
   }
 
   /**
-   * @param timer a timer to remove from the scheduler
+   * Removes a timer name from the scheduler if it exists.
+   *
+   * @param name the name to clear
    */
-  public static synchronized void removeTimer(ScheduledTimer timer) {
-    Preconditions.checkNotNull(timer);
-    sLock.lock();
-    try {
-      sTimers.remove(timer.getThreadName());
-    } finally {
-      sLock.unlock();
+  public static void clearTimer(String name) {
+    try (LockResource r = new LockResource(sLock)) {
+      sTimers.remove(name);
+    }
+  }
+
+  /**
+   * Removes a timer from the scheduler.
+   *
+   * This method will fail if the timer is not in the scheduler.
+   *
+   * @param timer the timer to remove
+   */
+  public static void removeTimer(ScheduledTimer timer) {
+    Preconditions.checkNotNull(timer, "timer");
+    try (LockResource r = new LockResource(sLock)) {
+      ScheduledTimer removedTimer = sTimers.remove(timer.getThreadName());
+      Preconditions.checkNotNull(removedTimer, "sTimers should contain %s", timer.getThreadName());
+      Preconditions.checkState(removedTimer == timer,
+          "sTimers should contain the timer being removed");
     }
   }
 
   /**
    * @return the set of threads present in the scheduler
    */
-  public static synchronized Set<String> getThreadNames() {
-    sLock.lock();
-    try {
+  public static Set<String> getThreadNames() {
+    try (LockResource r = new LockResource(sLock)) {
       return sTimers.keySet();
-    } finally {
-      sLock.unlock();
     }
   }
 
@@ -91,16 +108,12 @@ public final class HeartbeatScheduler {
    * @param threadName a name of the thread for which heartbeat is to be executed
    */
   public static void schedule(String threadName) {
-    sLock.lock();
-    try {
+    try (LockResource r = new LockResource(sLock)) {
       ScheduledTimer timer = sTimers.get(threadName);
       if (timer == null) {
         throw new RuntimeException("Timer for thread " + threadName + " not found.");
       }
       timer.schedule();
-      sTimers.remove(threadName);
-    } finally {
-      sLock.unlock();
     }
   }
 
@@ -111,13 +124,10 @@ public final class HeartbeatScheduler {
    * @throws InterruptedException if the waiting thread is interrupted
    */
   public static void await(String name) throws InterruptedException {
-    sLock.lock();
-    try {
+    try (LockResource r = new LockResource(sLock)) {
       while (!sTimers.containsKey(name)) {
         sCondition.await();
       }
-    } finally {
-      sLock.unlock();
     }
   }
 
@@ -132,15 +142,12 @@ public final class HeartbeatScheduler {
    * @throws InterruptedException if the waiting thread is interrupted
    */
   public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
-    sLock.lock();
-    try {
+    try (LockResource r = new LockResource(sLock)) {
       while (!sTimers.containsKey(name)) {
         if (!sCondition.await(time, unit)) {
           return false;
         }
       }
-    } finally {
-      sLock.unlock();
     }
     return true;
   }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -107,9 +107,8 @@ public final class LeaderSelectorClient implements Closeable, LeaderSelectorList
    */
   public List<String> getParticipants() {
     try {
-      List<Participant> participants =
-          new ArrayList<Participant>(mLeaderSelector.getParticipants());
-      List<String> results = new ArrayList<String>();
+      List<Participant> participants = new ArrayList<>(mLeaderSelector.getParticipants());
+      List<String> results = new ArrayList<>();
       for (Participant part : participants) {
         results.add(part.getId());
       }

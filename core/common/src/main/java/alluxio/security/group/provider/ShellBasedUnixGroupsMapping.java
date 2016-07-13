@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.security.group.provider;
 
-import alluxio.Configuration;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.CommonUtils;
 
@@ -27,6 +26,11 @@ import java.util.List;
 public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
 
   /**
+   * Constructs a new {@link ShellBasedUnixGroupsMapping}.
+   */
+  public ShellBasedUnixGroupsMapping() {}
+
+  /**
    * Returns list of groups for a user.
    *
    * @param user get groups for this user
@@ -37,11 +41,6 @@ public final class ShellBasedUnixGroupsMapping implements GroupMappingService {
   public List<String> getGroups(String user) throws IOException {
     List<String> groups = CommonUtils.getUnixGroups(user);
     // remove duplicated primary group
-    return new ArrayList<String>(new LinkedHashSet<String>(groups));
-  }
-
-  @Override
-  public void setConf(Configuration conf) {
-    // does nothing in this provider of user to groups mapping
+    return new ArrayList<>(new LinkedHashSet<>(groups));
   }
 }

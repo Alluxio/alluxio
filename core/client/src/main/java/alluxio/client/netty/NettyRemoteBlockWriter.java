@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -82,13 +82,14 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
 
   @Override
   public void write(byte[] bytes, int offset, int length) throws IOException {
-    SingleResponseListener listener = new SingleResponseListener();
+    SingleResponseListener listener = null;
     try {
       // TODO(hy): keep connection open across multiple write calls.
       ChannelFuture f = mClientBootstrap.connect(mAddress).sync();
 
       LOG.info("Connected to remote machine {}", mAddress);
       Channel channel = f.channel();
+      listener = new SingleResponseListener();
       mHandler.addListener(listener);
       channel.writeAndFlush(new RPCBlockWriteRequest(mSessionId, mBlockId, mWrittenBytes, length,
           new DataByteArrayChannel(bytes, offset, length)));
@@ -118,7 +119,9 @@ public final class NettyRemoteBlockWriter implements RemoteBlockWriter {
     } catch (Exception e) {
       throw new IOException(e);
     } finally {
-      mHandler.removeListener(listener);
+      if (listener != null) {
+        mHandler.removeListener(listener);
+      }
     }
   }
 }

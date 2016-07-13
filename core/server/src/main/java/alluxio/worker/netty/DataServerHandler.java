@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,16 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCErrorResponse;
+import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.worker.block.BlockWorker;
+import alluxio.worker.AlluxioWorker;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandler;
@@ -41,18 +42,20 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+  /** Handler for any block store requests. */
   private final BlockDataServerHandler mBlockHandler;
+  /** Handler for any file system requests. */
+  private final UnderFileSystemDataServerHandler mUnderFileSystemHandler;
 
   /**
    * Creates a new instance of {@link DataServerHandler}.
    *
-   * @param blockWorker the block worker handle
-   * @param configuration Alluxio configuration
+   * @param worker the Alluxio worker handle
    */
-  public DataServerHandler(final BlockWorker blockWorker, Configuration configuration) {
-    Preconditions.checkNotNull(blockWorker);
-    Preconditions.checkNotNull(configuration);
-    mBlockHandler = new BlockDataServerHandler(blockWorker, configuration);
+  public DataServerHandler(final AlluxioWorker worker) {
+    Preconditions.checkNotNull(worker);
+    mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker());
+    mUnderFileSystemHandler = new UnderFileSystemDataServerHandler(worker.getFileSystemWorker());
   }
 
   @Override
@@ -66,6 +69,18 @@ public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMess
       case RPC_BLOCK_WRITE_REQUEST:
         assert msg instanceof RPCBlockWriteRequest;
         mBlockHandler.handleBlockWriteRequest(ctx, (RPCBlockWriteRequest) msg);
+        break;
+      case RPC_FILE_READ_REQUEST:
+        assert msg instanceof RPCFileReadRequest;
+        mUnderFileSystemHandler.handleFileReadRequest(ctx, (RPCFileReadRequest) msg);
+        break;
+      case RPC_FILE_WRITE_REQUEST:
+        assert msg instanceof RPCFileWriteRequest;
+        mUnderFileSystemHandler.handleFileWriteRequest(ctx, (RPCFileWriteRequest) msg);
+        break;
+      case RPC_ERROR_RESPONSE:
+        assert msg instanceof RPCErrorResponse;
+        LOG.error("Received an error response from the client: " + msg.toString());
         break;
       default:
         RPCErrorResponse resp = new RPCErrorResponse(RPCResponse.Status.UNKNOWN_MESSAGE_ERROR);

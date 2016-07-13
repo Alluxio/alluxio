@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,8 +11,9 @@
 
 package alluxio.client.file.options;
 
+import alluxio.CommonTestUtils;
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -27,9 +28,9 @@ import java.util.Random;
  * Tests for the {@link CreateFileOptions} class.
  */
 public class CreateFileOptionsTest {
-  private final long mDefaultBlockSizeBytes = ClientContext.getConf().getBytes(
+  private final long mDefaultBlockSizeBytes = Configuration.getBytes(
       Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
-  private final WriteType mDefaultWriteType = ClientContext.getConf().getEnum(
+  private final WriteType mDefaultWriteType = Configuration.getEnum(
       Constants.USER_FILE_WRITE_TYPE_DEFAULT, alluxio.client.WriteType.class);
 
   // TODO(calvin): Test location policy when a factory is created
@@ -83,5 +84,10 @@ public class CreateFileOptionsTest {
         .isPersisted());
     Assert.assertEquals(mDefaultBlockSizeBytes, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
+  }
+
+  @Test
+  public void equalsTest() throws Exception {
+    CommonTestUtils.testEquals(CreateFileOptions.class);
   }
 }

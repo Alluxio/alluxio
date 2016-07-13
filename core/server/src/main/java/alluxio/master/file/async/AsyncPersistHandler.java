@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,7 +22,8 @@ import alluxio.master.file.meta.FileSystemMasterView;
 import alluxio.thrift.PersistFile;
 import alluxio.util.CommonUtils;
 
-import com.google.common.base.Throwables;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -37,20 +38,28 @@ public interface AsyncPersistHandler {
 
   /**
    * Factory for {@link AsyncPersistHandler}.
-   *
-   * @param conf {@link Configuration} to determine the handler type
-   * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
-   * @return the generated {@link AsyncPersistHandler}
    */
   @ThreadSafe
   class Factory {
-    public static AsyncPersistHandler create(Configuration conf, FileSystemMasterView view) {
+    public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+    private Factory() {} // prevent instantiation
+
+    /**
+     * Creates a new instance of {@link AsyncPersistHandler}.
+     *
+     * @param view {@link FileSystemMasterView} to pass to {@link AsyncPersistHandler}
+     * @return the generated {@link AsyncPersistHandler}
+     */
+    public static AsyncPersistHandler create(FileSystemMasterView view) {
       try {
-        return CommonUtils.createNewClassInstance(
-            conf.<AsyncPersistHandler>getClass(Constants.MASTER_FILE_ASYNC_PERSIST_HANDLER),
-            new Class[] {FileSystemMasterView.class}, new Object[] {view});
+        return CommonUtils.createNewClassInstance(Configuration.<AsyncPersistHandler>getClass(
+            Constants.MASTER_FILE_ASYNC_PERSIST_HANDLER), new Class[] {FileSystemMasterView.class},
+            new Object[] {view});
       } catch (Exception e) {
-        throw Throwables.propagate(e);
+        LOG.error("Failed to instantiate the async handler of class "
+            + Constants.MASTER_FILE_ASYNC_PERSIST_HANDLER + ". Use the default handler instead");
+        return new DefaultAsyncPersistHandler(view);
       }
     }
   }

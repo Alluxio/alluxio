@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -47,18 +46,16 @@ public final class CreateFileOptions {
   }
 
   private CreateFileOptions() {
-    Configuration conf = ClientContext.getConf();
     mRecursive = true;
-    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
       mLocationPolicy =
-          CommonUtils.createNewClassInstance(
-              conf.<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[]{}, new Object[]{});
+          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mWriteType = Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
   }
 
@@ -161,13 +158,36 @@ public final class CreateFileOptions {
         .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    CreateFileOptions that = (CreateFileOptions) o;
+    return Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mLocationPolicy, that.mLocationPolicy)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mWriteType, that.mWriteType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl)
-        .add("locationPolicy", mLocationPolicy).add("writeType", mWriteType).toString();
+    return Objects.toStringHelper(this)
+        .add("recursive", mRecursive)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("locationPolicy", mLocationPolicy)
+        .add("ttl", mTtl)
+        .add("writeType", mWriteType)
+        .toString();
   }
 
   /**

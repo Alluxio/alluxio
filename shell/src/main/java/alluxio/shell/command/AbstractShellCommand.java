@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
@@ -30,7 +29,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class AbstractShellCommand implements ShellCommand {
 
-  protected Configuration mConfiguration;
   protected FileSystem mFileSystem;
   protected static final Option RECURSIVE_OPTION =
       Option.builder("R")
@@ -38,9 +36,28 @@ public abstract class AbstractShellCommand implements ShellCommand {
             .hasArg(false)
             .desc("recursive")
             .build();
+  protected static final Option READONLY_OPTION =
+      Option.builder("readonly")
+          .required(false)
+          .hasArg(false)
+          .desc("readonly")
+          .build();
+  // TODO(gpang): Investigate property=value style of cmdline options. They didn't seem to
+  // support spaces in values.
+  protected static final Option PROPERTY_FILE_OPTION =
+      Option.builder("P")
+          .required(false)
+          .numberOfArgs(1)
+          .desc("properties file name")
+          .build();
+  protected static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force")
+          .build();
 
-  protected AbstractShellCommand(Configuration conf, FileSystem fs) {
-    mConfiguration = conf;
+  protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;
   }
 

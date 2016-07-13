@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -10,8 +10,6 @@
  */
 
 package alluxio.underfs;
-
-import alluxio.Configuration;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,10 +24,9 @@ public final class LocalFileSystemCluster extends UnderFileSystemCluster {
 
   /**
    * @param baseDir the base directory
-   * @param configuration the configuration for Alluxio
    */
-  public LocalFileSystemCluster(String baseDir, Configuration configuration) {
-    super(baseDir, configuration);
+  public LocalFileSystemCluster(String baseDir) {
+    super(baseDir);
   }
 
   @Override

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,7 @@
 package alluxio.examples.keyvalue;
 
 import alluxio.AlluxioURI;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.client.keyvalue.KeyValueStoreReader;
 import alluxio.client.keyvalue.KeyValueStoreWriter;
 import alluxio.client.keyvalue.KeyValueSystem;
@@ -21,6 +21,9 @@ import alluxio.client.keyvalue.KeyValueSystem;
  * A quick start tutorial for creating a key-value store, putting and getting some key-value pairs.
  */
 public final class KeyValueStoreQuickStart {
+
+  private KeyValueStoreQuickStart() {} // prevent instantiation
+
   /**
    * The main program.
    *
@@ -29,7 +32,7 @@ public final class KeyValueStoreQuickStart {
    */
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
-      System.out.println("Usage: java -cp " + Version.ALLUXIO_JAR + " "
+      System.out.println("Usage: java -cp " + RuntimeConstants.ALLUXIO_JAR + " "
           + KeyValueStoreQuickStart.class.getName() + " <key-value store URI>");
       System.exit(-1);
     }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -17,7 +17,6 @@ import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.OpenFileOptions;
-import alluxio.exception.AlluxioException;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.PathUtils;
@@ -29,7 +28,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +71,7 @@ public final class LocalBlockInStreamIntegrationTest {
   }
 
   private static List<CreateFileOptions> getOptionSet() {
-    List<CreateFileOptions> ret = new ArrayList<CreateFileOptions>(2);
+    List<CreateFileOptions> ret = new ArrayList<>(2);
     ret.add(sWriteBoth);
     ret.add(sWriteAlluxio);
     return ret;
@@ -83,7 +81,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#read()}.
    */
   @Test
-  public void readTest1() throws IOException, AlluxioException {
+  public void readTest1() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
@@ -124,7 +122,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[])}.
    */
   @Test
-  public void readTest2() throws IOException, AlluxioException {
+  public void readTest2() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
@@ -149,7 +147,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#read(byte[], int, int)}.
    */
   @Test
-  public void readTest3() throws IOException, AlluxioException {
+  public void readTest3() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
@@ -173,24 +171,17 @@ public final class LocalBlockInStreamIntegrationTest {
   /**
    * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
    * exception for seeking a negative position.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest1() throws IOException, AlluxioException {
+  public void seekExceptionTest1() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE, -1));
+    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), -1));
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
-
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
           is.seek(-1);
-        } finally {
-          is.close();
         }
       }
     }
@@ -199,24 +190,19 @@ public final class LocalBlockInStreamIntegrationTest {
   /**
    * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}. Validate the expected
    * exception for seeking a position that is past buffer limit.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekExceptionTest2() throws IOException, AlluxioException {
+  public void seekExceptionTest2() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE, 1));
+    mThrown
+        .expectMessage(String.format(PreconditionMessage.ERR_SEEK_PAST_END_OF_FILE.toString(), 1));
 
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
 
-        FileInStream is = sFileSystem.openFile(uri, sReadNoCache);
-        try {
+        try (FileInStream is = sFileSystem.openFile(uri, sReadNoCache)) {
           is.seek(k + 1);
-        } finally {
-          is.close();
         }
       }
     }
@@ -224,12 +210,9 @@ public final class LocalBlockInStreamIntegrationTest {
 
   /**
    * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
-   *
-   * @throws IOException
-   * @throws AlluxioException
    */
   @Test
-  public void seekTest() throws IOException, AlluxioException {
+  public void seekTest() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
@@ -251,7 +234,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, AlluxioException {
+  public void skipTest() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());

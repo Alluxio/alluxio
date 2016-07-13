@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -33,7 +33,7 @@ public final class SetAttributeOptions {
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
-  private Short mPermission;
+  private Short mMode;
   private boolean mRecursive;
 
   /**
@@ -49,7 +49,7 @@ public final class SetAttributeOptions {
     mPersisted = null;
     mOwner = null;
     mGroup = null;
-    mPermission = Constants.INVALID_PERMISSION;
+    mMode = Constants.INVALID_MODE;
     mRecursive = false;
   }
 
@@ -132,18 +132,18 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @return true if the permission value is set, otherwise false
+   * @return true if the mode value is set, otherwise false
    */
-  public boolean hasPermission() {
-    return mPermission != Constants.INVALID_PERMISSION;
+  public boolean hasMode() {
+    return mMode != Constants.INVALID_MODE;
   }
 
   /**
-   * @return the permission
+   * @return the mode
    */
-  public short getPermission() {
-    Preconditions.checkState(hasPermission(), PreconditionMessage.MUST_SET_PERMISSION);
-    return mPermission;
+  public short getMode() {
+    Preconditions.checkState(hasMode(), PreconditionMessage.MUST_SET_MODE);
+    return mMode;
   }
 
   /**
@@ -204,11 +204,11 @@ public final class SetAttributeOptions {
   }
 
   /**
-   * @param permission to be set as the permission of a path
+   * @param mode to be set as the mode of a path
    * @return the updated options object
    */
-  public SetAttributeOptions setPermission(short permission) {
-    mPermission = permission;
+  public SetAttributeOptions setMode(short mode) {
+    mMode = mode;
     return this;
   }
 
@@ -243,20 +243,46 @@ public final class SetAttributeOptions {
     if (mGroup != null) {
       options.setGroup(mGroup);
     }
-    if (mPermission != Constants.INVALID_PERMISSION) {
-      options.setPermission(mPermission);
+    if (mMode != Constants.INVALID_MODE) {
+      options.setMode(mMode);
     }
     options.setRecursive(mRecursive);
     return options;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof SetAttributeOptions)) {
+      return false;
+    }
+    SetAttributeOptions that = (SetAttributeOptions) o;
+    return Objects.equal(mPinned, that.mPinned)
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mOwner, that.mOwner)
+        && Objects.equal(mGroup, that.mGroup)
+        && Objects.equal(mMode, that.mMode)
+        && Objects.equal(mRecursive, that.mRecursive);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("pinned", mPinned).add("ttl", mTtl)
-        .add("persisted", mPersisted).add("owner", mOwner).add("group", mGroup)
-        .add("permission", mPermission).add("recursive", mRecursive).toString();
+    return Objects.toStringHelper(this)
+        .add("pinned", mPinned)
+        .add("ttl", mTtl)
+        .add("persisted", mPersisted)
+        .add("owner", mOwner)
+        .add("group", mGroup)
+        .add("mode", mMode)
+        .add("recursive", mRecursive)
+        .toString();
   }
 }

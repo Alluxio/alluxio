@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -22,6 +22,7 @@ import java.util.concurrent.locks.Lock;
  */
 public final class ClientRWLockTest {
 
+  private ClientRWLock mClientRWLock;
   private Lock mReadLock;
   private Lock mWriteLock;
 
@@ -30,8 +31,9 @@ public final class ClientRWLockTest {
    */
   @Before
   public void before() {
-    mReadLock = new ClientRWLock().readLock();
-    mWriteLock = new ClientRWLock().writeLock();
+    mClientRWLock = new ClientRWLock();
+    mReadLock = mClientRWLock.readLock();
+    mWriteLock = mClientRWLock.writeLock();
   }
 
   /**
@@ -67,5 +69,23 @@ public final class ClientRWLockTest {
   public void lockInterruptiblyTest() throws Exception {
     mReadLock.lockInterruptibly();
     Assert.assertTrue(true);
+  }
+
+  /**
+   * Tests reference counting.
+   */
+  @Test
+  public void referenceCountingTest() throws Exception {
+    Assert.assertEquals(0, mClientRWLock.getReferenceCount());
+    mClientRWLock.addReference();
+    mClientRWLock.addReference();
+    Assert.assertEquals(2, mClientRWLock.getReferenceCount());
+    Assert.assertEquals(1, mClientRWLock.dropReference());
+    for (int i = 0; i < 10; i++) {
+      mClientRWLock.addReference();
+    }
+    Assert.assertEquals(11, mClientRWLock.getReferenceCount());
+    Assert.assertEquals(10, mClientRWLock.dropReference());
+    Assert.assertEquals(10, mClientRWLock.getReferenceCount());
   }
 }

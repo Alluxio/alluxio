@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,7 +14,7 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
+import alluxio.cli.AlluxioShell;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -71,7 +71,7 @@ public abstract class AbstractAlluxioShellTest {
     clearLoginUser();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();
-    mFsShell = new AlluxioShell(ClientContext.getConf());
+    mFsShell = new AlluxioShell();
     mOutput = new ByteArrayOutputStream();
     mNewOutput = new PrintStream(mOutput);
     mOldOutput = System.out;
@@ -109,23 +109,30 @@ public abstract class AbstractAlluxioShellTest {
   protected String getCommandOutput(String[] command) {
     String cmd = command[0];
     if (command.length == 2) {
-      if (cmd.equals("ls")) {
-        // Not sure how to handle this one.
-        return null;
-      } else if (cmd.equals("mkdir")) {
-        return "Successfully created directory " + command[1] + "\n";
-      } else if (cmd.equals("rm") || cmd.equals("rmr")) {
-        return command[1] + " has been removed" + "\n";
-      } else if (cmd.equals("touch")) {
-        return command[1] + " has been created" + "\n";
+      switch (cmd) {
+        case "ls":
+          // Not sure how to handle this one.
+          return null;
+        case "mkdir":
+          return "Successfully created directory " + command[1] + "\n";
+        case "rm":
+        case "rmr":
+          return command[1] + " has been removed" + "\n";
+        case "touch":
+          return command[1] + " has been created" + "\n";
+        default:
+          return null;
       }
     } else if (command.length == 3) {
-      if (cmd.equals("mv")) {
-        return "Renamed " + command[1] + " to " + command[2] + "\n";
-      } else if (cmd.equals("copyFromLocal")) {
-        return "Copied " + command[1] + " to " + command[2] + "\n";
-      } else if (cmd.equals("copyToLocal")) {
-        return "Copied " + command[1] + " to " + command[2] + "\n";
+      switch (cmd) {
+        case "mv":
+          return "Renamed " + command[1] + " to " + command[2] + "\n";
+        case "copyFromLocal":
+          return "Copied " + command[1] + " to " + command[2] + "\n";
+        case "copyToLocal":
+          return "Copied " + command[1] + " to " + command[2] + "\n";
+        default:
+          return null;
       }
     } else if (command.length > 3) {
       if (cmd.equals("location")) {
@@ -152,7 +159,7 @@ public abstract class AbstractAlluxioShellTest {
   }
 
   protected void clearAndLogin(String user) throws IOException {
-    LoginUserTestUtils.resetLoginUser(ClientContext.getConf(), user);
+    LoginUserTestUtils.resetLoginUser(user);
   }
 
   protected byte[] readContent(AlluxioURI uri, int length) throws IOException, AlluxioException {
@@ -183,10 +190,8 @@ public abstract class AbstractAlluxioShellTest {
    *
    * @param uri The uri to persist
    * @param size The size of the file
-   * @throws AlluxioException if an unexpected alluxio exception is thrown
-   * @throws IOException if a non-Alluxio exception occurs
    */
-  protected void checkFilePersisted(AlluxioURI uri, int size) throws AlluxioException, IOException {
+  protected void checkFilePersisted(AlluxioURI uri, int size) throws Exception {
     Assert.assertTrue(mFileSystem.getStatus(uri).isPersisted());
     mFileSystem.free(uri);
     FileInStream tfis = mFileSystem.openFile(uri);

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -15,7 +15,6 @@ import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -36,21 +35,14 @@ public class BlockMasterClientTest {
 
   /**
    * Tests for an unsupported version.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void unsupportedVersionTest() throws Exception {
-    // Client context needs to be initialized before the block store context can be used.
-    WorkerContext.reset();
-
     BlockMasterWorkerService.Client mock = PowerMockito.mock(BlockMasterWorkerService.Client.class);
     PowerMockito.when(mock.getServiceVersion()).thenReturn(0L);
 
-    BlockMasterClient client =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(
-            NetworkAddressUtils.ServiceType.MASTER_RPC, WorkerContext.getConf()),
-            WorkerContext.getConf());
+    BlockMasterClient client = new BlockMasterClient(
+        NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.MASTER_RPC));
 
     try {
       Whitebox.invokeMethod(client, "checkVersion", mock,

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -211,8 +211,7 @@ public class RPCMessageIntegrationTest {
     // Write the message to the outgoing channel.
     mOutgoingChannel.writeAndFlush(msg);
     // Read the decoded message from the incoming side.
-    RPCMessage outputMessage = sIncomingHandler.getMessage();
-    return outputMessage;
+    return sIncomingHandler.getMessage();
   }
 
   @Test
@@ -253,16 +252,12 @@ public class RPCMessageIntegrationTest {
 
   @Test
   public void RPCBlockReadResponseFileChannelTest() throws IOException {
-    FileInputStream inputStream = getTempFileInputStream();
-    try {
+    try (FileInputStream inputStream = getTempFileInputStream()) {
       FileChannel payload = inputStream.getChannel();
-      RPCBlockReadResponse msg =
-          new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataFileChannel(payload, OFFSET,
-              LENGTH), RPCResponse.Status.SUCCESS);
+      RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
+          new DataFileChannel(payload, OFFSET, LENGTH), RPCResponse.Status.SUCCESS);
       RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
       assertValid(msg, decoded);
-    } finally {
-      inputStream.close();
     }
   }
 

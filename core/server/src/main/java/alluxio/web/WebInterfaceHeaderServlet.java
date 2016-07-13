@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -31,16 +31,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceHeaderServlet extends HttpServlet {
   private static final long serialVersionUID = -2466055439220042703L;
 
-  private final transient Configuration mConfiguration;
-
   /**
    * Creates a new instance of {@link WebInterfaceHeaderServlet}.
-   *
-   * @param conf Alluxio configuration
    */
-  public WebInterfaceHeaderServlet(Configuration conf) {
-    mConfiguration = conf;
-  }
+  public WebInterfaceHeaderServlet() {}
 
   /**
    * Populate the header with information about master. So we can return to
@@ -54,9 +48,13 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = mConfiguration.getInt(Constants.MASTER_WEB_PORT);
-    String masterHostName =
-        NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mConfiguration);
+    int masterWebPort = Configuration.getInt(Constants.MASTER_WEB_PORT);
+    String masterHostName;
+    if (!Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
+    } else {
+      masterHostName = NetworkAddressUtils.getMasterAddressFromZK().getHostName();
+    }
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);
     getServletContext().getRequestDispatcher("/header.jsp").include(request, response);

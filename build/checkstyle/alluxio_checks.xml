@@ -253,6 +253,11 @@
 
     <!-- Checks that there is whitespace after various tokens. -->
     <module name="WhitespaceAfter"/>
+
+    <!-- Checks that classes (except abstract ones) define a constructor and don't rely on the default one. -->
+    <module name="MissingCtor">
+      <property name="id" value="ProductionScope"/>
+    </module>
   </module>
 
   <!-- always use Unix-style line separators -->

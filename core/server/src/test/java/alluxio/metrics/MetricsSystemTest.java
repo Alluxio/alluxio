@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.metrics;
 
-import alluxio.Configuration;
 import alluxio.master.MasterSource;
 import alluxio.worker.WorkerSource;
 
@@ -26,14 +25,12 @@ import java.util.Properties;
  */
 public class MetricsSystemTest {
   private MetricsConfig mMetricsConfig;
-  private Configuration mConfiguration;
 
   /**
    * Sets up the properties for the configuration of the metrics before a test runs.
    */
   @Before
   public final void before() {
-    mConfiguration = new Configuration();
     Properties metricsProps = new Properties();
     metricsProps.setProperty("*.sink.console.class", "alluxio.metrics.sink.ConsoleSink");
     metricsProps.setProperty("*.sink.console.period", "15");
@@ -49,7 +46,7 @@ public class MetricsSystemTest {
    */
   @Test
   public void metricsSystemTest() {
-    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig, mConfiguration);
+    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig);
     masterMetricsSystem.start();
 
     Assert.assertNotNull(masterMetricsSystem.getServletHandler());
@@ -59,7 +56,7 @@ public class MetricsSystemTest {
     Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
 
-    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig, mConfiguration);
+    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig);
     workerMetricsSystem.start();
 
     Assert.assertNotNull(workerMetricsSystem.getServletHandler());

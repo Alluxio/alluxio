@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,7 +24,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AlluxioMaster;
-import alluxio.master.MasterContext;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.security.LoginUser;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.util.SecurityUtils;
@@ -32,9 +32,8 @@ import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerNetAddress;
-
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   private static final long serialVersionUID = 6121623049981468871L;
 
   private final transient AlluxioMaster mMaster;
-  private final transient Configuration mConfiguration;
 
   /**
    * Creates a new instance of {@link WebInterfaceBrowseServlet}.
@@ -65,7 +63,6 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
    */
   public WebInterfaceBrowseServlet(AlluxioMaster master) {
     mMaster = master;
-    mConfiguration = MasterContext.getConf();
   }
 
   /**
@@ -136,13 +133,12 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    if (SecurityUtils.isSecurityEnabled(mConfiguration)
-        && AuthenticatedClientUser.get(mConfiguration) == null) {
-      AuthenticatedClientUser.set(LoginUser.get(mConfiguration).getName());
+    if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
+      AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("debug", mConfiguration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
     request.setAttribute("showPermissions",
-        mConfiguration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
@@ -164,7 +160,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
-      request.setAttribute("workerWebPort", mConfiguration.getInt(Constants.WORKER_WEB_PORT));
+      request.setAttribute("workerWebPort", Configuration.getInt(Constants.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;
@@ -199,7 +195,8 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
         return;
       }
       setPathDirectories(currentPath, request);
-      filesInfo = mMaster.getFileSystemMaster().getFileInfoList(currentPath);
+      filesInfo = mMaster.getFileSystemMaster().listStatus(currentPath,
+          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
     } catch (FileDoesNotExistException e) {
       request.setAttribute("invalidPathError", "Error: Invalid Path " + e.getMessage());
       getServletContext().getRequestDispatcher("/browse.jsp").forward(request, response);
@@ -220,7 +217,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       return;
     }
 
-    List<UIFileInfo> fileInfos = new ArrayList<UIFileInfo>(filesInfo.size());
+    List<UIFileInfo> fileInfos = new ArrayList<>(filesInfo.size());
     for (FileInfo fileInfo : filesInfo) {
       UIFileInfo toAdd = new UIFileInfo(fileInfo);
       try {
@@ -228,14 +225,15 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
           FileBlockInfo blockInfo =
               mMaster.getFileSystemMaster()
                   .getFileBlockInfoList(new AlluxioURI(toAdd.getAbsolutePath())).get(0);
-          List<WorkerNetAddress> addrs = Lists.newArrayList();
+          List<String> locations = new ArrayList<>();
           // add the in-memory block locations
           for (BlockLocation location : blockInfo.getBlockInfo().getLocations()) {
-            addrs.add(location.getWorkerAddress());
+            WorkerNetAddress address = location.getWorkerAddress();
+            locations.add(address.getHost() + ":" + address.getDataPort());
           }
           // add underFS locations
-          addrs.addAll(blockInfo.getUfsLocations());
-          toAdd.setFileLocations(addrs);
+          locations.addAll(blockInfo.getUfsLocations());
+          toAdd.setFileLocations(locations);
         }
       } catch (FileDoesNotExistException e) {
         request.setAttribute("FileDoesNotExistException",

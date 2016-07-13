@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -269,10 +269,19 @@ interface BlockStore {
   /**
    * Gets the meta data of the entire store in a snapshot. There is no guarantee the state will be
    * consistent with the snapshot after this method is called.
+   * This function should be cheap since it is called for every block.
    *
    * @return store meta data
    */
   BlockStoreMeta getBlockStoreMeta();
+
+  /**
+   * Similar as {@link BlockStoreMeta#getBlockStoreMeta} except that this includes more information
+   * about the block store (e.g. blockId list). This is an expensive operation.
+   *
+   * @return full store meta data
+   */
+  BlockStoreMeta getBlockStoreMetaFull();
 
   /**
    * Checks if the storage has a given block.

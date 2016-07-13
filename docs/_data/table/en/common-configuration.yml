@@ -18,6 +18,10 @@ alluxio.network.host.resolution.&#8203;timeout.ms:
   automatically attempt to select an appropriate host name if one was not explicitly specified.
   This represents the maximum amount of time spent waiting to determine if a candidate host name
   is resolvable over the network.
+alluxio.network.thrift.frame.&#8203;size.bytes.max:
+  (Experimental) The largest allowable frame size used for Thrift RPC communication.
+alluxio.site.conf.dir:
+  Default search path for configuration files to read
 alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
@@ -39,10 +43,31 @@ alluxio.underfs.s3.proxy.https.only:
   If using a proxy to communicate with S3, determine whether to talk to the proxy using https.
 alluxio.underfs.s3.proxy.port:
   Optionally, specify a proxy port for communicating with S3.
+alluxio.underfs.s3.threads.max:
+  The maximum number of threads to use for communicating with S3. Includes both threads for data
+  upload and metadata operations. This number should be at least as large as the max admin threads
+  plus max upload threads. The default is 22 which is the sum of the default admin and upload
+  thread pool sizes.
+alluxio.underfs.s3.admin.threads.max:
+  The maximum number of threads to use for metadata operations when communicating with S3. These
+  operations may be fairly concurrent and frequent but should not take much time to process.
+  The default is 20.
+alluxio.underfs.s3.upload.threads.max:
+  The maximum number of threads to use for uploading data to S3 for multipart uploads. These
+  operations can be fairly expensive, however having too many threads may cause bandwidth starvation
+  for some threads causing errors. The default value is 2.
+alluxio.underfs.s3a.secure.http.enabled:
+  Whether or not to use HTTPS protocol when communicating with s3. The default value is false.
+alluxio.underfs.s3a.server.side.encryption.enabled:
+  Whether or not to encrypt data stored in s3. The default value is false.
+alluxio.underfs.s3a.socket.timeout.ms:
+  Length of the socket timeout when communicating with s3. The default value is 50000.
 alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:
   How many threads to use for the web server.
+alluxio.zookeeper.address:
+  Address of ZooKeeper
 alluxio.zookeeper.election.path:
   Election folder in ZooKeeper.
 alluxio.zookeeper.enabled:

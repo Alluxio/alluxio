@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -30,22 +30,12 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ClientContext {
-  private static ExecutorService sExecutorService;
-  private static Configuration sConf;
-  private static InetSocketAddress sMasterAddress;
+  private static ExecutorService sBlockClientExecutorService;
+  private static ExecutorService sFileClientExecutorService;
   private static ClientMetrics sClientMetrics;
+  private static InetSocketAddress sMasterAddress;
 
   static {
-    reset();
-  }
-
-  /**
-   * Resets to the default Alluxio configuration and initializes the client context singleton.
-   *
-   * This method is useful for undoing changes to {@link Configuration} made by unit tests.
-   */
-  private static void reset() {
-    sConf = new Configuration();
     init();
   }
 
@@ -58,22 +48,25 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
-    String masterHostname = Preconditions.checkNotNull(sConf.get(Constants.MASTER_HOSTNAME));
-    int masterPort = sConf.getInt(Constants.MASTER_RPC_PORT);
-    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
-
+    // If this is a re-initialization, we must shut down the previous executors.
+    if (sBlockClientExecutorService != null) {
+      sBlockClientExecutorService.shutdownNow();
+    }
+    sBlockClientExecutorService = Executors
+        .newFixedThreadPool(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    if (sFileClientExecutorService != null) {
+      sFileClientExecutorService.shutdownNow();
+    }
+    sFileClientExecutorService = Executors
+        .newFixedThreadPool(Configuration.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
+            ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
     sClientMetrics = new ClientMetrics();
 
-    sExecutorService = Executors.newFixedThreadPool(
-        sConf.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
-  }
-
-  /**
-   * @return the {@link Configuration} for the client process
-   */
-  public static Configuration getConf() {
-    return sConf;
+    String masterHostname =
+        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
+    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
+    sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
   }
 
   /**
@@ -91,10 +84,17 @@ public final class ClientContext {
   }
 
   /**
-   * @return the executor service
+   * @return the executor service for block clients
    */
-  public static ExecutorService getExecutorService() {
-    return sExecutorService;
+  public static ExecutorService getBlockClientExecutorService() {
+    return sBlockClientExecutorService;
+  }
+
+  /**
+   * @return the executor service for file clients
+   */
+  public static ExecutorService getFileClientExecutorService() {
+    return sFileClientExecutorService;
   }
 
   private ClientContext() {} // prevent instantiation

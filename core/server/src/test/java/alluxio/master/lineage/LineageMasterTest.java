@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -27,6 +27,7 @@ import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 
 import com.google.common.collect.Lists;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,6 +39,7 @@ import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -58,8 +60,6 @@ public final class LineageMasterTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up the test fails
    */
   @Before
   public void before() throws Exception {
@@ -70,14 +70,17 @@ public final class LineageMasterTest {
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
 
+  @After
+  public void after() throws Exception {
+    mLineageMaster.stop();
+  }
+
   /**
    * Tests the {@link LineageMaster#getLineageInfoList()} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void listLineagesTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -89,8 +92,6 @@ public final class LineageMasterTest {
   /**
    * Tests that an exception is thrown when trying to create a lineage for a non-existing file via
    * the {@link LineageMaster#createLineage(List, List, Job)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void createLineageWithNonExistingFileTest() throws Exception {
@@ -109,12 +110,10 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#deleteLineage(long, boolean)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteLineageTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    long l1 = mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -126,8 +125,6 @@ public final class LineageMasterTest {
   /**
    * Tests that an exception is thrown when trying to delete a non-existing lineage via the
    * {@link LineageMaster#deleteLineage(long, boolean)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteNonexistingLineageTest() throws Exception {
@@ -144,12 +141,10 @@ public final class LineageMasterTest {
    * Tests that an exception is thrown when trying to delete a lineage with children via the
    * {@link LineageMaster#deleteLineage(long, boolean)} without setting the {@code cascade} flag to
    * {@code true}.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void deleteLineageWithChildrenTest() throws Exception {
-    long l1 = mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    long l1 = mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
@@ -164,12 +159,10 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#reinitializeFile(String, long, long)} method.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void reinitializeFileTest() throws Exception {
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(),
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
@@ -180,13 +173,11 @@ public final class LineageMasterTest {
 
   /**
    * Tests that completing a file asynchronously works.
-   *
-   * @throws Exception if an operation on a master fails
    */
   @Test
   public void asyncCompleteFileTest() throws Exception {
     AlluxioURI file = new AlluxioURI("/test1");
-    mLineageMaster.createLineage(Lists.<AlluxioURI>newArrayList(), Lists.newArrayList(file), mJob);
+    mLineageMaster.createLineage(new ArrayList<AlluxioURI>(), Lists.newArrayList(file), mJob);
     mFileSystemMaster.completeFile(file, CompleteFileOptions.defaults());
     Mockito.verify(mFileSystemMaster).completeFile(Mockito.eq(file),
         Mockito.any(CompleteFileOptions.class));
@@ -194,8 +185,6 @@ public final class LineageMasterTest {
 
   /**
    * Tests the {@link LineageMaster#stop()} method.
-   *
-   * @throws Exception if stopping the master fails
    */
   @Test
   public void stopTest() throws Exception {

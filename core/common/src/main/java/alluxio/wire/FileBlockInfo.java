@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,11 @@
 
 package alluxio.wire;
 
+import alluxio.annotation.PublicApi;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
+import com.google.common.net.HostAndPort;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +25,12 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The file block descriptor.
  */
+@PublicApi
 @NotThreadSafe
 public final class FileBlockInfo {
   private BlockInfo mBlockInfo = new BlockInfo();
   private long mOffset;
-  private List<WorkerNetAddress> mUfsLocations = Lists.newArrayList();
+  private List<String> mUfsLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
@@ -42,9 +45,13 @@ public final class FileBlockInfo {
   protected FileBlockInfo(alluxio.thrift.FileBlockInfo fileBlockInfo) {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
     mOffset = fileBlockInfo.getOffset();
-    mUfsLocations = new ArrayList<WorkerNetAddress>();
-    for (alluxio.thrift.WorkerNetAddress ufsLocation : fileBlockInfo.getUfsLocations()) {
-      mUfsLocations.add(new WorkerNetAddress(ufsLocation));
+    if (fileBlockInfo.getUfsStringLocationsSize() != 0) {
+      mUfsLocations = fileBlockInfo.getUfsStringLocations();
+    } else if (fileBlockInfo.getUfsLocationsSize() != 0) {
+      for (alluxio.thrift.WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
+        mUfsLocations
+            .add(HostAndPort.fromParts(address.getHost(), address.getDataPort()).toString());
+      }
     }
   }
 
@@ -65,7 +72,7 @@ public final class FileBlockInfo {
   /**
    * @return the UFS locations
    */
-  public List<WorkerNetAddress> getUfsLocations() {
+  public List<String> getUfsLocations() {
     return mUfsLocations;
   }
 
@@ -92,7 +99,7 @@ public final class FileBlockInfo {
    * @param ufsLocations the UFS locations to use
    * @return the file block descriptor
    */
-  public FileBlockInfo setUfsLocations(List<WorkerNetAddress> ufsLocations) {
+  public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
     Preconditions.checkNotNull(ufsLocations);
     mUfsLocations = ufsLocations;
     return this;
@@ -102,12 +109,14 @@ public final class FileBlockInfo {
    * @return thrift representation of the file block descriptor
    */
   protected alluxio.thrift.FileBlockInfo toThrift() {
-    List<alluxio.thrift.WorkerNetAddress> ufsLocations =
-        new ArrayList<alluxio.thrift.WorkerNetAddress>();
-    for (WorkerNetAddress ufsLocation : mUfsLocations) {
-      ufsLocations.add(ufsLocation.toThrift());
+    List<alluxio.thrift.WorkerNetAddress> ufsLocations = new ArrayList<>();
+    for (String ufsLocation : mUfsLocations) {
+      HostAndPort address = HostAndPort.fromString(ufsLocation);
+      ufsLocations.add(new alluxio.thrift.WorkerNetAddress().setHost(address.getHostText())
+          .setDataPort(address.getPortOrDefault(-1)));
     }
-    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations);
+    return new alluxio.thrift.FileBlockInfo(mBlockInfo.toThrift(), mOffset, ufsLocations,
+        mUfsLocations);
   }
 
   @Override

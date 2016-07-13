@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -19,17 +19,17 @@ import alluxio.client.keyvalue.KeyValueSystem;
 import alluxio.exception.AlluxioException;
 import alluxio.thrift.PartitionInfo;
 
-import com.google.common.collect.Lists;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.mapreduce.InputSplit;
-import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.InputFormat;
+import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.JobContext;
+import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -45,7 +45,12 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesWritable> {
   private final KeyValueMasterClient mKeyValueMasterClient =
-      new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+      new KeyValueMasterClient(ClientContext.getMasterAddress());
+
+  /**
+   * Constructs a new {@link KeyValueInputFormat}.
+   */
+  public KeyValueInputFormat() {}
 
   /**
    * Returns a list of {@link KeyValueInputSplit} where each split is one key-value partition.
@@ -59,7 +64,7 @@ public final class KeyValueInputFormat extends InputFormat<BytesWritable, BytesW
     // The paths are MapReduce program's inputs specified in
     // {@code mapreduce.input.fileinputformat.inputdir}, each path should be a key-value store.
     Path[] paths = FileInputFormat.getInputPaths(jobContext);
-    List<InputSplit> splits = Lists.newArrayList();
+    List<InputSplit> splits = new ArrayList<>();
     try {
       for (Path path : paths) {
         List<PartitionInfo> partitionInfos =

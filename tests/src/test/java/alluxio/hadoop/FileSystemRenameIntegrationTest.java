@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -59,12 +59,11 @@ public final class FileSystemRenameIntegrationTest {
     Configuration conf = new Configuration();
     conf.set("fs.alluxio.impl", FileSystem.class.getName());
 
-    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterUri());
+    URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = PathUtils.concatPath(
-        sLocalAlluxioClusterResource.get().getMasterConf().get(Constants.UNDERFS_ADDRESS));
-    sUfs = UnderFileSystem.get(sUfsRoot, sLocalAlluxioClusterResource.get().getMasterConf());
+    sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(Constants.UNDERFS_ADDRESS));
+    sUfs = UnderFileSystem.get(sUfsRoot);
   }
 
   @Test
@@ -223,6 +222,8 @@ public final class FileSystemRenameIntegrationTest {
     sTFS.mkdirs(dirA);
     FSDataOutputStream o = sTFS.create(fileA);
     o.writeBytes("Test Bytes");
+    // Due to Hadoop 1 support we stick with the deprecated version. If we drop support for it
+    // FSDataOutputStream.hflush will be the new one.
     o.sync();
 
     Assert.assertTrue(sTFS.rename(dirA, dirB));

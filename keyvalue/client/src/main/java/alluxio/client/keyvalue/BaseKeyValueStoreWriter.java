@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -66,8 +66,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException, AlluxioException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient =
-        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+    mMasterClient = new KeyValueMasterClient(ClientContext.getMasterAddress());
 
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);
@@ -184,7 +183,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
     mWriter.close();
     List<Long> blockIds = mFileSystem.getStatus(getPartitionName()).getBlockIds();
     long blockId = blockIds.get(0);
-    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId);
+    PartitionInfo info = new PartitionInfo(mKeyStart, mKeyLimit, blockId, mWriter.keyCount());
     mMasterClient.completePartition(mStoreUri, info);
     mPartitionIndex++;
   }

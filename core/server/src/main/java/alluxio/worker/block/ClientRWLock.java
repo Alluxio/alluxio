@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -29,11 +29,16 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class ClientRWLock implements ReadWriteLock {
   // TODO(bin): Make this const a configurable.
   /** Total number of permits. This value decides the max number of concurrent readers. */
-  private static final int MAX_AVAILABLE = 100;
+  private static final int MAX_AVAILABLE = 1000;
   /** Underlying Semaphore. */
   private final Semaphore mAvailable = new Semaphore(MAX_AVAILABLE, true);
   /** Reference count. */
   private AtomicInteger mReferences = new AtomicInteger();
+
+  /**
+   * Constructs a new {@link ClientRWLock}.
+   */
+  public ClientRWLock() {}
 
   @Override
   public Lock readLock() {
@@ -43,6 +48,13 @@ public final class ClientRWLock implements ReadWriteLock {
   @Override
   public Lock writeLock() {
     return new SessionLock(MAX_AVAILABLE);
+  }
+
+  /**
+   * @return the reference count
+   */
+  public int getReferenceCount() {
+    return mReferences.get();
   }
 
   /**
@@ -57,7 +69,7 @@ public final class ClientRWLock implements ReadWriteLock {
    *
    * @return the new reference count
    */
-  public Integer dropReference() {
+  public int dropReference() {
     return mReferences.decrementAndGet();
   }
 

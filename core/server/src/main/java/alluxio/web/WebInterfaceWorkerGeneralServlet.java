@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,11 @@
 
 package alluxio.web;
 
-import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.collections.Pair;
 import alluxio.util.FormatUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
-
-import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -97,8 +93,6 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
    * Displays information about a worker in the UI.
    */
   public static class UIWorkerInfo {
-    public static final boolean DEBUG = WorkerContext.getConf().getBoolean(Constants.DEBUG);
-    public static final String VERSION = Version.VERSION;
     private final String mWorkerAddress;
     private final long mStartTimeMs;
 
@@ -220,7 +214,7 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
     long usedBytes = 0L;
     Map<String, Long> capacityBytesOnTiers = storeMeta.getCapacityBytesOnTiers();
     Map<String, Long> usedBytesOnTiers = storeMeta.getUsedBytesOnTiers();
-    List<UIUsageOnTier> usageOnTiers = Lists.newArrayList();
+    List<UIUsageOnTier> usageOnTiers = new ArrayList<>();
     for (Entry<String, Long> entry : capacityBytesOnTiers.entrySet()) {
       String tier = entry.getKey();
       long capacity = entry.getValue();
@@ -239,8 +233,9 @@ public final class WebInterfaceWorkerGeneralServlet extends HttpServlet {
 
     request.setAttribute("usageOnTiers", usageOnTiers);
 
-    List<UIStorageDir> storageDirs =
-        new ArrayList<UIStorageDir>(storeMeta.getCapacityBytesOnDirs().size());
+    request.setAttribute("version", RuntimeConstants.VERSION);
+
+    List<UIStorageDir> storageDirs = new ArrayList<>(storeMeta.getCapacityBytesOnDirs().size());
     for (Pair<String, String> tierAndDirPath : storeMeta.getCapacityBytesOnDirs().keySet()) {
       storageDirs.add(new UIStorageDir(tierAndDirPath.getFirst(), tierAndDirPath.getSecond(),
           storeMeta.getCapacityBytesOnDirs().get(tierAndDirPath), storeMeta.getUsedBytesOnDirs()

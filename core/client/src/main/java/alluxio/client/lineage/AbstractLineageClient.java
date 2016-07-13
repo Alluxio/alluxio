@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -107,7 +107,7 @@ public abstract class AbstractLineageClient implements LineageClient {
    * @return a new list of strings mapping the input URIs to theri path component
    */
   private List<String> stripURIList(List<AlluxioURI> uris) {
-    final List<String> pathStrings = new ArrayList<String>(uris.size());
+    final List<String> pathStrings = new ArrayList<>(uris.size());
     for (final AlluxioURI uri : uris) {
       pathStrings.add(uri.getPath());
     }

@@ -53,6 +53,7 @@ service BlockMasterWorkerService extends common.AlluxioService {
       /** the alias of the target tier */ 3: string tierAlias,
       /** the id of the block being committed */ 4: i64 blockId,
       /** the length of the block being committed */ 5: i64 length)
+      throws (1: exception.AlluxioTException e)
 
   /**
    * Returns a worker id for the given network address.

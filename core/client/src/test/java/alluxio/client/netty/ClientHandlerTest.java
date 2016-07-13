@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -62,8 +62,6 @@ public class ClientHandlerTest {
 
   /**
    * Makes sure that the response is received as expected.
-   *
-   * @throws IOException when reading from the channel fails
    */
   @Test
   public void channelRead0ResponseReceivedTest() throws IOException {
@@ -82,8 +80,6 @@ public class ClientHandlerTest {
   /**
    * Makes sure that an {@link IllegalArgumentException} is thrown when the message is
    * not a {@link alluxio.network.protocol.RPCResponse}.
-   *
-   * @throws IOException when reading from the channel fails
    */
   @Test
   public void channelRead0ThrowsExceptionTest() throws IOException {
@@ -96,8 +92,6 @@ public class ClientHandlerTest {
 
   /**
    * Makes sure that the {@link ChannelHandlerContext} is closed.
-   *
-   * @throws Exception when the exception cannot be caught
    */
   @Test
   public void exceptionCaughtClosesContextTest() throws Exception {

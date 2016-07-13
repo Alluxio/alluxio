@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -81,6 +81,11 @@ public class WorkerSource implements Source {
       .name(BYTES_WRITTEN_REMOTE));
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name(BYTES_WRITTEN_UFS));
+
+  /**
+   * Constructs a new {@link WorkerSource}.
+   */
+  public WorkerSource() {}
 
   @Override
   public String getName() {
@@ -183,7 +188,7 @@ public class WorkerSource implements Source {
   }
 
   /**
-   * Increments the counter of bytes read remotelly.
+   * Increments the counter of bytes read remotely.
    *
    * @param n the increment
    */
@@ -261,7 +266,7 @@ public class WorkerSource implements Source {
     mMetricRegistry.register(MetricRegistry.name(BLOCKS_CACHED), new Gauge<Integer>() {
       @Override
       public Integer getValue() {
-        return blockWorker.getStoreMeta().getNumberOfBlocks();
+        return blockWorker.getStoreMetaFull().getNumberOfBlocks();
       }
     });
     mGaugesRegistered = true;

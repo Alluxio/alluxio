@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,19 +13,18 @@ package alluxio;
 
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.ChannelType;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.FormatUtils;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import org.apache.commons.lang3.SerializationUtils;
+import com.google.common.collect.Maps;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,106 +54,74 @@ import javax.annotation.concurrent.NotThreadSafe;
  * distributed with Alluxio jar. Alluxio users can override values of these default properties by
  * creating {@code alluxio-site.properties} and putting it under java {@code CLASSPATH} when running
  * Alluxio (e.g., ${ALLUXIO_HOME}/conf/)
- *
- * <p>
- * Developers can create an instance of this class by {@link #Configuration()}, which will load
- * values from any Java system properties set as well.
- *
- * <p>
- * The class only supports creation using {@link #Configuration(Properties)} to override default
- * values.
  */
 @NotThreadSafe
 public final class Configuration {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** File to set default properties. */
-  public static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
-  /** File to set customized properties. */
-  public static final String SITE_PROPERTIES = "alluxio-site.properties";
-  /** Regex string to find ${key} for variable substitution. */
+  private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
+  /** File to set customized properties for Alluxio server (both master and worker) and client. */
+  private static final String SITE_PROPERTIES = "alluxio-site.properties";
+
+  /** Regex string to find "${key}" for variable substitution. */
   private static final String REGEX_STRING = "(\\$\\{([^{}]*)\\})";
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  /** Set of properties. */
+  private static final Properties PROPERTIES = new Properties();
 
-  private final Properties mProperties = new Properties();
-
-  /**
-   * Overrides default properties.
-   *
-   * @param props override {@link Properties}
-   */
-  public Configuration(Map<String, String> props) {
-    if (props != null) {
-      mProperties.putAll(props);
-    }
-    checkUserFileBufferBytes();
+  static {
+    defaultInit();
   }
 
   /**
-   * Overrides default properties.
-   *
-   * @param props override {@link Properties}
+   * The minimal configuration without loading any site or system properties.
    */
-  public Configuration(Properties props) {
-    if (props != null) {
-      mProperties.putAll(props);
-    }
-    checkUserFileBufferBytes();
+  public static void emptyInit() {
+    init(null, false);
   }
 
   /**
-   * Default constructor.
-   *
-   * Most clients will call this constructor to allow default loading of properties to happen.
+   * The default configuration.
    */
-  public Configuration() {
-    this(true);
+  public static void defaultInit() {
+    init(SITE_PROPERTIES, true);
   }
 
   /**
    * Constructor with a flag to indicate whether system properties should be included. When the flag
    * is set to false, it is used for {@link Configuration} test class.
    *
+   * @param sitePropertiesFile site-wide properties
    * @param includeSystemProperties whether to include the system properties
    */
-  Configuration(boolean includeSystemProperties) {
+  private static void init(String sitePropertiesFile, boolean includeSystemProperties) {
     // Load default
-    Properties defaultProps = new Properties();
-
+    Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
+    if (defaultProps == null) {
+      throw new RuntimeException(
+          ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST.getMessage());
+    }
     // Override runtime default
     defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_WORKER_BLOCK_THREADS_MIN,
-        String.valueOf(Runtime.getRuntime().availableProcessors()));
-    defaultProps.setProperty(Constants.MASTER_WORKER_THREADS_MIN,
-        String.valueOf(Runtime.getRuntime().availableProcessors()));
     defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
     defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
-    InputStream defaultInputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(DEFAULT_PROPERTIES);
-    if (defaultInputStream == null) {
-      throw new RuntimeException(ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST
-              .getMessage());
+    String confPaths;
+    // If site conf is overwritten in system properties, overwrite the default setting
+    if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
+      confPaths = System.getProperty(Constants.SITE_CONF_DIR);
+    } else {
+      confPaths = defaultProps.getProperty(Constants.SITE_CONF_DIR);
     }
-    try {
-      defaultProps.load(defaultInputStream);
-    } catch (IOException e) {
-      throw new RuntimeException(ExceptionMessage.UNABLE_TO_LOAD_PROPERTIES_FILE.getMessage(), e);
-    }
+    String[] confPathList = confPaths.split(",");
 
     // Load site specific properties file
-    Properties siteProps = new Properties();
-    InputStream siteInputStream =
-        Configuration.class.getClassLoader().getResourceAsStream(SITE_PROPERTIES);
-    if (siteInputStream != null) {
-      try {
-        siteProps.load(siteInputStream);
-      } catch (IOException e) {
-        LOG.warn("Unable to load site Alluxio configuration file.", e);
-      }
-    }
+    Properties siteProps = ConfigurationUtils
+        .searchPropertiesFile(sitePropertiesFile, confPathList);
 
     // Load system properties
     Properties systemProps = new Properties();
@@ -162,18 +129,19 @@ public final class Configuration {
       systemProps.putAll(System.getProperties());
     }
 
-    // Now lets combine
-    mProperties.putAll(defaultProps);
-    mProperties.putAll(siteProps);
-    mProperties.putAll(systemProps);
+    // Now lets combine, order matters here
+    PROPERTIES.putAll(defaultProps);
+    if (siteProps != null) {
+      PROPERTIES.putAll(siteProps);
+    }
+    PROPERTIES.putAll(systemProps);
 
-    // Update alluxio.master_address based on if Zookeeper is used or not.
-    String masterHostname = mProperties.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = mProperties.getProperty(Constants.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(mProperties.getProperty(Constants.ZOOKEEPER_ENABLED));
+    String masterHostname = PROPERTIES.getProperty(Constants.MASTER_HOSTNAME);
+    String masterPort = PROPERTIES.getProperty(Constants.MASTER_RPC_PORT);
+    boolean useZk = Boolean.parseBoolean(PROPERTIES.getProperty(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    mProperties.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    PROPERTIES.setProperty(Constants.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
@@ -187,51 +155,34 @@ public final class Configuration {
           String.format(message, Constants.WORKER_RPC_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
           String.format(message, Constants.WORKER_WEB_PORT));
-      mProperties.setProperty(Constants.WORKER_DATA_PORT, "0");
-      mProperties.setProperty(Constants.WORKER_RPC_PORT, "0");
-      mProperties.setProperty(Constants.WORKER_WEB_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_DATA_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_RPC_PORT, "0");
+      PROPERTIES.setProperty(Constants.WORKER_WEB_PORT, "0");
     }
-  }
-
-  @Override
-  public int hashCode() {
-    int hash = 0;
-    for (Object s : mProperties.keySet()) {
-      hash ^= s.hashCode();
-    }
-    return hash;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof Configuration)) {
-      return false;
-    }
-    Configuration that = (Configuration) o;
-    return mProperties.equals(that.mProperties);
   }
 
   /**
-   * @return the deep copy of the internal {@link Properties} of this {@link Configuration} instance
-   */
-  public Properties getInternalProperties() {
-    return SerializationUtils.clone(mProperties);
-  }
-
-  /**
-   * Merge the current configuration properties with another one. A property from the new
+   * Merges the current configuration properties with another one. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
    * @param alternateConf The source {@link Configuration} to be merged
    */
-  public void merge(Configuration alternateConf) {
-    if (alternateConf != null) {
+  public static void merge(Configuration alternateConf) {
+    merge(alternateConf.toMap());
+  }
+
+  /**
+   * Merges the current configuration properties with alternate properties. A property from the new
+   * configuration wins if it also appears in the current configuration.
+   *
+   * @param properties The source {@link Properties} to be merged
+   */
+  public static void merge(Map<?, ?> properties) {
+    if (properties != null) {
       // merge the system properties
-      mProperties.putAll(alternateConf.getInternalProperties());
+      PROPERTIES.putAll(properties);
     }
+    checkUserFileBufferBytes();
   }
 
   // Public accessor methods
@@ -244,10 +195,11 @@ public final class Configuration {
    * @param key the key to set
    * @param value the value for the key
    */
-  public void set(String key, String value) {
+  public static void set(String key, String value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    mProperties.put(key, value);
+    PROPERTIES.put(key, value);
+    checkUserFileBufferBytes();
   }
 
   /**
@@ -256,12 +208,12 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key
    */
-  public String get(String key) {
-    if (!mProperties.containsKey(key)) {
+  public static String get(String key) {
+    if (!PROPERTIES.containsKey(key)) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    String raw = mProperties.getProperty(key);
+    String raw = PROPERTIES.getProperty(key);
     return lookup(raw);
   }
 
@@ -271,8 +223,8 @@ public final class Configuration {
    * @param key the key to check
    * @return true if the key is in the {@link Properties}, false otherwise
    */
-  public boolean containsKey(String key) {
-    return mProperties.containsKey(key);
+  public static boolean containsKey(String key) {
+    return PROPERTIES.containsKey(key);
   }
 
   /**
@@ -281,9 +233,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as an {@code int}
    */
-  public int getInt(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static int getInt(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Integer.parseInt(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -300,9 +252,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code long}
    */
-  public long getLong(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static long getLong(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Long.parseLong(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -319,9 +271,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code double}
    */
-  public double getDouble(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static double getDouble(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Double.parseDouble(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -338,9 +290,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code float}
    */
-  public float getFloat(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static float getFloat(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return Float.parseFloat(lookup(rawValue));
       } catch (NumberFormatException e) {
@@ -357,9 +309,9 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code boolean}
    */
-  public boolean getBoolean(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static boolean getBoolean(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       return Boolean.parseBoolean(lookup(rawValue));
     }
     // if key is not found among the default properties
@@ -373,11 +325,11 @@ public final class Configuration {
    * @param delimiter the delimiter to split the values
    * @return the list of values for the given key
    */
-  public List<String> getList(String key, String delimiter) {
+  public static List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
           .split(rawValue));
     }
@@ -393,8 +345,8 @@ public final class Configuration {
    * @param <T> the type of the enum
    * @return the value for the given key as an enum value
    */
-  public <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
-    if (!mProperties.containsKey(key)) {
+  public static <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
+    if (!PROPERTIES.containsKey(key)) {
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
     final String val = get(key);
@@ -407,8 +359,8 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the bytes of the value for the given key
    */
-  public long getBytes(String key) {
-    if (mProperties.containsKey(key)) {
+  public static long getBytes(String key) {
+    if (PROPERTIES.containsKey(key)) {
       String rawValue = get(key);
       try {
         return FormatUtils.parseSpaceSize(rawValue);
@@ -427,9 +379,9 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   @SuppressWarnings("unchecked")
-  public <T> Class<T> getClass(String key) {
-    if (mProperties.containsKey(key)) {
-      String rawValue = mProperties.getProperty(key);
+  public static <T> Class<T> getClass(String key) {
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.getProperty(key);
       try {
         return (Class<T>) Class.forName(rawValue);
       } catch (Exception e) {
@@ -442,22 +394,10 @@ public final class Configuration {
   }
 
   /**
-   * Returns the properties as a Map.
-   *
-   * @return a Map from each property name to its property values
+   * @return a copy of the internal {@link Properties} of as an immutable map
    */
-  public Map<String, String> toMap() {
-    Map<String, String> copy = new HashMap<String, String>();
-    for (Enumeration<?> names = mProperties.propertyNames(); names.hasMoreElements();) {
-      Object key = names.nextElement();
-      copy.put(key.toString(), mProperties.get(key).toString());
-    }
-    return copy;
-  }
-
-  @Override
-  public String toString() {
-    return mProperties.toString();
+  public static ImmutableMap<String, String> toMap() {
+    return Maps.fromProperties(PROPERTIES);
   }
 
   /**
@@ -466,7 +406,7 @@ public final class Configuration {
    * @param base string to look for
    * @return the key name with the ${key} substituted
    */
-  private String lookup(String base) {
+  private static String lookup(String base) {
     return lookupRecursively(base, new HashMap<String, String>());
   }
 
@@ -477,7 +417,7 @@ public final class Configuration {
    * @param found {@link Map} of String that already seen in this path
    * @return resolved String value
    */
-  private String lookupRecursively(final String base, Map<String, String> found) {
+  private static String lookupRecursively(final String base, Map<String, String> found) {
     // check argument
     if (base == null) {
       return null;
@@ -491,7 +431,7 @@ public final class Configuration {
       String match = matcher.group(2).trim();
       String value;
       if (!found.containsKey(match)) {
-        value = lookupRecursively(mProperties.getProperty(match), found);
+        value = lookupRecursively(PROPERTIES.getProperty(match), found);
         found.put(match, value);
       } else {
         value = found.get(match);
@@ -510,12 +450,14 @@ public final class Configuration {
    *
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
-  private void checkUserFileBufferBytes() {
-    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { //load from hadoop conf
+  private static void checkUserFileBufferBytes() {
+    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
     long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
     Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
         "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
+
+  private Configuration() {} // prevent instantiation
 }

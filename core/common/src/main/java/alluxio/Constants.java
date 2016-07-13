@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -52,12 +52,15 @@ public final class Constants {
   public static final String MESOS_RESOURCE_DISK = "disk";
   public static final String MESOS_RESOURCE_PORTS = "ports";
 
+  public static final long SECOND_NANO = 1000000000L;
   public static final int SECOND_MS = 1000;
   public static final int MINUTE_MS = SECOND_MS * 60;
   public static final int HOUR_MS = MINUTE_MS * 60;
   public static final int DAY_MS = HOUR_MS * 24;
 
   public static final int BYTES_IN_INTEGER = 4;
+
+  public static final long UNKNOWN_SIZE = -1;
 
   public static final String SCHEME = "alluxio";
   public static final String HEADER = SCHEME + "://";
@@ -69,10 +72,13 @@ public final class Constants {
 
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
+  public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
   public static final String HEADER_GCS = "gs://";
+
+  public static final int MAX_PORT = 65535;
 
   public static final int DEFAULT_MASTER_PORT = 19998;
   public static final int DEFAULT_MASTER_WEB_PORT = DEFAULT_MASTER_PORT + 1;
@@ -88,6 +94,7 @@ public final class Constants {
   public static final long BLOCK_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long FILE_SYSTEM_MASTER_WORKER_SERVICE_VERSION = 1;
+  public static final long FILE_SYSTEM_WORKER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_CLIENT_SERVICE_VERSION = 1;
   public static final long LINEAGE_MASTER_WORKER_SERVICE_VERSION = 1;
   public static final long KEY_VALUE_MASTER_CLIENT_SERVICE_VERSION = 1;
@@ -106,28 +113,19 @@ public final class Constants {
   public static final String LINEAGE_MASTER_CLIENT_SERVICE_NAME = "LineageMasterClient";
   public static final String LINEAGE_MASTER_WORKER_SERVICE_NAME = "LineageMasterWorker";
   public static final String BLOCK_WORKER_CLIENT_SERVICE_NAME = "BlockWorkerClient";
+  public static final String FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME = "FileSystemWorkerClient";
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  /**
-   * Version 1 [Before 0.5.0] Customized ser/de based. <br>
-   * Version 2 [0.5.0] Starts to use JSON. <br>
-   * Version 3 [0.6.0] Add lastModificationTimeMs to inode.
-   */
-  public static final int JOURNAL_VERSION = 3;
+  public static final String REST_API_PREFIX = "v1/api";
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
   // configuration properties.
-
-  // This constant is being used only in Hadoop MR job submissions where client need to pass site
-  // specific configuration properties. It will be used as key in the MR Configuration.
-  public static final String CONF_SITE = "alluxio.conf.site";
-
+  public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
   public static final String HOME = "alluxio.home";
   public static final String DEBUG = "alluxio.debug";
   public static final String LOGGER_TYPE = "alluxio.logger.type";
-  public static final String ACCESS_LOGGER_TYPE = "alluxio.access.logger.type";
   public static final String VERSION = "alluxio.version";
   public static final String WEB_RESOURCES = "alluxio.web.resources";
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
@@ -135,7 +133,7 @@ public final class Constants {
   public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
   public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
-  public static final String UNDERFS_HDFS_PREFIXS = "alluxio.underfs.hdfs.prefixes";
+  public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
   public static final String IN_TEST_MODE = "alluxio.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "alluxio.network.host.resolution.timeout.ms";
@@ -152,12 +150,31 @@ public final class Constants {
   public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
   public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
+  public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+  public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
+      "alluxio.underfs.s3.endpoint.http.port";
+  public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+      "alluxio.underfs.s3.endpoint.https.port";
+  public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
+      "alluxio.underfs.s3.disable.dns.buckets";
+  public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
+  public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
+  public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
+      "alluxio.underfs.s3.upload.threads.max";
+  public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
+      "alluxio.underfs.s3a.secure.http.enabled";
+  public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
+      "alluxio.underfs.s3a.server.side.encryption.enabled";
+  public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+      "alluxio.underfs.s3a.socket.timeout.ms";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
   public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
   public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
       "alluxio.zookeeper.leader.inquiry.retry";
+  public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+      "alluxio.network.thrift.frame.size.bytes.max";
   public static final String KEY_VALUE_ENABLED = "alluxio.keyvalue.enabled";
   public static final String KEY_VALUE_PARTITION_SIZE_BYTES_MAX =
       "alluxio.keyvalue.partition.size.bytes.max";
@@ -195,6 +212,8 @@ public final class Constants {
       "alluxio.integration.worker.resource.mem";
 
   public static final String MASTER_FORMAT_FILE_PREFIX = "alluxio.master.format.file_prefix";
+  public static final String MASTER_JOURNAL_FLUSH_BATCH_TIME_MS =
+      "alluxio.master.journal.flush.batch.time.ms";
   public static final String MASTER_JOURNAL_FOLDER = "alluxio.master.journal.folder";
   public static final String MASTER_JOURNAL_FORMATTER_CLASS =
       "alluxio.master.journal.formatter.class";
@@ -248,6 +267,8 @@ public final class Constants {
   public static final String WORKER_WEB_BIND_HOST = "alluxio.worker.web.bind.host";
   public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
   public static final String WORKER_DATA_FOLDER = "alluxio.worker.data.folder";
+  public static final String WORKER_DATA_TMP_FOLDER = "alluxio.worker.data.folder.tmp";
+  public static final String WORKER_DATA_TMP_SUBDIR_MAX = "alluxio.worker.data.tmp.subdir.max";
   public static final String WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS =
       "alluxio.worker.block.heartbeat.timeout.ms";
   public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
@@ -287,6 +308,10 @@ public final class Constants {
       "alluxio.worker.filesystem.heartbeat.interval.ms";
   public static final String WORKER_FILE_PERSIST_POOL_SIZE =
       "alluxio.worker.file.persist.pool.size";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED =
+      "alluxio.worker.file.persist.rate.limit.enabled";
+  public static final String WORKER_FILE_PERSIST_RATE_LIMIT =
+      "alluxio.worker.file.persist.rate.limit";
 
   public static final String WORKER_TIERED_STORE_BLOCK_LOCKS =
       "alluxio.worker.tieredstore.block.locks";
@@ -341,6 +366,10 @@ public final class Constants {
   public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
   public static final String USER_FILE_WRITE_LOCATION_POLICY =
       "alluxio.user.file.write.location.policy.class";
+  public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+      "alluxio.user.file.cache.partially.read.block";
+  public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+      "alluxio.user.file.seek.buffer.size.bytes";
   public static final String USER_BLOCK_REMOTE_READER =
       "alluxio.user.block.remote.reader.class";
   public static final String USER_BLOCK_REMOTE_WRITER =
@@ -349,14 +378,21 @@ public final class Constants {
       "alluxio.user.block.worker.client.threads";
   public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
       "alluxio.user.block.master.client.threads";
+  public static final String USER_FILE_WORKER_CLIENT_THREADS =
+      "alluxio.user.file.worker.client.threads";
   public static final String USER_FILE_MASTER_CLIENT_THREADS =
       "alluxio.user.file.master.client.threads";
   public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
       "alluxio.user.lineage.master.client.threads";
   public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
-
   public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
       "alluxio.user.file.waitcompleted.poll.ms";
+  public static final String USER_UFS_DELEGATION_ENABLED =
+      "alluxio.user.ufs.delegation.enabled";
+  public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+      "alluxio.user.ufs.delegation.read.buffer.size.bytes";
+  public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+      "alluxio.user.ufs.delegation.write.buffer.size.bytes";
 
   /** alluxio-fuse related conf keys */
 
@@ -387,10 +423,13 @@ public final class Constants {
   public static final String SWIFT_USER_KEY = "fs.swift.user";
   public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
   public static final String SWIFT_API_KEY = "fs.swift.apikey";
+  public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
   public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
   public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+  public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
@@ -429,7 +468,7 @@ public final class Constants {
   // Authorization
   public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
       "alluxio.security.authorization.permission.enabled";
-  public static final String SECURITY_AUTHORIZATION_PERMISSIONS_UMASK =
+  public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
       "alluxio.security.authorization.permission.umask";
   public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       "alluxio.security.authorization.permission.supergroup";
@@ -437,10 +476,10 @@ public final class Constants {
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
 
   // Security related constant value
-  public static final int DEFAULT_FS_PERMISSIONS_UMASK = 0022;
-  public static final short DEFAULT_FS_FULL_PERMISSION = (short) 0777;
+  public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
+  public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;
   public static final short FILE_DIR_PERMISSION_DIFF = (short) 0111;
-  public static final short INVALID_PERMISSION = -1;
+  public static final short INVALID_MODE = -1;
 
   private Constants() {} // prevent instantiation
 }

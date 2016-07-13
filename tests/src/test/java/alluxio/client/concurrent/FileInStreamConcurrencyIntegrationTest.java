@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,9 +12,9 @@
 package alluxio.client.concurrent;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.client.ClientContext;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.StreamOptionUtils;
 import alluxio.client.file.FileInStream;
@@ -23,11 +23,11 @@ import alluxio.client.file.options.CreateFileOptions;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Throwables;
-import com.google.common.collect.Lists;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +35,8 @@ import java.util.List;
  */
 public final class FileInStreamConcurrencyIntegrationTest {
   private static final int BLOCK_SIZE = 30;
-  private static final int READ_THREADS_NUM =
-      ClientContext.getConf().getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+  private static int sNumReadThreads =
+      Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
@@ -58,8 +58,8 @@ public final class FileInStreamConcurrencyIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 
-    List<Thread> threads = Lists.newArrayList();
-    for (int i = 0; i < READ_THREADS_NUM; i++) {
+    List<Thread> threads = new ArrayList<>();
+    for (int i = 0; i < sNumReadThreads; i++) {
       threads.add(new Thread(new FileRead(new AlluxioURI(uniqPath))));
     }
 

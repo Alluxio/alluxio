@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,7 +13,8 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
+import alluxio.cli.CliUtils;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -96,11 +97,12 @@ public class BasicCheckpoint implements Callable<Boolean> {
    */
   public static void main(String[] args) throws IOException {
     if (args.length != 2) {
-      System.out.println("java -cp " + Version.ALLUXIO_JAR
+      System.out.println("java -cp " + RuntimeConstants.ALLUXIO_JAR
           + " alluxio.examples.BasicCheckpoint <FileFolder> <Files>");
       System.exit(-1);
     }
 
-    Utils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    boolean result = CliUtils.runExample(new BasicCheckpoint(args[0], Integer.parseInt(args[1])));
+    System.exit(result ? 0 : 1);
   }
 }

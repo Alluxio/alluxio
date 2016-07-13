@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -55,7 +55,7 @@ public enum ExceptionMessage {
   // instream/outstream
   FAILED_CACHE("Failed to cache: {0}"),
   FAILED_CREATE("Failed to create {0}"),
-  FAILED_SEEK_FORWARD("Failed to seek forward to {0}"),
+  FAILED_SEEK("Failed to seek to {0}"),
   FAILED_SKIP("Failed to skip {0}"),
   INSTREAM_CANNOT_SKIP("The underlying BlockInStream could not skip {0}"),
   READ_CLOSED_STREAM("Cannot read from a closed stream"),
@@ -67,6 +67,7 @@ public enum ExceptionMessage {
   NO_RPC_HANDLER("No handler implementation for rpc message type: {0}"),
   UNEXPECTED_RPC_RESPONSE("Unexpected response message type: {0} (expected: {1})"),
   WRITER_ALREADY_OPEN("This writer is already open for address: {0}, blockId: {1}, sessionId: {2}"),
+  UNDER_FILE_WRITE_ERROR("Error writing to under file system fileId: {0}, addr: {1}, msg: {2}"),
 
   // storageDir
   ADD_EXISTING_BLOCK("blockId {0} exists in {1}"),
@@ -93,29 +94,43 @@ public enum ExceptionMessage {
 
   // file
   CANNOT_READ_DIRECTORY("Cannot read from {0} because it is a directory"),
+  DELETE_FAILED_UFS("Failed to delete {0} from the under file system"),
   DELETE_NONEMPTY_DIRECTORY_NONRECURSIVE(
       "Cannot delete non-empty directory {0} because recursive is set to false"),
+  DELETE_ROOT_DIRECTORY("Cannot delete the root directory"),
   FILE_ALREADY_EXISTS("{0} already exists"),
   FILE_CREATE_IS_DIRECTORY("{0} already exists. Directories cannot be overwritten with create"),
   HDFS_FILE_NOT_FOUND("File {0} with id {1} is not found"),
 
   // file system master
-  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   FILEID_MUST_BE_FILE("File id {0} must be a file"),
-  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
+  INODE_DOES_NOT_EXIST("Inode id {0} does not exist"),
+  INODE_DOES_NOT_EXIST_RETRIES("Inode id {0} does not exist; too many retries"),
+  NOT_MUTABLE_INODE_PATH("Not a MutableLockedInodePath: {0}"),
+  PATH_COMPONENTS_INVALID("Parameter pathComponents is {0}"),
+  PATH_COMPONENTS_INVALID_START("Path starts with {0}"),
+  PATH_MUST_HAVE_VALID_PARENT("{0} does not have a valid parent"),
   RENAME_CANNOT_BE_ACROSS_MOUNTS("Renaming {0} to {1} is a cross mount operation"),
+  RENAME_CANNOT_BE_ONTO_MOUNT_POINT("{0} is a mount point and cannot be renamed onto"),
   RENAME_CANNOT_BE_TO_ROOT("Cannot rename a path to the root directory"),
   RENAME_CANNOT_BE_TO_SUBDIRECTORY("Cannot rename because {0} is a prefix of {1}"),
   ROOT_CANNOT_BE_RENAMED("The root directory cannot be renamed"),
+
+  // block master
+  NO_WORKER_FOUND("No worker with ID {0} is found"),
 
   // file system master ufs
   FAILED_UFS_CREATE("Failed to create {0} in the under file system"),
   FAILED_UFS_RENAME("Failed to rename {0} to {1} in the under file system"),
 
+  // file system worker
+  BAD_WORKER_FILE_ID("Worker file id {0} is invalid. The worker may have crashed or cleaned up "
+      + "the client state due to a timeout."),
+
   // shell
-  DESTINATION_FILE_CANNOT_EXIST_WITH_WILDCARD_SOURCE(
-      "The destination cannot be an existent file when the src is a directory or contains"
-            +  " wildcards."),
+  DESTINATION_CANNOT_BE_FILE(
+      "The destination cannot be an existing file when the source is a directory or a list of "
+          + "files."),
 
   // lineage
   DELETE_LINEAGE_WITH_CHILDREN("The lineage {0} to delete has child lineages"),
@@ -135,15 +150,16 @@ public enum ExceptionMessage {
   KEY_NOT_BYTES("Configuration cannot evaluate key {0} as bytes"),
   KEY_NOT_DOUBLE("Configuration cannot evaluate key {0} as double"),
   KEY_NOT_INTEGER("Configuration cannot evaluate key {0} as integer"),
-  UNABLE_TO_LOAD_PROPERTIES_FILE("Unable to load default Alluxio properties file"),
   UNKNOWN_PROPERTY("Unknown property for {0} {1}"),
 
   // security
   AUTHENTICATION_IS_NOT_ENABLED("Authentication is not enabled"),
   AUTHORIZED_CLIENT_USER_IS_NULL("The client user is not authorized so as to be null in server"),
+  GROUP_IS_NULL("Group cannot be null when constructing Permission"),
   INVALID_SET_ACL_OPTIONS("Invalid set acl options: {0}, {1}, {2}"),
+  MODE_IS_NULL("Mode cannot be null when constructing Permission"),
+  OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
   PERMISSION_DENIED("Permission denied: {0}"),
-  PERMISSION_IS_NULL("Permission cannot be null when constructing PermissionStatus"),
   SECURITY_IS_NOT_ENABLED("Security is not enabled"),
 
   // yarn
@@ -162,6 +178,9 @@ public enum ExceptionMessage {
   KEY_VALUE_TOO_LARGE("Unable to put key-value pair: key {0} bytes, value {1} bytes"),
   INVALID_KEY_VALUE_STORE_URI("The URI {0} exists but is not a key-value store"),
   KEY_ALREADY_EXISTS("The input key already exists in the key-value store"),
+
+  // block worker
+  FAILED_COMMIT_BLOCK_TO_MASTER("Failed to commit block {0} to master."),
 
   // SEMICOLON! minimize merge conflicts by putting it on its own line
   ;

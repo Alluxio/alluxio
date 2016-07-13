@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,8 @@
 
 package alluxio.shell.command;
 
-import alluxio.shell.AlluxioShell;
+import alluxio.cli.AlluxioShell;
+import alluxio.exception.AlluxioException;
 
 import org.apache.commons.cli.CommandLine;
 
@@ -41,9 +42,10 @@ public interface ShellCommand {
    * Runs the command.
    *
    * @param cl the parsed command line for the arguments
-   * @throws IOException when the command fails
+   * @throws AlluxioException when Alluxio exception occurs
+   * @throws IOException when non-Alluxio exception occurs
    */
-  void run(CommandLine cl) throws IOException;
+  void run(CommandLine cl) throws AlluxioException, IOException;
 
   /**
    * @return the usage information of the command

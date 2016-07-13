@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -41,8 +41,6 @@ public final class LineageFileSystemTest {
   private LineageContext mLineageContext;
   private LineageMasterClient mLineageMasterClient;
   private LineageFileSystem mAlluxioLineageFileSystem;
-  private FileSystemContext mFileSystemContext;
-  private FileSystemMasterClient mFileSystemMasterClient;
 
   /**
    * Sets up all dependencies before running a test.
@@ -55,17 +53,16 @@ public final class LineageFileSystemTest {
     Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
     mAlluxioLineageFileSystem = LineageFileSystem.get();
     Whitebox.setInternalState(mAlluxioLineageFileSystem, "mLineageContext", mLineageContext);
-    mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mContext", mFileSystemContext);
+    FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
+    FileSystemMasterClient fileSystemMasterClient =
+        PowerMockito.mock(FileSystemMasterClient.class);
+    Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
+    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
+    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mContext", fileSystemContext);
   }
 
   /**
    * Tests that a {@link LineageFileOutStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getLineageOutStreamTest() throws Exception {
@@ -82,8 +79,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that a {@link DummyFileOutputStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getDummyOutStreamTest() throws Exception {
@@ -100,8 +95,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that a {@link FileOutStream} is returned.
-   *
-   * @throws Exception if reinitializing the file from the client or getting the stream fails
    */
   @Test
   public void getNonLineageStreamTest() throws Exception {
@@ -112,7 +105,7 @@ public final class LineageFileSystemTest {
     CreateFileOptions options =
         CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
-    Assert.assertTrue(outStream instanceof FileOutStream);
+    Assert.assertTrue(outStream != null);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);
     Assert.assertFalse(outStream instanceof DummyFileOutputStream);
     // verify client is released
@@ -121,8 +114,6 @@ public final class LineageFileSystemTest {
 
   /**
    * Tests that reporting a lost file from the file system informs the client about this file.
-   *
-   * @throws Exception if reporting a lost file fails
    */
   @Test
   public void reportLostFileTest() throws Exception {

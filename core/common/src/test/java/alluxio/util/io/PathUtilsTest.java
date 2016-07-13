@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,6 +12,7 @@
 package alluxio.util.io;
 
 import alluxio.Constants;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 
 import org.junit.Assert;
@@ -34,8 +35,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#cleanPath(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void cleanPathNoExceptionTest() throws InvalidPathException {
@@ -65,8 +64,6 @@ public class PathUtilsTest {
   /**
    * Tests the {@link PathUtils#cleanPath(String)} method to thrown an exception in case an invalid
    * path is provided.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void cleanPathExceptionTest() throws InvalidPathException {
@@ -122,8 +119,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#getParent(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getParentTest() throws InvalidPathException {
@@ -146,8 +141,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#getPathComponents(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getPathComponentsNoExceptionTest() throws InvalidPathException {
@@ -166,8 +159,6 @@ public class PathUtilsTest {
   /**
    * Tests the {@link PathUtils#getPathComponents(String)} method to thrown an exception in case the
    * path is invalid.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void getPathComponentsExceptionTest() throws InvalidPathException {
@@ -176,9 +167,49 @@ public class PathUtilsTest {
   }
 
   /**
+   * Tests the {@link PathUtils#subtractPaths(String, String)} method.
+   */
+  @Test
+  public void subtractPathsTest() throws InvalidPathException {
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a"));
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    Assert.assertEquals("b/c", PathUtils.subtractPaths("/a/b/c", "/a/"));
+    Assert.assertEquals("c", PathUtils.subtractPaths("/a/b/c", "/a/b"));
+    Assert.assertEquals("a/b/c", PathUtils.subtractPaths("/a/b/c", "/"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/", "/"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/a/b/", "/a/b"));
+    Assert.assertEquals("", PathUtils.subtractPaths("/a/b", "/a/b"));
+  }
+
+  /**
+   * Tests {@link PathUtils#subtractPaths(String, String)} throws the right exception if an input
+   * path is invalid or the second argument isn't a prefix of the first.
+   */
+  @Test
+  public void subtractPathsExceptionTest() throws InvalidPathException {
+    try {
+      PathUtils.subtractPaths("", "/");
+      Assert.fail("\"\" should throw an InvalidPathException");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage(""), e.getMessage());
+    }
+    try {
+      PathUtils.subtractPaths("/", "noslash");
+      Assert.fail("noslash should be an invalid path");
+    } catch (InvalidPathException e) {
+      Assert.assertEquals(ExceptionMessage.PATH_INVALID.getMessage("noslash"), e.getMessage());
+    }
+    try {
+      PathUtils.subtractPaths("/a", "/not/a/prefix");
+      Assert.fail("subtractPaths should complain about the prefix not being a prefix");
+    } catch (RuntimeException e) {
+      String expectedMessage = "Cannot subtract /not/a/prefix from /a because it is not a prefix";
+      Assert.assertEquals(expectedMessage, e.getMessage());
+    }
+  }
+
+  /**
    * Tests the {@link PathUtils#hasPrefix(String, String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void hasPrefixTest() throws InvalidPathException {
@@ -202,8 +233,6 @@ public class PathUtilsTest {
 
   /**
    * Tests the {@link PathUtils#isRoot(String)} method.
-   *
-   * @throws InvalidPathException thrown if the path is invalid
    */
   @Test
   public void isRootTest() throws InvalidPathException {
@@ -238,6 +267,22 @@ public class PathUtilsTest {
   }
 
   /**
+   * Test the {@link PathUtils#isTemporaryFileName(String)} method.
+   */
+  @Test
+  public void isTemporaryFileNameTest() {
+    Assert.assertTrue(PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0, "/")));
+    Assert.assertTrue(
+        PathUtils.isTemporaryFileName(PathUtils.temporaryFileName(0xFFFFFFFFFFFFFFFFL, "/")));
+    Assert.assertTrue(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEF.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x      0123456789.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDEFG.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.alluxio.0x0123456789ABCDE.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("foo.0x0123456789ABCDEFG.tmp"));
+    Assert.assertFalse(PathUtils.isTemporaryFileName("alluxio.0x0123456789ABCDEFG"));
+  }
+
+  /**
    * Tests the {@link PathUtils#uniqPath()} method.
    */
   @Test
@@ -261,7 +306,7 @@ public class PathUtilsTest {
     PathUtils.validatePath("/foo/../bar/");
 
     // check invalid paths
-    LinkedList<String> invalidPaths = new LinkedList<String>();
+    LinkedList<String> invalidPaths = new LinkedList<>();
     invalidPaths.add(null);
     invalidPaths.add("");
     invalidPaths.add(" /");

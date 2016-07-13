@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -64,7 +64,7 @@ public class IsolatedFileSystemIntegrationTest {
     String uniqPath = PathUtils.uniqPath();
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
@@ -94,7 +94,7 @@ public class IsolatedFileSystemIntegrationTest {
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
@@ -130,7 +130,7 @@ public class IsolatedFileSystemIntegrationTest {
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
@@ -168,7 +168,7 @@ public class IsolatedFileSystemIntegrationTest {
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
@@ -203,7 +203,7 @@ public class IsolatedFileSystemIntegrationTest {
     ByteBuffer buf;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));
@@ -242,7 +242,7 @@ public class IsolatedFileSystemIntegrationTest {
     ByteBuffer buf2;
     int numOfFiles = 5;
     int fileSize = WORKER_CAPACITY_BYTES / numOfFiles;
-    List<AlluxioURI> files = new ArrayList<AlluxioURI>();
+    List<AlluxioURI> files = new ArrayList<>();
     for (int k = 0; k < numOfFiles; k++) {
       FileSystemTestUtils.createByteFile(mFileSystem, uniqPath + k, fileSize, mWriteBoth);
       files.add(new AlluxioURI(uniqPath + k));

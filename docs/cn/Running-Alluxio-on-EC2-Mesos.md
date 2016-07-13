@@ -108,7 +108,7 @@ Hadoop Web UI的默认端口为**50070**。
 {% include Running-Alluxio-on-EC2-Mesos/runTests.md %}
 
 在所有测试完成后，再次访问Alluxio的web UI `http://{MASTER_IP}:19999`，在导航栏中点击
-`Browse File System`，你应该能看到测试过程中写入到Alluxio的文件。
+`Browse`，你应该能看到测试过程中写入到Alluxio的文件。
 
 # 撤销集群
 

@@ -8,6 +8,649 @@ public final class File {
   public static void registerAllExtensions(
       com.google.protobuf.ExtensionRegistry registry) {
   }
+  public interface StringPairEntryOrBuilder extends
+      // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.StringPairEntry)
+      com.google.protobuf.MessageOrBuilder {
+
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    boolean hasKey();
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    java.lang.String getKey();
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    com.google.protobuf.ByteString
+        getKeyBytes();
+
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    boolean hasValue();
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    java.lang.String getValue();
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    com.google.protobuf.ByteString
+        getValueBytes();
+  }
+  /**
+   * Protobuf type {@code alluxio.proto.journal.StringPairEntry}
+   *
+   * <pre>
+   * A pair of strings, useful for maps.
+   * next available id: 3
+   * </pre>
+   */
+  public static final class StringPairEntry extends
+      com.google.protobuf.GeneratedMessage implements
+      // @@protoc_insertion_point(message_implements:alluxio.proto.journal.StringPairEntry)
+      StringPairEntryOrBuilder {
+    // Use StringPairEntry.newBuilder() to construct.
+    private StringPairEntry(com.google.protobuf.GeneratedMessage.Builder<?> builder) {
+      super(builder);
+      this.unknownFields = builder.getUnknownFields();
+    }
+    private StringPairEntry(boolean noInit) { this.unknownFields = com.google.protobuf.UnknownFieldSet.getDefaultInstance(); }
+
+    private static final StringPairEntry defaultInstance;
+    public static StringPairEntry getDefaultInstance() {
+      return defaultInstance;
+    }
+
+    public StringPairEntry getDefaultInstanceForType() {
+      return defaultInstance;
+    }
+
+    private final com.google.protobuf.UnknownFieldSet unknownFields;
+    @java.lang.Override
+    public final com.google.protobuf.UnknownFieldSet
+        getUnknownFields() {
+      return this.unknownFields;
+    }
+    private StringPairEntry(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      initFields();
+      int mutable_bitField0_ = 0;
+      com.google.protobuf.UnknownFieldSet.Builder unknownFields =
+          com.google.protobuf.UnknownFieldSet.newBuilder();
+      try {
+        boolean done = false;
+        while (!done) {
+          int tag = input.readTag();
+          switch (tag) {
+            case 0:
+              done = true;
+              break;
+            default: {
+              if (!parseUnknownField(input, unknownFields,
+                                     extensionRegistry, tag)) {
+                done = true;
+              }
+              break;
+            }
+            case 10: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000001;
+              key_ = bs;
+              break;
+            }
+            case 18: {
+              com.google.protobuf.ByteString bs = input.readBytes();
+              bitField0_ |= 0x00000002;
+              value_ = bs;
+              break;
+            }
+          }
+        }
+      } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+        throw e.setUnfinishedMessage(this);
+      } catch (java.io.IOException e) {
+        throw new com.google.protobuf.InvalidProtocolBufferException(
+            e.getMessage()).setUnfinishedMessage(this);
+      } finally {
+        this.unknownFields = unknownFields.build();
+        makeExtensionsImmutable();
+      }
+    }
+    public static final com.google.protobuf.Descriptors.Descriptor
+        getDescriptor() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
+    }
+
+    protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+        internalGetFieldAccessorTable() {
+      return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable
+          .ensureFieldAccessorsInitialized(
+              alluxio.proto.journal.File.StringPairEntry.class, alluxio.proto.journal.File.StringPairEntry.Builder.class);
+    }
+
+    public static com.google.protobuf.Parser<StringPairEntry> PARSER =
+        new com.google.protobuf.AbstractParser<StringPairEntry>() {
+      public StringPairEntry parsePartialFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws com.google.protobuf.InvalidProtocolBufferException {
+        return new StringPairEntry(input, extensionRegistry);
+      }
+    };
+
+    @java.lang.Override
+    public com.google.protobuf.Parser<StringPairEntry> getParserForType() {
+      return PARSER;
+    }
+
+    private int bitField0_;
+    public static final int KEY_FIELD_NUMBER = 1;
+    private java.lang.Object key_;
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    public boolean hasKey() {
+      return ((bitField0_ & 0x00000001) == 0x00000001);
+    }
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    public java.lang.String getKey() {
+      java.lang.Object ref = key_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          key_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string key = 1;</code>
+     */
+    public com.google.protobuf.ByteString
+        getKeyBytes() {
+      java.lang.Object ref = key_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        key_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    public static final int VALUE_FIELD_NUMBER = 2;
+    private java.lang.Object value_;
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    public boolean hasValue() {
+      return ((bitField0_ & 0x00000002) == 0x00000002);
+    }
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    public java.lang.String getValue() {
+      java.lang.Object ref = value_;
+      if (ref instanceof java.lang.String) {
+        return (java.lang.String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        if (bs.isValidUtf8()) {
+          value_ = s;
+        }
+        return s;
+      }
+    }
+    /**
+     * <code>optional string value = 2;</code>
+     */
+    public com.google.protobuf.ByteString
+        getValueBytes() {
+      java.lang.Object ref = value_;
+      if (ref instanceof java.lang.String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        value_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+
+    private void initFields() {
+      key_ = "";
+      value_ = "";
+    }
+    private byte memoizedIsInitialized = -1;
+    public final boolean isInitialized() {
+      byte isInitialized = memoizedIsInitialized;
+      if (isInitialized == 1) return true;
+      if (isInitialized == 0) return false;
+
+      memoizedIsInitialized = 1;
+      return true;
+    }
+
+    public void writeTo(com.google.protobuf.CodedOutputStream output)
+                        throws java.io.IOException {
+      getSerializedSize();
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        output.writeBytes(1, getKeyBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        output.writeBytes(2, getValueBytes());
+      }
+      getUnknownFields().writeTo(output);
+    }
+
+    private int memoizedSerializedSize = -1;
+    public int getSerializedSize() {
+      int size = memoizedSerializedSize;
+      if (size != -1) return size;
+
+      size = 0;
+      if (((bitField0_ & 0x00000001) == 0x00000001)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(1, getKeyBytes());
+      }
+      if (((bitField0_ & 0x00000002) == 0x00000002)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(2, getValueBytes());
+      }
+      size += getUnknownFields().getSerializedSize();
+      memoizedSerializedSize = size;
+      return size;
+    }
+
+    private static final long serialVersionUID = 0L;
+    @java.lang.Override
+    protected java.lang.Object writeReplace()
+        throws java.io.ObjectStreamException {
+      return super.writeReplace();
+    }
+
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        com.google.protobuf.ByteString data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        com.google.protobuf.ByteString data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(byte[] data)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        byte[] data,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws com.google.protobuf.InvalidProtocolBufferException {
+      return PARSER.parseFrom(data, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseDelimitedFrom(java.io.InputStream input)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseDelimitedFrom(
+        java.io.InputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseDelimitedFrom(input, extensionRegistry);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        com.google.protobuf.CodedInputStream input)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input);
+    }
+    public static alluxio.proto.journal.File.StringPairEntry parseFrom(
+        com.google.protobuf.CodedInputStream input,
+        com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+        throws java.io.IOException {
+      return PARSER.parseFrom(input, extensionRegistry);
+    }
+
+    public static Builder newBuilder() { return Builder.create(); }
+    public Builder newBuilderForType() { return newBuilder(); }
+    public static Builder newBuilder(alluxio.proto.journal.File.StringPairEntry prototype) {
+      return newBuilder().mergeFrom(prototype);
+    }
+    public Builder toBuilder() { return newBuilder(this); }
+
+    @java.lang.Override
+    protected Builder newBuilderForType(
+        com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+      Builder builder = new Builder(parent);
+      return builder;
+    }
+    /**
+     * Protobuf type {@code alluxio.proto.journal.StringPairEntry}
+     *
+     * <pre>
+     * A pair of strings, useful for maps.
+     * next available id: 3
+     * </pre>
+     */
+    public static final class Builder extends
+        com.google.protobuf.GeneratedMessage.Builder<Builder> implements
+        // @@protoc_insertion_point(builder_implements:alluxio.proto.journal.StringPairEntry)
+        alluxio.proto.journal.File.StringPairEntryOrBuilder {
+      public static final com.google.protobuf.Descriptors.Descriptor
+          getDescriptor() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
+      }
+
+      protected com.google.protobuf.GeneratedMessage.FieldAccessorTable
+          internalGetFieldAccessorTable() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable
+            .ensureFieldAccessorsInitialized(
+                alluxio.proto.journal.File.StringPairEntry.class, alluxio.proto.journal.File.StringPairEntry.Builder.class);
+      }
+
+      // Construct using alluxio.proto.journal.File.StringPairEntry.newBuilder()
+      private Builder() {
+        maybeForceBuilderInitialization();
+      }
+
+      private Builder(
+          com.google.protobuf.GeneratedMessage.BuilderParent parent) {
+        super(parent);
+        maybeForceBuilderInitialization();
+      }
+      private void maybeForceBuilderInitialization() {
+        if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+        }
+      }
+      private static Builder create() {
+        return new Builder();
+      }
+
+      public Builder clear() {
+        super.clear();
+        key_ = "";
+        bitField0_ = (bitField0_ & ~0x00000001);
+        value_ = "";
+        bitField0_ = (bitField0_ & ~0x00000002);
+        return this;
+      }
+
+      public Builder clone() {
+        return create().mergeFrom(buildPartial());
+      }
+
+      public com.google.protobuf.Descriptors.Descriptor
+          getDescriptorForType() {
+        return alluxio.proto.journal.File.internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
+      }
+
+      public alluxio.proto.journal.File.StringPairEntry getDefaultInstanceForType() {
+        return alluxio.proto.journal.File.StringPairEntry.getDefaultInstance();
+      }
+
+      public alluxio.proto.journal.File.StringPairEntry build() {
+        alluxio.proto.journal.File.StringPairEntry result = buildPartial();
+        if (!result.isInitialized()) {
+          throw newUninitializedMessageException(result);
+        }
+        return result;
+      }
+
+      public alluxio.proto.journal.File.StringPairEntry buildPartial() {
+        alluxio.proto.journal.File.StringPairEntry result = new alluxio.proto.journal.File.StringPairEntry(this);
+        int from_bitField0_ = bitField0_;
+        int to_bitField0_ = 0;
+        if (((from_bitField0_ & 0x00000001) == 0x00000001)) {
+          to_bitField0_ |= 0x00000001;
+        }
+        result.key_ = key_;
+        if (((from_bitField0_ & 0x00000002) == 0x00000002)) {
+          to_bitField0_ |= 0x00000002;
+        }
+        result.value_ = value_;
+        result.bitField0_ = to_bitField0_;
+        onBuilt();
+        return result;
+      }
+
+      public Builder mergeFrom(com.google.protobuf.Message other) {
+        if (other instanceof alluxio.proto.journal.File.StringPairEntry) {
+          return mergeFrom((alluxio.proto.journal.File.StringPairEntry)other);
+        } else {
+          super.mergeFrom(other);
+          return this;
+        }
+      }
+
+      public Builder mergeFrom(alluxio.proto.journal.File.StringPairEntry other) {
+        if (other == alluxio.proto.journal.File.StringPairEntry.getDefaultInstance()) return this;
+        if (other.hasKey()) {
+          bitField0_ |= 0x00000001;
+          key_ = other.key_;
+          onChanged();
+        }
+        if (other.hasValue()) {
+          bitField0_ |= 0x00000002;
+          value_ = other.value_;
+          onChanged();
+        }
+        this.mergeUnknownFields(other.getUnknownFields());
+        return this;
+      }
+
+      public final boolean isInitialized() {
+        return true;
+      }
+
+      public Builder mergeFrom(
+          com.google.protobuf.CodedInputStream input,
+          com.google.protobuf.ExtensionRegistryLite extensionRegistry)
+          throws java.io.IOException {
+        alluxio.proto.journal.File.StringPairEntry parsedMessage = null;
+        try {
+          parsedMessage = PARSER.parsePartialFrom(input, extensionRegistry);
+        } catch (com.google.protobuf.InvalidProtocolBufferException e) {
+          parsedMessage = (alluxio.proto.journal.File.StringPairEntry) e.getUnfinishedMessage();
+          throw e;
+        } finally {
+          if (parsedMessage != null) {
+            mergeFrom(parsedMessage);
+          }
+        }
+        return this;
+      }
+      private int bitField0_;
+
+      private java.lang.Object key_ = "";
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public boolean hasKey() {
+        return ((bitField0_ & 0x00000001) == 0x00000001);
+      }
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public java.lang.String getKey() {
+        java.lang.Object ref = key_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            key_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public com.google.protobuf.ByteString
+          getKeyBytes() {
+        java.lang.Object ref = key_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          key_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public Builder setKey(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        key_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public Builder clearKey() {
+        bitField0_ = (bitField0_ & ~0x00000001);
+        key_ = getDefaultInstance().getKey();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string key = 1;</code>
+       */
+      public Builder setKeyBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000001;
+        key_ = value;
+        onChanged();
+        return this;
+      }
+
+      private java.lang.Object value_ = "";
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public boolean hasValue() {
+        return ((bitField0_ & 0x00000002) == 0x00000002);
+      }
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public java.lang.String getValue() {
+        java.lang.Object ref = value_;
+        if (!(ref instanceof java.lang.String)) {
+          com.google.protobuf.ByteString bs =
+              (com.google.protobuf.ByteString) ref;
+          java.lang.String s = bs.toStringUtf8();
+          if (bs.isValidUtf8()) {
+            value_ = s;
+          }
+          return s;
+        } else {
+          return (java.lang.String) ref;
+        }
+      }
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public com.google.protobuf.ByteString
+          getValueBytes() {
+        java.lang.Object ref = value_;
+        if (ref instanceof String) {
+          com.google.protobuf.ByteString b = 
+              com.google.protobuf.ByteString.copyFromUtf8(
+                  (java.lang.String) ref);
+          value_ = b;
+          return b;
+        } else {
+          return (com.google.protobuf.ByteString) ref;
+        }
+      }
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public Builder setValue(
+          java.lang.String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        value_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public Builder clearValue() {
+        bitField0_ = (bitField0_ & ~0x00000002);
+        value_ = getDefaultInstance().getValue();
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional string value = 2;</code>
+       */
+      public Builder setValueBytes(
+          com.google.protobuf.ByteString value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000002;
+        value_ = value;
+        onChanged();
+        return this;
+      }
+
+      // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.StringPairEntry)
+    }
+
+    static {
+      defaultInstance = new StringPairEntry(true);
+      defaultInstance.initFields();
+    }
+
+    // @@protoc_insertion_point(class_scope:alluxio.proto.journal.StringPairEntry)
+  }
+
   public interface AddMountPointEntryOrBuilder extends
       // @@protoc_insertion_point(interface_extends:alluxio.proto.journal.AddMountPointEntry)
       com.google.protobuf.MessageOrBuilder {
@@ -48,12 +691,36 @@ public final class File {
      * <code>optional bool readOnly = 3;</code>
      */
     boolean getReadOnly();
+
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    java.util.List<alluxio.proto.journal.File.StringPairEntry> 
+        getPropertiesList();
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    alluxio.proto.journal.File.StringPairEntry getProperties(int index);
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    int getPropertiesCount();
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
+        getPropertiesOrBuilderList();
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
+        int index);
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.AddMountPointEntry}
    *
    * <pre>
-   * next available id: 4
+   * next available id: 5
    * </pre>
    */
   public static final class AddMountPointEntry extends
@@ -122,6 +789,14 @@ public final class File {
               readOnly_ = input.readBool();
               break;
             }
+            case 34: {
+              if (!((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+                properties_ = new java.util.ArrayList<alluxio.proto.journal.File.StringPairEntry>();
+                mutable_bitField0_ |= 0x00000008;
+              }
+              properties_.add(input.readMessage(alluxio.proto.journal.File.StringPairEntry.PARSER, extensionRegistry));
+              break;
+            }
           }
         }
       } catch (com.google.protobuf.InvalidProtocolBufferException e) {
@@ -130,6 +805,9 @@ public final class File {
         throw new com.google.protobuf.InvalidProtocolBufferException(
             e.getMessage()).setUnfinishedMessage(this);
       } finally {
+        if (((mutable_bitField0_ & 0x00000008) == 0x00000008)) {
+          properties_ = java.util.Collections.unmodifiableList(properties_);
+        }
         this.unknownFields = unknownFields.build();
         makeExtensionsImmutable();
       }
@@ -261,10 +939,46 @@ public final class File {
       return readOnly_;
     }
 
+    public static final int PROPERTIES_FIELD_NUMBER = 4;
+    private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_;
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    public java.util.List<alluxio.proto.journal.File.StringPairEntry> getPropertiesList() {
+      return properties_;
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    public java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
+        getPropertiesOrBuilderList() {
+      return properties_;
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    public int getPropertiesCount() {
+      return properties_.size();
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    public alluxio.proto.journal.File.StringPairEntry getProperties(int index) {
+      return properties_.get(index);
+    }
+    /**
+     * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+     */
+    public alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
+        int index) {
+      return properties_.get(index);
+    }
+
     private void initFields() {
       alluxioPath_ = "";
       ufsPath_ = "";
       readOnly_ = false;
+      properties_ = java.util.Collections.emptyList();
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -288,6 +1002,9 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         output.writeBool(3, readOnly_);
       }
+      for (int i = 0; i < properties_.size(); i++) {
+        output.writeMessage(4, properties_.get(i));
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -308,6 +1025,10 @@ public final class File {
       if (((bitField0_ & 0x00000004) == 0x00000004)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(3, readOnly_);
+      }
+      for (int i = 0; i < properties_.size(); i++) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(4, properties_.get(i));
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -391,7 +1112,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.AddMountPointEntry}
      *
      * <pre>
-     * next available id: 4
+     * next available id: 5
      * </pre>
      */
     public static final class Builder extends
@@ -422,6 +1143,7 @@ public final class File {
       }
       private void maybeForceBuilderInitialization() {
         if (com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders) {
+          getPropertiesFieldBuilder();
         }
       }
       private static Builder create() {
@@ -436,6 +1158,12 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000002);
         readOnly_ = false;
         bitField0_ = (bitField0_ & ~0x00000004);
+        if (propertiesBuilder_ == null) {
+          properties_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+        } else {
+          propertiesBuilder_.clear();
+        }
         return this;
       }
 
@@ -476,6 +1204,15 @@ public final class File {
           to_bitField0_ |= 0x00000004;
         }
         result.readOnly_ = readOnly_;
+        if (propertiesBuilder_ == null) {
+          if (((bitField0_ & 0x00000008) == 0x00000008)) {
+            properties_ = java.util.Collections.unmodifiableList(properties_);
+            bitField0_ = (bitField0_ & ~0x00000008);
+          }
+          result.properties_ = properties_;
+        } else {
+          result.properties_ = propertiesBuilder_.build();
+        }
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -504,6 +1241,32 @@ public final class File {
         }
         if (other.hasReadOnly()) {
           setReadOnly(other.getReadOnly());
+        }
+        if (propertiesBuilder_ == null) {
+          if (!other.properties_.isEmpty()) {
+            if (properties_.isEmpty()) {
+              properties_ = other.properties_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+            } else {
+              ensurePropertiesIsMutable();
+              properties_.addAll(other.properties_);
+            }
+            onChanged();
+          }
+        } else {
+          if (!other.properties_.isEmpty()) {
+            if (propertiesBuilder_.isEmpty()) {
+              propertiesBuilder_.dispose();
+              propertiesBuilder_ = null;
+              properties_ = other.properties_;
+              bitField0_ = (bitField0_ & ~0x00000008);
+              propertiesBuilder_ = 
+                com.google.protobuf.GeneratedMessage.alwaysUseFieldBuilders ?
+                   getPropertiesFieldBuilder() : null;
+            } else {
+              propertiesBuilder_.addAllMessages(other.properties_);
+            }
+          }
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -714,6 +1477,246 @@ public final class File {
         readOnly_ = false;
         onChanged();
         return this;
+      }
+
+      private java.util.List<alluxio.proto.journal.File.StringPairEntry> properties_ =
+        java.util.Collections.emptyList();
+      private void ensurePropertiesIsMutable() {
+        if (!((bitField0_ & 0x00000008) == 0x00000008)) {
+          properties_ = new java.util.ArrayList<alluxio.proto.journal.File.StringPairEntry>(properties_);
+          bitField0_ |= 0x00000008;
+         }
+      }
+
+      private com.google.protobuf.RepeatedFieldBuilder<
+          alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder> propertiesBuilder_;
+
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public java.util.List<alluxio.proto.journal.File.StringPairEntry> getPropertiesList() {
+        if (propertiesBuilder_ == null) {
+          return java.util.Collections.unmodifiableList(properties_);
+        } else {
+          return propertiesBuilder_.getMessageList();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public int getPropertiesCount() {
+        if (propertiesBuilder_ == null) {
+          return properties_.size();
+        } else {
+          return propertiesBuilder_.getCount();
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public alluxio.proto.journal.File.StringPairEntry getProperties(int index) {
+        if (propertiesBuilder_ == null) {
+          return properties_.get(index);
+        } else {
+          return propertiesBuilder_.getMessage(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder setProperties(
+          int index, alluxio.proto.journal.File.StringPairEntry value) {
+        if (propertiesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePropertiesIsMutable();
+          properties_.set(index, value);
+          onChanged();
+        } else {
+          propertiesBuilder_.setMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder setProperties(
+          int index, alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
+        if (propertiesBuilder_ == null) {
+          ensurePropertiesIsMutable();
+          properties_.set(index, builderForValue.build());
+          onChanged();
+        } else {
+          propertiesBuilder_.setMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder addProperties(alluxio.proto.journal.File.StringPairEntry value) {
+        if (propertiesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePropertiesIsMutable();
+          properties_.add(value);
+          onChanged();
+        } else {
+          propertiesBuilder_.addMessage(value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder addProperties(
+          int index, alluxio.proto.journal.File.StringPairEntry value) {
+        if (propertiesBuilder_ == null) {
+          if (value == null) {
+            throw new NullPointerException();
+          }
+          ensurePropertiesIsMutable();
+          properties_.add(index, value);
+          onChanged();
+        } else {
+          propertiesBuilder_.addMessage(index, value);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder addProperties(
+          alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
+        if (propertiesBuilder_ == null) {
+          ensurePropertiesIsMutable();
+          properties_.add(builderForValue.build());
+          onChanged();
+        } else {
+          propertiesBuilder_.addMessage(builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder addProperties(
+          int index, alluxio.proto.journal.File.StringPairEntry.Builder builderForValue) {
+        if (propertiesBuilder_ == null) {
+          ensurePropertiesIsMutable();
+          properties_.add(index, builderForValue.build());
+          onChanged();
+        } else {
+          propertiesBuilder_.addMessage(index, builderForValue.build());
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder addAllProperties(
+          java.lang.Iterable<? extends alluxio.proto.journal.File.StringPairEntry> values) {
+        if (propertiesBuilder_ == null) {
+          ensurePropertiesIsMutable();
+          com.google.protobuf.AbstractMessageLite.Builder.addAll(
+              values, properties_);
+          onChanged();
+        } else {
+          propertiesBuilder_.addAllMessages(values);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder clearProperties() {
+        if (propertiesBuilder_ == null) {
+          properties_ = java.util.Collections.emptyList();
+          bitField0_ = (bitField0_ & ~0x00000008);
+          onChanged();
+        } else {
+          propertiesBuilder_.clear();
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public Builder removeProperties(int index) {
+        if (propertiesBuilder_ == null) {
+          ensurePropertiesIsMutable();
+          properties_.remove(index);
+          onChanged();
+        } else {
+          propertiesBuilder_.remove(index);
+        }
+        return this;
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public alluxio.proto.journal.File.StringPairEntry.Builder getPropertiesBuilder(
+          int index) {
+        return getPropertiesFieldBuilder().getBuilder(index);
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
+          int index) {
+        if (propertiesBuilder_ == null) {
+          return properties_.get(index);  } else {
+          return propertiesBuilder_.getMessageOrBuilder(index);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public java.util.List<? extends alluxio.proto.journal.File.StringPairEntryOrBuilder> 
+           getPropertiesOrBuilderList() {
+        if (propertiesBuilder_ != null) {
+          return propertiesBuilder_.getMessageOrBuilderList();
+        } else {
+          return java.util.Collections.unmodifiableList(properties_);
+        }
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public alluxio.proto.journal.File.StringPairEntry.Builder addPropertiesBuilder() {
+        return getPropertiesFieldBuilder().addBuilder(
+            alluxio.proto.journal.File.StringPairEntry.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public alluxio.proto.journal.File.StringPairEntry.Builder addPropertiesBuilder(
+          int index) {
+        return getPropertiesFieldBuilder().addBuilder(
+            index, alluxio.proto.journal.File.StringPairEntry.getDefaultInstance());
+      }
+      /**
+       * <code>repeated .alluxio.proto.journal.StringPairEntry properties = 4;</code>
+       */
+      public java.util.List<alluxio.proto.journal.File.StringPairEntry.Builder> 
+           getPropertiesBuilderList() {
+        return getPropertiesFieldBuilder().getBuilderList();
+      }
+      private com.google.protobuf.RepeatedFieldBuilder<
+          alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder> 
+          getPropertiesFieldBuilder() {
+        if (propertiesBuilder_ == null) {
+          propertiesBuilder_ = new com.google.protobuf.RepeatedFieldBuilder<
+              alluxio.proto.journal.File.StringPairEntry, alluxio.proto.journal.File.StringPairEntry.Builder, alluxio.proto.journal.File.StringPairEntryOrBuilder>(
+                  properties_,
+                  ((bitField0_ & 0x00000008) == 0x00000008),
+                  getParentForChildren(),
+                  isClean());
+          properties_ = null;
+        }
+        return propertiesBuilder_;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.AddMountPointEntry)
@@ -2971,41 +3974,41 @@ public final class File {
     long getLastModificationTimeMs();
 
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
-    boolean hasUserName();
+    boolean hasOwner();
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
-    java.lang.String getUserName();
+    java.lang.String getOwner();
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
     com.google.protobuf.ByteString
-        getUserNameBytes();
+        getOwnerBytes();
 
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
-    boolean hasGroupName();
+    boolean hasGroup();
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
-    java.lang.String getGroupName();
+    java.lang.String getGroup();
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
     com.google.protobuf.ByteString
-        getGroupNameBytes();
+        getGroupBytes();
 
     /**
-     * <code>optional int32 permission = 10;</code>
+     * <code>optional int32 mode = 10;</code>
      */
-    boolean hasPermission();
+    boolean hasMode();
     /**
-     * <code>optional int32 permission = 10;</code>
+     * <code>optional int32 mode = 10;</code>
      */
-    int getPermission();
+    int getMode();
 
     /**
      * <code>optional bool mount_point = 11;</code>
@@ -3015,12 +4018,21 @@ public final class File {
      * <code>optional bool mount_point = 11;</code>
      */
     boolean getMountPoint();
+
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    boolean hasDirectChildrenLoaded();
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    boolean getDirectChildrenLoaded();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
    *
    * <pre>
-   * next available id: 12
+   * next available id: 16
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
@@ -3112,23 +4124,28 @@ public final class File {
             case 66: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000080;
-              userName_ = bs;
+              owner_ = bs;
               break;
             }
             case 74: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00000100;
-              groupName_ = bs;
+              group_ = bs;
               break;
             }
             case 80: {
               bitField0_ |= 0x00000200;
-              permission_ = input.readInt32();
+              mode_ = input.readInt32();
               break;
             }
             case 88: {
               bitField0_ |= 0x00000400;
               mountPoint_ = input.readBool();
+              break;
+            }
+            case 96: {
+              bitField0_ |= 0x00000800;
+              directChildrenLoaded_ = input.readBool();
               break;
             }
           }
@@ -3330,19 +4347,19 @@ public final class File {
       return lastModificationTimeMs_;
     }
 
-    public static final int USER_NAME_FIELD_NUMBER = 8;
-    private java.lang.Object userName_;
+    public static final int OWNER_FIELD_NUMBER = 8;
+    private java.lang.Object owner_;
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
-    public boolean hasUserName() {
+    public boolean hasOwner() {
       return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
-    public java.lang.String getUserName() {
-      java.lang.Object ref = userName_;
+    public java.lang.String getOwner() {
+      java.lang.Object ref = owner_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -3350,41 +4367,41 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          userName_ = s;
+          owner_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string user_name = 8;</code>
+     * <code>optional string owner = 8;</code>
      */
     public com.google.protobuf.ByteString
-        getUserNameBytes() {
-      java.lang.Object ref = userName_;
+        getOwnerBytes() {
+      java.lang.Object ref = owner_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        userName_ = b;
+        owner_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    public static final int GROUP_NAME_FIELD_NUMBER = 9;
-    private java.lang.Object groupName_;
+    public static final int GROUP_FIELD_NUMBER = 9;
+    private java.lang.Object group_;
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
-    public boolean hasGroupName() {
+    public boolean hasGroup() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
-    public java.lang.String getGroupName() {
-      java.lang.Object ref = groupName_;
+    public java.lang.String getGroup() {
+      java.lang.Object ref = group_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -3392,41 +4409,41 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          groupName_ = s;
+          group_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string group_name = 9;</code>
+     * <code>optional string group = 9;</code>
      */
     public com.google.protobuf.ByteString
-        getGroupNameBytes() {
-      java.lang.Object ref = groupName_;
+        getGroupBytes() {
+      java.lang.Object ref = group_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        groupName_ = b;
+        group_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    public static final int PERMISSION_FIELD_NUMBER = 10;
-    private int permission_;
+    public static final int MODE_FIELD_NUMBER = 10;
+    private int mode_;
     /**
-     * <code>optional int32 permission = 10;</code>
+     * <code>optional int32 mode = 10;</code>
      */
-    public boolean hasPermission() {
+    public boolean hasMode() {
       return ((bitField0_ & 0x00000200) == 0x00000200);
     }
     /**
-     * <code>optional int32 permission = 10;</code>
+     * <code>optional int32 mode = 10;</code>
      */
-    public int getPermission() {
-      return permission_;
+    public int getMode() {
+      return mode_;
     }
 
     public static final int MOUNT_POINT_FIELD_NUMBER = 11;
@@ -3444,6 +4461,21 @@ public final class File {
       return mountPoint_;
     }
 
+    public static final int DIRECT_CHILDREN_LOADED_FIELD_NUMBER = 12;
+    private boolean directChildrenLoaded_;
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    public boolean hasDirectChildrenLoaded() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    /**
+     * <code>optional bool direct_children_loaded = 12;</code>
+     */
+    public boolean getDirectChildrenLoaded() {
+      return directChildrenLoaded_;
+    }
+
     private void initFields() {
       id_ = 0L;
       parentId_ = 0L;
@@ -3452,10 +4484,11 @@ public final class File {
       pinned_ = false;
       creationTimeMs_ = 0L;
       lastModificationTimeMs_ = 0L;
-      userName_ = "";
-      groupName_ = "";
-      permission_ = 0;
+      owner_ = "";
+      group_ = "";
+      mode_ = 0;
       mountPoint_ = false;
+      directChildrenLoaded_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -3492,16 +4525,19 @@ public final class File {
         output.writeInt64(7, lastModificationTimeMs_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBytes(8, getUserNameBytes());
+        output.writeBytes(8, getOwnerBytes());
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        output.writeBytes(9, getGroupNameBytes());
+        output.writeBytes(9, getGroupBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        output.writeInt32(10, permission_);
+        output.writeInt32(10, mode_);
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         output.writeBool(11, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeBool(12, directChildrenLoaded_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -3542,19 +4578,23 @@ public final class File {
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(8, getUserNameBytes());
+          .computeBytesSize(8, getOwnerBytes());
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, getGroupNameBytes());
+          .computeBytesSize(9, getGroupBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(10, permission_);
+          .computeInt32Size(10, mode_);
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBoolSize(11, mountPoint_);
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(12, directChildrenLoaded_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -3638,7 +4678,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
      *
      * <pre>
-     * next available id: 12
+     * next available id: 16
      * </pre>
      */
     public static final class Builder extends
@@ -3691,14 +4731,16 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000020);
         lastModificationTimeMs_ = 0L;
         bitField0_ = (bitField0_ & ~0x00000040);
-        userName_ = "";
+        owner_ = "";
         bitField0_ = (bitField0_ & ~0x00000080);
-        groupName_ = "";
+        group_ = "";
         bitField0_ = (bitField0_ & ~0x00000100);
-        permission_ = 0;
+        mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00000200);
         mountPoint_ = false;
         bitField0_ = (bitField0_ & ~0x00000400);
+        directChildrenLoaded_ = false;
+        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -3758,19 +4800,23 @@ public final class File {
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
           to_bitField0_ |= 0x00000080;
         }
-        result.userName_ = userName_;
+        result.owner_ = owner_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
         }
-        result.groupName_ = groupName_;
+        result.group_ = group_;
         if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
           to_bitField0_ |= 0x00000200;
         }
-        result.permission_ = permission_;
+        result.mode_ = mode_;
         if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
           to_bitField0_ |= 0x00000400;
         }
         result.mountPoint_ = mountPoint_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.directChildrenLoaded_ = directChildrenLoaded_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -3812,21 +4858,24 @@ public final class File {
         if (other.hasLastModificationTimeMs()) {
           setLastModificationTimeMs(other.getLastModificationTimeMs());
         }
-        if (other.hasUserName()) {
+        if (other.hasOwner()) {
           bitField0_ |= 0x00000080;
-          userName_ = other.userName_;
+          owner_ = other.owner_;
           onChanged();
         }
-        if (other.hasGroupName()) {
+        if (other.hasGroup()) {
           bitField0_ |= 0x00000100;
-          groupName_ = other.groupName_;
+          group_ = other.group_;
           onChanged();
         }
-        if (other.hasPermission()) {
-          setPermission(other.getPermission());
+        if (other.hasMode()) {
+          setMode(other.getMode());
         }
         if (other.hasMountPoint()) {
           setMountPoint(other.getMountPoint());
+        }
+        if (other.hasDirectChildrenLoaded()) {
+          setDirectChildrenLoaded(other.getDirectChildrenLoaded());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -4167,24 +5216,24 @@ public final class File {
         return this;
       }
 
-      private java.lang.Object userName_ = "";
+      private java.lang.Object owner_ = "";
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
-      public boolean hasUserName() {
+      public boolean hasOwner() {
         return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
-      public java.lang.String getUserName() {
-        java.lang.Object ref = userName_;
+      public java.lang.String getOwner() {
+        java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            userName_ = s;
+            owner_ = s;
           }
           return s;
         } else {
@@ -4192,75 +5241,75 @@ public final class File {
         }
       }
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
       public com.google.protobuf.ByteString
-          getUserNameBytes() {
-        java.lang.Object ref = userName_;
+          getOwnerBytes() {
+        java.lang.Object ref = owner_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          userName_ = b;
+          owner_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
-      public Builder setUserName(
+      public Builder setOwner(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000080;
-        userName_ = value;
+        owner_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
-      public Builder clearUserName() {
+      public Builder clearOwner() {
         bitField0_ = (bitField0_ & ~0x00000080);
-        userName_ = getDefaultInstance().getUserName();
+        owner_ = getDefaultInstance().getOwner();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string user_name = 8;</code>
+       * <code>optional string owner = 8;</code>
        */
-      public Builder setUserNameBytes(
+      public Builder setOwnerBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000080;
-        userName_ = value;
+        owner_ = value;
         onChanged();
         return this;
       }
 
-      private java.lang.Object groupName_ = "";
+      private java.lang.Object group_ = "";
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
-      public boolean hasGroupName() {
+      public boolean hasGroup() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
-      public java.lang.String getGroupName() {
-        java.lang.Object ref = groupName_;
+      public java.lang.String getGroup() {
+        java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            groupName_ = s;
+            group_ = s;
           }
           return s;
         } else {
@@ -4268,85 +5317,85 @@ public final class File {
         }
       }
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
       public com.google.protobuf.ByteString
-          getGroupNameBytes() {
-        java.lang.Object ref = groupName_;
+          getGroupBytes() {
+        java.lang.Object ref = group_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          groupName_ = b;
+          group_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
-      public Builder setGroupName(
+      public Builder setGroup(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000100;
-        groupName_ = value;
+        group_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
-      public Builder clearGroupName() {
+      public Builder clearGroup() {
         bitField0_ = (bitField0_ & ~0x00000100);
-        groupName_ = getDefaultInstance().getGroupName();
+        group_ = getDefaultInstance().getGroup();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group_name = 9;</code>
+       * <code>optional string group = 9;</code>
        */
-      public Builder setGroupNameBytes(
+      public Builder setGroupBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000100;
-        groupName_ = value;
+        group_ = value;
         onChanged();
         return this;
       }
 
-      private int permission_ ;
+      private int mode_ ;
       /**
-       * <code>optional int32 permission = 10;</code>
+       * <code>optional int32 mode = 10;</code>
        */
-      public boolean hasPermission() {
+      public boolean hasMode() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
       /**
-       * <code>optional int32 permission = 10;</code>
+       * <code>optional int32 mode = 10;</code>
        */
-      public int getPermission() {
-        return permission_;
+      public int getMode() {
+        return mode_;
       }
       /**
-       * <code>optional int32 permission = 10;</code>
+       * <code>optional int32 mode = 10;</code>
        */
-      public Builder setPermission(int value) {
+      public Builder setMode(int value) {
         bitField0_ |= 0x00000200;
-        permission_ = value;
+        mode_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 permission = 10;</code>
+       * <code>optional int32 mode = 10;</code>
        */
-      public Builder clearPermission() {
+      public Builder clearMode() {
         bitField0_ = (bitField0_ & ~0x00000200);
-        permission_ = 0;
+        mode_ = 0;
         onChanged();
         return this;
       }
@@ -4379,6 +5428,38 @@ public final class File {
       public Builder clearMountPoint() {
         bitField0_ = (bitField0_ & ~0x00000400);
         mountPoint_ = false;
+        onChanged();
+        return this;
+      }
+
+      private boolean directChildrenLoaded_ ;
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public boolean hasDirectChildrenLoaded() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public boolean getDirectChildrenLoaded() {
+        return directChildrenLoaded_;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public Builder setDirectChildrenLoaded(boolean value) {
+        bitField0_ |= 0x00000800;
+        directChildrenLoaded_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool direct_children_loaded = 12;</code>
+       */
+      public Builder clearDirectChildrenLoaded() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        directChildrenLoaded_ = false;
         onChanged();
         return this;
       }
@@ -5013,47 +6094,47 @@ public final class File {
     long getTtl();
 
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
-    boolean hasUserName();
+    boolean hasOwner();
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
-    java.lang.String getUserName();
+    java.lang.String getOwner();
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
     com.google.protobuf.ByteString
-        getUserNameBytes();
+        getOwnerBytes();
 
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
-    boolean hasGroupName();
+    boolean hasGroup();
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
-    java.lang.String getGroupName();
+    java.lang.String getGroup();
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
     com.google.protobuf.ByteString
-        getGroupNameBytes();
+        getGroupBytes();
 
     /**
-     * <code>optional int32 permission = 16;</code>
+     * <code>optional int32 mode = 16;</code>
      */
-    boolean hasPermission();
+    boolean hasMode();
     /**
-     * <code>optional int32 permission = 16;</code>
+     * <code>optional int32 mode = 16;</code>
      */
-    int getPermission();
+    int getMode();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
    *
    * <pre>
-   * next available id: 17
+   * next available id: 20
    * </pre>
    */
   public static final class InodeFileEntry extends
@@ -5191,18 +6272,18 @@ public final class File {
             case 114: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00001000;
-              userName_ = bs;
+              owner_ = bs;
               break;
             }
             case 122: {
               com.google.protobuf.ByteString bs = input.readBytes();
               bitField0_ |= 0x00002000;
-              groupName_ = bs;
+              group_ = bs;
               break;
             }
             case 128: {
               bitField0_ |= 0x00004000;
-              permission_ = input.readInt32();
+              mode_ = input.readInt32();
               break;
             }
           }
@@ -5504,19 +6585,19 @@ public final class File {
       return ttl_;
     }
 
-    public static final int USER_NAME_FIELD_NUMBER = 14;
-    private java.lang.Object userName_;
+    public static final int OWNER_FIELD_NUMBER = 14;
+    private java.lang.Object owner_;
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
-    public boolean hasUserName() {
+    public boolean hasOwner() {
       return ((bitField0_ & 0x00001000) == 0x00001000);
     }
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
-    public java.lang.String getUserName() {
-      java.lang.Object ref = userName_;
+    public java.lang.String getOwner() {
+      java.lang.Object ref = owner_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -5524,41 +6605,41 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          userName_ = s;
+          owner_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string user_name = 14;</code>
+     * <code>optional string owner = 14;</code>
      */
     public com.google.protobuf.ByteString
-        getUserNameBytes() {
-      java.lang.Object ref = userName_;
+        getOwnerBytes() {
+      java.lang.Object ref = owner_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        userName_ = b;
+        owner_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    public static final int GROUP_NAME_FIELD_NUMBER = 15;
-    private java.lang.Object groupName_;
+    public static final int GROUP_FIELD_NUMBER = 15;
+    private java.lang.Object group_;
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
-    public boolean hasGroupName() {
+    public boolean hasGroup() {
       return ((bitField0_ & 0x00002000) == 0x00002000);
     }
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
-    public java.lang.String getGroupName() {
-      java.lang.Object ref = groupName_;
+    public java.lang.String getGroup() {
+      java.lang.Object ref = group_;
       if (ref instanceof java.lang.String) {
         return (java.lang.String) ref;
       } else {
@@ -5566,41 +6647,41 @@ public final class File {
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
         if (bs.isValidUtf8()) {
-          groupName_ = s;
+          group_ = s;
         }
         return s;
       }
     }
     /**
-     * <code>optional string group_name = 15;</code>
+     * <code>optional string group = 15;</code>
      */
     public com.google.protobuf.ByteString
-        getGroupNameBytes() {
-      java.lang.Object ref = groupName_;
+        getGroupBytes() {
+      java.lang.Object ref = group_;
       if (ref instanceof java.lang.String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        groupName_ = b;
+        group_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
 
-    public static final int PERMISSION_FIELD_NUMBER = 16;
-    private int permission_;
+    public static final int MODE_FIELD_NUMBER = 16;
+    private int mode_;
     /**
-     * <code>optional int32 permission = 16;</code>
+     * <code>optional int32 mode = 16;</code>
      */
-    public boolean hasPermission() {
+    public boolean hasMode() {
       return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     /**
-     * <code>optional int32 permission = 16;</code>
+     * <code>optional int32 mode = 16;</code>
      */
-    public int getPermission() {
-      return permission_;
+    public int getMode() {
+      return mode_;
     }
 
     private void initFields() {
@@ -5617,9 +6698,9 @@ public final class File {
       cacheable_ = false;
       blocks_ = java.util.Collections.emptyList();
       ttl_ = 0L;
-      userName_ = "";
-      groupName_ = "";
-      permission_ = 0;
+      owner_ = "";
+      group_ = "";
+      mode_ = 0;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -5674,13 +6755,13 @@ public final class File {
         output.writeInt64(13, ttl_);
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
-        output.writeBytes(14, getUserNameBytes());
+        output.writeBytes(14, getOwnerBytes());
       }
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
-        output.writeBytes(15, getGroupNameBytes());
+        output.writeBytes(15, getGroupBytes());
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
-        output.writeInt32(16, permission_);
+        output.writeInt32(16, mode_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -5750,15 +6831,15 @@ public final class File {
       }
       if (((bitField0_ & 0x00001000) == 0x00001000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(14, getUserNameBytes());
+          .computeBytesSize(14, getOwnerBytes());
       }
       if (((bitField0_ & 0x00002000) == 0x00002000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(15, getGroupNameBytes());
+          .computeBytesSize(15, getGroupBytes());
       }
       if (((bitField0_ & 0x00004000) == 0x00004000)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(16, permission_);
+          .computeInt32Size(16, mode_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -5842,7 +6923,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
      *
      * <pre>
-     * next available id: 17
+     * next available id: 20
      * </pre>
      */
     public static final class Builder extends
@@ -5907,11 +6988,11 @@ public final class File {
         bitField0_ = (bitField0_ & ~0x00000800);
         ttl_ = 0L;
         bitField0_ = (bitField0_ & ~0x00001000);
-        userName_ = "";
+        owner_ = "";
         bitField0_ = (bitField0_ & ~0x00002000);
-        groupName_ = "";
+        group_ = "";
         bitField0_ = (bitField0_ & ~0x00004000);
-        permission_ = 0;
+        mode_ = 0;
         bitField0_ = (bitField0_ & ~0x00008000);
         return this;
       }
@@ -5997,15 +7078,15 @@ public final class File {
         if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
           to_bitField0_ |= 0x00001000;
         }
-        result.userName_ = userName_;
+        result.owner_ = owner_;
         if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
           to_bitField0_ |= 0x00002000;
         }
-        result.groupName_ = groupName_;
+        result.group_ = group_;
         if (((from_bitField0_ & 0x00008000) == 0x00008000)) {
           to_bitField0_ |= 0x00004000;
         }
-        result.permission_ = permission_;
+        result.mode_ = mode_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -6072,18 +7153,18 @@ public final class File {
         if (other.hasTtl()) {
           setTtl(other.getTtl());
         }
-        if (other.hasUserName()) {
+        if (other.hasOwner()) {
           bitField0_ |= 0x00002000;
-          userName_ = other.userName_;
+          owner_ = other.owner_;
           onChanged();
         }
-        if (other.hasGroupName()) {
+        if (other.hasGroup()) {
           bitField0_ |= 0x00004000;
-          groupName_ = other.groupName_;
+          group_ = other.group_;
           onChanged();
         }
-        if (other.hasPermission()) {
-          setPermission(other.getPermission());
+        if (other.hasMode()) {
+          setMode(other.getMode());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -6650,24 +7731,24 @@ public final class File {
         return this;
       }
 
-      private java.lang.Object userName_ = "";
+      private java.lang.Object owner_ = "";
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
-      public boolean hasUserName() {
+      public boolean hasOwner() {
         return ((bitField0_ & 0x00002000) == 0x00002000);
       }
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
-      public java.lang.String getUserName() {
-        java.lang.Object ref = userName_;
+      public java.lang.String getOwner() {
+        java.lang.Object ref = owner_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            userName_ = s;
+            owner_ = s;
           }
           return s;
         } else {
@@ -6675,75 +7756,75 @@ public final class File {
         }
       }
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
       public com.google.protobuf.ByteString
-          getUserNameBytes() {
-        java.lang.Object ref = userName_;
+          getOwnerBytes() {
+        java.lang.Object ref = owner_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          userName_ = b;
+          owner_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
-      public Builder setUserName(
+      public Builder setOwner(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00002000;
-        userName_ = value;
+        owner_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
-      public Builder clearUserName() {
+      public Builder clearOwner() {
         bitField0_ = (bitField0_ & ~0x00002000);
-        userName_ = getDefaultInstance().getUserName();
+        owner_ = getDefaultInstance().getOwner();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string user_name = 14;</code>
+       * <code>optional string owner = 14;</code>
        */
-      public Builder setUserNameBytes(
+      public Builder setOwnerBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00002000;
-        userName_ = value;
+        owner_ = value;
         onChanged();
         return this;
       }
 
-      private java.lang.Object groupName_ = "";
+      private java.lang.Object group_ = "";
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
-      public boolean hasGroupName() {
+      public boolean hasGroup() {
         return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
-      public java.lang.String getGroupName() {
-        java.lang.Object ref = groupName_;
+      public java.lang.String getGroup() {
+        java.lang.Object ref = group_;
         if (!(ref instanceof java.lang.String)) {
           com.google.protobuf.ByteString bs =
               (com.google.protobuf.ByteString) ref;
           java.lang.String s = bs.toStringUtf8();
           if (bs.isValidUtf8()) {
-            groupName_ = s;
+            group_ = s;
           }
           return s;
         } else {
@@ -6751,85 +7832,85 @@ public final class File {
         }
       }
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
       public com.google.protobuf.ByteString
-          getGroupNameBytes() {
-        java.lang.Object ref = groupName_;
+          getGroupBytes() {
+        java.lang.Object ref = group_;
         if (ref instanceof String) {
           com.google.protobuf.ByteString b = 
               com.google.protobuf.ByteString.copyFromUtf8(
                   (java.lang.String) ref);
-          groupName_ = b;
+          group_ = b;
           return b;
         } else {
           return (com.google.protobuf.ByteString) ref;
         }
       }
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
-      public Builder setGroupName(
+      public Builder setGroup(
           java.lang.String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00004000;
-        groupName_ = value;
+        group_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
-      public Builder clearGroupName() {
+      public Builder clearGroup() {
         bitField0_ = (bitField0_ & ~0x00004000);
-        groupName_ = getDefaultInstance().getGroupName();
+        group_ = getDefaultInstance().getGroup();
         onChanged();
         return this;
       }
       /**
-       * <code>optional string group_name = 15;</code>
+       * <code>optional string group = 15;</code>
        */
-      public Builder setGroupNameBytes(
+      public Builder setGroupBytes(
           com.google.protobuf.ByteString value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00004000;
-        groupName_ = value;
+        group_ = value;
         onChanged();
         return this;
       }
 
-      private int permission_ ;
+      private int mode_ ;
       /**
-       * <code>optional int32 permission = 16;</code>
+       * <code>optional int32 mode = 16;</code>
        */
-      public boolean hasPermission() {
+      public boolean hasMode() {
         return ((bitField0_ & 0x00008000) == 0x00008000);
       }
       /**
-       * <code>optional int32 permission = 16;</code>
+       * <code>optional int32 mode = 16;</code>
        */
-      public int getPermission() {
-        return permission_;
+      public int getMode() {
+        return mode_;
       }
       /**
-       * <code>optional int32 permission = 16;</code>
+       * <code>optional int32 mode = 16;</code>
        */
-      public Builder setPermission(int value) {
+      public Builder setMode(int value) {
         bitField0_ |= 0x00008000;
-        permission_ = value;
+        mode_ = value;
         onChanged();
         return this;
       }
       /**
-       * <code>optional int32 permission = 16;</code>
+       * <code>optional int32 mode = 16;</code>
        */
-      public Builder clearPermission() {
+      public Builder clearMode() {
         bitField0_ = (bitField0_ & ~0x00008000);
-        permission_ = 0;
+        mode_ = 0;
         onChanged();
         return this;
       }
@@ -10684,6 +11765,11 @@ public final class File {
   }
 
   private static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_alluxio_proto_journal_StringPairEntry_descriptor;
+  private static
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable;
+  private static final com.google.protobuf.Descriptors.Descriptor
     internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor;
   private static
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -10762,44 +11848,47 @@ public final class File {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\nfile.proto\022\025alluxio.proto.journal\"N\n\022A" +
-      "ddMountPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\022" +
-      "\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030\003 \001(\010\"+\n\030A" +
-      "syncPersistRequestEntry\022\017\n\007file_id\030\001 \001(\003" +
-      "\"V\n\021CompleteFileEntry\022\021\n\tblock_ids\030\001 \003(\003" +
-      "\022\n\n\002id\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_" +
-      "ms\030\004 \001(\003\"D\n\017DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022" +
-      "\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-" +
-      "\n\025DeleteMountPointEntry\022\024\n\014alluxio_path\030" +
-      "\001 \001(\t\"\372\001\n\023InodeDirectoryEntry\022\n\n\002id\030\001 \001(",
-      "\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021pe" +
-      "rsistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n" +
-      "\020creation_time_ms\030\006 \001(\003\022!\n\031last_modifica" +
-      "tion_time_ms\030\007 \001(\003\022\021\n\tuser_name\030\010 \001(\t\022\022\n" +
-      "\ngroup_name\030\t \001(\t\022\022\n\npermission\030\n \001(\005\022\023\n" +
-      "\013mount_point\030\013 \001(\010\"O\n\036InodeDirectoryIdGe" +
-      "neratorEntry\022\024\n\014container_id\030\001 \001(\003\022\027\n\017se" +
-      "quence_number\030\002 \001(\003\"\315\002\n\016InodeFileEntry\022\n" +
-      "\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 " +
-      "\001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned",
-      "\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last" +
-      "_modification_time_ms\030\007 \001(\003\022\030\n\020block_siz" +
-      "e_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tcomplet" +
-      "ed\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006blocks\030\014 " +
-      "\003(\003\022\013\n\003ttl\030\r \001(\003\022\021\n\tuser_name\030\016 \001(\t\022\022\n\ng" +
-      "roup_name\030\017 \001(\t\022\022\n\npermission\030\020 \001(\005\"O\n\036I" +
-      "nodeLastModificationTimeEntry\022\n\n\002id\030\001 \001(" +
-      "\003\022!\n\031last_modification_time_ms\030\002 \001(\003\"#\n\025" +
-      "PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020Per" +
-      "sistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(",
-      "\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025ReinitializeFil" +
-      "eEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size_bytes" +
-      "\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id" +
-      "\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003" +
-      " \001(\003\"\225\001\n\021SetAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022" +
-      "\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003tt" +
-      "l\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(" +
-      "\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005"
+      "\n\nfile.proto\022\025alluxio.proto.journal\"-\n\017S" +
+      "tringPairEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
+      "(\t\"\212\001\n\022AddMountPointEntry\022\024\n\014alluxio_pat" +
+      "h\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030\003 " +
+      "\001(\010\022:\n\nproperties\030\004 \003(\0132&.alluxio.proto." +
+      "journal.StringPairEntry\"+\n\030AsyncPersistR" +
+      "equestEntry\022\017\n\007file_id\030\001 \001(\003\"V\n\021Complete" +
+      "FileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003" +
+      "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
+      "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
+      "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
+      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\213\002\n\023In" +
+      "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
+      "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
+      "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
+      "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
+      "\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004" +
+      "mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direc" +
+      "t_children_loaded\030\014 \001(\010\"O\n\036InodeDirector" +
+      "yIdGeneratorEntry\022\024\n\014container_id\030\001 \001(\003\022",
+      "\027\n\017sequence_number\030\002 \001(\003\"\276\002\n\016InodeFileEn" +
+      "try\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004na" +
+      "me\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006p" +
+      "inned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n" +
+      "\031last_modification_time_ms\030\007 \001(\003\022\030\n\020bloc" +
+      "k_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tco" +
+      "mpleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006bloc" +
+      "ks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005" +
+      "group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\"O\n\036InodeLastMo" +
+      "dificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_",
+      "modification_time_ms\030\002 \001(\003\"#\n\025PersistDir" +
+      "ectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEn" +
+      "try\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_ti" +
+      "me_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004" +
+      "path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003" +
+      "ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010" +
+      "dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021S" +
+      "etAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_" +
+      "ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n" +
+      "\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group",
+      "\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -10813,86 +11902,92 @@ public final class File {
       .internalBuildGeneratedFileFrom(descriptorData,
         new com.google.protobuf.Descriptors.FileDescriptor[] {
         }, assigner);
-    internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor =
+    internal_static_alluxio_proto_journal_StringPairEntry_descriptor =
       getDescriptor().getMessageTypes().get(0);
+    internal_static_alluxio_proto_journal_StringPairEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_alluxio_proto_journal_StringPairEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor =
+      getDescriptor().getMessageTypes().get(1);
     internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor,
-        new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", });
+        new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", "Properties", });
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor =
-      getDescriptor().getMessageTypes().get(1);
+      getDescriptor().getMessageTypes().get(2);
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor,
         new java.lang.String[] { "FileId", });
     internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(2);
+      getDescriptor().getMessageTypes().get(3);
     internal_static_alluxio_proto_journal_CompleteFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_CompleteFileEntry_descriptor,
         new java.lang.String[] { "BlockIds", "Id", "Length", "OpTimeMs", });
     internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(3);
+      getDescriptor().getMessageTypes().get(4);
     internal_static_alluxio_proto_journal_DeleteFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_DeleteFileEntry_descriptor,
         new java.lang.String[] { "Id", "Recursive", "OpTimeMs", });
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor =
-      getDescriptor().getMessageTypes().get(4);
+      getDescriptor().getMessageTypes().get(5);
     internal_static_alluxio_proto_journal_DeleteMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_DeleteMountPointEntry_descriptor,
         new java.lang.String[] { "AlluxioPath", });
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(5);
+      getDescriptor().getMessageTypes().get(6);
     internal_static_alluxio_proto_journal_InodeDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "UserName", "GroupName", "Permission", "MountPoint", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "Owner", "Group", "Mode", "MountPoint", "DirectChildrenLoaded", });
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor =
-      getDescriptor().getMessageTypes().get(6);
+      getDescriptor().getMessageTypes().get(7);
     internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeDirectoryIdGeneratorEntry_descriptor,
         new java.lang.String[] { "ContainerId", "SequenceNumber", });
     internal_static_alluxio_proto_journal_InodeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(7);
+      getDescriptor().getMessageTypes().get(8);
     internal_static_alluxio_proto_journal_InodeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeFileEntry_descriptor,
-        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "UserName", "GroupName", "Permission", });
+        new java.lang.String[] { "Id", "ParentId", "Name", "PersistenceState", "Pinned", "CreationTimeMs", "LastModificationTimeMs", "BlockSizeBytes", "Length", "Completed", "Cacheable", "Blocks", "Ttl", "Owner", "Group", "Mode", });
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(8);
+      getDescriptor().getMessageTypes().get(9);
     internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_InodeLastModificationTimeEntry_descriptor,
         new java.lang.String[] { "Id", "LastModificationTimeMs", });
     internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor =
-      getDescriptor().getMessageTypes().get(9);
+      getDescriptor().getMessageTypes().get(10);
     internal_static_alluxio_proto_journal_PersistDirectoryEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_PersistDirectoryEntry_descriptor,
         new java.lang.String[] { "Id", });
     internal_static_alluxio_proto_journal_PersistFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(10);
+      getDescriptor().getMessageTypes().get(11);
     internal_static_alluxio_proto_journal_PersistFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_PersistFileEntry_descriptor,
         new java.lang.String[] { "Id", "Length", "OpTimeMs", });
     internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor =
-      getDescriptor().getMessageTypes().get(11);
+      getDescriptor().getMessageTypes().get(12);
     internal_static_alluxio_proto_journal_ReinitializeFileEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_ReinitializeFileEntry_descriptor,
         new java.lang.String[] { "Path", "BlockSizeBytes", "Ttl", });
     internal_static_alluxio_proto_journal_RenameEntry_descriptor =
-      getDescriptor().getMessageTypes().get(12);
+      getDescriptor().getMessageTypes().get(13);
     internal_static_alluxio_proto_journal_RenameEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_RenameEntry_descriptor,
         new java.lang.String[] { "Id", "DstPath", "OpTimeMs", });
     internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor =
-      getDescriptor().getMessageTypes().get(13);
+      getDescriptor().getMessageTypes().get(14);
     internal_static_alluxio_proto_journal_SetAttributeEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_SetAttributeEntry_descriptor,

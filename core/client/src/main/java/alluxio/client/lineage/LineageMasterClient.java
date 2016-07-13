@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.client.lineage;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -47,10 +46,9 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public LineageMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override
@@ -147,7 +145,7 @@ public final class LineageMasterClient extends AbstractMasterClient {
     return retryRPC(new RpcCallable<List<LineageInfo>>() {
       @Override
       public List<LineageInfo> call() throws TException {
-        List<LineageInfo> result = new ArrayList<LineageInfo>();
+        List<LineageInfo> result = new ArrayList<>();
         for (alluxio.thrift.LineageInfo lineageInfo : mClient.getLineageInfoList()) {
           result.add(ThriftUtils.fromThrift(lineageInfo));
         }

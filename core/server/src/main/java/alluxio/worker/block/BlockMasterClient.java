@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.worker.block;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -48,10 +47,9 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * Creates a new instance of {@link BlockMasterClient} for the worker.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public BlockMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public BlockMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override
@@ -82,12 +80,13 @@ public final class BlockMasterClient extends AbstractMasterClient {
    * @param tierAlias the alias of the tier the block is being committed to
    * @param blockId the block id being committed
    * @param length the length of the block being committed
+   * @throws AlluxioTException if it fails to commit the block
    * @throws ConnectionFailedException if network connection failed
    * @throws IOException if an I/O error occurs
    */
   public synchronized void commitBlock(final long workerId, final long usedBytesOnTier,
       final String tierAlias, final long blockId, final long length)
-          throws IOException, ConnectionFailedException {
+          throws AlluxioTException, IOException, ConnectionFailedException {
     retryRPC(new RpcCallable<Void>() {
       @Override
       public Void call() throws TException {

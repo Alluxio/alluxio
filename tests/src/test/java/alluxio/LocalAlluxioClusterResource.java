@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -80,8 +80,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  /** The {@link Configuration} object used by the cluster. */
-  private Configuration mTestConf = null;
 
   /**
    * Creates a new instance.
@@ -92,7 +90,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param confParams specific alluxio configuration parameters, specified as a list of strings,
    */
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster, String... confParams) {
+      boolean startCluster, String... confParams) {
     Preconditions.checkArgument(confParams.length % 2 == 0);
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
@@ -109,12 +107,12 @@ public final class LocalAlluxioClusterResource implements TestRule {
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     boolean startCluster) {
+      boolean startCluster) {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-                                     String... confParams) {
+      String... confParams) {
     this(workerCapacityBytes, userBlockSize, true, confParams);
   }
 
@@ -129,32 +127,26 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return mLocalAlluxioCluster;
   }
 
-  /**
-   * @return the {@link Configuration} object used by the cluster
-   */
-  public Configuration getTestConf() {
-    return mTestConf;
+  private void applyConfParams() throws IOException {
+    mLocalAlluxioCluster.initializeTestConfiguration();
+    // Override the configuration parameters with mConfParams
+    for (int i = 0; i < mConfParams.length; i += 2) {
+      Configuration.set(mConfParams[i], mConfParams[i + 1]);
+    }
   }
 
   /**
    * Explicitly starts the {@link LocalAlluxioCluster}.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
    */
-  public void start() throws IOException, ConnectionFailedException {
-    mLocalAlluxioCluster.start(mTestConf);
+  public void start() throws Exception {
+    mLocalAlluxioCluster.start();
   }
 
   @Override
   public Statement apply(final Statement statement, Description description) {
     mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
-      mTestConf = mLocalAlluxioCluster.newTestConf();
-      // Override the configuration parameters with mConfParams
-      for (int i = 0; i < mConfParams.length; i += 2) {
-        mTestConf.set(mConfParams[i], mConfParams[i + 1]);
-      }
+      applyConfParams();
 
       boolean startCluster = mStartCluster;
       Annotation configAnnotation = description.getAnnotation(Config.class);
@@ -162,13 +154,13 @@ public final class LocalAlluxioClusterResource implements TestRule {
         Config config = (Config) configAnnotation;
         // Override the configuration parameters with any configuration params
         for (int i = 0; i < config.confParams().length; i += 2) {
-          mTestConf.set(config.confParams()[i], config.confParams()[i + 1]);
+          Configuration.set(config.confParams()[i], config.confParams()[i + 1]);
         }
         // Override startCluster
         startCluster = config.startCluster();
       }
       if (startCluster) {
-        mLocalAlluxioCluster.start(mTestConf);
+        mLocalAlluxioCluster.start();
       }
     } catch (IOException | ConnectionFailedException e) {
       throw new RuntimeException(e);

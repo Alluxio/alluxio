@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
@@ -22,6 +21,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -65,22 +65,17 @@ public class BlockServiceHandlerIntegrationTest {
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
-  private Configuration mMasterConfiguration;
-  private Configuration mWorkerConfiguration;
   private BlockMasterClient mBlockMasterClient;
 
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mMasterConfiguration = mLocalAlluxioClusterResource.get().getMasterConf();
-    mWorkerConfiguration = mLocalAlluxioClusterResource.get().getWorkerConf();
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
     mBlockMasterClient = new BlockMasterClient(
-        new InetSocketAddress(mLocalAlluxioClusterResource.get().getMasterHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()),
-        mWorkerConfiguration);
+        new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
+            mLocalAlluxioClusterResource.get().getMasterPort()));
   }
 
   @After
@@ -160,7 +155,7 @@ public class BlockServiceHandlerIntegrationTest {
     // The local path should exist
     Assert.assertNotNull(localPath);
 
-    UnderFileSystem ufs = UnderFileSystem.get(localPath, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(localPath);
     byte[] data = new byte[blockSize];
     int bytesRead = ufs.open(localPath).read(data);
 
@@ -243,7 +238,13 @@ public class BlockServiceHandlerIntegrationTest {
     Assert.assertFalse(result);
 
     // Request for space on a nonexistent block should fail
-    Assert.assertFalse(mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize));
+    try {
+      mBlockWorkerServiceHandler.requestSpace(SESSION_ID, blockId2, chunkSize);
+      Assert.fail();
+    } catch (AlluxioTException e) {
+      Assert.assertEquals(ExceptionMessage.TEMP_BLOCK_META_NOT_FOUND.getMessage(blockId2),
+          e.getMessage());
+    }
 
     // Request for impossible initial space should fail
     Exception exception = null;
@@ -281,7 +282,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Creates a block file and write an increasing byte array into it
   private void createBlockFile(String filename, int len) throws IOException, InvalidPathException {
-    UnderFileSystem ufs = UnderFileSystem.get(filename, mMasterConfiguration);
+    UnderFileSystem ufs = UnderFileSystem.get(filename);
     ufs.mkdirs(PathUtils.getParent(filename), true);
     OutputStream out = ufs.create(filename);
     out.write(BufferUtils.getIncreasingByteArray(len), 0, len);

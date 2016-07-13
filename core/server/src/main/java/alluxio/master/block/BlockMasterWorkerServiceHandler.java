@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -61,7 +61,7 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
       mBlockMaster.workerRegister(workerId, storageTiers, totalBytesOnTiers,
           usedBytesOnTiers, currentBlocksOnTiers);
     } catch (AlluxioException e) {
-      throw e.toAlluxioTException();
+      throw e.toThrift();
     }
   }
 
@@ -73,8 +73,13 @@ public class BlockMasterWorkerServiceHandler implements BlockMasterWorkerService
   }
 
   @Override
-  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias,
-      long blockId, long length) {
-    mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+  public void commitBlock(long workerId, long usedBytesOnTier, String tierAlias, long blockId,
+      long length) throws AlluxioTException {
+    try {
+      mBlockMaster.commitBlock(workerId, usedBytesOnTier, tierAlias, blockId, length);
+    } catch (AlluxioException e) {
+      throw e.toThrift();
+    }
   }
 }
+

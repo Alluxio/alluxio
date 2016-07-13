@@ -25,9 +25,12 @@ getCapacityBytes:
   Get the capacity of the AlluxioFS.
 getUsedBytes:
   Get number of bytes used in the AlluxioFS.
+leader:
+  Prints the current Alluxio leader master host name.
 load:
   Load the data of a file or a directory from under storage into Alluxio.
 loadMetadata:
+  The loadMetadata command is deprecated since Alluxio version 1.1. Please use "alluxio fs ls &lt;path&gt;" command instead.
   Load the metadata of a file or a directory from under storage into Alluxio.
 location:
   Display a list of hosts that have the file data.
@@ -49,7 +52,7 @@ mv:
   Move a file or directory specified by "source" to a new location "destination". This command
   will fail if "destination" already exists.
 persist:
-  Persist a file or directory currently stored only in Alluxio to the underlying file system.
+  Persist files or directories currently stored only in Alluxio to the underlying file system.
 
 pin:
   Pin the given file to avoid evicting it from memory. If the given path is a directory, it

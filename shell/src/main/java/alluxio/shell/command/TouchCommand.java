@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
@@ -31,11 +30,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class TouchCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public TouchCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public TouchCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -49,16 +47,12 @@ public final class TouchCommand extends AbstractShellCommand {
   }
 
   @Override
-  public void run(CommandLine cl) throws IOException {
+  public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    try {
-      mFileSystem.createFile(inputPath,
-          CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+    mFileSystem.createFile(inputPath,
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
     System.out.println(inputPath + " has been created");
   }
 

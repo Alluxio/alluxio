@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -18,10 +18,12 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatThread;
+import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
@@ -30,6 +32,8 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AbstractWorker;
+import alluxio.worker.SessionCleaner;
+import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
@@ -74,7 +78,7 @@ public final class BlockWorker extends AbstractWorker {
   private PinListSync mPinListSync;
 
   /** Runnable responsible for clean up potential zombie sessions. */
-  private SessionCleaner mSessionCleanerThread;
+  private SessionCleaner mSessionCleaner;
 
   /** Logic for handling RPC requests. */
   private final BlockWorkerClientServiceHandler mServiceHandler;
@@ -84,9 +88,6 @@ public final class BlockWorker extends AbstractWorker {
 
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
-
-  /** Configuration object. */
-  private final Configuration mConf;
 
   /** Space reserver for the block data manager. */
   private SpaceReserver mSpaceReserver = null;
@@ -121,14 +122,12 @@ public final class BlockWorker extends AbstractWorker {
   public BlockWorker() throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mConf = WorkerContext.getConf();
-
     // Setup BlockMasterClient
-    mBlockMasterClient = new BlockMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+    mBlockMasterClient =
+        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
-    mFileSystemMasterClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, mConf), mConf);
+    mFileSystemMasterClient =
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
 
     // Setup RPC ServerHandler
     mServiceHandler = new BlockWorkerClientServiceHandler(this);
@@ -149,11 +148,9 @@ public final class BlockWorker extends AbstractWorker {
 
   @Override
   public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<String, TProcessor>();
-    services.put(
-        Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
-        new BlockWorkerClientService.Processor<BlockWorkerClientServiceHandler>(
-            getWorkerServiceHandler()));
+    Map<String, TProcessor> services = new HashMap<>();
+    services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
+        new BlockWorkerClientService.Processor<>(getWorkerServiceHandler()));
     return services;
   }
 
@@ -182,24 +179,24 @@ public final class BlockWorker extends AbstractWorker {
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    mSessionCleanerThread = new SessionCleaner(this);
+    setupSessionCleaner();
 
     // Setup space reserver
-    if (mConf.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       mSpaceReserver = new SpaceReserver(this);
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            WorkerContext.getConf().getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleanerThread);
+    getExecutorService().submit(mSessionCleaner);
 
     // Start the space reserver
     if (mSpaceReserver != null) {
@@ -214,7 +211,7 @@ public final class BlockWorker extends AbstractWorker {
    */
   @Override
   public void stop() throws IOException {
-    mSessionCleanerThread.stop();
+    mSessionCleaner.stop();
     mBlockMasterClient.close();
     if (mSpaceReserver != null) {
       mSpaceReserver.stop();
@@ -253,17 +250,6 @@ public final class BlockWorker extends AbstractWorker {
   }
 
   /**
-   * Cleans up after sessions, to prevent zombie sessions. This method is called periodically by
-   * {@link SessionCleaner} thread.
-   */
-  public void cleanupSessions() {
-    for (long session : mSessions.getTimedOutSessions()) {
-      mSessions.removeSession(session);
-      mBlockStore.cleanupSession(session);
-    }
-  }
-
-  /**
    * Commits a block to Alluxio managed space. The block must be temporary. The block is persisted
    * after {@link BlockStore#commitBlock(long, long)}. The block will not be accessible until
    * {@link BlockMasterClient#commitBlock(long, long, String, long, long)} succeeds.
@@ -279,7 +265,14 @@ public final class BlockWorker extends AbstractWorker {
   public void commitBlock(long sessionId, long blockId)
       throws BlockAlreadyExistsException, BlockDoesNotExistException, InvalidWorkerStateException,
       IOException, WorkerOutOfSpaceException {
-    mBlockStore.commitBlock(sessionId, blockId);
+    // NOTE: this may be invoked multiple times due to retry on client side.
+    // TODO(binfan): find a better way to handle retry logic
+    try {
+      mBlockStore.commitBlock(sessionId, blockId);
+    } catch (BlockAlreadyExistsException e) {
+      LOG.debug("Block {} has been in block store, this could be a retry due to master-side RPC "
+          + "failure, therefore ignore the exception", blockId, e);
+    }
 
     // TODO(calvin): Reconsider how to do this without heavy locking.
     // Block successfully committed, update master with new block metadata
@@ -292,10 +285,8 @@ public final class BlockWorker extends AbstractWorker {
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
       mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
           loc.tierAlias(), blockId, length);
-    } catch (IOException ioe) {
-      throw new IOException("Failed to commit block to master.", ioe);
-    } catch (ConnectionFailedException e) {
-      throw new IOException("Failed to commit block to master.", e);
+    } catch (AlluxioTException | IOException | ConnectionFailedException e) {
+      throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
       mBlockStore.unlockBlock(lockId);
     }
@@ -395,12 +386,22 @@ public final class BlockWorker extends AbstractWorker {
 
   /**
    * Gets the metadata for the entire block store. Contains the block mapping per storage dir and
-   * the total capacity and used capacity of each tier.
+   * the total capacity and used capacity of each tier. This function is cheap.
    *
    * @return the block store metadata
    */
   public BlockStoreMeta getStoreMeta() {
     return mBlockStore.getBlockStoreMeta();
+  }
+
+  /**
+   * Similar as {@link BlockWorker#getStoreMeta} except that this also contains full blockId
+   * list. This function is expensive.
+   *
+   * @return the full block store metadata
+   */
+  public BlockStoreMeta getStoreMetaFull() {
+    return mBlockStore.getBlockStoreMetaFull();
   }
 
   /**
@@ -413,6 +414,26 @@ public final class BlockWorker extends AbstractWorker {
    */
   public BlockMeta getVolatileBlockMeta(long blockId) throws BlockDoesNotExistException {
     return mBlockStore.getVolatileBlockMeta(blockId);
+  }
+
+  /**
+   * Gets the meta data of a specific block from local storage.
+   * <p>
+   * Unlike {@link #getVolatileBlockMeta(long)}, this method requires the lock id returned by a
+   * previously acquired {@link #lockBlock(long, long)}.
+   *
+   * @param sessionId the id of the session to get this file
+   * @param blockId the id of the block
+   * @param lockId the id of the lock
+   * @return metadata of the block
+   * @throws BlockDoesNotExistException if the block id can not be found in committed blocks or
+   *         lockId can not be found
+   * @throws InvalidWorkerStateException if session id or block id is not the same as that in the
+   *         LockRecord of lockId
+   */
+  public BlockMeta getBlockMeta(long sessionId, long blockId, long lockId)
+      throws BlockDoesNotExistException, InvalidWorkerStateException {
+    return mBlockStore.getBlockMeta(sessionId, blockId, lockId);
   }
 
   /**
@@ -574,6 +595,24 @@ public final class BlockWorker extends AbstractWorker {
   }
 
   /**
+   * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
+   */
+  private void setupSessionCleaner() {
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding local resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mBlockStore.cleanupSession(session);
+        }
+      }
+    });
+  }
+
+  /**
    * Sets the pinlist for the underlying block store. Typically called by {@link PinListSync}.
    *
    * @param pinnedInodes a set of pinned inodes
@@ -610,6 +649,6 @@ public final class BlockWorker extends AbstractWorker {
     FileUtils.createBlockPath(blockPath);
     FileUtils.createFile(blockPath);
     FileUtils.changeLocalFileToFullPermission(blockPath);
-    LOG.info("Created new file block, block path: {}", blockPath);
+    LOG.debug("Created new file block, block path: {}", blockPath);
   }
 }

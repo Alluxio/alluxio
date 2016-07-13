@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,12 @@
 
 package alluxio.master.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.master.MasterContext;
+import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
+
+import com.google.common.base.Objects;
 
 import java.io.IOException;
 
@@ -29,17 +32,17 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
 
   /**
    * @return the default {@link CreateFileOptions}
-   * @throws IOException if I/O error occurs
    */
-  public static CreateFileOptions defaults() throws IOException {
+  public static CreateFileOptions defaults() {
     return new CreateFileOptions();
   }
 
   /**
-   * Creates a new instance of {@link CreateFileOptions} from {@link CreateFileTOptions}.
+   * Constructs an instance of {@link CreateFileOptions} from {@link CreateFileTOptions}. The
+   * option of permission is constructed with the username obtained from thrift transport.
    *
    * @param options the {@link CreateFileTOptions} to use
-   * @throws IOException if an I/O error occurs
+   * @throws IOException if it failed to retrieve users or groups from thrift transport
    */
   public CreateFileOptions(CreateFileTOptions options) throws IOException {
     super();
@@ -47,11 +50,12 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
+    mPermission = Permission.defaults().setOwnerFromThriftClient();
   }
 
-  private CreateFileOptions() throws IOException {
+  private CreateFileOptions() {
     super();
-    mBlockSizeBytes = MasterContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
   }
 
@@ -94,11 +98,32 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateFileOptions)) {
+      return false;
+    }
+    if (!(super.equals(o))) {
+      return false;
+    }
+    CreateFileOptions that = (CreateFileOptions) o;
+    return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
+        && Objects.equal(mTtl, that.mTtl);
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl);
+  }
+
   @Override
   public String toString() {
-    return toStringHelper().add("blockSizeBytes", mBlockSizeBytes).add("ttl", mTtl).toString();
+    return toStringHelper()
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("ttl", mTtl)
+        .toString();
   }
 }

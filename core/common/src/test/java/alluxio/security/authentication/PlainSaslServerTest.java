@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -40,8 +40,6 @@ public class PlainSaslServerTest{
 
   /**
    * Sets up the server before a test runs.
-   *
-   * @throws Exception thrown if setting up the server fails
    */
   @Before
   public void before() throws Exception {
@@ -54,7 +52,6 @@ public class PlainSaslServerTest{
    * @param user The name of the user will be transferred from client side
    * @param password The password will be transferred from client side
    * @return The response is simulated from the client side
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   private byte[] getUserInfo(String user, String password) throws Exception {
     byte[] auth = user.getBytes("UTF8");
@@ -73,8 +70,6 @@ public class PlainSaslServerTest{
 
   /**
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the user is not set.
-   *
-   * @throws Exception if the bytes for the user and password cannot be retrieved
    */
   @Test
   public void userIsNotSetTest() throws Exception {

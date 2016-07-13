@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -47,12 +47,11 @@ public class MetricsSystem {
   private static final int MINIMAL_POLL_PERIOD = 1;
 
   private String mInstance;
-  private List<Sink> mSinks = new ArrayList<Sink>();
-  private List<Source> mSources = new ArrayList<Source>();
+  private List<Sink> mSinks = new ArrayList<>();
+  private List<Source> mSources = new ArrayList<>();
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private Configuration mConfiguration;
   private MetricsServlet mMetricsServlet;
 
   /**
@@ -93,13 +92,10 @@ public class MetricsSystem {
    * Creates a {@code MetricsSystem} using the default metrics config.
    *
    * @param instance the instance name
-   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, Configuration configuration) {
+  public MetricsSystem(String instance) {
     mInstance = instance;
-    mConfiguration = configuration;
-    String metricsConfFile = null;
-    metricsConfFile = mConfiguration.get(Constants.METRICS_CONF_FILE);
+    String metricsConfFile = Configuration.get(Constants.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 
@@ -108,12 +104,10 @@ public class MetricsSystem {
    *
    * @param instance the instance name
    * @param metricsConfig the {@code MetricsConfig} object
-   * @param configuration the {@link Configuration} instance for configuration properties
    */
-  public MetricsSystem(String instance, MetricsConfig metricsConfig, Configuration configuration) {
+  public MetricsSystem(String instance, MetricsConfig metricsConfig) {
     mInstance = instance;
     mMetricsConfig = metricsConfig;
-    mConfiguration = configuration;
   }
 
   /***

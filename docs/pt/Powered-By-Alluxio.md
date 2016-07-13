@@ -20,6 +20,7 @@ ou nos informe por `email` (project.alluxio@gmail.com), ou ainda efetue uma
 * [Intel](http://www.intel.com/)
 * [Neusoft](http://www.neusoft.com/)
 * [Alluxio](http://www.alluxio.com/)
+* [Radicalbit](http://www.radicalbit.io)
 * [UC Berkeley AMPLab](https://amplab.cs.berkeley.edu/)
 * [Ultra Tendency](http://ultratendency.com/)
 

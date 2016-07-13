@@ -1,7 +1,11 @@
+```bash
+ALLUXIO_JAVA_OPTS+="
     -Dfs.swift.user=<swift-user>
     -Dfs.swift.tenant=<swift-tenant>
-    -Dfs.swift.apikey=<swift-user-password>
+    -Dfs.swift.password=<swift-user-password>
     -Dfs.swift.auth.url=<swift-auth-url>
     -Dfs.swift.auth.port=<swift-auth-url-port>
     -Dfs.swift.use.public.url=<swift-use-public>
     -Dfs.swift.auth.method=<swift-auth-model>
+"
+```

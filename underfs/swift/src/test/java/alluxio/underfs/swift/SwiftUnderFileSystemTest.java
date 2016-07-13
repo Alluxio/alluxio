@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -37,37 +37,37 @@ public class SwiftUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link SwiftUnderFileSystem#makeQualifiedPath(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
+   * Tests the {@link SwiftUnderFileSystem#addFolderSuffixIfNotPresent(String)} (String)} method.
    */
   @Test
-  public void makeQualifiedPathTest() throws Exception {
+  public void addFolderSuffixIfNotPresentTest() throws Exception {
     String input1 = "a/b";
     String input2 = "/a/b";
     String input3 = "a/b/";
     String input4 = "/a/b/";
-    String result1 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input1);
-    String result2 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input2);
-    String result3 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input3);
-    String result4 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "makeQualifiedPath", input4);
+    String result1 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input1);
+    String result2 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input2);
+    String result3 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input3);
+    String result4 = Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
+        "addFolderSuffixIfNotPresent", input4);
 
     Assert.assertEquals(result1, "a/b/");
-    Assert.assertEquals(result2, "a/b/");
+    Assert.assertEquals(result2, "/a/b/");
     Assert.assertEquals(result3, "a/b/");
-    Assert.assertEquals(result4, "a/b/");
+    Assert.assertEquals(result4, "/a/b/");
   }
 
   /**
    * Tests the {@link SwiftUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
     String input1 = mMockContainerPrefix;
     String input2 = mMockContainerPrefix + "dir/file";
-    String input3 = mMockContainerPrefix + "dir_$folder$";
+    String input3 = mMockContainerPrefix + "dir/";
     String result1 =
         Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input1);
     String result2 =
@@ -75,15 +75,13 @@ public class SwiftUnderFileSystemTest {
     String result3 =
         Whitebox.invokeMethod(mMockSwiftUnderFileSystem, "stripFolderSuffixIfPresent", input3);
 
-    Assert.assertEquals(mMockContainerPrefix, result1);
+    Assert.assertEquals(mMockContainerPrefix, result1 + "/");
     Assert.assertEquals(mMockContainerPrefix + "dir/file", result2);
     Assert.assertEquals(mMockContainerPrefix + "dir", result3);
   }
 
   /**
-   * Tests the {@link SwiftUnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception when the Whitebox fails
+   * Tests the {@link SwiftUnderFileSystem#stripContainerPrefixIfPresent(String)} method.
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {
@@ -107,7 +105,7 @@ public class SwiftUnderFileSystemTest {
     };
     for (int i = 0; i < inputs.length; i++) {
       Assert.assertEquals(results[i], Whitebox.invokeMethod(mMockSwiftUnderFileSystem,
-          "stripPrefixIfPresent", inputs[i]));
+          "stripContainerPrefixIfPresent", inputs[i]));
     }
   }
 }

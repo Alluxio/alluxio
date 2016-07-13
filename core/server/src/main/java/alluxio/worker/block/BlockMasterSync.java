@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -24,16 +24,19 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.Command;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -73,6 +76,10 @@ public final class BlockMasterSync implements HeartbeatExecutor {
   /** Last System.currentTimeMillis() timestamp when a heartbeat successfully completed. */
   private long mLastSuccessfulHeartbeatMs;
 
+  /** Map from a block Id to whether it has been removed successfully. */
+  @GuardedBy("itself")
+  private final Map<Long, Boolean> mRemovingBlockIdToFinished;
+
   /**
    * Creates a new instance of {@link BlockMasterSync}.
    *
@@ -84,9 +91,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
       BlockMasterClient masterClient) {
     mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
-    Configuration conf = WorkerContext.getConf();
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = conf.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mRemovingBlockIdToFinished = new HashMap<>();
 
     try {
       registerWithMaster();
@@ -107,9 +114,9 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * @throws ConnectionFailedException if network connection failed
    */
   private void registerWithMaster() throws IOException, ConnectionFailedException {
-    BlockStoreMeta storeMeta = mBlockWorker.getStoreMeta();
+    BlockStoreMeta storeMeta = mBlockWorker.getStoreMetaFull();
     try {
-      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+      StorageTierAssoc storageTierAssoc = new WorkerStorageTierAssoc();
       mMasterClient.register(WorkerIdRegistry.getWorkerId(),
           storageTierAssoc.getOrderedStorageAliases(), storeMeta.getCapacityBytesOnTiers(),
           storeMeta.getUsedBytesOnTiers(), storeMeta.getBlockList());
@@ -177,9 +184,21 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         break;
       // Master requests blocks to be removed from Alluxio managed space.
       case Free:
-        for (long block : cmd.getData()) {
-          mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
-              Sessions.MASTER_COMMAND_SESSION_ID, block));
+        synchronized (mRemovingBlockIdToFinished) {
+          for (long block : cmd.getData()) {
+            if (!mRemovingBlockIdToFinished.containsKey(block)) {
+              mRemovingBlockIdToFinished.put(block, false);
+              mBlockRemovalService.execute(new BlockRemover(mBlockWorker,
+                  mRemovingBlockIdToFinished, Sessions.MASTER_COMMAND_SESSION_ID, block));
+            }
+          }
+          Iterator<Map.Entry<Long, Boolean>> it = mRemovingBlockIdToFinished.entrySet().iterator();
+          while (it.hasNext()) {
+            if (it.next().getValue()) {
+              // The block has been successfully removed.
+              it.remove();
+            }
+          }
         }
         break;
       // No action required
@@ -204,27 +223,36 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    */
   @NotThreadSafe
   private class BlockRemover implements Runnable {
-    private BlockWorker mBlockWorker;
-    private long mSessionId;
-    private long mBlockId;
+    private final BlockWorker mBlockWorker;
+    private final long mSessionId;
+    private final long mBlockId;
+    private final Map<Long, Boolean> mRemovingBlockIdToFinished;
 
     /**
      * Creates a new instance of {@link BlockRemover}.
      *
      * @param blockWorker block worker for data manager
+     * @param removingBlockIdToFinished map from block ID to whether it has been removed
      * @param sessionId the session id
      * @param blockId the block id
      */
-    public BlockRemover(BlockWorker blockWorker, long sessionId, long blockId) {
+    public BlockRemover(BlockWorker blockWorker, Map<Long, Boolean> removingBlockIdToFinished,
+        long sessionId, long blockId) {
       mBlockWorker = blockWorker;
+      mRemovingBlockIdToFinished = removingBlockIdToFinished;
       mSessionId = sessionId;
       mBlockId = blockId;
     }
 
     @Override
     public void run() {
+      boolean success = false;
       try {
         mBlockWorker.removeBlock(mSessionId, mBlockId);
+        success = true;
+        synchronized (mRemovingBlockIdToFinished) {
+          mRemovingBlockIdToFinished.put(mBlockId, true);
+        }
         LOG.info("Block {} removed at session {}", mBlockId, mSessionId);
       } catch (IOException e) {
         LOG.warn("Failed master free block cmd for: {}.", mBlockId, e);
@@ -232,6 +260,14 @@ public final class BlockMasterSync implements HeartbeatExecutor {
         LOG.warn("Failed master free block cmd for: {} due to block uncommitted.", mBlockId, e);
       } catch (BlockDoesNotExistException e) {
         LOG.warn("Failed master free block cmd for: {} due to block not found.", mBlockId, e);
+      } finally {
+        if (!success) {
+          synchronized (mRemovingBlockIdToFinished) {
+            // The remove operation fails, so remove the block from the map in order to make it
+            // possible for another BlockRemover to remove it later.
+            mRemovingBlockIdToFinished.remove(mBlockId);
+          }
+        }
       }
     }
   }

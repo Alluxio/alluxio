@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,7 @@
 
 package alluxio.underfs.hdfs;
 
-import alluxio.Configuration;
+import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.underfs.UnderFileSystem.UnderFSType;
 
@@ -28,14 +28,12 @@ public final class HdfsUnderFileSystemTest {
 
   @Before
   public final void before() throws Exception {
-    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem("file:///", new Configuration(), null);
+    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem(new AlluxioURI("file:///"), null);
   }
 
   /**
    * Tests the {@link HdfsUnderFileSystem#getUnderFSType()} method.
    * Confirm the UnderFSType for HdfsUnderFileSystem
-   *
-   * @throws Exception
    */
   @Test
   public void getUnderFSTypeTest() throws Exception {
@@ -46,16 +44,13 @@ public final class HdfsUnderFileSystemTest {
    * Tests the {@link HdfsUnderFileSystem#prepareConfiguration} method.
    *
    * Checks the hdfs implements class and alluxio underfs config setting
-   *
-   * @throws Exception
    */
   @Test
   public void prepareConfigurationTest() throws Exception {
-    Configuration tConf = new Configuration();
-    org.apache.hadoop.conf.Configuration hConf = new org.apache.hadoop.conf.Configuration();
-    mMockHdfsUnderFileSystem.prepareConfiguration("", tConf, hConf);
-    Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", hConf.get("fs.hdfs.impl"));
-    Assert.assertFalse(hConf.getBoolean("fs.hdfs.impl.disable.cache", false));
-    Assert.assertNotNull(hConf.get(Constants.UNDERFS_HDFS_CONFIGURATION));
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+    mMockHdfsUnderFileSystem.prepareConfiguration("", conf);
+    Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
+    Assert.assertFalse(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
+    Assert.assertNotNull(conf.get(Constants.UNDERFS_HDFS_CONFIGURATION));
   }
 }

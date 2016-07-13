@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,9 +11,9 @@
 
 package alluxio.client.file.options;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.thrift.CreateDirectoryTOptions;
@@ -43,7 +43,7 @@ public final class CreateDirectoryOptions {
     mRecursive = false;
     mAllowExists = false;
     WriteType defaultWriteType =
-        ClientContext.getConf().getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+        Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mUnderStorageType = defaultWriteType.getUnderStorageType();
   }
 
@@ -99,13 +99,32 @@ public final class CreateDirectoryOptions {
     return this;
   }
 
-  /**
-   * @return the name : value pairs for all the fields
-   */
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreateDirectoryOptions)) {
+      return false;
+    }
+    CreateDirectoryOptions that = (CreateDirectoryOptions) o;
+    return Objects.equal(mAllowExists, that.mAllowExists)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mUnderStorageType, that.mUnderStorageType);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mAllowExists, mRecursive, mUnderStorageType);
+  }
+
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("allowExists", mAllowExists)
-        .add("recursive", mRecursive).add("underStorageType", mUnderStorageType).toString();
+    return Objects.toStringHelper(this)
+        .add("allowExists", mAllowExists)
+        .add("recursive", mRecursive)
+        .add("underStorageType", mUnderStorageType)
+        .toString();
   }
 
   /**

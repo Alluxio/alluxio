@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -37,15 +37,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    Configuration masterConf = mLocalAlluxioClusterResource.get().getMasterConf();
-    mUnderfsAddress = masterConf.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR, masterConf);
+    mUnderfsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
 
   /**
    * Tests that an empty file can be created.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void createEmptyTest() throws IOException {
@@ -56,8 +53,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests that a file can be created and validates the data written to it.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void createOpenTest() throws IOException {
@@ -71,8 +66,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests a file can be deleted.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void deleteFileTest() throws IOException {
@@ -86,8 +79,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests an empty directory can be deleted.
    * Tests a non empty directory will not be deleted if recursive is not specified.
    * Tests a non empty directory will be deleted if recursive is specified.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void deleteDirTest() throws IOException {
@@ -120,8 +111,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests exists correctly returns true if the file exists and false if it does not.
    * Tests exists correctly returns true if the dir exists and false if it does not.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void existsTest() throws IOException {
@@ -137,8 +126,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests {@link UnderFileSystem#getFileSize(String)} correctly returns the file size.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void getFileSizeTest() throws IOException {
@@ -152,8 +139,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests {@link UnderFileSystem#getModificationTimeMs(String)} returns a reasonably accurate time.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void getModTimeTest() throws IOException {
@@ -170,8 +155,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests if {@link UnderFileSystem#isFile(String)} correctly returns true for files and false
    * otherwise.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void isFileTest() throws IOException {
@@ -186,8 +169,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests if list correctly returns file names.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void listTest() throws IOException {
@@ -215,8 +196,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests if list recursive correctly returns all file names in all subdirectories.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void listRecursiveTest() throws IOException {
@@ -266,8 +245,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly creates a directory.
    * Tests {@link UnderFileSystem#mkdirs(String, boolean)} correctly makes parent directories if
    * createParent is specified.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void mkdirsTest() throws IOException {
@@ -292,8 +269,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFileTest() throws IOException {
@@ -307,8 +282,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFileToFolderTest() throws IOException {
@@ -325,8 +298,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFolderTest() throws IOException {
@@ -346,8 +317,6 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   /**
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to another folder if
    * supported.
-   *
-   * @throws IOException if a non-Alluxio exception occurs
    */
   @Test
   public void renameFolderToFolderTest() throws IOException {

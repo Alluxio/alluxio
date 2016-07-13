@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -51,19 +51,17 @@ public class ServiceSocketBindIntegrationTest {
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      mLocalAlluxioClusterResource.getTestConf().set(service.getBindHostKey(), bindHost);
+      Configuration.set(service.getBindHostKey(), bindHost);
     }
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    mMasterConfiguration = mLocalAlluxioCluster.getMasterConf();
-    mWorkerConfiguration = mLocalAlluxioCluster.getWorkerConf();
   }
 
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
-    mBlockMasterClient =
-        new BlockMasterClient(new InetSocketAddress(mLocalAlluxioCluster.getMasterHostname(),
-            mLocalAlluxioCluster.getMasterPort()), mMasterConfiguration);
+    mBlockMasterClient = new BlockMasterClient(
+        new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
+            mLocalAlluxioCluster.getMasterPort()));
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
@@ -72,11 +70,11 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker data service
     mWorkerDataService = SocketChannel
-        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA, mWorkerConfiguration));
+        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA));
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB, mMasterConfiguration);
+        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_WEB);
     mMasterWebService =
         (HttpURLConnection) new URL("http://" + masterWebAddr.getAddress().getHostAddress() + ":"
             + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
@@ -84,7 +82,7 @@ public class ServiceSocketBindIntegrationTest {
 
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB, mWorkerConfiguration);
+        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB);
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
             + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
@@ -198,7 +196,7 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
         new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRPCLocalPort());
-    mBlockMasterClient = new BlockMasterClient(masterRPCAddr, mMasterConfiguration);
+    mBlockMasterClient = new BlockMasterClient(masterRPCAddr);
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
@@ -211,6 +209,7 @@ public class ServiceSocketBindIntegrationTest {
       mBlockWorkerClient = BlockStoreContext.INSTANCE
           .acquireWorkerClient(mLocalAlluxioCluster.getWorker().getNetAddress());
       mBlockMasterClient.connect();
+      Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {
       // This is expected, since Work RPC service is NOT listening on loopback.
     }

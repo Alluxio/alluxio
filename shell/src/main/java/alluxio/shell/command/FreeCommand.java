@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.FreeOptions;
 import alluxio.exception.AlluxioException;
@@ -33,11 +32,10 @@ public final class FreeCommand extends WithWildCardPathCommand {
   /**
    * Constructs a new instance to free the given file or folder from Alluxio.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public FreeCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public FreeCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -46,23 +44,19 @@ public final class FreeCommand extends WithWildCardPathCommand {
   }
 
   @Override
-  void runCommand(AlluxioURI path, CommandLine cl) throws IOException {
-    try {
-      FreeOptions options = FreeOptions.defaults().setRecursive(true);
-      mFileSystem.free(path, options);
-      System.out.println(path + " was successfully freed from memory.");
-    } catch (AlluxioException e) {
-      throw new IOException(e.getMessage());
-    }
+  void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
+    FreeOptions options = FreeOptions.defaults().setRecursive(true);
+    mFileSystem.free(path, options);
+    System.out.println(path + " was successfully freed from memory.");
   }
 
   @Override
   public String getUsage() {
-    return "free <file path|folder path>";
+    return "free <path>";
   }
 
   @Override
   public String getDescription() {
-    return "Removes the file or directory(recursively) from Alluxio memory space.";
+    return "Frees the space occupied by a file or a directory in Alluxio.";
   }
 }

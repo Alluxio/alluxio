@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.underfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -65,14 +64,13 @@ public abstract class UnderFileSystemCluster {
    * Creates an underfs test bed and register the shutdown hook.
    *
    * @param baseDir base directory
-   * @param configuration Alluxio configuration
    * @throws IOException when the operation fails
    * @return an instance of the UnderFileSystemCluster class
    */
-  public static synchronized UnderFileSystemCluster get(String baseDir, Configuration configuration)
+  public static synchronized UnderFileSystemCluster get(String baseDir)
       throws IOException {
     if (sUnderFSCluster == null) {
-      sUnderFSCluster = getUnderFilesystemCluster(baseDir, configuration);
+      sUnderFSCluster = getUnderFilesystemCluster(baseDir);
     }
 
     if (!sUnderFSCluster.isStarted()) {
@@ -87,18 +85,16 @@ public abstract class UnderFileSystemCluster {
    * Gets the {@link UnderFileSystemCluster}.
    *
    * @param baseDir the base directory
-   * @param configuration the configuration for Alluxio
    * @return the {@link UnderFileSystemCluster}
    */
-  public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir,
-      Configuration configuration) {
+  public static UnderFileSystemCluster getUnderFilesystemCluster(String baseDir) {
     sUnderFSClass = System.getProperty(INTEGRATION_UFS_PROFILE_KEY);
 
     if (!StringUtils.isEmpty(sUnderFSClass)) {
       try {
         UnderFileSystemCluster ufsCluster =
-            (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class,
-                Configuration.class).newInstance(baseDir, configuration);
+            (UnderFileSystemCluster) Class.forName(sUnderFSClass).getConstructor(String.class)
+                .newInstance(baseDir);
         System.out.println("Initialized under file system testing cluster of type "
             + ufsCluster.getClass().getCanonicalName() + " for integration testing");
         return ufsCluster;
@@ -109,7 +105,7 @@ public abstract class UnderFileSystemCluster {
       }
     }
     System.out.println("Using default LocalFilesystemCluster for integration testing");
-    return new LocalFileSystemCluster(baseDir, configuration);
+    return new LocalFileSystemCluster(baseDir);
   }
 
   /**
@@ -122,15 +118,11 @@ public abstract class UnderFileSystemCluster {
 
   protected String mBaseDir;
 
-  protected final Configuration mConfiguration;
-
   /**
    * @param baseDir the base directory
-   * @param configuration the configuration for Alluxio
    */
-  public UnderFileSystemCluster(String baseDir, Configuration configuration) {
+  public UnderFileSystemCluster(String baseDir) {
     mBaseDir = baseDir;
-    mConfiguration = configuration;
   }
 
   /**
@@ -144,7 +136,7 @@ public abstract class UnderFileSystemCluster {
   public void cleanup() throws IOException {
     if (isStarted()) {
       String path = getUnderFilesystemAddress() + AlluxioURI.SEPARATOR;
-      UnderFileSystem ufs = UnderFileSystem.get(path, mConfiguration);
+      UnderFileSystem ufs = UnderFileSystem.get(path);
       for (String p : ufs.list(path)) {
         ufs.delete(PathUtils.concatPath(path, p), true);
       }

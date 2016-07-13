@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,10 +12,8 @@
 package alluxio.worker.block.meta;
 
 import alluxio.util.io.PathUtils;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -41,8 +39,6 @@ public class TempBlockMetaTest {
 
   /**
    * Sets up all dependencies before a test runs.
-   *
-   * @throws Exception if setting up a dependency fails
    */
   @Before
   public void before() throws Exception {
@@ -57,19 +53,12 @@ public class TempBlockMetaTest {
   }
 
   /**
-   * Resets the context of the worker after a test ran.
-   */
-  @After
-  public void after() {
-    WorkerContext.reset();
-  }
-
-  /**
    * Tests the {@link TempBlockMeta#getPath()} method.
    */
   @Test
   public void getPathTest() {
-    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_SESSION_ID, TEST_BLOCK_ID),
+    Assert.assertEquals(PathUtils.concatPath(mTestDirPath, ".tmp_blocks", TEST_SESSION_ID % 1024,
+        String.format("%x-%x", TEST_SESSION_ID, TEST_BLOCK_ID)),
         mTempBlockMeta.getPath());
   }
 

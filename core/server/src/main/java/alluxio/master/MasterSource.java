@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,6 +11,7 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.metrics.source.Source;
 import alluxio.underfs.UnderFileSystem;
@@ -125,6 +126,11 @@ public class MasterSource implements Source {
       mMetricRegistry.counter(MetricRegistry.name(UNMOUNT_OPS));
 
   /**
+   * Constructs a new {@link MasterSource}.
+   */
+  public MasterSource() {}
+
+  /**
    * Registers metric gauges.
    *
    * @param alluxioMaster an Alluxio master handle
@@ -160,8 +166,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -175,8 +181,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);
@@ -190,8 +196,8 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = MasterContext.getConf().get(Constants.UNDERFS_ADDRESS);
-          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder, MasterContext.getConf());
+          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {
           LOG.error(e.getMessage(), e);

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -33,15 +33,18 @@ import javax.annotation.concurrent.ThreadSafe;
 public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  @Override
-  public UnderFileSystem create(String path, Configuration configuration, Object unusedConf) {
-    Preconditions.checkNotNull(path);
-    Preconditions.checkNotNull(configuration);
+  /**
+   * Constructs a new {@link SwiftUnderFileSystemFactory}.
+   */
+  public SwiftUnderFileSystemFactory() {}
 
-    if (addAndCheckSwiftCredentials(configuration)) {
-      AlluxioURI uri = new AlluxioURI(path);
+  @Override
+  public UnderFileSystem create(String path, Object unusedConf) {
+    Preconditions.checkNotNull(path);
+
+    if (addAndCheckSwiftCredentials()) {
       try {
-        return new SwiftUnderFileSystem(uri.getHost(), configuration);
+        return new SwiftUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
         LOG.error("Failed to create SwiftUnderFileSystem.", e);
         throw Throwables.propagate(e);
@@ -54,7 +57,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   @Override
-  public boolean supportsPath(String path, Configuration configuration) {
+  public boolean supportsPath(String path) {
     return path != null && path.startsWith(Constants.HEADER_SWIFT);
   }
 
@@ -62,44 +65,47 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Swift credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @param configuration the Alluxio configuration to check and add credentials to
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckSwiftCredentials(Configuration configuration) {
+  private boolean addAndCheckSwiftCredentials() {
     String tenantApiKeyConf = Constants.SWIFT_API_KEY;
-    if (System.getProperty(tenantApiKeyConf) != null
-        || (configuration.containsKey(tenantApiKeyConf)
-            && configuration.get(tenantApiKeyConf) == null)) {
-      configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
+    if (System.getProperty(tenantApiKeyConf) != null || (Configuration.containsKey(tenantApiKeyConf)
+        && Configuration.get(tenantApiKeyConf) == null)) {
+      Configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
     }
     String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
-    if (System.getProperty(tenantKeyConf) != null
-        || (configuration.containsKey(tenantKeyConf)
-            && configuration.get(tenantKeyConf) == null)) {
-      configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
+    if (System.getProperty(tenantKeyConf) != null || (Configuration.containsKey(tenantKeyConf)
+        && Configuration.get(tenantKeyConf) == null)) {
+      Configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
     }
     String tenantUserConf = Constants.SWIFT_USER_KEY;
-    if (System.getProperty(tenantUserConf) != null
-        || (configuration.containsKey(tenantUserConf)
-            && configuration.get(tenantUserConf) == null)) {
-      configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
+    if (System.getProperty(tenantUserConf) != null || (Configuration.containsKey(tenantUserConf)
+        && Configuration.get(tenantUserConf) == null)) {
+      Configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
     }
     String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
-    if (System.getProperty(tenantAuthURLKeyConf) != null
-        || (configuration.containsKey(tenantAuthURLKeyConf)
-            && configuration.get(tenantAuthURLKeyConf) == null)) {
-      configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
+    if (System.getProperty(tenantAuthURLKeyConf) != null || (
+        Configuration.containsKey(tenantAuthURLKeyConf)
+            && Configuration.get(tenantAuthURLKeyConf) == null)) {
+      Configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
     }
     String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
-    if (System.getProperty(authMethodKeyConf) != null
-        || (configuration.containsKey(authMethodKeyConf)
-            && configuration.get(authMethodKeyConf) == null)) {
-      configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+    if (System.getProperty(authMethodKeyConf) != null || (
+        Configuration.containsKey(authMethodKeyConf)
+            && Configuration.get(authMethodKeyConf) == null)) {
+      Configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+    }
+    String passwordKeyConf = Constants.SWIFT_PASSWORD_KEY;
+    if (System.getProperty(passwordKeyConf) != null || (Configuration.containsKey(passwordKeyConf)
+        && Configuration.get(passwordKeyConf) == null)) {
+      Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
 
-    return configuration.get(tenantApiKeyConf) != null
-        && configuration.get(tenantKeyConf) != null
-        && configuration.get(tenantAuthURLKeyConf) != null
-        && configuration.get(tenantUserConf) != null;
+    return ((Configuration.containsKey(tenantApiKeyConf)
+        && Configuration.get(tenantApiKeyConf) != null) || (
+        Configuration.containsKey(passwordKeyConf) && Configuration.get(passwordKeyConf) != null))
+        && Configuration.get(tenantKeyConf) != null
+        && Configuration.get(tenantAuthURLKeyConf) != null
+        && Configuration.get(tenantUserConf) != null;
   }
 }

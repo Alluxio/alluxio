@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -56,11 +56,11 @@ public final class BlockDataServerHandler {
   /** An object storing the mapping of tier aliases to ordinals. */
   private final StorageTierAssoc mStorageTierAssoc;
 
-  BlockDataServerHandler(BlockWorker worker, Configuration configuration) {
+  BlockDataServerHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(configuration);
-    mTransferType = configuration.getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE,
-        FileTransferType.class);
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
+    mTransferType = Configuration
+        .getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**
@@ -81,6 +81,7 @@ public final class BlockDataServerHandler {
     final long sessionId = req.getSessionId();
 
     BlockReader reader;
+    DataBuffer buffer;
     try {
       reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
     } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
@@ -91,11 +92,13 @@ public final class BlockDataServerHandler {
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
-      RPCBlockReadResponse resp = new RPCBlockReadResponse(blockId, offset, readLength,
-          getDataBuffer(req, reader, readLength), RPCResponse.Status.SUCCESS);
+      buffer = getDataBuffer(req, reader, readLength);
+      RPCBlockReadResponse resp =
+          new RPCBlockReadResponse(blockId, offset, readLength, buffer, RPCResponse.Status.SUCCESS);
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       future.addListener(new ClosableResourceChannelListener(reader));
+      future.addListener(new ReleasableResourceChannelListener(buffer));
       mWorker.accessBlock(sessionId, blockId);
       LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {

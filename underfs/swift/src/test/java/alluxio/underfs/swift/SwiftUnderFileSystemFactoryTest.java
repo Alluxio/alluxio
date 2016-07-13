@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,7 +11,6 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -28,12 +27,8 @@ public class SwiftUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
-    UnderFileSystemFactory factory =
-        UnderFileSystemRegistry.find("swift://localhost/test/path", conf);
-    UnderFileSystemFactory factory2 =
-        UnderFileSystemRegistry.find("file://localhost/test/path", conf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("swift://localhost/test/path");
+    UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://localhost/test/path");
 
     Assert.assertNotNull("A UnderFileSystemFactory should exist for swift paths when using this "
         + "module", factory);

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -14,8 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.ValidateConf;
-import alluxio.Version;
+import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -23,6 +22,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
@@ -45,6 +45,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
@@ -62,27 +64,34 @@ public class AlluxioMaster {
   private static AlluxioMaster sAlluxioMaster = null;
 
   /**
-   * Starts the Alluxio master server via {@code java -cp <ALLUXIO-VERSION> alluxio.Master}.
+   * Starts the Alluxio master.
    *
-   * @param args there are no arguments used
+   * @param args command line arguments, should be empty
    */
   public static void main(String[] args) {
     if (args.length != 0) {
-      LOG.info("java -cp {} alluxio.Master", Version.ALLUXIO_JAR);
+      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
+          AlluxioMaster.class.getCanonicalName());
       System.exit(-1);
     }
 
-    // validate the conf
-    if (!ValidateConf.validate()) {
+    // validate the configuration
+    if (!ConfigurationUtils.validateConf()) {
       LOG.error("Invalid configuration found");
       System.exit(-1);
     }
 
+    AlluxioMaster master = get();
     try {
-      AlluxioMaster master = get();
       master.start();
     } catch (Exception e) {
-      LOG.error("Uncaught exception terminating Master", e);
+      LOG.error("Uncaught exception while running Alluxio master, stopping it and exiting.", e);
+      try {
+        master.stop();
+      } catch (Exception e2) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping Alluxio master, simply exiting.", e2);
+      }
       System.exit(-1);
     }
   }
@@ -179,7 +188,7 @@ public class AlluxioMaster {
     if (sServiceNames != null) {
       return sServiceNames;
     }
-    sServiceNames = Lists.newArrayList();
+    sServiceNames = new ArrayList<>();
     sServiceNames.add(Constants.BLOCK_MASTER_NAME);
     sServiceNames.add(Constants.FILE_SYSTEM_MASTER_NAME);
     sServiceNames.add(Constants.LINEAGE_MASTER_NAME);
@@ -204,7 +213,7 @@ public class AlluxioMaster {
      *         otherwise, return {@link AlluxioMaster}.
      */
     public static AlluxioMaster create() {
-      if (MasterContext.getConf().getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
         return new FaultTolerantAlluxioMaster();
       }
       return new AlluxioMaster();
@@ -214,10 +223,8 @@ public class AlluxioMaster {
   }
 
   protected AlluxioMaster() {
-    Configuration conf = MasterContext.getConf();
-
-    mMinWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = conf.getInt(Constants.MASTER_WORKER_THREADS_MAX);
+    mMinWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
         Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
@@ -229,27 +236,27 @@ public class AlluxioMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      if (!conf.getBoolean(Constants.IN_TEST_MODE)) {
-        Preconditions.checkState(conf.getInt(Constants.MASTER_RPC_PORT) > 0,
-            "Master rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(conf.getInt(Constants.MASTER_WEB_PORT) > 0,
-            "Master web port is only allowed to be zero in test mode.");
+      if (!Configuration.getBoolean(Constants.IN_TEST_MODE)) {
+        Preconditions.checkState(Configuration.getInt(Constants.MASTER_RPC_PORT) > 0,
+            "Alluxio master rpc port is only allowed to be zero in test mode.");
+        Preconditions.checkState(Configuration.getInt(Constants.MASTER_WEB_PORT) > 0,
+            "Alluxio master web port is only allowed to be zero in test mode.");
       }
-      mTransportProvider = TransportProvider.Factory.create(conf);
+      mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket =
-          new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC, conf));
+          new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
-      conf.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
-      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC, conf);
+      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
+      mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check the journal directory
-      String journalDirectory = conf.get(Constants.MASTER_JOURNAL_FOLDER);
+      String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
       Preconditions.checkState(isJournalFormatted(journalDirectory),
-          "Alluxio was not formatted! The journal folder is " + journalDirectory);
+          "Alluxio master was not formatted! The journal folder is " + journalDirectory);
 
       // Create the journals.
       mBlockMasterJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(journalDirectory));
@@ -260,11 +267,11 @@ public class AlluxioMaster {
 
       mBlockMaster = new BlockMaster(mBlockMasterJournal);
       mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
-      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+      if (LineageUtils.isLineageEnabled()) {
         mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
       }
 
-      mAdditionalMasters = Lists.newArrayList();
+      mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
         Master master = factory.create(masters, journalDirectory);
@@ -274,7 +281,7 @@ public class AlluxioMaster {
       }
 
       MasterContext.getMasterSource().registerGauges(this);
-      mMasterMetricsSystem = new MetricsSystem("master", MasterContext.getConf());
+      mMasterMetricsSystem = new MetricsSystem("master");
       mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
@@ -331,6 +338,13 @@ public class AlluxioMaster {
   }
 
   /**
+   * @return other additional {@link Master}s
+   */
+  public List<Master> getAdditionalMasters() {
+    return Collections.unmodifiableList(mAdditionalMasters);
+  }
+
+  /**
    * @return internal {@link FileSystemMaster}
    */
   public FileSystemMaster getFileSystemMaster() {
@@ -382,13 +396,13 @@ public class AlluxioMaster {
    */
   public void stop() throws Exception {
     if (mIsServing) {
-      LOG.info("Stopping RPC server on Alluxio Master @ {}", mMasterAddress);
+      LOG.info("Stopping RPC server on Alluxio master @ {}", mMasterAddress);
       stopServing();
       stopMasters();
       mTServerSocket.close();
       mIsServing = false;
     } else {
-      LOG.info("Stopping Alluxio Master @ {}", mMasterAddress);
+      LOG.info("Stopping Alluxio master @ {}", mMasterAddress);
     }
   }
 
@@ -398,7 +412,7 @@ public class AlluxioMaster {
 
       mBlockMaster.start(isLeader);
       mFileSystemMaster.start(isLeader);
-      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+      if (LineageUtils.isLineageEnabled()) {
         mLineageMaster.start(isLeader);
       }
       // start additional masters
@@ -414,7 +428,7 @@ public class AlluxioMaster {
 
   protected void stopMasters() {
     try {
-      if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+      if (LineageUtils.isLineageEnabled()) {
         mLineageMaster.stop();
       }
       // stop additional masters
@@ -436,17 +450,16 @@ public class AlluxioMaster {
   protected void startServing(String startMessage, String stopMessage) {
     mMasterMetricsSystem.start();
     startServingWebServer();
-    LOG.info("Alluxio Master version {} started @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} started @ {} {}", RuntimeConstants.VERSION, mMasterAddress,
         startMessage);
     startServingRPCServer();
-    LOG.info("Alluxio Master version {} ended @ {} {}", Version.VERSION, mMasterAddress,
+    LOG.info("Alluxio master version {} ended @ {} {}", RuntimeConstants.VERSION, mMasterAddress,
         stopMessage);
   }
 
   protected void startServingWebServer() {
-    Configuration conf = MasterContext.getConf();
     mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB, conf), this, conf);
+        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
 
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
@@ -465,7 +478,7 @@ public class AlluxioMaster {
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
     registerServices(processor, mBlockMaster.getServices());
     registerServices(processor, mFileSystemMaster.getServices());
-    if (LineageUtils.isLineageEnabled(MasterContext.getConf())) {
+    if (LineageUtils.isLineageEnabled()) {
       registerServices(processor, mLineageMaster.getServices());
     }
     // register additional masters for RPC service
@@ -485,7 +498,7 @@ public class AlluxioMaster {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (MasterContext.getConf().getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -514,13 +527,12 @@ public class AlluxioMaster {
   /**
    * Checks to see if the journal directory is formatted.
    *
-   * @param journalDirectory The journal directory to check
+   * @param journalDirectory the journal directory to check
    * @return true if the journal directory was formatted previously, false otherwise
    * @throws IOException if an I/O error occurs
    */
   private boolean isJournalFormatted(String journalDirectory) throws IOException {
-    Configuration conf = MasterContext.getConf();
-    UnderFileSystem ufs = UnderFileSystem.get(journalDirectory, conf);
+    UnderFileSystem ufs = UnderFileSystem.get(journalDirectory);
     if (!ufs.providesStorage()) {
       // TODO(gene): Should the journal really be allowed on a ufs without storage?
       // This ufs doesn't provide storage. Allow the master to use this ufs for the journal.
@@ -532,7 +544,7 @@ public class AlluxioMaster {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = conf.get(Constants.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = Configuration.get(Constants.MASTER_FORMAT_FILE_PREFIX);
     for (String file : files) {
       if (file.startsWith(formatFilePrefix)) {
         return true;
@@ -542,10 +554,9 @@ public class AlluxioMaster {
   }
 
   private void connectToUFS() throws IOException {
-    Configuration conf = MasterContext.getConf();
-    String ufsAddress = conf.get(Constants.UNDERFS_ADDRESS);
-    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress, conf);
-    ufs.connectFromMaster(conf, NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, conf));
+    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
+    ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
 
   /**

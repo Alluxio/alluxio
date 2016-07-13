@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -41,8 +41,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#convertToFolderName(String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void convertToFolderNameTest() throws Exception {
@@ -54,8 +52,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#getChildName(String, String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void getChildNameTest() throws Exception {
@@ -79,8 +75,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#getParentKey(String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void getParentKeyTest() throws Exception {
@@ -101,8 +95,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#isRoot(String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void isRootTest() throws Exception {
@@ -129,8 +121,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void stripFolderSuffixIfPresentTest() throws Exception {
@@ -151,8 +141,6 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Tests the {@link OSSUnderFileSystem#stripPrefixIfPresent(String)} method.
-   *
-   * @throws Exception if the Whitebox fails
    */
   @Test
   public void stripPrefixIfPresentTest() throws Exception {

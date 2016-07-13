@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,12 +11,9 @@
 
 package alluxio.master.file.options;
 
-import alluxio.master.MasterContext;
-import alluxio.security.authorization.PermissionStatus;
+import alluxio.security.authorization.Permission;
 
 import com.google.common.base.Objects;
-
-import java.io.IOException;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -29,15 +26,16 @@ import javax.annotation.concurrent.NotThreadSafe;
 public abstract class CreatePathOptions<T> {
   protected boolean mMountPoint;
   protected long mOperationTimeMs;
-  protected PermissionStatus mPermissionStatus;
+  protected Permission mPermission;
   protected boolean mPersisted;
+  // TODO(peis): Rename this to mCreateAncestors.
   protected boolean mRecursive;
   protected boolean mMetadataLoad;
 
-  protected CreatePathOptions() throws IOException {
+  protected CreatePathOptions() {
     mMountPoint = false;
     mOperationTimeMs = System.currentTimeMillis();
-    mPermissionStatus = PermissionStatus.get(MasterContext.getConf(), true);
+    mPermission = Permission.defaults();
     mPersisted = false;
     mRecursive = false;
     mMetadataLoad = false;
@@ -60,10 +58,10 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @return the permission status
+   * @return the permission
    */
-  public PermissionStatus getPermissionStatus() {
-    return mPermissionStatus;
+  public Permission getPermission() {
+    return mPermission;
   }
 
   /**
@@ -108,11 +106,11 @@ public abstract class CreatePathOptions<T> {
   }
 
   /**
-   * @param permissionStatus the permission status to use
+   * @param permission the permission to use
    * @return the updated options object
    */
-  public T setPermissionStatus(PermissionStatus permissionStatus) {
-    mPermissionStatus = permissionStatus;
+  public T setPermission(Permission permission) {
+    mPermission = permission;
     return getThis();
   }
 
@@ -146,9 +144,34 @@ public abstract class CreatePathOptions<T> {
     return getThis();
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof CreatePathOptions)) {
+      return false;
+    }
+    CreatePathOptions<?> that = (CreatePathOptions<?>) o;
+    return Objects.equal(mMountPoint, that.mMountPoint)
+        && Objects.equal(mPermission, that.mPermission)
+        && Objects.equal(mPersisted, that.mPersisted)
+        && Objects.equal(mRecursive, that.mRecursive)
+        && Objects.equal(mMetadataLoad, that.mMetadataLoad);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mMountPoint, mPermission, mPersisted, mRecursive, mMetadataLoad);
+  }
+
   protected Objects.ToStringHelper toStringHelper() {
-    return Objects.toStringHelper(this).add("mountPoint", mMountPoint)
-        .add("operationTimeMs", mOperationTimeMs).add("persisted", mPersisted)
-        .add("recursive", mRecursive).add("permissionStatus", mPermissionStatus);
+    return Objects.toStringHelper(this)
+        .add("mountPoint", mMountPoint)
+        .add("operationTimeMs", mOperationTimeMs)
+        .add("permissionStatus", mPermission)
+        .add("persisted", mPersisted)
+        .add("recursive", mRecursive)
+        .add("metadataLoad", mMetadataLoad);
   }
 }

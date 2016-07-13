@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,15 +11,10 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorker;
-import alluxio.worker.WorkerContext;
 
 import java.io.IOException;
 
@@ -62,16 +57,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the hostname of the master
+   * @return the hostname of the cluster
    */
-  public String getMasterHostname() {
+  public String getHostname() {
     return mHostname;
   }
 
   /**
    * @return the URI of the master
    */
-  public String getMasterUri() {
+  public String getMasterURI() {
     return mMaster.getUri();
   }
 
@@ -97,13 +92,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the configuration for Alluxio
-   */
-  public Configuration getWorkerConf() {
-    return mWorkerConf;
-  }
-
-  /**
    * @return the address of the worker
    */
   public WorkerNetAddress getWorkerAddress() {
@@ -111,37 +99,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startMaster(Configuration testConf) throws IOException {
-    mMasterConf = new Configuration(testConf.getInternalProperties());
-    MasterContext.reset(mMasterConf);
-
+  protected void startMaster() throws IOException {
     mMaster = LocalAlluxioMaster.create(mHome);
     mMaster.start();
-
-    // Update the test conf with actual RPC port.
-    testConf.set(Constants.MASTER_RPC_PORT, String.valueOf(getMasterPort()));
-
-    // We need to update client context with the most recent configuration so they know the correct
-    // port to connect to master.
-    ClientContext.getConf().merge(testConf);
-    ClientTestUtils.reinitializeClientContext();
   }
 
   @Override
-  protected void startWorker(Configuration conf) throws IOException, ConnectionFailedException {
+  protected void startWorker() throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    mWorkerConf = new Configuration(conf.getInternalProperties());
-    WorkerContext.reset(mWorkerConf);
-
     runWorker();
-  }
-
-  @Override
-  protected void resetContext() {
-    MasterContext.reset();
-    WorkerContext.reset();
-    ClientTestUtils.resetClientContext();
   }
 
   @Override

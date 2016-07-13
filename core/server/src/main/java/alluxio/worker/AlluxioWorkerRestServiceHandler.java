@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -11,10 +11,11 @@
 
 package alluxio.worker;
 
-import alluxio.Version;
+import alluxio.Configuration;
+import alluxio.RestUtils;
+import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
-import alluxio.util.FormatUtils;
 import alluxio.worker.block.BlockStoreMeta;
 
 import com.codahale.metrics.Counter;
@@ -25,6 +26,7 @@ import com.qmino.miredot.annotations.ReturnType;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -42,9 +44,12 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioWorkerRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioWorkerRestServiceHandler {
+  private static final String ALLUXIO_CONF_PREFIX = "alluxio";
+
   public static final String SERVICE_PREFIX = "worker";
   public static final String GET_RPC_ADDRESS = "rpc_address";
   public static final String GET_CAPACITY_BYTES = "capacity_bytes";
+  public static final String GET_CONFIGURATION = "configuration";
   public static final String GET_USED_BYTES = "used_bytes";
   public static final String GET_CAPACITY_BYTES_ON_TIERS = "capacity_bytes_on_tiers";
   public static final String GET_USED_BYTES_ON_TIERS = "used_bytes_on_tiers";
@@ -58,6 +63,30 @@ public final class AlluxioWorkerRestServiceHandler {
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
 
   /**
+   * Constructs a new {@link AlluxioWorkerRestServiceHandler}.
+   */
+  public AlluxioWorkerRestServiceHandler() {}
+
+  /**
+   * @summary get the configuration map, the keys are ordered alphabetically.
+   * @return the response object
+   */
+  @GET
+  @Path(GET_CONFIGURATION)
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
+  public Response getConfiguration() {
+    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
+    SortedMap<String, String> configuration = new TreeMap<>();
+    for (Map.Entry<String, String> entry : properties) {
+      String key = entry.getKey();
+      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+        configuration.put(key, entry.getValue());
+      }
+    }
+    return RestUtils.createResponse(configuration);
+  }
+
+  /**
    * @summary get the address of the worker
    * @return the response object
    */
@@ -65,8 +94,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(mWorker.getWorkerAddress().toString())).build();
+    return RestUtils.createResponse(mWorker.getWorkerAddress().toString());
   }
 
   /**
@@ -77,7 +105,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_CAPACITY_BYTES)
   @ReturnType("java.lang.Long")
   public Response getCapacityBytes() {
-    return Response.ok(mStoreMeta.getCapacityBytes()).build();
+    return RestUtils.createResponse(mStoreMeta.getCapacityBytes());
   }
 
   /**
@@ -88,13 +116,12 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_USED_BYTES)
   @ReturnType("java.lang.Long")
   public Response getUsedBytes() {
-    return Response.ok(mStoreMeta.getUsedBytes()).build();
+    return RestUtils.createResponse(mStoreMeta.getUsedBytes());
   }
 
   private Comparator<String> getTierAliasComparator() {
     return new Comparator<String>() {
-      private WorkerStorageTierAssoc mTierAssoc = new WorkerStorageTierAssoc(
-          WorkerContext.getConf());
+      private WorkerStorageTierAssoc mTierAssoc = new WorkerStorageTierAssoc();
 
       @Override
       public int compare(String tier1, String tier2) {
@@ -118,13 +145,13 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_CAPACITY_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getCapacityBytesOnTiers() {
     SortedMap<String, Long> capacityBytesOnTiers = new TreeMap<>(getTierAliasComparator());
     for (Map.Entry<String, Long> tierBytes : mStoreMeta.getCapacityBytesOnTiers().entrySet()) {
       capacityBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
     }
-    return Response.ok(capacityBytesOnTiers).build();
+    return RestUtils.createResponse(capacityBytesOnTiers);
   }
 
   /**
@@ -134,13 +161,13 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_USED_BYTES_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getUsedBytesOnTiers() {
     SortedMap<String, Long> usedBytesOnTiers = new TreeMap<>(getTierAliasComparator());
     for (Map.Entry<String, Long> tierBytes : mStoreMeta.getUsedBytesOnTiers().entrySet()) {
       usedBytesOnTiers.put(tierBytes.getKey(), tierBytes.getValue());
     }
-    return Response.ok(usedBytesOnTiers).build();
+    return RestUtils.createResponse(usedBytesOnTiers);
   }
 
   /**
@@ -149,11 +176,11 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_DIRECTORY_PATHS_ON_TIERS)
-  @ReturnType("java.util.SortedMap<String, java.util.List<String>>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.util.List<java.lang.String>>")
   public Response getDirectoryPathsOnTiers() {
     SortedMap<String, List<String>> tierToDirPaths = new TreeMap<>(getTierAliasComparator());
     tierToDirPaths.putAll(mStoreMeta.getDirectoryPathsOnTiers());
-    return Response.ok(tierToDirPaths).build();
+    return RestUtils.createResponse(tierToDirPaths);
   }
 
   /**
@@ -164,8 +191,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_VERSION)
   @ReturnType("java.lang.String")
   public Response getVersion() {
-    // Need to encode the string as JSON because Jackson will not do it automatically.
-    return Response.ok(FormatUtils.encodeJson(Version.VERSION)).build();
+    return RestUtils.createResponse(RuntimeConstants.VERSION);
   }
 
   /**
@@ -176,7 +202,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_START_TIME_MS)
   @ReturnType("java.lang.Long")
   public Response getStartTimeMs() {
-    return Response.ok(mWorker.getStartTimeMs()).build();
+    return RestUtils.createResponse(mWorker.getStartTimeMs());
   }
 
   /**
@@ -187,7 +213,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_UPTIME_MS)
   @ReturnType("java.lang.Long")
   public Response getUptimeMs() {
-    return Response.ok(mWorker.getUptimeMs()).build();
+    return RestUtils.createResponse(mWorker.getUptimeMs());
   }
 
   /**
@@ -196,7 +222,7 @@ public final class AlluxioWorkerRestServiceHandler {
    */
   @GET
   @Path(GET_METRICS)
-  @ReturnType("java.util.SortedMap<String, Long>")
+  @ReturnType("java.util.SortedMap<java.lang.String, java.lang.Long>")
   public Response getMetrics() {
     MetricRegistry metricRegistry = mWorker.getWorkerMetricsSystem().getMetricRegistry();
 
@@ -218,6 +244,6 @@ public final class AlluxioWorkerRestServiceHandler {
     }
     metrics.put(blocksCachedProperty, blocksCached.getValue().longValue());
 
-    return Response.ok(metrics).build();
+    return RestUtils.createResponse(metrics);
   }
 }

@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -49,10 +48,9 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
    * Creates a instance of {@link FileSystemMasterClient}.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public FileSystemMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public FileSystemMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

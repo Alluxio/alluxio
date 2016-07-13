@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -42,7 +42,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("()", null));
     testCases.add(new TestCase("(null)", new Object[] {null}));
     testCases.add(new TestCase("()", new Object[] {""}));
@@ -74,7 +74,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0})));
     testCases.add(new TestCase("", ByteBuffer.wrap(new byte[] {0, 0})));
@@ -115,7 +115,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ms.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ms.$", "Task B"));
 
@@ -145,7 +145,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("^Task A took (.*) ns.$", "Task A"));
     testCases.add(new TestCase("^Task B took (.*) ns.$", "Task B"));
 
@@ -175,7 +175,7 @@ public class FormatUtilsTest {
       }
     }
 
-    List<TestCase> testCases = new LinkedList<TestCase>();
+    List<TestCase> testCases = new LinkedList<>();
     testCases.add(new TestCase("4.00B", 1L << 2));
     testCases.add(new TestCase("8.00B", 1L << 3));
     testCases.add(new TestCase("4096.00B", 1L << 12));
@@ -240,19 +240,19 @@ public class FormatUtilsTest {
   }
 
   /**
-   * Tests the {@link FormatUtils#formatPermission(short, boolean)} method.
+   * Tests the {@link FormatUtils#formatMode(short, boolean)} method.
    */
   @Test
-  public void convertPermissionTest() {
-    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatPermission((short) 0666, false));
-    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatPermission((short) 0666, true));
-    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatPermission((short) 0777, false));
-    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatPermission((short) 0777, true));
-    Assert.assertEquals("-r--r--r--", FormatUtils.formatPermission((short) 0444, false));
-    Assert.assertEquals("dr--r--r--", FormatUtils.formatPermission((short) 0444, true));
-    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatPermission((short) 0555, false));
-    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatPermission((short) 0555, true));
-    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatPermission((short) 0754, false));
-    Assert.assertEquals("drwxr-xr--", FormatUtils.formatPermission((short) 0754, true));
+  public void formatPermissionTest() {
+    Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false));
+    Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true));
+    Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false));
+    Assert.assertEquals("drwxrwxrwx", FormatUtils.formatMode((short) 0777, true));
+    Assert.assertEquals("-r--r--r--", FormatUtils.formatMode((short) 0444, false));
+    Assert.assertEquals("dr--r--r--", FormatUtils.formatMode((short) 0444, true));
+    Assert.assertEquals("-r-xr-xr-x", FormatUtils.formatMode((short) 0555, false));
+    Assert.assertEquals("dr-xr-xr-x", FormatUtils.formatMode((short) 0555, true));
+    Assert.assertEquals("-rwxr-xr--", FormatUtils.formatMode((short) 0754, false));
+    Assert.assertEquals("drwxr-xr--", FormatUtils.formatMode((short) 0754, true));
   }
 }

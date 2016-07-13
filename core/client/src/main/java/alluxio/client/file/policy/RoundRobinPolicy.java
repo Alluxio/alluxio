@@ -1,6 +1,6 @@
 /*
  * The Alluxio Open Foundation licenses this work under the Apache License, version 2.0
- * (the “License”). You may not use this work except in compliance with the License, which is
+ * (the "License"). You may not use this work except in compliance with the License, which is
  * available at www.apache.org/licenses/LICENSE-2.0
  *
  * This software is distributed on an "AS IS" basis, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND,
@@ -13,6 +13,8 @@ package alluxio.client.file.policy;
 
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.wire.WorkerNetAddress;
+
+import com.google.common.base.Objects;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,6 +30,11 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
   private List<BlockWorkerInfo> mWorkerInfoList;
   private int mIndex;
   private boolean mInitialized = false;
+
+  /**
+   * Constructs a new {@link RoundRobinPolicy}.
+   */
+  public RoundRobinPolicy() {}
 
   /**
    * The policy uses the first fetch of worker info list as the base, and visits each of them in a
@@ -74,5 +81,33 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RoundRobinPolicy)) {
+      return false;
+    }
+    RoundRobinPolicy that = (RoundRobinPolicy) o;
+    return Objects.equal(mWorkerInfoList, that.mWorkerInfoList)
+        && Objects.equal(mIndex, that.mIndex)
+        && Objects.equal(mInitialized, that.mInitialized);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(mWorkerInfoList, mIndex, mInitialized);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("workerInfoList", mWorkerInfoList)
+        .add("index", mIndex)
+        .add("initialized", mInitialized)
+        .toString();
   }
 }
