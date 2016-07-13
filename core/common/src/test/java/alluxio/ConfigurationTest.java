@@ -114,6 +114,7 @@ public class ConfigurationTest {
   private static enum TestEnum {
     VALUE
   }
+
   @Test
   public void getEnum() {
     Configuration.set("key", "VALUE");
