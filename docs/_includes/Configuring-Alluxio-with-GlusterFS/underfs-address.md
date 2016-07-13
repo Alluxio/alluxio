@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=/alluxio_vol
+ALLUXIO_UNDERFS_ADDRESS=/mnt/gluster
 ```
