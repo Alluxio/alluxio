@@ -2,7 +2,7 @@
 layout: global
 title: 在集群上独立运行Alluxio
 nickname: 在集群上独立运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 2
 ---
 
