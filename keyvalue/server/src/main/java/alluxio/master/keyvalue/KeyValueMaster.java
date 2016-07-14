@@ -13,6 +13,7 @@ package alluxio.master.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -84,7 +85,7 @@ public final class KeyValueMaster extends AbstractMaster {
    * @param journal a {@link Journal} to write journal entries to
    */
   public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, 2);
+    super(journal, 2, new SystemClock());
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
