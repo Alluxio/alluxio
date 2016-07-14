@@ -138,7 +138,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   private StorageTierAssoc mGlobalStorageTierAssoc;
 
-  /** All worker information. */
+  /** Keeps track of workers which are in communication with the master. */
   private final IndexedSet<MasterWorkerInfo> mWorkers =
       new IndexedSet<>(ID_INDEX, ADDRESS_INDEX);
   /** Keeps track of workers which are no longer in communication with the master. */
