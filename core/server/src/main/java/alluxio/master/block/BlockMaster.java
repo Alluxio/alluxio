@@ -115,8 +115,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * must be locked before the block metadata ({@link MasterBlockInfo}).
    *
    * It should not be the case that multiple worker metadata must be locked at the same time, or
-   * multiple block metadata must be locked at the same time. Operations involving multiple
-   * workers or multiple blocks should be able to be performed independently.
+   * multiple block metadata must be locked at the same time. Operations involving different
+   * workers or different blocks should be able to be performed independently.
    */
 
   // Block metadata management.
