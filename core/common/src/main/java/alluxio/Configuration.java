@@ -162,16 +162,6 @@ public final class Configuration {
   }
 
   /**
-   * Merges the current configuration properties with another one. A property from the new
-   * configuration wins if it also appears in the current configuration.
-   *
-   * @param alternateConf The source {@link Configuration} to be merged
-   */
-  public static void merge(Configuration alternateConf) {
-    merge(alternateConf.toMap());
-  }
-
-  /**
    * Merges the current configuration properties with alternate properties. A property from the new
    * configuration wins if it also appears in the current configuration.
    *
