@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio with Fault Tolerance on EC2
 nickname: Alluxio on EC2 with Fault Tolerance
-group: User Guide
+group: Deploying Alluxio
 priority: 4
 ---
 

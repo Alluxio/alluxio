@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Standalone with Fault Tolerance
 nickname: Alluxio Standalone with Fault Tolerance
-group: User Guide
+group: Deploying Alluxio
 priority: 3
 ---
 
