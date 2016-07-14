@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
@@ -51,8 +50,7 @@ public final class TouchCommand extends AbstractShellCommand {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
 
-    mFileSystem.createFile(inputPath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)).close();
+    mFileSystem.createFile(inputPath, CreateFileOptions.defaults()).close();
     System.out.println(inputPath + " has been created");
   }
 
