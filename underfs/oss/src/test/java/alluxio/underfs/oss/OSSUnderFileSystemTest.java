@@ -120,26 +120,6 @@ public class OSSUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link OSSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   */
-  @Test
-  public void stripFolderSuffixIfPresentTest() throws Exception {
-    String input1 = "oss://test-bucket/";
-    String input2 = "oss://test-bucket/dir/file";
-    String input3 = "oss://test-bucket/dir_$folder$";
-    String result1 =
-        Whitebox.invokeMethod(mMockOSSUnderFileSystem, "stripFolderSuffixIfPresent", input1);
-    String result2 =
-        Whitebox.invokeMethod(mMockOSSUnderFileSystem, "stripFolderSuffixIfPresent", input2);
-    String result3 =
-        Whitebox.invokeMethod(mMockOSSUnderFileSystem, "stripFolderSuffixIfPresent", input3);
-
-    Assert.assertEquals("oss://test-bucket/", result1);
-    Assert.assertEquals("oss://test-bucket/dir/file", result2);
-    Assert.assertEquals("oss://test-bucket/dir", result3);
-  }
-
-  /**
    * Tests the {@link OSSUnderFileSystem#stripPrefixIfPresent(String)} method.
    */
   @Test
