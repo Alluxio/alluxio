@@ -97,11 +97,9 @@ public class BlockMasterTest {
     mMaster.stop();
   }
 
-  /**
-   * Tests that byte counts are correctly summed across workers and tiers.
-   */
   @Test
-  public void countBytesTest() throws Exception {
+  public void countBytes() throws Exception {
+    // Register two workers
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
     List<String> tiers = Arrays.asList("MEM", "SSD");
@@ -110,10 +108,10 @@ public class BlockMasterTest {
     Map<String, Long> worker1Used = ImmutableMap.of("MEM", 1L, "SSD", 2L);
     Map<String, Long> worker2Used = ImmutableMap.of("MEM", 100L, "SSD", 200L);
     Map<String, List<Long>> noExistingBlocks = new HashMap<>();
-
     mMaster.workerRegister(worker1, tiers, worker1Capacity, worker1Used, noExistingBlocks);
     mMaster.workerRegister(worker2, tiers, worker2Capacity, worker2Used, noExistingBlocks);
 
+    // Check that byte counts are summed correctly.
     Assert.assertEquals(3030, mMaster.getCapacityBytes());
     Assert.assertEquals(303L, mMaster.getUsedBytes());
     Assert.assertEquals(ImmutableMap.of("MEM", 1010L, "SSD", 2020L),
@@ -123,13 +121,15 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void detectLostWorkersTest() throws Exception {
+  public void detectLostWorkers() throws Exception {
+    // Register a worker.
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     mMaster.workerRegister(worker1,
         ImmutableList.of("MEM"),
         ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 10L),
         ImmutableMap.<String, List<Long>> of());
+
     // Advance the block master's clock by an hour so that worker appears lost.
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
@@ -146,14 +146,16 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void workerReregisterTest() throws Exception {
+  public void workerReregisterRemembersLostWorker() throws Exception {
+    // Register a worker.
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     mMaster.workerRegister(worker1,
         ImmutableList.of("MEM"),
         ImmutableMap.of("MEM", 100L),
         ImmutableMap.of("MEM", 10L),
         ImmutableMap.<String, List<Long>> of());
-    // Advance the block master's clock by an hour so that worker appears lost.
+
+    // Advance the block master's clock by an hour so that the worker appears lost.
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
@@ -171,7 +173,9 @@ public class BlockMasterTest {
         ImmutableMap.of("MEM", 10L),
         ImmutableMap.<String, List<Long>> of());
 
+    // Check that there are no longer any lost workers and there is a live worker.
     Assert.assertEquals(1, mMaster.getWorkerCount());
+    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
   }
 
   /**
