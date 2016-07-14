@@ -20,14 +20,14 @@ For example, if you are running Alluxio on your local machine, `ALLUXIO_MASTER_H
 
 {% include Configuring-Alluxio-with-GlusterFS/bootstrapConf.md %}
 
-Alternatively, you can also create the configuration file from the template and set the contents manually. 
+Alternatively, you can also create the configuration file from the template and set the contents manually.
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
 # Configuring Alluxio
 
 Assuming the GlusterFS bricks are co-located with Alluxio nodes, the GlusterFS volume is mounted at
-`/alluxio_vol`, the following environment variable assignment needs to be added to 
+`/mnt/gluster`, the following environment variable assignment needs to be added to
 `conf/alluxio-env.sh`:
 
 {% include Configuring-Alluxio-with-GlusterFS/underfs-address.md %}

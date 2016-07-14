@@ -72,6 +72,7 @@ public final class Constants {
 
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
+  public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
@@ -160,6 +161,12 @@ public final class Constants {
   public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
   public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
       "alluxio.underfs.s3.upload.threads.max";
+  public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
+      "alluxio.underfs.s3a.secure.http.enabled";
+  public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
+      "alluxio.underfs.s3a.server.side.encryption.enabled";
+  public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+      "alluxio.underfs.s3a.socket.timeout.ms";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
@@ -407,8 +414,12 @@ public final class Constants {
   public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
   public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
 
-  public static final String S3_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
-  public static final String S3_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+  public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
+  public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+
+  // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
+  public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
+  public static final String S3A_SECRET_KEY = "aws.secretKey";
 
   public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
   public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";

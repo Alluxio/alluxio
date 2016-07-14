@@ -133,7 +133,6 @@ public final class S3UnderFileSystemTest {
         Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input2);
     String result3 =
         Whitebox.invokeMethod(mMockS3UnderFileSystem, "stripFolderSuffixIfPresent", input3);
-
     Assert.assertEquals("s3n://test-bucket/", result1);
     Assert.assertEquals("s3n://test-bucket/dir/file", result2);
     Assert.assertEquals("s3n://test-bucket/dir", result3);

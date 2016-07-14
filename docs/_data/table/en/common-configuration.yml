@@ -56,6 +56,12 @@ alluxio.underfs.s3.upload.threads.max:
   The maximum number of threads to use for uploading data to S3 for multipart uploads. These
   operations can be fairly expensive, however having too many threads may cause bandwidth starvation
   for some threads causing errors. The default value is 2.
+alluxio.underfs.s3a.secure.http.enabled:
+  Whether or not to use HTTPS protocol when communicating with s3. The default value is false.
+alluxio.underfs.s3a.server.side.encryption.enabled:
+  Whether or not to encrypt data stored in s3. The default value is false.
+alluxio.underfs.s3a.socket.timeout.ms:
+  Length of the socket timeout when communicating with s3. The default value is 50000.
 alluxio.web.resources:
   Path to the web application resources.
 alluxio.web.threads:

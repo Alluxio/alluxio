@@ -235,9 +235,9 @@ public class IndexedSetTest {
       Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, i).size());
     }
     try {
-      mSet.add(new Pair(1 , 9L));
+      mSet.add(new Pair(1, 9L));
     } catch (IllegalStateException e) {
-      Assert.assertTrue(true);
+      Assert.fail();
     }
     Assert.assertEquals(10, mSet.size());
     Assert.assertEquals(4, mSet.getByField(mNonUniqueIntIndex, 1).size());
@@ -249,13 +249,116 @@ public class IndexedSetTest {
    */
   @Test
   public void iteratorRemoveTest() {
-    Iterator<Pair> it =  mSet.iterator();
+    long removed = 0;
+    Iterator<Pair> it = mSet.iterator();
     Assert.assertTrue(it.hasNext());
     final Pair first = it.next();
-    Set<Pair> allWithSameIntValue = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertTrue("Element should be in the set", allWithSameIntValue.contains(first));
+
+    Set<Pair> valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
+    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+
+    valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
+    Assert.assertTrue("Element should be in the set", valueSet.contains(first));
+
     it.remove();
-    allWithSameIntValue = mSet.getByField(mNonUniqueIntIndex, first.intValue());
-    Assert.assertFalse("Element should not be in the set", allWithSameIntValue.contains(first));
+    removed++;
+    valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
+    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+
+    valueSet = mSet.getByField(mUniqueLongIndex, first.longValue());
+    Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
+  }
+
+  /**
+   * Tests that foreach works correctly with the iterator gathered by
+   * {@link IndexedSet#iterator()} method.
+   */
+  @Test
+  public void iteratorForeachTest() {
+    long removed = 0;
+    Iterator<Pair> it = mSet.iterator();
+    Assert.assertTrue(it.hasNext());
+    final Pair first = it.next();
+
+    it.remove();
+    removed++;
+
+    while (it.hasNext()) {
+      it.next();
+      it.remove();
+      removed++;
+    }
+    Assert.assertEquals(9L, removed);
+    Assert.assertEquals(0, mSet.size());
+
+    for (Pair o : mSet) {
+      Assert.fail();
+    }
+
+    long l = 0;
+    for (int i = 0; i < 3; i++) {
+      Assert.assertFalse(mSet.contains(mNonUniqueIntIndex, i));
+      for (int k = 0; k < 3; k++) {
+        Assert.assertFalse(mSet.contains(mUniqueLongIndex, l++));
+      }
+    }
+  }
+
+  /**
+   * Tests that next works correctly with the iterator gathered by {@link IndexedSet#iterator()}
+   * method.
+   */
+  @Test
+  public void iteratorNextTest() {
+    Iterator<Pair> it = mSet.iterator();
+    int intSum = 0;
+    int expectedIntSum = 0;
+    long longSum = 0;
+    long expectedLongSum = 0;
+
+    try {
+      long l = 0;
+      for (int i = 0; i < 3; i++) {
+        for (int k = 0; k < 3; k++) {
+          Pair pair = it.next();
+          intSum += pair.intValue();
+          longSum += pair.longValue();
+          expectedIntSum += i;
+          expectedLongSum += l++;
+        }
+      }
+    } catch (Exception e) {
+      Assert.fail();
+    }
+
+    Assert.assertEquals(expectedIntSum, intSum);
+    Assert.assertEquals(expectedLongSum, longSum);
+
+    Assert.assertFalse(it.hasNext());
+  }
+
+  /**
+   * Tests that hasNext works correctly with the iterator gathered by {@link IndexedSet#iterator()}
+   * method.
+   */
+  @Test
+  public void iteratorhasNextTest() {
+    Iterator<Pair> it = mSet.iterator();
+    long size = mSet.size();
+    try {
+      for (int i = 0; i < size * 2; i++) {
+        Assert.assertTrue(it.hasNext());
+      }
+      for (int i = 0; i < 3; i++) {
+        for (int k = 0; k < 3; k++) {
+          it.next();
+        }
+      }
+      for (int i = 0; i < size; i++) {
+        Assert.assertFalse(it.hasNext());
+      }
+    } catch (Exception e) {
+      Assert.fail();
+    }
   }
 }

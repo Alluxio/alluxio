@@ -89,6 +89,12 @@ function bootstrapConf {
       ALLUXIO_UNDERFS_ADDRESS="hdfs://localhost:9000/alluxio/"
       ;;
     s3)
+      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
+      ;;
+    s3a)
+      ALLUXIO_UNDERFS_ADDRESS="s3a://bucket/directory/"
+      ;;
+    s3n)
       ALLUXIO_UNDERFS_ADDRESS="s3n://bucket/directory/"
       ;;
     gcs)
@@ -240,7 +246,7 @@ function main {
           # if ufs is local filesystem and already exists
           exit 0
         else
-          declare -a schemes=(hdfs s3 s3n glusterfs swift oss gcs)
+          declare -a schemes=(hdfs s3 s3a s3n glusterfs swift oss gcs)
           for scheme in ${schemes[@]}; do
             if [[ ${ALLUXIO_UNDERFS_ADDRESS} == ${scheme}://* ]]; then
               # if ufs is not local filesystem, don't format

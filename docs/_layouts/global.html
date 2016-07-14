@@ -55,15 +55,7 @@
                 </div>
             </a>
             <ul class="nav">
-                {% if page.group == "Home" %}
-                    <li class="active"><a>{{page.title}}</a></li>
-                {% else %}
-                    {% assign overviewPage = site.pages | where:'group',"Home" | where:'lang',page.lang %}
-                    <!-- overviewPage only has one element -->
-                    <li><a href="index.html">{{overviewPage[0].title}}</a></li>
-                {% endif %}
-
-                {% assign categories = "User Guide|Features|Frameworks|Under Store|Resources" | split: "|" %}
+                {% assign categories = "User Guide|Deploying Alluxio|Features|Frameworks|Under Store|Resources" | split: "|" %}
                 {% for groupName in categories %}
                     <li class="dropdown">
                         {% if page.group == groupName %}

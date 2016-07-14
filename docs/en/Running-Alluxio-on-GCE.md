@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio on GCE
 nickname: Alluxio on GCE
-group: User Guide
+group: Deploying Alluxio
 priority: 4
 ---
 

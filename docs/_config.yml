@@ -6,7 +6,7 @@ kramdown:
 
 # These allow the documentation to be updated with new releases of Alluxio.
 ALLUXIO_RELEASED_VERSION: 1.1.1
-ALLUXIO_MASTER_VERSION_SHORT: 1.1.1
+ALLUXIO_MASTER_VERSION_SHORT: 1.2.0-RC1
 
 # These attach the pages of different languages with different 'lang' attributes
 defaults:
@@ -40,6 +40,10 @@ categoryInfo:
     en: User Guides
     cn: 用户指南
     pt: Guias do Usuário
+  Deploying Alluxio:
+    en: Deploying Alluxio
+    cn: 部署Alluxio
+    pt: Deploying Alluxio
   Features:
     en: Features
     cn: 特性
