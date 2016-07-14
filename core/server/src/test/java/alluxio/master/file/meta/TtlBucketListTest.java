@@ -15,10 +15,10 @@ import alluxio.master.file.options.CreateFileOptions;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 
@@ -40,28 +40,20 @@ public class TtlBucketListTest {
       InodeFile.create(1, 0, "ignored", CreateFileOptions.defaults().setTtl(BUCKET1_END - 1));
   private static final InodeFile BUCKET2_FILE =
       InodeFile.create(2, 0, "ignored", CreateFileOptions.defaults().setTtl(BUCKET2_START));
-  private static long sOldTtlIntervalMs;
 
   private TtlBucketList mBucketList;
+
+  @ClassRule
+  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(BUCKET_INTERVAL);
 
   /**
    * Sets up the TTL interval before a single test runs.
    */
   @BeforeClass
   public static void beforeClass() {
-    sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
-    TtlBucketPrivateAccess.setTtlIntervalMs(BUCKET_INTERVAL);
     Whitebox.setInternalState(BUCKET1_FILE1, "mCreationTimeMs", 0);
     Whitebox.setInternalState(BUCKET1_FILE2, "mCreationTimeMs", 0);
     Whitebox.setInternalState(BUCKET2_FILE, "mCreationTimeMs", 0);
-  }
-
-  /**
-   * Resets the TTL interval after all test ran.
-   */
-  @AfterClass
-  public static void afterClass() {
-    TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
   /**
