@@ -104,7 +104,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Concurrency and locking in the BlockMaster
    *
-   * The block master uses concurrent data structures, to allow non-conflicting concurrent access.
+   * The block master uses concurrent data structures to allow non-conflicting concurrent access.
    * This means each piece of metadata should be locked individually. There are two types of
    * metadata in the {@link BlockMaster}; {@link MasterBlockInfo} and {@link MasterWorkerInfo}.
    * Individual objects must be locked before modifying the object, or reading a modifiable field
@@ -123,7 +123,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /** Blocks on all workers, including active and lost blocks. This state must be journaled. */
   private final ConcurrentHashMap<Long, MasterBlockInfo>
       mBlocks = new ConcurrentHashMap<>(8192, 0.90f, 64);
-  /** Keeps track of block which are no longer in Alluxio storage. */
+  /** Keeps track of blocks which are no longer in Alluxio storage. */
   private final ConcurrentHashSet<Long> mLostBlocks = new ConcurrentHashSet<>(64, 0.90f, 64);
 
   /** This state must be journaled. */
@@ -315,7 +315,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Removes blocks from workers.
    *
    * @param blockIds a list of block ids to remove from Alluxio space
-   * @param delete whether to delete blocks metadata in Master
+   * @param delete whether to delete blocks' metadata in Master
    */
   public void removeBlocks(List<Long> blockIds, boolean delete) {
     for (long blockId : blockIds) {
