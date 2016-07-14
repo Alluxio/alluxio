@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Standalone em um Cluster
 nickname: Alluxio Standalone em um Cluster
-group: User Guide
+group: Deploying Alluxio
 priority: 2
 ---
 

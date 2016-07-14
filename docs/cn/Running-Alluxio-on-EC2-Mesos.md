@@ -2,7 +2,7 @@
 layout: global
 title: 在EC2上使用Mesos运行Alluxio
 nickname: 在EC2上使用Mesos运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 4
 ---
 
