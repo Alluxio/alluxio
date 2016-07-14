@@ -313,14 +313,19 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
 
-    if (!foundSelf && children.size() == 0) {
-      if (mSimulationMode && isDirectory(path)) {
-        // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
-        // so we need the extra isDirectory call
-        return new String[0];
+    if (!foundSelf) {
+      if (mSimulationMode) {
+        if (children.size() != 0 || isDirectory(path)) {
+          // In simulation mode, the JOSS listDirectory call does not return the prefix itself,
+          // so we need the extra isDirectory call
+          foundSelf = true;
+        }
       }
-      // Path does not exist
-      return null;
+
+      if (!foundSelf) {
+        // Path does not exist
+        return null;
+      }
     }
 
     return children.toArray(new String[children.size()]);
