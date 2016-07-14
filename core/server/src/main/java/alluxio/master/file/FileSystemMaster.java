@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -237,7 +238,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param journal the journal to use for tracking master operations
    */
   public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    super(journal, 2);
+    super(journal, 2, new SystemClock());
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

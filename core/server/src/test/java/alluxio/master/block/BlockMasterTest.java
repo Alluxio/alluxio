@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.clock.TestClock;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
@@ -61,6 +62,7 @@ public class BlockMasterTest {
 
   private BlockMaster mMaster;
   private PrivateAccess mPrivateAccess;
+  private TestClock mClock;
 
   /** Rule to create a new temporary folder during each test. */
   @Rule
@@ -80,7 +82,8 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    mMaster = new BlockMaster(blockJournal);
+    mClock = new TestClock();
+    mMaster = new BlockMaster(blockJournal, mClock);
     mMaster.start(true);
     mPrivateAccess = new PrivateAccess(mMaster);
   }
@@ -94,32 +97,27 @@ public class BlockMasterTest {
   }
 
   /**
-   * Tests the different different byte methods of the {@link BlockMaster}.
+   * Tests that byte counts are correctly summed across workers and tiers.
    */
   @Test
   public void countBytesTest() throws Exception {
-    Assert.assertEquals(0L, mMaster.getCapacityBytes());
-    Assert.assertEquals(0L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of(), mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of(), mMaster.getUsedBytesOnTiers());
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
-    addWorker(mMaster, worker1, Arrays.asList("MEM", "SSD", "HDD"),
-        ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
-        ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L));
-    Assert.assertEquals(330L, mMaster.getCapacityBytes());
-    Assert.assertEquals(80L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 100L, "SSD", 200L, "HDD", 30L),
+    List<String> tiers = Arrays.asList("MEM", "SSD");
+    Map<String, Long> worker1Capacity = ImmutableMap.of("MEM", 10L, "SSD", 20L);
+    Map<String, Long> worker2Capacity = ImmutableMap.of("MEM", 1000L, "SSD", 2000L);
+    Map<String, Long> worker1Used = ImmutableMap.of("MEM", 1L, "SSD", 2L);
+    Map<String, Long> worker2Used = ImmutableMap.of("MEM", 100L, "SSD", 200L);
+    Map<String, List<Long>> noExistingBlocks = new HashMap<>();
+
+    mMaster.workerRegister(worker1, tiers, worker1Capacity, worker1Used, noExistingBlocks);
+    mMaster.workerRegister(worker2, tiers, worker2Capacity, worker2Used, noExistingBlocks);
+
+    Assert.assertEquals(3030, mMaster.getCapacityBytes());
+    Assert.assertEquals(303L, mMaster.getUsedBytes());
+    Assert.assertEquals(ImmutableMap.of("MEM", 1010L, "SSD", 2020L),
         mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 20L, "SSD", 50L, "HDD", 10L),
-        mMaster.getUsedBytesOnTiers());
-    addWorker(mMaster, worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 500L),
-        ImmutableMap.of("MEM", 300L));
-    Assert.assertEquals(830L, mMaster.getCapacityBytes());
-    Assert.assertEquals(380L, mMaster.getUsedBytes());
-    Assert.assertEquals(ImmutableMap.of("MEM", 600L, "SSD", 200L, "HDD", 30L),
-        mMaster.getTotalBytesOnTiers());
-    Assert.assertEquals(ImmutableMap.of("MEM", 320L, "SSD", 50L, "HDD", 10L),
+    Assert.assertEquals(ImmutableMap.of("MEM", 101L, "SSD", 202L),
         mMaster.getUsedBytesOnTiers());
   }
 

@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -65,13 +66,17 @@ public abstract class AbstractMaster implements Master {
   /** The {@link AsyncJournalWriter} for async journal writes. */
   private AsyncJournalWriter mAsyncJournalWriter = null;
 
+  /** The clock to use for determining the time. */
+  protected final Clock mClock;
+
   /**
    * @param journal the journal to use for tracking master operations
    * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
    */
-  protected AbstractMaster(Journal journal, int numThreads) {
+  protected AbstractMaster(Journal journal, int numThreads, Clock clock) {
     mJournal = Preconditions.checkNotNull(journal);
     mNumThreads = numThreads;
+    mClock = clock;
   }
 
   @Override

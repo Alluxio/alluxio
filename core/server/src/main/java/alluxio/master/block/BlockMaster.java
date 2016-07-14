@@ -40,7 +40,6 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
-import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -50,6 +49,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.apache.hadoop.yarn.util.SystemClock;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,7 +173,17 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param journal the journal to use for tracking master operations
    */
   public BlockMaster(Journal journal) {
-    super(journal, 2);
+    super(journal, 2, new SystemClock());
+  }
+
+  /**
+   * Creates a new instance of {@link BlockMaster}.
+   *
+   * @param journal the journal to use for tracking master operations
+   * @param clock the clock to use for determining the time
+   */
+  public BlockMaster(Journal journal, Clock clock) {
+    super(journal, 2, clock);
   }
 
   @Override
@@ -571,13 +581,13 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   }
 
   /**
-   * Returns a worker id for the given worker.
+   * Returns a worker id for the given worker, creating one if the worker is new.
    *
    * @param workerNetAddress the worker {@link WorkerNetAddress}
    * @return the worker id for this worker
    */
   public long getWorkerId(WorkerNetAddress workerNetAddress) {
-    // TODO(gpang): This NetAddress cloned in case thrift re-uses the object. Does thrift re-use it?
+    //TODO(gpang): Clone WorkerNetAddress in case thrift re-uses the object. Does thrift re-use it?
     MasterWorkerInfo existingWorker = mWorkers.getFirstByField(ADDRESS_INDEX, workerNetAddress);
     if (existingWorker != null) {
       // This worker address is already mapped to a worker id.
@@ -806,7 +816,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
       int masterWorkerTimeoutMs = Configuration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
       for (MasterWorkerInfo worker : mWorkers) {
         synchronized (worker) {
-          final long lastUpdate = CommonUtils.getCurrentMs() - worker.getLastUpdatedTimeMs();
+          final long lastUpdate = mClock.millis() - worker.getLastUpdatedTimeMs();
           if (lastUpdate > masterWorkerTimeoutMs) {
             LOG.error("The worker {} timed out after {}ms without a heartbeat!", worker,
                 lastUpdate);
