@@ -654,7 +654,10 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return the key without the gcs bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    key = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
+    }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
 }
