@@ -41,6 +41,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   };
 
+  @SuppressWarnings("unchecked")
   private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<Inode<?>>(mNameIndex);
 
   private boolean mMountPoint;
