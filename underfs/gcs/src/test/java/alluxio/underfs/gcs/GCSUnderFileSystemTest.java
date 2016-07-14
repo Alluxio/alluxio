@@ -120,26 +120,6 @@ public final class GCSUnderFileSystemTest {
   }
 
   /**
-   * Tests the {@link GCSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   */
-  @Test
-  public void stripFolderSuffixIfPresentTest() throws Exception {
-    String input1 = "gs://test-bucket/";
-    String input2 = "gs://test-bucket/dir/file";
-    String input3 = "gs://test-bucket/dir_$folder$";
-    String result1 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input1);
-    String result2 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input2);
-    String result3 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input3);
-
-    Assert.assertEquals("gs://test-bucket/", result1);
-    Assert.assertEquals("gs://test-bucket/dir/file", result2);
-    Assert.assertEquals("gs://test-bucket/dir", result3);
-  }
-
-  /**
    * Tests the {@link GCSUnderFileSystem#stripPrefixIfPresent(String)} method.
    */
   @Test
