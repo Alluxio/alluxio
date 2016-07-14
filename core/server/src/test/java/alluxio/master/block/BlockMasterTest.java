@@ -11,7 +11,7 @@
 
 package alluxio.master.block;
 
-import alluxio.clock.TestClock;
+import alluxio.Constants;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
@@ -31,6 +31,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.junit.After;
 import org.junit.Assert;
@@ -121,48 +122,56 @@ public class BlockMasterTest {
         mMaster.getUsedBytesOnTiers());
   }
 
-  /**
-   * Tests the {@link BlockMaster#getLostWorkersInfo()} method.
-   */
   @Test
-  public void getLostWorkersInfoTest() {
-    MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(1, NET_ADDRESS_1);
-    MasterWorkerInfo workerInfo2 = new MasterWorkerInfo(2, NET_ADDRESS_2);
-    mPrivateAccess.addLostWorker(workerInfo1);
-    Assert.assertEquals(ImmutableSet.of(workerInfo1.generateClientWorkerInfo()),
-        mMaster.getLostWorkersInfo());
-    mPrivateAccess.addLostWorker(workerInfo2);
+  public void detectLostWorkersTest() throws Exception {
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        ImmutableMap.<String, List<Long>> of());
+    // Advance the block master's clock by an hour so that worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
-    final Set<WorkerInfo> expected = ImmutableSet.of(workerInfo1.generateClientWorkerInfo(),
-        workerInfo2.generateClientWorkerInfo());
+    // Run the lost worker detector.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
 
-    Assert.assertEquals(expected, mMaster.getLostWorkersInfo());
+    // Make sure the worker is detected as lost.
+    Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
+    Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
   }
 
-  /**
-   * Tests that after {@link PrivateAccess#addLostWorker(MasterWorkerInfo)} a worker can be
-   * registered via {@link BlockMaster#workerRegister(long, List, Map, Map, Map)}.
-   */
   @Test
-  public void registerLostWorkerTest() throws Exception {
-    final WorkerNetAddress na = NET_ADDRESS_1;
-    final long expectedId = 1;
-    final MasterWorkerInfo workerInfo1 = new MasterWorkerInfo(expectedId, na);
+  public void workerReregisterTest() throws Exception {
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        ImmutableMap.<String, List<Long>> of());
+    // Advance the block master's clock by an hour so that worker appears lost.
+    mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
-    workerInfo1.addBlock(1L);
-    mPrivateAccess.addLostWorker(workerInfo1);
-    final long workerId = mMaster.getWorkerId(na);
-    Assert.assertEquals(expectedId, workerId);
+    // Run the lost worker detector.
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
+    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
+    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
+        TimeUnit.SECONDS));
 
-    final List<Long> blocks = ImmutableList.of(42L);
-    mMaster.workerRegister(workerId, Arrays.asList("MEM"), ImmutableMap.of("MEM", 1024L),
-        ImmutableMap.of("MEM", 1024L), ImmutableMap.of("MEM", blocks));
+    // Reregister the worker.
+    mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1,
+        ImmutableList.of("MEM"),
+        ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 10L),
+        ImmutableMap.<String, List<Long>> of());
 
-    final Set<Long> expectedBlocks = ImmutableSet.of(42L);
-    final Set<Long> actualBlocks = workerInfo1.getBlocks();
-
-    Assert.assertEquals("The master should reflect the blocks declared at registration",
-        expectedBlocks, actualBlocks);
+    Assert.assertEquals(1, mMaster.getWorkerCount());
   }
 
   /**
@@ -309,54 +318,6 @@ public class BlockMasterTest {
   }
 
   /**
-   * Tests the {@link HeartbeatContext#MASTER_LOST_WORKER_DETECTION} to detect a lost worker.
-   */
-  @Test
-  public void detectLostWorkerTest() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 5, TimeUnit.SECONDS);
-
-    // Get a new worker id.
-    long workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-    MasterWorkerInfo workerInfo = mPrivateAccess.getWorkerById(workerId);
-    Assert.assertNotNull(workerInfo);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // No workers should be considered lost.
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Set the last updated time for the worker to be definitely too old, so it is considered lost.
-    // TODO(andrew): Create a src/test PublicAccess to MasterWorkerInfo internals and replace this
-    Whitebox.setInternalState(workerInfo, "mLastUpdatedTimeMs", 0);
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // There should be a lost worker.
-    Assert.assertEquals(1, mMaster.getLostWorkersInfo().size());
-    Assert.assertNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Get the worker id again, simulating the lost worker re-registering.
-    workerId = mMaster.getWorkerId(NET_ADDRESS_1);
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-
-    // Run the lost worker detector.
-    HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
-
-    // No workers should be considered lost.
-    Assert.assertEquals(0, mMaster.getLostWorkersInfo().size());
-    Assert.assertNotNull(mPrivateAccess.getWorkerById(workerId));
-  }
-
-  /**
    * Tests the {@link BlockMaster#stop()} method.
    */
   @Test
@@ -381,23 +342,12 @@ public class BlockMasterTest {
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
     private final IndexDefinition<MasterWorkerInfo> mIdIndex;
-    private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 
     PrivateAccess(BlockMaster blockMaster) {
       mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
       mIdIndex = Whitebox.getInternalState(BlockMaster.class, "ID_INDEX");
-      mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
       mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
-    }
-
-    /**
-     * @param worker a {@link MasterWorkerInfo} to add to the list of lost workers
-     */
-    private void addLostWorker(MasterWorkerInfo worker) {
-      synchronized (mWorkers) {
-        mLostWorkers.add(worker);
-      }
     }
 
     /**
