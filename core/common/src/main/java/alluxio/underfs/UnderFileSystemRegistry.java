@@ -74,10 +74,8 @@ public final class UnderFileSystemRegistry {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static boolean sInit = false;
 
-  /**
-   * Constructs a new {@link UnderFileSystemRegistry}.
-   */
-  public UnderFileSystemRegistry() {}
+  // prevent instantiation
+  private UnderFileSystemRegistry() {}
 
   static {
     // Call the actual initializer which is a synchronized method for thread safety purposes

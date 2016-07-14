@@ -606,7 +606,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
+          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
             children.add(child);
@@ -670,20 +670,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     }
     String parentKey = getParentKey(key);
     return parentKey != null && isFolder(parentKey);
-  }
-
-  /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
   }
 
   /**
