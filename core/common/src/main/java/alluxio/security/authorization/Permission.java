@@ -46,9 +46,9 @@ public final class Permission {
    * @param mode the {@link Mode}
    */
   public Permission(String owner, String group, Mode mode) {
-    Preconditions.checkNotNull(owner, ExceptionMessage.OWNER_IS_NULL.getMessage());
-    Preconditions.checkNotNull(group, ExceptionMessage.GROUP_IS_NULL.getMessage());
-    Preconditions.checkNotNull(mode, ExceptionMessage.MODE_IS_NULL.getMessage());
+    Preconditions.checkNotNull(owner, "Owner cannot be null when constructing Permission");
+    Preconditions.checkNotNull(group, "Group cannot be null when constructing Permission");
+    Preconditions.checkNotNull(mode, "Mode cannot be null when constructing Permission");
     mOwner = owner;
     mGroup = group;
     mMode = mode;
