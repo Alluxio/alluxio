@@ -48,10 +48,13 @@ Next, you need to specify the Google credentials for GCS access. In `conf/alluxi
 Here, `<GCS_ACCESS_KEY_ID>` and `<GCS_SECRET_ACCESS_KEY>` should be replaced with your actual
 [GCS interoperable storage access keys](https://console.cloud.google.com/storage/settings),
 or other environment variables that contain your credentials.
-
 Note: GCS interoperability is disabled by default. Please click on the Interoperability tab
 in [GCS setting](https://console.cloud.google.com/storage/settings) and enable this feature.
 Then click on `Create a new key` to get the Access Key and Secret pair.
+
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html#environment-variables).
 
 After these changes, Alluxio should be configured to work with GCS as its under storage system, and
 you can try [Running Alluxio Locally with GCS](#running-alluxio-locally-with-gcs).
@@ -66,7 +69,7 @@ dependency to your application with:
 
 ## Configuring Distributed Applications Runtime
 When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true, 
-which is `false` by default since Alluxio 1.1), you do not have to do any thing special for your applications.
+which is false by default since Alluxio 1.1), you do not have to do any thing special for your applications.
 Otherwise, since you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
 a separate JVM), then you need to make sure that your Google credentials are provided to the
 application JVM processes as well. There are different ways to do this. The first approach is to add them as command line
