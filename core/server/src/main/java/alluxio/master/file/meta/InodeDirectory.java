@@ -33,7 +33,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private final IndexDefinition<Inode<?>> mNameIndex = new IndexDefinition<Inode<?>>(true) {
+  private static final IndexDefinition<Inode<?>> NAME_INDEX = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getName();
@@ -41,7 +41,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(mNameIndex);
+  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(NAME_INDEX);
 
   private boolean mMountPoint;
 
@@ -84,7 +84,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public Inode<?> getChild(String name) {
-    return mChildren.getFirstByField(mNameIndex, name);
+    return mChildren.getFirstByField(NAME_INDEX, name);
   }
 
   /**
@@ -143,7 +143,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    return mChildren.removeByField(mNameIndex, name) == 0;
+    return mChildren.removeByField(NAME_INDEX, name) == 0;
   }
 
   /**
