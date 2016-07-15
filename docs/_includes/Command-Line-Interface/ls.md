@@ -1,5 +1,5 @@
 ```bash
-$ ./bin/alluxio fs mount s3n://data-bucket/ /s3/data
+$ ./bin/alluxio fs mount /s3/data s3n://data-bucket/
 # Loads metadata for all immediate children of /s3/data and lists them.
 $ ./bin/alluxio fs ls /s3/data/
 #
