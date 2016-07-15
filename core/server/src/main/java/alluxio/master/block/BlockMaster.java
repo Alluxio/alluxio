@@ -85,7 +85,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   private static final long CONTAINER_ID_RESERVATION_SIZE = 1000;
 
   // Worker metadata management.
-  static final IndexDefinition<MasterWorkerInfo> ID_INDEX =
+  private static final IndexDefinition<MasterWorkerInfo> ID_INDEX =
       new IndexDefinition<MasterWorkerInfo>(true) {
         @Override
         public Object getFieldValue(MasterWorkerInfo o) {
