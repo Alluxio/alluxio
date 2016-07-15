@@ -388,7 +388,7 @@ public class BlockMasterTest {
 
     PrivateAccess(BlockMaster blockMaster) {
       mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
-      mIdIndex = blockMaster.ID_INDEX;
+      mIdIndex = Whitebox.getInternalState(BlockMaster.class, "ID_INDEX");
       mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
       mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
     }
