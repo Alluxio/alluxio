@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=s3n://S3_BUCKET/S3_DIRECTORY
+alluxio.underfs.address=s3n://S3_BUCKET/S3_DIRECTORY
 ```

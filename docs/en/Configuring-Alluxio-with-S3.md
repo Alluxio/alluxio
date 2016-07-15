@@ -33,9 +33,9 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 
 # Configuring Alluxio
 
-To configure Alluxio to use S3 as its under storage system, modifications to the
-`conf/alluxio-env.sh` file must be made. The first modification is to specify an **existing** S3
-bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-env.sh`
+You need to configure Alluxio to use S3 as its under storage system by modifying
+`conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
+bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-site.properties`
 to include:
 
 {% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
@@ -46,7 +46,7 @@ or
 
 Next, you need to specify the AWS credentials for S3 access.
 
-If you are using s3n, in `conf/alluxio-env.sh`, add:
+If you are using s3n, in `conf/alluxio-site.properties`, add:
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
@@ -113,6 +113,10 @@ When building your application to use Alluxio, your application will have to inc
 dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
+
+Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
+of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path to this site properties file to
+the classpath.
 
 ## Enabling the Hadoop S3 Client (instead of the native S3 client)
 
