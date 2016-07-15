@@ -26,15 +26,15 @@ Alternatively, you can also create the configuration file from the template and 
 
 # Configuring Alluxio
 
-To configure Alluxio to use Swift as its under storage system, modifications to the
-`conf/alluxio-env.sh` file must be made. The first modification is to specify the Swift under
-storage system address. You specify it by modifying `conf/alluxio-env.sh` to include:
+You need to configure Alluxio to use Swift as its under storage system by modifying
+`conf/alluxio-site.properties`. The first modification is to specify the Swift under
+storage system address. You specify it by modifying `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-Swift/underfs-address.md %}
 
 Where `<swift-container>` is an existing Swift container.
 
-The following configuration should be provided in the `conf/alluxio-env.sh`
+The following configuration should be provided in the `conf/alluxio-site.properties`
 
 {% include Configuring-Alluxio-with-Swift/several-configurations.md %}
   	

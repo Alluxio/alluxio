@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=swift://<swift-container>
+alluxio.underfs.address=swift://<swift-container>
 ```
