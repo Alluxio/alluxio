@@ -539,7 +539,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    *
    * @param path the folder path whose children are listed
    * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders in the given path, or null if path does not exist
+   * @return a collection of the files or folders in the given path, or null if path is a file or
+   * does not exist
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
