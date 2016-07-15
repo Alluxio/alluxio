@@ -246,6 +246,8 @@ For example, `ls` can be used to browse the file system.
 
 {% include Command-Line-Interface/ls.md %}
 
+`ls` loads the metadata for immedidate children of a directory.
+
 ## mkdir
 The `mkdir` command creates a new directory in Alluxio space. It is recursive and will create any
 nonexistent parent directories. Note that the created directory will not be created in the under
