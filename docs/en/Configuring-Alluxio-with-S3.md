@@ -120,7 +120,7 @@ The jets3t and aws-sdk s3 clients all have dependencies on common libraries such
 These dependencies are usually not in conflict with other projects, but in cases like using Apache
 MapReduce with the S3A client, conflicting versions may cause issues at runtime. You can avoid this
 problem by enabling ufs delegation `alluxio.user.ufs.delegation.enabled` which delegates client
-operations to the under storage through Alluxio servers. Alternative you can manually resolve the
+operations to the under storage through Alluxio servers. Alternatively you can manually resolve the
 conflicts when generating the map reduce classpath and/or jars, keeping only the highest versions of
 each dependency.
 
