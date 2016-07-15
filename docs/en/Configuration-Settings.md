@@ -45,8 +45,13 @@ Note that, setting Alluxio configuration in this way is application specific and
 
 ## Environment variables
 
-There are a few basic and very frequently used Alluxio configuration properties that can be set via the
-following environment variables:
+> Environment variables are useful to customize configuration of Alluxio when you  
+> [launch Alluxio servers](Running-Alluxio-Locally.html), or [using Alluxio command line interfaces](Command-Line-Interface.html),
+> however, they will not be respected by applications like Spark or MapReduce that use Alluxio as a client. 
+
+
+Alluxio supports a few basic and very frequently used configuration properties via the environment variables in 
+`conf/alluxio-env.sh`, including: 
 
 <table class="table table-striped">
 <tr><th>Environment Variable</th><th>Meaning</th></tr>
@@ -104,13 +109,11 @@ Alternatively, you can create one from a template we provided in the source code
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-
-Note that `conf/alluxio-env.sh` is sourced when you
-[launch Alluxio servers](Running-Alluxio-Locally.html), or [use Alluxio command line interfaces](Command-Line-Interface.html),
-but not for applications.
-
-
 ## Property files
+
+> Alluxio property files need to be put on the application JVM classpath, or the pre-defined paths to take effect. 
+> Once set, property files can be shared across Alluxio servers and those jobs using Alluxio clients.
+
 
 In addition to these environment variables that only provide basic settings, Alluxio also provides a
 more general approach for users to customize all supported configuration properties via property files.
@@ -122,12 +125,17 @@ of `alluxio.site.conf.dir`) and the classpath of the Java VM (in
 which Alluxio is running) in order.
 
 For example, one can copy the site properties template in directory
-`${ALLUXIO_HOME}/conf` to `${HOME}/.alluxio/` and edit it to fit your configuration tuning needs.
+`${ALLUXIO_HOME}/conf` to `/etc/alluxio/` and edit it to fit your configuration tuning needs.
 
 {% include Common-Commands/copy-alluxio-site-properties.md %}
 
+Alternatively, you can append `${ALLUXIO_HOME}/conf/` to your application classpath. For example
 
-Note that, once set, configuration in those property files can be shared across Alluxio servers and those jobs using Alluxio clients.
+```bash
+export SPARK_CLASSPATH=${ALLUXIO_HOME}/conf:${SPARK_CLASSPATH} # for Spark jobs
+export HADOOP_CLASSPATH=${ALLUXIO_HOME}/conf:${HADOOP_CLASSPATH} # for Hadoop jobs
+```
+
 
 # Appendix
 All Alluxio configuration properties fall into one of the six categories:

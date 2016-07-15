@@ -33,11 +33,9 @@ Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
     
-Here, `<OSS_ACCESS_KEY_ID>` ,`<OSS_SECRET_ACCESS_KEY>` should be replaced with your actual [Aliyun keys](https://ak-console.aliyun.com/#/accesskey), or other environment variables that contain your credentials. The `<OSS_ENDPOINT>` for your OSS range you can get [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). 
-
-If you feel not sure about how to change the `conf/alluxio-env.sh`, there is another way to provide these configurations. You can provide a properties config file named : `alluxio-site.properties` in the `conf/` directory, and edit it as below:
-
-{% include Configuring-Alluxio-with-OSS/properties.md %}
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html#environment-variables).
 
 After these changes, Alluxio should be configured to work with OSS as its under storage system, and you can try to run alluxio locally with OSS.
 

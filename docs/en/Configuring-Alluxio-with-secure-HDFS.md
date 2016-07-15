@@ -66,6 +66,10 @@ Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
 
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html).
+
 # Running Alluxio Locally with secure HDFS
 
 After everything is configured, you can start up Alluxio locally to see that everything works.
