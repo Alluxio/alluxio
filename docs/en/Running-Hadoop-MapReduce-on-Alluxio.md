@@ -93,7 +93,8 @@ It may be the case that the under storage library you are using will have depend
 Hadoop. For example using the S3A client to talk to S3 requires higher versions of several libraries
 included in Hadoop. You can resolve this conflict by enabling ufs delegation,
 `alluxio.user.ufs.delegation.enabled=true`, which delegates client operations to the under storage
-through Alluxio servers. Alternatively you can manually resolve the conflicts when generating the
+through Alluxio servers. See [Configuration Settings](Configuration-Settings.html) for how to modify
+the Alluxio configuration. Alternatively you can manually resolve the conflicts when generating the
 MapReduce classpath and/or jars, keeping only the highest versions of each dependency.
 
 # Running Hadoop wordcount with Alluxio Locally
