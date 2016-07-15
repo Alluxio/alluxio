@@ -229,7 +229,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     // Query file or folder using single listing query
     Collection<DirectoryOrObject> objects =
-        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)), true);
+        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)), false);
     return objects != null && objects.size() != 0;
   }
 
@@ -535,18 +535,18 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Lists the files or folders in the path and remove the path itself.
+   * Lists the files or folders in the given path, not including the path itself.
    *
-   * @param path the prefix to match
+   * @param path the folder path whose children are listed
    * @param recursive whether to do a recursive listing
-   * @return a collection of the files or folders matching the prefix, or null if not found
+   * @return a collection of the files or folders in the given path, or null if path does not exist
    * @throws IOException if path is not accessible, e.g. network issues
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
-    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+    String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
     prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
 
-    Collection<DirectoryOrObject> objects = listInternal(prefix, !recursive);
+    Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
     Set<String> children = new HashSet<>();
     final String self = stripFolderSuffixIfPresent(prefix);
     boolean foundSelf = false;
@@ -572,19 +572,19 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * Lists the files or folders which match the given prefix using pagination.
    *
    * @param prefix the prefix to match
-   * @param limit use delimiter
+   * @param recursive whether to do a recursive listing
    * @return a collection of the files or folders matching the prefix, or null if not found
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private Collection<DirectoryOrObject> listInternal(final String prefix, boolean limit)
+  private Collection<DirectoryOrObject> listInternal(final String prefix, boolean recursive)
       throws IOException {
     // TODO(adit): UnderFileSystem interface should be changed to support pagination
     ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
     Container container = mAccount.getContainer(mContainerName);
-    //In case prefix is a directory this is a recursive listing
     PaginationMap paginationMap = container.getPaginationMap(prefix, DIR_PAGE_SIZE);
     for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
-      if (limit) {
+      if (!recursive) {
+        // If not recursive, use delimiter to limit results fetched
         results.addAll(container.listDirectory(paginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
             paginationMap.getMarker(page), paginationMap.getPageSize()));
       } else {
