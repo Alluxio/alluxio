@@ -114,6 +114,16 @@ dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
 
+## Avoiding Conflicting Client Dependencies
+
+The jets3t and aws-sdk s3 clients all have dependencies on common libraries such as HTTP libraries.
+These dependencies are usually not in conflict with other projects, but in cases like using Apache
+MapReduce with the S3A client, conflicting versions may cause issues at runtime. You can avoid this
+problem by enabling ufs delegation `alluxio.user.ufs.delegation.enabled` which delegates client
+operations to the under storage through Alluxio servers. Alternative you can manually resolve the
+conflicts when generating the map reduce classpath and/or jars, keeping only the highest versions of
+each dependency.
+
 ## Enabling the Hadoop S3 Client (instead of the native S3 client)
 
 Alluxio provides a native client to communicate with S3. By default, the native S3 client is used
