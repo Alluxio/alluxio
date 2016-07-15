@@ -31,7 +31,6 @@ import org.javaswift.joss.exception.NotFoundException;
 import org.javaswift.joss.model.Access;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.Container;
-import org.javaswift.joss.model.Directory;
 import org.javaswift.joss.model.DirectoryOrObject;
 import org.javaswift.joss.model.PaginationMap;
 import org.javaswift.joss.model.StoredObject;
@@ -41,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -229,7 +229,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     // Query file or folder using single listing query
     Collection<DirectoryOrObject> objects =
-        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)));
+        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)), true);
     return objects != null && objects.size() != 0;
   }
 
@@ -289,30 +289,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
+  public String[] listRecursive(String path) throws IOException {
+    return listHelper(path, true);
+  }
+
+  @Override
   public String[] list(String path) throws IOException {
-    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
-    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
-
-    Collection<DirectoryOrObject> objects = listInternal(prefix);
-    Set<String> children = new HashSet<>();
-    final String self = stripFolderSuffixIfPresent(prefix);
-    boolean foundSelf = false;
-    for (DirectoryOrObject object : objects) {
-      String child = stripFolderSuffixIfPresent(object.getName());
-      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
-      if (!noPrefix.equals(self)) {
-        children.add(noPrefix);
-      } else {
-        foundSelf = true;
-      }
-    }
-
-    if (!foundSelf) {
-      // Path does not exist
-      return null;
-    }
-
-    return children.toArray(new String[children.size()]);
+    return listHelper(path, false);
   }
 
   @Override
@@ -552,17 +535,63 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Lists the files or folders which match the given prefix.
+   * Lists the files or folders in the path and remove the path itself.
    *
-   * @param prefix the prefix to match
+   * @param path the prefix to match
+   * @param recursive whether to do a recursive listing
    * @return a collection of the files or folders matching the prefix, or null if not found
    * @throws IOException if path is not accessible, e.g. network issues
    */
-  private Collection<DirectoryOrObject> listInternal(final String prefix) throws IOException {
+  private String[] listHelper(String path, boolean recursive) throws IOException {
+    String prefix = addFolderSuffixIfNotPresent(stripContainerPrefixIfPresent(path));
+    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+
+    Collection<DirectoryOrObject> objects = listInternal(prefix, !recursive);
+    Set<String> children = new HashSet<>();
+    final String self = stripFolderSuffixIfPresent(prefix);
+    boolean foundSelf = false;
+    for (DirectoryOrObject object : objects) {
+      String child = stripFolderSuffixIfPresent(object.getName());
+      String noPrefix = CommonUtils.stripPrefixIfPresent(child, prefix);
+      if (!noPrefix.equals(self)) {
+        children.add(noPrefix);
+      } else {
+        foundSelf = true;
+      }
+    }
+
+    if (!foundSelf) {
+      // Path does not exist
+      return null;
+    }
+
+    return children.toArray(new String[children.size()]);
+  }
+
+  /**
+   * Lists the files or folders which match the given prefix using pagination.
+   *
+   * @param prefix the prefix to match
+   * @param limit use delimiter
+   * @return a collection of the files or folders matching the prefix, or null if not found
+   * @throws IOException if path is not accessible, e.g. network issues
+   */
+  private Collection<DirectoryOrObject> listInternal(final String prefix, boolean limit)
+      throws IOException {
     // TODO(adit): UnderFileSystem interface should be changed to support pagination
-    Directory directory = new Directory(prefix, PATH_SEPARATOR_CHAR);
+    ArrayDeque<DirectoryOrObject> results = new ArrayDeque<>();
     Container container = mAccount.getContainer(mContainerName);
-    return container.listDirectory(directory);
+    //In case prefix is a directory this is a recursive listing
+    PaginationMap paginationMap = container.getPaginationMap(prefix, DIR_PAGE_SIZE);
+    for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
+      if (limit) {
+        results.addAll(container.listDirectory(paginationMap.getPrefix(), PATH_SEPARATOR_CHAR,
+            paginationMap.getMarker(page), paginationMap.getPageSize()));
+      } else {
+        results.addAll(container.list(paginationMap, page));
+      }
+    }
+    return results;
   }
 
   /**
