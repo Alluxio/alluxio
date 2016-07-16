@@ -101,6 +101,12 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
       Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
 
+    String swiftSimulationConf = Constants.SWIFT_SIMULATION;
+    if (System.getProperty(swiftSimulationConf) != null
+        && !Configuration.containsKey(swiftSimulationConf)) {
+      Configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
+    }
+
     return ((Configuration.containsKey(tenantApiKeyConf)
         && Configuration.get(tenantApiKeyConf) != null) || (
         Configuration.containsKey(passwordKeyConf) && Configuration.get(passwordKeyConf) != null))

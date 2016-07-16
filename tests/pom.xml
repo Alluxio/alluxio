@@ -329,6 +329,8 @@
                 <!-- Change "container/folder" to contain the testing container  -->
                 <!-- Keep the structure in form container/folder -->
                 <containerKey>swift://container/folder</containerKey>
+                <!-- Whether to run JOSS in simulation mode  -->
+                <simulation>true</simulation>
               </systemPropertyVariables>
             </configuration>
           </plugin>
