@@ -710,7 +710,7 @@ public abstract class UnderFileSystem {
   /**
    * Whether this type of UFS needs the synchronous journaling.
    *
-   * @return true if this type of UFS needs the synchronous journaling, false otherwise.
+   * @return true if this type of UFS needs the synchronous journaling, false otherwise
    */
   public boolean requireSyncJournal() {
     return false;
