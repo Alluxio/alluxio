@@ -109,6 +109,49 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
   }
 
   /**
+   * Tests if delete deletes all files or folders for a large directory.
+   */
+  @Test
+  public void deleteLargeDirectoryTest() throws IOException {
+    String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
+
+    final String filePrefix = "a_";
+    final String folderPrefix = "b_";
+
+    final int numFiles = 1500;
+    final int numFolders = numFiles;
+
+    String[] filePaths = new String[numFiles];
+    String[] folderPaths = new String[numFolders];
+
+    // Make top level directory
+    mUfs.mkdirs(topLevelDirectory, false);
+
+    // Make the children files
+    for (int i = 0; i < numFiles; ++i) {
+      filePaths[i] = PathUtils.concatPath(topLevelDirectory, filePrefix
+          + String.format("%04d", i));
+      createEmptyFile(filePaths[i]);
+    }
+    // Make the children folders
+    for (int i = 0; i < numFolders; ++i) {
+      folderPaths[i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
+          + String.format("%04d", i));
+      mUfs.mkdirs(folderPaths[i], false);
+    }
+
+    mUfs.delete(topLevelDirectory, true);
+
+    for (int i = 0; i < numFiles; ++i) {
+      Assert.assertFalse(mUfs.exists(filePaths[i]));
+    }
+
+    for (int i = numFiles; i < numFolders; ++i) {
+      Assert.assertFalse(mUfs.exists(folderPaths[i - numFiles]));
+    }
+  }
+
+  /**
    * Tests exists correctly returns true if the file exists and false if it does not.
    * Tests exists correctly returns true if the dir exists and false if it does not.
    */
@@ -192,6 +235,46 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
         || Arrays.equals(expectedResTopDir2, resTopDir));
     Assert.assertTrue(mUfs.list(testDirNonEmptyChildDir)[0].equals("testDirNonEmptyChildDirF")
         || mUfs.list(testDirNonEmptyChildDir)[0].equals("/testDirNonEmptyChildDirF"));
+  }
+
+  /**
+   * Tests if list correctly returns file or folder names for a large directory.
+   */
+  @Test
+  public void listLargeDirectoryTest() throws IOException {
+    String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+
+    final String filePrefix = "a_";
+    final String folderPrefix = "b_";
+
+    final int numFiles = 1500;
+    final int numFolders = numFiles;
+
+    // Make top level directory
+    mUfs.mkdirs(topLevelDirectory, false);
+
+    // Make the children files
+    for (int i = 0; i < numFiles; ++i) {
+      createEmptyFile(PathUtils.concatPath(topLevelDirectory, filePrefix
+          + String.format("%04d", i)));
+    }
+    // Make the children folders
+    for (int i = 0; i < numFolders; ++i) {
+      mUfs.mkdirs(PathUtils.concatPath(topLevelDirectory, folderPrefix
+          + String.format("%04d", i)), false);
+    }
+
+    String[] results = mUfs.list(topLevelDirectory);
+    Arrays.sort(results);
+    Assert.assertEquals(results.length, numFiles + numFolders);
+
+    for (int i = 0; i < numFiles; ++i) {
+      Assert.assertTrue(results[i].equals(filePrefix + String.format("%04d", i)));
+    }
+
+    for (int i = numFiles; i < numFolders; ++i) {
+      Assert.assertTrue(results[i].equals(folderPrefix + String.format("%04d", (i - numFiles))));
+    }
   }
 
   /**
