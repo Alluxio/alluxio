@@ -42,13 +42,13 @@ public class SwiftMockOutputStream extends OutputStream {
 
   private final File mFile;
 
-  private OutputStream mOutputStream;
+  private final OutputStream mOutputStream;
 
-  private String mObject;
+  private final String mObjectName;
 
-  private Account mAccount;
+  private final Account mAccount;
 
-  private String mContainerName;
+  private final String mContainerName;
 
   /** Flag to indicate if this stream has been closed, to ensure close is only done once. */
   private boolean mClosed = false;
@@ -66,7 +66,7 @@ public class SwiftMockOutputStream extends OutputStream {
     try {
       mAccount = account;
       mContainerName = containerName;
-      mObject = objectName;
+      mObjectName = objectName;
       mFile = new File(PathUtils.concatPath("/tmp", UUID.randomUUID()));
       mOutputStream  = new BufferedOutputStream(new FileOutputStream(mFile));
     } catch (Exception e) {
@@ -99,7 +99,7 @@ public class SwiftMockOutputStream extends OutputStream {
 
     try {
       Container container = mAccount.getContainer(mContainerName);
-      StoredObject object = container.getObject(mObject);
+      StoredObject object = container.getObject(mObjectName);
       object.uploadObject(mFile);
     } catch (Exception e) {
       throw new IOException();
