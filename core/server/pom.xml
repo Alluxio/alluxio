@@ -158,7 +158,7 @@
       <artifactId>annotations</artifactId>
     </dependency>
 
-    <!--- Dependency for REST annotations -->
+    <!-- Dependency for REST annotations -->
     <dependency>
       <groupId>com.qmino</groupId>
       <artifactId>miredot-annotations</artifactId>
