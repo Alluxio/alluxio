@@ -706,4 +706,13 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract short getMode(String path) throws IOException;
+
+  /**
+   * Whether this type of UFS needs the synchronous journaling.
+   *
+   * @return true if this type of UFS needs the synchronous journaling, false otherwise.
+   */
+  public boolean requireSyncJournal() {
+    return false;
+  }
 }
