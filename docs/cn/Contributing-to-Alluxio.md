@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 参与Alluxio开发
+title: 开发者向导
 nickname: 开发者向导
 group: Resources
 ---
@@ -9,6 +9,10 @@ group: Resources
 {:toc}
 
 感谢您对alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
+
+## 新的贡献者
+
+如果你是一个新的开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
 ### Alluxio初始任务
 
@@ -41,6 +45,8 @@ group: Resources
 ~~~~~
 [ALLUXIO-100] Implement an awesome new feature
 ~~~~~
+
+-   添加一个GitHub标签表明你的修改属于Alluxio的哪个组件，如果你对此不确定，那么就选择包含最多的修改代码的那个组件（组件与根目录下的目录一一对应）。
 
 -   在pull request的描述框中，请添加该JIRA ticket的超链接。
 
@@ -119,24 +125,3 @@ group: Resources
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
     View > Tool Windows > Maven Projects
-
-### 幻灯片介绍
-
--   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
--   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
--   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
--   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
--   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
-
-### 拓展阅读
-
--   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.
