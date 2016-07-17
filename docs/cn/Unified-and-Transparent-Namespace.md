@@ -73,3 +73,7 @@ Alluxio提供了一个挂载API，通过该API能够在Alluxio中访问多个数
 最后卸载该挂载目录，并确认该目录已经在Alluxio文件系统中被移除，但原先的数据依然保存在底层文件系统中。
 
 {% include Unified-and-Transparent-Namespace/unmount.md %}
+
+##资源
+
+[统一命名空间博客帖子](http://www.alluxio.com/2016/04/unified-namespace-allowing-applications-to-access-data-anywhere/)
