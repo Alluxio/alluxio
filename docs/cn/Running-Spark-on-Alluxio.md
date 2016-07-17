@@ -109,5 +109,3 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 
 当一个Spark作业在YARN上运行时,Spark启动executors不会考虑数据的本地化。之后Spark>在决定怎样为它的executors分配任务时会正确地考虑数据的本地化。举例而言：
 如果`host1`包含了`blockA`并且使用`blockA`的作业已经在YARN集群上以`--num-executors=1`的方式启动了,Spark会将唯一的executor放置在`host2`上，本地化就比较差。但是，>如果以`--num-executors=2`的方式启动并且executors开始于`host1`和`host2`上,Spark会足够聪明地将作业优先放置在`host1`上。
-
-
