@@ -10,7 +10,7 @@ group: Resources
 本页主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。
 
 注意: 本页并不包含Alluxio使用过程中遇到的所有问题。
-用户可随时向[Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)提交问题。
+用户可随时向[Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)或其[镜像](http://alluxio-users.85194.x6.nabble.com/)提交问题。
 
 ## Alluxio日志地址
 
