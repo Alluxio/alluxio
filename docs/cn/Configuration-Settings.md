@@ -94,13 +94,9 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 ## 属性文件 {#property-files}
 
-除了以上这些提供基本设置的环境变量之外，Alluxio还为用户提供了一种更一般的方式，即通过属性文件来自定义所有支持的配置项。在启动时，Alluxio会检查是否存在属性配置文件，如果存在，便会加载这些文件，并覆盖默认的属性值。特别的：
+除了以上这些提供基本设置的环境变量之外，Alluxio还为用户提供了一种更一般的方式，即通过属性文件来自定义所有支持的配置项。对于每个Alluxio部署站点，Alluxio服务器以及应用客户端都可以通过`alluxio-site.properties`文件覆盖默认属性值。在启动时，Alluxio会检查是否存在属性配置文件，如果存在，便会加载这些文件，并覆盖默认的属性值。启动程序将依次在`${HOME}/.alluxio/`，`/etc/alluxio/`（可以通过更改`alluxio.site.conf.dir`的默认值进行自定义）以及运行Alluxio的Java虚拟机的classpath中搜索该属性文件。
 
-1. 对于每个Alluxio部署站点，Alluxio服务器以及应用客户端都可以通过`alluxio-site.properties`文件覆盖默认属性值；
-
-2. Alluxio master和workers会加载`alluxio-server.properties`文件，而Alluxio客户端应用，例如读写Alluxio数据的作业，将会加载`alluxio-client.properties`文件。
-
-Alluxio Java虚拟机启动时将依次在`${HOME}/.alluxio/`，`/etc/alluxio/`（可以通过`alluxio.site.conf.dir`自定义）以及classpath中搜索这些属性文件。最简单的配置方式是复制`$ALLUXIO_HOME/conf`目录中的模板属性文件，并根据你的配置调节的需求对其进行编辑：
+举个例子，用户可以复制`${ALLUXIO_HOME}/conf`目录下的属性模板保存到`${HOME}/.alluxio/`目录下，并且根据用户需求来调整配置属性的值。
 
 {% include Common-Commands/copy-alluxio-site-properties.md %}
 
