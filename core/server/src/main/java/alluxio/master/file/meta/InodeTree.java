@@ -480,8 +480,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
       FileDoesNotExistException {
     AlluxioURI path = inodePath.getUri();
     if (path.isRoot()) {
-      LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-      throw new FileAlreadyExistsException(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+      String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
+      LOG.error(errorMessage);
+      throw new FileAlreadyExistsException(errorMessage);
     }
     if (options instanceof CreateFileOptions) {
       CreateFileOptions fileOptions = (CreateFileOptions) options;
@@ -515,7 +516,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
             .append(pathIndex).append("(")
             .append(pathComponents[pathIndex])
             .append(") does not exist").toString();
-        LOG.info("FileDoesNotExistException: {}", msg);
+        LOG.error("FileDoesNotExistException: {}", msg);
         throw new FileDoesNotExistException(msg);
       }
     }
@@ -588,9 +589,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
         toPersistDirectories.add(lastInode);
       } else if (!lastInode.isDirectory() || !(options instanceof CreateDirectoryOptions
           && ((CreateDirectoryOptions) options).isAllowExists())) {
-        LOG.info(ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
-        throw new FileAlreadyExistsException(
-            ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path));
+        String errorMessage = ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(path);
+        LOG.error(errorMessage);
+        throw new FileAlreadyExistsException(errorMessage);
       }
     } else {
       if (options instanceof CreateDirectoryOptions) {

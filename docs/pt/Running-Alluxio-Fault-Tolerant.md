@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio Standalone com Tolerância a Falha
 nickname: Alluxio Standalone com Tolerância a Falha
-group: User Guide
+group: Deploying Alluxio
 priority: 3
 ---
 

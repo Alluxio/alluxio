@@ -1,1 +1,1 @@
-    /alluxio_vol/default_tests_files/BasicFile_STORE_SYNC_PERSIST
+    /mnt/nfs/default_tests_files/BasicFile_STORE_SYNC_PERSIST
