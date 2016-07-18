@@ -203,7 +203,7 @@ public final class UnderFileSystemRegistry {
    * need to manually register the desired factory.
    * </p>
    *
-   * @param factory Factory to register
+   * @param factory factory to register
    */
   public static void register(UnderFileSystemFactory factory) {
     if (factory == null) {
@@ -238,7 +238,7 @@ public final class UnderFileSystemRegistry {
   /**
    * Unregisters an existing factory.
    *
-   * @param factory Factory to unregister
+   * @param factory factory to unregister
    */
   public static void unregister(UnderFileSystemFactory factory) {
     if (factory == null) {
