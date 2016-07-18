@@ -25,19 +25,17 @@ Also, in preparation for using OSS with alluxio, create a bucket or use an exist
 
 ## Confugurating Alluxio
 
-To configure Alluxio to use OSS as its under storage system, modifications to the `conf/alluxio-env.sh` file must be made. The first modification is to specify an existing OSS bucket and directory as the under storage system. You can specify it by modifying `conf/alluxio-env.sh` to include:
+You need to configure Alluxio to use OSS as its under storage system. The first modification is to specify an existing OSS bucket and directory as the under storage system by modifying `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-OSS/underfs-address.md %}
     
-Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio-env.sh`, add:
+Next you need to specify the Aliyun credentials for OSS access. In `conf/alluxio-site.properties`, add:
 
 {% include Configuring-Alluxio-with-OSS/oss-access.md %}
     
-Here, `<OSS_ACCESS_KEY_ID>` ,`<OSS_SECRET_ACCESS_KEY>` should be replaced with your actual [Aliyun keys](https://ak-console.aliyun.com/#/accesskey), or other environment variables that contain your credentials. The `<OSS_ENDPOINT>` for your OSS range you can get [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). 
-
-If you feel not sure about how to change the `conf/alluxio-env.sh`, there is another way to provide these configurations. You can provide a properties config file named : `alluxio-site.properties` in the `conf/` directory, and edit it as below:
-
-{% include Configuring-Alluxio-with-OSS/properties.md %}
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html#environment-variables).
 
 After these changes, Alluxio should be configured to work with OSS as its under storage system, and you can try to run alluxio locally with OSS.
 
@@ -46,6 +44,10 @@ After these changes, Alluxio should be configured to work with OSS as its under 
 If you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in a separate JVM), then you need to make sure that your Aliyun credentials are provided to the application JVM processes as well. The easiest way to do this is to add them as command line options when starting your client JVM process. For example:
 
 {% include Configuring-Alluxio-with-OSS/java-bash.md %}
+
+Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
+of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path to this site properties file to
+the classpath.
 
 ## Running Alluxio Locally with OSS
 
