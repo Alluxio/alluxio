@@ -2,7 +2,7 @@
 layout: global
 title: 本地运行Alluxio
 nickname: 本地机器上运行Alluxio
-group: Deploying Alluxio
+group: User Guide
 priority: 1
 ---
 

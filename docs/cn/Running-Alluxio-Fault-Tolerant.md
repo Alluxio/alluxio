@@ -2,7 +2,7 @@
 layout: global
 title: Alluxio独立模式实现容错
 nickname: Alluxio独立模式实现容错
-group: Deploying Alluxio
+group: User Guide
 priority: 3
 ---
 

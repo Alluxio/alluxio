@@ -1,6 +1,6 @@
 ---
 layout: global
-title: 参与Alluxio开发
+title: 开发者向导
 nickname: 开发者向导
 group: Resources
 ---
@@ -8,11 +8,15 @@ group: Resources
 * Table of Contents
 {:toc}
 
-感谢您对alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
+感谢您对Alluxio的兴趣！我们非常感谢任何的新特性或者修复的贡献。
+
+## 新贡献者
+
+如果你是一个新开源贡献者，请先浏览[开始贡献源码向导](Contributing-Getting-Started.html)以熟悉如何向Alluxio贡献源码。
 
 ### Alluxio初始任务
 
-新的开发者可以先进行以下列出的任务，从而能够更加熟悉Alluxio：
+新开发者可以先进行以下列出的任务，从而能够更加熟悉Alluxio：
 
 1.  [在本地运行Alluxio](Running-Alluxio-Locally.html)
 
@@ -24,7 +28,7 @@ group: Resources
 
 5.  [构建Alluxio主分支](Building-Alluxio-Master-Branch.html)
 
-6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中的issues。这里是专门为新的开发者准备的一些[任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)。请每个新开发者最多只完成的两个New-Contributor任务。在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里咨询。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
+6.  Fork Alluxio Github仓库，并添加一两个单元测试或者javadoc文件，再提交一个pull request。也欢迎你处理我们的[JIRA](https://alluxio.atlassian.net/browse/ALLUXIO)中的issues。这里是专门为新开发者准备的一些[任务](https://alluxio.atlassian.net/issues/?jql=project%20%3D%20ALLUXIO%20AND%20labels%20%3D%20NewContributor%20AND%20status%20%3D%20OPEN)。请每个新开发者最多只完成的两个New-Contributor任务。在这之后，尝试去做一些Beginner/Intermediate任务，或者在[User Mailing List](https://groups.google.com/forum/?fromgroups#!forum/alluxio-users)里咨询。可以查看Github向导中的[forking a repo](https://help.github.com/articles/fork-a-repo)和[sending a pull request](https://help.github.com/articles/using-pull-requests)学习如何进行基本Github操作。
 
 ### 提交代码
 
@@ -41,6 +45,8 @@ group: Resources
 ~~~~~
 [ALLUXIO-100] Implement an awesome new feature
 ~~~~~
+
+-   添加一个GitHub标签表明你的修改属于Alluxio的哪个组件，如果你对此不确定，那么就选择包含最多的修改代码的那个组件（组件与根目录下的目录一一对应）。
 
 -   在pull request的描述框中，请添加该JIRA ticket的超链接。
 
@@ -119,24 +125,3 @@ group: Resources
 如果你使用的是IntelliJ IDEA，你可能需要修改Maven profile配置中的'developer'以防止导入错误，可以通过以下方式进行：
 
     View > Tool Windows > Maven Projects
-
-### 幻灯片介绍
-
--   AMPCamp 6 (November, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-presentation-at-ampcamp-6-november-2015)
--   Strata and Hadoop World 2015 (September, 2015)
-[SlideShare](http://www.slideshare.net/TachyonNexus/tachyon-an-open-source-memorycentric-distributed-storage-system)
--   Strata and Hadoop World 2014 (October, 2014)
-[pdf](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pdf)
-[pptx](http://www.cs.berkeley.edu/~haoyuan/talks/Tachyon_2014-10-16-Strata.pptx)
--   Spark Summit 2014 (July, 2014) [pdf](http://goo.gl/DKrE4M)
--   Strata and Hadoop World 2013 (October, 2013) [pdf](http://goo.gl/AHgz0E)
-
-### 拓展阅读
-
--   [Tachyon: Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_socc_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *SOCC 2014*.
--   [Reliable, Memory Speed Storage for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2014_EECS_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Scott Shenker, Ion Stoica, *UC Berkeley EECS 2014*.
--   [Tachyon: Memory Throughput I/O for Cluster Computing Frameworks](http://www.cs.berkeley.edu/~haoyuan/papers/2013_ladis_tachyon.pdf)
-Haoyuan Li, Ali Ghodsi, Matei Zaharia, Eric Baldeschwieler, Scott Shenker, Ion Stoica, *LADIS 2013*.
