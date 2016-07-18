@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio with Mesos on EC2
 nickname: Alluxio on EC2 with Mesos
-group: User Guide
+group: Deploying Alluxio
 priority: 4
 ---
 

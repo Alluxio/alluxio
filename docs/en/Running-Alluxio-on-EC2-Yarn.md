@@ -2,7 +2,7 @@
 layout: global
 title: Running Alluxio with YARN on EC2
 nickname: Alluxio on EC2 with YARN
-group: User Guide
+group: Deploying Alluxio
 priority: 5
 ---
 

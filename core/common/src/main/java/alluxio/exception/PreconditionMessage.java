@@ -57,6 +57,9 @@ public enum PreconditionMessage {
   MUST_SET_OWNER("The owner must be set"),
   MUST_SET_GROUP("The group must be set"),
   MUST_SET_MODE("The mode must be set"),
+  PERMISSION_GROUP_IS_NULL("Group cannot be null when constructing Permission"),
+  PERMISSION_MODE_IS_NULL("Mode cannot be null when constructing Permission"),
+  PERMISSION_OWNER_IS_NULL("Owner cannot be null when constructing Permission"),
   PERSIST_ONLY_FOR_FILE("Only files can be persisted"),
   PROTOCOL_NULL_WHEN_CONNECTED(
       "The client protocol should never be null when the client is connected"),
