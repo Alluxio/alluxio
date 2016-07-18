@@ -46,7 +46,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
 
     if (previousObject != null && previousObject != object) {
       throw new IllegalStateException("Adding more than one value to a unique index:"
-          + object.toString());
+          + fieldValue.toString());
     }
   }
 
