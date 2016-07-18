@@ -77,12 +77,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param child the inode to add
    */
   public void addChild(Inode<?> child) {
-    synchronized (child) {
-      if (mChildren.containsObject(child)) {
-        return;
-      }
-      mChildren.add(child);
-    }
+    mChildren.add(child);
   }
 
   /**

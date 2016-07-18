@@ -40,13 +40,19 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public void add(T object) {
+  public boolean add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
+    T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
-    if (mIndexMap.putIfAbsent(fieldValue, object) != null) {
-      throw new IllegalStateException("Adding more than one value to a unique index:"
-          + fieldValue.toString());
+    if (previousObject != null) {
+      if (previousObject == object) {
+        return false;
+      } else {
+        throw new IllegalStateException(
+            "Adding more than one value to a unique index:" + object.toString());
+      }
     }
+    return true;
   }
 
   @Override
