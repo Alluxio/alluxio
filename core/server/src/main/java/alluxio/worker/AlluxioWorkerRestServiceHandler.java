@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.Configuration;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -74,7 +75,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_CONFIGURATION)
   @ReturnType("java.util.SortedMap<java.lang.String, java.lang.String>")
   public Response getConfiguration() {
-    Set<Map.Entry<String, String>> properties = WorkerContext.getConf().toMap().entrySet();
+    Set<Map.Entry<String, String>> properties = Configuration.toMap().entrySet();
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey();
@@ -120,8 +121,7 @@ public final class AlluxioWorkerRestServiceHandler {
 
   private Comparator<String> getTierAliasComparator() {
     return new Comparator<String>() {
-      private WorkerStorageTierAssoc mTierAssoc = new WorkerStorageTierAssoc(
-          WorkerContext.getConf());
+      private WorkerStorageTierAssoc mTierAssoc = new WorkerStorageTierAssoc();
 
       @Override
       public int compare(String tier1, String tier2) {

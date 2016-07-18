@@ -13,7 +13,6 @@ package alluxio.client.file.options;
 
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
-import alluxio.client.ClientContext;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateUfsFileTOptions;
 
@@ -47,8 +46,7 @@ public final class CreateUfsFileOptions {
   private CreateUfsFileOptions() throws IOException {
     mPermission = Permission.defaults();
     // Set owner and group from user login module, apply default file UMask.
-    mPermission.setOwnerFromLoginModule(ClientContext.getConf()).applyFileUMask(
-        ClientContext.getConf());
+    mPermission.setOwnerFromLoginModule().applyFileUMask();
     // TODO(chaomin): set permission based on the alluxio file. Not needed for now since the
     // file is always created with default permission.
   }

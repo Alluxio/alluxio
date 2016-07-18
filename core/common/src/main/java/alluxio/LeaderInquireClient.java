@@ -40,15 +40,14 @@ public final class LeaderInquireClient {
    *
    * @param zookeeperAddress the address for Zookeeper
    * @param leaderPath the path of the leader
-   * @param conf the configuration for Alluxio
    *
    * @return the client
    */
   public static synchronized LeaderInquireClient getClient(String zookeeperAddress,
-      String leaderPath, Configuration conf) {
+      String leaderPath) {
     String key = zookeeperAddress + leaderPath;
     if (!sCreatedClients.containsKey(key)) {
-      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath, conf));
+      sCreatedClients.put(key, new LeaderInquireClient(zookeeperAddress, leaderPath));
     }
     return sCreatedClients.get(key);
   }
@@ -58,7 +57,7 @@ public final class LeaderInquireClient {
   private final CuratorFramework mClient;
   private final int mMaxTry;
 
-  private LeaderInquireClient(String zookeeperAddress, String leaderPath, Configuration conf) {
+  private LeaderInquireClient(String zookeeperAddress, String leaderPath) {
     mZookeeperAddress = zookeeperAddress;
     mLeaderPath = leaderPath;
 
@@ -68,7 +67,7 @@ public final class LeaderInquireClient {
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = conf.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = Configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   /**

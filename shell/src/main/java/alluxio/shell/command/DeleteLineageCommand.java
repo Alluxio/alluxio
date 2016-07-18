@@ -11,7 +11,6 @@
 
 package alluxio.shell.command;
 
-import alluxio.Configuration;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -30,11 +29,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class DeleteLineageCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public DeleteLineageCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public DeleteLineageCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

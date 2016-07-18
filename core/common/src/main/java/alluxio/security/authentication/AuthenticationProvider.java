@@ -32,17 +32,17 @@ public interface AuthenticationProvider {
 
     /**
      * @param authType authentication type to use
-     * @param conf Alluxio configuration
      * @return the generated {@link AuthenticationProvider}
      * @throws AuthenticationException when unsupported authentication type is used
      */
-    public static AuthenticationProvider create(AuthType authType, Configuration conf)
+    public static AuthenticationProvider create(AuthType authType)
         throws AuthenticationException {
       switch (authType) {
         case SIMPLE:
           return new SimpleAuthenticationProvider();
         case CUSTOM:
-          String customProviderName = conf.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
+          String customProviderName =
+              Configuration.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
           return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());

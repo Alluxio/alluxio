@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -35,6 +36,7 @@ import alluxio.wire.FileInfo;
 import com.google.common.cache.LoadingCache;
 import jnr.ffi.Pointer;
 import jnr.ffi.Runtime;
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -62,18 +64,22 @@ public class AlluxioFuseFileSystemTest {
   private FuseFileInfo mFileInfo;
 
   @Before
-  public void setUp() throws Exception {
-    Configuration conf = new Configuration();
-    conf.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
-    conf.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
+  public void before() throws Exception {
+    Configuration.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
+    Configuration.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
     AlluxioFuseOptions opts = new AlluxioFuseOptions(
         "/doesnt/matter", TEST_ROOT_PATH, false, empty);
 
     mFileSystem = mock(FileSystem.class);
-    mFuseFs = new AlluxioFuseFileSystem(conf, mFileSystem, opts);
+    mFuseFs = new AlluxioFuseFileSystem(mFileSystem, opts);
     mFileInfo = allocateNativeFileInfo();
+  }
+
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test

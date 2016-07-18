@@ -3,7 +3,7 @@ format:
   format when the underfs is local and doesn't already exist.
 formatWorker:
   Format Alluxio Worker storage on this local node.
-bootstrap-conf:
+bootstrapConf:
   Generate the bootstrap config file <code>alluxio-env.sh</code> with the specified
   <code>ALLUXIO_MASTER_HOSTNAME</code>, if the config file doesn't exist.
 fs:

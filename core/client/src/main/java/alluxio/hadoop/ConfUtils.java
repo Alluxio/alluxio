@@ -34,18 +34,16 @@ public final class ConfUtils {
   private ConfUtils() {} // Prevent instantiation.
 
   /**
-   * Stores the source {@link Configuration} object to the target
+   * Stores the Alluxio {@link Configuration} to the target
    * Hadoop {@link org.apache.hadoop.conf.Configuration} object.
    *
-   * @param source the {@link Configuration} to be stored
    * @param target the {@link org.apache.hadoop.conf.Configuration} target
    */
-  public static void storeToHadoopConfiguration(Configuration source,
-      org.apache.hadoop.conf.Configuration target) {
+  public static void storeToHadoopConfiguration(org.apache.hadoop.conf.Configuration target) {
   // Need to set io.serializations key to prevent NPE when trying to get SerializationFactory.
     target.set("io.serializations", "org.apache.hadoop.io.serializer.JavaSerialization,"
         + "org.apache.hadoop.io.serializer.WritableSerialization");
-    Map<String, String> confProperties = source.toMap();
+    Map<String, String> confProperties = Configuration.toMap();
     try {
       DefaultStringifier.store(target, confProperties, Constants.SITE_CONF_DIR);
     } catch (IOException ex) {
@@ -55,13 +53,11 @@ public final class ConfUtils {
   }
 
   /**
-   * Loads {@link Configuration} from Hadoop {@link org.apache.hadoop.conf.Configuration} source.
+   * Merges Hadoop {@link org.apache.hadoop.conf.Configuration} into the Alluxio configuration.
    *
-   * @param source the {@link org.apache.hadoop.conf.Configuration} to load from
-   * @return instance of {@link Configuration} to be loaded
+   * @param source the {@link org.apache.hadoop.conf.Configuration} to merge
    */
-  public static Configuration loadFromHadoopConfiguration(
-      org.apache.hadoop.conf.Configuration source) {
+  public static void mergeHadoopConfiguration(org.apache.hadoop.conf.Configuration source) {
     // Load Alluxio configuration if any and merge to the one in Alluxio file system
     // Push Alluxio configuration to the Job configuration
     Properties alluxioConfProperties = new Properties();
@@ -72,6 +68,8 @@ public final class ConfUtils {
       if (propertyName.startsWith("alluxio.")
           || propertyName.equals(Constants.S3_ACCESS_KEY)
           || propertyName.equals(Constants.S3_SECRET_KEY)
+          || propertyName.equals(Constants.GCS_ACCESS_KEY)
+          || propertyName.equals(Constants.GCS_SECRET_KEY)
           || propertyName.equals(Constants.SWIFT_API_KEY)
           || propertyName.equals(Constants.SWIFT_AUTH_METHOD_KEY)
           || propertyName.equals(Constants.SWIFT_AUTH_PORT_KEY)
@@ -84,6 +82,8 @@ public final class ConfUtils {
       }
     }
     LOG.info("Loading Alluxio properties from Hadoop configuration: {}", alluxioConfProperties);
-    return Configuration.fromMap(alluxioConfProperties);
+    // Merge the relevant Hadoop configuration into Alluxio's configuration.
+    // TODO(jiri): support multiple client configurations (ALLUXIO-2034)
+    Configuration.merge(alluxioConfProperties);
   }
 }

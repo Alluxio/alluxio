@@ -18,13 +18,13 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.LocalFileBlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
     BlockHeartbeatReporter.class, BlockMetricsReporter.class, BlockMeta.class,
     BlockStoreLocation.class, BlockStoreMeta.class, StorageDir.class, Configuration.class,
-    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class})
+    UnderFileSystem.class, BlockWorker.class, WorkerIdRegistry.class, Sessions.class})
 public class BlockWorkerTest {
 
   /** Rule to create a new temporary folder during each test. */
@@ -84,7 +84,6 @@ public class BlockWorkerTest {
   @Before
   public void before() throws IOException {
     mRandom = new Random();
-
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
@@ -94,10 +93,9 @@ public class BlockWorkerTest {
     mWorkerId = mRandom.nextLong();
     ((AtomicLong) Whitebox.getInternalState(WorkerIdRegistry.class, "sWorkerId")).set(mWorkerId);
 
-    Configuration conf = WorkerContext.getConf();
-    conf.set("alluxio.worker.tieredstore.level0.dirs.path",
+    Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
-    conf.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
 
     mBlockWorker = new BlockWorker();
 
@@ -114,7 +112,7 @@ public class BlockWorkerTest {
    */
   @After
   public void after() throws IOException {
-    WorkerContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

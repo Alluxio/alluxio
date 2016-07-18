@@ -12,15 +12,15 @@
 package alluxio.client.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
-import alluxio.client.util.ClientTestUtils;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
@@ -45,9 +45,8 @@ public class OutStreamOptionsTest {
   public void defaultsTest() {
     AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
-    ClientContext.getConf().set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
-    ClientContext.getConf().set(Constants.USER_FILE_WRITE_TYPE_DEFAULT,
-        WriteType.CACHE_THROUGH.toString());
+    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.CACHE_THROUGH.toString());
 
     OutStreamOptions options = OutStreamOptions.defaults();
 
@@ -56,9 +55,8 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
-    Assert.assertEquals(Permission.defaults().applyFileUMask(ClientContext.getConf()),
-        options.getPermission());
-    ClientTestUtils.resetClientContext();
+    Assert.assertEquals(Permission.defaults().applyFileUMask(), options.getPermission());
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**

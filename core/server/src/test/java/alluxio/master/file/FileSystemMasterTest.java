@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -23,7 +24,6 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlBucket;
@@ -31,6 +31,7 @@ import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -44,6 +45,7 @@ import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.WorkerNetAddress;
 
 import com.google.common.collect.ImmutableList;
@@ -69,7 +71,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -112,7 +116,6 @@ public final class FileSystemMasterTest {
    */
   @BeforeClass
   public static void beforeClass() throws Exception {
-    MasterContext.reset(new Configuration());
     sNestedFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
     sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
@@ -135,9 +138,9 @@ public final class FileSystemMasterTest {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
-    MasterContext.getConf()
+    Configuration
         .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
-    MasterContext.getConf().set(Constants.UNDERFS_ADDRESS, mUnderFS);
+    Configuration.set(Constants.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
@@ -169,7 +172,7 @@ public final class FileSystemMasterTest {
   public void after() throws Exception {
     mFileSystemMaster.stop();
     mBlockMaster.stop();
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   /**
@@ -406,7 +409,102 @@ public final class FileSystemMasterTest {
   }
 
   @Test
-  public void getFileInfoListTest() throws Exception {
+  public void listStatusWithLoadMetadataNeverTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+    Assert.assertEquals(0, fileInfoList.size());
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusWithLoadMetadataOnceTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // listStatus should have loaded another 3 files (dir1, dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusWithLoadMetadataAlwaysTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    Files.createDirectory(Paths.get(ufsMount.join("dir1").getPath()));
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // getFileId should load metadata automatically.
+    AlluxioURI uri = new AlluxioURI("/mnt/local/dir1");
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // listStatus should have loaded another files (dir1), so now 4 paths exist.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    // Add two files.
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("dir1").join("file2").getPath()));
+
+    fileInfoList = mFileSystemMaster.listStatus(uri, ListStatusOptions.defaults());
+    Assert.assertEquals(0, fileInfoList.size());
+    // No file is loaded since dir1 has been loaded once.
+    Assert.assertEquals(4, mFileSystemMaster.getNumberOfPaths());
+
+    fileInfoList = mFileSystemMaster.listStatus(uri,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+    Set<String> paths = new HashSet<>();
+    for (FileInfo fileInfo : fileInfoList) {
+      paths.add(fileInfo.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/dir1/file2"));
+    // listStatus should have loaded another 2 files (dir1/file1, dir1/file2), so now 6
+    // paths exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+  }
+
+  @Test
+  public void listStatusTest() throws Exception {
     final int files = 10;
     List<FileInfo> infos;
     List<String> filenames;
@@ -415,7 +513,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(ROOT_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(ROOT_URI, false);
+    infos = mFileSystemMaster.listStatus(ROOT_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -430,7 +529,8 @@ public final class FileSystemMasterTest {
 
     // Test single file.
     createFileWithSingleBlock(ROOT_FILE_URI);
-    infos = mFileSystemMaster.getFileInfoList(ROOT_FILE_URI, false);
+    infos = mFileSystemMaster.listStatus(ROOT_FILE_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(1, infos.size());
     Assert.assertEquals(ROOT_FILE_URI.getPath(), infos.get(0).getPath());
 
@@ -438,7 +538,8 @@ public final class FileSystemMasterTest {
     for (int i = 0; i < files; i++) {
       createFileWithSingleBlock(NESTED_URI.join("file" + String.format("%05d", i)));
     }
-    infos = mFileSystemMaster.getFileInfoList(NESTED_URI, false);
+    infos = mFileSystemMaster.listStatus(NESTED_URI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
     Assert.assertEquals(files, infos.size());
     // Copy out filenames to use List contains.
     filenames = new ArrayList<>();
@@ -453,8 +554,9 @@ public final class FileSystemMasterTest {
 
     // Test non-existent URIs.
     try {
-      mFileSystemMaster.getFileInfoList(NESTED_URI.join("DNE"), false);
-      Assert.fail("getFileInfoList() for a non-existent URI should fail.");
+      mFileSystemMaster.listStatus(NESTED_URI.join("DNE"),
+          ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
+      Assert.fail("listStatus() for a non-existent URI should fail.");
     } catch (FileDoesNotExistException e) {
       // Expected case.
     }
@@ -769,6 +871,20 @@ public final class FileSystemMasterTest {
 
     // nested dir
     mFileSystemMaster.rename(TEST_URI, NESTED_FILE_URI);
+  }
+
+  @Test
+  public void renameToNonExistentParent() throws Exception {
+    CreateFileOptions options =
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
+    mFileSystemMaster.createFile(NESTED_URI, options);
+
+    try {
+      mFileSystemMaster.rename(NESTED_URI, new AlluxioURI("/testDNE/b"));
+      Assert.fail("Rename to a non-existent parent path should not succeed.");
+    } catch (FileDoesNotExistException e) {
+      // Expected case
+    }
   }
 
   /**

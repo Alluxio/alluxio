@@ -35,9 +35,8 @@ public final class Format {
   private static final String USAGE = String.format("java -cp %s %s <MASTER/WORKER>",
       RuntimeConstants.ALLUXIO_JAR, Format.class.getCanonicalName());
 
-  private static boolean formatFolder(String name, String folder, Configuration configuration)
-      throws IOException {
-    UnderFileSystem ufs = UnderFileSystem.get(folder, configuration);
+  private static boolean formatFolder(String name, String folder) throws IOException {
+    UnderFileSystem ufs = UnderFileSystem.get(folder);
     LOG.info("Formatting {}:{}", name, folder);
     if (ufs.exists(folder)) {
       for (String file : ufs.list(folder)) {
@@ -65,39 +64,37 @@ public final class Format {
       System.exit(-1);
     }
 
-    Configuration configuration = Configuration.createServerConf();
     if ("MASTER".equalsIgnoreCase(args[0])) {
       String masterJournal =
-          configuration.get(Constants.MASTER_JOURNAL_FOLDER);
-      if (!formatFolder("JOURNAL_FOLDER", masterJournal, configuration)) {
+          Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+      if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
         System.exit(-1);
       }
 
       for (String masterServiceName : AlluxioMaster.getServiceNames()) {
         if (!formatFolder(masterServiceName + "_JOURNAL_FOLDER", PathUtils.concatPath(masterJournal,
-            masterServiceName), configuration)) {
+            masterServiceName))) {
           System.exit(-1);
         }
       }
 
       // A journal folder is thought to be formatted only when a file with the specific name is
       // present under the folder.
-      UnderFileSystemUtils.touch(
-          PathUtils.concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX
-              + System.currentTimeMillis()), configuration);
+      UnderFileSystemUtils.touch(PathUtils
+          .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
     } else if ("WORKER".equalsIgnoreCase(args[0])) {
-      String workerDataFolder = configuration.get(Constants.WORKER_DATA_FOLDER);
-      int storageLevels = configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+      String workerDataFolder = Configuration.get(Constants.WORKER_DATA_FOLDER);
+      int storageLevels = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level++) {
         String tierLevelDirPath =
             String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
-        String[] dirPaths = configuration.get(tierLevelDirPath).split(",");
+        String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {
           String dirWorkerDataFolder = PathUtils.concatPath(dirPath.trim(), workerDataFolder);
-          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder, configuration);
+          UnderFileSystem ufs = UnderFileSystem.get(dirWorkerDataFolder);
           if (ufs.exists(dirWorkerDataFolder)) {
-            if (!formatFolder(name, dirWorkerDataFolder, configuration)) {
+            if (!formatFolder(name, dirWorkerDataFolder)) {
               System.exit(-1);
             }
           }

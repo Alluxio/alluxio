@@ -11,7 +11,6 @@
 
 package alluxio.underfs.gcs;
 
-import alluxio.Configuration;
 import alluxio.underfs.UnderFileSystemFactory;
 import alluxio.underfs.UnderFileSystemRegistry;
 
@@ -28,9 +27,7 @@ public final class GCSUnderFileSystemFactoryTest {
    */
   @Test
   public void factoryTest() {
-    Configuration conf = new Configuration();
-
-    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("gs://test-bucket/path", conf);
+    UnderFileSystemFactory factory = UnderFileSystemRegistry.find("gs://test-bucket/path");
 
     Assert.assertNotNull(
         "A UnderFileSystemFactory should exist for gs paths when using this module", factory);

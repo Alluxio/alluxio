@@ -12,7 +12,6 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
@@ -44,11 +43,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class CopyToLocalCommand extends AbstractShellCommand {
 
   /**
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public CopyToLocalCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public CopyToLocalCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override

@@ -66,8 +66,7 @@ class BaseKeyValueStoreWriter implements KeyValueStoreWriter {
    */
   BaseKeyValueStoreWriter(AlluxioURI uri) throws IOException, AlluxioException {
     LOG.info("Create KeyValueStoreWriter for {}", uri);
-    mMasterClient =
-        new KeyValueMasterClient(ClientContext.getMasterAddress(), ClientContext.getConf());
+    mMasterClient = new KeyValueMasterClient(ClientContext.getMasterAddress());
 
     mStoreUri = Preconditions.checkNotNull(uri);
     mMasterClient.createStore(mStoreUri);

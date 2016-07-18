@@ -51,7 +51,8 @@ A: Please follow [Running-Alluxio-on-EC2.html](Running-Alluxio-on-EC2.html) for 
 
 Typical issues:
 - Please make sure AWS access keys and Key Pairs are set up.
-- If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing bucket, without the `s3://` or `s3n://` prefix.
+- If the UnderFileSystem is S3, check the S3 bucket name in `ufs.yml` is the name of an existing
+bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
 ## Alluxio Performance FAQ
@@ -59,7 +60,7 @@ Typical issues:
 #### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
 A: Alluxio accelerates your system performance by leveraging temporal or spatial locality using distributed in-memory storage
-(and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost. 
+(and tiered storage). If your workloads don't have any locality, you will not see tremendous performance boost.
 
 ## Environment
 

@@ -13,7 +13,6 @@ package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
 import alluxio.Constants;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreEventListener;
@@ -67,14 +66,13 @@ public class LRFUEvictorTest {
     mManagerView =
         new BlockMetadataManagerView(mMetaManager, Collections.<Long>emptySet(),
             Collections.<Long>emptySet());
-    Configuration conf = WorkerContext.getConf();
-    conf.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
-    conf.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
-    Allocator allocator = Allocator.Factory.create(conf, mManagerView);
-    mStepFactor = conf.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    Configuration.set(Constants.WORKER_EVICTOR_CLASS, LRFUEvictor.class.getName());
+    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Allocator allocator = Allocator.Factory.create(mManagerView);
+    mStepFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
     mAttenuationFactor =
-        conf.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
-    mEvictor = Evictor.Factory.create(conf, mManagerView, allocator);
+        Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mEvictor = Evictor.Factory.create(mManagerView, allocator);
   }
 
   private void cache(long sessionId, long blockId, long bytes, int tierLevel, int dirIdx)

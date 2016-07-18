@@ -15,7 +15,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
-import alluxio.client.ClientContext;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -49,22 +48,20 @@ public final class OutStreamOptions {
   }
 
   private OutStreamOptions() {
-    Configuration conf = ClientContext.getConf();
-    mBlockSizeBytes = conf.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(ClientContext.getConf()
-              .<FileWriteLocationPolicy>getClass(Constants.USER_FILE_WRITE_LOCATION_POLICY),
-              new Class[] {}, new Object[] {});
+      mLocationPolicy = CommonUtils.createNewClassInstance(
+          Configuration.<FileWriteLocationPolicy>getClass(
+              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mWriteType = conf.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mWriteType = Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mPermission = Permission.defaults();
     try {
       // Set user and group from user login module, and apply default file UMask.
-      mPermission.applyFileUMask(conf).setOwnerFromLoginModule(conf);
+      mPermission.applyFileUMask().setOwnerFromLoginModule();
     } catch (IOException e) {
       // Fall through to system property approach
     }

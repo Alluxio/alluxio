@@ -11,7 +11,6 @@
 
 package alluxio.security.authentication;
 
-import alluxio.Configuration;
 import alluxio.exception.ExceptionMessage;
 import alluxio.security.User;
 import alluxio.util.SecurityUtils;
@@ -54,12 +53,11 @@ public final class AuthenticatedClientUser {
   /**
    * Gets the {@link User} from the {@link ThreadLocal} variable.
    *
-   * @param conf the runtime configuration of Alluxio Master
    * @return the client user
    * @throws IOException if authentication is not enabled
    */
-  public static synchronized User get(Configuration conf) throws IOException {
-    if (!SecurityUtils.isAuthenticationEnabled(conf)) {
+  public static synchronized User get() throws IOException {
+    if (!SecurityUtils.isAuthenticationEnabled()) {
       throw new IOException(ExceptionMessage.AUTHENTICATION_IS_NOT_ENABLED.getMessage());
     }
     return sUserThreadLocal.get();

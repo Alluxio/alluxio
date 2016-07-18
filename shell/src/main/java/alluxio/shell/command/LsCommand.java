@@ -12,13 +12,14 @@
 package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.ListStatusOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.util.FormatUtils;
 import alluxio.util.SecurityUtils;
+import alluxio.wire.LoadMetadataType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -35,7 +36,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LsCommand extends WithWildCardPathCommand {
-  public static final String STATE_FOLDER = "";
+  public static final String STATE_FOLDER = "Directory";
   public static final String STATE_FILE_IN_MEMORY = "In Memory";
   public static final String STATE_FILE_NOT_IN_MEMORY = "Not In Memory";
 
@@ -76,11 +77,10 @@ public final class LsCommand extends WithWildCardPathCommand {
    * Constructs a new instance to display information for all directories and files directly under
    * the path specified in args.
    *
-   * @param conf the configuration for Alluxio
    * @param fs the filesystem of Alluxio
    */
-  public LsCommand(Configuration conf, FileSystem fs) {
-    super(conf, fs);
+  public LsCommand(FileSystem fs) {
+    super(fs);
   }
 
   @Override
@@ -95,7 +95,7 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
+    return new Options().addOption(RECURSIVE_OPTION).addOption(FORCE_OPTION);
   }
 
   /**
@@ -106,23 +106,29 @@ public final class LsCommand extends WithWildCardPathCommand {
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private void ls(AlluxioURI path, boolean recursive) throws AlluxioException, IOException {
-    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path);
+  private void ls(AlluxioURI path, boolean recursive, boolean forceLoadMetadata)
+      throws AlluxioException, IOException {
+    ListStatusOptions options = ListStatusOptions.defaults();
+    if (forceLoadMetadata) {
+      options.setLoadMetadataType(LoadMetadataType.Always);
+    }
+    List<URIStatus> statuses = listStatusSortedByIncreasingCreationTime(path, options);
     for (URIStatus status : statuses) {
-      System.out.format(
-          formatLsString(SecurityUtils.isSecurityEnabled(mConfiguration), status.isFolder(),
-              FormatUtils.formatMode((short) status.getMode(), status.isFolder()),
-              status.getOwner(), status.getGroup(), status.getLength(), status.getCreationTimeMs(),
-              100 == status.getInMemoryPercentage(), status.getPath()));
+      System.out.format(formatLsString(SecurityUtils.isSecurityEnabled(), status.isFolder(),
+          FormatUtils.formatMode((short) status.getMode(), status.isFolder()), status.getOwner(),
+          status.getGroup(), status.getLength(), status.getCreationTimeMs(),
+          100 == status.getInMemoryPercentage(), status.getPath()));
       if (recursive && status.isFolder()) {
-        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true);
+        ls(new AlluxioURI(path.getScheme(), path.getAuthority(), status.getPath()), true,
+            forceLoadMetadata);
       }
     }
   }
 
-  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path)
+  private List<URIStatus> listStatusSortedByIncreasingCreationTime(AlluxioURI path,
+      ListStatusOptions options)
       throws AlluxioException, IOException {
-    List<URIStatus> statuses = mFileSystem.listStatus(path);
+    List<URIStatus> statuses = mFileSystem.listStatus(path, options);
     Collections.sort(statuses, new Comparator<URIStatus>() {
       @Override
       public int compare(URIStatus status1, URIStatus status2) {
@@ -142,17 +148,18 @@ public final class LsCommand extends WithWildCardPathCommand {
 
   @Override
   public void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    ls(path, cl.hasOption("R"));
+    ls(path, cl.hasOption("R"), cl.hasOption("f"));
   }
 
   @Override
   public String getUsage() {
-    return "ls [-R] <path>";
+    return "ls [-R] [-f] <path>";
   }
 
   @Override
   public String getDescription() {
     return "Displays information for all files and directories directly under the specified path."
-        + " Specify -R to display files and directories recursively.";
+        + " Specify -R to display files and directories recursively."
+        + " Specify -f to force loading files in the directory.";
   }
 }

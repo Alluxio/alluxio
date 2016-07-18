@@ -11,6 +11,7 @@
 
 package alluxio.master.block;
 
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -381,13 +382,13 @@ public class BlockMasterTest {
   /** Private access to {@link BlockMaster} internals. */
   private class PrivateAccess {
     private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexedSet.FieldIndex<MasterWorkerInfo> mIdIndex;
+    private final IndexDefinition<MasterWorkerInfo> mIdIndex;
     private final IndexedSet<MasterWorkerInfo> mLostWorkers;
     private final IndexedSet<MasterWorkerInfo> mWorkers;
 
     PrivateAccess(BlockMaster blockMaster) {
       mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
-      mIdIndex = Whitebox.getInternalState(mMaster, "mIdIndex");
+      mIdIndex = Whitebox.getInternalState(BlockMaster.class, "ID_INDEX");
       mLostWorkers = Whitebox.getInternalState(mMaster, "mLostWorkers");
       mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
     }
