@@ -177,9 +177,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
       }
 
       for (FieldIndex<T> fieldIndex : mIndices.values()) {
-        if (fieldIndex.add(object) == false) {
-          throw new IllegalStateException("Adding failed:" + object.toString());
-        }
+        fieldIndex.add(object);
       }
     }
     return true;
@@ -294,6 +292,7 @@ public class IndexedSet<T> extends AbstractSet<T> {
     if (object == null) {
       return false;
     }
+    // Locking this object protects against removing the exact object that might be in the
     // process of being added, but does not protect against removing a distinct, but equivalent
     // object.
     synchronized (object) {

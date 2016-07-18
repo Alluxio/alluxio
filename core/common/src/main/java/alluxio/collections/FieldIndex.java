@@ -27,9 +27,8 @@ public interface FieldIndex<T> extends Iterable<T> {
    * Adds an object o to the index.
    *
    * @param o the object to add to the index
-   * @return true if success, otherwise false
    */
-  boolean add(T o);
+  void add(T o);
 
   /**
    * Removes the object o from the index.
