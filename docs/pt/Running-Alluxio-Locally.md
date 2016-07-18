@@ -2,7 +2,7 @@
 layout: global
 title: Rodando Localmente o Alluxio
 nickname: Alluxio na Máquina Local
-group: User Guide
+group: Deploying Alluxio
 priority: 1
 ---
 

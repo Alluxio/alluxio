@@ -23,6 +23,7 @@ import alluxio.util.io.PathUtils;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.SDKGlobalConfiguration;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
@@ -101,6 +102,16 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     super(uri);
     mBucketName = uri.getHost();
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
+
+    // Set the aws credential system properties based on Alluxio properties, if they are set
+    if (Configuration.containsKey(Constants.S3A_ACCESS_KEY)) {
+      System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
+          Configuration.get(Constants.S3A_ACCESS_KEY));
+    }
+    if (Configuration.containsKey(Constants.S3A_SECRET_KEY)) {
+      System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
+          Configuration.get(Constants.S3A_SECRET_KEY));
+    }
 
     // Checks, in order, env variables, system properties, profile file, and instance profile
     AWSCredentialsProvider credentials =
