@@ -5,11 +5,11 @@ nickname: 开始贡献源码
 group: Resources
 ---
 
-欢迎来到Alluxio社区，我们十分欢迎你在社区里的参与和贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的向导。
+欢迎来到Alluxio社区，我们热烈欢迎你参与到我们的社区和对社区进行贡献。本页面提供了如何参与到Alluxio开源项目社区并成为其中一员的指导。
 
 ## 系统需要
 
-最基本的需要是一台安装了Mac OS X或者Linux的电脑，Alluxio目前还不支持Windows系统。
+最基本的需要是一台安装了Mac OS X或者Linux的电脑，目前版本的Alluxio尚未对Windows系统提供支持。
 
 ## 软件和相关账户准备
 
