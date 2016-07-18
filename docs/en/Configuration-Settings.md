@@ -126,8 +126,13 @@ of `alluxio.site.conf.dir`) and the classpath of the relevant Java VM process in
 a file is found.
 
 For example, `${ALLUXIO_HOME}/conf/` is by default on the classpath of Alluxio master, worker and shell JVM processes.
-So you can simply create `${ALLUXIO_HOME}/conf/alluxio-site.properties` and customize it to fit your configuration tuning needs
-to start Alluxio servers or to use Alluxio shell commands:
+So you can simply create `${ALLUXIO_HOME}/conf/alluxio-site.properties` by
+
+```bash
+$ cp conf/alluxio-site.properties.template conf/alluxio-site.properties
+```
+
+Then customize it to fit your configuration tuning needs to start Alluxio servers or to use Alluxio shell commands:
 
 {% include Common-Commands/copy-alluxio-site-properties.md %}
 
