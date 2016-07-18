@@ -42,7 +42,7 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   }
 
   @Override
-  public boolean add(T object) {
+  public void add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
 
     ConcurrentHashSet<T> objSet;
@@ -64,7 +64,6 @@ public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
         break;
       }
     }
-    return true;
   }
 
   @Override
