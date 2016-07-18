@@ -81,7 +81,6 @@ public final class FileSystemUtils {
    * The method will deliberately block anyway for the specified amount of time, waiting for the
    * file to be created and eventually completed. Note also that the file might be moved or deleted
    * while it is waited upon. In such cases the method will throw the a {@link AlluxioException}
-   * with the appropriate {@link AlluxioException.AlluxioExceptionType}
    * <p/>
    * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
    * the file status. The polling period is controlled by the
@@ -128,7 +127,7 @@ public final class FileSystemUtils {
           toSleep = timeleft;
         }
 
-        CommonUtils.sleepMs(LOG, toSleep, true);
+        CommonUtils.sleepMs(LOG, toSleep);
         timeleft = deadline - System.currentTimeMillis();
       }
     }

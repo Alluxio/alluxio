@@ -12,18 +12,20 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.SystemPropertyRule;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.file.FileSystemMaster;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -96,21 +98,23 @@ public class JournalShutdownIntegrationTest {
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;
 
-  private ClientThread mCreateFileThread = null;
+  private ClientThread mCreateFileThread;
   /** Executor for running client threads. */
-  private final ExecutorService mExecutorsForClient = Executors.newFixedThreadPool(1);
-  private Configuration mMasterConfiguration = null;
+  private ExecutorService mExecutorsForClient;
+
+  @ClassRule
+  public static SystemPropertyRule sDisableHdfsCacheRule =
+      new SystemPropertyRule("fs.hdfs.impl.disable.cache", "true");
 
   @After
   public final void after() throws Exception {
     mExecutorsForClient.shutdown();
-    System.clearProperty("fs.hdfs.impl.disable.cache");
     ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before
   public final void before() throws Exception {
-    System.setProperty("fs.hdfs.impl.disable.cache", "true");
+    mExecutorsForClient = Executors.newFixedThreadPool(1);
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
@@ -123,7 +127,9 @@ public class JournalShutdownIntegrationTest {
   private void reproduceAndCheckState(int successFiles) throws Exception {
     FileSystemMaster fsMaster = createFsMasterFromJournal();
 
-    int actualFiles = fsMaster.getFileInfoList(new AlluxioURI(TEST_FILE_DIR), true).size();
+    int actualFiles =
+        fsMaster.listStatus(new AlluxioURI(TEST_FILE_DIR), ListStatusOptions.defaults())
+            .size();
     Assert.assertTrue((successFiles == actualFiles) || (successFiles + 1 == actualFiles));
     for (int f = 0; f < successFiles; f++) {
       Assert.assertTrue(

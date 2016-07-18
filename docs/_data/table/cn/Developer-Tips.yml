@@ -2,7 +2,7 @@ format:
   格式化Alluxio的Master和所有Worker。选项[-s]表示这条命令只有在底层文件系统为本地的、且已经不存在的情况下才格式化。
 formatWorker:
   格式化Alluxio Worker的本地存储。
-bootstrap-conf:
+bootstrapConf:
   如果引导程序配置文件<code>alluxio-env.sh</code>不存在，利用<code>ALLUXIO_MASTER_HOSTNAME</code>生成。
 fs:
   在命令行中与Alluxio进行交互，从而完成基本的文件系统操作。详情见<a href="Command-Line-Interface.html">Command Line</a>。

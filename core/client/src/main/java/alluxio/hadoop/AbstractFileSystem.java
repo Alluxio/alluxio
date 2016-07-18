@@ -357,11 +357,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Gets the URI schema that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
+   * Gets the URI scheme that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
    * introduced in Hadoop 2.x as a means to make loading new {@link org.apache.hadoop.fs.FileSystem}
    * s simpler. This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
    *
-   * @return schema hadoop should map to
+   * @return scheme hadoop should map to
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)

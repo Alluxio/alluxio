@@ -220,7 +220,7 @@ public final class CpCommand extends AbstractShellCommand {
 
   @Override
   public String getDescription() {
-    return "Copies a file or a directory in the Alluxio filesystem."
+    return "Copies a file or a directory in the Alluxio filesystem. "
         + "The -R flag is needed to copy directories.";
   }
 }

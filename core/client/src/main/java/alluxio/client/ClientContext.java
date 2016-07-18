@@ -48,9 +48,16 @@ public final class ClientContext {
    * This method requires that configuration has been initialized.
    */
   public static void init() {
+    // If this is a re-initialization, we must shut down the previous executors.
+    if (sBlockClientExecutorService != null) {
+      sBlockClientExecutorService.shutdownNow();
+    }
     sBlockClientExecutorService = Executors
         .newFixedThreadPool(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
+    if (sFileClientExecutorService != null) {
+      sFileClientExecutorService.shutdownNow();
+    }
     sFileClientExecutorService = Executors
         .newFixedThreadPool(Configuration.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));

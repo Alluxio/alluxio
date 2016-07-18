@@ -64,6 +64,10 @@ For a tutorial, see the GitHub guides on
 [ALLUXIO-100] Implement an awesome new feature
 ~~~~~
 
+-   Add a GitHub label describing which component of Alluxio your change falls under. If you're
+    unsure, pick whichever component you modified the most (components correspond with root-level 
+    directories).
+
 -   In the description field of the pull request, please include a link to the JIRA ticket.
 
 

@@ -23,7 +23,7 @@ public abstract class CloseableResource<T> implements Closeable {
   private T mResource;
 
   /**
-   * Creates a {@link CloseableResource<T>} wrapper around the given resource. This resource will
+   * Creates a {@link CloseableResource} wrapper around the given resource. This resource will
    * be returned by the {@link CloseableResource#get()} method.
    *
    * @param resource the resource to wrap

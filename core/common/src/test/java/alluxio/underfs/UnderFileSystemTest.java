@@ -59,6 +59,10 @@ public final class UnderFileSystemTest {
     Assert.assertEquals(result.getFirst(), "s3://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
 
+    result = UnderFileSystem.parse(new AlluxioURI("s3a://localhost:19998/path"));
+    Assert.assertEquals(result.getFirst(), "s3a://localhost:19998");
+    Assert.assertEquals(result.getSecond(), "/path");
+
     result = UnderFileSystem.parse(new AlluxioURI("s3n://localhost:19998/path"));
     Assert.assertEquals(result.getFirst(), "s3n://localhost:19998");
     Assert.assertEquals(result.getSecond(), "/path");
