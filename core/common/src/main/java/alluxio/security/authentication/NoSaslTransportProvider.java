@@ -14,7 +14,6 @@ package alluxio.security.authentication;
 import alluxio.Configuration;
 import alluxio.Constants;
 
-import com.google.common.base.Preconditions;
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
@@ -25,7 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import javax.security.sasl.SaslException;
 
 /**
- * If authentication type is {@link AuthType#NOSASL), we use this transport provider which simply
+ * If authentication type is {@link AuthType#NOSASL}, we use this transport provider which simply
  * uses default Thrift {@link TFramedTransport}.
  */
 @ThreadSafe
@@ -36,14 +35,12 @@ public final class NoSaslTransportProvider implements TransportProvider {
   private final int mThriftFrameSizeMax;
 
   /**
-   * Constructor for transport provider when authentication type is {@link AuthType#NOSASL).
-   *
-   * @param conf Alluxio configuration
+   * Constructor for transport provider when authentication type is {@link AuthType#NOSASL}.
    */
-  public NoSaslTransportProvider(Configuration conf) {
-    Preconditions.checkNotNull(conf);
-    mSocketTimeoutMs = conf.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
-    mThriftFrameSizeMax = (int) conf.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
+  public NoSaslTransportProvider() {
+    mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mThriftFrameSizeMax =
+        (int) Configuration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
   }
 
   @Override

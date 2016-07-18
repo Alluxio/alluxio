@@ -56,6 +56,7 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   ${ALLUXIO_FRAMEWORK_JAVA_OPTS} \
   -Djava.library.path="${MESOS_LIBRARY_PATH}" \
   -Dalluxio.home="${ALLUXIO_HOME}" \
+  -Dalluxio.logger.type="Console" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
   alluxio.mesos.AlluxioFramework "${MESOS_MASTER_ADDRESS}" > "${ALLUXIO_LOGS_DIR}"/framework.out 2>&1 &
 

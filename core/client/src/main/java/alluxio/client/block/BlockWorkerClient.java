@@ -76,14 +76,13 @@ public final class BlockWorkerClient extends AbstractClient {
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
-   * @param conf Alluxio configuration
    * @param sessionId the id of the session
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
   public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      Configuration conf, long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "blockWorker");
+      long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "blockWorker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
@@ -225,7 +224,7 @@ public final class BlockWorkerClient extends AbstractClient {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
                 mHeartbeatExecutor, interval));
@@ -366,8 +365,9 @@ public final class BlockWorkerClient extends AbstractClient {
    *
    * @param blockId The id of the block
    * @param requestBytes The requested space size, in bytes
-   * @return true if success, false otherwise
-   * @throws IOException if a non-Alluxio exception occurs
+   * @return true if space was successfully allocated, false if the worker is unable to allocate
+   *         space due to space exhaustion
+   * @throws IOException if an exception occurs
    */
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
@@ -379,11 +379,7 @@ public final class BlockWorkerClient extends AbstractClient {
         }
       });
     } catch (AlluxioException e) {
-      if (e instanceof WorkerOutOfSpaceException) {
-        return false;
-      } else {
-        throw new IOException(e);
-      }
+      throw new IOException(e);
     }
   }
 

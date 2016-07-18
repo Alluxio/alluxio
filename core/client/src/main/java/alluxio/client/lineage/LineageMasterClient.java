@@ -12,7 +12,6 @@
 package alluxio.client.lineage;
 
 import alluxio.AbstractMasterClient;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
@@ -47,10 +46,9 @@ public final class LineageMasterClient extends AbstractMasterClient {
    * Creates a new lineage master client.
    *
    * @param masterAddress the master address
-   * @param configuration the Alluxio configuration
    */
-  public LineageMasterClient(InetSocketAddress masterAddress, Configuration configuration) {
-    super(masterAddress, configuration);
+  public LineageMasterClient(InetSocketAddress masterAddress) {
+    super(masterAddress);
   }
 
   @Override

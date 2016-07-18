@@ -19,11 +19,13 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
+import alluxio.exception.BlockDoesNotExistException;
+import alluxio.exception.UnexpectedAlluxioException;
+import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.thrift.AlluxioTException;
 import alluxio.thrift.BlockWorkerClientService;
 import alluxio.thrift.LockBlockResult;
 import alluxio.thrift.ThriftIOException;
-import alluxio.worker.WorkerContext;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +54,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    */
   public BlockWorkerClientServiceHandler(BlockWorker worker) {
     mWorker = worker;
-    mStorageTierAssoc = new WorkerStorageTierAssoc(WorkerContext.getConf());
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
   }
 
   @Override
@@ -197,23 +199,40 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
   }
 
   /**
-   * Used to request space for some block file.
+   * Requests space for a block.
    *
    * @param sessionId the id of the client requesting space
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
    *         false if there is no enough space
+   * @throws AlluxioTException if an Alluxio error occurs
+   * @throws ThriftIOException if an I/O error occurs
    */
   @Override
-  public boolean requestSpace(long sessionId, long blockId, long requestBytes) {
-    try {
-      mWorker.requestSpace(sessionId, blockId, requestBytes);
-      return true;
-    } catch (Exception e) {
-      LOG.error("Failed to request {} bytes for block: {}", requestBytes, blockId, e);
-    }
-    return false;
+  public boolean requestSpace(final long sessionId, final long blockId, final long requestBytes)
+      throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallable<Boolean>() {
+      @Override
+      public Boolean call() throws AlluxioException {
+        try {
+          mWorker.requestSpace(sessionId, blockId, requestBytes);
+          return true;
+        } catch (WorkerOutOfSpaceException e) {
+          LOG.warn("Worker is out of space, failed to serve request for {} bytes for block {}",
+              requestBytes, blockId);
+          return false;
+        } catch (IOException e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          // We must wrap IOException in an AlluxioException here for backwards compatibility with
+          // previous versions of our API.
+          throw new UnexpectedAlluxioException(e);
+        } catch (BlockDoesNotExistException e) {
+          LOG.error("Failed to serve request for {} bytes for block: {}", requestBytes, blockId, e);
+          throw e;
+        }
+      }
+    });
   }
 
   /**

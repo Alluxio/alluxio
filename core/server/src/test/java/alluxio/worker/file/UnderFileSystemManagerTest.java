@@ -12,7 +12,6 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -30,7 +29,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.invocation.InvocationOnMock;
@@ -85,8 +83,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
-    BDDMockito.given(UnderFileSystem.get(Mockito.anyString(), Mockito.any(Configuration.class)))
-        .willReturn(mMockUfs);
+    Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(mMockUfs);
     Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
@@ -104,8 +101,7 @@ public final class UnderFileSystemManagerTest {
     mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
         Mockito.any(CreateOptions.class));
-    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
-        Mockito.anyString());
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
   }
 
   /**
@@ -207,8 +203,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     Mockito.verify(mMockUfs).exists(mUri.toString());
-    Mockito.verify(mMockUfs).connectFromWorker(Mockito.any(Configuration.class),
-        Mockito.anyString());
+    Mockito.verify(mMockUfs).connectFromWorker(Mockito.anyString());
   }
 
   /**

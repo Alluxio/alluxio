@@ -13,16 +13,16 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.InodeTree;
+import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.meta.MountTable;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.Journal;
@@ -146,11 +146,6 @@ public final class PermissionCheckerTest {
       }
       return new ArrayList<>();
     }
-
-    @Override
-    public void setConf(Configuration conf) throws IOException {
-      // no-op
-    }
   }
 
   @BeforeClass
@@ -172,12 +167,10 @@ public final class PermissionCheckerTest {
 
     blockMaster.start(true);
 
-    Configuration conf = new Configuration();
-    conf.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
-    conf.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    conf.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
-    MasterContext.reset(conf);
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
     sTree.initializeRoot(TEST_PERMISSION_SUPER);
 
     // build file structure
@@ -188,7 +181,7 @@ public final class PermissionCheckerTest {
 
   @AfterClass
   public static void afterClass() throws Exception {
-    MasterContext.reset();
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Before

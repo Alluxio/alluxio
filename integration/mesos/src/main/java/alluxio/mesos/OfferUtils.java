@@ -15,16 +15,16 @@ import alluxio.Configuration;
 import alluxio.Constants;
 
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Mesos framework offer utils.
  */
 public final class OfferUtils {
-  private static final Configuration CONF = Configuration.createClientConf();
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private OfferUtils() {
-
-  }
+  private OfferUtils() {} // prevent instantiation
 
   /**
    * @param offer Resource offer from Mesos
@@ -34,8 +34,8 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(CONF.getInt(Constants.MASTER_WEB_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.MASTER_RPC_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_RPC_PORT), ranges);
   }
 
   /**
@@ -46,13 +46,14 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(CONF.getInt(Constants.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_RPC_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_DATA_PORT), ranges);
   }
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {
     for (Protos.Value.Range range : ranges.getRangeList()) {
+      LOG.debug("Port range {}", range);
       if (port >= range.getBegin() && port <= range.getEnd()) {
         return true;
       }

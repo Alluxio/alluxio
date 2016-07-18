@@ -12,11 +12,11 @@ priority: 0
 
 首先，本地要有Alluxio二进制包。你可以自己[编译Alluxio](Building-Alluxio-Master-Branch.html)，或者[下载二进制包](Running-Alluxio-Locally.html)
 
-然后，如果你还没有进行这项配置，那么用`bootstrap-conf`命令创建你的配置文件
+然后，如果你还没有进行这项配置，那么用`bootstrapConf`命令创建你的配置文件
 
 例如，如果你在本地机器上运行Alluxio，`ALLUXIO_MASTER_HOSTNAME`应该设置为`localhost`。
 
-{% include Configuring-Alluxio-with-S3/bootstrap-conf.md %}
+{% include Configuring-Alluxio-with-S3/bootstrapConf.md %}
 
 或者，你也可以由template文件创建配置文件并手动设置配置内容：
 
@@ -28,7 +28,7 @@ priority: 0
 
 若要在Alluxio中使用S3作为底层文件系统，一定要修改`conf/alluxio-env.sh`配置文件。首先要指定一个**已有的**S3 bucket和其中的目录作为底层文件系统，可以在`conf/alluxio-env.sh`中添加如下语句指定它：
 
-{% include Configuring-Alluxio-with-S3/underfs-address.md %}
+{% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
 
 接着，需要指定AWS证书以便访问S3，在`conf/alluxio-env.sh`中的`ALLUXIO_JAVA_OPTS`部分添加：
 

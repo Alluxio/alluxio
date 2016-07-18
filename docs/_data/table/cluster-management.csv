@@ -6,7 +6,7 @@ alluxio.integration.mesos.jre.path,jre1.7.0_79
 alluxio.integration.mesos.jre.url,https://s3.amazonaws.com/alluxio-mesos/jre-7u79-linux-x64.tar.gz
 alluxio.integration.mesos.master.name,AlluxioMaster
 alluxio.integration.mesos.master.node.count,1
-alluxio.integration.mesos.principal,alluxio
+alluxio.integration.mesos.principal,
 alluxio.integration.mesos.role,*
 alluxio.integration.mesos.secret,
 alluxio.integration.mesos.user,root

@@ -36,11 +36,9 @@ public final class MasterUIWebServer extends UIWebServer {
    * @param service the service type
    * @param address the service address
    * @param master the Alluxio master
-   * @param conf the Alluxio configuration
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master,
-      Configuration conf) {
-    super(service, address, conf);
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master) {
+    super(service, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceGeneralServlet(master)), "/home");
@@ -58,12 +56,12 @@ public final class MasterUIWebServer extends UIWebServer {
         "/downloadLocal");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceBrowseLogsServlet(true)),
         "/browseLogs");
-    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet(conf)),
+    mWebAppContext.addServlet(new ServletHolder(new WebInterfaceHeaderServlet()),
         "/header");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
         master.getMasterMetricsSystem())), "/metricsui");
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(
-        Collections.singletonList(conf.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
+    mWebAppContext.setOverrideDescriptors(Collections
+        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
   }
 }

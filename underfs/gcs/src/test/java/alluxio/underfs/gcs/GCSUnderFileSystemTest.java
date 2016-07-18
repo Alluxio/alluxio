@@ -14,13 +14,18 @@ package alluxio.underfs.gcs;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.powermock.api.mockito.PowerMockito;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Tests for the private helper methods in {@link GCSUnderFileSystem} that do not require an GCS
  * backend.
  */
+@RunWith(PowerMockRunner.class)
+@PrepareForTest(GCSUnderFileSystem.class)
 public final class GCSUnderFileSystemTest {
   private GCSUnderFileSystem mMockGCSUnderFileSystem;
 
@@ -29,7 +34,7 @@ public final class GCSUnderFileSystemTest {
    */
   @Before
   public  final void before() {
-    mMockGCSUnderFileSystem = PowerMockito.mock(GCSUnderFileSystem.class);
+    mMockGCSUnderFileSystem = Mockito.mock(GCSUnderFileSystem.class);
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketName", "test-bucket");
     Whitebox.setInternalState(mMockGCSUnderFileSystem, "mBucketPrefix", "gs://test-bucket/");
   }
@@ -112,26 +117,6 @@ public final class GCSUnderFileSystemTest {
     Assert.assertFalse(result4);
     Assert.assertFalse(result5);
     Assert.assertFalse(result6);
-  }
-
-  /**
-   * Tests the {@link GCSUnderFileSystem#stripFolderSuffixIfPresent(String)} method.
-   */
-  @Test
-  public void stripFolderSuffixIfPresentTest() throws Exception {
-    String input1 = "gs://test-bucket/";
-    String input2 = "gs://test-bucket/dir/file";
-    String input3 = "gs://test-bucket/dir_$folder$";
-    String result1 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input1);
-    String result2 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input2);
-    String result3 =
-        Whitebox.invokeMethod(mMockGCSUnderFileSystem, "stripFolderSuffixIfPresent", input3);
-
-    Assert.assertEquals("gs://test-bucket/", result1);
-    Assert.assertEquals("gs://test-bucket/dir/file", result2);
-    Assert.assertEquals("gs://test-bucket/dir", result3);
   }
 
   /**

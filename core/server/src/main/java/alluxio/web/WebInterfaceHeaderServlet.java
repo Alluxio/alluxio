@@ -31,16 +31,10 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceHeaderServlet extends HttpServlet {
   private static final long serialVersionUID = -2466055439220042703L;
 
-  private final transient Configuration mConfiguration;
-
   /**
    * Creates a new instance of {@link WebInterfaceHeaderServlet}.
-   *
-   * @param conf Alluxio configuration
    */
-  public WebInterfaceHeaderServlet(Configuration conf) {
-    mConfiguration = conf;
-  }
+  public WebInterfaceHeaderServlet() {}
 
   /**
    * Populate the header with information about master. So we can return to
@@ -54,12 +48,12 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = mConfiguration.getInt(Constants.MASTER_WEB_PORT);
+    int masterWebPort = Configuration.getInt(Constants.MASTER_WEB_PORT);
     String masterHostName;
-    if (!mConfiguration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
-      masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC, mConfiguration);
+    if (!Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     } else {
-      masterHostName = NetworkAddressUtils.getMasterAddressFromZK(mConfiguration).getHostName();
+      masterHostName = NetworkAddressUtils.getMasterAddressFromZK().getHostName();
     }
     request.setAttribute("masterHost", masterHostName);
     request.setAttribute("masterPort", masterWebPort);

@@ -48,7 +48,6 @@ public abstract class UIWebServer {
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
   private final ServiceType mService;
-  private final Configuration mConfiguration;
   private InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
 
@@ -58,19 +57,16 @@ public abstract class UIWebServer {
    *
    * @param service name of the web service
    * @param address address of the server
-   * @param conf Alluxio configuration
    */
-  public UIWebServer(ServiceType service, InetSocketAddress address, Configuration conf) {
+  public UIWebServer(ServiceType service, InetSocketAddress address) {
     Preconditions.checkNotNull(service, "Service type cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
-    Preconditions.checkNotNull(conf, "Configuration cannot be null");
 
     mAddress = address;
     mService = service;
-    mConfiguration = conf;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = mConfiguration.getInt(Constants.WEB_THREAD_COUNT);
+    int webThreadCount = Configuration.getInt(Constants.WEB_THREAD_COUNT);
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -88,7 +84,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(mConfiguration.get(Constants.WEB_RESOURCES));
+    File warPath = new File(Configuration.get(Constants.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
 
     mWebAppContext.setAttribute("org.eclipse.jetty.containerInitializers", jspInitializers());
@@ -189,7 +185,7 @@ public abstract class UIWebServer {
         int webPort = mServerConnector.getLocalPort();
         mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
         // reset web service port
-        mConfiguration.set(mService.getPortKey(), Integer.toString(webPort));
+        Configuration.set(mService.getPortKey(), Integer.toString(webPort));
       }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {

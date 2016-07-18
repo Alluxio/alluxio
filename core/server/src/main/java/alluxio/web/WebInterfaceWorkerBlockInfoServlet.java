@@ -19,7 +19,6 @@ import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.block.BlockId;
-import alluxio.worker.WorkerContext;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.meta.BlockMeta;
@@ -114,7 +113,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
     request.setAttribute("nTotalFile", fileIds.size());
 
     request.setAttribute("orderedTierAliases",
-        new WorkerStorageTierAssoc(WorkerContext.getConf()).getOrderedStorageAliases());
+        new WorkerStorageTierAssoc().getOrderedStorageAliases());
 
     // URL can not determine offset and limit, let javascript in jsp determine and redirect
     if (request.getParameter("offset") == null && request.getParameter("limit") == null) {

@@ -84,7 +84,7 @@ Hadoop MapReduce用户可以在`hadoop jar`命令中添加`-Dkey=property`将配
 
 用户可以通过shell命令或者`conf/alluxio-env.sh`设置这些环境变量。如果该文件不存在，可以通过运行以下命令令Alluxio自动生成`conf/alluxio-env.sh`文件：
 
-{% include Common-Commands/bootstrap-conf.md %}
+{% include Common-Commands/bootstrapConf.md %}
 
 除此之外，还可以运行以下命令从我们提供的一个模板文件中生成它：
 

@@ -11,7 +11,6 @@
 
 package alluxio.util;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
@@ -134,33 +133,21 @@ public final class CommonUtils {
   /**
    * Sleeps for the given number of milliseconds, reporting interruptions using the given logger.
    *
-   * @param logger logger for reporting interruptions
+   * Unlike Thread.sleep(), this method responds to interrupts by setting the thread interrupt
+   * status. This means that callers must check the interrupt status if they need to handle
+   * interrupts.
+   *
+   * @param logger logger for reporting interruptions; no reporting is done if the logger is null
    * @param timeMs sleep duration in milliseconds
    */
   public static void sleepMs(Logger logger, long timeMs) {
-    sleepMs(logger, timeMs, false);
-  }
-
-  /**
-   * Sleeps for the given number of milliseconds, reporting interruptions using the given logger,
-   * and optionally pass the interruption to the caller.
-   *
-   * @param logger logger for reporting interruptions
-   * @param timeMs sleep duration in milliseconds
-   * @param shouldInterrupt determines if interruption should be passed to the caller
-   */
-  public static void sleepMs(Logger logger, long timeMs, boolean shouldInterrupt) {
     try {
       Thread.sleep(timeMs);
     } catch (InterruptedException e) {
-      // The null check is needed otherwise #sleeMs(long) will cause a NullPointerException
-      // if the thread is interrupted
       if (logger != null) {
         logger.warn(e.getMessage(), e);
       }
-      if (shouldInterrupt) {
-        Thread.currentThread().interrupt();
-      }
+      Thread.currentThread().interrupt();
     }
   }
 
@@ -226,16 +213,46 @@ public final class CommonUtils {
   /**
    * Using {@link GroupMappingService} to get the primary group name.
    *
-   * @param conf the runtime configuration of Alluxio
    * @param userName Alluxio user name
    * @return primary group name
    * @throws IOException if getting group failed
    */
-  public static String getPrimaryGroupName(Configuration conf, String userName) throws IOException {
+  public static String getPrimaryGroupName(String userName) throws IOException {
     GroupMappingService groupMappingService =
-        GroupMappingService.Factory.getUserToGroupsMappingService(conf);
+        GroupMappingService.Factory.getUserToGroupsMappingService();
     List<String> groups = groupMappingService.getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
+  }
+
+  /**
+   * Strips the suffix if it exists. This method will leave keys without a suffix unaltered.
+   *
+   * @param key the key to strip the suffix from
+   * @param suffix suffix to remove
+   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
+   */
+  public static String stripSuffixIfPresent(final String key, final String suffix) {
+    if (key.endsWith(suffix)) {
+      return key.substring(0, key.length() - suffix.length());
+    }
+    return key;
+  }
+
+  /**
+   * Strips the prefix from the key if it is present. For example, for input key
+   * ufs://my-bucket-name/my-key/file and prefix ufs://my-bucket-name/, the output would be
+   * my-key/file. This method will leave keys without a prefix unaltered, ie. my-key/file
+   * returns my-key/file.
+   *
+   * @param key the key to strip
+   * @param prefix prefix to remove
+   * @return the key without the prefix
+   */
+  public static String stripPrefixIfPresent(final String key, final String prefix) {
+    if (key.startsWith(prefix)) {
+      return key.substring(prefix.length());
+    }
+    return key;
   }
 
   private CommonUtils() {} // prevent instantiation

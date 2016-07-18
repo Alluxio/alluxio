@@ -72,6 +72,7 @@ public final class Constants {
 
   public static final String HEADER_S3 = "s3://";
   public static final String HEADER_S3N = "s3n://";
+  public static final String HEADER_S3A = "s3a://";
   public static final String HEADER_SWIFT = "swift://";
   // Google Cloud Storage header convention is "gs://".
   // See https://cloud.google.com/storage/docs/cloud-console
@@ -132,7 +133,7 @@ public final class Constants {
   public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
   public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
-  public static final String UNDERFS_HDFS_PREFIXS = "alluxio.underfs.hdfs.prefixes";
+  public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
   public static final String IN_TEST_MODE = "alluxio.test.mode";
   public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
       "alluxio.network.host.resolution.timeout.ms";
@@ -160,6 +161,12 @@ public final class Constants {
   public static final String UNDERFS_S3_ADMIN_THREADS_MAX = "alluxio.underfs.s3.admin.threads.max";
   public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
       "alluxio.underfs.s3.upload.threads.max";
+  public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
+      "alluxio.underfs.s3a.secure.http.enabled";
+  public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
+      "alluxio.underfs.s3a.server.side.encryption.enabled";
+  public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+      "alluxio.underfs.s3a.socket.timeout.ms";
   public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
   public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
   public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
@@ -421,6 +428,8 @@ public final class Constants {
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
   public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+  public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 

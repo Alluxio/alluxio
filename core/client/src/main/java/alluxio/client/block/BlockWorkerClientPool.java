@@ -11,6 +11,7 @@
 
 package alluxio.client.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.ClientContext;
 import alluxio.resource.ResourcePool;
@@ -42,7 +43,7 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
    * @param workerAddress the worker address
    */
   public BlockWorkerClientPool(WorkerNetAddress workerAddress) {
-    super(ClientContext.getConf().getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS));
+    super(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS));
     mWorkerNetAddress = workerAddress;
   }
 
@@ -67,6 +68,6 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   protected BlockWorkerClient createNewResource() {
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new BlockWorkerClient(mWorkerNetAddress, ClientContext.getBlockClientExecutorService(),
-        ClientContext.getConf(), clientId, true, ClientContext.getClientMetrics());
+        clientId, true, ClientContext.getClientMetrics());
   }
 }

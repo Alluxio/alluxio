@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.annotation.PublicApi;
 import alluxio.thrift.ListStatusTOptions;
+import alluxio.wire.LoadMetadataType;
 
 import com.google.common.base.Objects;
 
@@ -24,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class ListStatusOptions {
-  private boolean mLoadDirectChildren;
+  private LoadMetadataType mLoadMetadataType;
 
   /**
    * @return the default {@link ListStatusOptions}
@@ -34,15 +35,24 @@ public final class ListStatusOptions {
   }
 
   private ListStatusOptions() {
-    mLoadDirectChildren = true;
+    mLoadMetadataType = LoadMetadataType.Once;
   }
 
   /**
-   * @return the load direct children flag. It specifies whether the direct children should
-   *         be loaded from UFS if they have not been loaded once.
+   * @return the load metadata type. It specifies whether the direct children should
+   *         be loaded from UFS in different scenarios.
    */
-  public boolean isLoadDirectChildren() {
-    return mLoadDirectChildren;
+  public LoadMetadataType getLoadMetadataType() {
+    return mLoadMetadataType;
+  }
+
+  /**
+   * @param loadMetadataType the loadMetataType
+   * @return the updated options
+   */
+  public ListStatusOptions setLoadMetadataType(LoadMetadataType loadMetadataType) {
+    mLoadMetadataType = loadMetadataType;
+    return this;
   }
 
   @Override
@@ -54,18 +64,18 @@ public final class ListStatusOptions {
       return false;
     }
     ListStatusOptions that = (ListStatusOptions) o;
-    return Objects.equal(mLoadDirectChildren, that.mLoadDirectChildren);
+    return Objects.equal(mLoadMetadataType, that.mLoadMetadataType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mLoadDirectChildren);
+    return Objects.hashCode(mLoadMetadataType);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this)
-        .add("loadDirectChildren", mLoadDirectChildren)
+        .add("loadMetadataType", mLoadMetadataType.toString())
         .toString();
   }
 
@@ -74,7 +84,10 @@ public final class ListStatusOptions {
    */
   public ListStatusTOptions toThrift() {
     ListStatusTOptions options = new ListStatusTOptions();
-    options.setLoadDirectChildren(mLoadDirectChildren);
+    options.setLoadDirectChildren(
+        mLoadMetadataType == LoadMetadataType.Once || mLoadMetadataType == LoadMetadataType.Always);
+
+    options.setLoadMetadataType(LoadMetadataType.toThrift(mLoadMetadataType));
     return options;
   }
 }

@@ -11,7 +11,6 @@
 
 package alluxio.underfs.options;
 
-import alluxio.Configuration;
 import alluxio.annotation.PublicApi;
 import alluxio.security.authorization.Permission;
 
@@ -34,20 +33,7 @@ public final class MkdirsOptions {
    * Constructs a default {@link MkdirsOptions}.
    */
   public MkdirsOptions() {
-    mPermission = Permission.defaults();
-    // By default create parent is true.
-    mCreateParent = true;
-  }
-
-  /**
-   * Constructs a {@link MkdirsOptions} with specified configuration.
-   *
-   * @param conf the configuration
-   */
-  public MkdirsOptions(Configuration conf) {
-    // Only set the permission, not the owner/group because owner/group is not yet used for UFS
-    // directories creation.
-    mPermission = Permission.defaults().applyDirectoryUMask(conf);
+    mPermission = Permission.defaults().applyDirectoryUMask();
     // By default create parent is true.
     mCreateParent = true;
   }

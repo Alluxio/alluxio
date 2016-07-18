@@ -16,13 +16,14 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.file.meta.options.MountInfo;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
 import com.google.common.base.Preconditions;
@@ -36,6 +37,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -261,18 +263,29 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @summary get the file descriptors for a path
    * @param path the file path
    * @param loadDirectChildren whether to load direct children of path
+   * @param loadMetadataType the {@link LoadMetadataType}. It overrides loadDirectChildren if it
+   *        is set.
    * @return the response object
    */
   @GET
   @Path(LIST_STATUS)
   @ReturnType("java.util.List<alluxio.wire.FileInfo>")
   public Response listStatus(@QueryParam("path") String path,
-      @QueryParam("loadDirectChildren") boolean loadDirectChildren) {
+      @Deprecated @QueryParam("loadDirectChildren") boolean loadDirectChildren,
+      @DefaultValue("") @QueryParam("loadMetadataType") String loadMetadataType) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
-      return RestUtils.createResponse(
-          mFileSystemMaster.getFileInfoList(new AlluxioURI(path), loadDirectChildren));
-    } catch (AlluxioException | NullPointerException e) {
+      ListStatusOptions listStatusOptions = ListStatusOptions.defaults();
+      if (!loadDirectChildren) {
+        listStatusOptions.setLoadMetadataType(LoadMetadataType.Never);
+      }
+      // loadMetadataType overrides loadDirectChildren if it is set.
+      if (!loadMetadataType.isEmpty()) {
+        listStatusOptions.setLoadMetadataType(LoadMetadataType.valueOf(loadMetadataType));
+      }
+      return RestUtils
+          .createResponse(mFileSystemMaster.listStatus(new AlluxioURI(path), listStatusOptions));
+    } catch (AlluxioException | NullPointerException | IllegalArgumentException e) {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }
@@ -313,7 +326,7 @@ public final class FileSystemMasterClientRestServiceHandler {
     for (Map.Entry<String, MountInfo> mountPoint : mFileSystemMaster.getMountTable().entrySet()) {
       MountInfo mountInfo = mountPoint.getValue();
       MountPointInfo info = new MountPointInfo();
-      info.setUfsInfo(mountInfo.getUfsUri().toString(), MasterContext.getConf());
+      info.setUfsInfo(mountInfo.getUfsUri().toString());
       info.setReadOnly(mountInfo.getOptions().isReadOnly());
       info.setProperties(mountInfo.getOptions().getProperties());
       mountPoints.put(mountPoint.getKey(), info);

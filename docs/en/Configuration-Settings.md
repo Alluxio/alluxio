@@ -98,7 +98,7 @@ also running at `localhost`, and enable Java remote debugging at port 7001, you 
 Users can either set these variables through shell or in `conf/alluxio-env.sh`. If this file does not exist yet,
 Alluxio can help you bootstrap the `conf/alluxio-env.sh` file by running
 
-{% include Common-Commands/bootstrap-conf.md %}
+{% include Common-Commands/bootstrapConf.md %}
 
 Alternatively, you can create one from a template we provided in the source code using:
 
@@ -114,19 +114,15 @@ but not for applications.
 
 In addition to these environment variables that only provide basic settings, Alluxio also provides a
 more general approach for users to customize all supported configuration properties via property files.
-On startup, Alluxio checks if certain configuration properties file exist and if so, it uses their content to override
-the default values of configuration properties. In particular:
+For each Alluxio site deployment, both servers or application clients can override the default property values via
+`alluxio-site.properties` file. On startup, Alluxio checks if the configuration
+property file exists and if so, it uses the content to override the default values of configuration properties.
+This property file is searched in `${HOME}/.alluxio/`, `/etc/alluxio/` (can be customized by changing the default value
+of `alluxio.site.conf.dir`) and the classpath of the Java VM (in
+which Alluxio is running) in order.
 
-1. For each Alluxio site deployment, both servers or application clients can override the default property values via
-`alluxio-site.properties` file.
-
-2. Alluxio master and workers will load the `alluxio-server.properties` file, while Alluxio clients, such as jobs reading
- from or writing to Alluxio, will load the `alluxio-client.properties` file.
-
-These property files are searched in `${HOME}/.alluxio/`, `/etc/alluxio/` (can be customized by changing the default value
-of `alluxio.site.conf.dir`) and the classpath of the Java VM in
-which Alluxio is running in order. The easiest way is to copy the site properties template in directory
-`$ALLUXIO_HOME/conf` and edit it to fit your configuration tuning needs.
+For example, one can copy the site properties template in directory
+`${ALLUXIO_HOME}/conf` to `${HOME}/.alluxio/` and edit it to fit your configuration tuning needs.
 
 {% include Common-Commands/copy-alluxio-site-properties.md %}
 

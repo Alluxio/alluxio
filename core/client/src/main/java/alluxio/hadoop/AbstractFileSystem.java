@@ -230,7 +230,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return ClientContext.getConf().getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -357,11 +357,11 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   }
 
   /**
-   * Gets the URI schema that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
+   * Gets the URI scheme that maps to the {@link org.apache.hadoop.fs.FileSystem}. This was
    * introduced in Hadoop 2.x as a means to make loading new {@link org.apache.hadoop.fs.FileSystem}
    * s simpler. This doesn't exist in Hadoop 1.x, so cannot put {@literal @Override}.
    *
-   * @return schema hadoop should map to
+   * @return scheme hadoop should map to
    *
    * @see org.apache.hadoop.fs.FileSystem#createFileSystem(java.net.URI,
    *      org.apache.hadoop.conf.Configuration)
@@ -412,16 +412,13 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       if (sInitialized) {
         return;
       }
-      // Load Alluxio configuration if any and merge to the one in Alluxio file system
-      Configuration siteConf = ConfUtils.loadFromHadoopConfiguration(conf);
-      // These modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
+      // Load Alluxio configuration if any and merge to the one in Alluxio file system. These
+      // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
       // We assume here that all clients use the same configuration.
-      if (siteConf != null) {
-        ClientContext.getConf().merge(siteConf);
-      }
-      ClientContext.getConf().set(Constants.MASTER_HOSTNAME, uri.getHost());
-      ClientContext.getConf().set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      ClientContext.getConf().set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+      ConfUtils.mergeHadoopConfiguration(conf);
+      Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+      Configuration.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.

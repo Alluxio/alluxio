@@ -12,8 +12,8 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -27,7 +27,6 @@ import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.WorkerContext;
 
 import com.google.common.base.Preconditions;
 import com.google.common.io.CountingInputStream;
@@ -56,8 +55,8 @@ public final class UnderFileSystemManager {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Input stream agent session index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
+  private static final IndexDefinition<InputStreamAgent> INPUT_AGENT_SESSION_ID_INDEX =
+      new IndexDefinition<InputStreamAgent>(false) {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mSessionId;
@@ -65,8 +64,8 @@ public final class UnderFileSystemManager {
       };
 
   // Input stream agent id index
-  private final IndexedSet.FieldIndex<InputStreamAgent> mInputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<InputStreamAgent>() {
+  private static final IndexDefinition<InputStreamAgent> INPUT_AGENT_ID_INDEX =
+      new IndexDefinition<InputStreamAgent>(true) {
         @Override
         public Object getFieldValue(InputStreamAgent o) {
           return o.mAgentId;
@@ -74,8 +73,8 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent session index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOuputStreamAgentSessionIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+  private static final IndexDefinition<OutputStreamAgent> OUTPUT_AGENT_SESSION_ID_INDEX =
+      new IndexDefinition<OutputStreamAgent>(false) {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
           return o.mSessionId;
@@ -83,8 +82,8 @@ public final class UnderFileSystemManager {
       };
 
   // Output stream agent id index
-  private final IndexedSet.FieldIndex<OutputStreamAgent> mOutputStreamAgentIdIndex =
-      new IndexedSet.FieldIndex<OutputStreamAgent>() {
+  private static final IndexDefinition<OutputStreamAgent> OUTPUT_AGENT_ID_INDEX =
+      new IndexDefinition<OutputStreamAgent>(true) {
         @Override
         public Object getFieldValue(OutputStreamAgent o) {
           return o.mAgentId;
@@ -107,9 +106,9 @@ public final class UnderFileSystemManager {
   public UnderFileSystemManager() {
     mIdGenerator = new AtomicLong(IdUtils.getRandomNonNegativeLong());
     mInputStreamAgents =
-        new IndexedSet<>(mInputStreamAgentSessionIdIndex, mInputStreamAgentIdIndex);
+        new IndexedSet<>(INPUT_AGENT_ID_INDEX, INPUT_AGENT_SESSION_ID_INDEX);
     mOutputStreamAgents =
-        new IndexedSet<>(mOuputStreamAgentSessionIdIndex, mOutputStreamAgentIdIndex);
+        new IndexedSet<>(OUTPUT_AGENT_ID_INDEX, OUTPUT_AGENT_SESSION_ID_INDEX);
   }
 
   /**
@@ -124,8 +123,6 @@ public final class UnderFileSystemManager {
     private final long mAgentId;
     /** The length of the file in the under storage. */
     private final long mLength;
-    /** Configuration to use for this stream. */
-    private final Configuration mConfiguration;
     /** The string form of the uri to the file in the under file system. */
     private final String mUri;
 
@@ -141,19 +138,17 @@ public final class UnderFileSystemManager {
      * @param sessionId the session this agent belongs to
      * @param agentId the agentId of the agent
      * @param ufsUri the uri of the file in the UFS
-     * @param conf the configuration to use
      * @throws FileDoesNotExistException if the file does not exist in the UFS
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private InputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf)
+    private InputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri)
         throws FileDoesNotExistException, IOException {
       mSessionId = sessionId;
       mAgentId = agentId;
       mUri = ufsUri.toString();
-      mConfiguration = conf;
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      ufs.connectFromWorker(conf,
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, conf));
+      UnderFileSystem ufs = UnderFileSystem.get(mUri);
+      ufs.connectFromWorker(
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       if (!ufs.exists(mUri)) {
         throw new FileDoesNotExistException(
             ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri));
@@ -196,7 +191,7 @@ public final class UnderFileSystemManager {
         if (mStream != null) { // Close the existing stream if needed
           mStream.close();
         }
-        UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+        UnderFileSystem ufs = UnderFileSystem.get(mUri);
         // TODO(calvin): Consider making openAtPosition part of the UFS API
         if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
           mStream =
@@ -243,8 +238,6 @@ public final class UnderFileSystemManager {
     private final long mSessionId;
     /** Id referencing this agent, indexed on. */
     private final long mAgentId;
-    /** Configuration to use for this stream. */
-    private final Configuration mConfiguration;
     /** Underlying stream to the under file system file. */
     private final OutputStream mStream;
     /** String form of the final uri to write to in the under file system. */
@@ -261,22 +254,20 @@ public final class UnderFileSystemManager {
      * @param sessionId the agentId of the session that created this object
      * @param agentId the worker specific agentId which references this object
      * @param ufsUri the file to create in the UFS
-     * @param conf the configuration to use
      * @param perm the permission of the file
      * @throws FileAlreadyExistsException if a file already exists at the uri specified
      * @throws IOException if an error occurs when interacting with the UFS
      */
-    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Configuration conf,
-        Permission perm) throws FileAlreadyExistsException, IOException {
+    private OutputStreamAgent(long sessionId, long agentId, AlluxioURI ufsUri, Permission perm)
+        throws FileAlreadyExistsException, IOException {
       mSessionId = sessionId;
       mAgentId = agentId;
-      mConfiguration = Preconditions.checkNotNull(conf);
       mUri = Preconditions.checkNotNull(ufsUri).toString();
       mTemporaryUri = PathUtils.temporaryFileName(IdUtils.getRandomNonNegativeLong(), mUri);
       mPermission = perm;
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
-      ufs.connectFromWorker(conf,
-          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC, conf));
+      UnderFileSystem ufs = UnderFileSystem.get(mUri);
+      ufs.connectFromWorker(
+          NetworkAddressUtils.getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC));
       if (ufs.exists(mUri)) {
         throw new FileAlreadyExistsException(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri));
       }
@@ -291,7 +282,7 @@ public final class UnderFileSystemManager {
      */
     private void cancel() throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri);
       // TODO(calvin): Log a warning if the delete fails
       ufs.delete(mTemporaryUri, false);
     }
@@ -306,7 +297,7 @@ public final class UnderFileSystemManager {
      */
     private long complete(Permission perm) throws IOException {
       mStream.close();
-      UnderFileSystem ufs = UnderFileSystem.get(mUri, mConfiguration);
+      UnderFileSystem ufs = UnderFileSystem.get(mUri);
       if (ufs.rename(mTemporaryUri, mUri)) {
         if (!perm.getOwner().isEmpty() || !perm.getGroup().isEmpty()) {
           try {
@@ -344,8 +335,7 @@ public final class UnderFileSystemManager {
   public long createFile(long sessionId, AlluxioURI ufsUri, Permission perm)
       throws FileAlreadyExistsException, IOException {
     long id = mIdGenerator.getAndIncrement();
-    OutputStreamAgent agent =
-        new OutputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf(), perm);
+    OutputStreamAgent agent = new OutputStreamAgent(sessionId, id, ufsUri, perm);
     synchronized (mOutputStreamAgents) {
       mOutputStreamAgents.add(agent);
     }
@@ -365,7 +355,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -387,8 +377,8 @@ public final class UnderFileSystemManager {
     Set<InputStreamAgent> toClose;
     synchronized (mInputStreamAgents) {
       toClose =
-          new HashSet<>(mInputStreamAgents.getByField(mInputStreamAgentSessionIdIndex, sessionId));
-      mInputStreamAgents.removeByField(mInputStreamAgentSessionIdIndex, sessionId);
+          new HashSet<>(mInputStreamAgents.getByField(INPUT_AGENT_SESSION_ID_INDEX, sessionId));
+      mInputStreamAgents.removeByField(INPUT_AGENT_SESSION_ID_INDEX, sessionId);
     }
     // close is done outside of the synchronized block since it may be expensive
     for (InputStreamAgent agent : toClose) {
@@ -401,9 +391,9 @@ public final class UnderFileSystemManager {
 
     Set<OutputStreamAgent> toCancel;
     synchronized (mOutputStreamAgents) {
-      toCancel =
-          new HashSet<>(mOutputStreamAgents.getByField(mOuputStreamAgentSessionIdIndex, sessionId));
-      mOutputStreamAgents.removeByField(mOuputStreamAgentSessionIdIndex, sessionId);
+      toCancel = new HashSet<>(
+          mOutputStreamAgents.getByField(OUTPUT_AGENT_SESSION_ID_INDEX, sessionId));
+      mOutputStreamAgents.removeByField(OUTPUT_AGENT_SESSION_ID_INDEX, sessionId);
     }
     // cancel is done outside of the synchronized block since it may be expensive
     for (OutputStreamAgent agent : toCancel) {
@@ -428,7 +418,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -457,7 +447,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
       if (agent == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(tempUfsFileId));
@@ -482,7 +472,7 @@ public final class UnderFileSystemManager {
       throws FileDoesNotExistException, IOException {
     InputStreamAgent agent;
     synchronized (mInputStreamAgents) {
-      agent = mInputStreamAgents.getFirstByField(mInputStreamAgentIdIndex, tempUfsFileId);
+      agent = mInputStreamAgents.getFirstByField(INPUT_AGENT_ID_INDEX, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(
@@ -499,7 +489,7 @@ public final class UnderFileSystemManager {
   public OutputStream getOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
     OutputStreamAgent agent;
     synchronized (mOutputStreamAgents) {
-      agent = mOutputStreamAgents.getFirstByField(mOutputStreamAgentIdIndex, tempUfsFileId);
+      agent = mOutputStreamAgents.getFirstByField(OUTPUT_AGENT_ID_INDEX, tempUfsFileId);
     }
     if (agent == null) {
       throw new FileDoesNotExistException(
@@ -520,7 +510,7 @@ public final class UnderFileSystemManager {
   public long openFile(long sessionId, AlluxioURI ufsUri)
       throws FileDoesNotExistException, IOException {
     long id = mIdGenerator.getAndIncrement();
-    InputStreamAgent agent = new InputStreamAgent(sessionId, id, ufsUri, WorkerContext.getConf());
+    InputStreamAgent agent = new InputStreamAgent(sessionId, id, ufsUri);
     synchronized (mInputStreamAgents) {
       mInputStreamAgents.add(agent);
     }

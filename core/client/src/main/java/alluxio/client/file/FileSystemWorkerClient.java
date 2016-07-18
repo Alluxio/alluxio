@@ -15,7 +15,6 @@ import alluxio.AbstractClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
-
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -38,11 +37,12 @@ import org.apache.thrift.TException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * Client for talking to a file system worker server. It keeps sending keep alive messages to the
@@ -77,13 +77,12 @@ public class FileSystemWorkerClient extends AbstractClient {
    *
    * @param workerNetAddress the worker address to connect to
    * @param executorService the executor service to run this client's heartbeat thread
-   * @param conf the configuration to use
    * @param sessionId the session id to use, this should be unique
    * @param metrics the metrics object to send any metrics through
    */
   public FileSystemWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      Configuration conf, long sessionId, ClientMetrics metrics) {
-    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), conf, "FileSystemWorker");
+      long sessionId, ClientMetrics metrics) {
+    super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "FileSystemWorker");
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
     mExecutorService = Preconditions.checkNotNull(executorService);
     mSessionId = sessionId;
@@ -103,7 +102,7 @@ public class FileSystemWorkerClient extends AbstractClient {
     // only start the heartbeat thread if the connection is successful and if there is not
     // another heartbeat thread running
     if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-      final int interval = mConfiguration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+      final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =
           mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
               mHeartbeatExecutor, interval));

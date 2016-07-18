@@ -12,7 +12,6 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
-import alluxio.master.MasterContext;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
@@ -191,8 +190,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
   }
 
   /**
-   * Tests the {@link InodeDirectory#getChild(long)} and {@link InodeDirectory#getChild(String)}
-   * methods.
+   * Tests the {@link InodeDirectory#getChild(String)} methods.
    */
   @Test
   public void getChildTest() {
@@ -211,13 +209,6 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
 
     long start = System.currentTimeMillis();
     for (int i = 0; i < nFiles; i++) {
-      Assert.assertEquals(inodes[i], inodeDirectory.getChild(createInodeFileId(i + 1)));
-    }
-    LOG.info(String.format("getChild(int fid) called sequentially %d times, cost %d ms", nFiles,
-        System.currentTimeMillis() - start));
-
-    start = System.currentTimeMillis();
-    for (int i = 0; i < nFiles; i++) {
       Assert.assertEquals(inodes[i], inodeDirectory.getChild(String.format("testFile%d", i + 1)));
     }
     LOG.info(String.format("getChild(String name) called sequentially %d times, cost %d ms", nFiles,
@@ -232,9 +223,8 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
     InodeDirectory inode2 = createInodeDirectory();
     Assert.assertEquals(TEST_USER_NAME, inode2.getOwner());
     Assert.assertEquals(TEST_GROUP_NAME, inode2.getGroup());
-    Assert.assertEquals(
-        new Permission(TEST_PERMISSION).applyDirectoryUMask(MasterContext.getConf())
-            .getMode().toShort(), inode2.getMode());
+    Assert.assertEquals(new Permission(TEST_PERMISSION).applyDirectoryUMask().getMode().toShort(),
+        inode2.getMode());
   }
 
   /**
