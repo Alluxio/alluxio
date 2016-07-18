@@ -1,7 +1,7 @@
 ---
 layout: global
 title: 开发者上手指南
-nickname: 开始者上手指南
+nickname: 开发者上手指南
 group: Resources
 ---
 
