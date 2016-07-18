@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class InodeDirectory extends Inode<InodeDirectory> {
-  private final IndexDefinition<Inode<?>> mNameIndex = new IndexDefinition<Inode<?>>(true) {
+  private static final IndexDefinition<Inode<?>> NAME_INDEX = new IndexDefinition<Inode<?>>(true) {
     @Override
     public Object getFieldValue(Inode<?> o) {
       return o.getName();
@@ -42,7 +42,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<Inode<?>>(mNameIndex);
+  private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<Inode<?>>(NAME_INDEX);
 
   private boolean mMountPoint;
 

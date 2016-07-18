@@ -50,6 +50,12 @@ public abstract class AbstractShellCommand implements ShellCommand {
           .numberOfArgs(1)
           .desc("properties file name")
           .build();
+  protected static final Option FORCE_OPTION =
+      Option.builder("f")
+          .required(false)
+          .hasArg(false)
+          .desc("force")
+          .build();
 
   protected AbstractShellCommand(FileSystem fs) {
     mFileSystem = fs;

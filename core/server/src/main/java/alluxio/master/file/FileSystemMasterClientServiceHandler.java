@@ -20,6 +20,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
+import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.LoadMetadataOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
@@ -119,7 +120,7 @@ public final class FileSystemMasterClientServiceHandler implements
    * {@inheritDoc}
    *
    * @deprecated since version 1.1 and will be removed in version 2.0
-   * @see {@link #getStatus(String)}
+   * @see #getStatus(String)
    */
   @Override
   @Deprecated
@@ -192,7 +193,7 @@ public final class FileSystemMasterClientServiceHandler implements
       public List<FileInfo> call() throws AlluxioException {
         List<FileInfo> result = new ArrayList<>();
         for (alluxio.wire.FileInfo fileInfo : mFileSystemMaster
-            .getFileInfoList(new AlluxioURI(path), options.isLoadDirectChildren())) {
+            .listStatus(new AlluxioURI(path), new ListStatusOptions(options))) {
           result.add(ThriftUtils.toThrift(fileInfo));
         }
         return result;

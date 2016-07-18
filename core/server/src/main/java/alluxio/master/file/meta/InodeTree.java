@@ -65,6 +65,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
+  private static final IndexDefinition<Inode<?>> ID_INDEX = new IndexDefinition<Inode<?>>(true) {
+    @Override
+    public Object getFieldValue(Inode<?> o) {
+      return o.getId();
+    }
+  };
+
   /**
    * The type of lock to lock inode paths with.
    */
@@ -95,14 +102,8 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final IndexDefinition<Inode<?>> mIdIndex = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getId();
-    }
-  };
   @SuppressWarnings("unchecked")
-  private FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<Inode<?>>(mIdIndex);
+  private FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<Inode<?>>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -856,8 +857,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private void addInodeFromJournalInternal(Inode<?> inode) {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
-      parentDirectory =
-          (InodeDirectory) mInodes.getFirst(inode.getParentId());
+      parentDirectory = (InodeDirectory) mInodes.getFirst(inode.getParentId());
       mCachedInode = parentDirectory;
     }
     parentDirectory.addChild(inode);
@@ -870,7 +870,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+    return Objects.hashCode(mRoot, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
         mDirectoryIdGenerator, mCachedInode);
   }
 
@@ -884,7 +884,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     InodeTree that = (InodeTree) o;
     return Objects.equal(mRoot, that.mRoot)
-        && Objects.equal(mIdIndex, that.mIdIndex)
         && Objects.equal(mInodes, that.mInodes)
         && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
         && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)
