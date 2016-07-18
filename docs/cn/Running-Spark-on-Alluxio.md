@@ -60,7 +60,7 @@ Alluxio直接兼容Spark 1.1或更新版本而无需修改.
 
 ### 使用来自HDFS的数据
  
-Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到HDFS中（假定namenode节点运行在`localhost`，并且Alluxio工程目录是`alluxio`）:
+Alluxio支持在给出具体的路径时，透明的从底层文件系统中取数据。将文件`LICENSE`放到Alluxio所挂载的目录下（默认是/alluxio）的HDFS中，意味着在这个目录下的HDFS中的任何文件都能被Alluxio发现。通过改变位于Server上的alluxio-env.sh文件中的 `ALLUXIO_UNDERFS_ADDRESS`属性可以修改这个设置。假定namenode节点运行在`localhost`，并且Alluxio默认的挂载目录是`alluxio`:
 
 {% include Running-Spark-on-Alluxio/license-hdfs.md %}
 
@@ -71,7 +71,7 @@ Alluxio支持在给出具体的路径时，透明的从底层文件系统中取�
 打开浏览器，查看[http://localhost:19999/browse](http://localhost:19999/browse)。可以发现多出一个输出文件`LICENSE2`,
 每一行是由文件`LICENSE`的对应行复制2次得到。并且，现在`LICENSE`文件出现在Alluxio文件系统空间。
 
-注意：`LICENSE`文件很可能不在Alluxio存储（不是In-Memory)。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
+注意：部分读取的块缓存默认是开启的，但如果已经将这个选项关闭的话，`LICENSE`文件很可能不在Alluxio存储（非In-Memory)中。这是因为Alluxio只存储完整读入块，如果文件太小，Spark作业中，每个executor读入部分块。为了避免这种情况，你可以在Spark中定制分块数目。对于这个例子，由于只有一个块，我们将设置分块数为1。
 
   {% include Running-Spark-on-Alluxio/alluxio-one-partition.md %}
 
@@ -104,3 +104,9 @@ https://issues.apache.org/jira/browse/SPARK-10149)获取更多细节（这里可
 
 ![locality]({{site.data.img.screenshot_datalocality_tasklocality}})
 
+##在YARN上运行SPARK
+
+为了最大化Spark作业所能达到数据本地化的数量，应当尽可能多地使用executor,希望至少每个节点拥有一个executor。按照Alluxio所有方法的部署，所有的计算节点上也应当拥有一个Alluxio worker。
+
+当一个Spark作业在YARN上运行时,Spark启动executors不会考虑数据的本地化。之后Spark在决定怎样为它的executors分配任务时会正确地考虑数据的本地化。举例而言：
+如果`host1`包含了`blockA`并且使用`blockA`的作业已经在YARN集群上以`--num-executors=1`的方式启动了,Spark会将唯一的executor放置在`host2`上，本地化就比较差。但是，如果以`--num-executors=2`的方式启动并且executors开始于`host1`和`host2`上,Spark会足够智能地将作业优先放置在`host1`上。
