@@ -1,7 +1,7 @@
 ---
 layout: global
-title: 开始贡献源码
-nickname: 开始贡献源码
+title: 开发者上手指南
+nickname: 开发者上手指南
 group: Resources
 ---
 
@@ -48,11 +48,11 @@ Alluxio源码托管在GitHub上，仓库地址为[Alluxio repository](https://gi
 
 Alluxio开源项目使用[JIRA](https://alluxio.atlassian.net/projects/ALLUXIO/issues)来跟踪特性、bug以及问题。请[创建一个Alluxio JIRA账户](https://alluxio.atlassian.net/admin/users/sign-up)，从而能够新建、跟踪以及修复ticket。
 
-## Fork Alluxio仓库
+## Fork Alluxio源代码库
 
-在向Alluxio贡献源码之前，你首先需要fork Alluxio仓库。如果你还未这么做，先进入[Alluxio仓库](https://github.com/Alluxio/alluxio)，再点击页面右上角的Fork按钮，之后你便有了Alluxio仓库的fork了。
+在向Alluxio贡献源码之前，你首先需要fork Alluxio源代码库。如果你还未这么做，先进入[Alluxio仓库](https://github.com/Alluxio/alluxio)，再点击页面右上角的Fork按钮， 之后你便有了Alluxio源代码库的fork了。
 
-在fork Alluxio仓库后，你需要从该fork创建一个本地的副本，这会将该fork里的文件拷贝到你的本地电脑。使用以下命令创建副本：
+在fork Alluxio源代码库后，你需要从该fork创建一个本地的副本，这会将该fork里的文件拷贝到你的本地电脑。使用以下命令创建副本：
 
 ```bash
 $ git clone https://github.com/YOUR-USERNAME/alluxio.git
@@ -61,7 +61,7 @@ $ cd alluxio
 
 这会将副本拷贝在`alluxio/`目录下。
 
-为了将远程的Alluxio源码改动更新到你本地的副本中，你需要创建一个指向远程Alluxio仓库的源。在刚拷贝的副本的目录下，运行：
+为了将远程的Alluxio源码改动更新到你本地的副本中，你需要创建一个指向远程Alluxio源代码库的源。在刚拷贝的副本的目录下，运行：
 
 ```bash
 $ git remote add upstream https://github.com/Alluxio/alluxio.git
@@ -161,7 +161,7 @@ $ git commit -m "<concise but descriptive commit message>"
 
 在你完成了修复该JIRA ticket的所有修改后，就马上要向Alluxio项目提交一个pull request啦！这里是一个[提交一个pull request的详细指南](https://help.github.com/articles/using-pull-requests/)，不过以下是通常的做法。
 
-在你提交了所有需要的本地commit后，你可以将这些commit推送到你的GitHub仓库中。对于**awesome_feature**分支，运行以下命令推送到GitHub上：
+在你提交了所有需要的本地commit后，你可以将这些commit推送到你的GitHub源代码库中。对于**awesome_feature**分支，运行以下命令推送到GitHub上：
 
 ```bash
 $ git push origin awesome_feature
@@ -175,7 +175,7 @@ $ git push origin awesome_feature
 
 对于这个pull request的标题，它应该以这个JIRA ticket名称为前缀，因此，这个标题应该像**[ALLUXIO-1234] Awesome Feature**这样。
 
-接着添加一个标签表明你的pull request对应于Alluxio的哪个组件，这些组件与Alluxio仓库根目录下的目录一一对应。
+接着添加一个标签表明你的pull request对应于Alluxio的哪个组件，这些组件与Alluxio源代码库根目录下的目录一一对应。
 
 在描述框的第一行，请添加一个该JIRA ticket的链接，该链接像`https://alluxio.atlassian.net/browse/ALLUXIO-####`这样。
 
@@ -184,7 +184,7 @@ $ git push origin awesome_feature
 
 ## 审阅Pull Request
 
-在pull request成功提交后，可以在[Alluxio仓库的pull request页面](https://github.com/Alluxio/alluxio/pulls)看到它。
+在pull request成功提交后，可以在[Alluxio源代码库的pull request页面](https://github.com/Alluxio/alluxio/pulls)看到它。
 
 在提交后，社区里的其他开发者会审阅你的pull request，并且可能会添加评论或者问题。
 
