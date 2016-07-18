@@ -133,7 +133,7 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
 
     if (!Configuration.getBoolean(Constants.KEY_VALUE_ENABLED)) {
       System.out.println("Alluxio key value service is disabled. To run this test, please set "
-          + Constants.KEY_VALUE_ENABLED + " to be true, restart the cluster");
+          + Constants.KEY_VALUE_ENABLED + " to be true and restart the cluster.");
       System.exit(-1);
     }
 
