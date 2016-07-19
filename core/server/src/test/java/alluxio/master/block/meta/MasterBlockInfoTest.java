@@ -46,12 +46,12 @@ public final class MasterBlockInfoTest {
   }
 
   @Test
-  public void removeNonexistingWorkerOk() {
+  public void removeNonexistingWorkerIsOk() {
     mInfo.removeWorker(1);
   }
 
   @Test
-  public void getNumLocationsTest() {
+  public void getNumLocations() {
     mInfo.addWorker(1, "MEM");
     mInfo.addWorker(2, "MEM");
     mInfo.addWorker(3, "HDD");
@@ -59,7 +59,7 @@ public final class MasterBlockInfoTest {
   }
 
   @Test
-  public void getBlockLocationsTest() {
+  public void getBlockLocations() {
     mInfo.addWorker(1, "MEM");
     mInfo.addWorker(2, "MEM");
     mInfo.addWorker(3, "HDD");
@@ -85,7 +85,7 @@ public final class MasterBlockInfoTest {
   }
 
   @Test
-  public void getLengthTest() {
+  public void getLength() {
     Assert.assertEquals(Constants.KB, mInfo.getLength());
   }
 
