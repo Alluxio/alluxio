@@ -45,6 +45,10 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
     String authMethodKey = System.getProperty(INTEGRATION_SWIFT_AUTH_METHOD_KEY);
     String authUrlKey = System.getProperty(INTEGRATION_SWIFT_AUTH_URL_KEY);
     String simulation = System.getProperty(INTEGRATION_SWIFT_SIMULATION);
+    if (simulation == null) {
+      // By default, simulation is turned off
+      simulation = Boolean.FALSE.toString();
+    }
 
     System.setProperty(Constants.SWIFT_API_KEY, swiftAPIKey);
     System.setProperty(Constants.SWIFT_TENANT_KEY, tenantKey);
