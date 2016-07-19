@@ -25,12 +25,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 @ThreadSafe
-class UniqueFieldIndex<T> implements FieldIndex<T> {
+public class UniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, T> mIndexMap;
 
   /**
    * Constructs a new {@link UniqueFieldIndex} instance.
+   *
+   * @param indexDefinition definition of index
    */
   public UniqueFieldIndex(IndexDefinition<T> indexDefinition) {
     mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
@@ -40,8 +42,9 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
   @Override
   public void add(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
+    T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
-    if (mIndexMap.putIfAbsent(fieldValue, object) != null) {
+    if (previousObject != null && previousObject != object) {
       throw new IllegalStateException("Adding more than one value to a unique index:"
           + fieldValue.toString());
     }
@@ -51,6 +54,11 @@ class UniqueFieldIndex<T> implements FieldIndex<T> {
   public boolean remove(T object) {
     Object fieldValue = mIndexDefinition.getFieldValue(object);
     return mIndexMap.remove(fieldValue, object);
+  }
+
+  @Override
+  public void clear() {
+    mIndexMap.clear();
   }
 
   @Override
