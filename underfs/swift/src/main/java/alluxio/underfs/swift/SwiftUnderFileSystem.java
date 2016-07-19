@@ -186,6 +186,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return null;
     }
 
+    // TODO(adit): remove special handling of */_SUCCESS objects
+    if (path.endsWith("_SUCCESS")) {
+      createOutputStream(CommonUtils.stripSuffixIfPresent(path, "_SUCCESS")).close();
+    }
+
     return createOutputStream(path);
   }
 
@@ -225,7 +230,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    if (isRoot(path)) {
+    // TODO(adit): remove special treatment of the _temporary suffix
+    // To get better performance Swift driver does not create a _temporary folder.
+    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
+    if (isRoot(path) || path.endsWith("_temporary")) {
       return true;
     }
 
@@ -642,7 +650,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Delete an object if it exists.
+   * Deletes an object if it exists.
    *
    * @param object object handle to delete
    * @return true if object deletion was successful
@@ -658,7 +666,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Create a simulated or actual OutputStream for object uploads.
+   * Creates a simulated or actual OutputStream for object uploads.
    * @return new OutputStream
    */
   private OutputStream createOutputStream(String path) {

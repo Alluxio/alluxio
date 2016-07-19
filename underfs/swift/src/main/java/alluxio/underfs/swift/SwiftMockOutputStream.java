@@ -102,7 +102,7 @@ public class SwiftMockOutputStream extends OutputStream {
       StoredObject object = container.getObject(mObjectName);
       object.uploadObject(mFile);
     } catch (Exception e) {
-      throw new IOException();
+      throw new IOException(e);
     }
     // Close successful
     mClosed = true;
