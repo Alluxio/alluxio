@@ -42,6 +42,7 @@ import alluxio.wire.LoadMetadataType;
 import com.google.common.collect.Lists;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,6 +55,7 @@ import java.util.Map;
  * Test master journal, including checkpoint and entry log. Most tests will test entry log first,
  * followed by the checkpoint.
  */
+@Ignore("https://alluxio.atlassian.net/browse/ALLUXIO-2091")
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
