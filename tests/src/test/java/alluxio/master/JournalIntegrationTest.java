@@ -46,7 +46,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -514,32 +513,6 @@ public class JournalIntegrationTest {
             fsMaster.getFileId(new AlluxioURI("/ii" + i + "/jj" + j)) != IdUtils.INVALID_FILE_ID);
       }
     }
-    fsMaster.stop();
-  }
-
-  private List<FileInfo> lsr(FileSystemMaster fsMaster, AlluxioURI uri)
-      throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    List<FileInfo> files = fsMaster.listStatus(uri,
-        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Never));
-    List<FileInfo> ret = new ArrayList<>(files);
-    for (FileInfo file : files) {
-      ret.addAll(lsr(fsMaster, new AlluxioURI(file.getPath())));
-    }
-    return ret;
-  }
-
-  private void rawTableTestUtil(FileInfo fileInfo) throws Exception {
-    FileSystemMaster fsMaster = createFsMasterFromJournal();
-
-    long fileId = fsMaster.getFileId(mRootUri);
-    Assert.assertTrue(fileId != -1);
-    // "ls -r /" should return 11 FileInfos, one is table root "/xyz", the others are 10 columns.
-    Assert.assertEquals(11, lsr(fsMaster, mRootUri).size());
-
-    fileId = fsMaster.getFileId(new AlluxioURI("/xyz"));
-    Assert.assertTrue(fileId != -1);
-    Assert.assertEquals(fileInfo, fsMaster.getFileInfo(fileId));
-
     fsMaster.stop();
   }
 
