@@ -39,7 +39,7 @@ import java.io.IOException;
 /**
  * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-public class FileSystemIntegrationTest {
+public final class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
