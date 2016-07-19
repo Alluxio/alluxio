@@ -27,12 +27,14 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 @ThreadSafe
-class NonUniqueFieldIndex<T> implements FieldIndex<T> {
+public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
   private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndex} instance.
+   *
+   * @param indexDefinition definition of index
    */
   public NonUniqueFieldIndex(IndexDefinition<T> indexDefinition) {
     mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
@@ -81,6 +83,11 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       }
     }
     return res;
+  }
+
+  @Override
+  public void clear() {
+    mIndexMap.clear();
   }
 
   @Override
