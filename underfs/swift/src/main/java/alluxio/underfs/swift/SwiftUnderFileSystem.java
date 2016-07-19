@@ -354,15 +354,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       // We do not check if a file with same name exists, i.e. a file with name
       // 'swift://swift-container/path' and a folder with name 'swift://swift-container/path/'
       // may both exist simultaneously
-      final OutputStream out = createOutputStream(addFolderSuffixIfNotPresent(path));
-      if (out != null) {
-        out.close();
-        return true;
-      }
+      createOutputStream(addFolderSuffixIfNotPresent(path)).close();
+      return true;
     } catch (IOException e) {
       LOG.error("Failed to create directory: {}", path, e);
+      return false;
     }
-    return false;
   }
 
   /**
@@ -667,17 +664,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /**
    * Creates a simulated or actual OutputStream for object uploads.
+   * @throws IOException if failed to create path
    * @return new OutputStream
    */
-  private OutputStream createOutputStream(String path) {
+  private OutputStream createOutputStream(String path) throws IOException {
     if (mSimulationMode) {
-      try {
-        return new SwiftMockOutputStream(mAccount, mContainerName,
-            stripContainerPrefixIfPresent(path));
-      } catch (IOException e) {
-        LOG.error("Unable to create mock output stream with message {} ", e.getMessage());
-        return null;
-      }
+      return new SwiftMockOutputStream(mAccount, mContainerName,
+          stripContainerPrefixIfPresent(path));
     }
 
     return SwiftDirectClient.put(mAccess,
