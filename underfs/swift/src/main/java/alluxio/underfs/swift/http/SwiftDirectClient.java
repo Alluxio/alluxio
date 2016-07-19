@@ -45,9 +45,10 @@ public class SwiftDirectClient {
    *
    * @param access JOSS access object
    * @param objectName name of the object to create
+   * @throws IOException if an I/O error occurs
    * @return SwiftOutputStream that will be used to upload data to Swift
    */
-  public static SwiftOutputStream put(Access access, String objectName) {
+  public static SwiftOutputStream put(Access access, String objectName) throws IOException {
     LOG.debug("PUT method, object : {}", objectName);
     URL url;
     try {
@@ -67,10 +68,10 @@ public class SwiftDirectClient {
         httpCon.connect();
         return new SwiftOutputStream(httpCon);
       }
-      LOG.debug("Not an instance of HTTP URL Connection");
-    } catch (IOException e) {
+      throw new Exception("Not an instance of HTTP URL Connection");
+    } catch (Exception e) {
       LOG.error(e.getMessage());
+      throw new IOException(e);
     }
-    return null;
   }
 }
