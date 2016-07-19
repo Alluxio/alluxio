@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.junit.Assert;
@@ -113,41 +114,12 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void deleteLargeDirectoryTest() throws IOException {
-    String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    mUfs.delete(config.getTopLevelDirectory(), true);
 
-    final String filePrefix = "a_";
-    final String folderPrefix = "b_";
-
-    final int numFiles = 1500;
-    final int numFolders = numFiles;
-
-    String[] filePaths = new String[numFiles];
-    String[] folderPaths = new String[numFolders];
-
-    // Make top level directory
-    mUfs.mkdirs(topLevelDirectory, false);
-
-    // Make the children files
-    for (int i = 0; i < numFiles; ++i) {
-      filePaths[i] = PathUtils.concatPath(topLevelDirectory, filePrefix
-          + String.format("%04d", i));
-      createEmptyFile(filePaths[i]);
-    }
-    // Make the children folders
-    for (int i = 0; i < numFolders; ++i) {
-      folderPaths[i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
-          + String.format("%04d", i));
-      mUfs.mkdirs(folderPaths[i], false);
-    }
-
-    mUfs.delete(topLevelDirectory, true);
-
-    for (int i = 0; i < numFiles; ++i) {
-      Assert.assertFalse(mUfs.exists(filePaths[i]));
-    }
-
-    for (int i = numFiles; i < numFolders; ++i) {
-      Assert.assertFalse(mUfs.exists(folderPaths[i - numFiles]));
+    String[] children = config.getChildren();
+    for (int i = 0; i < children.length; ++i) {
+      Assert.assertFalse(mUfs.exists(children[i]));
     }
   }
 
@@ -242,38 +214,16 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    */
   @Test
   public void listLargeDirectoryTest() throws IOException {
-    String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
+    LargeDirectoryConfig config = prepareLargeDirectoryTest();
+    String[] children = config.getChildren();
 
-    final String filePrefix = "a_";
-    final String folderPrefix = "b_";
-
-    final int numFiles = 1500;
-    final int numFolders = numFiles;
-
-    // Make top level directory
-    mUfs.mkdirs(topLevelDirectory, false);
-
-    // Make the children files
-    for (int i = 0; i < numFiles; ++i) {
-      createEmptyFile(PathUtils.concatPath(topLevelDirectory, filePrefix
-          + String.format("%04d", i)));
-    }
-    // Make the children folders
-    for (int i = 0; i < numFolders; ++i) {
-      mUfs.mkdirs(PathUtils.concatPath(topLevelDirectory, folderPrefix
-          + String.format("%04d", i)), false);
-    }
-
-    String[] results = mUfs.list(topLevelDirectory);
+    String[] results = mUfs.list(config.getTopLevelDirectory());
     Arrays.sort(results);
-    Assert.assertEquals(results.length, numFiles + numFolders);
+    Assert.assertEquals(results.length, children.length);
 
-    for (int i = 0; i < numFiles; ++i) {
-      Assert.assertTrue(results[i].equals(filePrefix + String.format("%04d", i)));
-    }
-
-    for (int i = numFiles; i < numFolders; ++i) {
-      Assert.assertTrue(results[i].equals(folderPrefix + String.format("%04d", (i - numFiles))));
+    for (int i = 0; i < children.length; ++i) {
+      Assert.assertTrue(results[i].equals(CommonUtils.stripPrefixIfPresent(children[i],
+          PathUtils.normalizePath(config.getTopLevelDirectory(), "/"))));
     }
   }
 
@@ -432,5 +382,56 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     OutputStream o = mUfs.create(path);
     o.write(TEST_BYTES);
     o.close();
+  }
+
+  // Prepare directory tree for pagination tests
+  private LargeDirectoryConfig prepareLargeDirectoryTest() throws IOException {
+    final String filePrefix = "a_";
+    final String folderPrefix = "b_";
+
+    String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
+
+    final int numFiles = 1500;
+    final int numFolders = numFiles;
+
+    String[] children = new String[numFiles + numFolders];
+
+    // Make top level directory
+    mUfs.mkdirs(topLevelDirectory, false);
+
+    // Make the children files
+    for (int i = 0; i < numFiles; ++i) {
+      children[i] = PathUtils.concatPath(topLevelDirectory, filePrefix
+          + String.format("%04d", i));
+      createEmptyFile(children[i]);
+    }
+    // Make the children folders
+    for (int i = 0; i < numFolders; ++i) {
+      children[numFiles + i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
+          + String.format("%04d", i));
+      mUfs.mkdirs(children[numFiles + i], false);
+    }
+
+    return new LargeDirectoryConfig(topLevelDirectory, children);
+  }
+
+  // Test configuration for pagination tests
+  private class LargeDirectoryConfig {
+    private String mTopLevelDirectory;
+    // Children for top level directory
+    private String[] mChildren;
+
+    LargeDirectoryConfig(String topLevelDirectory, String[] children) {
+      mTopLevelDirectory = topLevelDirectory;
+      mChildren = children;
+    }
+
+    public String getTopLevelDirectory() {
+      return mTopLevelDirectory;
+    }
+
+    public String[] getChildren() {
+      return mChildren;
+    }
   }
 }
