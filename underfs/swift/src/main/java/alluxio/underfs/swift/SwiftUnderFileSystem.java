@@ -188,6 +188,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     // TODO(adit): remove special handling of */_SUCCESS objects
     if (path.endsWith("_SUCCESS")) {
+      // when path/_SUCCESS is created, there is need to create path as
+      // an empty object. This is required by Spark in case Spark
+      // accesses path directly, bypassing Alluxio
       createOutputStream(CommonUtils.stripSuffixIfPresent(path, "_SUCCESS")).close();
     }
 
