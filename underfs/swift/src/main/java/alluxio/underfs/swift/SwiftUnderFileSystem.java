@@ -225,10 +225,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
-    // TODO(adit): remove special treatment of the _temporary suffix
-    // To get better performance Swift driver does not create a _temporary folder.
-    // This optimization should be hidden from Spark, therefore exists _temporary will return true.
-    if (isRoot(path) || path.endsWith("_temporary")) {
+    if (isRoot(path)) {
       return true;
     }
 
@@ -442,7 +439,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       if (!copy(strippedSourcePath, strippedDestinationPath)) {
         return false;
       }
-      // TODO(adit): Use pagination to list large directories and merge duplicate call in delete
       // Rename each child in the source folder to destination/child
       String [] children = list(source);
       for (String child: children) {
