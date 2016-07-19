@@ -2,7 +2,7 @@
 layout: global
 title: 在Virtual Box上运行Alluxio
 nickname: 在Virtual Box上运行Alluxio
-group: Deploying Alluxio
+group: User Guide
 priority: 2
 ---
 通过Alluxio自带的[Vagrant脚本](https://github.com/alluxio/alluxio/tree/master/deploy/vagrant)，你可以
