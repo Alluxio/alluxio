@@ -54,7 +54,7 @@ public final class FileSystemAclIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource(100*Constants.MB, BLOCK_SIZE,
           Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
           Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private static String sUfsRoot;
