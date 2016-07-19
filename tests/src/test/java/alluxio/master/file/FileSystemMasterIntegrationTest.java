@@ -12,7 +12,6 @@
 package alluxio.master.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.exception.DirectoryNotEmptyException;
@@ -28,7 +27,6 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
-import alluxio.master.file.meta.TtlBucketPrivateAccess;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -338,9 +336,6 @@ public class FileSystemMasterIntegrationTest {
     mFsMaster =
         mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getFileSystemMaster();
     mInodeTree = (InodeTree) Whitebox.getInternalState(mFsMaster, "mInodeTree");
-
-    TtlBucketPrivateAccess
-        .setTtlIntervalMs(Configuration.getLong(Constants.MASTER_TTL_CHECKER_INTERVAL_MS));
   }
 
   @Test
