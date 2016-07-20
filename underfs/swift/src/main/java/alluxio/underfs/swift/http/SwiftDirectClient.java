@@ -50,28 +50,23 @@ public class SwiftDirectClient {
    */
   public static SwiftOutputStream put(Access access, String objectName) throws IOException {
     LOG.debug("PUT method, object : {}", objectName);
-    URL url;
-    try {
-      url = new URL(access.getPublicURL() + "/" + objectName);
-      URLConnection connection = url.openConnection();
-      if (connection instanceof HttpURLConnection) {
-        HttpURLConnection httpCon = (HttpURLConnection) connection;
-        httpCon.setRequestMethod("PUT");
-        httpCon.addRequestProperty("X-Auth-Token", access.getToken());
-        httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
-        httpCon.setDoInput(true);
-        httpCon.setRequestProperty("Connection", "close");
-        httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
-        httpCon.setRequestProperty("Transfer-Encoding", "chunked");
-        httpCon.setDoOutput(true);
-        httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
-        httpCon.connect();
-        return new SwiftOutputStream(httpCon);
-      }
-      throw new Exception("Not an instance of HTTP URL Connection");
-    } catch (Exception e) {
-      LOG.error(e.getMessage());
-      throw new IOException(e);
+    URL url = new URL(access.getPublicURL() + "/" + objectName);
+    URLConnection connection = url.openConnection();
+    if (!(connection instanceof HttpURLConnection)) {
+      throw new IOException("Connection is not an instance of HTTP URL Connection");
     }
+
+    HttpURLConnection httpCon = (HttpURLConnection) connection;
+    httpCon.setRequestMethod("PUT");
+    httpCon.addRequestProperty("X-Auth-Token", access.getToken());
+    httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
+    httpCon.setDoInput(true);
+    httpCon.setRequestProperty("Connection", "close");
+    httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
+    httpCon.setRequestProperty("Transfer-Encoding", "chunked");
+    httpCon.setDoOutput(true);
+    httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
+    httpCon.connect();
+    return new SwiftOutputStream(httpCon);
   }
 }
