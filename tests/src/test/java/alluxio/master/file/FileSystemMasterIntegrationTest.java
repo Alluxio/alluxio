@@ -27,6 +27,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -61,248 +62,6 @@ import java.util.concurrent.TimeUnit;
  * For example, (concurrently) creating/deleting/renaming files.
  */
 public class FileSystemMasterIntegrationTest {
-  class ConcurrentCreator implements Callable<Void> {
-    private int mDepth;
-    private int mConcurrencyDepth;
-    private AlluxioURI mInitPath;
-
-    ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
-      mDepth = depth;
-      mConcurrencyDepth = concurrencyDepth;
-      mInitPath = initPath;
-    }
-
-    @Override
-    public Void call() throws Exception {
-      exec(mDepth, mConcurrencyDepth, mInitPath);
-      return null;
-    }
-
-    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
-      if (depth < 1) {
-        return;
-      } else if (depth == 1) {
-        long fileId = mFsMaster.createFile(path, CreateFileOptions.defaults());
-        Assert.assertEquals(fileId, mFsMaster.getFileId(path));
-        // verify the user permission for file
-        FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
-        Assert.assertEquals("", fileInfo.getOwner());
-        Assert.assertEquals(0644, (short) fileInfo.getMode());
-      } else {
-        mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults());
-        Assert.assertNotNull(mFsMaster.getFileId(path));
-        long dirId = mFsMaster.getFileId(path);
-        Assert.assertNotEquals(-1, dirId);
-        FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
-        Assert.assertEquals("", dirInfo.getOwner());
-        Assert.assertEquals(0755, (short) dirInfo.getMode());
-      }
-
-      if (concurrencyDepth > 0) {
-        ExecutorService executor = Executors.newCachedThreadPool();
-        try {
-          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i++) {
-            Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
-                path.join(Integer.toString(i))));
-            futures.add(executor.submit(call));
-          }
-          for (Future<Void> f : futures) {
-            f.get();
-          }
-        } finally {
-          executor.shutdown();
-        }
-      } else {
-        for (int i = 0; i < FILES_PER_NODE; i++) {
-          exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
-        }
-      }
-    }
-  }
-
-  /*
-   * This class provides multiple concurrent threads to free all files in one directory.
-   */
-  class ConcurrentFreer implements Callable<Void> {
-    private int mDepth;
-    private int mConcurrencyDepth;
-    private AlluxioURI mInitPath;
-
-    ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
-      mDepth = depth;
-      mConcurrencyDepth = concurrencyDepth;
-      mInitPath = initPath;
-    }
-
-    @Override
-    public Void call() throws Exception {
-      exec(mDepth, mConcurrencyDepth, mInitPath);
-      return null;
-    }
-
-    private void doFree(AlluxioURI path) throws Exception {
-      mFsMaster.free(path, true);
-      Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
-    }
-
-    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
-      if (depth < 1) {
-        return;
-      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
-        // Sometimes we want to try freeing a path when we're not all the way down, which is what
-        // the second condition is for.
-        doFree(path);
-      } else {
-        if (concurrencyDepth > 0) {
-          ExecutorService executor = Executors.newCachedThreadPool();
-          try {
-            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
-            for (int i = 0; i < FILES_PER_NODE; i++) {
-              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
-              futures.add(executor.submit(call));
-            }
-            for (Future<Void> f : futures) {
-              f.get();
-            }
-          } finally {
-            executor.shutdown();
-          }
-        } else {
-          for (int i = 0; i < FILES_PER_NODE; i++) {
-            exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
-          }
-        }
-        doFree(path);
-      }
-    }
-  }
-  /*
-   * This class provides multiple concurrent threads to delete all files in one directory.
-   */
-  class ConcurrentDeleter implements Callable<Void> {
-    private int mDepth;
-    private int mConcurrencyDepth;
-    private AlluxioURI mInitPath;
-
-    ConcurrentDeleter(int depth, int concurrencyDepth, AlluxioURI initPath) {
-      mDepth = depth;
-      mConcurrencyDepth = concurrencyDepth;
-      mInitPath = initPath;
-    }
-
-    @Override
-    public Void call() throws Exception {
-      exec(mDepth, mConcurrencyDepth, mInitPath);
-      return null;
-    }
-
-    private void doDelete(AlluxioURI path) throws Exception {
-      mFsMaster.delete(path, true);
-      Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
-    }
-
-    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
-      if (depth < 1) {
-        return;
-      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
-        // Sometimes we want to try deleting a path when we're not all the way down, which is what
-        // the second condition is for.
-        doDelete(path);
-      } else {
-        if (concurrencyDepth > 0) {
-          ExecutorService executor = Executors.newCachedThreadPool();
-          try {
-            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
-            for (int i = 0; i < FILES_PER_NODE; i++) {
-              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
-                  path.join(Integer.toString(i))));
-              futures.add(executor.submit(call));
-            }
-            for (Future<Void> f : futures) {
-              f.get();
-            }
-          } finally {
-            executor.shutdown();
-          }
-        } else {
-          for (int i = 0; i < FILES_PER_NODE; i++) {
-            exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
-          }
-        }
-        doDelete(path);
-      }
-    }
-  }
-
-  class ConcurrentRenamer implements Callable<Void> {
-    private int mDepth;
-    private int mConcurrencyDepth;
-    private AlluxioURI mRootPath;
-    private AlluxioURI mRootPath2;
-    private AlluxioURI mInitPath;
-
-    ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
-                      AlluxioURI initPath) {
-      mDepth = depth;
-      mConcurrencyDepth = concurrencyDepth;
-      mRootPath = rootPath;
-      mRootPath2 = rootPath2;
-      mInitPath = initPath;
-    }
-
-    @Override
-    public Void call() throws Exception {
-      exec(mDepth, mConcurrencyDepth, mInitPath);
-      return null;
-    }
-
-    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
-      if (depth < 1) {
-        return;
-      } else if (depth == 1 || (depth < mDepth && path.hashCode() % 10 < 3)) {
-        // Sometimes we want to try renaming a path when we're not all the way down, which is what
-        // the second condition is for. We have to create the path in the destination up till what
-        // we're renaming. This might already exist, so createFile could throw a
-        // FileAlreadyExistsException, which we silently handle.
-        AlluxioURI srcPath = mRootPath.join(path);
-        AlluxioURI dstPath = mRootPath2.join(path);
-        long fileId = mFsMaster.getFileId(srcPath);
-        try {
-          CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
-          mFsMaster.createDirectory(dstPath.getParent(), options);
-        } catch (FileAlreadyExistsException | InvalidPathException e) {
-          // FileAlreadyExistsException: This is an acceptable exception to get, since we don't know
-          // if the parent has been created yet by another thread.
-          // InvalidPathException: This could happen if we are renaming something that's a child of
-          // the root.
-        }
-        mFsMaster.rename(srcPath, dstPath);
-        Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
-      } else if (concurrencyDepth > 0) {
-        ExecutorService executor = Executors.newCachedThreadPool();
-        try {
-          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
-          for (int i = 0; i < FILES_PER_NODE; i++) {
-            Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
-                mRootPath2, path.join(Integer.toString(i))));
-            futures.add(executor.submit(call));
-          }
-          for (Future<Void> f : futures) {
-            f.get();
-          }
-        } finally {
-          executor.shutdown();
-        }
-      } else {
-        for (int i = 0; i < FILES_PER_NODE; i++) {
-          exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
-        }
-      }
-    }
-  }
-
   private static final int DEPTH = 6;
   private static final int FILES_PER_NODE = 4;
   private static final int CONCURRENCY_DEPTH = 3;
@@ -316,6 +75,9 @@ public class FileSystemMasterIntegrationTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
+
+  @ClassRule
+  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
   public Timeout mGlobalTimeout = Timeout.seconds(60);
@@ -865,4 +627,246 @@ public class FileSystemMasterIntegrationTest {
   // Assert.assertEquals(0, checkpoint.getInt("editTransactionCounter").intValue());
   // Assert.assertEquals(0, checkpoint.getInt("dependencyCounter").intValue());
   // }
+
+  class ConcurrentCreator implements Callable<Void> {
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private AlluxioURI mInitPath;
+
+    ConcurrentCreator(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      mDepth = depth;
+      mConcurrencyDepth = concurrencyDepth;
+      mInitPath = initPath;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(mDepth, mConcurrencyDepth, mInitPath);
+      return null;
+    }
+
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1) {
+        long fileId = mFsMaster.createFile(path, CreateFileOptions.defaults());
+        Assert.assertEquals(fileId, mFsMaster.getFileId(path));
+        // verify the user permission for file
+        FileInfo fileInfo = mFsMaster.getFileInfo(fileId);
+        Assert.assertEquals("", fileInfo.getOwner());
+        Assert.assertEquals(0644, (short) fileInfo.getMode());
+      } else {
+        mFsMaster.createDirectory(path, CreateDirectoryOptions.defaults());
+        Assert.assertNotNull(mFsMaster.getFileId(path));
+        long dirId = mFsMaster.getFileId(path);
+        Assert.assertNotEquals(-1, dirId);
+        FileInfo dirInfo = mFsMaster.getFileInfo(dirId);
+        Assert.assertEquals("", dirInfo.getOwner());
+        Assert.assertEquals(0755, (short) dirInfo.getMode());
+      }
+
+      if (concurrencyDepth > 0) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i++) {
+            Callable<Void> call = (new ConcurrentCreator(depth - 1, concurrencyDepth - 1,
+                path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
+        }
+      } else {
+        for (int i = 0; i < FILES_PER_NODE; i++) {
+          exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
+        }
+      }
+    }
+  }
+
+  /*
+   * This class provides multiple concurrent threads to free all files in one directory.
+   */
+  class ConcurrentFreer implements Callable<Void> {
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private AlluxioURI mInitPath;
+
+    ConcurrentFreer(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      mDepth = depth;
+      mConcurrencyDepth = concurrencyDepth;
+      mInitPath = initPath;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(mDepth, mConcurrencyDepth, mInitPath);
+      return null;
+    }
+
+    private void doFree(AlluxioURI path) throws Exception {
+      mFsMaster.free(path, true);
+      Assert.assertNotEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
+    }
+
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
+        // Sometimes we want to try freeing a path when we're not all the way down, which is what
+        // the second condition is for.
+        doFree(path);
+      } else {
+        if (concurrencyDepth > 0) {
+          ExecutorService executor = Executors.newCachedThreadPool();
+          try {
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
+            for (int i = 0; i < FILES_PER_NODE; i++) {
+              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                  path.join(Integer.toString(i))));
+              futures.add(executor.submit(call));
+            }
+            for (Future<Void> f : futures) {
+              f.get();
+            }
+          } finally {
+            executor.shutdown();
+          }
+        } else {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
+            exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
+          }
+        }
+        doFree(path);
+      }
+    }
+  }
+  /*
+   * This class provides multiple concurrent threads to delete all files in one directory.
+   */
+  class ConcurrentDeleter implements Callable<Void> {
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private AlluxioURI mInitPath;
+
+    ConcurrentDeleter(int depth, int concurrencyDepth, AlluxioURI initPath) {
+      mDepth = depth;
+      mConcurrencyDepth = concurrencyDepth;
+      mInitPath = initPath;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(mDepth, mConcurrencyDepth, mInitPath);
+      return null;
+    }
+
+    private void doDelete(AlluxioURI path) throws Exception {
+      mFsMaster.delete(path, true);
+      Assert.assertEquals(IdUtils.INVALID_FILE_ID, mFsMaster.getFileId(path));
+    }
+
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (path.hashCode() % 10 == 0)) {
+        // Sometimes we want to try deleting a path when we're not all the way down, which is what
+        // the second condition is for.
+        doDelete(path);
+      } else {
+        if (concurrencyDepth > 0) {
+          ExecutorService executor = Executors.newCachedThreadPool();
+          try {
+            ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
+            for (int i = 0; i < FILES_PER_NODE; i++) {
+              Callable<Void> call = (new ConcurrentDeleter(depth - 1, concurrencyDepth - 1,
+                  path.join(Integer.toString(i))));
+              futures.add(executor.submit(call));
+            }
+            for (Future<Void> f : futures) {
+              f.get();
+            }
+          } finally {
+            executor.shutdown();
+          }
+        } else {
+          for (int i = 0; i < FILES_PER_NODE; i++) {
+            exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
+          }
+        }
+        doDelete(path);
+      }
+    }
+  }
+
+  class ConcurrentRenamer implements Callable<Void> {
+    private int mDepth;
+    private int mConcurrencyDepth;
+    private AlluxioURI mRootPath;
+    private AlluxioURI mRootPath2;
+    private AlluxioURI mInitPath;
+
+    ConcurrentRenamer(int depth, int concurrencyDepth, AlluxioURI rootPath, AlluxioURI rootPath2,
+                      AlluxioURI initPath) {
+      mDepth = depth;
+      mConcurrencyDepth = concurrencyDepth;
+      mRootPath = rootPath;
+      mRootPath2 = rootPath2;
+      mInitPath = initPath;
+    }
+
+    @Override
+    public Void call() throws Exception {
+      exec(mDepth, mConcurrencyDepth, mInitPath);
+      return null;
+    }
+
+    public void exec(int depth, int concurrencyDepth, AlluxioURI path) throws Exception {
+      if (depth < 1) {
+        return;
+      } else if (depth == 1 || (depth < mDepth && path.hashCode() % 10 < 3)) {
+        // Sometimes we want to try renaming a path when we're not all the way down, which is what
+        // the second condition is for. We have to create the path in the destination up till what
+        // we're renaming. This might already exist, so createFile could throw a
+        // FileAlreadyExistsException, which we silently handle.
+        AlluxioURI srcPath = mRootPath.join(path);
+        AlluxioURI dstPath = mRootPath2.join(path);
+        long fileId = mFsMaster.getFileId(srcPath);
+        try {
+          CreateDirectoryOptions options = CreateDirectoryOptions.defaults().setRecursive(true);
+          mFsMaster.createDirectory(dstPath.getParent(), options);
+        } catch (FileAlreadyExistsException | InvalidPathException e) {
+          // FileAlreadyExistsException: This is an acceptable exception to get, since we don't know
+          // if the parent has been created yet by another thread.
+          // InvalidPathException: This could happen if we are renaming something that's a child of
+          // the root.
+        }
+        mFsMaster.rename(srcPath, dstPath);
+        Assert.assertEquals(fileId, mFsMaster.getFileId(dstPath));
+      } else if (concurrencyDepth > 0) {
+        ExecutorService executor = Executors.newCachedThreadPool();
+        try {
+          ArrayList<Future<Void>> futures = new ArrayList<>(FILES_PER_NODE);
+          for (int i = 0; i < FILES_PER_NODE; i++) {
+            Callable<Void> call = (new ConcurrentRenamer(depth - 1, concurrencyDepth - 1, mRootPath,
+                mRootPath2, path.join(Integer.toString(i))));
+            futures.add(executor.submit(call));
+          }
+          for (Future<Void> f : futures) {
+            f.get();
+          }
+        } finally {
+          executor.shutdown();
+        }
+      } else {
+        for (int i = 0; i < FILES_PER_NODE; i++) {
+          exec(depth - 1, concurrencyDepth, path.join(Integer.toString(i)));
+        }
+      }
+    }
+  }
 }
