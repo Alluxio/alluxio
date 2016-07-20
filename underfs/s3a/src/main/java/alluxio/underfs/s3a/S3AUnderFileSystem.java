@@ -717,7 +717,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean supportFlush() {
-    return true;
+  public boolean supportsFlush() {
+    return false;
   }
 }

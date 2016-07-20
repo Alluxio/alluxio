@@ -670,7 +670,7 @@ public abstract class UnderFileSystem {
    *
    * @return true if this type of UFS supports flush, false otherwise
    */
-  public boolean supportFlush() {
-    return false;
+  public boolean supportsFlush() {
+    return true;
   }
 }

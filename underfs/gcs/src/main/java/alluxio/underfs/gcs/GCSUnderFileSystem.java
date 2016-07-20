@@ -648,7 +648,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean supportFlush() {
-    return true;
+  public boolean supportsFlush() {
+    return false;
   }
 }

@@ -643,7 +643,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public boolean supportFlush() {
-    return true;
+  public boolean supportsFlush() {
+    return false;
   }
 }
