@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=gs://GCS_BUCKET/GCS_DIRECTORY
+alluxio.underfs.address=gs://GCS_BUCKET/GCS_DIRECTORY
 ```

@@ -84,31 +84,31 @@ Alluxio masters, workers, and clients. In `conf/alluxio-env.sh`, these java opti
 {% endfor %}
 </table>
 
-To set these options, you can configure your `ALLUXIO_JAVA_OPTS` to include:
+To set these options, you can configure your `conf/alluxio-site.properties` to include:
 
-    -Dalluxio.zookeeper.enabled=true
-    -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
+    alluxio.zookeeper.enabled=true
+    alluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 If you are using a cluster of ZooKeeper nodes, you can specify multiple addresses by separating them
 with commas, like:
 
-    -Dalluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
+    alluxio.zookeeper.address=[zookeeper_hostname1]:2181,[zookeeper_hostname2]:2181,[zookeeper_hostname3]:2181
 
-Alternatively, these configuration settings can be set in the `alluxio-site.properties` file. More
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
 details about setting configuration parameters can be found in
 [Configuration Settings](Configuration-Settings.html).
 
 ### Master Configuration
 
 In addition to the above configuration settings, Alluxio masters need additional configuration. The
-following variable must be set appropriately in `conf/alluxio-env.sh`:
+following variable must be set appropriately in `conf/alluxio-site.properties`:
 
-    ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
+    alluxio.master.hostname=[externally visible address of this machine]
 
-Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately
-for `ALLUXIO_JAVA_OPTS`. For example, if you are using HDFS for the journal, you can add:
+Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately. 
+For example, if you are using HDFS for the journal, you can add:
 
-    -Dalluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
+    alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
 Once all the Alluxio masters are configured in this way, they can all be started for fault tolerant
 Alluxio. One of the masters will become the leader, and the others will replay the journal and wait
@@ -124,8 +124,8 @@ does not have to be set for the workers.
 
 No additional configuration parameters are required for fault tolerant mode. As long as both:
 
-    -Dalluxio.zookeeper.enabled=true
-    -Dalluxio.zookeeper.address=[zookeeper_hostname]:2181
+    alluxio.zookeeper.enabled=true
+    alluxio.zookeeper.address=[zookeeper_hostname]:2181
 
 are set appropriately for your client application, the application will be able to consult with
 ZooKeeper for the current leader master.
