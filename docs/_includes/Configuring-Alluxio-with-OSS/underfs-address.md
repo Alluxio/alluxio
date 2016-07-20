@@ -1,3 +1,3 @@
 ```bash
-ALLUXIO_UNDERFS_ADDRESS=oss://OSS_BUCKET/OSS_DIRECTORY/
+alluxio.underfs.address=oss://OSS_BUCKET/OSS_DIRECTORY/
 ```
