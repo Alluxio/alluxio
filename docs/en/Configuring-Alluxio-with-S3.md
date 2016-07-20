@@ -33,9 +33,9 @@ the bucket, or using an existing one. For the purposes of this guide, the S3 buc
 
 # Configuring Alluxio
 
-To configure Alluxio to use S3 as its under storage system, modifications to the
-`conf/alluxio-env.sh` file must be made. The first modification is to specify an **existing** S3
-bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-env.sh`
+You need to configure Alluxio to use S3 as its under storage system by modifying
+`conf/alluxio-site.properties`. The first modification is to specify an **existing** S3
+bucket and directory as the under storage system. You specify it by modifying `conf/alluxio-site.properties`
 to include:
 
 {% include Configuring-Alluxio-with-S3/underfs-address-s3n.md %}
@@ -46,7 +46,7 @@ or
 
 Next, you need to specify the AWS credentials for S3 access.
 
-If you are using s3n, in `conf/alluxio-env.sh`, add:
+If you are using s3n, in `conf/alluxio-site.properties`, add:
 
 {% include Configuring-Alluxio-with-S3/aws.md %}
 
@@ -65,12 +65,16 @@ If you are using s3a, you can specify credentials in 4 ways, from highest to low
 See [Amazon's documentation](http://docs.aws.amazon.com/java-sdk/latest/developer-guide/credentials.html#id6)
 for more details.
 
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html#environment-variables).
+
 ## Enabling Server Side Encryption
 
 If you are using s3a, you may encrypt your data stored in S3. The encryption is only valid for data
 at rest in s3 and will be transferred in decrypted form when read by clients.
 
-Enable this feature by configuring `conf/alluxio-env.sh`:
+Enable this feature by configuring `conf/alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-S3/server-side-encryption-conf.md %}
 
@@ -78,7 +82,7 @@ Enable this feature by configuring `conf/alluxio-env.sh`:
 
 The underlying S3 library JetS3t can incorporate bucket names that are DNS-compatible into the host
 name of its requests. You can optionally configure this behavior in the `ALLUXIO_JAVA_OPTS` section
-of the `conf/alluxio-env.sh` file by adding:
+of the `conf/alluxio-site.properties` file by adding:
 
 {% include Configuring-Alluxio-with-S3/jets3t.md %}
 
@@ -93,8 +97,7 @@ you can try [Running Alluxio Locally with S3](#running-alluxio-locally-with-s3).
 
 ## Accessing S3 through a proxy
 
-To communicate with S3 through a proxy, modify the `ALLUXIO_JAVA_OPTS` section of
-`conf/alluxio-env.sh` to include:
+To communicate with S3 through a proxy, modify `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-S3/proxy.md %}
 
@@ -113,6 +116,10 @@ When building your application to use Alluxio, your application will have to inc
 dependency to your application with:
 
 {% include Configuring-Alluxio-with-S3/dependency.md %}
+
+Alternatively, you may copy `conf/alluxio-site.properties` (having the properties setting credentials) to the classpath
+of your application runtime (e.g., `$SPARK_CLASSPATH` for Spark), or append the path to this site properties file to
+the classpath.
 
 ## Avoiding Conflicting Client Dependencies
 
@@ -150,8 +157,7 @@ please refer to [MvnRepository](http://mvnrepository.com/).
 
 ## Using a non-Amazon service provider
 
-To use an S3 service provider other than "s3.amazonaws.com", modify the `ALLUXIO_JAVA_OPTS` section
-of `conf/alluxio-env.sh` to include:
+To use an S3 service provider other than "s3.amazonaws.com", modify `conf/alluxio-site.properties` to include:
 
 {% include Configuring-Alluxio-with-S3/non-amazon.md %}
 
@@ -166,7 +172,7 @@ port values are left unset, `<HTTP_PORT>` defaults to port 80, and `<HTTPS_PORT>
 
 ## Configuring Distributed Applications Runtime
 When I/O is delegated to Alluxio workers (i.e., Alluxio configuration `alluxio.user.ufs.operation.delegation` is true,
-which is by default since Alluxio 1.1), you do not have to do any thing special for your applications.
+which is false by default since Alluxio 1.1), you do not have to do any thing special for your applications.
 Otherwise since you are using an Alluxio client that is running separately from the Alluxio Master and Workers (in
 a separate JVM), then you need to make sure that your AWS credentials are provided to the
 application JVM processes as well. The easiest way to do this is to add them as command line options

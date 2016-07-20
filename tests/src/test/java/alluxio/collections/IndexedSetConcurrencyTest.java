@@ -23,9 +23,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -44,21 +41,14 @@ public class IndexedSetConcurrencyTest {
   private static final int MIN_TASKS = 3;
   /** The maximum number of threads for each task type. */
   private static final int MAX_TASKS = 6;
-  /** the maximum repeatable times in one task of size in {@link TestInfo}. */
-  private static final int MAX_REPEAT_TIMES = 6;
 
   private IndexedSet<TestInfo> mIndexedSet;
   private ExecutorService mThreadPool;
   /** Used to stop concurrent threads. */
   private AtomicBoolean mStopThreads;
 
-  private abstract class ConcurrentTask implements Callable<Void> {
+  private abstract class ConcurrentTask implements Runnable {
     private long mCount = 0;
-    private CyclicBarrier mBarrier;
-
-    public ConcurrentTask(CyclicBarrier barrier) {
-      mBarrier = barrier;
-    }
 
     public long getCount() {
       return mCount;
@@ -72,54 +62,21 @@ public class IndexedSetConcurrencyTest {
     abstract long runSingleTask();
 
     @Override
-    public Void call() throws BrokenBarrierException, InterruptedException {
-      mBarrier.await();
+    public void run() {
       while (!mStopThreads.get()) {
         mCount += runSingleTask();
       }
-      return null;
     }
   }
 
   private class ConcurrentAdd extends ConcurrentTask {
-    public ConcurrentAdd(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
     @Override
     public long runSingleTask() {
       return mIndexedSet.add(new TestInfo()) ? 1 : 0;
     }
   }
 
-  private class ConcurrentAddWithCheck extends ConcurrentTask {
-    public ConcurrentAddWithCheck(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
-    @Override
-    public long runSingleTask() {
-      long result = 0;
-      int size = ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
-
-      for (int i = ThreadLocalRandom.current().nextInt(1, MAX_REPEAT_TIMES + 1); i > 0; i--) {
-        TestInfo instance = new TestInfo(ThreadLocalRandom.current().nextLong(), size);
-        result += (mIndexedSet.add(instance) ? 1 : 0);
-        Assert.assertTrue(mIndexedSet.contains(mIdIndex, instance.getId()));
-        Assert.assertEquals(1, mIndexedSet.getByField(mIdIndex, instance.getId()).size());
-      }
-
-      Assert.assertTrue(result <= mIndexedSet.getByField(mSizeIndex, size).size());
-
-      return result;
-    }
-  }
-
   private class ConcurrentRemove extends ConcurrentTask {
-    public ConcurrentRemove(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
     @Override
     public long runSingleTask() {
       TestInfo info =
@@ -132,10 +89,6 @@ public class IndexedSetConcurrencyTest {
   }
 
   private class ConcurrentRemoveByField extends ConcurrentTask {
-    public ConcurrentRemoveByField(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
     @Override
     public long runSingleTask() {
       return mIndexedSet
@@ -144,10 +97,6 @@ public class IndexedSetConcurrencyTest {
   }
 
   private class ConcurrentRemoveByIterator extends ConcurrentTask {
-    public ConcurrentRemoveByIterator(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
     @Override
     public long runSingleTask() {
       long removed = 0;
@@ -162,10 +111,6 @@ public class IndexedSetConcurrencyTest {
   }
 
   private class ConcurrentClear extends ConcurrentTask {
-    public ConcurrentClear(CyclicBarrier barrier) {
-      super(barrier);
-    }
-
     @Override
     public long runSingleTask() {
       mIndexedSet.clear();
@@ -178,13 +123,8 @@ public class IndexedSetConcurrencyTest {
     private int mSize;
 
     private TestInfo() {
-      this(ThreadLocalRandom.current().nextLong(),
-          ThreadLocalRandom.current().nextInt(0, MAX_SIZE));
-    }
-
-    private TestInfo(long id, int size) {
-      mId = id;
-      mSize = size;
+      mId = ThreadLocalRandom.current().nextLong();
+      mSize = ThreadLocalRandom.current().nextInt(0, MAX_SIZE);
     }
 
     public long getId() {
@@ -262,32 +202,17 @@ public class IndexedSetConcurrencyTest {
     List<Future<?>> futures = new ArrayList<>();
     List<ConcurrentTask> addTasks = new ArrayList<>();
     List<ConcurrentTask> removeTasks = new ArrayList<>();
-    int[] tasksNumbers = new int[3];
-    int totalTasksNumber = 0;
-
-    // Try to balance adds and removes
-    tasksNumbers[0] = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-    totalTasksNumber += tasksNumbers[0];
-    // Add random number of each task type.
-    for (int i = 1; i < 3; i++) {
-      tasksNumbers[i] = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-      totalTasksNumber += tasksNumbers[i];
-    }
-
-    CyclicBarrier barrier = new CyclicBarrier(totalTasksNumber);
 
     // Add random number of each task type.
-    for (int i = 0; i < tasksNumbers[0]; i++) {
+    for (int i = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
       // Try to balance adds and removes
-      addTasks.add(new ConcurrentAdd(barrier));
+      addTasks.add(new ConcurrentAdd());
     }
-
-    for (int i = 0; i < tasksNumbers[1]; i++) {
-      removeTasks.add(new ConcurrentRemove(barrier));
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      removeTasks.add(new ConcurrentRemove());
     }
-
-    for (int i = 0; i < tasksNumbers[2]; i++) {
-      removeTasks.add(new ConcurrentRemoveByField(barrier));
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      removeTasks.add(new ConcurrentRemoveByField());
     }
 
     for (ConcurrentTask task : addTasks) {
@@ -320,101 +245,23 @@ public class IndexedSetConcurrencyTest {
   @Test
   public void concurrentUpdateTest() throws Exception {
     List<Future<?>> futures = new ArrayList<>();
-    int[] tasksNumbers = new int[5];
-    int totalTasksNumber = 0;
-
-    // Try to balance adds and removes
-    tasksNumbers[0] = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-    totalTasksNumber += tasksNumbers[0];
-    // Add random number of each task type.
-    for (int i = 1; i < 5; i++) {
-      tasksNumbers[i] = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-      totalTasksNumber += tasksNumbers[i];
-    }
-
-    CyclicBarrier barrier = new CyclicBarrier(totalTasksNumber);
-
-    for (int i = 0; i < tasksNumbers[0]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentAdd(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[1]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemove(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[2]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemoveByField(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[3]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[4]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentClear(barrier)));
-    }
-
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
-    mStopThreads.set(true);
-    for (Future<?> future : futures) {
-      future.get();
-    }
-    verifySet();
-  }
-
-  @Test
-  public void concurrentAddTest() throws Exception {
-    List<Future<?>> futures = new ArrayList<>();
 
     // Add random number of each task type.
-    int tasksNumber = 2 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-    CyclicBarrier barrier = new CyclicBarrier(tasksNumber);
-
-    for (int i = 0; i < tasksNumber; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentAddWithCheck(barrier)));
+    for (int i = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      // Try to balance adds and removes
+      futures.add(mThreadPool.submit(new ConcurrentAdd()));
     }
-
-    CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
-    mStopThreads.set(true);
-    for (Future<?> future : futures) {
-      future.get();
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemove()));
     }
-
-    verifySet();
-  }
-
-  /**
-   * Use the mSizeIndex as primary index, test the correctness of using non-unique index as primary
-   * index.
-   */
-  @Test
-  public void nonUniqueConcurrentUpdateTest() throws Exception {
-    mIndexedSet = new IndexedSet<>(mSizeIndex, mIdIndex);
-    List<Future<?>> futures = new ArrayList<>();
-    int[] tasksNumbers = new int[5];
-    int totalTasksNumber = 0;
-
-    // Try to balance adds and removes
-    tasksNumbers[0] = 4 * ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-    totalTasksNumber += tasksNumbers[0];
-    // Add random number of each task type.
-    for (int i = 1; i < 5; i++) {
-      tasksNumbers[i] = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1);
-      totalTasksNumber += tasksNumbers[i];
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByField()));
     }
-
-    CyclicBarrier barrier = new CyclicBarrier(totalTasksNumber);
-
-    for (int i = 0; i < tasksNumbers[0]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentAdd(barrier)));
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator()));
     }
-    for (int i = 0; i < tasksNumbers[1]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemove(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[2]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemoveByField(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[3]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentRemoveByIterator(barrier)));
-    }
-    for (int i = 0; i < tasksNumbers[4]; i++) {
-      futures.add(mThreadPool.submit(new ConcurrentClear(barrier)));
+    for (int i = ThreadLocalRandom.current().nextInt(MIN_TASKS, MAX_TASKS + 1); i > 0; i--) {
+      futures.add(mThreadPool.submit(new ConcurrentClear()));
     }
 
     CommonUtils.sleepMs(TEST_CASE_DURATION_MS);
