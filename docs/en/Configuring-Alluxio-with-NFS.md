@@ -21,7 +21,7 @@ Then, if you haven't already done so, create your configuration file from the te
 # Configuring Alluxio
 
 Assuming the NFS clients are co-located with Alluxio nodes, all the NFS shares are mounted at directory
-`/alluxio_vol`, the following environment variable assignment needs to be added to 
+`/mnt/nfs`, the following environment variable assignment needs to be added to
 `conf/alluxio-env.sh`:
 
 {% include Configuring-Alluxio-with-NFS/underfs-address.md %}

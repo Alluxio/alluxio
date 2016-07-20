@@ -46,11 +46,11 @@ public final class HdfsUnderFileSystemUtils {
    * @param conf the Hadoop configuration
    */
   public static void addS3Credentials(org.apache.hadoop.conf.Configuration conf) {
-    String accessKeyConf = Constants.S3_ACCESS_KEY;
+    String accessKeyConf = Constants.S3N_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
       conf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = Constants.S3_SECRET_KEY;
+    String secretKeyConf = Constants.S3N_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }

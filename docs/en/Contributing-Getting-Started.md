@@ -33,7 +33,7 @@ If you do not have Java installed, download and install [the Java SDK](http://ww
 
 Alluxio uses Maven to manage the build process. If you do not have Maven already installed, you can
 [download Maven](https://maven.apache.org/download.cgi), and
-[install Maven](https://maven.apache.org/install.html).
+[install Maven](https://maven.apache.org/install.html). 
 
 ### Git
 
@@ -73,7 +73,7 @@ $ git clone https://github.com/YOUR-USERNAME/alluxio.git
 $ cd alluxio
 ```
 
-This will create the clone under the `alluxio/` directory.
+This will create the clone under the `alluxio/` directory. 
 
 In order to pull changes from the open source Alluxio code base into your clone, you should create a
 new remote that points to the Alluxio repository. In the directory of your newly created clone, run:
@@ -198,7 +198,7 @@ If you want more details, please visit [instructions on how to create commits](h
 ## Sending a Pull Request
 
 After you have finished all the changes to address the JIRA ticket, you are ready to submit a pull
-request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/),
+request to the Alluxio project! Here are [detailed instructions on sending a pull request](https://help.github.com/articles/using-pull-requests/), 
 but the following is a common way to do it.
 
 After you have created all necessary local commits, you can push all your commits to your repository
@@ -221,9 +221,6 @@ you want to submit the pull request for.
 
 For the title of the pull request, the title should be prefixed by the JIRA ticket name. Therefore,
 the title will look something like **[ALLUXIO-1234] Awesome Feature**.
-
-Add a GitHub label for whichever Alluxio component your pull request fits into. Components correspond 
-with root-level directories in the Alluxio repository.
 
 In the first line of the description box, please add a link back to the JIRA ticket. The link will
 look something like: `https://alluxio.atlassian.net/browse/ALLUXIO-####`

@@ -26,8 +26,7 @@ import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
-import alluxio.master.file.meta.TtlBucket;
-import alluxio.master.file.meta.TtlBucketPrivateAccess;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -52,7 +51,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -82,14 +80,12 @@ import java.util.concurrent.TimeUnit;
  * Unit tests for {@link FileSystemMaster}.
  */
 public final class FileSystemMasterTest {
-  private static final long TTLCHECKER_INTERVAL_MS = 0;
   private static final AlluxioURI NESTED_URI = new AlluxioURI("/nested/test");
   private static final AlluxioURI NESTED_FILE_URI = new AlluxioURI("/nested/test/file");
   private static final AlluxioURI ROOT_URI = new AlluxioURI("/");
   private static final AlluxioURI ROOT_FILE_URI = new AlluxioURI("/file");
   private static final AlluxioURI TEST_URI = new AlluxioURI("/test");
   private static CreateFileOptions sNestedFileOptions;
-  private static long sOldTtlIntervalMs;
 
   private BlockMaster mBlockMaster;
   private FileSystemMaster mFileSystemMaster;
@@ -98,11 +94,9 @@ public final class FileSystemMasterTest {
 
   private String mUnderFS;
 
-  /** Rule to create a new temporary folder during each test. */
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  /** The exception expected to be thrown. */
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
@@ -111,6 +105,10 @@ public final class FileSystemMasterTest {
       HeartbeatContext.MASTER_TTL_CHECK,
       HeartbeatContext.MASTER_LOST_FILES_DETECTION);
 
+  // Set ttl interval to 0 so that there is no delay in detecting expired files.
+  @ClassRule
+  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(0);
+
   /**
    * Sets up the dependencies before a single test runs.
    */
@@ -118,16 +116,6 @@ public final class FileSystemMasterTest {
   public static void beforeClass() throws Exception {
     sNestedFileOptions =
         CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB).setRecursive(true);
-    sOldTtlIntervalMs = TtlBucket.getTtlIntervalMs();
-    TtlBucketPrivateAccess.setTtlIntervalMs(TTLCHECKER_INTERVAL_MS);
-  }
-
-  /**
-   * Resets the TTL interval after all test ran.
-   */
-  @AfterClass
-  public static void afterClass() {
-    TtlBucketPrivateAccess.setTtlIntervalMs(sOldTtlIntervalMs);
   }
 
   /**
@@ -138,8 +126,6 @@ public final class FileSystemMasterTest {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
-    Configuration
-        .set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTLCHECKER_INTERVAL_MS));
     Configuration.set(Constants.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
