@@ -27,6 +27,7 @@ import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.InodePathPair;
 import alluxio.master.file.meta.InodeTree;
 import alluxio.master.file.meta.LockedInodePath;
+import alluxio.master.file.meta.TtlIntervalRule;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -316,6 +317,9 @@ public class FileSystemMasterIntegrationTest {
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
       new ManuallyScheduleHeartbeat(HeartbeatContext.MASTER_TTL_CHECK);
+
+  @ClassRule
+  public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(TTL_CHECKER_INTERVAL_MS);
 
   @Rule
   public Timeout mGlobalTimeout = Timeout.seconds(60);
