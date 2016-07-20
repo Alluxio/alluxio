@@ -131,6 +131,12 @@ public final class KeyValueStoreOperations implements Callable<Boolean> {
       System.exit(-1);
     }
 
+    if (!Configuration.getBoolean(Constants.KEY_VALUE_ENABLED)) {
+      System.out.println("Alluxio key value service is disabled. To run this test, please set "
+          + Constants.KEY_VALUE_ENABLED + " to be true and restart the cluster.");
+      System.exit(-1);
+    }
+
     // TODO(binfan): the "run and exit" pattern shows up repeatedly in the code base and it might
     // make sense to add a utility function for it to CliUtils
     boolean result = CliUtils.runExample(new KeyValueStoreOperations(new AlluxioURI(args[0])));

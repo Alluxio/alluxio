@@ -54,7 +54,7 @@ Alternatively, you can also create the configuration file from the template and 
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-Then edit `alluxio-env.sh` file to set the under storage address to the HDFS namenode address
+Then edit `alluxio-site.properties` file to set the under storage address to the HDFS namenode address
 (e.g., `hdfs://localhost:9000` if you are running the HDFS namenode locally with default port).
 
 {% include Configuring-Alluxio-with-HDFS/underfs-address.md %}
@@ -62,9 +62,13 @@ Then edit `alluxio-env.sh` file to set the under storage address to the HDFS nam
 Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.xml`, `yarn-site.xml`) to
 `${ALLUXIO_HOME}/conf/`
 
-Set the following Alluxio properties:
+Set the following Alluxio properties in `alluxio-site.properties`:
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-properties-for-secure-hdfs-kerberos.md %}
+
+Alternatively, these configuration settings can be set in the `conf/alluxio-env.sh` file. More
+details about setting configuration parameters can be found in
+[Configuration Settings](Configuration-Settings.html).
 
 # Running Alluxio Locally with secure HDFS
 
