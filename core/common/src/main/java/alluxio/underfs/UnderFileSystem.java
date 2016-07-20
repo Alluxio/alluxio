@@ -666,11 +666,11 @@ public abstract class UnderFileSystem {
   public abstract short getMode(String path) throws IOException;
 
   /**
-   * Whether this type of UFS needs the synchronous journaling.
+   * Whether this type of UFS supports flush.
    *
-   * @return true if this type of UFS needs the synchronous journaling, false otherwise
+   * @return true if this type of UFS supports flush, false otherwise
    */
-  public boolean requireSyncJournal() {
+  public boolean supportFlush() {
     return false;
   }
 }

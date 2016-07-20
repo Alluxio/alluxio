@@ -646,4 +646,9 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
+
+  @Override
+  public boolean supportFlush() {
+    return true;
+  }
 }
