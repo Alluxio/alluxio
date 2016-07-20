@@ -65,47 +65,61 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Swift credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @return true if both access and secret key are present, false otherwise
+   * @return true if simulation mode or if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckSwiftCredentials() {
     String tenantApiKeyConf = Constants.SWIFT_API_KEY;
-    if (System.getProperty(tenantApiKeyConf) != null || (Configuration.containsKey(tenantApiKeyConf)
-        && Configuration.get(tenantApiKeyConf) == null)) {
+    if (System.getProperty(tenantApiKeyConf) != null && (
+        !Configuration.containsKey(tenantApiKeyConf)
+            || Configuration.get(tenantApiKeyConf) == null)) {
       Configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
     }
     String tenantKeyConf = Constants.SWIFT_TENANT_KEY;
-    if (System.getProperty(tenantKeyConf) != null || (Configuration.containsKey(tenantKeyConf)
-        && Configuration.get(tenantKeyConf) == null)) {
+    if (System.getProperty(tenantKeyConf) != null && (!Configuration.containsKey(tenantKeyConf)
+        || Configuration.get(tenantKeyConf) == null)) {
       Configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
     }
     String tenantUserConf = Constants.SWIFT_USER_KEY;
-    if (System.getProperty(tenantUserConf) != null || (Configuration.containsKey(tenantUserConf)
-        && Configuration.get(tenantUserConf) == null)) {
+    if (System.getProperty(tenantUserConf) != null && (!Configuration.containsKey(tenantUserConf)
+        || Configuration.get(tenantUserConf) == null)) {
       Configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
     }
     String tenantAuthURLKeyConf = Constants.SWIFT_AUTH_URL_KEY;
-    if (System.getProperty(tenantAuthURLKeyConf) != null || (
-        Configuration.containsKey(tenantAuthURLKeyConf)
-            && Configuration.get(tenantAuthURLKeyConf) == null)) {
+    if (System.getProperty(tenantAuthURLKeyConf) != null && (
+        !Configuration.containsKey(tenantAuthURLKeyConf)
+            || Configuration.get(tenantAuthURLKeyConf) == null)) {
       Configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
     }
     String authMethodKeyConf = Constants.SWIFT_AUTH_METHOD_KEY;
-    if (System.getProperty(authMethodKeyConf) != null || (
-        Configuration.containsKey(authMethodKeyConf)
-            && Configuration.get(authMethodKeyConf) == null)) {
+    if (System.getProperty(authMethodKeyConf) != null && (
+        !Configuration.containsKey(authMethodKeyConf)
+            || Configuration.get(authMethodKeyConf) == null)) {
       Configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
     }
     String passwordKeyConf = Constants.SWIFT_PASSWORD_KEY;
-    if (System.getProperty(passwordKeyConf) != null || (Configuration.containsKey(passwordKeyConf)
-        && Configuration.get(passwordKeyConf) == null)) {
+    if (System.getProperty(passwordKeyConf) != null && (!Configuration.containsKey(passwordKeyConf)
+        || Configuration.get(passwordKeyConf) == null)) {
       Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
 
-    return ((Configuration.containsKey(tenantApiKeyConf)
+    String swiftSimulationConf = Constants.SWIFT_SIMULATION;
+    if (System.getProperty(swiftSimulationConf) != null && (
+         !Configuration.containsKey(swiftSimulationConf)
+             || Configuration.get(swiftSimulationConf) == null)) {
+      Configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
+    }
+
+    boolean simulation = false;
+    if (Configuration.containsKey(swiftSimulationConf)) {
+      simulation = Configuration.getBoolean(swiftSimulationConf);
+    }
+
+    // We do not need authentication credentials in simulation mode
+    return simulation || (((Configuration.containsKey(tenantApiKeyConf)
         && Configuration.get(tenantApiKeyConf) != null) || (
         Configuration.containsKey(passwordKeyConf) && Configuration.get(passwordKeyConf) != null))
         && Configuration.get(tenantKeyConf) != null
         && Configuration.get(tenantAuthURLKeyConf) != null
-        && Configuration.get(tenantUserConf) != null;
+        && Configuration.get(tenantUserConf) != null);
   }
 }

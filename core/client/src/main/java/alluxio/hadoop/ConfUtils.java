@@ -79,7 +79,8 @@ public final class ConfUtils {
           || propertyName.equals(Constants.SWIFT_PASSWORD_KEY)
           || propertyName.equals(Constants.SWIFT_TENANT_KEY)
           || propertyName.equals(Constants.SWIFT_USE_PUBLIC_URI_KEY)
-          || propertyName.equals(Constants.SWIFT_USER_KEY)) {
+          || propertyName.equals(Constants.SWIFT_USER_KEY)
+          || propertyName.equals(Constants.SWIFT_SIMULATION)) {
         alluxioConfProperties.put(propertyName, entry.getValue());
       }
     }
