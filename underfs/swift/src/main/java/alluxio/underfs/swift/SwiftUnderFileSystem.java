@@ -163,6 +163,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
+    if (!path.startsWith(mContainerPrefix)) {
+      path = mContainerPrefix + CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
+    }
+
     // create will attempt to create the parent directory if it does not already exist
     if (!mkdirs(getParentPath(path), true)) {
       // fail if the parent directory does not exist and creation was unsuccessful
@@ -190,13 +194,21 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
+      boolean deletedSelf = false;
+
       // For a file, recursive delete will not find any children
       PaginationMap paginationMap = container.getPaginationMap(
           addFolderSuffixIfNotPresent(strippedPath), DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
           deleteObject(childObject);
+          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
+            deletedSelf = true;
+          }
         }
+      }
+      if (deletedSelf) {
+        return true;
       }
     } else {
       String[] children = list(path);
@@ -227,10 +239,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return true;
     }
 
-    // Query file or folder using single listing query
-    Collection<DirectoryOrObject> objects =
-        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)), false);
-    return objects != null && objects.size() != 0;
+    if (path.endsWith(FOLDER_SUFFIX)) {
+      // If path ends with the folder suffix, we do not check for the existence of a file
+      return isDirectory(path);
+    }
+
+    // If path does not have folder suffix we check for both a file or a folder
+    return isFile(path) || isDirectory(path);
   }
 
   /**
