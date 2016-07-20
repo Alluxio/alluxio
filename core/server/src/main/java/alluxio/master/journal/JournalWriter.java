@@ -360,7 +360,7 @@ public final class JournalWriter {
         ((FSDataOutputStream) mRawOutputStream).sync();
       }
       boolean overSize = mDataOutputStream.size() >= mMaxLogSize;
-      if (overSize || mUfs.requireSyncJournal()) {
+      if (overSize || mUfs.supportFlush()) {
         // (1) The log file is oversize, needs to be rotated. Or
         // (2) Underfs is S3 or OSS, flush on S3OutputStream/OSSOutputStream will only flush to
         // local temporary file,
