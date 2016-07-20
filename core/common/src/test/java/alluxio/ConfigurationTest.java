@@ -45,7 +45,7 @@ public class ConfigurationTest {
 
   @Test
   public void getMalformedIntThrowsException() {
-    Configuration.set("key", "9448367483758473854738");
+    Configuration.set("key", "9448367483758473854738"); // bigger than MAX_INT
     mThrown.expect(RuntimeException.class);
     Configuration.getInt("key");
   }
@@ -90,9 +90,39 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void getBoolean() {
+  public void getTrueBoolean() {
     Configuration.set("key", "true");
     Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getTrueBooleanUppercase() {
+    Configuration.set("key", "True");
+    Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getTrueBooleanMixcase() {
+    Configuration.set("key", "tRuE");
+    Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBoolean() {
+    Configuration.set("key", "false");
+    Assert.assertFalse(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBooleanUppercase() {
+    Configuration.set("key", "False");
+    Assert.assertFalse(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBooleanMixcase() {
+    Configuration.set("key", "fAlSe");
+    Assert.assertFalse(Configuration.getBoolean("key"));
   }
 
   @Test
@@ -119,9 +149,52 @@ public class ConfigurationTest {
   }
 
   @Test
+  public void getMalformedEnum() {
+    Configuration.set("key", "not_a_value");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getEnum("key", TestEnum.class);
+  }
+
+  @Test
   public void getBytes() {
+    Configuration.set("key", "10b");
+    Assert.assertEquals(10, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesKb() {
+    Configuration.set("key", "10kb");
+    Assert.assertEquals(10 * Constants.KB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesMb() {
     Configuration.set("key", "10mb");
     Assert.assertEquals(10 * Constants.MB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesGb() {
+    Configuration.set("key", "10gb");
+    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesGbUppercase() {
+    Configuration.set("key", "10GB");
+    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesTb() {
+    Configuration.set("key", "10tb");
+    Assert.assertEquals(10 * Constants.TB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytespT() {
+    Configuration.set("key", "10pb");
+    Assert.assertEquals(10 * Constants.PB, Configuration.getBytes("key"));
   }
 
   @Test
