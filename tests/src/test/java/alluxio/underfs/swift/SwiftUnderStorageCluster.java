@@ -33,6 +33,7 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
   private static final String INTEGRATION_SWIFT_CONTAINER_KEY = "containerKey";
   private static final String INTEGRATION_SWIFT_AUTH_METHOD_KEY = "authMethodKey";
   private static final String INTEGRATION_SWIFT_AUTH_URL_KEY = "authUrlKey";
+  private static final String INTEGRATION_SWIFT_SIMULATION = "simulation";
 
   private String mSwiftContainer;
 
@@ -43,12 +44,18 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
     String userKey = System.getProperty(INTEGRATION_SWIFT_USER_KEY);
     String authMethodKey = System.getProperty(INTEGRATION_SWIFT_AUTH_METHOD_KEY);
     String authUrlKey = System.getProperty(INTEGRATION_SWIFT_AUTH_URL_KEY);
+    String simulation = System.getProperty(INTEGRATION_SWIFT_SIMULATION);
+    if (simulation == null) {
+      // By default, simulation is turned off
+      simulation = Boolean.FALSE.toString();
+    }
 
     System.setProperty(Constants.SWIFT_API_KEY, swiftAPIKey);
     System.setProperty(Constants.SWIFT_TENANT_KEY, tenantKey);
     System.setProperty(Constants.SWIFT_USER_KEY, userKey);
     System.setProperty(Constants.SWIFT_AUTH_METHOD_KEY, authMethodKey);
     System.setProperty(Constants.SWIFT_AUTH_URL_KEY, authUrlKey);
+    System.setProperty(Constants.SWIFT_SIMULATION, simulation);
 
     mSwiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
     mBaseDir = mSwiftContainer + UUID.randomUUID();

@@ -45,32 +45,28 @@ public class SwiftDirectClient {
    *
    * @param access JOSS access object
    * @param objectName name of the object to create
+   * @throws IOException if an I/O error occurs
    * @return SwiftOutputStream that will be used to upload data to Swift
    */
-  public static SwiftOutputStream put(Access access, String objectName) {
+  public static SwiftOutputStream put(Access access, String objectName) throws IOException {
     LOG.debug("PUT method, object : {}", objectName);
-    URL url;
-    try {
-      url = new URL(access.getPublicURL() + "/" + objectName);
-      URLConnection connection = url.openConnection();
-      if (connection instanceof HttpURLConnection) {
-        HttpURLConnection httpCon = (HttpURLConnection) connection;
-        httpCon.setRequestMethod("PUT");
-        httpCon.addRequestProperty("X-Auth-Token", access.getToken());
-        httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
-        httpCon.setDoInput(true);
-        httpCon.setRequestProperty("Connection", "close");
-        httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
-        httpCon.setRequestProperty("Transfer-Encoding", "chunked");
-        httpCon.setDoOutput(true);
-        httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
-        httpCon.connect();
-        return new SwiftOutputStream(httpCon);
-      }
-      LOG.debug("Not an instance of HTTP URL Connection");
-    } catch (IOException e) {
-      LOG.error(e.getMessage());
+    URL url = new URL(access.getPublicURL() + "/" + objectName);
+    URLConnection connection = url.openConnection();
+    if (!(connection instanceof HttpURLConnection)) {
+      throw new IOException("Connection is not an instance of HTTP URL Connection");
     }
-    return null;
+
+    HttpURLConnection httpCon = (HttpURLConnection) connection;
+    httpCon.setRequestMethod("PUT");
+    httpCon.addRequestProperty("X-Auth-Token", access.getToken());
+    httpCon.addRequestProperty("Content-Type", "binary/octet-stream");
+    httpCon.setDoInput(true);
+    httpCon.setRequestProperty("Connection", "close");
+    httpCon.setReadTimeout(HTTP_READ_TIMEOUT);
+    httpCon.setRequestProperty("Transfer-Encoding", "chunked");
+    httpCon.setDoOutput(true);
+    httpCon.setChunkedStreamingMode(HTTP_CHUNK_STREAMING);
+    httpCon.connect();
+    return new SwiftOutputStream(httpCon);
   }
 }
