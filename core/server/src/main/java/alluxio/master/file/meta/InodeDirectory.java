@@ -12,8 +12,9 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
+import alluxio.collections.UniqueFieldIndex;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.Journal.JournalEntry;
@@ -41,7 +42,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   };
 
   @SuppressWarnings("unchecked")
-  private IndexedSet<Inode<?>> mChildren = new IndexedSet<>(NAME_INDEX);
+  /** use UniqueFieldIndex directly for name index rather than using IndexedSet */
+  private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<Inode<?>>(NAME_INDEX);
 
   private boolean mMountPoint;
 
@@ -84,7 +86,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return the inode with the given name, or null if there is no child with that name
    */
   public Inode<?> getChild(String name) {
-    return mChildren.getFirstByField(NAME_INDEX, name);
+    return mChildren.getFirst(name);
   }
 
   /**
@@ -143,7 +145,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @return true if the inode was removed, false otherwise
    */
   public boolean removeChild(String name) {
-    return mChildren.removeByField(NAME_INDEX, name) == 0;
+    Inode<?> child = mChildren.getFirst(name);
+    return mChildren.remove(child);
   }
 
   /**

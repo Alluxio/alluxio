@@ -22,7 +22,7 @@ import java.util.Set;
  *
  * @param <T> type of objects in this {@link IndexedSet}
  */
-interface FieldIndex<T> extends Iterable<T> {
+public interface FieldIndex<T> extends Iterable<T> {
   /**
    * Adds an object o to the index.
    *
@@ -37,6 +37,11 @@ interface FieldIndex<T> extends Iterable<T> {
    * @return whether the specified element was in the index
    */
   boolean remove(T o);
+
+  /**
+   * Removes all the entries in this index.
+   */
+  void clear();
 
   /**
    * Returns whether there is an object with the specified index field value in the set.

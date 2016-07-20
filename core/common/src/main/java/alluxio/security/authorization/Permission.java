@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
 import alluxio.security.LoginUser;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
@@ -46,9 +47,9 @@ public final class Permission {
    * @param mode the {@link Mode}
    */
   public Permission(String owner, String group, Mode mode) {
-    Preconditions.checkNotNull(owner, ExceptionMessage.OWNER_IS_NULL.getMessage());
-    Preconditions.checkNotNull(group, ExceptionMessage.GROUP_IS_NULL.getMessage());
-    Preconditions.checkNotNull(mode, ExceptionMessage.MODE_IS_NULL.getMessage());
+    Preconditions.checkNotNull(owner, PreconditionMessage.PERMISSION_OWNER_IS_NULL);
+    Preconditions.checkNotNull(group, PreconditionMessage.PERMISSION_GROUP_IS_NULL);
+    Preconditions.checkNotNull(mode, PreconditionMessage.PERMISSION_MODE_IS_NULL);
     mOwner = owner;
     mGroup = group;
     mMode = mode;

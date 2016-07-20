@@ -7,9 +7,10 @@ group: Resources
 * Table of Contents
 {:toc}
 
-本页主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。
-注意: 本页并不包含Alluxio使用过程中遇到的所有问题。
-用户可随时向 [Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)提交问题。
+本页面主要是关于Alluxio使用过程中的一些指导和提示，方便用户能够更快的解决使用过程遇到的问题。
+
+注意: 本页面的定位并不是指导解决Alluxio使用过程中遇到的所有问题。
+用户可随时向[Alluxio邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)或其[镜像](http://alluxio-users.85194.x6.nabble.com/)提交问题。
 
 ## Alluxio日志地址
 
@@ -18,7 +19,7 @@ Alluxio运行过程中可产生master、worker和client日志，这些日志存�
 
 master和worker日志对于理解Alluxio master节点和worker节点的运行过程是非常有帮助的，当Alluxio运行出现问题时，可以查阅日志发现问题产生原因。如果不清楚错误日志信息，可在[邮件列表](https://groups.google.com/forum/#!forum/alluxio-users)查找，错误日志信息有可能之前已经讨论过。
 
-## Alluxio安装常见问题解答
+## Alluxio部署常见问题
 
 #### 问题: 在本地机器上初次安装使用Alluxio失败，应该怎么办？
 
@@ -47,10 +48,10 @@ master和worker日志对于理解Alluxio master节点和worker节点的运行过
 典型问题:
 
 - 请确定 AWS access keys 和 Key Pairs 已安装
-- 如果底层文件存储系统是S3，检查 `ufs.yml`文件中的S3 bucket名称是否为已存在的bucket的名称，不包括`s3://` 或者`s3n://`前缀
+- 如果底层文件存储系统是S3，检查 `ufs.yml`文件中的S3 bucket名称是否为已存在的bucket的名称，不包括`s3://` 、`s3a://`或者`s3n://`前缀
 - 如果不能访问UI，检查安全组是否限制了端口19999
 
-## Alluxio性能常见问题解答
+## Alluxio性能常见问题
 
 #### 问题: 在Alluxio/Spark上进行测试（对大小为GBs的文件运行单词统计），相对于HDFS/Spark，性能并无明显差异。为什么?
 

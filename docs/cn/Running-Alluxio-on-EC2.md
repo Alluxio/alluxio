@@ -2,7 +2,7 @@
 layout: global
 title: 在EC2上运行Alluxio
 nickname: 在EC2上运行Alluxio
-group: User Guide
+group: Deploying Alluxio
 priority: 3
 ---
 

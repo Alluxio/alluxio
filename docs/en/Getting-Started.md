@@ -17,7 +17,7 @@ perform basic tasks with the data in Alluxio. During this guide, you will:
 
 **[Bonus]** If you have an
 [AWS account with an access key id and secret access key](http://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSGettingStartedGuide/AWSCredentials.html),
-you will be be able to perform additional tasks in this guide. Sections of the guide which require
+you will be able to perform additional tasks in this guide. Sections of the guide which require
 your AWS account information will be labeled with **[Bonus]**.
 
 ## Prerequisites
