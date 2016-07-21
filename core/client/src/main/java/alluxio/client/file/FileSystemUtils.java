@@ -170,7 +170,7 @@ public final class FileSystemUtils {
       URIStatus uriStatus = fs.getStatus(uri);
       Permission perm = new Permission(uriStatus.getOwner(), uriStatus.getGroup(),
           (short) uriStatus.getMode());
-      OutputStream out = closer.register(ufs.create(dstPath.getPath(),
+      OutputStream out = closer.register(ufs.create(dstPath.toString(),
           new CreateOptions().setPermission(perm)));
       ret = IOUtils.copyLarge(in, out);
     } catch (Exception e) {
