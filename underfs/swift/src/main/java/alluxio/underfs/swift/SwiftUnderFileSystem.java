@@ -194,11 +194,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
       // For a file, recursive delete will not find any children
       PaginationMap paginationMap = container.getPaginationMap(
-          addFolderSuffixIfNotPresent(strippedPath), DIR_PAGE_SIZE);
+          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
           deleteObject(childObject);
           if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
+            // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
             deletedSelf = true;
           }
         }
