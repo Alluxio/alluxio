@@ -12,7 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class BlockDataServerHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
   private final BlockWorker mWorker;
@@ -60,7 +60,7 @@ public final class BlockDataServerHandler {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
     mTransferType = Configuration
-        .getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**

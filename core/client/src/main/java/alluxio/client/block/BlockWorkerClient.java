@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.AbstractClient;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.FileDoesNotExistException;
@@ -55,7 +56,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class BlockWorkerClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
   private final boolean mIsLocal;
@@ -224,7 +225,7 @@ public final class BlockWorkerClient extends AbstractClient {
       // only start the heartbeat thread if the connection is successful and if there is not
       // another heartbeat thread running
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-        final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+        final int interval = Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
             mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
                 mHeartbeatExecutor, interval));

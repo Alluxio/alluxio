@@ -12,6 +12,7 @@
 package alluxio.master.block.meta;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.util.CommonUtils;
@@ -39,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MasterWorkerInfo {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   /** Worker's address. */
   private final WorkerNetAddress mWorkerAddress;
   /** The id of the worker. */

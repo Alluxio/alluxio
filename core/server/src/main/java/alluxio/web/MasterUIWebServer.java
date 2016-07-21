@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.AlluxioMaster;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -62,6 +62,6 @@ public final class MasterUIWebServer extends UIWebServer {
         master.getMasterMetricsSystem())), "/metricsui");
     // REST configuration
     mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
+        .singletonList(Configuration.get(PropertyKey.WEB_RESOURCES) + "/WEB-INF/master.xml"));
   }
 }

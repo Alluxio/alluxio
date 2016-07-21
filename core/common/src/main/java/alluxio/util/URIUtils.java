@@ -11,7 +11,7 @@
 
 package alluxio.util;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Joiner;
 import org.slf4j.Logger;
@@ -33,7 +33,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class URIUtils {
   private URIUtils() {} // prevent instantiation
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   public static final char QUERY_SEPARATOR = '&';
   public static final char QUERY_KEY_VALUE_SEPARATOR = '=';
 

@@ -12,7 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.hadoop.io.DefaultStringifier;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class ConfUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private ConfUtils() {} // Prevent instantiation.
 
@@ -45,7 +45,7 @@ public final class ConfUtils {
         + "org.apache.hadoop.io.serializer.WritableSerialization");
     Map<String, String> confProperties = Configuration.toMap();
     try {
-      DefaultStringifier.store(target, confProperties, Constants.SITE_CONF_DIR);
+      DefaultStringifier.store(target, confProperties, PropertyKey.SITE_CONF_DIR);
     } catch (IOException ex) {
       LOG.error("Unable to store Alluxio configuration in Hadoop configuration", ex);
       throw new RuntimeException(ex);
@@ -66,21 +66,21 @@ public final class ConfUtils {
       String propertyName = entry.getKey();
       // TODO(gene): use a better way to enumerate every Alluxio configuration parameter
       if (propertyName.startsWith("alluxio.")
-          || propertyName.equals(Constants.S3N_ACCESS_KEY)
-          || propertyName.equals(Constants.S3N_SECRET_KEY)
-          || propertyName.equals(Constants.S3A_ACCESS_KEY)
-          || propertyName.equals(Constants.S3A_SECRET_KEY)
-          || propertyName.equals(Constants.GCS_ACCESS_KEY)
-          || propertyName.equals(Constants.GCS_SECRET_KEY)
-          || propertyName.equals(Constants.SWIFT_API_KEY)
-          || propertyName.equals(Constants.SWIFT_AUTH_METHOD_KEY)
-          || propertyName.equals(Constants.SWIFT_AUTH_PORT_KEY)
-          || propertyName.equals(Constants.SWIFT_AUTH_URL_KEY)
-          || propertyName.equals(Constants.SWIFT_PASSWORD_KEY)
-          || propertyName.equals(Constants.SWIFT_TENANT_KEY)
-          || propertyName.equals(Constants.SWIFT_USE_PUBLIC_URI_KEY)
-          || propertyName.equals(Constants.SWIFT_USER_KEY)
-          || propertyName.equals(Constants.SWIFT_SIMULATION)) {
+          || propertyName.equals(PropertyKey.S3N_ACCESS_KEY)
+          || propertyName.equals(PropertyKey.S3N_SECRET_KEY)
+          || propertyName.equals(PropertyKey.S3A_ACCESS_KEY)
+          || propertyName.equals(PropertyKey.S3A_SECRET_KEY)
+          || propertyName.equals(PropertyKey.GCS_ACCESS_KEY)
+          || propertyName.equals(PropertyKey.GCS_SECRET_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_API_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_AUTH_METHOD_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_AUTH_PORT_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_AUTH_URL_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_PASSWORD_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_TENANT_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_USE_PUBLIC_URI_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_USER_KEY)
+          || propertyName.equals(PropertyKey.SWIFT_SIMULATION)) {
         alluxioConfProperties.put(propertyName, entry.getValue());
       }
     }

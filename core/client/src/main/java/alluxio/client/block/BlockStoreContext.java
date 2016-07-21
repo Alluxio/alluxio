@@ -11,7 +11,7 @@
 
 package alluxio.client.block;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -52,7 +52,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum BlockStoreContext {
   INSTANCE;
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private BlockMasterClientPool mBlockMasterClientPool;
 
   /**

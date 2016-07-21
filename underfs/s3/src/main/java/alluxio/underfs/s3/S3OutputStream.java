@@ -12,6 +12,7 @@
 package alluxio.underfs.s3;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -44,7 +45,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class S3OutputStream extends OutputStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** Bucket name of the Alluxio S3 bucket. */
   private final String mBucketName;

@@ -15,6 +15,7 @@ import alluxio.AbstractClient;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.CompleteUfsFileOptions;
@@ -54,7 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
 public class FileSystemWorkerClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** Executor service for running the heartbeat thread. */
   private final ExecutorService mExecutorService;
@@ -102,7 +103,7 @@ public class FileSystemWorkerClient extends AbstractClient {
     // only start the heartbeat thread if the connection is successful and if there is not
     // another heartbeat thread running
     if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
-      final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
+      final int interval = Configuration.getInt(PropertyKey.USER_HEARTBEAT_INTERVAL_MS);
       mHeartbeat =
           mExecutorService.submit(new HeartbeatThread(HeartbeatContext.WORKER_CLIENT,
               mHeartbeatExecutor, interval));

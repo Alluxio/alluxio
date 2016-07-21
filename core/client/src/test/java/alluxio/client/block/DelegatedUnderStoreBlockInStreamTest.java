@@ -14,7 +14,7 @@ package alluxio.client.block;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.FileSystemWorkerClient;
@@ -66,7 +66,7 @@ public class DelegatedUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.USER_UFS_DELEGATION_ENABLED, "true");
+    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, "true");
 
     mFile = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(mFile);

@@ -13,7 +13,7 @@ package alluxio.security;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 
 import org.junit.After;
@@ -56,7 +56,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
 
     User loginUser = LoginUser.get();
 
@@ -70,8 +70,8 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserProvidedByAppTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
     User loginUser = LoginUser.get();
 
@@ -85,8 +85,8 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserListProvidedByAppTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user, superuser");
 
     User loginUser = LoginUser.get();
 
@@ -102,8 +102,8 @@ public final class LoginUserTest {
    */
   @Test
   public void getSimpleLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get();
 
@@ -116,7 +116,7 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
 
     User loginUser = LoginUser.get();
 
@@ -130,8 +130,8 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserProvidedByAppTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "alluxio-user");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio-user");
 
     User loginUser = LoginUser.get();
 
@@ -146,8 +146,8 @@ public final class LoginUserTest {
    */
   @Test
   public void getCustomLoginUserWhenNotProvidedByAppTest() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "");
 
     User loginUser = LoginUser.get();
 
@@ -164,7 +164,7 @@ public final class LoginUserTest {
   public void securityEnabledTest() throws Exception {
     // TODO(dong): add Kerberos in the white list when it is supported.
     // throw exception when AuthType is not "SIMPLE", or "CUSTOM"
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
 
     mThrown.expect(UnsupportedOperationException.class);
     mThrown.expectMessage("User is not supported in NOSASL mode");

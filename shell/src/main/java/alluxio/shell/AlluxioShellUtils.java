@@ -14,6 +14,7 @@ package alluxio.shell;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.cli.AlluxioShell;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -78,8 +79,8 @@ public final class AlluxioShellUtils {
       }
     } else {
       String hostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-      int port =  Configuration.getInt(Constants.MASTER_RPC_PORT);
-      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      int port =  Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return PathUtils.concatPath(Constants.HEADER_FT + hostname + ":" + port, path);
       }
       return PathUtils.concatPath(Constants.HEADER + hostname + ":" + port, path);

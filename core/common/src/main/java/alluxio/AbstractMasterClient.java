@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class AbstractMasterClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /**
    * Identifies whether the ZooKeeper service should be used for obtaining master address.
@@ -39,7 +39,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public AbstractMasterClient(InetSocketAddress masterAddress) {
     super(masterAddress, "master");
-    mUseZookeeper = Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED);
+    mUseZookeeper = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 
   /**

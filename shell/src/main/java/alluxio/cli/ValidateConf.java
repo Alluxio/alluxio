@@ -11,7 +11,7 @@
 
 package alluxio.cli;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.ConfigurationUtils;
 
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(binfan): move property names from Constants to separate class and validate conf from there.
 @ThreadSafe
 public final class ValidateConf {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /**
    * Console program that validates the configuration.

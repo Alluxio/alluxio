@@ -11,7 +11,7 @@
 
 package alluxio.worker.netty;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCFileReadRequest;
 import alluxio.network.protocol.RPCFileReadResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
@@ -41,7 +41,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class UnderFileSystemDataServerHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** Filesystem worker which handles file level operations for the worker. */
   private final FileSystemWorker mWorker;

@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.util.FormatUtils;
 import alluxio.wire.WorkerInfo;
@@ -217,7 +217,7 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
 
     List<WorkerInfo> workerInfos = mBlockMaster.getWorkerInfoList();
     NodeInfo[] normalNodeInfos = generateOrderedNodeInfos(workerInfos);
@@ -227,6 +227,6 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
 
-    request.setAttribute("workerWebPort", Configuration.getInt(Constants.WORKER_WEB_PORT));
+    request.setAttribute("workerWebPort", Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
   }
 }

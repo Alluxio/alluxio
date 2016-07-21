@@ -11,7 +11,7 @@
 
 package alluxio.client.keyvalue;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.exception.AlluxioException;
 import alluxio.util.io.BufferUtils;
@@ -34,7 +34,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class BaseKeyValuePartitionReader implements KeyValuePartitionReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private KeyValueWorkerClient mClient;
   private long mBlockId;

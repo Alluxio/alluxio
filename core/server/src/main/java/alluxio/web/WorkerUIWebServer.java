@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.block.BlockWorker;
@@ -62,6 +62,6 @@ public final class WorkerUIWebServer extends UIWebServer {
 
     // REST configuration
     mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
+        .singletonList(Configuration.get(PropertyKey.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
   }
 }

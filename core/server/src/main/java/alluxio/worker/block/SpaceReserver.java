@@ -12,7 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class SpaceReserver implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private final BlockWorker mBlockWorker;
 
   /** Association between storage tier aliases and ordinals for the worker. */
@@ -64,14 +64,14 @@ public class SpaceReserver implements Runnable {
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
       String tierReservedSpaceProp =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
+          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
           (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));
       mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }
-    mCheckIntervalMs = Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
+    mCheckIntervalMs = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
     mRunning = true;
   }
 

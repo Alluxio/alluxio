@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SessionCleaner implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   /** The object which supports cleaning up sessions. */
   private final SessionCleanupCallback mSessionCleanupCallback;
   /** Milliseconds between each check. */
@@ -43,7 +43,7 @@ public final class SessionCleaner implements Runnable {
    */
   public SessionCleaner(SessionCleanupCallback sessionCleanupCallback) {
     mSessionCleanupCallback = sessionCleanupCallback;
-    mCheckIntervalMs = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
+    mCheckIntervalMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
 
     mRunning = true;
   }

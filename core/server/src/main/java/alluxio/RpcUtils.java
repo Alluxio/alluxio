@@ -25,7 +25,7 @@ import java.io.IOException;
  * Utilities for handling RPC calls.
  */
 public final class RpcUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /**
    * Calls the given {@link RpcCallable} and handles any exceptions thrown.

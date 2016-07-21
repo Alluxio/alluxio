@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.block.BlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
@@ -37,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public final class UnknownLengthFileInStream extends FileInStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   /**
    * Since the file length is unknown, the actual length of the block is also unknown. Simply
    * using the maximum block size does not work well for allocation, since the maximum block size

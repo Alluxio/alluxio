@@ -13,8 +13,8 @@ package alluxio.underfs;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
@@ -38,7 +38,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
 
   @Before
   public final void before() throws Exception {
-    mUnderfsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    mUnderfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     mUfs = UnderFileSystem.get(mUnderfsAddress + AlluxioURI.SEPARATOR);
   }
 

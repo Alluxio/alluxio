@@ -13,6 +13,7 @@ package alluxio.hadoop.fs;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.hadoop.ConfUtils;
 import alluxio.hadoop.FileSystem;
 
@@ -86,7 +87,7 @@ import java.util.StringTokenizer;
  */
 public class DFSIOIntegrationTest implements Tool {
   // Constants for DFSIOIntegrationTest
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private static final int DEFAULT_BUFFER_SIZE = 4096;
   private static final String BASE_FILE_NAME = "test_io_";
   private static final String DEFAULT_RES_FILE_NAME = "DFSIOIntegrationTest_results.log";

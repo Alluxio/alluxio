@@ -14,6 +14,7 @@ package alluxio.examples;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -40,7 +41,7 @@ import java.nio.channels.FileChannel.MapMode;
  * Example to show the performance of Alluxio.
  */
 public final class Performance {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private static final int RESULT_ARRAY_SIZE = 64;
   private static final String FOLDER = "/mnt/ramdisk/";
@@ -617,7 +618,7 @@ public final class Performance {
     sFileBytes = sBlocksPerFile * sBlockSizeBytes;
     sFilesBytes = sFileBytes * sFiles;
 
-    long fileBufferBytes = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long fileBufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     sResultPrefix = String.format(
         "Threads %d FilesPerThread %d TotalFiles %d "
             + "BLOCK_SIZE_KB %d BLOCKS_PER_FILE %d FILE_SIZE_MB %d "
@@ -627,8 +628,8 @@ public final class Performance {
 
     CommonUtils.warmUpLoop();
 
-    Configuration.set(Constants.MASTER_HOSTNAME, masterAddress.getHostText());
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, masterAddress.getHostText());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(masterAddress.getPort()));
 
     if (testCase == 1) {
       sResultPrefix = "AlluxioFilesWriteTest " + sResultPrefix;

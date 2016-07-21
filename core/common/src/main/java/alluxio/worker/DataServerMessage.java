@@ -11,7 +11,7 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 
@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class DataServerMessage {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   // The size of the prefix of the header: frame length (long), messageType (int)
   private static final int HEADER_PREFIX_LENGTH = 12;

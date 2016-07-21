@@ -11,7 +11,7 @@
 
 package alluxio.heartbeat;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SleepingTimer implements HeartbeatTimer {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private final long mIntervalMs;
   private long mPreviousTickMs;

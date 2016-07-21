@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.file.FileSystemMaster;
 
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -40,7 +40,7 @@ public final class WebInterfaceConfigurationServlet extends HttpServlet {
   private static final long serialVersionUID = 2134205675393443914L;
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
   private static final Set<String> ALLUXIO_CONF_EXCLUDES = new HashSet<>(
-      Arrays.asList(Constants.MASTER_WHITELIST));
+      Arrays.asList(PropertyKey.MASTER_WHITELIST));
 
   private final FileSystemMaster mFsMaster;
 

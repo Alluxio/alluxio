@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -307,6 +307,6 @@ public class BlockLockManagerTest {
   }
 
   private void setMaxLocks(int maxLocks) {
-    Configuration.set(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS, Integer.toString(maxLocks));
   }
 }

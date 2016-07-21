@@ -13,7 +13,7 @@ package alluxio.cli;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileSystem;
@@ -163,7 +163,7 @@ public final class JournalCrashTest {
   // The two Exit Codes are used to tell script if the test runs well.
   private static final int EXIT_FAILED = 1;
   private static final int EXIT_SUCCESS = 0;
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private static CreateFileOptions sCreateFileOptions = null;
   private static List<ClientThread> sClientThreadList = null;
@@ -244,8 +244,8 @@ public final class JournalCrashTest {
     // Set NO_STORE and NO_PERSIST so that this test can work without AlluxioWorker.
     sCreateFileOptions = CreateFileOptions.defaults().setWriteType(WriteType.NONE);
     // Set the max retry to avoid long pending for client disconnect.
-    if (System.getProperty(Constants.MASTER_RETRY_COUNT) == null) {
-      System.setProperty(Constants.MASTER_RETRY_COUNT, "10");
+    if (System.getProperty(PropertyKey.MASTER_RETRY_COUNT) == null) {
+      System.setProperty(PropertyKey.MASTER_RETRY_COUNT, "10");
     }
 
     System.out.println("Start Journal Crash Test...");
@@ -378,7 +378,7 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String startMasterCommand = Configuration.get(Constants.HOME)
+    String startMasterCommand = Configuration.get(PropertyKey.HOME)
         + "/bin/alluxio-start.sh master";
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
@@ -393,7 +393,7 @@ public final class JournalCrashTest {
    * To crash the Master, use {@link #killMaster()}.
    */
   private static void stopCluster() {
-    String stopClusterCommand = Configuration.get(Constants.HOME)
+    String stopClusterCommand = Configuration.get(PropertyKey.HOME)
         + "/bin/alluxio-stop.sh all";
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();

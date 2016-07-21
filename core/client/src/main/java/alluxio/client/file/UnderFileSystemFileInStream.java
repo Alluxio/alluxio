@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
@@ -152,7 +152,7 @@ public final class UnderFileSystemFileInStream extends InputStream {
    */
   private ByteBuffer allocateBuffer() {
     return ByteBuffer.allocate(
-        (int) Configuration.getBytes(Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
+        (int) Configuration.getBytes(PropertyKey.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES));
   }
 
   /**

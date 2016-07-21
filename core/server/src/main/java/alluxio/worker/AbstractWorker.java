@@ -11,7 +11,7 @@
 
 package alluxio.worker;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 public abstract class AbstractWorker implements Worker {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   /** The executor service for the master sync. */
   private final ExecutorService mExecutorService;
 

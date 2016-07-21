@@ -13,7 +13,7 @@ package alluxio.web;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class UIWebServer {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
@@ -61,7 +61,7 @@ public abstract class UIWebServer {
     mService = service;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = Configuration.getInt(Constants.WEB_THREAD_COUNT);
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREAD_COUNT);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -77,7 +77,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(Configuration.get(Constants.WEB_RESOURCES));
+    File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
