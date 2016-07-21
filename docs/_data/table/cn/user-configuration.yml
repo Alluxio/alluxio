@@ -40,7 +40,7 @@ alluxio.user.lineage.master.client.threads:
 alluxio.user.network.netty.timeout.ms:
   Netty client（用于数据块的读写操作）等待数据服务端回复的最长时间（单位：毫秒）。
 alluxio.user.network.netty.worker.threads:
-  远程数据块wrker client从远程数据块worker读取数据使用的线程数目。
+  远程数据块worker client从远程数据块worker读取数据使用的线程数目。
 alluxio.user.ufs.delegation.enabled:
   是否使用worker对ufs数据进行代理。将该项设置为false会让client直接与ufs通信，目前该特性还处于实验阶段，若设置为true，可能在某些workload下会对性能有影响。
 alluxio.user.ufs.delegation.read.buffer.size.bytes:
