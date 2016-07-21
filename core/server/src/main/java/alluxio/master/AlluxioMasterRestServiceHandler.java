@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.PropertyKey;
 import alluxio.RestUtils;
@@ -48,7 +49,7 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
 
   public static final String SERVICE_PREFIX = "master";

@@ -13,7 +13,6 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
@@ -54,7 +53,7 @@ import javax.ws.rs.core.Response;
 @Path(FileSystemMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class FileSystemMasterClientRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static final String SERVICE_PREFIX = "master/file";
   public static final String SERVICE_NAME = "service_name";

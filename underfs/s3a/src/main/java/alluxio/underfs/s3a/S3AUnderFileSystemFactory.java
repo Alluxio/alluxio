@@ -13,7 +13,6 @@ package alluxio.underfs.s3a;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -31,7 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link S3AUnderFileSystemFactory}.

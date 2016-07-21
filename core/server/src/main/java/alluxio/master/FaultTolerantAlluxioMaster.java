@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
 import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
@@ -36,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 final class FaultTolerantAlluxioMaster extends AlluxioMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;

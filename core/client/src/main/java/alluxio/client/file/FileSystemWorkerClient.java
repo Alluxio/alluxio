@@ -55,7 +55,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(calvin): Session logic can be abstracted
 @ThreadSafe
 public class FileSystemWorkerClient extends AbstractClient {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Executor service for running the heartbeat thread. */
   private final ExecutorService mExecutorService;

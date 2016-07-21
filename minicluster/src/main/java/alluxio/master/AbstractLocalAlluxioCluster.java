@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.util.ClientTestUtils;
@@ -48,7 +49,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public abstract class AbstractLocalAlluxioCluster {
-  protected static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
   private static final long CLUSTER_READY_TIMEOUT_MS = 60000;

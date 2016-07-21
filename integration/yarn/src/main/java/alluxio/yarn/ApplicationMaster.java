@@ -62,7 +62,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Maximum number of rounds of requesting and re-requesting worker containers. */
   private static final int MAX_WORKER_CONTAINER_REQUEST_ROUNDS = 20;

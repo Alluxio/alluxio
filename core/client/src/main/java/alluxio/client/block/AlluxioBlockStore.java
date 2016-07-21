@@ -11,7 +11,7 @@
 
 package alluxio.client.block;
 
-import alluxio.PropertyKey;
+import alluxio.Constants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AlluxioBlockStore {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static AlluxioBlockStore sClient = null;
 

@@ -11,7 +11,7 @@
 
 package alluxio.metrics;
 
-import alluxio.PropertyKey;
+import alluxio.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class MetricsConfig {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final String DEFAULT_PREFIX = "*";
   private static final String INSTANCE_REGEX = "^(\\*|[a-zA-Z]+)\\.(.+)";

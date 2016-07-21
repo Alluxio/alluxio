@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 
@@ -33,7 +34,7 @@ import java.util.regex.Pattern;
  * Utilities to create Alluxio configurations.
  */
 public final class ConfigurationUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private ConfigurationUtils() {} // prevent instantiation
 

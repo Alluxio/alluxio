@@ -45,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class UnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
   protected final AlluxioURI mUri;

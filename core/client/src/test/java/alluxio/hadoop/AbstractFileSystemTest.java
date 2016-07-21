@@ -63,7 +63,7 @@ import java.util.List;
  * Tests for {@link AbstractFileSystem}.
  */
 public class AbstractFileSystemTest {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private FileSystemContext mMockFileSystemContext;
 
   /**

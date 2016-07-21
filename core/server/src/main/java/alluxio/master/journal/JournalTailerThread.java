@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;
@@ -30,7 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JournalTailerThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;

@@ -11,7 +11,7 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.PropertyKey;
+import alluxio.Constants;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class SwiftOutputStream extends OutputStream {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private OutputStream mOutputStream;
   private HttpURLConnection mHttpCon;

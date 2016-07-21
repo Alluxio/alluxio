@@ -44,7 +44,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public abstract class AbstractClient implements Closeable {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 

@@ -34,7 +34,7 @@ public final class Sessions {
   public static final int ACCESS_BLOCK_SESSION_ID = -5;
   public static final int KEYVALUE_SESSION_ID = -6;
 
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Map from SessionId to {@link alluxio.SessionInfo} object. */
   private final Map<Long, SessionInfo> mSessions;
