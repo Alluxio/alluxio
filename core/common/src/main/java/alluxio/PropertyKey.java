@@ -303,8 +303,6 @@ public final class PropertyKey {
   public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
   public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
   public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
-  public static final String SWIFT_AUTH_KEYSTONE = "keystone";
-  public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
   public static final String SWIFT_SIMULATION = "fs.swift.simulation";
   // Authentication
   public static final String SECURITY_AUTHENTICATION_TYPE = "alluxio.security.authentication.type";

@@ -135,6 +135,9 @@ public final class Constants {
   public static final int BYTES_WRITTEN_REMOTE_INDEX = 9;
   public static final int BYTES_WRITTEN_UFS_INDEX = 10;
 
+  public static final String SWIFT_AUTH_KEYSTONE = "keystone";
+  public static final String SWIFT_AUTH_SWIFTAUTH = "swiftauth";
+
   /**
    * Maximum number of seconds to wait for thrift servers to stop on shutdown. Tests use a value of
    * 0 instead of this value so that they can run faster.
