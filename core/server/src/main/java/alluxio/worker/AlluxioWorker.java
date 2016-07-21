@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.Server;
 import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
@@ -21,21 +22,7 @@ import java.net.InetSocketAddress;
 /**
  * A worker in the Alluxio system.
  */
-public interface AlluxioWorker {
-
-  /**
-   * Starts the Alluxio worker.
-   *
-   * @throws Exception if the worker fails to start
-   */
-  void start() throws Exception;
-
-  /**
-   * Stops the Alluxio worker.
-   *
-   * @throws Exception if the worker fails to stop
-   */
-  void stop() throws Exception;
+public interface AlluxioWorker extends Server {
 
   /**
    * @return the block worker for this Alluxio worker
