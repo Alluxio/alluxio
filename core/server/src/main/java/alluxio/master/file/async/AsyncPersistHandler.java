@@ -13,6 +13,7 @@ package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -41,7 +42,7 @@ public interface AsyncPersistHandler {
    */
   @ThreadSafe
   class Factory {
-    public static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+    public static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
     private Factory() {} // prevent instantiation
 

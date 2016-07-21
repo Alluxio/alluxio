@@ -12,7 +12,6 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
@@ -37,7 +36,7 @@ import javax.ws.rs.core.Response;
 @Path(BlockMasterClientRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class BlockMasterClientRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   public static final String SERVICE_PREFIX = "master/block";
   public static final String SERVICE_NAME = "service_name";

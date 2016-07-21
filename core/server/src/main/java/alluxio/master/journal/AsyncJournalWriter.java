@@ -12,6 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 
@@ -31,7 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class AsyncJournalWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** An invalid journal flush counter. */
   public static final long INVALID_FLUSH_COUNTER = -1;

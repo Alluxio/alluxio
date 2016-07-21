@@ -12,7 +12,6 @@
 package alluxio.worker.keyvalue;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
 import alluxio.RpcUtils;
 import alluxio.RpcUtils.RpcCallableThrowsIOException;
 import alluxio.Sessions;
@@ -47,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(binfan): move logic outside and make this a simple wrapper.
 @ThreadSafe
 public final class KeyValueWorkerClientServiceHandler implements KeyValueWorkerClientService.Iface {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** BlockWorker handler for access block info. */
   private final BlockWorker mBlockWorker;

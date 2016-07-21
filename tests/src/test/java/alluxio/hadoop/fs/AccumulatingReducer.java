@@ -11,7 +11,7 @@
 
 package alluxio.hadoop.fs;
 
-import alluxio.PropertyKey;
+import alluxio.Constants;
 
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.MapReduceBase;
@@ -44,7 +44,7 @@ public class AccumulatingReducer extends MapReduceBase implements Reducer<Text, 
   static final String VALUE_TYPE_LONG = "l:";
   static final String VALUE_TYPE_FLOAT = "f:";
   static final String VALUE_TYPE_STRING = "s:";
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   protected String mHostname;
 

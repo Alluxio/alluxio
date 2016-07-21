@@ -12,7 +12,7 @@
 package alluxio.master.file.async;
 
 import alluxio.AlluxioURI;
-import alluxio.PropertyKey;
+import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -44,7 +44,7 @@ import java.util.Set;
  * the corresponding worker polls.
  */
 public class DefaultAsyncPersistHandler implements AsyncPersistHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private final FileSystemMasterView mFileSystemMasterView;
 

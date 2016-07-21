@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.metrics.source.Source;
 import alluxio.underfs.UnderFileSystem;
@@ -35,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class MasterSource implements Source {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final String MASTER_SOURCE_NAME = "master";
 
   public static final String DIRECTORIES_CREATED = "DirectoriesCreated";

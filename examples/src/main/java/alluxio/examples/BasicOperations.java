@@ -13,6 +13,7 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -41,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public class BasicOperations implements Callable<Boolean> {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int NUMBERS = 20;
 
   private final AlluxioURI mMasterLocation;

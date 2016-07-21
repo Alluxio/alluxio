@@ -12,7 +12,6 @@
 package alluxio.hadoop;
 
 import alluxio.Constants;
-import alluxio.PropertyKey;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.DelegateToFileSystem;
@@ -38,7 +37,7 @@ import java.net.URISyntaxException;
  * {@link AbstractFileSystem} directly.
  */
 public class AlluxioFileSystem extends DelegateToFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * This constructor has the signature needed by

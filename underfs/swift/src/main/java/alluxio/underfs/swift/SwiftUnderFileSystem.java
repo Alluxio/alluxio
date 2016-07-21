@@ -58,7 +58,7 @@ import javax.annotation.concurrent.ThreadSafe;
 // TODO(adit): Abstract out functionality common with other object under storage systems.
 @ThreadSafe
 public class SwiftUnderFileSystem extends UnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Value used to indicate nested structure in Swift. */
   private static final char PATH_SEPARATOR_CHAR = '/';

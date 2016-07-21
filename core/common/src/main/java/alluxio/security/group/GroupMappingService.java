@@ -12,6 +12,7 @@
 package alluxio.security.group;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
@@ -35,7 +36,7 @@ public interface GroupMappingService {
    * Factory for creating a new instance.
    */
   class Factory {
-    private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+    private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
     // prevent instantiation
     private Factory() {}

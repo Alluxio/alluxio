@@ -60,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static AlluxioMaster sAlluxioMaster = null;
 

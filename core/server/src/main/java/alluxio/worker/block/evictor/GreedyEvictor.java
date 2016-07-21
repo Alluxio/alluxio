@@ -11,7 +11,7 @@
 
 package alluxio.worker.block.evictor;
 
-import alluxio.PropertyKey;
+import alluxio.Constants;
 import alluxio.collections.Pair;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class GreedyEvictor implements Evictor {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
    * Creates a new instance of {@link GreedyEvictor}.

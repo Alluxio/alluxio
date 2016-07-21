@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
  * Mesos framework offer utils.
  */
 public final class OfferUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private OfferUtils() {} // prevent instantiation
 

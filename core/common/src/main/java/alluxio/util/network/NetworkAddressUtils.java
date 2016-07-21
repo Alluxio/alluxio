@@ -51,7 +51,7 @@ public final class NetworkAddressUtils {
    * Checks if the underlying OS is Windows.
    */
   public static final boolean WINDOWS = OSUtils.isWindows();
-  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static String sLocalHost;
   private static String sLocalIP;
