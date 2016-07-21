@@ -28,6 +28,7 @@ import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorker;
+import alluxio.worker.DefaultAlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
@@ -387,7 +388,7 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new AlluxioWorker();
+    mWorker = new DefaultAlluxioWorker();
     Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
 
     Runnable runWorker = new Runnable() {
