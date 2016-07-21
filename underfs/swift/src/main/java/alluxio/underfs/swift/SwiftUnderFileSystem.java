@@ -123,10 +123,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         config.setUsername(Configuration.get(PropertyKey.SWIFT_USER_KEY));
         config.setTenantName(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
         switch (authMethod) {
-          case PropertyKey.SWIFT_AUTH_KEYSTONE:
+          case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
             break;
-          case PropertyKey.SWIFT_AUTH_SWIFTAUTH:
+          case Constants.SWIFT_AUTH_SWIFTAUTH:
             // swiftauth authenticates directly against swift
             // note: this method is supported in swift object storage api v1
             config.setAuthenticationMethod(AuthenticationMethod.BASIC);
