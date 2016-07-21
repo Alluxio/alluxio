@@ -371,7 +371,8 @@ public class AlluxioFramework {
   }
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
-    String dependencyPath = Configuration.get(PropertyKey.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
+    String dependencyPath =
+        Configuration.get(PropertyKey.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
     return Lists.newArrayList(
         CommandInfo.URI.newBuilder()
             .setValue(PathUtils.concatPath(dependencyPath, "alluxio.tar.gz")).setExtract(true)
