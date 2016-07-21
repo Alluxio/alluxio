@@ -163,10 +163,6 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   public OutputStream create(String path, CreateOptions options) throws IOException {
     LOG.debug("Create method: {}", path);
 
-    if (!path.startsWith(mContainerPrefix)) {
-      path = mContainerPrefix + CommonUtils.stripPrefixIfPresent(path, PATH_SEPARATOR);
-    }
-
     // create will attempt to create the parent directory if it does not already exist
     if (!mkdirs(getParentPath(path), true)) {
       // fail if the parent directory does not exist and creation was unsuccessful
