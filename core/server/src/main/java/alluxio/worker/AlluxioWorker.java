@@ -38,22 +38,22 @@ public interface AlluxioWorker {
   void stop() throws Exception;
 
   /**
-   * @return the block worker for this Alluxio worker.
+   * @return the block worker for this Alluxio worker
    */
   BlockWorker getBlockWorker();
 
   /**
-   * @return the worker's data service bind host (used by unit test only).
+   * @return the worker's data service bind host (used by unit test only)
    */
   String getDataBindHost();
 
   /**
-   * @return the worker's data service port (used by unit test only).
+   * @return the worker's data service port (used by unit test only)
    */
   int getDataLocalPort();
 
   /**
-   * @return the file system worker for this Alluxio worker.
+   * @return the file system worker for this Alluxio worker
    */
   FileSystemWorker getFileSystemWorker();
 
