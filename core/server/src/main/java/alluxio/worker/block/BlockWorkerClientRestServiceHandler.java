@@ -12,6 +12,7 @@
 package alluxio.worker.block;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
@@ -46,7 +47,7 @@ import javax.ws.rs.core.Response;
 @NotThreadSafe
 @Path(BlockWorkerClientRestServiceHandler.SERVICE_PREFIX)
 public final class BlockWorkerClientRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   public static final String SERVICE_PREFIX = "worker/block";
   public static final String SERVICE_NAME = "service_name";

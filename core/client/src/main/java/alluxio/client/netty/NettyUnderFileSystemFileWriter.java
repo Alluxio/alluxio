@@ -11,7 +11,7 @@
 
 package alluxio.client.netty;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteRequest;
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyUnderFileSystemFileWriter {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** Netty bootstrap for the connection. */
   private final Bootstrap mClientBootstrap;

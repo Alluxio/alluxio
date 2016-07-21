@@ -270,6 +270,8 @@ public final class PropertyKey {
       "alluxio.user.ufs.delegation.read.buffer.size.bytes";
   public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
       "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+
+  /** alluxio-fuse related conf keys */
   /**
    * Passed to fuse-mount, maximum granularity of write operations:
    * Capped by the kernel to 128KB max (as of Linux 3.16.0).
@@ -320,4 +322,6 @@ public final class PropertyKey {
       "alluxio.security.authorization.permission.supergroup";
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
+
+  private PropertyKey() {} // prevent instantiation
 }

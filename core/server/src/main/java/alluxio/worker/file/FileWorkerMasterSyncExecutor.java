@@ -12,7 +12,7 @@
 package alluxio.worker.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
@@ -47,7 +47,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
 final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** Logic for managing async file persistence. */
   private final FileDataManager mFileDataManager;
@@ -67,7 +67,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     mFileDataManager = Preconditions.checkNotNull(fileDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
     mPersistFileService = Executors.newFixedThreadPool(
-        Configuration.getInt(Constants.WORKER_FILE_PERSIST_POOL_SIZE),
+        Configuration.getInt(PropertyKey.WORKER_FILE_PERSIST_POOL_SIZE),
         ThreadFactoryUtils.build("persist-file-service-%d", true));
   }
 

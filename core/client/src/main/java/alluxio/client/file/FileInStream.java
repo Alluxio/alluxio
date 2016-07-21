@@ -12,6 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
@@ -53,7 +54,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 public class FileInStream extends InputStream implements BoundedStream, Seekable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** How the data should be written into Alluxio space, if at all. */
   protected final AlluxioStorageType mAlluxioStorageType;

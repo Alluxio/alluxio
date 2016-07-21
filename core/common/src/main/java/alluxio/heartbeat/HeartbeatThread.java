@@ -11,7 +11,7 @@
 
 package alluxio.heartbeat;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Preconditions;
@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class HeartbeatThread implements Runnable {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private final String mThreadName;
   private final HeartbeatExecutor mExecutor;

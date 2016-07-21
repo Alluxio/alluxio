@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.block.AlluxioBlockStore;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.file.FileInStream;
@@ -82,10 +83,10 @@ public class RemoteBlockInStreamIntegrationTest {
 
   public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(Constants.GB,
-        Constants.GB, Constants.WORKER_DATA_SERVER, dataServer,
-        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType,
-        Constants.USER_BLOCK_REMOTE_READER, reader,
-        Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
+        Constants.GB, PropertyKey.WORKER_DATA_SERVER, dataServer,
+        PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType,
+        PropertyKey.USER_BLOCK_REMOTE_READER, reader,
+        PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
   }
 
   @Rule

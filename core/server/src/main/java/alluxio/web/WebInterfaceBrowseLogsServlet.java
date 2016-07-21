@@ -13,6 +13,7 @@ package alluxio.web;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -108,7 +109,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("invalidPathError", "");
     request.setAttribute("viewingOffset", 0);
     request.setAttribute("downloadLogFile", 1);
@@ -116,7 +117,7 @@ public final class WebInterfaceBrowseLogsServlet extends HttpServlet {
     request.setAttribute("currentPath", "");
     request.setAttribute("showPermissions", false);
 
-    String logsPath = Configuration.get(Constants.LOGS_DIR);
+    String logsPath = Configuration.get(PropertyKey.LOGS_DIR);
     File logsDir = new File(logsPath);
     String requestFile = request.getParameter("path");
 

@@ -14,6 +14,7 @@ package alluxio.underfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -44,7 +45,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public abstract class UnderFileSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** The UFS {@link AlluxioURI} used to create this {@link UnderFileSystem}. */
   protected final AlluxioURI mUri;
@@ -242,7 +243,7 @@ public abstract class UnderFileSystem {
     // FileSystem.getFileSystemClass() without any need for having users explicitly declare the file
     // system schemes to treat as being HDFS. However as long as pre 2.x versions of Hadoop are
     // supported this is not an option and we have to continue to use this method.
-    for (final String prefix : Configuration.getList(Constants.UNDERFS_HDFS_PREFIXES, ",")) {
+    for (final String prefix : Configuration.getList(PropertyKey.UNDERFS_HDFS_PREFIXES, ",")) {
       if (path.startsWith(prefix)) {
         return true;
       }

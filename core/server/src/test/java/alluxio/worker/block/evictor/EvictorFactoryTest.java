@@ -13,7 +13,7 @@ package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.block.BlockMetadataManager;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.TieredBlockStoreTestUtils;
@@ -70,8 +70,8 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createGreedyEvictorTest() {
-    Configuration.set(Constants.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof GreedyEvictor);
@@ -84,8 +84,8 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createLRUEvictorTest() {
-    Configuration.set(Constants.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);
@@ -98,7 +98,7 @@ public class EvictorFactoryTest {
    */
   @Test
   public void createDefaultEvictorTest() {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);
     Assert.assertTrue(evictor instanceof LRUEvictor);

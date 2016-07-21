@@ -12,6 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
@@ -26,7 +27,7 @@ import org.slf4j.LoggerFactory;
  * Unit tests for {@link InodeDirectory}.
  */
 public final class InodeDirectoryTest extends AbstractInodeTest {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /**
    * Tests the {@link InodeDirectory#addChild(Inode)} method.

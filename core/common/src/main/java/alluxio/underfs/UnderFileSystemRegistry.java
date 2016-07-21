@@ -11,7 +11,7 @@
 
 package alluxio.underfs;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -71,7 +71,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class UnderFileSystemRegistry {
 
   private static final List<UnderFileSystemFactory> FACTORIES = new CopyOnWriteArrayList<>();
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private static boolean sInit = false;
 
   // prevent instantiation

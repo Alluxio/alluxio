@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.StreamOptionUtils;
 import alluxio.client.file.FileInStream;
@@ -36,7 +37,7 @@ import java.util.List;
 public final class FileInStreamConcurrencyIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static int sNumReadThreads =
-      Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
+      Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS) * 10;
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =

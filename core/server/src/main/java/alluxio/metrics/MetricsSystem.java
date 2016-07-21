@@ -12,7 +12,7 @@
 package alluxio.metrics;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class MetricsSystem {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   public static final String SOURCE_REGEX = "^source\\.(.+)\\.(.+)";
@@ -95,7 +95,7 @@ public class MetricsSystem {
    */
   public MetricsSystem(String instance) {
     mInstance = instance;
-    String metricsConfFile = Configuration.get(Constants.METRICS_CONF_FILE);
+    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 

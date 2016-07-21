@@ -13,7 +13,7 @@ package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.Test;
 
@@ -27,7 +27,7 @@ public class GreedyAllocatorTest extends AllocatorTestBase {
    */
   @Test
   public void allocateBlockTest() throws Exception {
-    Configuration.set(Constants.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
+    Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //
     // idx | tier1 | tier2 | tier3

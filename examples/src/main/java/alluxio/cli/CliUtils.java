@@ -12,6 +12,7 @@
 package alluxio.cli;
 
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,7 +23,7 @@ import java.util.concurrent.Callable;
  * Utilities to run the examples.
  */
 public final class CliUtils {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private CliUtils() {} // prevent instantiation
 

@@ -13,7 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -51,7 +51,7 @@ public interface KeyValuePartitionWriter extends Closeable, Cancelable {
       Preconditions.checkNotNull(uri);
       FileSystem fs = FileSystem.Factory.get();
       CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(
-          Configuration.getBytes(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
+          Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX));
       FileOutStream fileOutStream = fs.createFile(uri, options);
       return new BaseKeyValuePartitionWriter(fileOutStream);
     }

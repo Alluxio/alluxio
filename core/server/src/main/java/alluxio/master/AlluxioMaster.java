@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
@@ -59,7 +60,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @NotThreadSafe
 public class AlluxioMaster {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private static AlluxioMaster sAlluxioMaster = null;
 
@@ -213,7 +214,7 @@ public class AlluxioMaster {
      *         otherwise, return {@link AlluxioMaster}.
      */
     public static AlluxioMaster create() {
-      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return new FaultTolerantAlluxioMaster();
       }
       return new AlluxioMaster();
@@ -223,12 +224,12 @@ public class AlluxioMaster {
   }
 
   protected AlluxioMaster() {
-    mMinWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MAX);
+    mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + Constants.MASTER_WORKER_THREADS_MIN);
+        PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
+            + PropertyKey.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.
@@ -236,10 +237,10 @@ public class AlluxioMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      if (!Configuration.getBoolean(Constants.IN_TEST_MODE)) {
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_RPC_PORT) > 0,
+      if (!Configuration.getBoolean(PropertyKey.IN_TEST_MODE)) {
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
             "Alluxio master rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_WEB_PORT) > 0,
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             "Alluxio master web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
@@ -247,11 +248,11 @@ public class AlluxioMaster {
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master port
-      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check the journal directory
-      String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+      String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
@@ -498,7 +499,7 @@ public class AlluxioMaster {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.IN_TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -544,7 +545,7 @@ public class AlluxioMaster {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = Configuration.get(Constants.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (String file : files) {
       if (file.startsWith(formatFilePrefix)) {
         return true;
@@ -554,7 +555,7 @@ public class AlluxioMaster {
   }
 
   private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }

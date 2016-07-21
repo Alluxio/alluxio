@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -33,7 +34,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /**
    * Constructs a new {@link GCSUnderFileSystemFactory}.
@@ -71,11 +72,11 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
    */
   private boolean addAndCheckGoogleCredentials() {
     // TODO(binfan): remove System.getProperty as it is covered by configuration
-    String accessKeyConf = Constants.GCS_ACCESS_KEY;
+    String accessKeyConf = PropertyKey.GCS_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && !Configuration.containsKey(accessKeyConf)) {
       Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = Constants.GCS_SECRET_KEY;
+    String secretKeyConf = PropertyKey.GCS_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && !Configuration.containsKey(secretKeyConf)) {
       Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }

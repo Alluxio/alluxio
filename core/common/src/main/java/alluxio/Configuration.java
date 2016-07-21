@@ -57,7 +57,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class Configuration {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** File to set default properties. */
   private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
@@ -104,18 +104,19 @@ public final class Configuration {
           ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST.getMessage());
     }
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+    defaultProps.setProperty(PropertyKey.MASTER_HOSTNAME,
+        NetworkAddressUtils.getLocalHostName(250));
+    defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
-    defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
+    defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
     String confPaths;
     // If site conf is overwritten in system properties, overwrite the default setting
-    if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
-      confPaths = System.getProperty(Constants.SITE_CONF_DIR);
+    if (System.getProperty(PropertyKey.SITE_CONF_DIR) != null) {
+      confPaths = System.getProperty(PropertyKey.SITE_CONF_DIR);
     } else {
-      confPaths = defaultProps.getProperty(Constants.SITE_CONF_DIR);
+      confPaths = defaultProps.getProperty(PropertyKey.SITE_CONF_DIR);
     }
     String[] confPathList = confPaths.split(",");
 
@@ -136,28 +137,28 @@ public final class Configuration {
     }
     PROPERTIES.putAll(systemProps);
 
-    String masterHostname = PROPERTIES.getProperty(Constants.MASTER_HOSTNAME);
-    String masterPort = PROPERTIES.getProperty(Constants.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(PROPERTIES.getProperty(Constants.ZOOKEEPER_ENABLED));
+    String masterHostname = PROPERTIES.getProperty(PropertyKey.MASTER_HOSTNAME);
+    String masterPort = PROPERTIES.getProperty(PropertyKey.MASTER_RPC_PORT);
+    boolean useZk = Boolean.parseBoolean(PROPERTIES.getProperty(PropertyKey.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    PROPERTIES.setProperty(Constants.MASTER_ADDRESS, masterAddress);
+    PROPERTIES.setProperty(PropertyKey.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
-    int maxWorkersPerHost = getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+    int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(Constants.WORKER_DATA_PORT) == null,
-          String.format(message, Constants.WORKER_DATA_PORT));
-      Preconditions.checkState(System.getProperty(Constants.WORKER_RPC_PORT) == null,
-          String.format(message, Constants.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
-          String.format(message, Constants.WORKER_WEB_PORT));
-      PROPERTIES.setProperty(Constants.WORKER_DATA_PORT, "0");
-      PROPERTIES.setProperty(Constants.WORKER_RPC_PORT, "0");
-      PROPERTIES.setProperty(Constants.WORKER_WEB_PORT, "0");
+          + PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_DATA_PORT) == null,
+          String.format(message, PropertyKey.WORKER_DATA_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_RPC_PORT) == null,
+          String.format(message, PropertyKey.WORKER_RPC_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_WEB_PORT) == null,
+          String.format(message, PropertyKey.WORKER_WEB_PORT));
+      PROPERTIES.setProperty(PropertyKey.WORKER_DATA_PORT, "0");
+      PROPERTIES.setProperty(PropertyKey.WORKER_RPC_PORT, "0");
+      PROPERTIES.setProperty(PropertyKey.WORKER_WEB_PORT, "0");
     }
   }
 
@@ -435,18 +436,18 @@ public final class Configuration {
   }
 
   /**
-   * {@link Constants#USER_FILE_BUFFER_BYTES} should not bigger than {@link Integer#MAX_VALUE}
+   * {@link PropertyKey#USER_FILE_BUFFER_BYTES} should not bigger than {@link Integer#MAX_VALUE}
    * bytes.
    *
    * @throws IllegalArgumentException if USER_FILE_BUFFER_BYTES bigger than Integer.MAX_VALUE
    */
   private static void checkUserFileBufferBytes() {
-    if (!containsKey(Constants.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
+    if (!containsKey(PropertyKey.USER_FILE_BUFFER_BYTES)) { // load from hadoop conf
       return;
     }
-    long usrFileBufferBytes = getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long usrFileBufferBytes = getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     Preconditions.checkArgument((usrFileBufferBytes & Integer.MAX_VALUE) == usrFileBufferBytes,
-        "Invalid \"" + Constants.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
+        "Invalid \"" + PropertyKey.USER_FILE_BUFFER_BYTES + "\": " + usrFileBufferBytes);
   }
 
   private Configuration() {} // prevent instantiation

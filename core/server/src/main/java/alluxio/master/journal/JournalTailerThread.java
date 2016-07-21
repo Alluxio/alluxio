@@ -12,7 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;
 
@@ -30,7 +30,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class JournalTailerThread extends Thread {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   /** The master to apply the journal entries to. */
   private final Master mMaster;
@@ -56,8 +56,9 @@ public final class JournalTailerThread extends Thread {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
     mShutdownQuietWaitTimeMs =
-        Configuration.getInt(Constants.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
-    mJournalTailerSleepTimeMs = Configuration.getInt(Constants.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+    mJournalTailerSleepTimeMs =
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
   }
 
   /**

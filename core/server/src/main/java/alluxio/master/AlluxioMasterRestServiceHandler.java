@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
@@ -48,7 +48,7 @@ import javax.ws.rs.core.Response;
 @Path(AlluxioMasterRestServiceHandler.SERVICE_PREFIX)
 @Produces(MediaType.APPLICATION_JSON)
 public final class AlluxioMasterRestServiceHandler {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
 
   public static final String SERVICE_PREFIX = "master";
@@ -71,7 +71,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMaster mMaster = AlluxioMaster.get();
   private final BlockMaster mBlockMaster = mMaster.getBlockMaster();
-  private final String mUfsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
 
   /**

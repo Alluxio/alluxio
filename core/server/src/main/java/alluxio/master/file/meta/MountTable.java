@@ -12,7 +12,7 @@
 package alluxio.master.file.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -49,7 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class MountTable implements JournalCheckpointStreamable {
   public static final String ROOT = "/";
 
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private final ReentrantReadWriteLock mLock;
   private final Lock mReadLock;

@@ -13,7 +13,7 @@ package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileOutStream;
@@ -66,7 +66,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
   public static final String FIRST_COM_PATH = "alluxio_dep/";
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   // Always tell Hadoop that we have 3x replication.
   private static final int BLOCK_REPLICATION_CONSTANT = 3;
   /** Lock for initializing the contexts, currently only one set of contexts is supported. */
@@ -230,7 +230,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -416,9 +416,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
       // We assume here that all clients use the same configuration.
       ConfUtils.mergeHadoopConfiguration(conf);
-      Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
-      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      Configuration.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.

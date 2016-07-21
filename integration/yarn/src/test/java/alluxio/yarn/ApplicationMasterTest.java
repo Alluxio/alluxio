@@ -14,6 +14,7 @@ package alluxio.yarn;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.SystemPropertyRule;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.FileUtils;
@@ -74,15 +75,15 @@ public class ApplicationMasterTest {
   private static final String MASTER_ADDRESS = "localhost";
   private static final int NUM_WORKERS = 25;
   private static final int MASTER_MEM_MB =
-      (int) Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
+      (int) Configuration.getBytes(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB;
   private static final int MASTER_CPU =
-      Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+      Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
   private static final int WORKER_MEM_MB =
-      (int) Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
+      (int) Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB;
   private static final int RAMDISK_MEM_MB =
-      (int) Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB;
+      (int) Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB;
   private static final int WORKER_CPU =
-      Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+      Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
 
   private ApplicationMaster mMaster;
   private ApplicationMasterPrivateAccess mPrivateAccess;
@@ -230,7 +231,7 @@ public class ApplicationMasterTest {
     Assert.assertEquals("NUM_WORKERS should be a multiple of workersPerHost", 0,
         NUM_WORKERS % workersPerHost);
     setupApplicationMaster(ImmutableMap.of(
-        Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, Integer.toString(workersPerHost)));
+        PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, Integer.toString(workersPerHost)));
 
     mockResourceManager(NUM_WORKERS / workersPerHost);
 
@@ -429,9 +430,9 @@ public class ApplicationMasterTest {
    */
   @Test
   public void bigContainerRequestTest() {
-    Configuration.set(Constants.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
-    Configuration.set(Constants.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
-    Configuration.set(Constants.WORKER_MEMORY_SIZE, "256gb");
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "128gb");
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "64gb");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "256gb");
     ApplicationMaster master =
         new ApplicationMaster(1, "localhost", "resourcePath", mYarnClient, mNMClient);
     Assert.assertEquals(128 * 1024, Whitebox.getInternalState(master, "mMasterMemInMB"));

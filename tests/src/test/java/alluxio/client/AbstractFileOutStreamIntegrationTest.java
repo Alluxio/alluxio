@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -49,8 +50,8 @@ public abstract class AbstractFileOutStreamIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-          Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
+          PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
+          PropertyKey.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
   protected CreateFileOptions mWriteBoth;
   protected CreateFileOptions mWriteAlluxio;

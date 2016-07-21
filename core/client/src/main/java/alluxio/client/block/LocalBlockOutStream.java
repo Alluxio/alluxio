@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
@@ -35,7 +35,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
   private final Closer mCloser;
   private final BlockWorkerClient mBlockWorkerClient;
   private final LocalFileBlockWriter mWriter;
@@ -60,7 +60,7 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
     mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
 
     try {
-      long initialSize = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+      long initialSize = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
       String blockPath = mBlockWorkerClient.requestBlockLocation(mBlockId, initialSize);
       mReservedBytes += initialSize;
       mWriter = new LocalFileBlockWriter(blockPath);

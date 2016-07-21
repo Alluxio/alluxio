@@ -12,7 +12,7 @@
 package alluxio.client;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.worker.ClientMetrics;
 
@@ -53,19 +53,19 @@ public final class ClientContext {
       sBlockClientExecutorService.shutdownNow();
     }
     sBlockClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS),
+        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("block-worker-heartbeat-%d", true));
     if (sFileClientExecutorService != null) {
       sFileClientExecutorService.shutdownNow();
     }
     sFileClientExecutorService = Executors
-        .newFixedThreadPool(Configuration.getInt(Constants.USER_FILE_WORKER_CLIENT_THREADS),
+        .newFixedThreadPool(Configuration.getInt(PropertyKey.USER_FILE_WORKER_CLIENT_THREADS),
             ThreadFactoryUtils.build("file-worker-heartbeat-%d", true));
     sClientMetrics = new ClientMetrics();
 
     String masterHostname =
-        Preconditions.checkNotNull(Configuration.get(Constants.MASTER_HOSTNAME));
-    int masterPort = Configuration.getInt(Constants.MASTER_RPC_PORT);
+        Preconditions.checkNotNull(Configuration.get(PropertyKey.MASTER_HOSTNAME));
+    int masterPort = Configuration.getInt(PropertyKey.MASTER_RPC_PORT);
     sMasterAddress = new InetSocketAddress(masterHostname, masterPort);
   }
 

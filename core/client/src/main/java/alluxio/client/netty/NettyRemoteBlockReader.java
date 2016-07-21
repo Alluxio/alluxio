@@ -11,7 +11,7 @@
 
 package alluxio.client.netty;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ExceptionMessage;
 import alluxio.network.protocol.RPCBlockReadRequest;
@@ -38,7 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyRemoteBlockReader implements RemoteBlockReader {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+  private static final Logger LOG = LoggerFactory.getLogger(PropertyKey.LOGGER_TYPE);
 
   private final Bootstrap mClientBootstrap;
   private final ClientHandler mHandler;
