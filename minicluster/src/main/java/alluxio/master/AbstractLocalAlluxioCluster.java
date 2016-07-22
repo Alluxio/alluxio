@@ -389,7 +389,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
     mWorker = new DefaultAlluxioWorker();
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
+    Whitebox.setInternalState(DefaultAlluxioWorker.class, "sAlluxioWorker", mWorker);
 
     Runnable runWorker = new Runnable() {
       @Override
