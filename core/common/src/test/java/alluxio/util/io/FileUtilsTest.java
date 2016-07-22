@@ -254,8 +254,9 @@ public class FileUtilsTest {
 
     File tmpFile755 = mTestFolder.newFile("dir/0755");
     tmpFile755.setReadable(true, false /* owner only */);
-    tmpFile755.setWritable(true, true /* owner only */);
+    tmpFile755.setWritable(false, false /* owner only */);
     tmpFile755.setExecutable(true, false /* owner only */);
+    tmpFile755.setWritable(true, true /* owner only */);
 
     File tmpFile444 = mTestFolder.newFile("dir/0444");
     tmpFile444.setReadOnly();
