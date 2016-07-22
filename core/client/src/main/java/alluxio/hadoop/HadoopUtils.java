@@ -148,11 +148,11 @@ public final class HadoopUtils {
    * @param conf Hadoop configuration
    */
   public static void addS3Credentials(Configuration conf) {
-    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY;
+    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
     if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
       conf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = PropertyKey.S3N_SECRET_KEY;
+    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
     if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
@@ -171,37 +171,37 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    String tenantApiKeyConf = PropertyKey.SWIFT_API_KEY;
+    String tenantApiKeyConf = PropertyKey.SWIFT_API_KEY.toString();
     if (System.getProperty(tenantApiKeyConf) != null
         && configuration.get(tenantApiKeyConf) == null) {
       configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
     }
-    String tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY;
+    String tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY.toString();
     if (System.getProperty(tenantKeyConf) != null
         && configuration.get(tenantKeyConf) == null) {
       configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
     }
-    String tenantUserConf = PropertyKey.SWIFT_USER_KEY;
+    String tenantUserConf = PropertyKey.SWIFT_USER_KEY.toString();
     if (System.getProperty(tenantUserConf) != null
         && configuration.get(tenantUserConf) == null) {
       configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
     }
-    String tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY;
+    String tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY.toString();
     if (System.getProperty(tenantAuthURLKeyConf) != null
         && configuration.get(tenantAuthURLKeyConf) == null) {
       configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
     }
-    String authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY;
+    String authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY.toString();
     if (System.getProperty(authMethodKeyConf) != null
         && configuration.get(authMethodKeyConf) == null) {
       configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
     }
-    String passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY;
+    String passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY.toString();
     if (System.getProperty(passwordKeyConf) != null
         && configuration.get(passwordKeyConf) == null) {
       configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
     }
-    String swiftSimulationConf = PropertyKey.SWIFT_SIMULATION;
+    String swiftSimulationConf = PropertyKey.SWIFT_SIMULATION.toString();
     if (System.getProperty(swiftSimulationConf) != null
         && configuration.get(swiftSimulationConf) == null) {
       configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
