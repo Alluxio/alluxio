@@ -102,13 +102,15 @@ public class BlockMasterTest {
     long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
     long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
     List<String> tiers = Arrays.asList("MEM", "SSD");
-    Map<String, Long> worker1Capacity = ImmutableMap.of("MEM", 10L, "SSD", 20L);
-    Map<String, Long> worker2Capacity = ImmutableMap.of("MEM", 1000L, "SSD", 2000L);
-    Map<String, Long> worker1Used = ImmutableMap.of("MEM", 1L, "SSD", 2L);
-    Map<String, Long> worker2Used = ImmutableMap.of("MEM", 100L, "SSD", 200L);
+    Map<String, Long> worker1TotalBytesOnTiers = ImmutableMap.of("MEM", 10L, "SSD", 20L);
+    Map<String, Long> worker2TotalBytesOnTiers = ImmutableMap.of("MEM", 1000L, "SSD", 2000L);
+    Map<String, Long> worker1UsedBytesOnTiers = ImmutableMap.of("MEM", 1L, "SSD", 2L);
+    Map<String, Long> worker2UsedBytesOnTiers = ImmutableMap.of("MEM", 100L, "SSD", 200L);
     Map<String, List<Long>> noExistingBlocks = new HashMap<>();
-    mMaster.workerRegister(worker1, tiers, worker1Capacity, worker1Used, noExistingBlocks);
-    mMaster.workerRegister(worker2, tiers, worker2Capacity, worker2Used, noExistingBlocks);
+    mMaster.workerRegister(worker1, tiers, worker1TotalBytesOnTiers, worker1UsedBytesOnTiers,
+        noExistingBlocks);
+    mMaster.workerRegister(worker2, tiers, worker2TotalBytesOnTiers, worker2UsedBytesOnTiers,
+        noExistingBlocks);
 
     // Check that byte counts are summed correctly.
     Assert.assertEquals(3030, mMaster.getCapacityBytes());
@@ -133,11 +135,9 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
 
     // Make sure the worker is detected as lost.
     Set<WorkerInfo> info = mMaster.getLostWorkersInfo();
@@ -158,11 +158,9 @@ public class BlockMasterTest {
     mClock.setTimeMs(System.currentTimeMillis() + Constants.HOUR_MS);
 
     // Run the lost worker detector.
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
 
     // Reregister the worker.
     mMaster.getWorkerId(NET_ADDRESS_1);
