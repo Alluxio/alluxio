@@ -32,7 +32,7 @@ ALLUXIO_LIBEXEC_DIR=${ALLUXIO_LIBEXEC_DIR:-${DEFAULT_LIBEXEC_DIR}}
 HOSTLIST=$(cat ${ALLUXIO_CONF_DIR}/workers | sed  "s/#.*$//;/^$/d")
 ALLUXIO_TASK_LOG="$(echo ${BIN} | sed 's/bin$//g')"logs/task.log
 
-if [[ "$3" == "alluxio.worker.AlluxioWorkerLauncher" ]]; then
+if [[ "$3" == "alluxio.worker.AlluxioWorker" ]]; then
   WORKER_ACTION_TYPE="WORKERS"
 else
   WORKER_ACTION_TYPE="MASTER"

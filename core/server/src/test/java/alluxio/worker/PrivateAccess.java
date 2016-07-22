@@ -17,27 +17,27 @@ import alluxio.worker.file.FileSystemWorker;
 import org.powermock.reflect.Whitebox;
 
 /**
- * Class which provides access to private state of {@link AlluxioWorker}.
+ * Class which provides access to private state of {@link AlluxioWorkerService}.
  */
 public final class PrivateAccess {
 
   /**
    * Gets the {@link FileSystemWorker}.
    *
-   * @param worker the {@link AlluxioWorker}
+   * @param worker the {@link AlluxioWorkerService}
    * @return the {@link FileSystemWorker}
    */
-  public static FileSystemWorker getFileSystemWorker(AlluxioWorker worker) {
+  public static FileSystemWorker getFileSystemWorker(AlluxioWorkerService worker) {
     return Whitebox.getInternalState(worker, "mFileSystemWorker");
   }
 
   /**
    * Gets the {@link BlockWorker}.
    *
-   * @param worker the {@link AlluxioWorker}
+   * @param worker the {@link AlluxioWorkerService}
    * @return the {@link BlockWorker}
    */
-  public static BlockWorker getBlockWorker(AlluxioWorker worker) {
+  public static BlockWorker getBlockWorker(AlluxioWorkerService worker) {
     return Whitebox.getInternalState(worker, "mBlockWorker");
   }
 }

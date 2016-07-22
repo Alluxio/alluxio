@@ -11,8 +11,8 @@
 /**
  * Worker process and utils for working with the worker remotely.
  *
- * Main entry point for the worker is {@link alluxio.worker.AlluxioWorkerLauncher#main(String[])}
- * which gets started by the alluxio start scripts. The {@link alluxio.worker.AlluxioWorker}
+ * Main entry point for the worker is {@link alluxio.worker.AlluxioWorker#main(String[])}
+ * which gets started by the alluxio start scripts. The {@link alluxio.worker.AlluxioWorkerService}
  * spins up the different RPC services (thrift, data) which are mostly wrappers around
  * {@link alluxio.worker.block.BlockWorker}.
  *
