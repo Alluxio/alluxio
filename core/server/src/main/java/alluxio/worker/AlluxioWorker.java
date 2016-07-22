@@ -25,6 +25,25 @@ import java.net.InetSocketAddress;
 public interface AlluxioWorker extends Server {
 
   /**
+   * Factory for {@link AlluxioWorker}.
+   */
+  public class Factory {
+    private static AlluxioWorker sAlluxioWorker = null;
+
+    /**
+     * @return the default Alluxio worker instance
+     */
+    public static synchronized AlluxioWorker get() {
+      if (sAlluxioWorker == null) {
+        sAlluxioWorker = new DefaultAlluxioWorker();
+      }
+      return sAlluxioWorker;
+    }
+
+    private Factory() {} // prevent instantiation
+  }
+
+  /**
    * @return the block worker for this Alluxio worker
    */
   BlockWorker getBlockWorker();

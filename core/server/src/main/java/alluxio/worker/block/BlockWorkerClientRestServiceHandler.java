@@ -63,7 +63,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String UNLOCK_BLOCK = "unlock_block";
   public static final String WRITE_BLOCK = "write_block";
 
-  private final BlockWorker mBlockWorker = DefaultAlluxioWorker.get().getBlockWorker();
+  private final BlockWorker mBlockWorker = DefaultAlluxioWorker.Factory.get().getBlockWorker();
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
