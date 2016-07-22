@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderInquireClient;
+import alluxio.PropertyKey;
 import alluxio.util.OSUtils;
 import alluxio.wire.WorkerNetAddress;
 
@@ -65,34 +66,34 @@ public final class NetworkAddressUtils {
     /**
      * Master RPC service (Thrift).
      */
-    MASTER_RPC("Alluxio Master RPC service", Constants.MASTER_HOSTNAME, Constants.MASTER_BIND_HOST,
-        Constants.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
+    MASTER_RPC("Alluxio Master RPC service", PropertyKey.MASTER_HOSTNAME,
+        PropertyKey.MASTER_BIND_HOST, PropertyKey.MASTER_RPC_PORT, Constants.DEFAULT_MASTER_PORT),
 
     /**
      * Master web service (Jetty).
      */
-    MASTER_WEB("Alluxio Master Web service", Constants.MASTER_WEB_HOSTNAME,
-        Constants.MASTER_WEB_BIND_HOST, Constants.MASTER_WEB_PORT,
+    MASTER_WEB("Alluxio Master Web service", PropertyKey.MASTER_WEB_HOSTNAME,
+        PropertyKey.MASTER_WEB_BIND_HOST, PropertyKey.MASTER_WEB_PORT,
         Constants.DEFAULT_MASTER_WEB_PORT),
 
     /**
      * Worker RPC service (Thrift).
      */
-    WORKER_RPC("Alluxio Worker RPC service", Constants.WORKER_HOSTNAME, Constants.WORKER_BIND_HOST,
-        Constants.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
+    WORKER_RPC("Alluxio Worker RPC service", PropertyKey.WORKER_HOSTNAME,
+        PropertyKey.WORKER_BIND_HOST, PropertyKey.WORKER_RPC_PORT, Constants.DEFAULT_WORKER_PORT),
 
     /**
      * Worker data service (Netty).
      */
-    WORKER_DATA("Alluxio Worker data service", Constants.WORKER_DATA_HOSTNAME,
-        Constants.WORKER_DATA_BIND_HOST, Constants.WORKER_DATA_PORT,
+    WORKER_DATA("Alluxio Worker data service", PropertyKey.WORKER_DATA_HOSTNAME,
+        PropertyKey.WORKER_DATA_BIND_HOST, PropertyKey.WORKER_DATA_PORT,
         Constants.DEFAULT_WORKER_DATA_PORT),
 
     /**
      * Worker web service (Jetty).
      */
-    WORKER_WEB("Alluxio Worker Web service", Constants.WORKER_WEB_HOSTNAME,
-        Constants.WORKER_WEB_BIND_HOST, Constants.WORKER_WEB_PORT,
+    WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
+        PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
         Constants.DEFAULT_WORKER_WEB_PORT);
 
     // service name
@@ -301,7 +302,8 @@ public final class NetworkAddressUtils {
     if (sLocalHost != null) {
       return sLocalHost;
     }
-    int hostResolutionTimeout = Configuration.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalHostName(hostResolutionTimeout);
   }
 
@@ -335,7 +337,8 @@ public final class NetworkAddressUtils {
     if (sLocalIP != null) {
       return sLocalIP;
     }
-    int hostResolutionTimeout = Configuration.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
+    int hostResolutionTimeout =
+        Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
     return getLocalIpAddress(hostResolutionTimeout);
   }
 
@@ -579,16 +582,16 @@ public final class NetworkAddressUtils {
 
   /**
    * Get the active master address from zookeeper for the fault tolerant Alluxio masters.
-   * The zookeeper path is specified by the config: {@link Constants#ZOOKEEPER_LEADER_PATH}.
+   * The zookeeper path is specified by the config: {@link PropertyKey#ZOOKEEPER_LEADER_PATH}.
    *
    * @return InetSocketAddress the active master address retrieved from zookeeper
    */
   public static InetSocketAddress getMasterAddressFromZK() {
-    Preconditions.checkState(Configuration.containsKey(Constants.ZOOKEEPER_ADDRESS));
-    Preconditions.checkState(Configuration.containsKey(Constants.ZOOKEEPER_LEADER_PATH));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_ADDRESS));
+    Preconditions.checkState(Configuration.containsKey(PropertyKey.ZOOKEEPER_LEADER_PATH));
     LeaderInquireClient leaderInquireClient = LeaderInquireClient
-        .getClient(Configuration.get(Constants.ZOOKEEPER_ADDRESS),
-            Configuration.get(Constants.ZOOKEEPER_LEADER_PATH));
+        .getClient(Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS),
+            Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH));
     try {
       String temp = leaderInquireClient.getMasterAddress();
       return NetworkAddressUtils.parseInetSocketAddress(temp);

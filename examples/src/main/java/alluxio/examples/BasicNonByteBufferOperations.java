@@ -13,7 +13,7 @@ package alluxio.examples;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ClientContext;
 import alluxio.client.ReadType;
@@ -71,8 +71,8 @@ public final class BasicNonByteBufferOperations implements Callable<Boolean> {
 
   @Override
   public Boolean call() throws Exception {
-    Configuration.set(Constants.MASTER_HOSTNAME, mMasterLocation.getHost());
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, mMasterLocation.getHost());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mMasterLocation.getPort()));
     ClientContext.init();
     FileSystem alluxioClient = FileSystem.Factory.get();
     write(alluxioClient);

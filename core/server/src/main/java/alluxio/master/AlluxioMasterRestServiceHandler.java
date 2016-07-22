@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
@@ -71,7 +72,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMaster mMaster = AlluxioMaster.get();
   private final BlockMaster mBlockMaster = mMaster.getBlockMaster();
-  private final String mUfsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
 
   /**

@@ -13,6 +13,7 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.resource.CloseableResource;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.WorkerInfo;
@@ -58,7 +59,7 @@ public final class BlockStoreContextTest {
     final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireMasterClientResource());
     }
 
@@ -130,10 +131,10 @@ public final class BlockStoreContextTest {
     final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
-    Configuration.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
+    Configuration.set(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireLocalWorkerClient());
     }
 

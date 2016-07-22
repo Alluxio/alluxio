@@ -14,6 +14,7 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -88,12 +89,13 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   public GCSUnderFileSystem(AlluxioURI uri) throws ServiceException {
     super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_ACCESS_KEY),
-        "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_SECRET_KEY),
-        "Property " + Constants.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials = new GSCredentials(Configuration.get(Constants.GCS_ACCESS_KEY),
-        Configuration.get(Constants.GCS_SECRET_KEY));
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
+        "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
+        "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
+    GSCredentials googleCredentials = new GSCredentials(
+        Configuration.get(PropertyKey.GCS_ACCESS_KEY),
+        Configuration.get(PropertyKey.GCS_SECRET_KEY));
     mBucketName = bucketName;
 
     // TODO(chaomin): maybe add proxy support for GCS.
@@ -171,7 +173,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported

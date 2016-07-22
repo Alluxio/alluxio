@@ -13,6 +13,7 @@ package alluxio.fuse;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 
 import org.apache.commons.cli.CommandLine;
@@ -141,21 +142,21 @@ public final class AlluxioFuse {
       // check if the user has specified his own max_write, otherwise get it
       // from conf
       if (noUserMaxWrite) {
-        final long maxWrite = Configuration.getLong(Constants.FUSE_MAXWRITE_BYTES);
+        final long maxWrite = Configuration.getLong(PropertyKey.FUSE_MAXWRITE_BYTES);
         fuseOpts.add(String.format("-omax_write=%d", maxWrite));
       }
 
       if (mntPointValue == null) {
-        mntPointValue = Configuration.get(Constants.FUSE_DEFAULT_MOUNTPOINT);
+        mntPointValue = Configuration.get(PropertyKey.FUSE_DEFAULT_MOUNTPOINT);
         LOG.info("Mounting on default {}", mntPointValue);
       }
 
       if (alluxioRootValue == null) {
-        alluxioRootValue = Configuration.get(Constants.FUSE_FS_ROOT);
+        alluxioRootValue = Configuration.get(PropertyKey.FUSE_FS_ROOT);
         LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
-      final boolean fuseDebug = Configuration.getBoolean(Constants.FUSE_DEBUG_ENABLE);
+      final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLE);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {

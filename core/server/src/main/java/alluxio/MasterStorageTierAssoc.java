@@ -25,8 +25,8 @@ public class MasterStorageTierAssoc extends StorageTierAssoc {
    * Creates a new instance of {@link MasterStorageTierAssoc}.
    */
   public MasterStorageTierAssoc() {
-    super(Constants.MASTER_TIERED_STORE_GLOBAL_LEVELS,
-        Constants.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
+    super(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS,
+        PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT);
   }
 
   /**

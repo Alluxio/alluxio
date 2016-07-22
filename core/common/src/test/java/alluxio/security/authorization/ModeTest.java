@@ -13,7 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 
 import org.junit.After;
@@ -128,7 +128,7 @@ public final class ModeTest {
   @Test
   public void umaskTest() {
     String umask = "0022";
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     Mode umaskMode = Mode.getUMask();
     // after umask 0022, 0777 should change to 0755
     Mode mode = Mode.getDefault().applyUMask(umaskMode);
@@ -144,10 +144,10 @@ public final class ModeTest {
   @Test
   public void umaskExceedLengthTest() {
     String umask = "00022";
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
-        Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     Mode.getUMask();
   }
 
@@ -157,10 +157,10 @@ public final class ModeTest {
   @Test
   public void umaskNotIntegerTest() {
     String umask = "NotInteger";
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.INVALID_CONFIGURATION_VALUE.getMessage(umask,
-        Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+        PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     Mode.getUMask();
   }
 }

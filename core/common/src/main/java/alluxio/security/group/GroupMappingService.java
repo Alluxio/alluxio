@@ -13,6 +13,7 @@ package alluxio.security.group;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 
@@ -52,7 +53,7 @@ public interface GroupMappingService {
       }
       try {
         mGroupMappingService = CommonUtils.createNewClassInstance(
-            Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null,
+            Configuration.<GroupMappingService>getClass(PropertyKey.SECURITY_GROUP_MAPPING), null,
             null);
       } catch (Exception e) {
         throw new RuntimeException(e);

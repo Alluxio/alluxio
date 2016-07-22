@@ -12,8 +12,8 @@
 package alluxio.security;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.ExceptionMessage;
@@ -43,15 +43,15 @@ public class ClusterInitializationTest {
       new LocalAlluxioClusterResource(
           LocalAlluxioClusterResource.DEFAULT_WORKER_CAPACITY_BYTES,
           LocalAlluxioClusterResource.DEFAULT_USER_BLOCK_SIZE,
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+          PropertyKey.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
 
   /**
    * When a user starts a new cluster, an empty root dir is created and owned by the user.
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void startClusterTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
@@ -67,7 +67,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterSuccessTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile"));
@@ -89,7 +89,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterFailTest() throws Exception {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED

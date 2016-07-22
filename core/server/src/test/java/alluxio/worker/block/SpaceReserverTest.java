@@ -13,7 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.DataServer;
 
@@ -82,10 +82,10 @@ public class SpaceReserverTest {
     BlockWorker blockWorker = new BlockWorker();
     mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
+        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
+        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     Configuration.set(reserveRatioProp, "0.3");
     mSpaceReserver = new SpaceReserver(blockWorker);
   }

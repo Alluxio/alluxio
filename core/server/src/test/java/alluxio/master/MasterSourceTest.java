@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -99,7 +100,7 @@ public final class MasterSourceTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS,
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
         String.valueOf(TTLCHECKER_INTERVAL_MS));
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());

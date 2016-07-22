@@ -13,7 +13,7 @@ package alluxio.client;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -38,13 +38,13 @@ public class RemoteBlockWriterTest {
   @Test
   public void createFromMockClass() throws Exception {
     RemoteBlockWriter mock = Mockito.mock(RemoteBlockWriter.class);
-    Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, mock.getClass().getName());
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_WRITER, mock.getClass().getName());
     Assert.assertTrue(RemoteBlockWriter.Factory.create().getClass().equals(mock.getClass()));
   }
 
   @Test
   public void createFailed() {
-    Configuration.set(Constants.USER_BLOCK_REMOTE_WRITER, "unknown");
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_WRITER, "unknown");
     mThrown.expect(RuntimeException.class);
     RemoteBlockWriter.Factory.create();
   }

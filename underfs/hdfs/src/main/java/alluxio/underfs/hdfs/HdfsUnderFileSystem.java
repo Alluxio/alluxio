@@ -14,6 +14,7 @@ package alluxio.underfs.hdfs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.retry.CountingRetry;
 import alluxio.retry.RetryPolicy;
 import alluxio.security.authorization.Permission;
@@ -73,7 +74,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       hadoopConf = new org.apache.hadoop.conf.Configuration();
     }
     prepareConfiguration(ufsPrefix, hadoopConf);
-    hadoopConf.addResource(new Path(hadoopConf.get(Constants.UNDERFS_HDFS_CONFIGURATION)));
+    hadoopConf.addResource(new Path(hadoopConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
     HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
 
     Path path = new Path(ufsPrefix);
@@ -108,7 +109,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     // discover available file system implementations. However this configuration setting is
     // required for earlier Hadoop versions plus it is still honoured as an override even in 2.x so
     // if present propagate it to the Hadoop configuration
-    String ufsHdfsImpl = Configuration.get(Constants.UNDERFS_HDFS_IMPL);
+    String ufsHdfsImpl = Configuration.get(PropertyKey.UNDERFS_HDFS_IMPL);
     if (!StringUtils.isEmpty(ufsHdfsImpl)) {
       hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
@@ -119,7 +120,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
     hadoopConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "false"));
 
-    HdfsUnderFileSystemUtils.addKey(hadoopConf, Constants.UNDERFS_HDFS_CONFIGURATION);
+    HdfsUnderFileSystemUtils.addKey(hadoopConf, PropertyKey.UNDERFS_HDFS_CONFIGURATION);
   }
 
   @Override
@@ -299,27 +300,27 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromMaster(String host) throws IOException {
-    if (!Configuration.containsKey(Constants.MASTER_KEYTAB_KEY)
-        || !Configuration.containsKey(Constants.MASTER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.MASTER_KEYTAB_KEY)
+        || !Configuration.containsKey(PropertyKey.MASTER_PRINCIPAL_KEY)) {
       return;
     }
-    String masterKeytab = Configuration.get(Constants.MASTER_KEYTAB_KEY);
-    String masterPrincipal = Configuration.get(Constants.MASTER_PRINCIPAL_KEY);
+    String masterKeytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY);
+    String masterPrincipal = Configuration.get(PropertyKey.MASTER_PRINCIPAL_KEY);
 
-    login(Constants.MASTER_KEYTAB_KEY, masterKeytab, Constants.MASTER_PRINCIPAL_KEY,
+    login(PropertyKey.MASTER_KEYTAB_KEY, masterKeytab, PropertyKey.MASTER_PRINCIPAL_KEY,
         masterPrincipal, host);
   }
 
   @Override
   public void connectFromWorker(String host) throws IOException {
-    if (!Configuration.containsKey(Constants.WORKER_KEYTAB_KEY)
-        || !Configuration.containsKey(Constants.WORKER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.WORKER_KEYTAB_KEY)
+        || !Configuration.containsKey(PropertyKey.WORKER_PRINCIPAL_KEY)) {
       return;
     }
-    String workerKeytab = Configuration.get(Constants.WORKER_KEYTAB_KEY);
-    String workerPrincipal = Configuration.get(Constants.WORKER_PRINCIPAL_KEY);
+    String workerKeytab = Configuration.get(PropertyKey.WORKER_KEYTAB_KEY);
+    String workerPrincipal = Configuration.get(PropertyKey.WORKER_PRINCIPAL_KEY);
 
-    login(Constants.WORKER_KEYTAB_KEY, workerKeytab, Constants.WORKER_PRINCIPAL_KEY,
+    login(PropertyKey.WORKER_KEYTAB_KEY, workerKeytab, PropertyKey.WORKER_PRINCIPAL_KEY,
         workerPrincipal, host);
   }
 

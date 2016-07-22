@@ -19,7 +19,7 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
@@ -95,7 +95,7 @@ public class BlockWorkerTest {
 
     Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
-    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
 
     mBlockWorker = new BlockWorker();
 

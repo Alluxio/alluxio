@@ -12,8 +12,8 @@
 package alluxio.worker.block.meta;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -58,7 +58,7 @@ public class TieredStoreIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000,
-          Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+          PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before
   public final void before() throws Exception {

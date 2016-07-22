@@ -11,7 +11,7 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 
@@ -50,12 +50,12 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
       simulation = Boolean.FALSE.toString();
     }
 
-    System.setProperty(Constants.SWIFT_API_KEY, swiftAPIKey);
-    System.setProperty(Constants.SWIFT_TENANT_KEY, tenantKey);
-    System.setProperty(Constants.SWIFT_USER_KEY, userKey);
-    System.setProperty(Constants.SWIFT_AUTH_METHOD_KEY, authMethodKey);
-    System.setProperty(Constants.SWIFT_AUTH_URL_KEY, authUrlKey);
-    System.setProperty(Constants.SWIFT_SIMULATION, simulation);
+    System.setProperty(PropertyKey.SWIFT_API_KEY, swiftAPIKey);
+    System.setProperty(PropertyKey.SWIFT_TENANT_KEY, tenantKey);
+    System.setProperty(PropertyKey.SWIFT_USER_KEY, userKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_METHOD_KEY, authMethodKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_URL_KEY, authUrlKey);
+    System.setProperty(PropertyKey.SWIFT_SIMULATION, simulation);
 
     mSwiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
     mBaseDir = mSwiftContainer + UUID.randomUUID();

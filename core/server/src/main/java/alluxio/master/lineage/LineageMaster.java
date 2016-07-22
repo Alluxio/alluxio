@@ -14,6 +14,7 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockInfoException;
@@ -146,12 +147,12 @@ public final class LineageMaster extends AbstractMaster {
       mCheckpointExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
               new CheckpointSchedulingExecutor(this, mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+              Configuration.getInt(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
       mRecomputeExecutionService = getExecutorService()
           .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
               new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
                   mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+              Configuration.getInt(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
