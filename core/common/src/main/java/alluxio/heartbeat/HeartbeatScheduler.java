@@ -138,8 +138,6 @@ public final class HeartbeatScheduler {
    * @param name a name of the thread to wait for
    * @param time the maximum time to wait
    * @param unit the time unit of the {@code time} argument
-   * @return {@code false} if the waiting time detectably elapsed before return from the method,
-   *         else {@code true}
    * @throws InterruptedException if the waiting thread is interrupted
    */
   public static void await(String name, long time, TimeUnit unit) throws InterruptedException {

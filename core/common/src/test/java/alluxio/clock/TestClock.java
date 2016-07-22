@@ -30,11 +30,11 @@ public class TestClock implements Clock {
    * @param time the time to set the clock to
    */
   public TestClock(long time) {
-    this.mTime = time;
+    mTime = time;
   }
 
   public synchronized void setTimeMs(long time) {
-    this.mTime = time;
+    mTime = time;
   }
 
   @Override

@@ -160,7 +160,7 @@ public class BlockMasterTest {
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
 
-    // Reregister the worker.
+    // Reregister the worker using its original worker id.
     mMaster.getWorkerId(NET_ADDRESS_1);
     mMaster.workerRegister(worker1,
         ImmutableList.of("MEM"),
@@ -183,7 +183,7 @@ public class BlockMasterTest {
     mMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
 
     // Remove the block
-    mMaster.removeBlocks(Arrays.asList(1L), /*delete=*/false );
+    mMaster.removeBlocks(Arrays.asList(1L), /*delete=*/false);
 
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
@@ -248,13 +248,13 @@ public class BlockMasterTest {
   }
 
   @Test
-  public void unknownWorkerHeartbeatRequestsRegister() {
+  public void unknownWorkerHeartbeatTriggersRegisterRequest() {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
   }
 
   @Test
-  public void stopTest() throws Exception {
+  public void stopTerminatesExecutorService() throws Exception {
     mMaster.stop();
     Assert.assertTrue(mExecutorService.isTerminated());
   }

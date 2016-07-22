@@ -16,5 +16,8 @@ package alluxio.clock;
  * java.time.Clock instead.
  */
 public interface Clock {
+  /**
+   * @return the current time in milliseconds
+   */
   long millis();
 }
