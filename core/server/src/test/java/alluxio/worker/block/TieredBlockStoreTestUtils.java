@@ -140,17 +140,17 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
         String.format("tierPath and tierCapacity should have the same length"));
 
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
-        tierAlias);
+    Configuration.set(
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal), tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
     Configuration.set(
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
     Configuration.set(
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
         tierCapacityString);
   }
 

@@ -59,8 +59,8 @@ public final class StorageTier {
       throws BlockAlreadyExistsException, IOException, WorkerOutOfSpaceException {
     String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
     String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
-    String tierDirPathConf =
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
+    PropertyKey tierDirPathConf =
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, mTierOrdinal);
     String[] dirPaths = Configuration.get(tierDirPathConf).split(",");
 
     // Add the worker data folder path after each storage directory, the final path will be like
@@ -69,8 +69,8 @@ public final class StorageTier {
       dirPaths[i] = PathUtils.concatPath(dirPaths[i].trim(), workerDataFolder);
     }
 
-    String tierDirCapacityConf =
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
+    PropertyKey tierDirCapacityConf =
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, mTierOrdinal);
     String rawDirQuota = Configuration.get(tierDirCapacityConf);
     Preconditions.checkState(rawDirQuota.length() > 0, PreconditionMessage.ERR_TIER_QUOTA_BLANK);
     String[] dirQuotas = rawDirQuota.split(",");

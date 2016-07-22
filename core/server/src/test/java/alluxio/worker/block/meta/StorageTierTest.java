@@ -138,8 +138,8 @@ public class StorageTierTest {
 
   @Test
   public void blankStorageTierTest() throws Exception {
-    String tierDirCapacityConf =
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0);
+    PropertyKey tierDirCapacityConf =
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0);
     Configuration.set(tierDirCapacityConf, "");
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage(PreconditionMessage.ERR_TIER_QUOTA_BLANK.toString());
