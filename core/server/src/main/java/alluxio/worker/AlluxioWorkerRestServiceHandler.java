@@ -59,7 +59,7 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String GET_VERSION = "version";
   public static final String GET_METRICS = "metrics";
 
-  private final AlluxioWorker mWorker = DefaultAlluxioWorker.get();
+  private final AlluxioWorker mWorker = AlluxioWorker.Factory.get();
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
 
   /**
