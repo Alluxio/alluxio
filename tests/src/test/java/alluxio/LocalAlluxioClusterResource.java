@@ -11,6 +11,8 @@
 
 package alluxio;
 
+import alluxio.PropertyKey;
+import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
@@ -23,7 +25,10 @@ import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.annotation.*;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -76,7 +81,10 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   private final boolean mStartCluster;
   /** Configuration parameters for the {@link Configuration} object used in the cluster. */
-  private final String[] mConfParams;
+  //private final String[] mConfParams;
+
+  private final List<PropertyKey> mConfKeys = new ArrayList<>();
+  private final List<String> mConfValues = new ArrayList<>();
 
   /** The Alluxio cluster being managed. */
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
@@ -95,7 +103,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
-    mConfParams = confParams;
   }
 
   /**
@@ -127,18 +134,24 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return mLocalAlluxioCluster;
   }
 
+  public LocalAlluxioClusterResource setProperty(PropertyKey key, Object value) {
+    mConfKeys.add(key);
+    mConfValues.add(value.toString());
+    return this;
+  }
+
   private void applyConfParams() throws IOException {
     mLocalAlluxioCluster.initializeTestConfiguration();
     // Override the configuration parameters with mConfParams
-    for (int i = 0; i < mConfParams.length; i += 2) {
-      Configuration.set(mConfParams[i], mConfParams[i + 1]);
+    for (int i = 0; i < mConfKeys.size(); i++) {
+      Configuration.set(mConfKeys.get(i), mConfValues.get(i));
     }
   }
 
   /**
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
-  public void start() throws Exception {
+  public void start() throws IOException, AlluxioException {
     mLocalAlluxioCluster.start();
   }
 
@@ -152,11 +165,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
       Annotation configAnnotation = description.getAnnotation(Config.class);
       if (configAnnotation != null) {
         Config config = (Config) configAnnotation;
-        // Override the configuration parameters with any configuration params
-        for (int i = 0; i < config.confParams().length; i += 2) {
-          Configuration.set(config.confParams()[i], config.confParams()[i + 1]);
-        }
-        // Override startCluster
+          // Override startCluster
         startCluster = config.startCluster();
       }
       if (startCluster) {
@@ -183,7 +192,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Config {
-    String[] confParams() default {};
+    //String[] confParams() default {};
     boolean startCluster() default true;
   }
 }

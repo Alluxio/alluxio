@@ -64,8 +64,8 @@ public class SpaceReserver implements Runnable {
     Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
-      String tierReservedSpaceProp =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
+      PropertyKey tierReservedSpaceProp =
+          PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
           (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));

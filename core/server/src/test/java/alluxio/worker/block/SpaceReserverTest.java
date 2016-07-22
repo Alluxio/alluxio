@@ -81,11 +81,11 @@ public class SpaceReserverTest {
 
     BlockWorker blockWorker = new BlockWorker();
     mBlockStore = blockWorker.getBlockStore();
-    String reserveRatioProp =
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
+    PropertyKey reserveRatioProp =
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
     Configuration.set(reserveRatioProp, "0.3");
     mSpaceReserver = new SpaceReserver(blockWorker);
   }
