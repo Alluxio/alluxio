@@ -291,11 +291,9 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Waits for a worker heartbeat to master to be processed
   private void waitForHeartbeat() throws InterruptedException {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
     // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
   }
 }
