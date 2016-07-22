@@ -39,4 +39,4 @@ echo "Starting Alluxio Worker"
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${YARN_LOG_DIR}" \
   -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
-  alluxio.worker.AlluxioWorkerLauncher >> "${YARN_LOG_DIR}"/worker.out 2>&1
+  alluxio.worker.AlluxioWorker >> "${YARN_LOG_DIR}"/worker.out 2>&1

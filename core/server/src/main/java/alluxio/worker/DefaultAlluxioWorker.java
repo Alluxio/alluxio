@@ -52,7 +52,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * for all remote I/O requests for the workers.
  */
 @NotThreadSafe
-public final class DefaultAlluxioWorker implements AlluxioWorker {
+public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The worker serving blocks. */
