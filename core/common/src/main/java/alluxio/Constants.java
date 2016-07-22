@@ -118,7 +118,9 @@ public final class Constants {
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
   public static final String REST_API_PREFIX = "v1/api";
-  public static final String LOGGER_TYPE = PropertyKey.LOGGER_TYPE;
+  public static final String LOGGER_TYPE = PropertyKey.LOGGER_TYPE.toString();
+  public static final String FORMAT_FILE_PREFIX = "_format_";
+
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
 
