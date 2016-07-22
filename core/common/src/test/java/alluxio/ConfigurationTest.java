@@ -43,15 +43,7 @@ public class ConfigurationTest {
    */
   @BeforeClass
   public static void beforeClass() {
-    // initialize the test properties.
-    sTestProperties.put("home", "hometest");
-    sTestProperties.put("homeandpath", "${home}/path1");
-    sTestProperties.put("homeandstring", "${home} string1");
-    sTestProperties.put("path2", "path2");
-    sTestProperties.put("multiplesubs", "${home}/path1/${path2}");
-    sTestProperties.put("recursive", "${multiplesubs}");
-    sTestProperties.put("home.port", "8080");
-    sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @After
@@ -91,7 +83,7 @@ public class ConfigurationTest {
     boolean booleanValue = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
     Assert.assertFalse(booleanValue);
 
-    booleanValue = Configuration.getBoolean(PropertyKey.IN_TEST_MODE);
+    booleanValue = Configuration.getBoolean(PropertyKey.TEST_MODE);
     Assert.assertFalse(booleanValue);
 
     int intValue = Configuration.getInt(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
@@ -127,7 +119,7 @@ public class ConfigurationTest {
 
     value = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     Assert.assertNotNull(value);
-    Assert.assertEquals(PropertyKey.FORMAT_FILE_PREFIX, value);
+    Assert.assertEquals(Constants.FORMAT_FILE_PREFIX, value);
 
     value = Configuration.get(PropertyKey.MASTER_ADDRESS);
     Assert.assertNotNull(value);
@@ -146,7 +138,7 @@ public class ConfigurationTest {
     intValue = Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
     Assert.assertEquals(19999, intValue);
 
-    intValue = Configuration.getInt(PropertyKey.WEB_THREAD_COUNT);
+    intValue = Configuration.getInt(PropertyKey.WEB_THREADS);
     Assert.assertEquals(1, intValue);
 
     intValue = Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS);
@@ -234,30 +226,15 @@ public class ConfigurationTest {
    */
   @Test
   public void variableSubstitutionSimpleTest() {
-    Configuration.merge(sTestProperties);
+    Configuration.set(PropertyKey.HOME, "testhome");
+    Configuration.set(PropertyKey.LOGS_DIR, "${alluxio.home}/logs");
+    Assert.assertEquals("testhome/logs", Configuration.get(PropertyKey.LOGS_DIR));
 
-    String home = Configuration.get("home");
-    Assert.assertEquals("hometest", home);
-
-    String homeAndPath = Configuration.get("homeandpath");
-    Assert.assertEquals(home + "/path1", homeAndPath);
-
-    String homeAndString = Configuration.get("homeandstring");
-    Assert.assertEquals(home + " string1", homeAndString);
-
-    String path2 = Configuration.get("path2");
-    Assert.assertEquals("path2", path2);
-
-    String multiplesubs = Configuration.get("multiplesubs");
-    Assert.assertEquals(home + "/path1/" + path2, multiplesubs);
-
-    String homePort = Configuration.get("home.port");
-    Assert.assertEquals("8080", homePort);
-
-    sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
-    String complexAddress = Configuration.get("complex.address");
-    Assert.assertEquals("alluxio://" + home + ":" + homePort, complexAddress);
-
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, "8080");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
+    Configuration.set(PropertyKey.MASTER_ADDRESS,
+        "alluxio://${alluixo.master.hostname}:${alluxio.master.port}");
+    Assert.assertEquals("alluxio://testhost:8080", Configuration.get(PropertyKey.MASTER_ADDRESS));
   }
 
   /**
@@ -265,10 +242,11 @@ public class ConfigurationTest {
    */
   @Test
   public void variableSubstitutionRecursiveTest() {
-    Configuration.merge(sTestProperties);
-    String multiplesubs = Configuration.get("multiplesubs");
-    String recursive = Configuration.get("recursive");
-    Assert.assertEquals(multiplesubs, recursive);
+    Configuration.set(PropertyKey.HOME, "testhome");
+    Configuration.set(PropertyKey.LOGS_DIR, "${alluxio.home}");
+    Configuration.set(PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}");
+
+    Assert.assertEquals("testhome", Configuration.get(PropertyKey.SITE_CONF_DIR));
   }
 
   /**
@@ -277,9 +255,9 @@ public class ConfigurationTest {
   @Test
   public void systemVariableSubstitutionSampleTest() {
     // set system properties
-    System.setProperty(PropertyKey.MASTER_HOSTNAME, "master");
-    System.setProperty(PropertyKey.MASTER_RPC_PORT, "20001");
-    System.setProperty(PropertyKey.ZOOKEEPER_ENABLED, "true");
+    System.setProperty(PropertyKey.MASTER_HOSTNAME.toString(), "master");
+    System.setProperty(PropertyKey.MASTER_RPC_PORT.toString(), "20001");
+    System.setProperty(PropertyKey.ZOOKEEPER_ENABLED.toString(), "true");
 
     Configuration.defaultInit();
     String masterAddress = Configuration.get(PropertyKey.MASTER_ADDRESS);
@@ -287,9 +265,9 @@ public class ConfigurationTest {
     Assert.assertEquals("alluxio-ft://master:20001", masterAddress);
 
     // clear system properties
-    System.clearProperty(PropertyKey.MASTER_HOSTNAME);
-    System.clearProperty(PropertyKey.MASTER_RPC_PORT);
-    System.clearProperty(PropertyKey.ZOOKEEPER_ENABLED);
+    System.clearProperty(PropertyKey.MASTER_HOSTNAME.toString());
+    System.clearProperty(PropertyKey.MASTER_RPC_PORT.toString());
+    System.clearProperty(PropertyKey.ZOOKEEPER_ENABLED.toString());
   }
 
   /**
@@ -312,7 +290,8 @@ public class ConfigurationTest {
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest1() {
     Map<String, String> properties = new LinkedHashMap<>();
-    properties.put(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    properties.put(PropertyKey.USER_FILE_BUFFER_BYTES.toString(),
+        String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
     Configuration.merge(properties);
   }
