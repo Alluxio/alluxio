@@ -348,6 +348,9 @@ public final class FileSystemMaster extends AbstractMaster {
   public void streamToJournalCheckpoint(JournalOutputStream outputStream) throws IOException {
     mInodeTree.streamToJournalCheckpoint(outputStream);
     outputStream.writeEntry(mDirectoryIdGenerator.toJournalEntry());
+    // The mount table should be written to the checkpoint after the inodes are written, so that
+    // when replaying the checkpoint, the inodes exist before mount entries. Replaying a mount
+    // entry traverses the inode tree.
     mMountTable.streamToJournalCheckpoint(outputStream);
   }
 
