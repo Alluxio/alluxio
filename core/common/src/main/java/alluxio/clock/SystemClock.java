@@ -15,6 +15,11 @@ package alluxio.clock;
  * The Java System clock.
  */
 public class SystemClock implements Clock {
+  /**
+   * Constructs a new {@link Clock} which reports the actual time.
+   */
+  public SystemClock() {}
+
   @Override
   public long millis() {
     return System.currentTimeMillis();
