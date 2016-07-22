@@ -177,7 +177,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param journal the journal to use for tracking master operations
    */
   public BlockMaster(Journal journal) {
-    this(journal, new SystemClock(), Executors.newFixedThreadPool(2,
+    super(journal, new SystemClock(), Executors.newFixedThreadPool(2,
         ThreadFactoryUtils.build("BlockMaster-%d", true)));
   }
 
@@ -186,6 +186,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    *
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
+   * @param executorService the executor service to use for launching maintenance threads
    */
   public BlockMaster(Journal journal, Clock clock, ExecutorService executorService) {
     super(journal, clock, executorService);
