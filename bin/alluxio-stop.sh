@@ -27,15 +27,15 @@ Where component is one of:
 -h  display this help."
 
 kill_master() {
-  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioMaster
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.master.AlluxioMasterLauncher
 }
 
 kill_worker() {
-  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
+  ${LAUNCHER} ${BIN}/alluxio killAll alluxio.worker.AlluxioWorkerLauncher
 }
 
 kill_remote_workers() {
-  ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio killAll alluxio.worker.AlluxioWorker
+  ${LAUNCHER} ${BIN}/alluxio-workers.sh ${BIN}/alluxio killAll alluxio.worker.AlluxioWorkerLauncher
 }
 
 WHAT=${1:--h}
