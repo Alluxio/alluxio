@@ -36,6 +36,7 @@ import alluxio.proto.journal.KeyValue.RenameStoreEntry;
 import alluxio.thrift.KeyValueMasterClientService;
 import alluxio.thrift.PartitionInfo;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -52,6 +53,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -85,7 +87,8 @@ public final class KeyValueMaster extends AbstractMaster {
    * @param journal a {@link Journal} to write journal entries to
    */
   public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, 2, new SystemClock());
+    super(journal, new SystemClock(),
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("KeyValueMaster-%d", true)));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();

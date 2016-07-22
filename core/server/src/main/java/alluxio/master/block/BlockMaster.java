@@ -15,6 +15,8 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
 import alluxio.StorageTierAssoc;
+import alluxio.clock.Clock;
+import alluxio.clock.SystemClock;
 import alluxio.collections.ConcurrentHashSet;
 import alluxio.collections.IndexDefinition;
 import alluxio.collections.IndexedSet;
@@ -40,6 +42,7 @@ import alluxio.thrift.BlockMasterClientService;
 import alluxio.thrift.BlockMasterWorkerService;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
@@ -49,7 +52,6 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableSet;
 import com.google.protobuf.Message;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import org.apache.hadoop.yarn.util.SystemClock;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,6 +67,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -173,7 +177,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param journal the journal to use for tracking master operations
    */
   public BlockMaster(Journal journal) {
-    super(journal, 2, new SystemClock());
+    this(journal, new SystemClock(), Executors.newFixedThreadPool(2,
+        ThreadFactoryUtils.build("BlockMaster-%d", true)));
   }
 
   /**
@@ -182,8 +187,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    */
-  public BlockMaster(Journal journal, Clock clock) {
-    super(journal, 2, clock);
+  public BlockMaster(Journal journal, Clock clock, ExecutorService executorService) {
+    super(journal, clock, executorService);
   }
 
   @Override
