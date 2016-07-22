@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
@@ -62,7 +63,7 @@ public class InStreamOptionsTest {
    */
   @Test
   public void modifiedConfTest() {
-    Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
+    Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
     try {
       InStreamOptions options = InStreamOptions.defaults();
       Assert.assertEquals(ReadType.NO_CACHE.getAlluxioStorageType(),

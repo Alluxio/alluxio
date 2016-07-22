@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -51,7 +52,7 @@ public final class BlockLockManager {
 
   /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      Configuration.getInt(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
     public void close() {}
 
@@ -86,7 +87,7 @@ public final class BlockLockManager {
   /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
    *
-   * If all {@link Constants#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
+   * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
    * been allocated for the specified block, this method will need to wait until a lock can be
    * acquired from the lock pool.
    *

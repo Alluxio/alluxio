@@ -13,6 +13,7 @@ package alluxio.worker.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.thrift.CommandType;
@@ -67,7 +68,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
     mFileDataManager = Preconditions.checkNotNull(fileDataManager);
     mMasterClient = Preconditions.checkNotNull(masterClient);
     mPersistFileService = Executors.newFixedThreadPool(
-        Configuration.getInt(Constants.WORKER_FILE_PERSIST_POOL_SIZE),
+        Configuration.getInt(PropertyKey.WORKER_FILE_PERSIST_POOL_SIZE),
         ThreadFactoryUtils.build("persist-file-service-%d", true));
   }
 

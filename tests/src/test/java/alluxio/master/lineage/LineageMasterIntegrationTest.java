@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -63,11 +64,11 @@ public class LineageMasterIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
       WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
-      Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-      Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
-      Constants.USER_LINEAGE_ENABLED, "true",
-      Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "1000",
-      Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
+      PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
+      PropertyKey.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
+      PropertyKey.USER_LINEAGE_ENABLED, "true",
+      PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "1000",
+      PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
       );
 
   protected CommandLineJob mJob;

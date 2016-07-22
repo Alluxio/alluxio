@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.options.OpenFileOptions;
 import alluxio.client.file.options.SetAttributeOptions;
@@ -84,7 +85,7 @@ public final class FileSystemUtils {
    * <p/>
    * <i>IMPLEMENTATION NOTES</i> This method is implemented by periodically polling the master about
    * the file status. The polling period is controlled by the
-   * {@link Constants#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
+   * {@link PropertyKey#USER_FILE_WAITCOMPLETED_POLL_MS} java property and defaults to a generous 1
    * second.
    *
    * @param fs an instance of {@link FileSystem}
@@ -103,7 +104,7 @@ public final class FileSystemUtils {
           throws IOException, AlluxioException, InterruptedException {
 
     final long deadline = System.currentTimeMillis() + tunit.toMillis(timeout);
-    final long pollPeriod = Configuration.getLong(Constants.USER_FILE_WAITCOMPLETED_POLL_MS);
+    final long pollPeriod = Configuration.getLong(PropertyKey.USER_FILE_WAITCOMPLETED_POLL_MS);
     boolean completed = false;
     long timeleft = deadline - System.currentTimeMillis();
 

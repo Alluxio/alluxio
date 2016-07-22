@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.AlluxioException;
@@ -245,7 +246,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
-    mWhitelist = new PrefixList(Configuration.getList(Constants.MASTER_WHITELIST, ","));
+    mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
@@ -359,7 +360,7 @@ public final class FileSystemMaster extends AbstractMaster {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree
           .initializeRoot(Permission.defaults().applyDirectoryUMask().setOwnerFromLoginModule());
-      String defaultUFS = Configuration.get(Constants.UNDERFS_ADDRESS);
+      String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
             MountOptions.defaults());
@@ -374,10 +375,10 @@ public final class FileSystemMaster extends AbstractMaster {
     if (isLeader) {
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
-              Configuration.getInt(Constants.MASTER_TTL_CHECKER_INTERVAL_MS)));
+              Configuration.getInt(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)));
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
-          Configuration.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -1692,7 +1693,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the ufs address for this master
    */
   public String getUfsAddress() {
-    return Configuration.get(Constants.UNDERFS_ADDRESS);
+    return Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   }
 
   /**
@@ -2101,7 +2102,7 @@ public final class FileSystemMaster extends AbstractMaster {
             ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      String defaultUfsPath = Configuration.get(Constants.UNDERFS_ADDRESS);
+      String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath);
       if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
         throw new IOException(

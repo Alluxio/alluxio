@@ -15,6 +15,7 @@ import alluxio.AlluxioTestDirectory;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
@@ -106,14 +107,14 @@ public abstract class AbstractLocalAlluxioCluster {
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
-        getMaster().getWebLocalPort()) || Configuration.getInt(Constants.MASTER_WEB_PORT) == 0) {
+        getMaster().getWebLocalPort()) || Configuration.getInt(PropertyKey.MASTER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for master to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
-        getMaster().getRPCLocalPort()) || Configuration.getInt(Constants.MASTER_RPC_PORT) == 0) {
+        getMaster().getRPCLocalPort()) || Configuration.getInt(PropertyKey.MASTER_RPC_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -135,21 +136,21 @@ public abstract class AbstractLocalAlluxioCluster {
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())
-        || Configuration.getInt(Constants.WORKER_WEB_PORT) == 0) {
+        || Configuration.getInt(PropertyKey.WORKER_WEB_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve data";
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())
-        || Configuration.getInt(Constants.WORKER_DATA_PORT) == 0) {
+        || Configuration.getInt(PropertyKey.WORKER_DATA_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
     while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())
-        || Configuration.getInt(Constants.WORKER_RPC_PORT) == 0) {
+        || Configuration.getInt(PropertyKey.WORKER_RPC_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }
   }
@@ -202,19 +203,19 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
-    String alluxioHome = Configuration.get(Constants.HOME);
+    String alluxioHome = Configuration.get(PropertyKey.HOME);
 
     // Deletes the alluxio home dir for this test from ufs to avoid permission problems
     UnderFileSystemUtils.deleteDir(alluxioHome);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(Configuration.get(Constants.UNDERFS_ADDRESS));
+    UnderFileSystemUtils.mkdirIfNotExists(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
 
     // Creates storage dirs for worker
-    int numLevel = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
       String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath);
@@ -229,7 +230,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // Sets the journal folder
     String journalFolder =
         mUfsCluster.getUnderFilesystemAddress() + "/journal" + RANDOM_GENERATOR.nextLong();
-    Configuration.set(Constants.MASTER_JOURNAL_FOLDER, journalFolder);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_FOLDER, journalFolder);
 
     // Formats the journal
     UnderFileSystemUtils.mkdirIfNotExists(journalFolder);
@@ -244,7 +245,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
       String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
-      Configuration.set(Constants.UNDERFS_ADDRESS, ufsAddress);
+      Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
     }
   }
 
@@ -302,75 +303,76 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioHome();
     setHostname();
 
-    Configuration.set(Constants.IN_TEST_MODE, "true");
-    Configuration.set(Constants.HOME, mHome);
-    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
-    Configuration.set(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
-    Configuration.set(Constants.MASTER_HOSTNAME, mHostname);
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(0));
-    Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(0));
-    Configuration.set(Constants.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
-    Configuration.set(Constants.MASTER_WORKER_THREADS_MIN, "1");
-    Configuration.set(Constants.MASTER_WORKER_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.IN_TEST_MODE, "true");
+    Configuration.set(PropertyKey.HOME, mHome);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
+    Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.toString(1000));
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MIN, "1");
+    Configuration.set(PropertyKey.MASTER_WORKER_THREADS_MAX, "100");
 
-    Configuration.set(Constants.MASTER_BIND_HOST, mHostname);
-    Configuration.set(Constants.MASTER_WEB_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.MASTER_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.MASTER_WEB_BIND_HOST, mHostname);
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(Constants.MASTER_RETRY_COUNT, "3");
+    Configuration.set(PropertyKey.MASTER_RETRY_COUNT, "3");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
-    Configuration.set(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
+    Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    Configuration.set(Constants.WEB_THREAD_COUNT, "1");
-    Configuration.set(Constants.WEB_RESOURCES,
+    Configuration.set(PropertyKey.WEB_THREAD_COUNT, "1");
+    Configuration.set(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
     // default alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
-    Configuration.set(Constants.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
+    Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
-    Configuration.set(Constants.WORKER_RPC_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_WEB_PORT, Integer.toString(0));
-    Configuration.set(Constants.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(Constants.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
-    Configuration.set(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(Constants.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
+    Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
+    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
+    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
-    Configuration.set(Constants.WORKER_BIND_HOST, mHostname);
-    Configuration.set(Constants.WORKER_DATA_BIND_HOST, mHostname);
-    Configuration.set(Constants.WORKER_WEB_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_DATA_BIND_HOST, mHostname);
+    Configuration.set(PropertyKey.WORKER_WEB_BIND_HOST, mHostname);
 
     // Performs an immediate shutdown of data server. Graceful shutdown is unnecessary and slow
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
-    Configuration.set(Constants.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
+    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         Long.toString(mWorkerCapacityBytes));
 
-    int numLevel = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+    int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
       String tierLevelDirPath =
-          String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
         String newPath = mHome + dirPath;
         newPaths.add(newPath);
       }
-      Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
-              Joiner.on(',').join(newPaths));
+      Configuration.set(
+          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
+          Joiner.on(',').join(newPaths));
     }
 
     // For some test profiles, default properties get overwritten by system properties (e.g., s3

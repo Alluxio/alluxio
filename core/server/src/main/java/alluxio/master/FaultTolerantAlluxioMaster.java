@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
+import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadOnlyJournal;
@@ -43,16 +44,16 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
 
   public FaultTolerantAlluxioMaster() {
     super();
-    Preconditions.checkArgument(Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED));
+    Preconditions.checkArgument(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
       String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC) + ":"
           + getMasterAddress().getPort();
-      String zkAddress = Configuration.get(Constants.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.get(Constants.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.get(Constants.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {

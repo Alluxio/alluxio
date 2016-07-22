@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemFactory;
 
@@ -68,15 +69,15 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckOSSCredentials() {
-    String accessKeyConf = Constants.OSS_ACCESS_KEY;
+    String accessKeyConf = PropertyKey.OSS_ACCESS_KEY;
     if (System.getProperty(accessKeyConf) != null && Configuration.get(accessKeyConf) == null) {
       Configuration.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = Constants.OSS_SECRET_KEY;
+    String secretKeyConf = PropertyKey.OSS_SECRET_KEY;
     if (System.getProperty(secretKeyConf) != null && Configuration.get(secretKeyConf) == null) {
       Configuration.set(secretKeyConf, System.getProperty(secretKeyConf));
     }
-    String endPointConf = Constants.OSS_ENDPOINT_KEY;
+    String endPointConf = PropertyKey.OSS_ENDPOINT_KEY;
     if (System.getProperty(endPointConf) != null && Configuration.get(endPointConf) == null) {
       Configuration.set(endPointConf, System.getProperty(endPointConf));
     }

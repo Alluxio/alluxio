@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 
 import com.google.common.base.Preconditions;
@@ -61,7 +62,7 @@ public final class AsyncJournalWriter {
     mFlushCounter = new AtomicLong(0);
     // convert milliseconds to nanoseconds.
     mFlushBatchTime =
-        1000000L * Configuration.getLong(Constants.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
+        1000000L * Configuration.getLong(PropertyKey.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS);
   }
 
   /**

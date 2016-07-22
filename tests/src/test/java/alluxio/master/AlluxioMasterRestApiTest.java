@@ -12,8 +12,8 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.master.block.BlockMaster;
@@ -239,7 +239,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   private UnderFileSystem mockUfs() {
     UnderFileSystem ufs =
-        PowerMockito.spy(UnderFileSystem.get(Configuration.get(Constants.UNDERFS_ADDRESS)));
+        PowerMockito.spy(UnderFileSystem.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS)));
     PowerMockito.mockStatic(UnderFileSystem.class);
     Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(ufs);
     return ufs;
