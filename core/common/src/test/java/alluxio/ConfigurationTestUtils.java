@@ -11,18 +11,9 @@
 
 package alluxio;
 
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
-
-import java.util.Properties;
-
 /**
  * Utility methods for the configuration tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Configuration.class)
 public final class ConfigurationTestUtils {
 
   /**
@@ -32,9 +23,7 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
-    Properties properties = Whitebox.getInternalState(Configuration.class, "PROPERTIES");
-    properties.clear();
-    Configuration.defaultInit();
+     Configuration.defaultInit();
   }
 
   private ConfigurationTestUtils() {} // prevent instantiation
