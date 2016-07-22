@@ -115,52 +115,15 @@ public final class ConfigurationUtils {
    */
   public static boolean validateConf() {
     Set<String> validProperties = new HashSet<>();
-    try {
-      // Iterate over the array of Field objects in alluxio.PropertyKey by reflection
-      for (Field field : PropertyKey.class.getDeclaredFields()) {
-        if (field.getType().isAssignableFrom(String.class)) {
-          // all fields are static, so ignore the argument
-          String name = (String) field.get(null);
-          if (name.startsWith("alluxio.")) {
-            validProperties.add(name.trim());
-          }
-        }
-      }
-    } catch (Exception e) {
-      LOG.error(e.getMessage(), e);
+    // Iterate over the array of Field objects in alluxio.PropertyKey by reflection
+    for (PropertyKey key : PropertyKey.values()) {
+      validProperties.add(key.toString());
     }
 
-    // There are three properties that are auto-generated in WorkerStorage based on corresponding
-    // format strings defined in alluxio.Constants. Here we transform each format string to a regexp
-    // to check if a property name follows the format. E.g.,
-    // "alluxio.worker.tieredstore.level%d.alias" is transformed to
-    // "alluxio\.worker\.tieredstore\.level\d+\.alias".
-    Pattern masterAliasPattern =
-        Pattern.compile(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT
-            .replace("%d", "\\d+").replace(".", "\\."));
-    Pattern workerAliasPattern =
-        Pattern.compile(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.replace("%d", "\\d+")
-            .replace(".", "\\."));
-    Pattern dirsPathPattern =
-        Pattern.compile(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT
-            .replace("%d", "\\d+").replace(".", "\\."));
-    Pattern dirsQuotaPattern =
-        Pattern.compile(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.replace("%d",
-            "\\d+").replace(".", "\\."));
-    Pattern reservedRatioPattern =
-        Pattern.compile(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.replace("%d",
-            "\\d+").replace(".", "\\."));
     boolean valid = true;
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
-      if (masterAliasPattern.matcher(propertyName).matches()
-          || workerAliasPattern.matcher(propertyName).matches()
-          || dirsPathPattern.matcher(propertyName).matches()
-          || dirsQuotaPattern.matcher(propertyName).matches()
-          || reservedRatioPattern.matcher(propertyName).matches()) {
-        continue;
-      }
-      if (propertyName.startsWith("alluxio.") && !validProperties.contains(propertyName)) {
+       if (!validProperties.contains(propertyName)) {
         LOG.error("Unsupported or deprecated property " + propertyName);
         valid = false;
       }
