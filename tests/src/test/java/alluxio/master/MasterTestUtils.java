@@ -33,4 +33,16 @@ public class MasterTestUtils {
     fsMaster.start(true);
     return fsMaster;
   }
+
+  public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
+      throws IOException {
+    String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+    Journal blockJournal = new ReadOnlyJournal(BlockMaster.getJournalDirectory(masterJournal));
+    Journal fsJournal = new ReadOnlyJournal(FileSystemMaster.getJournalDirectory(masterJournal));
+    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
+    blockMaster.start(false);
+    fsMaster.start(false);
+    return fsMaster;
+  }
 }

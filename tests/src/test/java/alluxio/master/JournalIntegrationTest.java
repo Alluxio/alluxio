@@ -34,6 +34,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileInfo;
@@ -44,6 +45,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -60,6 +62,9 @@ public class JournalIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(Constants.GB, Constants.GB,
           Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+
+  @Rule
+  public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
@@ -452,6 +457,32 @@ public class JournalIntegrationTest {
       Assert.assertTrue(fsMaster.getFileId(new AlluxioURI("/a" + k)) != IdUtils.INVALID_FILE_ID);
     }
     fsMaster.stop();
+  }
+
+  /**
+   * Tests the situation where a checkpoint mount entry is replayed by a standby master.
+   *
+   * @throws Exception on error
+   */
+  @Test
+  public void mountEntryCheckpointTest() throws Exception {
+    AlluxioURI mountUri = new AlluxioURI("/local_mnt/");
+    AlluxioURI ufsUri = new AlluxioURI(mTestFolder.newFolder("test_ufs").getAbsolutePath());
+
+    // Create a mount point, which will journal a mount entry.
+    mFileSystem.mount(mountUri, ufsUri);
+    mLocalAlluxioCluster.stopFS();
+
+    // Start a leader master, which will create a new checkpoint, with a mount entry.
+    FileSystemMaster fsMaster = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
+    fsMaster.stop();
+
+    // Start a standby master, which will replay the mount entry from the checkpoint.
+    fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
+    // The sleep is necessary for the journal thread to replay the checkpoint, before trying to read
+    // the master.
+    CommonUtils.sleepMs(2000);
+    fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
   }
 
   /**
