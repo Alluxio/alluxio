@@ -97,7 +97,7 @@ public class BlockWorkerTest {
         mFolder.newFolder().getAbsolutePath());
     Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
 
-    mBlockWorker = new BlockWorker();
+    mBlockWorker = new DefaultBlockWorker();
 
     Whitebox.setInternalState(mBlockWorker, "mBlockMasterClient", mBlockMasterClient);
     Whitebox.setInternalState(mBlockWorker, "mFileSystemMasterClient", mFileSystemMasterClient);
@@ -194,7 +194,7 @@ public class BlockWorkerTest {
    */
   @Test
   public void commitBlockOnRetryTest() throws Exception {
-    mBlockWorker = new BlockWorker();
+    mBlockWorker = new DefaultBlockWorker();
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
