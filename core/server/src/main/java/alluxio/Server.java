@@ -24,7 +24,8 @@ public interface Server {
   void start() throws Exception;
 
   /**
-   * Stops the Alluxio server.
+   * Stops the Alluxio server. Here, anything created or started in {@link #start()} should be
+   * cleaned up and shutdown.
    *
    * @throws Exception if the server fails to stop
    */

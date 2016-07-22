@@ -24,6 +24,8 @@ import alluxio.web.UIWebServer;
 import alluxio.web.WorkerUIWebServer;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.DefaultBlockWorker;
+import alluxio.worker.file.DefaultFileSystemWorker;
 import alluxio.worker.file.FileSystemWorker;
 
 import com.google.common.base.Throwables;
@@ -154,8 +156,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorker {
   public DefaultAlluxioWorker() {
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mBlockWorker = new BlockWorker();
-      mFileSystemWorker = new FileSystemWorker(mBlockWorker);
+      mBlockWorker = new DefaultBlockWorker();
+      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker);
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
