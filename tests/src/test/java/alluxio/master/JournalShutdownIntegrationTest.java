@@ -118,7 +118,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal();
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
   /**
