@@ -16,12 +16,13 @@ import alluxio.Constants;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.ReadOnlyJournal;
 import alluxio.master.journal.ReadWriteJournal;
 
 import java.io.IOException;
 
 public class MasterTestUtils {
-  public static FileSystemMaster createFileSystemMasterFromJournal()
+  public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));

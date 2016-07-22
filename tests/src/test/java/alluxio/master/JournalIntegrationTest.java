@@ -83,7 +83,7 @@ public class JournalIntegrationTest {
   }
 
   private FileSystemMaster createFsMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal();
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
   private void deleteFsMasterJournalLogs() throws IOException {

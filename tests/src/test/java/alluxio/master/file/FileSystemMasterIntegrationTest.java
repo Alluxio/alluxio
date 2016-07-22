@@ -379,7 +379,7 @@ public class FileSystemMasterIntegrationTest {
   }
 
   private FileSystemMaster createFileSystemMasterFromJournal() throws IOException {
-    return MasterTestUtils.createFileSystemMasterFromJournal();
+    return MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 
   // TODO(calvin): This test currently relies on the fact the HDFS client is a cached instance to
