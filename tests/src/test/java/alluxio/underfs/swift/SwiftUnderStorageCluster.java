@@ -50,12 +50,12 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
       simulation = Boolean.FALSE.toString();
     }
 
-    System.setProperty(PropertyKey.SWIFT_API_KEY, swiftAPIKey);
-    System.setProperty(PropertyKey.SWIFT_TENANT_KEY, tenantKey);
-    System.setProperty(PropertyKey.SWIFT_USER_KEY, userKey);
-    System.setProperty(PropertyKey.SWIFT_AUTH_METHOD_KEY, authMethodKey);
-    System.setProperty(PropertyKey.SWIFT_AUTH_URL_KEY, authUrlKey);
-    System.setProperty(PropertyKey.SWIFT_SIMULATION, simulation);
+    System.setProperty(PropertyKey.SWIFT_API_KEY.toString(), swiftAPIKey);
+    System.setProperty(PropertyKey.SWIFT_TENANT_KEY.toString(), tenantKey);
+    System.setProperty(PropertyKey.SWIFT_USER_KEY.toString(), userKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_METHOD_KEY.toString(), authMethodKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_URL_KEY.toString(), authUrlKey);
+    System.setProperty(PropertyKey.SWIFT_SIMULATION.toString(), simulation);
 
     mSwiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
     mBaseDir = mSwiftContainer + UUID.randomUUID();

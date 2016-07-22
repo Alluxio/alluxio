@@ -214,8 +214,8 @@ public abstract class AbstractLocalAlluxioCluster {
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath);
@@ -303,7 +303,7 @@ public abstract class AbstractLocalAlluxioCluster {
     setAlluxioHome();
     setHostname();
 
-    Configuration.set(PropertyKey.IN_TEST_MODE, "true");
+    Configuration.set(PropertyKey.TEST_MODE, "true");
     Configuration.set(PropertyKey.HOME, mHome);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
@@ -325,7 +325,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // people running with strange network configurations will see very slow tests
     Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    Configuration.set(PropertyKey.WEB_THREAD_COUNT, "1");
+    Configuration.set(PropertyKey.WEB_THREADS, "1");
     Configuration.set(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
@@ -354,16 +354,16 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
+    Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+    Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         Long.toString(mWorkerCapacityBytes));
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
@@ -371,7 +371,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       Configuration.set(
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
+          PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
           Joiner.on(',').join(newPaths));
     }
 

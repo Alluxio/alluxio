@@ -74,7 +74,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       hadoopConf = new org.apache.hadoop.conf.Configuration();
     }
     prepareConfiguration(ufsPrefix, hadoopConf);
-    hadoopConf.addResource(new Path(hadoopConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION)));
+    hadoopConf.addResource(
+        new Path(hadoopConf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString())));
     HdfsUnderFileSystemUtils.addS3Credentials(hadoopConf);
 
     Path path = new Path(ufsPrefix);
@@ -324,12 +325,12 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
         workerPrincipal, host);
   }
 
-  private void login(String keytabFileKey, String keytabFile, String principalKey,
+  private void login(PropertyKey keytabFileKey, String keytabFile, PropertyKey principalKey,
       String principal, String hostname) throws IOException {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    conf.set(keytabFileKey, keytabFile);
-    conf.set(principalKey, principal);
-    SecurityUtil.login(conf, keytabFileKey, principalKey, hostname);
+    conf.set(keytabFileKey.toString(), keytabFile);
+    conf.set(principalKey.toString(), principal);
+    SecurityUtil.login(conf, keytabFileKey.toString(), principalKey.toString(), hostname);
   }
 
   @Override

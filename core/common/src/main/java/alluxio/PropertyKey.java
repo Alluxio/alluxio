@@ -246,6 +246,7 @@ public enum PropertyKey {
   SWIFT_AUTH_PORT_KEY("fs.swift.auth.port"),
   SWIFT_AUTH_METHOD_KEY("fs.swift.auth.method"),
   SWIFT_USE_PUBLIC_URI_KEY("fs.swift.use.public.url"),
+  SWIFT_SIMULATION("fs.swift.simulation"),
 
   //
   // Security related properties
@@ -283,19 +284,32 @@ public enum PropertyKey {
   private final String mString;
 
   /**
+   * @param keyStr string of property key
+   * @return whether a string parsable as a property key name
+   */
+  public static boolean isValid(String keyStr) {
+    for (PropertyKey key : PropertyKey.values()) {
+      if (key.toString().equals(keyStr)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Parses a string and return its corresponding {@link PropertyKey}, throwing exception if no such
    * a property can be found.
    *
-   * @param string string of property key
+   * @param keyStr string of property key
    * @return corresponding property
    */
-  public static PropertyKey fromString(String string) {
+  public static PropertyKey fromString(String keyStr) {
     for (PropertyKey key : PropertyKey.values()) {
-      if (key.toString().equals(string)) {
+      if (key.toString().equals(keyStr)) {
         return key;
       }
     }
-    throw new IllegalArgumentException("Invalid property key " + string);
+    throw new IllegalArgumentException("Invalid property key " + keyStr);
   }
 
   /**

@@ -37,7 +37,8 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * Constructs a new {@link SwiftUnderFileSystemFactory}.
    */
-  public SwiftUnderFileSystemFactory() {}
+  public SwiftUnderFileSystemFactory() {
+  }
 
   @Override
   public UnderFileSystem create(String path, Object unusedConf) {
@@ -69,45 +70,46 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if simulation mode or if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckSwiftCredentials() {
-    String tenantApiKeyConf = PropertyKey.SWIFT_API_KEY;
-    if (System.getProperty(tenantApiKeyConf) != null && (
+    PropertyKey tenantApiKeyConf = PropertyKey.SWIFT_API_KEY;
+    if (System.getProperty(tenantApiKeyConf.toString()) != null && (
         !Configuration.containsKey(tenantApiKeyConf)
             || Configuration.get(tenantApiKeyConf) == null)) {
-      Configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
+      Configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf.toString()));
     }
-    String tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY;
-    if (System.getProperty(tenantKeyConf) != null && (!Configuration.containsKey(tenantKeyConf)
-        || Configuration.get(tenantKeyConf) == null)) {
-      Configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
+    PropertyKey tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY;
+    if (System.getProperty(tenantKeyConf.toString()) != null && (
+        !Configuration.containsKey(tenantKeyConf) || Configuration.get(tenantKeyConf) == null)) {
+      Configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf.toString()));
     }
-    String tenantUserConf = PropertyKey.SWIFT_USER_KEY;
-    if (System.getProperty(tenantUserConf) != null && (!Configuration.containsKey(tenantUserConf)
-        || Configuration.get(tenantUserConf) == null)) {
-      Configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
+    PropertyKey tenantUserConf = PropertyKey.SWIFT_USER_KEY;
+    if (System.getProperty(tenantUserConf.toString()) != null && (
+        !Configuration.containsKey(tenantUserConf) || Configuration.get(tenantUserConf) == null)) {
+      Configuration.set(tenantUserConf, System.getProperty(tenantUserConf.toString()));
     }
-    String tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY;
-    if (System.getProperty(tenantAuthURLKeyConf) != null && (
+    PropertyKey tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY;
+    if (System.getProperty(tenantAuthURLKeyConf.toString()) != null && (
         !Configuration.containsKey(tenantAuthURLKeyConf)
             || Configuration.get(tenantAuthURLKeyConf) == null)) {
-      Configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
+      Configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf.toString()));
     }
-    String authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY;
-    if (System.getProperty(authMethodKeyConf) != null && (
+    PropertyKey authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY;
+    if (System.getProperty(authMethodKeyConf.toString()) != null && (
         !Configuration.containsKey(authMethodKeyConf)
             || Configuration.get(authMethodKeyConf) == null)) {
-      Configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
+      Configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf.toString()));
     }
-    String passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY;
-    if (System.getProperty(passwordKeyConf) != null && (!Configuration.containsKey(passwordKeyConf)
-        || Configuration.get(passwordKeyConf) == null)) {
-      Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
+    PropertyKey passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY;
+    if (System.getProperty(passwordKeyConf.toString()) != null && (
+        !Configuration.containsKey(passwordKeyConf)
+            || Configuration.get(passwordKeyConf) == null)) {
+      Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf.toString()));
     }
 
-    String swiftSimulationConf = PropertyKey.SWIFT_SIMULATION;
-    if (System.getProperty(swiftSimulationConf) != null && (
-         !Configuration.containsKey(swiftSimulationConf)
-             || Configuration.get(swiftSimulationConf) == null)) {
-      Configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
+    PropertyKey swiftSimulationConf = PropertyKey.SWIFT_SIMULATION;
+    if (System.getProperty(swiftSimulationConf.toString()) != null && (
+        !Configuration.containsKey(swiftSimulationConf)
+            || Configuration.get(swiftSimulationConf) == null)) {
+      Configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf.toString()));
     }
 
     boolean simulation = false;
