@@ -26,7 +26,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Adds the block server's pipeline into the channel.
  */
 @ThreadSafe
-public final class PipelineHandler extends ChannelInitializer<SocketChannel> {
+final class PipelineHandler extends ChannelInitializer<SocketChannel> {
   private final DataServerHandler mDataServerHandler;
 
   /**
