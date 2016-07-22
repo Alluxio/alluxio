@@ -23,7 +23,7 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
-     Configuration.defaultInit();
+    Configuration.defaultInit();
   }
 
   private ConfigurationTestUtils() {} // prevent instantiation

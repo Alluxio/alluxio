@@ -28,7 +28,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.*;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**

@@ -23,12 +23,10 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 /**
  * Utilities to create Alluxio configurations.
@@ -123,7 +121,7 @@ public final class ConfigurationUtils {
     boolean valid = true;
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
-       if (!validProperties.contains(propertyName)) {
+      if (!validProperties.contains(propertyName)) {
         LOG.error("Unsupported or deprecated property " + propertyName);
         valid = false;
       }

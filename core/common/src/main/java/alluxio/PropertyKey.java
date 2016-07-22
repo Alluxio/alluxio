@@ -313,8 +313,8 @@ public enum PropertyKey {
   }
 
   /**
-   * Converts a property key template
-   * (e.g., {@link PropertyKey#WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT})
+   * Converts a property key template (e.g.,
+   * {@link PropertyKey#WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT})
    * to a {@link PropertyKey} enum instance.
    *
    * @param format string format template
@@ -326,7 +326,7 @@ public enum PropertyKey {
   }
 
   /**
-   * Constructs a configuration property
+   * Constructs a configuration property.
    *
    * @param property String of this property
    */

@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticationProvider;
 
 import org.junit.After;
@@ -53,34 +54,46 @@ public final class MasterClientAuthenticationIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+  @LocalAlluxioClusterResource.Config(startCluster = false)
   public void noAuthenticationOpenCloseTest() throws Exception {
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.name())
+        .start();
+
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+  @LocalAlluxioClusterResource.Config(startCluster = false)
   public void simpleAuthenticationOpenCloseTest() throws Exception {
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
+        .start();
     authenticationOperationTest("/file-simple");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio"})
+  @LocalAlluxioClusterResource.Config(startCluster = false)
   public void customAuthenticationOpenCloseTest() throws Exception {
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+            NameMatchAuthenticationProvider.FULL_CLASS_NAME)
+        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
+        .start();
     authenticationOperationTest("/file-custom");
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {PropertyKey.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio"})
+  @LocalAlluxioClusterResource.Config(startCluster = false)
   public void customAuthenticationDenyConnectTest() throws Exception {
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+            NameMatchAuthenticationProvider.FULL_CLASS_NAME)
+        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
+        .start();
+
     mThrown.expect(ConnectionFailedException.class);
 
     try (FileSystemMasterClient masterClient = new FileSystemMasterClient(

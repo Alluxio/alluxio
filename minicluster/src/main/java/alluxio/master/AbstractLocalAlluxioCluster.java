@@ -354,10 +354,12 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
-    Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
+    Configuration.set(
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
     Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
         ramdiskPath);
-    Configuration.set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+    Configuration.set(
+        PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
         Long.toString(mWorkerCapacityBytes));
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);

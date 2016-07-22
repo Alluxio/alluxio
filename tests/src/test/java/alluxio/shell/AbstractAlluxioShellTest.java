@@ -49,8 +49,8 @@ public abstract class AbstractAlluxioShellTest {
   protected static final int SIZE_BYTES = Constants.MB * 10;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB,
-          PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(Integer.MAX_VALUE));
+      new LocalAlluxioClusterResource(SIZE_BYTES, Constants.MB)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS, Integer.MAX_VALUE);
   protected LocalAlluxioCluster mLocalAlluxioCluster = null;
   protected FileSystem mFileSystem = null;
   protected AlluxioShell mFsShell = null;

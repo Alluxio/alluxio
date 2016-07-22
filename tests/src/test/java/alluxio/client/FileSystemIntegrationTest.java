@@ -45,8 +45,8 @@ public final class FileSystemIntegrationTest {
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
