@@ -215,6 +215,44 @@ public class BlockMasterTest {
   }
 
   @Test
+  public void workerHeartbeatUpdatesRemovedBlocks() throws Exception {
+    // Create a worker.
+    long worker = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    long blockId = 1L;
+    mMaster.commitBlock(worker, 50L, "MEM", blockId, 20L);
+
+    // Indicate that blockId is removed on the worker.
+    mMaster.workerHeartbeat(worker, ImmutableMap.of("MEM", 0L), ImmutableList.of(blockId),
+        NO_BLOCKS_ON_TIERS);
+    Assert.assertTrue(mMaster.getBlockInfo(blockId).getLocations().isEmpty());
+  }
+
+  @Test
+  public void workerHeartbeatUpdatesAddedBlocks() throws Exception {
+    // Create two workers.
+    long worker1 = mMaster.getWorkerId(NET_ADDRESS_1);
+    mMaster.workerRegister(worker1, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+    long worker2 = mMaster.getWorkerId(NET_ADDRESS_2);
+    mMaster.workerRegister(worker2, Arrays.asList("MEM"), ImmutableMap.of("MEM", 100L),
+        ImmutableMap.of("MEM", 0L), NO_BLOCKS_ON_TIERS);
+
+    // Commit blockId to worker1.
+    long blockId = 1L;
+    mMaster.commitBlock(worker1, 50L, "MEM", blockId, 20L);
+
+    // Send a heartbeat from worker2 saying that it's added blockId.
+    List<Long> addedBlocks = ImmutableList.of(blockId);
+    mMaster.workerHeartbeat(worker2, ImmutableMap.of("MEM", 0L), NO_BLOCKS,
+        ImmutableMap.of("MEM", addedBlocks));
+
+    // The block now has two locations.
+    Assert.assertEquals(2, mMaster.getBlockInfo(blockId).getLocations().size());
+  }
+
+  @Test
   public void unknownWorkerHeartbeatRequestsRegister() {
     Command heartBeat = mMaster.workerHeartbeat(0, null, null, null);
     Assert.assertEquals(new Command(CommandType.Register, ImmutableList.<Long>of()), heartBeat);
