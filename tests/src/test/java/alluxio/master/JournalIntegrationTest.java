@@ -32,6 +32,7 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
@@ -60,8 +61,8 @@ import java.util.Map;
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, Constants.GB,
-          PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+      new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
+        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
@@ -520,11 +521,14 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      PropertyKey.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME})
+  @LocalAlluxioClusterResource.Config(startCluster = false)
   public void setAclTest() throws Exception {
+    mLocalAlluxioClusterResource
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
+        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME)
+        .start();
+
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";

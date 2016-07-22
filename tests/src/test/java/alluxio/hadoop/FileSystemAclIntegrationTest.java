@@ -55,9 +55,9 @@ public final class FileSystemAclIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(100 * Constants.MB, BLOCK_SIZE,
-          PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
-          PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+      new LocalAlluxioClusterResource(100 * Constants.MB, BLOCK_SIZE)
+          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static org.apache.hadoop.fs.FileSystem sTFS;
