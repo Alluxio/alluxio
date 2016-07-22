@@ -13,13 +13,9 @@ package alluxio.master.block;
 
 import alluxio.Constants;
 import alluxio.clock.TestClock;
-import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
-import alluxio.master.block.meta.MasterBlockInfo;
-import alluxio.master.block.meta.MasterWorkerInfo;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
@@ -41,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.List;
@@ -267,43 +262,6 @@ public class BlockMasterTest {
   @Test
   public void getJournalDirectory() {
     Assert.assertEquals("/base/BlockMaster", BlockMaster.getJournalDirectory("/base"));
-  }
-
-  /** Private access to {@link BlockMaster} internals. */
-  private class PrivateAccess {
-    private final Map<Long, MasterBlockInfo> mBlocks;
-    private final IndexDefinition<MasterWorkerInfo> mIdIndex;
-    private final IndexedSet<MasterWorkerInfo> mWorkers;
-
-    PrivateAccess(BlockMaster blockMaster) {
-      mBlocks = Whitebox.getInternalState(mMaster, "mBlocks");
-      mIdIndex = Whitebox.getInternalState(BlockMaster.class, "ID_INDEX");
-      mWorkers = Whitebox.getInternalState(mMaster, "mWorkers");
-    }
-
-    /**
-     * Looks up the {@link MasterWorkerInfo} for a given worker id.
-     *
-     * @param workerId the worker id to look up
-     * @return the {@link MasterWorkerInfo} for the given workerId
-     */
-    private MasterWorkerInfo getWorkerById(long workerId) {
-      synchronized (mWorkers) {
-        return mWorkers.getFirstByField(mIdIndex, workerId);
-      }
-    }
-
-    /**
-     * Looks up the {@link MasterBlockInfo} for the given block id.
-     *
-     * @param blockId the block id
-     * @return the {@link MasterBlockInfo}
-     */
-    public MasterBlockInfo getMasterBlockInfo(long blockId) {
-      synchronized (mBlocks) {
-        return mBlocks.get(blockId);
-      }
-    }
   }
 
   @Test
