@@ -34,9 +34,10 @@ public class FileSystemStatisticsTest {
 
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
+  private static final int WORKER_CAPACITY_BYTES = 10000;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(10000, BLOCK_SIZE);
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE);
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
