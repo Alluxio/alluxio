@@ -15,7 +15,6 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
@@ -36,16 +35,9 @@ public class ConfigurationTest {
   public final ExpectedException mThrown = ExpectedException.none();
   private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
 
-  private static Map<String, String> sTestProperties = new LinkedHashMap<>();
-
   /**
-   * Sets the properties and configuration before the test suite runs.
+   * Resets the properties and configuration after the test suite runs.
    */
-  @BeforeClass
-  public static void beforeClass() {
-    ConfigurationTestUtils.resetConfiguration();
-  }
-
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
@@ -233,7 +225,7 @@ public class ConfigurationTest {
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "8080");
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "testhost");
     Configuration.set(PropertyKey.MASTER_ADDRESS,
-        "alluxio://${alluixo.master.hostname}:${alluxio.master.port}");
+        "alluxio://${alluxio.master.hostname}:${alluxio.master.port}");
     Assert.assertEquals("alluxio://testhost:8080", Configuration.get(PropertyKey.MASTER_ADDRESS));
   }
 
@@ -276,11 +268,11 @@ public class ConfigurationTest {
    */
   @Test
   public void variableUserFileBufferBytesOverFlowCheckTest() {
-    Properties mProperties = new Properties();
-    mProperties.put(
-        PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
+    Properties properties = new Properties();
+    properties.put(
+        PropertyKey.USER_FILE_BUFFER_BYTES.toString(), String.valueOf(Integer.MAX_VALUE + 1) + "B");
     mThrown.expect(IllegalArgumentException.class);
-    Configuration.merge(mProperties);
+    Configuration.merge(properties);
   }
 
   /**
@@ -301,9 +293,10 @@ public class ConfigurationTest {
    */
   @Test
   public void variableUserFileBufferBytesNormalCheckTest() {
-    Properties mProperties = new Properties();
-    mProperties.put(PropertyKey.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
-    Configuration.merge(mProperties);
+    Properties properties = new Properties();
+    properties.put(PropertyKey.USER_FILE_BUFFER_BYTES.toString(),
+        String.valueOf(Integer.MAX_VALUE) + "B");
+    Configuration.merge(properties);
     Assert.assertEquals(Integer.MAX_VALUE,
         (int) Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
     Configuration.set(PropertyKey.USER_FILE_BUFFER_BYTES, "1GB");

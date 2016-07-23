@@ -210,7 +210,7 @@ public final class Configuration {
    * @return true if the key is in the {@link Properties}, false otherwise
    */
   public static boolean containsKey(PropertyKey key) {
-    return PROPERTIES.containsKey(key);
+    return PROPERTIES.containsKey(key.toString());
   }
 
   /**

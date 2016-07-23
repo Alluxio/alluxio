@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
@@ -117,10 +116,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
-  public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-      String... confParams) {
-    this(workerCapacityBytes, userBlockSize, true, confParams);
-  }
 
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize) {
     this(workerCapacityBytes, userBlockSize, true, new String[0]);
