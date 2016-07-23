@@ -54,9 +54,7 @@ public final class RPCErrorResponse extends RPCResponse {
     return Shorts.BYTES;
   }
 
-  /**
-   * @return the status
-   */
+  @Override
   public Status getStatus() {
     return mStatus;
   }
