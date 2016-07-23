@@ -56,7 +56,7 @@ public final class ConfUtilsTest {
     Map<String, String> before = Configuration.toMap();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
     Map<String, String> after = Configuration.toMap();
-    Assert.assertEquals(before.size() + 3, after.size());
+    Assert.assertEquals(before.size() + 2, after.size());
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_SECRET_KEY));
   }

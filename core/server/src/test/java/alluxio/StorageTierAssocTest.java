@@ -45,9 +45,9 @@ public class StorageTierAssocTest {
    */
   @Test
   public void masterWorkerConfConstructorTest() {
-    Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "4");
+    Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3");
     Configuration.set(
-        PropertyKey.format(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 3), "BOTTOM");
+        PropertyKey.format(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 2), "BOTTOM");
     Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2");
     Configuration
         .set(PropertyKey.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 1), "BOTTOM");
