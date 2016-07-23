@@ -11,19 +11,26 @@
 
 package alluxio.worker.netty;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
 
 import alluxio.client.netty.ClientHandler;
 import alluxio.client.netty.NettyClient;
 import alluxio.client.netty.SingleResponseListener;
+import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
+import alluxio.network.protocol.RPCFileReadRequest;
+import alluxio.network.protocol.RPCFileWriteRequest;
+import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
-import alluxio.util.CommonUtils;
 import alluxio.worker.AlluxioWorker;
 import alluxio.worker.block.BlockWorker;
+import alluxio.worker.block.io.MockBlockReader;
+import alluxio.worker.block.io.MockBlockWriter;
 import alluxio.worker.file.FileSystemWorker;
 
+import com.google.common.base.Charsets;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -32,6 +39,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
@@ -71,18 +80,105 @@ public final class NettyDataServerTest {
   }
 
   @Test
-  public void writeBlockTest() throws Exception {
+  public void readBlock() throws Exception {
+    long sessionId = 0;
+    long blockId = 1;
+    long offset = 2;
+    long length = 3;
+    long lockId = 4;
+    when(mBlockWorker.readBlockRemote(sessionId, blockId, lockId)).thenReturn(
+        new MockBlockReader("abcdefg".getBytes(Charsets.UTF_8)));
+    RPCResponse response =
+        request(new RPCBlockReadRequest(blockId, offset, length, lockId, sessionId));
+
+    // Verify that the 3 bytes were read at offset 2.
+    assertEquals("cde",
+        Charsets.UTF_8.decode(response.getPayloadDataBuffer().getReadOnlyByteBuffer()).toString());
+  }
+
+  @Test
+  public void writeNewBlock() throws Exception {
+    long sessionId = 0;
+    long blockId = 1;
+    long length = 2;
+    // Offset is set to 0 so that a new block will be created.
+    long offset = 0;
+    DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
+    MockBlockWriter blockWriter = new MockBlockWriter();
+    when(mBlockWorker.getTempBlockWriterRemote(sessionId, blockId)).thenReturn(blockWriter);
+    RPCResponse response =
+        request(new RPCBlockWriteRequest(sessionId, blockId, offset, length, data));
+
+    // Verify that the write request tells the worker to create a new block and write the specified
+    // data to it.
+    assertEquals(RPCResponse.Status.SUCCESS, response.getStatus());
+    verify(mBlockWorker).createBlockRemote(sessionId, blockId, "MEM", length);
+    assertEquals("ab", new String(blockWriter.getBytes(), Charsets.UTF_8));
+  }
+
+  @Test
+  public void writeExistingBlock() throws Exception {
+    long sessionId = 0;
+    long blockId = 1;
+    // Offset is set to 1 so that the write is directed to an existing block
+    long offset = 1;
+    long length = 2;
+    DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
+    MockBlockWriter blockWriter = new MockBlockWriter();
+    when(mBlockWorker.getTempBlockWriterRemote(sessionId, blockId)).thenReturn(blockWriter);
+    RPCResponse response =
+        request(new RPCBlockWriteRequest(sessionId, blockId, offset, length, data));
+
+    // Verify that the write request requests space on an existing block and then writes the
+    // specified data.
+    assertEquals(RPCResponse.Status.SUCCESS, response.getStatus());
+    verify(mBlockWorker).requestSpace(sessionId, blockId, length);
+    assertEquals("ab", new String(blockWriter.getBytes(), Charsets.UTF_8));
+  }
+
+  @Test
+  public void readFile() throws Exception {
+    long tempUfsFileId = 1;
+    long offset = 0;
+    long length = 3;
+    when(mFileSystemWorker.getUfsInputStream(tempUfsFileId, offset)).thenReturn(
+        new ByteArrayInputStream("abc".getBytes(Charsets.UTF_8)));
+    RPCResponse response = request(new RPCFileReadRequest(tempUfsFileId, offset, length));
+
+    // Verify that the 3 bytes were read.
+    assertEquals("abc",
+        Charsets.UTF_8.decode(response.getPayloadDataBuffer().getReadOnlyByteBuffer()).toString());
+  }
+
+  @Test
+  public void writeFile() throws Exception {
+    long tempUfsFileId = 1;
+    long offset = 0;
+    long length = 3;
+    DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
+    ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+    when(mFileSystemWorker.getUfsOutputStream(tempUfsFileId)).thenReturn(outStream);
+    RPCResponse response =
+        request(new RPCFileWriteRequest(tempUfsFileId, offset, length, data));
+
+    // Verify that the write request writes to the OutputStream returned by the worker.
+    assertEquals(RPCResponse.Status.SUCCESS, response.getStatus());
+    assertEquals("abc", new String(outStream.toByteArray(), Charsets.UTF_8));
+  }
+
+  private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
     InetSocketAddress address = new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
     ClientHandler handler = new ClientHandler();
     Bootstrap clientBootstrap = NettyClient.createClientBootstrap(handler);
     ChannelFuture f = clientBootstrap.connect(address).sync();
     Channel channel = f.channel();
-    SingleResponseListener listener = new SingleResponseListener();
-    handler.addListener(listener);
-    channel.writeAndFlush(new RPCBlockWriteRequest(0, 1, 2, 3,
-        new DataByteArrayChannel(new byte[] {1, 2, 3}, 1, 1)));
-    RPCResponse response = listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
-    channel.close().sync();
-    CommonUtils.sleepMs(100000000);
+    try {
+      SingleResponseListener listener = new SingleResponseListener();
+      handler.addListener(listener);
+      channel.writeAndFlush(rpcBlockWriteRequest);
+      return listener.get(NettyClient.TIMEOUT_MS, TimeUnit.MILLISECONDS);
+    } finally {
+      channel.close().sync();
+    }
   }
 }
