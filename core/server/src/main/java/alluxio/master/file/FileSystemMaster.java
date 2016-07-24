@@ -1948,7 +1948,7 @@ public final class FileSystemMaster extends AbstractMaster {
     boolean loadDirectChildren = false;
     if (inodeExists) {
       try {
-        Inode inode = inodePath.getInode();
+        Inode<?> inode = inodePath.getInode();
         loadDirectChildren =
             inode.isDirectory() && inode.isPersisted() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
