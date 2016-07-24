@@ -66,6 +66,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected String mHostname;
 
   protected Thread mWorkerThread;
+  protected boolean mStarted;
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
@@ -94,6 +95,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
+    mStarted = true;
   }
 
   /**
@@ -255,9 +257,10 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    stopFS();
-    stopUFS();
-
+    if (mStarted) {
+      stopFS();
+      stopUFS();
+    }
     ConfigurationTestUtils.resetConfiguration();
     reset();
     resetLoginUser();
@@ -299,7 +302,7 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws IOException when the operation fails
    */
-  public void initializeTestConfiguration() throws IOException {
+  public void initConfiguration() throws IOException {
     setAlluxioHome();
     setHostname();
 

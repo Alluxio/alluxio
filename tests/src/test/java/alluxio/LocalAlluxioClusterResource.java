@@ -12,7 +12,6 @@
 package alluxio;
 
 import alluxio.exception.AlluxioException;
-import alluxio.exception.ConnectionFailedException;
 import alluxio.master.LocalAlluxioCluster;
 
 import com.google.common.base.Preconditions;
@@ -77,11 +76,11 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
    */
-  private final boolean mStartCluster;
-  /** Configuration parameters for the {@link Configuration} object used in the cluster. */
-  //private final String[] mConfParams;
+  private boolean mStartCluster;
 
+  /** Configuration keys for the {@link Configuration} object used in the cluster. */
   private final List<PropertyKey> mConfKeys = new ArrayList<>();
+  /** Configuration values for the {@link Configuration} object used in the cluster. */
   private final List<String> mConfValues = new ArrayList<>();
 
   /** The Alluxio cluster being managed. */
@@ -116,7 +115,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
   }
 
-
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize) {
     this(workerCapacityBytes, userBlockSize, true, new String[0]);
   }
@@ -134,38 +132,42 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return this;
   }
 
-  private void applyConfParams() throws IOException {
-    mLocalAlluxioCluster.initializeTestConfiguration();
-    // Override the configuration parameters with mConfParams
-    for (int i = 0; i < mConfKeys.size(); i++) {
-      Configuration.set(mConfKeys.get(i), mConfValues.get(i));
-    }
+  /**
+   * @return whether the local cluster has been started
+   */
+  public boolean isStarted() {
+    return mStartCluster;
   }
 
   /**
    * Explicitly starts the {@link LocalAlluxioCluster}.
    */
   public void start() throws IOException, AlluxioException {
+    // Init configuration for integration test
+    mLocalAlluxioCluster.initConfiguration();
+    // Overwrite the test configuration with test specific parameters
+    for (int i = 0; i < mConfKeys.size(); i++) {
+      Configuration.set(mConfKeys.get(i), mConfValues.get(i));
+    }
+    // Start the cluster
     mLocalAlluxioCluster.start();
+    mStartCluster = true;
   }
 
   @Override
   public Statement apply(final Statement statement, Description description) {
     mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
-      applyConfParams();
-
-      boolean startCluster = mStartCluster;
       Annotation configAnnotation = description.getAnnotation(Config.class);
       if (configAnnotation != null) {
         Config config = (Config) configAnnotation;
-          // Override startCluster
-        startCluster = config.startCluster();
+        // Override startCluster
+        mStartCluster = config.startCluster();
       }
-      if (startCluster) {
-        mLocalAlluxioCluster.start();
+      if (mStartCluster) {
+        start();
       }
-    } catch (IOException | ConnectionFailedException e) {
+    } catch (Exception e) {
       throw new RuntimeException(e);
     }
     return new Statement() {
