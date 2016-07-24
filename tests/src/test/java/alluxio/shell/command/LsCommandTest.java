@@ -105,16 +105,18 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(startCluster = false)
-  public void lsTest() throws IOException, AlluxioException {
+  public void lsTest() throws Exception {
+    String testUser = "test_user_ls";
+
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
         .setProperty(
             PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls")
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
+    resetShellTest();
 
-    String testUser = "test_user_ls";
     clearAndLogin(testUser);
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
@@ -165,17 +167,19 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(startCluster = false)
-  public void lsWildcardTest() throws IOException, AlluxioException {
+  public void lsWildcardTest() throws Exception {
+    String testUser = "test_user_lsWildcard";
+
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
         .setProperty(
             PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
         .setProperty(
-            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsWildcard")
+            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
+    resetShellTest();
 
-    String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -220,16 +224,19 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(startCluster = false)
-  public void lsrTest() throws IOException, AlluxioException {
+  public void lsrTest() throws Exception {
+    String testUser = "test_user_lsr";
+
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
         .setProperty(
             PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
         .setProperty(
-            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsr")
+            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
-    String testUser = "test_user_lsr";
+    resetShellTest();
+
     clearAndLogin(testUser);
 
     URIStatus[] files = createFiles();

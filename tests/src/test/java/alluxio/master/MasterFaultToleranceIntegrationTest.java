@@ -56,7 +56,7 @@ public class MasterFaultToleranceIntegrationTest {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
         new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
-    mMultiMasterLocalAlluxioCluster.initializeTestConfiguration();
+    mMultiMasterLocalAlluxioCluster.initConfiguration();
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();
   }

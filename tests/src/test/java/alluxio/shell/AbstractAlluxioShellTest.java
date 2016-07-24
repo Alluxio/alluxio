@@ -69,6 +69,12 @@ public abstract class AbstractAlluxioShellTest {
 
   @Before
   public final void before() throws Exception {
+    if (mLocalAlluxioClusterResource.isStarted()) {
+      resetShellTest();
+    }
+  }
+
+  protected void resetShellTest() throws Exception {
     clearLoginUser();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
     mFileSystem = mLocalAlluxioCluster.getClient();

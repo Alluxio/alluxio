@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
@@ -40,9 +39,6 @@ public class ServiceSocketBindIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(100, Constants.GB, false);
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  private Configuration mWorkerConfiguration = null;
-  private Configuration mMasterConfiguration = null;
-
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
   private BlockWorkerClient mBlockWorkerClient;
@@ -51,7 +47,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      Configuration.set(service.getBindHostKey(), bindHost);
+      mLocalAlluxioClusterResource.setProperty(service.getBindHostKey(), bindHost);
     }
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
