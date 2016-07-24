@@ -101,7 +101,7 @@ public class ApplicationMasterTest {
 
   @Before
   public void before() throws Exception {
-    setupApplicationMaster(ImmutableMap.<String, String>of());
+    setupApplicationMaster(ImmutableMap.<PropertyKey, String>of());
   }
 
   @After
@@ -109,8 +109,8 @@ public class ApplicationMasterTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
-  private void setupApplicationMaster(Map<String, String> properties) throws Exception {
-    for (Entry<String, String> entry : properties.entrySet()) {
+  private void setupApplicationMaster(Map<PropertyKey, String> properties) throws Exception {
+    for (Entry<PropertyKey, String> entry : properties.entrySet()) {
       Configuration.set(entry.getKey(), entry.getValue());
     }
 
