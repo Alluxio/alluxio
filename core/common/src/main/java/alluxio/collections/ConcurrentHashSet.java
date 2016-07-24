@@ -137,7 +137,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
   }
 
   @Override
-  public <T> T[] toArray(T[] a) {
+  public <E> E[] toArray(E[] a) {
     return mMap.keySet().toArray(a);
   }
 
