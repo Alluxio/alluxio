@@ -160,16 +160,16 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    final String[] propertyNames = {Constants.SWIFT_API_KEY, Constants.SWIFT_TENANT_KEY, Constants.SWIFT_USER_KEY,
-      Constants.SWIFT_AUTH_URL_KEY, Constants.SWIFT_AUTH_METHOD_KEY,  Constants.SWIFT_PASSWORD_KEY,
-      Constants.SWIFT_SIMULATION};
+    final String[] propertyNames = {Constants.SWIFT_API_KEY, Constants.SWIFT_TENANT_KEY,
+      Constants.SWIFT_USER_KEY, Constants.SWIFT_AUTH_URL_KEY, Constants.SWIFT_AUTH_METHOD_KEY,
+      Constants.SWIFT_PASSWORD_KEY, Constants.SWIFT_SIMULATION};
     setProperty(configuration, propertyNames);
   }
 
   private static void setProperty(final Configuration configuration, final String[] propertyNames) {
-      for (final String propertyName : propertyNames) {
-          setProperty(configuration, propertyName);
-      }
+    for (final String propertyName : propertyNames) {
+      setProperty(configuration, propertyName);
+    }
   }
 
   private static void setProperty(final Configuration configuration, final String propertyName) {
