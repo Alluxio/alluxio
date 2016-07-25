@@ -120,6 +120,13 @@ As long as the config parameters above are correctly set, the worker will be abl
 ZooKeeper, and find the current leader master to connect to. Therefore, `ALLUXIO_MASTER_HOSTNAME`
 does not have to be set for the workers.
 
+> Note: When running Alluxio in fault tolerant mode, it is possible that the default worker
+> heartbeat timeout value is too short. It is recommended to increase that value to a higher value,
+> in order to handle the situations when a master failover occurs. In order to increase the
+> heartbeat timeout value on the workers, modify the configuration parameter
+> `alluxio.worker.block.heartbeat.timeout.ms` in `conf/alluxio-site.properties` to a larger value
+> (at least a few minutes).
+
 ### Client Configuration
 
 No additional configuration parameters are required for fault tolerant mode. As long as both:
