@@ -105,8 +105,8 @@ each master, the following variable must be set appropriately in `conf/alluxio-e
 
     ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
 
-Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately. 
-For example, if you are using HDFS for the journal, you can add:
+Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately in
+`conf/alluxio-site.properties`. For example, if you are using HDFS for the journal, you can add:
 
     alluxio.master.journal.folder=hdfs://[namenodeserver]:[namenodeport]/path/to/alluxio/journal
 
