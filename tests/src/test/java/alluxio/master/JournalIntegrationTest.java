@@ -480,17 +480,21 @@ public class JournalIntegrationTest {
     // Start a standby master, which will replay the mount entry from the checkpoint.
     final FileSystemMaster fsMaster = MasterTestUtils.createStandbyFileSystemMasterFromJournal();
 
-    CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
-      @Override
-      public Boolean apply(Void input) {
-        try {
-          fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
-          return true;
-        } catch (Exception e) {
-          return false;
+    try {
+      CommonTestUtils.waitFor("standby journal checkpoint replay", new Function<Void, Boolean>() {
+        @Override
+        public Boolean apply(Void input) {
+          try {
+            fsMaster.listStatus(mountUri, ListStatusOptions.defaults());
+            return true;
+          } catch (Exception e) {
+            return false;
+          }
         }
-      }
-    }, 30 * Constants.SECOND_MS);
+      }, 30 * Constants.SECOND_MS);
+    } finally {
+      fsMaster.stop();
+    }
   }
 
   /**
