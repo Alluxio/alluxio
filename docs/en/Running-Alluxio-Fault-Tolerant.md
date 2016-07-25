@@ -100,10 +100,10 @@ details about setting configuration parameters can be found in
 
 ### Master Configuration
 
-In addition to the above configuration settings, Alluxio masters need additional configuration. The
-following variable must be set appropriately in `conf/alluxio-site.properties`:
+In addition to the above configuration settings, Alluxio masters need additional configuration. For
+each master, the following variable must be set appropriately in `conf/alluxio-env.sh`:
 
-    alluxio.master.hostname=[externally visible address of this machine]
+    ALLUXIO_MASTER_HOSTNAME=[externally visible address of this machine]
 
 Also, specify the correct journal folder by setting `alluxio.master.journal.folder` appropriately. 
 For example, if you are using HDFS for the journal, you can add:
