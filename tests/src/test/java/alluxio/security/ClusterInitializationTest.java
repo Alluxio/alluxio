@@ -76,7 +76,7 @@ public class ClusterInitializationTest {
     LoginUserTestUtils.resetLoginUser(SUPER_USER);
 
     // user alluxio can recover master from journal
-    FileSystemMaster fileSystemMaster = MasterTestUtils.createFileSystemMasterFromJournal();
+    FileSystemMaster fileSystemMaster = MasterTestUtils.createLeaderFileSystemMasterFromJournal();
 
     AuthenticatedClientUser.set(SUPER_USER);
     Assert.assertEquals(SUPER_USER,
@@ -102,6 +102,6 @@ public class ClusterInitializationTest {
     LoginUserTestUtils.resetLoginUser(USER);
 
     // user jack cannot recover master from journal, in which the root is owned by alluxio.
-    MasterTestUtils.createFileSystemMasterFromJournal();
+    MasterTestUtils.createLeaderFileSystemMasterFromJournal();
   }
 }
