@@ -40,4 +40,10 @@ public interface Client extends Closeable {
    * @return true if this client is connected to the remote
    */
   boolean isConnected();
+
+  /**
+   * Closes the connection with the remote permanently. This instance should be not be reused after
+   * closing.
+   */
+  void close();
 }

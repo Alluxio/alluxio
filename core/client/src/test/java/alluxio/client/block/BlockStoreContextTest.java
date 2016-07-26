@@ -128,7 +128,7 @@ public final class BlockStoreContextTest {
         .withArguments(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyBoolean(),
             Mockito.any()).thenReturn(workerClientMock);
 
-    final List<DefaultBlockWorkerClient> clients = new ArrayList<>();
+    final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
     Configuration.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
@@ -154,7 +154,7 @@ public final class BlockStoreContextTest {
     // Release all the clients
     // Set the RPC number of retries to -1 to prevent the worker client from trying to send a
     // heartbeat message when it is released.
-    for (DefaultBlockWorkerClient client : clients) {
+    for (BlockWorkerClient client : clients) {
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
 
@@ -210,7 +210,7 @@ public final class BlockStoreContextTest {
   class AcquireWorkerClient implements Runnable {
     @Override
     public void run() {
-      DefaultBlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
+      BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
   }

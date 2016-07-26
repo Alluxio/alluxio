@@ -23,9 +23,9 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class BlockWorkerClientHeartbeatExecutor implements HeartbeatExecutor {
-  private final DefaultBlockWorkerClient mBlockWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
 
-  public BlockWorkerClientHeartbeatExecutor(DefaultBlockWorkerClient blockWorkerClient) {
+  public BlockWorkerClientHeartbeatExecutor(BlockWorkerClient blockWorkerClient) {
     mBlockWorkerClient = Preconditions.checkNotNull(blockWorkerClient);
   }
 
