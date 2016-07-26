@@ -27,7 +27,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DefaultAlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
@@ -59,7 +59,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
 
-  protected AlluxioWorker mWorker;
+  protected AlluxioWorkerService mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mHome;

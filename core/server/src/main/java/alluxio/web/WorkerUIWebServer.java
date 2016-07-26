@@ -14,7 +14,7 @@ package alluxio.web;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
@@ -42,7 +42,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param startTimeMs start time milliseconds
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+      AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
       long startTimeMs) {
     super(serviceType, webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");

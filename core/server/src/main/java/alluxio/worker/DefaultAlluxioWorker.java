@@ -17,7 +17,6 @@ import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
-import alluxio.util.ConfigurationUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
@@ -55,58 +54,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  * for all remote I/O requests for the workers.
  */
 @NotThreadSafe
-public final class DefaultAlluxioWorker implements AlluxioWorker {
+public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
-  private static AlluxioWorker sAlluxioWorker = null;
-
-  /**
-   * Starts the Alluxio worker.
-   *
-   * A block worker will be started and the Alluxio worker will continue to run until the block
-   * worker thread exits.
-   *
-   * @param args command line arguments, should be empty
-   */
-  public static void main(String[] args) {
-    if (args.length != 0) {
-      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
-          AlluxioWorker.class.getCanonicalName());
-      System.exit(-1);
-    }
-
-    // validate the configuration
-    if (!ConfigurationUtils.validateConf()) {
-      LOG.error("Invalid configuration found");
-      System.exit(-1);
-    }
-
-    AlluxioWorker worker = get();
-    try {
-      worker.start();
-    } catch (Exception e) {
-      LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
-      try {
-        worker.stop();
-      } catch (Exception e2) {
-        // continue to exit
-        LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
-      }
-      System.exit(-1);
-    }
-  }
-
-  /**
-   * Returns a handle to the default Alluxio worker instance.
-   *
-   * @return Alluxio worker handle
-   */
-  public static synchronized AlluxioWorker get() {
-    if (sAlluxioWorker == null) {
-      sAlluxioWorker = new DefaultAlluxioWorker();
-    }
-    return sAlluxioWorker;
-  }
 
   /** The worker serving blocks. */
   private BlockWorker mBlockWorker;

@@ -24,7 +24,7 @@ import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataByteArrayChannel;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.io.MockBlockReader;
 import alluxio.worker.block.io.MockBlockWriter;
@@ -57,7 +57,7 @@ public final class NettyDataServerTest {
   public void before() {
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mFileSystemWorker = Mockito.mock(FileSystemWorker.class);
-    AlluxioWorker alluxioWorker = Mockito.mock(AlluxioWorker.class);
+    AlluxioWorkerService alluxioWorker = Mockito.mock(AlluxioWorkerService.class);
     Mockito.when(alluxioWorker.getBlockWorker()).thenReturn(mBlockWorker);
     Mockito.when(alluxioWorker.getFileSystemWorker()).thenReturn(mFileSystemWorker);
 
