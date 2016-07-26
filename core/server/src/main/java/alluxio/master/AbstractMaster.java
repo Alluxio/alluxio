@@ -68,8 +68,8 @@ public abstract class AbstractMaster implements Master {
    */
   protected AbstractMaster(Journal journal, Clock clock, ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
-    mClock = clock;
-    mExecutorService = executorService;
+    mClock = Preconditions.checkNotNull(clock);
+    mExecutorService = Preconditions.checkNotNull(executorService);
   }
 
   @Override
