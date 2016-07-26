@@ -18,7 +18,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 
 /**
- * A simple {@link BlockReader} to use for testing purposes
+ * A simple {@link BlockReader} to use for testing purposes.
  */
 public final class MockBlockReader implements BlockReader {
   private final byte[] mBytes;

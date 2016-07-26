@@ -14,7 +14,7 @@ package alluxio.mesos;
 import alluxio.Constants;
 import alluxio.cli.Format;
 import alluxio.underfs.UnderFileSystemRegistry;
-import alluxio.worker.DefaultAlluxioWorker;
+import alluxio.worker.AlluxioWorker;
 
 import org.apache.mesos.Executor;
 import org.apache.mesos.ExecutorDriver;
@@ -77,7 +77,7 @@ public class AlluxioWorkerExecutor implements Executor {
 
           // TODO(jiri): Consider handling Format.main() failures gracefully.
           Format.main(new String[] {"master"});
-          DefaultAlluxioWorker.main(new String[] {});
+          AlluxioWorker.main(new String[] {});
 
           status =
               Protos.TaskStatus.newBuilder().setTaskId(task.getTaskId())

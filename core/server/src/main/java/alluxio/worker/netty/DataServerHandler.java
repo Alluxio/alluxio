@@ -20,7 +20,7 @@ import alluxio.network.protocol.RPCFileWriteRequest;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCRequest;
 import alluxio.network.protocol.RPCResponse;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 
 import com.google.common.base.Preconditions;
 import io.netty.channel.ChannelHandler;
@@ -52,7 +52,7 @@ final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
    *
    * @param worker the Alluxio worker handle
    */
-  public DataServerHandler(final AlluxioWorker worker) {
+  public DataServerHandler(final AlluxioWorkerService worker) {
     Preconditions.checkNotNull(worker);
     mBlockHandler = new BlockDataServerHandler(worker.getBlockWorker());
     mUnderFileSystemHandler = new UnderFileSystemDataServerHandler(worker.getFileSystemWorker());

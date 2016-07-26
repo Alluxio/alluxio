@@ -57,7 +57,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
   private static final String NOT_ALLUXIO_CONF_PREFIX = "_alluxio_";
 
-  private AlluxioWorker mWorker;
+  private AlluxioWorkerService mWorker;
   private BlockStoreMeta mStoreMeta;
 
   @Before

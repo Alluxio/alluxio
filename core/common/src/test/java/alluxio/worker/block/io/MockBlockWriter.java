@@ -18,13 +18,13 @@ import java.nio.channels.Channels;
 import java.nio.channels.WritableByteChannel;
 
 /**
- * A simple {@link BlockWriter} to use for testing purposes
+ * A simple {@link BlockWriter} to use for testing purposes.
  */
 public final class MockBlockWriter implements BlockWriter {
   private final ByteArrayOutputStream mOutputStream;
 
   /**
-   * Constructs a mock block reader which will read the given data.
+   * Constructs a mock block writer which will remember all bytes written to it.
    */
   public MockBlockWriter() {
     mOutputStream = new ByteArrayOutputStream();

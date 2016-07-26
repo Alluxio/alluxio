@@ -11,84 +11,52 @@
 
 package alluxio.worker;
 
-import alluxio.Server;
-import alluxio.metrics.MetricsSystem;
-import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.block.BlockWorker;
-import alluxio.worker.file.FileSystemWorker;
+import alluxio.Constants;
+import alluxio.RuntimeConstants;
+import alluxio.util.ConfigurationUtils;
 
-import java.net.InetSocketAddress;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * A worker in the Alluxio system.
+ * Class for running an Alluxio worker.
  */
-public interface AlluxioWorker extends Server {
+public final class AlluxioWorker {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /**
-   * @return the block worker for this Alluxio worker
-   */
-  BlockWorker getBlockWorker();
-
-  /**
-   * @return the worker's data service bind host (used by unit test only)
-   */
-  String getDataBindHost();
-
-  /**
-   * @return the worker's data service port (used by unit test only)
-   */
-  int getDataLocalPort();
-
-  /**
-   * @return the file system worker for this Alluxio worker
-   */
-  FileSystemWorker getFileSystemWorker();
-
-  /**
-   * @return the start time of the worker in milliseconds
-   */
-  long getStartTimeMs();
-
-  /**
-   * @return the uptime of the worker in milliseconds
-   */
-  long getUptimeMs();
-
-  /**
-   * @return the worker's RPC service bind host
-   */
-  String getRPCBindHost();
-
-  /**
-   * @return the worker's RPC service port
-   */
-  int getRPCLocalPort();
-
-  /**
-   * @return the worker web service bind host (used by unit test only)
-   */
-  String getWebBindHost();
-
-  /**
-   * @return the worker web service port (used by unit test only)
-   */
-  int getWebLocalPort();
-
-  /**
-   * @return this worker's rpc address
-   */
-  InetSocketAddress getWorkerAddress();
-
-  /**
-   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
-   * server port, data server port, and web server port.
+   * Starts the Alluxio worker.
    *
-   * @return the worker's net address
+   * A block worker will be started and the Alluxio worker will continue to run until the block
+   * worker thread exits.
+   *
+   * @param args command line arguments, should be empty
    */
-  WorkerNetAddress getNetAddress();
+  public static void main(String[] args) {
+    if (args.length != 0) {
+      LOG.info("java -cp {} {}", RuntimeConstants.ALLUXIO_JAR,
+          AlluxioWorkerService.class.getCanonicalName());
+      System.exit(-1);
+    }
 
-  /**
-   * @return the worker metric system reference
-   */
-  MetricsSystem getWorkerMetricsSystem();
+    // validate the configuration
+    if (!ConfigurationUtils.validateConf()) {
+      LOG.error("Invalid configuration found");
+      System.exit(-1);
+    }
+
+    AlluxioWorkerService worker = AlluxioWorkerService.Factory.get();
+    try {
+      worker.start();
+    } catch (Exception e) {
+      LOG.error("Uncaught exception while running Alluxio worker, stopping it and exiting.", e);
+      try {
+        worker.stop();
+      } catch (Exception e2) {
+        // continue to exit
+        LOG.error("Uncaught exception while stopping Alluxio worker, simply exiting.", e2);
+      }
+      System.exit(-1);
+    }
+  }
 }
