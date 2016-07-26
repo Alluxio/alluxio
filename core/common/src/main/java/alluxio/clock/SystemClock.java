@@ -12,9 +12,9 @@
 package alluxio.clock;
 
 /**
- * The Java System clock.
+ * A clock representing the current time as reported by the operating system.
  */
-public class SystemClock implements Clock {
+public final class SystemClock implements Clock {
   /**
    * Constructs a new {@link Clock} which reports the actual time.
    */
