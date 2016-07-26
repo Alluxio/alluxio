@@ -80,8 +80,9 @@ public final class DefaultBlockWorkerClient extends AbstractClient implements Bl
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public DefaultBlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
-      long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
+  public DefaultBlockWorkerClient(WorkerNetAddress workerNetAddress,
+      ExecutorService executorService, long sessionId, boolean isLocal,
+      ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "blockWorker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
     mWorkerDataServerAddress = NetworkAddressUtils.getDataPortSocketAddress(workerNetAddress);
