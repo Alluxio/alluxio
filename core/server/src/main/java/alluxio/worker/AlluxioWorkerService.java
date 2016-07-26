@@ -22,6 +22,10 @@ import java.net.InetSocketAddress;
 /**
  * A worker in the Alluxio system.
  */
+// We would call this interface AlluxioWorker but we want to reserve
+// that name for the main() class for launching an Alluxio worker. When
+// we drop support for java 7, we can include a main() class in an
+// interface and merge this into AlluxioWorker.
 public interface AlluxioWorkerService extends Server {
 
   /**
