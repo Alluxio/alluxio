@@ -35,8 +35,7 @@ public interface BlockMasterClient extends Client {
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  List<WorkerInfo> getWorkerInfoList()
-      throws IOException, ConnectionFailedException;
+  List<WorkerInfo> getWorkerInfoList() throws IOException, ConnectionFailedException;
 
   /**
    * Returns the {@link BlockInfo} for a block id.
@@ -46,8 +45,7 @@ public interface BlockMasterClient extends Client {
    * @throws AlluxioException if an Alluxio error occurs
    * @throws IOException if an I/O error occurs
    */
-  BlockInfo getBlockInfo(final long blockId)
-      throws AlluxioException, IOException;
+  BlockInfo getBlockInfo(final long blockId) throws AlluxioException, IOException;
 
   /**
    * Gets the total Alluxio capacity in bytes, on all the tiers of all the workers.

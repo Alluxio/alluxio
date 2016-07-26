@@ -38,32 +38,17 @@ import java.util.Arrays;
 @PrepareForTest({BlockStoreContext.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
-  private static final long BLOCK_LENGTH = 1000L;
   private static final long LOCK_ID = 44L;
-  private static final long WORKER_ID_LOCAL = 5L;
-  private static final long WORKER_ID_REMOTE = 6L;
   private static final String WORKER_HOSTNAME_LOCAL = "localhost";
   private static final String WORKER_HOSTNAME_REMOTE = "remote";
-  private static final int WORKER_RPC_PORT = 7;
-  private static final int WORKER_DATA_PORT = 9;
-  private static final int WORKER_WEB_PORT = 10;
   private static final WorkerNetAddress WORKER_NET_ADDRESS_LOCAL = new WorkerNetAddress()
-      .setHost(WORKER_HOSTNAME_LOCAL).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
-      .setWebPort(WORKER_WEB_PORT);
+      .setHost(WORKER_HOSTNAME_LOCAL);
   private static final WorkerNetAddress WORKER_NET_ADDRESS_REMOTE = new WorkerNetAddress()
-      .setHost(WORKER_HOSTNAME_REMOTE).setRpcPort(WORKER_RPC_PORT).setDataPort(WORKER_DATA_PORT)
-      .setWebPort(WORKER_WEB_PORT);
-  private static final String STORAGE_TIER = "mem";
+      .setHost(WORKER_HOSTNAME_REMOTE);
   private static final BlockLocation BLOCK_LOCATION_LOCAL = new BlockLocation()
-      .setWorkerId(WORKER_ID_LOCAL).setWorkerAddress(WORKER_NET_ADDRESS_LOCAL)
-      .setTierAlias(STORAGE_TIER);
+      .setWorkerAddress(WORKER_NET_ADDRESS_LOCAL);
   private static final BlockLocation BLOCK_LOCATION_REMOTE = new BlockLocation()
-      .setWorkerId(WORKER_ID_REMOTE).setWorkerAddress(WORKER_NET_ADDRESS_REMOTE)
-      .setTierAlias(STORAGE_TIER);
-  /** {@link BlockInfo} representing a block stored both remotely and locally. */
-  private static final BlockInfo BLOCK_INFO = new BlockInfo().setBlockId(BLOCK_ID)
-      .setLength(BLOCK_LENGTH)
-      .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL));
+      .setWorkerAddress(WORKER_NET_ADDRESS_REMOTE);
 
   /**
    * The rule for a temporary folder.
@@ -73,17 +58,13 @@ public final class AlluxioBlockStoreTest {
 
   private BlockMasterClient mMasterClient;
   private BlockWorkerClient mBlockWorkerClient;
+  private AlluxioBlockStore mBlockStore;
 
   @Before
   public void before() throws Exception {
     mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
-  }
 
-  /**
-   * @param localhostName the hostname for localhost
-   */
-  private AlluxioBlockStore setupBlockStore(String localhostName) throws Exception {
     BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
     // Mock block store context to return our mock clients
     Mockito.when(blockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
@@ -91,7 +72,7 @@ public final class AlluxioBlockStoreTest {
     Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
         new DummyCloseableResource<>(mMasterClient));
 
-    return new AlluxioBlockStore(blockStoreContext, localhostName);
+    mBlockStore = new AlluxioBlockStore(blockStoreContext, WORKER_HOSTNAME_LOCAL);
   }
 
   /**
@@ -100,14 +81,15 @@ public final class AlluxioBlockStoreTest {
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
-    AlluxioBlockStore blockStore = setupBlockStore(WORKER_HOSTNAME_LOCAL);
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
+        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL)));
+
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = blockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
     Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
   }
 
@@ -117,14 +99,15 @@ public final class AlluxioBlockStoreTest {
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
-    AlluxioBlockStore blockStore = setupBlockStore("notlocalhost");
-    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
+        .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE)));
+
     File mTestFile = mTestFolder.newFile("testFile");
     // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
     Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
         new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    BufferedBlockInStream stream = blockStore.getInStream(BLOCK_ID);
+    BufferedBlockInStream stream = mBlockStore.getInStream(BLOCK_ID);
     Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
   }
 }
