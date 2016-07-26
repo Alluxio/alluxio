@@ -33,6 +33,11 @@ public class TestClock implements Clock {
     mTime = time;
   }
 
+  /**
+   * Sets the clock to the specified time.
+   * 
+   * @param time the time to set the clock to
+   */
   public synchronized void setTimeMs(long time) {
     mTime = time;
   }
