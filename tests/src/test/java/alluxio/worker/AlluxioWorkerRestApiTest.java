@@ -63,7 +63,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Before
   public void before() {
     mWorker = PowerMockito.spy(mResource.get().getWorker());
-    Whitebox.setInternalState(DefaultAlluxioWorker.class, "sAlluxioWorker", mWorker);
+    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorker);
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
     Whitebox.setInternalState(mWorker, "mBlockWorker", blockWorker);
     mStoreMeta = PowerMockito.mock(BlockStoreMeta.class);
