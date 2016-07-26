@@ -38,7 +38,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final Long mLockId;
 
   /** Client to communicate with the remote worker. */
-  private final BlockWorkerClient mBlockWorkerClient;
+  private final DefaultBlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
   private final ClientMetrics mMetrics;

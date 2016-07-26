@@ -27,7 +27,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class RemoteBlockOutStream extends BufferedBlockOutStream {
   private final RemoteBlockWriter mRemoteWriter;
-  private final BlockWorkerClient mBlockWorkerClient;
+  private final DefaultBlockWorkerClient mBlockWorkerClient;
   private final ClientMetrics mMetrics;
 
   /**

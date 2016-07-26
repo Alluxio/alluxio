@@ -36,7 +36,7 @@ import java.util.List;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, BlockStoreContext.class,
-    BlockWorkerClient.class, BlockWorkerClientPool.class})
+    DefaultBlockWorkerClient.class, BlockWorkerClientPool.class})
 public final class BlockStoreContextTest {
 
   /**
@@ -119,15 +119,15 @@ public final class BlockStoreContextTest {
 
     // Use mocks for the block worker client to prevent it from trying to invoke the session
     // heartbeat RPC.
-    BlockWorkerClient workerClientMock = PowerMockito.mock(BlockWorkerClient.class);
+    DefaultBlockWorkerClient workerClientMock = PowerMockito.mock(DefaultBlockWorkerClient.class);
     PowerMockito.doNothing().when(workerClientMock).sessionHeartbeat();
     PowerMockito.doReturn(true).when(workerClientMock).isLocal();
     PowerMockito.doReturn(list.get(0).getAddress()).when(workerClientMock).getWorkerNetAddress();
-    PowerMockito.whenNew(BlockWorkerClient.class)
+    PowerMockito.whenNew(DefaultBlockWorkerClient.class)
         .withArguments(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyBoolean(),
             Mockito.any()).thenReturn(workerClientMock);
 
-    final List<BlockWorkerClient> clients = new ArrayList<>();
+    final List<DefaultBlockWorkerClient> clients = new ArrayList<>();
 
     // Reduce the size of the worker thread pool to lower the chance of a timeout.
     Configuration.set(Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
@@ -153,7 +153,7 @@ public final class BlockStoreContextTest {
     // Release all the clients
     // Set the RPC number of retries to -1 to prevent the worker client from trying to send a
     // heartbeat message when it is released.
-    for (BlockWorkerClient client : clients) {
+    for (DefaultBlockWorkerClient client : clients) {
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
 
@@ -207,7 +207,7 @@ public final class BlockStoreContextTest {
   class AcquireWorkerClient implements Runnable {
     @Override
     public void run() {
-      BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
+      DefaultBlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
   }

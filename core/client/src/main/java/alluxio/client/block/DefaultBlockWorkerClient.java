@@ -54,7 +54,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * has to guarantee thread safety.
  */
 @ThreadSafe
-public final class BlockWorkerClient extends AbstractClient {
+public final class DefaultBlockWorkerClient extends AbstractClient implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -72,7 +72,7 @@ public final class BlockWorkerClient extends AbstractClient {
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a {@link BlockWorkerClient}.
+   * Creates a {@link DefaultBlockWorkerClient}.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -80,7 +80,7 @@ public final class BlockWorkerClient extends AbstractClient {
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public BlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
+  public DefaultBlockWorkerClient(WorkerNetAddress workerNetAddress, ExecutorService executorService,
       long sessionId, boolean isLocal, ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "blockWorker");
     mWorkerNetAddress = Preconditions.checkNotNull(workerNetAddress);
@@ -92,20 +92,12 @@ public final class BlockWorkerClient extends AbstractClient {
     mHeartbeatExecutor = new BlockWorkerClientHeartbeatExecutor(this);
   }
 
-  /**
-   * @return the address of the worker
-   */
+  @Override
   public WorkerNetAddress getWorkerNetAddress() {
     return mWorkerNetAddress;
   }
 
-  /**
-   * Updates the latest block access time on the worker.
-   *
-   * @param blockId The id of the block
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
-   */
+  @Override
   public synchronized void accessBlock(final long blockId) throws ConnectionFailedException,
       IOException {
     retryRPC(new RpcCallable<Void>() {
@@ -117,14 +109,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Notifies the worker to checkpoint the file asynchronously.
-   *
-   * @param fileId The id of the file
-   * @return true if success, false otherwise
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
+  @Override
   public synchronized boolean asyncCheckpoint(final long fileId) throws IOException,
       AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
@@ -135,13 +120,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Notifies the worker the block is cached.
-   *
-   * @param blockId The id of the block
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
+  @Override
   public synchronized void cacheBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
@@ -152,13 +131,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Notifies worker that the block has been cancelled.
-   *
-   * @param blockId The Id of the block to be cancelled
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
+  @Override
   public synchronized void cancelBlock(final long blockId) throws IOException, AlluxioException {
     retryRPC(new RpcCallableThrowsAlluxioTException<Void>() {
       @Override
@@ -232,13 +205,7 @@ public final class BlockWorkerClient extends AbstractClient {
     }
   }
 
-  /**
-   * Updates the session id of the client, starting a new session. The previous session's held
-   * resources should have already been freed, and will be automatically freed after the timeout is
-   * exceeded.
-   *
-   * @param newSessionId the new id that represents the new session
-   */
+  @Override
   public synchronized void createNewSession(long newSessionId) {
     mSessionId = newSessionId;
   }
@@ -251,35 +218,22 @@ public final class BlockWorkerClient extends AbstractClient {
     return mAddress;
   }
 
-  /**
-   * @return the address of the worker's data server
-   */
+  @Override
   public synchronized InetSocketAddress getDataServerAddress() {
     return mWorkerDataServerAddress;
   }
 
-  /**
-   * @return the id of the session
-   */
+  @Override
   public synchronized long getSessionId() {
     return mSessionId;
   }
 
-  /**
-   * @return true if the worker is local, false otherwise
-   */
+  @Override
   public synchronized boolean isLocal() {
     return mIsLocal;
   }
 
-  /**
-   * Locks the block, therefore, the worker will not evict the block from the memory until it is
-   * unlocked.
-   *
-   * @param blockId The id of the block
-   * @return the path of the block file locked
-   * @throws IOException if a non-Alluxio exception occurs
-   */
+  @Override
   public synchronized LockBlockResult lockBlock(final long blockId) throws IOException {
     // TODO(jiri) Would be nice to have a helper method to execute this try-catch logic
     try {
@@ -316,14 +270,7 @@ public final class BlockWorkerClient extends AbstractClient {
     throw new IOException("Failed to connect to the worker");
   }
 
-  /**
-   * Promotes block back to the top StorageTier.
-   *
-   * @param blockId The id of the block that will be promoted
-   * @return true if succeed, false otherwise
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
+  @Override
   public synchronized boolean promoteBlock(final long blockId) throws IOException,
       AlluxioException {
     return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
@@ -334,14 +281,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Gets temporary path for the block from the worker.
-   *
-   * @param blockId The id of the block
-   * @param initialBytes The initial size bytes allocated for the block
-   * @return the temporary path of the block
-   * @throws IOException if a non-Alluxio exception occurs
-   */
+  @Override
   public synchronized String requestBlockLocation(final long blockId, final long initialBytes)
       throws IOException {
     try {
@@ -360,15 +300,7 @@ public final class BlockWorkerClient extends AbstractClient {
     }
   }
 
-  /**
-   * Requests space for some block from worker.
-   *
-   * @param blockId The id of the block
-   * @param requestBytes The requested space size, in bytes
-   * @return true if space was successfully allocated, false if the worker is unable to allocate
-   *         space due to space exhaustion
-   * @throws IOException if an exception occurs
-   */
+  @Override
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
     try {
@@ -383,14 +315,7 @@ public final class BlockWorkerClient extends AbstractClient {
     }
   }
 
-  /**
-   * Unlocks the block.
-   *
-   * @param blockId The id of the block
-   * @return true if success, false otherwise
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
-   */
+  @Override
   public synchronized boolean unlockBlock(final long blockId) throws ConnectionFailedException,
       IOException {
     return retryRPC(new RpcCallable<Boolean>() {
@@ -401,13 +326,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Sends a session heartbeat to the worker. This renews the client's lease on resources such as
-   * locks and temporary files and updates the worker's metrics.
-   *
-   * @throws ConnectionFailedException if network connection failed
-   * @throws IOException if an I/O error occurs
-   */
+  @Override
   public synchronized void sessionHeartbeat() throws ConnectionFailedException, IOException {
     retryRPC(new RpcCallable<Void>() {
       @Override
@@ -418,11 +337,7 @@ public final class BlockWorkerClient extends AbstractClient {
     });
   }
 
-  /**
-   * Called only by {@link BlockWorkerClientHeartbeatExecutor}, encapsulates
-   * {@link #sessionHeartbeat()} in order to cancel and cleanup the heartbeating thread in case of
-   * failures.
-   */
+  @Override
   public synchronized void periodicHeartbeat() {
     if (mClosed) {
       return;
@@ -438,10 +353,7 @@ public final class BlockWorkerClient extends AbstractClient {
     }
   }
 
-  /**
-   * Gets the client metrics of the worker.
-   * @return the metrics of the worker
-   */
+  @Override
   public ClientMetrics getClientMetrics() {
     return mClientMetrics;
   }
