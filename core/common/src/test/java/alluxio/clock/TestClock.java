@@ -14,7 +14,7 @@ package alluxio.clock;
 /**
  * A modifiable clock useful for testing.
  */
-public class TestClock implements Clock {
+public final class TestClock implements Clock {
   private long mTime;
 
   /**
@@ -35,7 +35,7 @@ public class TestClock implements Clock {
 
   /**
    * Sets the clock to the specified time.
-   * 
+   *
    * @param time the time to set the clock to
    */
   public synchronized void setTimeMs(long time) {
