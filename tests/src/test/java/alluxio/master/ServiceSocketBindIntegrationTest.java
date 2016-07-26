@@ -16,7 +16,7 @@ import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
-import alluxio.client.block.DefaultBlockWorkerClient;
+import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
@@ -45,7 +45,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
-  private DefaultBlockWorkerClient mBlockWorkerClient;
+  private BlockWorkerClient mBlockWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 

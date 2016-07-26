@@ -35,7 +35,7 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   /** Helper to manage closables. */
   private final Closer mCloser;
   /** Client to communicate with the local worker. */
-  private final DefaultBlockWorkerClient mBlockWorkerClient;
+  private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
   /** The file reader to read a local block. */

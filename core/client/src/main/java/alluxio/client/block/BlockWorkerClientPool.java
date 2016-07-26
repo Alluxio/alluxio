@@ -29,7 +29,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * thread is done using the client.
  */
 @ThreadSafe
-final class BlockWorkerClientPool extends ResourcePool<DefaultBlockWorkerClient> {
+final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
@@ -53,7 +53,7 @@ final class BlockWorkerClientPool extends ResourcePool<DefaultBlockWorkerClient>
   }
 
   @Override
-  public void release(DefaultBlockWorkerClient blockWorkerClient) {
+  public void release(BlockWorkerClient blockWorkerClient) {
     try {
       // Heartbeat to send the client metrics.
       blockWorkerClient.sessionHeartbeat();
@@ -65,7 +65,7 @@ final class BlockWorkerClientPool extends ResourcePool<DefaultBlockWorkerClient>
   }
 
   @Override
-  protected DefaultBlockWorkerClient createNewResource() {
+  protected BlockWorkerClient createNewResource() {
     long clientId = IdUtils.getRandomNonNegativeLong();
     return new DefaultBlockWorkerClient(mWorkerNetAddress, ClientContext.getBlockClientExecutorService(),
         clientId, true, ClientContext.getClientMetrics());

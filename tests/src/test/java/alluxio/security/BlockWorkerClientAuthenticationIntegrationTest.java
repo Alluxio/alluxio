@@ -13,6 +13,7 @@ package alluxio.security;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.DefaultBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
@@ -88,7 +89,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
-    try (DefaultBlockWorkerClient blockWorkerClient = new DefaultBlockWorkerClient(
+    try (BlockWorkerClient blockWorkerClient = new DefaultBlockWorkerClient(
         mLocalAlluxioClusterResource.get().getWorkerAddress(), mExecutorService,
         1 /* fake session id */, true, new ClientMetrics())) {
       Assert.assertFalse(blockWorkerClient.isConnected());
