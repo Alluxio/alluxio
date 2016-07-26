@@ -45,7 +45,8 @@ import javax.ws.rs.core.Response;
  * Test cases for {@link BlockWorkerClientRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorkerService.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
+@PrepareForTest({AlluxioWorkerService.class, BlockReader.class, BlockWorker.class,
+    BlockWriter.class})
 public final class BlockWorkerClientRestApiTest extends RestApiTest {
   private BlockWorker mBlockWorker;
 

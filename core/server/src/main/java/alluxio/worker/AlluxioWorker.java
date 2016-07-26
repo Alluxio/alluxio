@@ -59,4 +59,6 @@ public final class AlluxioWorker {
       System.exit(-1);
     }
   }
+
+  private AlluxioWorker() {} // Not intended for instantiation
 }

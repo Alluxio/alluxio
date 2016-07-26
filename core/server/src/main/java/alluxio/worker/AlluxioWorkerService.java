@@ -41,6 +41,8 @@ public interface AlluxioWorkerService extends Server {
       }
       return sAlluxioWorker;
     }
+
+    private Factory() {} // Not intended for instantiation
   }
 
   /**

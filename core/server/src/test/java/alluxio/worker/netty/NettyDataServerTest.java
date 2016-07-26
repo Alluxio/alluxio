@@ -11,8 +11,10 @@
 
 package alluxio.worker.netty;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import alluxio.client.netty.ClientHandler;
 import alluxio.client.netty.NettyClient;
@@ -167,7 +169,8 @@ public final class NettyDataServerTest {
   }
 
   private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
-    InetSocketAddress address = new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
+    InetSocketAddress address =
+        new InetSocketAddress(mNettyDataServer.getBindHost(), mNettyDataServer.getPort());
     ClientHandler handler = new ClientHandler();
     Bootstrap clientBootstrap = NettyClient.createClientBootstrap(handler);
     ChannelFuture f = clientBootstrap.connect(address).sync();
