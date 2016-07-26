@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
+import alluxio.Server;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -58,7 +59,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * Entry point for the Alluxio master program.
  */
 @NotThreadSafe
-public class AlluxioMaster {
+public class AlluxioMaster implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static AlluxioMaster sAlluxioMaster = null;
@@ -379,21 +380,13 @@ public class AlluxioMaster {
     return mIsServing;
   }
 
-  /**
-   * Starts the Alluxio master server.
-   *
-   * @throws Exception if starting the master fails
-   */
+  @Override
   public void start() throws Exception {
     startMasters(true);
     startServing();
   }
 
-  /**
-   * Stops the Alluxio master server.
-   *
-   * @throws Exception if stopping the master fails
-   */
+  @Override
   public void stop() throws Exception {
     if (mIsServing) {
       LOG.info("Stopping RPC server on Alluxio master @ {}", mMasterAddress);
