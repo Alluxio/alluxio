@@ -63,7 +63,7 @@ public abstract class AbstractMaster implements Master {
 
   /**
    * @param journal the journal to use for tracking master operations
-   * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
+   * @param clock the Clock to use for determining the time
    * @param executorService the executor service to use for running maintenance threads
    */
   protected AbstractMaster(Journal journal, Clock clock, ExecutorService executorService) {
