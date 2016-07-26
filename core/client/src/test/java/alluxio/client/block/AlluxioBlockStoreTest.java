@@ -12,7 +12,6 @@
 package alluxio.client.block;
 
 import alluxio.resource.DummyCloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.wire.BlockInfo;
 import alluxio.wire.BlockLocation;
 import alluxio.wire.LockBlockResult;
@@ -20,7 +19,6 @@ import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -29,18 +27,15 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.File;
-import java.net.InetSocketAddress;
 import java.util.Arrays;
 
 /**
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, NetworkAddressUtils.class,
-    BlockWorkerClient.class})
+@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, BlockWorkerClient.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;
@@ -76,35 +71,27 @@ public final class AlluxioBlockStoreTest {
   @Rule
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
-  private static AlluxioBlockStore sBlockStore;
-  private static BlockMasterClient sMasterClient;
-  private static BlockWorkerClient sBlockWorkerClient;
-
-  @BeforeClass
-  public static void beforeClass() throws Exception {
-    // Replace the singleton BlockStoreContext.INSTANCE with a mock we can control
-    BlockStoreContext sBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
-    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", sBlockStoreContext);
-
-    // Mock block store should return our mock clients
-    sBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
-    Mockito.when(sBlockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
-        .thenReturn(sBlockWorkerClient);
-    sMasterClient = PowerMockito.mock(BlockMasterClient.class);
-    Mockito.when(sBlockStoreContext.acquireMasterClientResource()).thenReturn(
-        new DummyCloseableResource<>(sMasterClient));
-
-    // Inform the block store that it should use the mock context
-    sBlockStore = AlluxioBlockStore.get();
-    Whitebox.setInternalState(sBlockStore, "mContext", sBlockStoreContext);
-  }
+  private BlockMasterClient mMasterClient;
+  private BlockWorkerClient mBlockWorkerClient;
 
   @Before
   public void before() throws Exception {
-    File mTestFile = mTestFolder.newFile("testFile");
-    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
-    Mockito.when(sBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
-        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
+    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    mMasterClient = PowerMockito.mock(BlockMasterClient.class);
+  }
+
+  /**
+   * @param localhostName the hostname for localhost
+   */
+  private AlluxioBlockStore setupBlockStore(String localhostName) throws Exception {
+    BlockStoreContext blockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    // Mock block store context to return our mock clients
+    Mockito.when(blockStoreContext.acquireWorkerClient(Mockito.any(WorkerNetAddress.class)))
+        .thenReturn(mBlockWorkerClient);
+    Mockito.when(blockStoreContext.acquireMasterClientResource()).thenReturn(
+        new DummyCloseableResource<>(mMasterClient));
+
+    return new AlluxioBlockStore(blockStoreContext, localhostName);
   }
 
   /**
@@ -113,14 +100,15 @@ public final class AlluxioBlockStoreTest {
    */
   @Test
   public void getInStreamLocalTest() throws Exception {
-    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
-    PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName()).thenReturn(WORKER_HOSTNAME_LOCAL);
-    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
+    AlluxioBlockStore blockStore = setupBlockStore(WORKER_HOSTNAME_LOCAL);
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    File mTestFile = mTestFolder.newFile("testFile");
+    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    Assert.assertTrue(stream instanceof LocalBlockInStream);
-    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
+    BufferedBlockInStream stream = blockStore.getInStream(BLOCK_ID);
+    Assert.assertEquals(LocalBlockInStream.class, stream.getClass());
   }
 
   /**
@@ -129,16 +117,14 @@ public final class AlluxioBlockStoreTest {
    */
   @Test
   public void getInStreamRemoteTest() throws Exception {
-    Mockito.when(sMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
-    PowerMockito.mockStatic(NetworkAddressUtils.class);
-    Mockito.when(NetworkAddressUtils.getLocalHostName())
-        .thenReturn(WORKER_HOSTNAME_LOCAL + "_different");
-    BufferedBlockInStream stream = sBlockStore.getInStream(BLOCK_ID);
+    AlluxioBlockStore blockStore = setupBlockStore("notlocalhost");
+    Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(BLOCK_INFO);
+    File mTestFile = mTestFolder.newFile("testFile");
+    // When a block lock for id BLOCK_ID is requested, a path to a temporary file is returned
+    Mockito.when(mBlockWorkerClient.lockBlock(BLOCK_ID)).thenReturn(
+        new LockBlockResult().setLockId(LOCK_ID).setBlockPath(mTestFile.getAbsolutePath()));
 
-    Assert.assertTrue(stream instanceof RemoteBlockInStream);
-    Assert.assertEquals(BLOCK_ID, (long) Whitebox.getInternalState(stream, "mBlockId"));
-    Assert.assertEquals(BLOCK_LENGTH, (long) Whitebox.getInternalState(stream, "mBlockSize"));
-    Assert.assertEquals(new InetSocketAddress(WORKER_HOSTNAME_REMOTE, WORKER_DATA_PORT),
-        Whitebox.getInternalState(stream, "mWorkerInetSocketAddress"));
+    BufferedBlockInStream stream = blockStore.getInStream(BLOCK_ID);
+    Assert.assertEquals(RemoteBlockInStream.class, stream.getClass());
   }
 }
