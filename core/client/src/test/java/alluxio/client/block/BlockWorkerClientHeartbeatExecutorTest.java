@@ -22,7 +22,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * Tests for the {@link BlockWorkerClientHeartbeatExecutor} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest(BlockWorkerClient.class)
+@PrepareForTest(DefaultBlockWorkerClient.class)
 public class BlockWorkerClientHeartbeatExecutorTest {
 
   /**
@@ -30,7 +30,7 @@ public class BlockWorkerClientHeartbeatExecutorTest {
    */
   @Test
   public void heartbeatCallsPeriodicHeartbeat() throws Exception {
-    BlockWorkerClient mock = PowerMockito.mock(BlockWorkerClient.class);
+    DefaultBlockWorkerClient mock = PowerMockito.mock(DefaultBlockWorkerClient.class);
     BlockWorkerClientHeartbeatExecutor heartbeatExecutor =
         new BlockWorkerClientHeartbeatExecutor(mock);
 

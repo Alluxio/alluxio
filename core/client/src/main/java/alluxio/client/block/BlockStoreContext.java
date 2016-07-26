@@ -128,11 +128,11 @@ public enum BlockStoreContext {
    * Obtains a client for a worker with the given address.
    *
    * @param address the address of the worker to get a client to
-   * @return a {@link BlockWorkerClient} connected to the worker with the given hostname
+   * @return a {@link DefaultBlockWorkerClient} connected to the worker with the given hostname
    * @throws IOException if no Alluxio worker is available for the given hostname
    */
-  public BlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
-    BlockWorkerClient client;
+  public DefaultBlockWorkerClient acquireWorkerClient(WorkerNetAddress address) throws IOException {
+    DefaultBlockWorkerClient client;
     if (address == null) {
       throw new RuntimeException(ExceptionMessage.NO_WORKER_AVAILABLE.getMessage());
     }
@@ -151,9 +151,9 @@ public enum BlockStoreContext {
   /**
    * Obtains a worker client on the local worker in the system. For testing only.
    *
-   * @return a {@link BlockWorkerClient} to a worker in the Alluxio system or null if failed
+   * @return a {@link DefaultBlockWorkerClient} to a worker in the Alluxio system or null if failed
    */
-  public BlockWorkerClient acquireLocalWorkerClient() {
+  public DefaultBlockWorkerClient acquireLocalWorkerClient() {
     initializeLocalBlockWorkerClientPool();
     if (mLocalBlockWorkerClientPoolMap.isEmpty()) {
       return null;
@@ -167,10 +167,10 @@ public enum BlockStoreContext {
    *
    * @param address worker address
    *
-   * @return a {@link BlockWorkerClient} to the given worker address or null if no such worker can
+   * @return a {@link DefaultBlockWorkerClient} to the given worker address or null if no such worker can
    *         be found
    */
-  public BlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
+  public DefaultBlockWorkerClient acquireLocalWorkerClient(WorkerNetAddress address) {
     initializeLocalBlockWorkerClientPool();
     if (!mLocalBlockWorkerClientPoolMap.containsKey(address)) {
       return null;
@@ -186,7 +186,7 @@ public enum BlockStoreContext {
    * @param address the address of the worker
    * @return a worker client with a connection to the specified hostname
    */
-  private BlockWorkerClient acquireRemoteWorkerClient(WorkerNetAddress address) {
+  private DefaultBlockWorkerClient acquireRemoteWorkerClient(WorkerNetAddress address) {
     // If we couldn't find a worker, crash.
     if (address == null) {
       // TODO(calvin): Better exception usage.
@@ -195,18 +195,18 @@ public enum BlockStoreContext {
     Preconditions.checkArgument(!address.getHost().equals(NetworkAddressUtils.getLocalHostName()),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new BlockWorkerClient(address, ClientContext.getBlockClientExecutorService(), clientId,
+    return new DefaultBlockWorkerClient(address, ClientContext.getBlockClientExecutorService(), clientId,
         false, new ClientMetrics());
   }
 
   /**
-   * Releases the {@link BlockWorkerClient} back to the client pool, or destroys it if it was a
+   * Releases the {@link DefaultBlockWorkerClient} back to the client pool, or destroys it if it was a
    * remote client.
    *
    * @param blockWorkerClient the worker client to release, the client should not be accessed after
    *        this method is called
    */
-  public void releaseWorkerClient(BlockWorkerClient blockWorkerClient) {
+  public void releaseWorkerClient(DefaultBlockWorkerClient blockWorkerClient) {
     // If the client is local and the pool exists, release the client to the pool, otherwise just
     // close the client.
     if (blockWorkerClient.isLocal()) {

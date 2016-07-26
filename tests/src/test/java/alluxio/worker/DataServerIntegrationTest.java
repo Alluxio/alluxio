@@ -20,7 +20,7 @@ import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
-import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.DefaultBlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -74,7 +74,7 @@ public class DataServerIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource;
   private FileSystem mFileSystem = null;
   private BlockMasterClient mBlockMasterClient;
-  private BlockWorkerClient mBlockWorkerClient;
+  private DefaultBlockWorkerClient mBlockWorkerClient;
 
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES,

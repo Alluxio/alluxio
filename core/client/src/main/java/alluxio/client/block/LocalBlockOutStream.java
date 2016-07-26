@@ -37,7 +37,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class LocalBlockOutStream extends BufferedBlockOutStream {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final Closer mCloser;
-  private final BlockWorkerClient mBlockWorkerClient;
+  private final DefaultBlockWorkerClient mBlockWorkerClient;
   private final LocalFileBlockWriter mWriter;
   private long mReservedBytes;
 

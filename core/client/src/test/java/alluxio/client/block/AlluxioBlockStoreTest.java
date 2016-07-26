@@ -35,7 +35,7 @@ import java.util.Arrays;
  * Tests for {@link AlluxioBlockStore}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockStoreContext.class, BlockWorkerClient.class})
+@PrepareForTest({BlockStoreContext.class, DefaultBlockWorkerClient.class})
 public final class AlluxioBlockStoreTest {
   private static final long BLOCK_ID = 3L;
   private static final long BLOCK_LENGTH = 1000L;
@@ -72,11 +72,11 @@ public final class AlluxioBlockStoreTest {
   public TemporaryFolder mTestFolder = new TemporaryFolder();
 
   private BlockMasterClient mMasterClient;
-  private BlockWorkerClient mBlockWorkerClient;
+  private DefaultBlockWorkerClient mBlockWorkerClient;
 
   @Before
   public void before() throws Exception {
-    mBlockWorkerClient = PowerMockito.mock(BlockWorkerClient.class);
+    mBlockWorkerClient = PowerMockito.mock(DefaultBlockWorkerClient.class);
     mMasterClient = PowerMockito.mock(BlockMasterClient.class);
   }
 
