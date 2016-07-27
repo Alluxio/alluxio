@@ -12,6 +12,8 @@
 package alluxio.heartbeat;
 
 import alluxio.Constants;
+import alluxio.time.Sleeper;
+import alluxio.time.ThreadSleeper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,21 +25,37 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class SleepingTimer implements HeartbeatTimer {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   private final long mIntervalMs;
   private long mPreviousTickMs;
   private final String mThreadName;
+  private final Logger mLogger;
+  private final Sleeper mSleeper;
+
+  /**
+   * Creates a new instance of {@link SleepingTimer} which uses the default logger and sleeping
+   * utility.
+   *
+   * @param threadName the thread name
+   * @param intervalMs the heartbeat interval
+   */
+  public SleepingTimer(String threadName, long intervalMs) {
+    this(threadName, intervalMs, LoggerFactory.getLogger(Constants.LOGGER_TYPE),
+        new ThreadSleeper());
+  }
 
   /**
    * Creates a new instance of {@link SleepingTimer}.
    *
    * @param threadName the thread name
    * @param intervalMs the heartbeat interval
+   * @param logger the logger to log to
+   * @param sleeper the utility to use for lseeper
    */
-  public SleepingTimer(String threadName, long intervalMs) {
+  public SleepingTimer(String threadName, long intervalMs, Logger logger, Sleeper sleeper) {
     mIntervalMs = intervalMs;
     mThreadName = threadName;
+    mLogger = logger;
+    mSleeper = sleeper;
   }
 
   /**
@@ -47,14 +65,14 @@ public final class SleepingTimer implements HeartbeatTimer {
    */
   public void tick() throws InterruptedException {
     if (mPreviousTickMs == 0) {
-      Thread.sleep(mIntervalMs);
+      mSleeper.sleep(mIntervalMs);
     } else {
       long executionTimeMs = System.currentTimeMillis() - mPreviousTickMs;
       if (executionTimeMs > mIntervalMs) {
-        LOG.warn("{} last execution took {} ms. Longer than the interval {}",
-                mThreadName, executionTimeMs, mIntervalMs);
+        mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
+            executionTimeMs, mIntervalMs);
       } else {
-        Thread.sleep(mIntervalMs - executionTimeMs);
+        mSleeper.sleep(mIntervalMs - executionTimeMs);
       }
     }
     mPreviousTickMs = System.currentTimeMillis();
