@@ -474,6 +474,8 @@ public final class Constants {
       "alluxio.security.authorization.permission.supergroup";
   // Group Mapping
   public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
+  public static final String SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
+      "alluxio.security.group.mapping.cache.timeout.ms";
 
   // Security related constant value
   public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;

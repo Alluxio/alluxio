@@ -12,6 +12,7 @@
 package alluxio.util;
 
 import alluxio.Constants;
+import alluxio.security.group.GroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
@@ -218,9 +219,8 @@ public final class CommonUtils {
    * @throws IOException if getting group failed
    */
   public static String getPrimaryGroupName(String userName) throws IOException {
-    GroupMappingService groupMappingService =
-        GroupMappingService.Factory.getUserToGroupsMappingService();
-    List<String> groups = groupMappingService.getGroups(userName);
+    GroupMapping groupMapping = new GroupMapping();
+    List<String> groups = groupMapping.getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
   }
 
