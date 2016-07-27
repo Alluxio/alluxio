@@ -145,8 +145,8 @@ public final class HadoopUtils {
    * @param conf Hadoop configuration
    */
   public static void addS3Credentials(Configuration conf) {
-    final String[] propertyNames = {Constants.S3N_ACCESS_KEY, Constants.S3N_SECRET_KEY};
-    setProperty(conf, propertyNames);
+    String[] propertyNames = {Constants.S3N_ACCESS_KEY, Constants.S3N_SECRET_KEY};
+    setConfigurationFromSystemProperties(conf, propertyNames);
   }
 
   /**
@@ -160,20 +160,38 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    final String[] propertyNames = {Constants.SWIFT_API_KEY, Constants.SWIFT_TENANT_KEY,
+    String[] propertyNames = {Constants.SWIFT_API_KEY, Constants.SWIFT_TENANT_KEY,
       Constants.SWIFT_USER_KEY, Constants.SWIFT_AUTH_URL_KEY, Constants.SWIFT_AUTH_METHOD_KEY,
       Constants.SWIFT_PASSWORD_KEY, Constants.SWIFT_SIMULATION};
-    setProperty(configuration, propertyNames);
+    setConfigurationFromSystemProperties(configuration, propertyNames);
   }
 
-  private static void setProperty(final Configuration configuration, final String[] propertyNames) {
-    for (final String propertyName : propertyNames) {
-      setProperty(configuration, propertyName);
+  /**
+   * Set the System properties into Hadoop configuration.
+   *
+   * This method won't override existing properties even if they are set as System properties.
+   *
+   * @param configuration Hadoop configuration
+   * @param propertyNames the properties to be set
+   */
+  private static void setConfigurationFromSystemProperties(final Configuration configuration,
+      final String[] propertyNames) {
+    for (String propertyName : propertyNames) {
+      setConfigurationFromSystemProperty(configuration, propertyName);
     }
   }
 
-  private static void setProperty(final Configuration configuration, final String propertyName) {
-    final String propertyValue = System.getProperty(propertyName);
+  /**
+   * Set the System property into Hadoop configuration.
+   *
+   * This method won't override existing property even if it is set as System property.
+   *
+   * @param configuration Hadoop configuration
+   * @param propertyName the property to be set
+   */
+  private static void setConfigurationFromSystemProperty(final Configuration configuration,
+      final String propertyName) {
+    String propertyValue = System.getProperty(propertyName);
     if (propertyValue != null && configuration.get(propertyName) == null) {
       configuration.set(propertyName, propertyValue);
     }
