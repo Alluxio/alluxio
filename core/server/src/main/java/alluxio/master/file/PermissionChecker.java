@@ -23,7 +23,7 @@ import alluxio.master.file.meta.LockedInodePath;
 import alluxio.security.User;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.authorization.Mode;
-import alluxio.security.group.GroupMappingService;
+import alluxio.security.group.GroupMapping;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -48,7 +48,7 @@ public final class PermissionChecker {
   private final String mFileSystemSuperGroup;
 
   /** This provides user groups mapping service. */
-  private final GroupMappingService mGroupMappingService;
+  private final GroupMapping mGroupMapping;
 
   /**
    * Constructs a {@link PermissionChecker} instance for Alluxio file system.
@@ -61,7 +61,7 @@ public final class PermissionChecker {
         Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
         Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
-    mGroupMappingService = GroupMappingService.Factory.getUserToGroupsMappingService();
+    mGroupMapping = new GroupMapping();
   }
 
   /**
@@ -176,7 +176,7 @@ public final class PermissionChecker {
    */
   private List<String> getGroups(String user) throws AccessControlException {
     try {
-      return mGroupMappingService.getGroups(user);
+      return mGroupMapping.getGroups(user);
     } catch (IOException e) {
       throw new AccessControlException(
           ExceptionMessage.PERMISSION_DENIED.getMessage(e.getMessage()));
