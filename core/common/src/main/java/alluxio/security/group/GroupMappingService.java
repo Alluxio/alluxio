@@ -37,27 +37,54 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+    // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
+    // Currently the single global cached GroupMappingService assumes that there is no dynamic
+    // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CALSS}.
+    private static GroupMappingService sGroupMappingService = null;
+    private static CachedGroupMapping sCachedGroupMapping = null;
+
     // prevent instantiation
     private Factory() {}
 
     /**
-     * Gets the groups being used to map user-to-groups.
+     * Gets the groups mapping service being used to map user-to-groups.
      *
-     * @return the groups being used to map user-to-groups
+     * @return the groups mapping service being used to map user-to-groups
      */
-    public static GroupMappingService getUserToGroupsMappingService() {
-      GroupMappingService mGroupMappingService;
+    public static GroupMappingService get() {
       if (LOG.isDebugEnabled()) {
         LOG.debug("Creating new Groups object");
       }
       try {
-        mGroupMappingService = CommonUtils.createNewClassInstance(
-            Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null,
-            null);
+        if (sGroupMappingService == null) {
+          synchronized (Factory.class) {
+            if (sGroupMappingService == null) {
+              sGroupMappingService = CommonUtils.createNewClassInstance(
+                  Configuration.<GroupMappingService>getClass(
+                      Constants.SECURITY_GROUP_MAPPING_CLASS), null, null);
+            }
+          }
+        }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-      return mGroupMappingService;
+      return sGroupMappingService;
+    }
+
+    /**
+     * Gets the cached user-to-groups mapping object.
+     *
+     * @return the cached user-to-groups mapping object
+     */
+    public static CachedGroupMapping getCachedGroupMapping() {
+      if (sCachedGroupMapping == null) {
+        synchronized (Factory.class) {
+          if (sCachedGroupMapping == null) {
+            sCachedGroupMapping = new CachedGroupMapping(get());
+          }
+        }
+      }
+      return sCachedGroupMapping;
     }
   }
 

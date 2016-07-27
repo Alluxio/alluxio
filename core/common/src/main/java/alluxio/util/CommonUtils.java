@@ -12,7 +12,7 @@
 package alluxio.util;
 
 import alluxio.Constants;
-import alluxio.security.group.GroupMapping;
+import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
@@ -212,16 +212,27 @@ public final class CommonUtils {
   }
 
   /**
-   * Using {@link GroupMappingService} to get the primary group name.
+   * Gets the primary group name of a user.
    *
    * @param userName Alluxio user name
    * @return primary group name
    * @throws IOException if getting group failed
    */
   public static String getPrimaryGroupName(String userName) throws IOException {
-    GroupMapping groupMapping = new GroupMapping();
-    List<String> groups = groupMapping.getGroups(userName);
+    List<String> groups = getGroups(userName);
     return (groups != null && groups.size() > 0) ? groups.get(0) : "";
+  }
+
+  /**
+   * Using {@link CachedGroupMapping} to get the group list of a user.
+   *
+   * @param userName Alluxio user name
+   * @return the group list of the user
+   * @throws IOException if getting group list failed
+   */
+  public static List<String> getGroups(String userName) throws IOException {
+    CachedGroupMapping cachedGroupMapping = GroupMappingService.Factory.getCachedGroupMapping();
+    return cachedGroupMapping.getGroups(userName);
   }
 
   /**

@@ -17,35 +17,60 @@ import alluxio.Constants;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Class to map user to groups. It maintain a cache for user to groups mapping. The underlying
+ * Class to map user to groups. It maintains a cache for user to groups mapping. The underlying
  * implementation depends on {@link GroupMappingService}.
  */
-public class GroupMapping {
+public class CachedGroupMapping {
   /** The underlying implementation of GroupMappingService. */
-  private final GroupMappingService mEnv;
-  /** Whether the cache is enabled. Set timeout to non-positive value to disable cache */
+  private final GroupMappingService mService;
+  /** Whether the cache is enabled. Set timeout to non-positive value to disable cache. */
   private final boolean mCacheEnabled;
   /** A loading cache for user to groups mapping, refresh periodically. */
   private LoadingCache<String, List<String>> mCache;
+  /** Max size of the cache. */
+  private static final long MAXSIZE = 10000;
+
+  /** Create an executor service that provide ListenableFuture instances. */
+  private ThreadFactory mThreadFactory = new ThreadFactoryBuilder()
+      .setNameFormat("UserGroupMappingCachePool-%d").setDaemon(true).build();
+  private ExecutorService mParentExecutor = Executors.newSingleThreadExecutor(mThreadFactory);
+  private final ListeningExecutorService mExecutorService =
+      MoreExecutors.listeningDecorator(mParentExecutor);
 
   /**
-   * Default constructor to initialize cache.
+   * Constructor with specified {@link GroupMappingService}. Initializes the cache if enabled.
+   *
+   * @param service group mapping service
    */
-  public GroupMapping() {
-    mEnv = GroupMappingService.Factory.getUserToGroupsMappingService();
+  public CachedGroupMapping(GroupMappingService service) {
+    mService = service;
     long timeoutMs = Long.parseLong(Configuration.get(
         Constants.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS));
     mCacheEnabled = timeoutMs > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()
+          // the maximum number of entries the cache may contain.
+          .maximumSize(MAXSIZE)
+          // active entries are eligible for automatic refresh once the specified time duration has
+          // elapsed after the entry was last modified.
           .refreshAfterWrite(timeoutMs, TimeUnit.MILLISECONDS)
+          // each entry should be automatically removed from the cache once the specified time
+          // duration has elapsed after the entry was last modified.
           .expireAfterWrite(10 * timeoutMs, TimeUnit.MILLISECONDS)
           .build(new GroupMappingCacheLoader());
     }
@@ -62,7 +87,22 @@ public class GroupMapping {
 
     @Override
     public List<String> load(String user) throws IOException {
-      return mEnv.getGroups(user);
+      return mService.getGroups(user);
+    }
+
+    @Override
+    public ListenableFuture<List<String>> reload(final String user, List<String> oldValue)
+        throws IOException {
+      // Load values asynchronously.
+      ListenableFuture<List<String>> listenableFuture = mExecutorService.submit(
+          new Callable<List<String>>() {
+            @Override
+            public List<String> call() throws IOException {
+              return load(user);
+            }
+          }
+      );
+      return listenableFuture;
     }
   }
 
@@ -75,21 +115,12 @@ public class GroupMapping {
    */
   public List<String> getGroups(String user) throws IOException {
     if (!mCacheEnabled) {
-      return mEnv.getGroups(user);
+      return mService.getGroups(user);
     }
     try {
       return mCache.get(user);
     } catch (ExecutionException e) {
       throw new IOException(e);
-    }
-  }
-
-  /**
-   * Invalidates and refreshes the cache.
-   */
-  public void refreshCache() {
-    if (mCacheEnabled) {
-      mCache.invalidateAll();
     }
   }
 }
