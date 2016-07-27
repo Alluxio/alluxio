@@ -22,7 +22,6 @@ import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.io.IOException;
@@ -53,11 +52,6 @@ public final class ChecksumCommand extends AbstractShellCommand {
   }
 
   @Override
-  protected Options getOptions() {
-    return new Options().addOption(RECURSIVE_OPTION);
-  }
-
-  @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI loc = new AlluxioURI(args[0]);
@@ -65,7 +59,7 @@ public final class ChecksumCommand extends AbstractShellCommand {
     if (status.isFolder()) {
       throw new FileDoesNotExistException(ExceptionMessage.PATH_MUST_BE_FILE.getMessage(args[0]));
     }
-    String str = calcChecksum(loc);
+    String str = calculateChecksum(loc);
     System.out.println("md5sum: " + str);
   }
 
@@ -77,28 +71,21 @@ public final class ChecksumCommand extends AbstractShellCommand {
    * @throws AlluxioException when Alluxio exception occurs
    * @throws IOException when non-Alluxio exception occurs
    */
-  private String calcChecksum(AlluxioURI filePath)
+  private String calculateChecksum(AlluxioURI filePath)
       throws AlluxioException, IOException {
     OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-    String csum = null;
-    FileInStream fis = mFileSystem.openFile(filePath, options);
-    try {
-      csum = DigestUtils.md5Hex(fis);
-    } catch (Exception e) {
-      throw e;
-    } finally {
-      fis.close();
+    try (FileInStream fis = mFileSystem.openFile(filePath, options)) {
+      return DigestUtils.md5Hex(fis);
     }
-    return csum;
   }
 
   @Override
   public String getUsage() {
-    return "checksum <loc>";
+    return "checksum <Alluxio path>";
   }
 
   @Override
   public String getDescription() {
-    return "Calculates the checksum of a file in the Alluxio filesystem.";
+    return "Calculates the md5 checksum of a file in the Alluxio filesystem.";
   }
 }
