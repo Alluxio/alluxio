@@ -174,8 +174,8 @@ public final class HadoopUtils {
    * @param configuration Hadoop configuration
    * @param propertyNames the properties to be set
    */
-  private static void setConfigurationFromSystemProperties(final Configuration configuration,
-      final String[] propertyNames) {
+  private static void setConfigurationFromSystemProperties(Configuration configuration,
+      String[] propertyNames) {
     for (String propertyName : propertyNames) {
       setConfigurationFromSystemProperty(configuration, propertyName);
     }
@@ -189,8 +189,8 @@ public final class HadoopUtils {
    * @param configuration Hadoop configuration
    * @param propertyName the property to be set
    */
-  private static void setConfigurationFromSystemProperty(final Configuration configuration,
-      final String propertyName) {
+  private static void setConfigurationFromSystemProperty(Configuration configuration,
+      String propertyName) {
     String propertyValue = System.getProperty(propertyName);
     if (propertyValue != null && configuration.get(propertyName) == null) {
       configuration.set(propertyName, propertyValue);
