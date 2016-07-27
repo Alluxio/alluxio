@@ -63,6 +63,7 @@ public class FileOutStream extends AbstractOutStream {
   protected final AlluxioStorageType mAlluxioStorageType;
   private final UnderStorageType mUnderStorageType;
   private final FileSystemContext mContext;
+  private final UnderFileSystemFileOutStream.Factory mUnderOutStreamFactory;
   private final OutputStream mUnderStorageOutputStream;
   private final long mNonce;
   /** Whether this stream should delegate operations to the ufs to a worker. */
@@ -91,12 +92,27 @@ public class FileOutStream extends AbstractOutStream {
    * @throws IOException if an I/O error occurs
    */
   public FileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
+    this(path, options, FileSystemContext.INSTANCE, UnderFileSystemFileOutStream.Factory.get());
+  }
+
+  /**
+   * Creates a new file output stream.
+   *
+   * @param path the file path
+   * @param options the client options
+   * @param context the file system context
+   * @param underOutStreamFactory a factory for creating any necessary under storage out streams
+   * @throws IOException if an I/O error occurs
+   */
+  public FileOutStream(AlluxioURI path, OutStreamOptions options, FileSystemContext context,
+      UnderFileSystemFileOutStream.Factory underOutStreamFactory) throws IOException {
     mUri = Preconditions.checkNotNull(path);
     mNonce = IdUtils.getRandomNonNegativeLong();
     mBlockSize = options.getBlockSizeBytes();
     mAlluxioStorageType = options.getAlluxioStorageType();
     mUnderStorageType = options.getUnderStorageType();
-    mContext = FileSystemContext.INSTANCE;
+    mContext = context;
+    mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
     mUfsDelegation = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
@@ -112,9 +128,8 @@ public class FileOutStream extends AbstractOutStream {
           mFileSystemWorkerClient.close();
           throw new IOException(e);
         }
-        mUnderStorageOutputStream =
-            new UnderFileSystemFileOutStream(mFileSystemWorkerClient.getWorkerDataServerAddress(),
-                mUfsFileId);
+        mUnderStorageOutputStream = mUnderOutStreamFactory
+            .create(mFileSystemWorkerClient.getWorkerDataServerAddress(), mUfsFileId);
       } else {
         updateUfsPath();
         String tmpPath = PathUtils.temporaryFileName(mNonce, mUfsPath);
