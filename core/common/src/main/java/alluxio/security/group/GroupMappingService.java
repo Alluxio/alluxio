@@ -86,6 +86,20 @@ public interface GroupMappingService {
       }
       return sCachedGroupMapping;
     }
+
+    /**
+     * Resets the cache for GroupMappingService and CachedGroupMapping.
+     */
+    public static void resetCache() {
+      if (sGroupMappingService != null || sCachedGroupMapping != null) {
+        synchronized (Factory.class) {
+          if (sGroupMappingService != null || sCachedGroupMapping != null) {
+            sGroupMappingService = null;
+            sCachedGroupMapping = null;
+          }
+        }
+      }
+    }
   }
 
   /**
