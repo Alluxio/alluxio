@@ -11,6 +11,7 @@
 
 package alluxio.util;
 
+import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 
 import com.google.common.collect.Lists;
@@ -209,23 +210,26 @@ public class CommonUtilsTest {
   }
 
   /**
-   * Test for the {@link CommonUtils#getPrimaryGroupName(String)} method.
+   * Test for the {@link CommonUtils#getGroups(String)} and
+   * {@link CommonUtils#getPrimaryGroupName(String)} method.
    */
   @Test
-  public void userPrimaryGroupTest() throws Throwable {
+  public void getGroupsTest() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
     List<String> userGroups = new ArrayList<>();
     userGroups.add(userGroup1);
     userGroups.add(userGroup2);
-    GroupMappingService groupService = PowerMockito.mock(GroupMappingService.class);
-    PowerMockito.when(groupService.getGroups(Mockito.anyString())).thenReturn(
+    CachedGroupMapping cachedGroupService = PowerMockito.mock(CachedGroupMapping.class);
+    PowerMockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
-    Mockito.when(
-        GroupMappingService.Factory.getUserToGroupsMappingService())
-        .thenReturn(groupService);
+    Mockito.when(GroupMappingService.Factory.getCachedGroupMapping())
+        .thenReturn(cachedGroupService);
+
+    List<String> groups = CommonUtils.getGroups(userName);
+    Assert.assertEquals(Arrays.asList(userGroup1, userGroup2), groups);
 
     String primaryGroup = CommonUtils.getPrimaryGroupName(userName);
     Assert.assertNotNull(primaryGroup);
