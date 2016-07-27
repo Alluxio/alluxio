@@ -64,7 +64,7 @@ public final class ChecksumCommand extends AbstractShellCommand {
   }
 
   /**
-   * Calculate the md5 checksum for a file.
+   * Calculates the md5 checksum for a file.
    *
    * @param filePath The {@link AlluxioURI} path of the file calculate MD5 checksum on
    * @return A string representation of the file's MD5 checksum
