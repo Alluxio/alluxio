@@ -29,9 +29,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class GroupMapping {
   /** The underlying implementation of GroupMappingService. */
-  private GroupMappingService mEnv;
+  private final GroupMappingService mEnv;
   /** Whether the cache is enabled. Set timeout to non-positive value to disable cache */
-  private boolean mCacheEnabled;
+  private final boolean mCacheEnabled;
   /** A loading cache for user to groups mapping, refresh periodically. */
   private LoadingCache<String, List<String>> mCache;
 
@@ -81,6 +81,15 @@ public class GroupMapping {
       return mCache.get(user);
     } catch (ExecutionException e) {
       throw new IOException(e);
+    }
+  }
+
+  /**
+   * Invalidates and refreshes the cache.
+   */
+  public void refreshCache() {
+    if (mCacheEnabled) {
+      mCache.invalidateAll();
     }
   }
 }
