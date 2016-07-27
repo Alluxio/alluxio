@@ -50,13 +50,30 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   /** Number of bytes written, including unflushed bytes. */
   private long mWrittenBytes;
 
+  public static class Factory {
+    private static Factory sInstance;
+
+    public static Factory get() {
+      if (sInstance == null) {
+        sInstance = new Factory();
+      }
+      return sInstance;
+    }
+
+    protected Factory() {} // prevent external instantiation.
+
+    public UnderFileSystemFileOutStream create(InetSocketAddress address, long ufsFileId) {
+      return new UnderFileSystemFileOutStream(address, ufsFileId);
+    }
+  }
+
   /**
    * Constructor for a under file system file output stream.
    *
    * @param address address of the worker
    * @param ufsFileId the worker specific file id
    */
-  public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
+  private UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;
