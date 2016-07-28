@@ -17,6 +17,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -120,9 +121,8 @@ public final class HeartbeatThreadTest {
 
     @Override
     public Null call() throws Exception {
-      try {
-        HeartbeatContext.setTimerClass(mThreadName, HeartbeatContext.SCHEDULED_TIMER_CLASS);
-
+      try (ManuallyScheduleHeartbeat.Resource r =
+          new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
 
