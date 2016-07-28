@@ -11,6 +11,18 @@
 
 package alluxio.client.file;
 
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyByte;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.anyLong;
+import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.client.UnderStorageType;
@@ -41,7 +53,6 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -92,20 +103,19 @@ public class FileOutStreamTest {
     mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
-    Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
-    Mockito.when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
-    Mockito.when(mFileSystemMasterClient.getStatus(Mockito.any(AlluxioURI.class))).thenReturn(
+    when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
+    when(mFileSystemContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
+    when(mFileSystemMasterClient.getStatus(any(AlluxioURI.class))).thenReturn(
         new URIStatus(new FileInfo()));
 
     // Worker file client mocking
     mWorkerClient = PowerMockito.mock(FileSystemWorkerClient.class);
-    Mockito.when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
-    Mockito.when(
-        mWorkerClient.createUfsFile(Mockito.any(AlluxioURI.class),
-            Mockito.any(CreateUfsFileOptions.class))).thenReturn(UFS_FILE_ID);
+    when(mFileSystemContext.createWorkerClient()).thenReturn(mWorkerClient);
+    when(mWorkerClient.createUfsFile(any(AlluxioURI.class), any(CreateUfsFileOptions.class)))
+        .thenReturn(UFS_FILE_ID);
 
     // Return sequentially increasing numbers for new block ids
-    Mockito.when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
+    when(mFileSystemMasterClient.getNewBlockIdForFile(FILE_NAME))
         .thenAnswer(new Answer<Long>() {
           private long mCount = 0;
 
@@ -117,8 +127,8 @@ public class FileOutStreamTest {
 
     // Set up out streams. When they are created, add them to outStreamMap
     final Map<Long, TestBufferedBlockOutStream> outStreamMap = new HashMap<>();
-    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.eq(BLOCK_LENGTH),
-        Mockito.any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
+    when(mBlockStore.getOutStream(anyLong(), eq(BLOCK_LENGTH),
+        any(WorkerNetAddress.class))).thenAnswer(new Answer<BufferedBlockOutStream>() {
           @Override
           public BufferedBlockOutStream answer(InvocationOnMock invocation) throws Throwable {
             Long blockId = invocation.getArgumentAt(0, Long.class);
@@ -133,7 +143,7 @@ public class FileOutStreamTest {
     BlockWorkerInfo workerInfo =
         new BlockWorkerInfo(new WorkerNetAddress().setHost("localhost").setRpcPort(1)
             .setDataPort(2).setWebPort(3), Constants.GB, 0);
-    Mockito.when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
+    when(mBlockStore.getWorkerInfoList()).thenReturn(Lists.newArrayList(workerInfo));
     mAlluxioOutStreamMap = outStreamMap;
 
     // Create an under storage stream so that we can check whether it has been flushed
@@ -148,10 +158,9 @@ public class FileOutStreamTest {
 
     // Set up underFileStorage so that we can test UnderStorageType.SYNC_PERSIST
     mUnderFileSystem = ClientMockUtils.mockUnderFileSystem();
-    Mockito.when(mUnderFileSystem.create(Mockito.anyString()))
+    when(mUnderFileSystem.create(anyString())).thenReturn(mUnderStorageOutputStream);
+    when(mUnderFileSystem.create(anyString(), any(CreateOptions.class)))
         .thenReturn(mUnderStorageOutputStream);
-    Mockito.when(mUnderFileSystem.create(Mockito.anyString(),
-        Mockito.any(CreateOptions.class))).thenReturn(mUnderStorageOutputStream);
 
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
@@ -213,16 +222,14 @@ public class FileOutStreamTest {
    */
   @Test
   public void closeTest() throws Exception {
-    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
-        .thenReturn(true);
+    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
       Assert.assertFalse(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isClosed());
     }
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
-        Mockito.any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
   }
 
   /**
@@ -239,9 +246,9 @@ public class FileOutStreamTest {
       Assert.assertTrue(mAlluxioOutStreamMap.get(streamIndex).isCanceled());
     }
     // Don't persist or complete the file if the stream was canceled
-    Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
+    verify(mFileSystemMasterClient, times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
-    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
+    verify(mUnderFileSystem).delete(anyString(), eq(false));
   }
 
   /**
@@ -264,13 +271,13 @@ public class FileOutStreamTest {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
-    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Mockito.when(mBlockStore.getOutStream(Mockito.anyInt(), Mockito.anyLong(),
-        Mockito.any(WorkerNetAddress.class))).thenReturn(stream);
+    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    when(mBlockStore.getOutStream(anyInt(), anyLong(), any(WorkerNetAddress.class)))
+        .thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
+    when(stream.remaining()).thenReturn(BLOCK_LENGTH);
+    doThrow(new IOException("test error")).when(stream).write((byte) 7);
     try {
       mTestStream.write(7);
       Assert.fail("the test should fail");
@@ -286,18 +293,18 @@ public class FileOutStreamTest {
    */
   @Test
   public void cacheWriteExceptionSyncPersistTest() throws IOException {
-    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.anyLong(),
-        Mockito.any(WorkerNetAddress.class))).thenReturn(stream);
+    BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
+    when(mBlockStore.getOutStream(anyLong(), anyLong(), any(WorkerNetAddress.class)))
+        .thenReturn(stream);
 
-    Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
-    Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
+    when(stream.remaining()).thenReturn(BLOCK_LENGTH);
+    doThrow(new IOException("test error")).when(stream).write((byte) 7);
     mTestStream.write(7);
     mTestStream.write(8);
     Assert.assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.toByteArray());
     // The cache stream is written to only once - the FileInStream gives up on it after it throws
     // the first exception.
-    Mockito.verify(stream, Mockito.times(1)).write(Mockito.anyByte());
+    verify(stream, times(1)).write(anyByte());
   }
 
   /**
@@ -361,13 +368,11 @@ public class FileOutStreamTest {
             .setWriteType(WriteType.ASYNC_THROUGH);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    Mockito.when(mUnderFileSystem.rename(Mockito.anyString(), Mockito.anyString()))
-        .thenReturn(true);
+    when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
-    Mockito.verify(mFileSystemMasterClient).completeFile(Mockito.eq(FILE_NAME),
-        Mockito.any(CompleteFileOptions.class));
-    Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_NAME));
+    verify(mFileSystemMasterClient).completeFile(eq(FILE_NAME), any(CompleteFileOptions.class));
+    verify(mFileSystemMasterClient).scheduleAsyncPersist(eq(FILE_NAME));
   }
 
   @Test
