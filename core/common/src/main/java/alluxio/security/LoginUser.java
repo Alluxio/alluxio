@@ -50,13 +50,9 @@ public final class LoginUser {
    * @return the login user
    * @throws IOException if login fails
    */
-  public static User get() throws IOException {
+  public static synchronized User get() throws IOException {
     if (sLoginUser == null) {
-      synchronized (LoginUser.class) {
-        if (sLoginUser == null) {
-          sLoginUser = login();
-        }
-      }
+      sLoginUser = login();
     }
     return sLoginUser;
   }
