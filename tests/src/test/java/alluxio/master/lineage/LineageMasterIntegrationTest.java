@@ -52,12 +52,12 @@ import java.util.List;
  * Integration tests for the lineage module.
  */
 public class LineageMasterIntegrationTest {
-  private static final int BLOCK_SIZE_BYTES = 128;
-  private static final long WORKER_CAPACITY_BYTES = Constants.GB;
-  private static final int BUFFER_BYTES = 100;
-  private static final String OUT_FILE = "/test";
-  private static final int RECOMPUTE_INTERVAL_MS = 1000;
-  private static final int CHECKPOINT_INTERVAL_MS = 100;
+  protected static final int BLOCK_SIZE_BYTES = 128;
+  protected static final long WORKER_CAPACITY_BYTES = Constants.GB;
+  protected static final int BUFFER_BYTES = 100;
+  protected static final String OUT_FILE = "/test";
+  protected static final int RECOMPUTE_INTERVAL_MS = 1000;
+  protected static final int CHECKPOINT_INTERVAL_MS = 100;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
