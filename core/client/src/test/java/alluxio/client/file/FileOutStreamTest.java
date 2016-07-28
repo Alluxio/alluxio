@@ -12,23 +12,18 @@
 package alluxio.client.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
-import alluxio.client.file.options.CancelUfsFileOptions;
 import alluxio.client.file.options.CompleteFileOptions;
 import alluxio.client.file.options.CreateUfsFileOptions;
 import alluxio.client.file.options.OutStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
-import alluxio.client.file.policy.LocalFirstPolicy;
-import alluxio.client.file.policy.RoundRobinPolicy;
 import alluxio.client.util.ClientMockUtils;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ExceptionMessage;
@@ -52,11 +47,11 @@ import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -64,7 +59,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Tests for the {@link FileOutStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, BlockStoreContext.class, FileSystemMasterClient.class,
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class,
     AlluxioBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
 public class FileOutStreamTest {
 
@@ -73,8 +68,8 @@ public class FileOutStreamTest {
   /** Used if ufs operation delegation is enabled. */
   private static final long UFS_FILE_ID = 1L;
 
-  private BlockStoreContext mBlockStoreContext;
   private FileSystemContext mFileSystemContext;
+  private AlluxioBlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
   private FileSystemWorkerClient mWorkerClient;
   private UnderFileSystem mUnderFileSystem;
@@ -84,7 +79,6 @@ public class FileOutStreamTest {
   private AtomicBoolean mUnderStorageFlushed;
 
   private FileOutStream mTestStream;
-  private boolean mDelegateUfsOps;
 
   /**
    * Sets up the different contexts and clients before a test runs.
@@ -92,12 +86,10 @@ public class FileOutStreamTest {
   @Before
   public void before() throws Exception {
     ClientTestUtils.setSmallBufferSizes();
-    mDelegateUfsOps = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
 
     // PowerMock enums and final classes
     mFileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    AlluxioBlockStore mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
-    mBlockStoreContext = PowerMockito.mock(BlockStoreContext.class);
+    mBlockStore = PowerMockito.mock(AlluxioBlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
 
     Mockito.when(mFileSystemContext.getAlluxioBlockStore()).thenReturn(mBlockStore);
@@ -249,12 +241,7 @@ public class FileOutStreamTest {
     // Don't persist or complete the file if the stream was canceled
     Mockito.verify(mFileSystemMasterClient, Mockito.times(0)).completeFile(FILE_NAME,
         CompleteFileOptions.defaults());
-
-    if (mDelegateUfsOps) {
-      Mockito.verify(mWorkerClient).cancelUfsFile(UFS_FILE_ID, CancelUfsFileOptions.defaults());
-    } else {
-      Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
-    }
+    Mockito.verify(mUnderFileSystem).delete(Mockito.anyString(), Mockito.eq(false));
   }
 
   /**
@@ -277,10 +264,11 @@ public class FileOutStreamTest {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
+    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
+    Mockito.when(mBlockStore.getOutStream(Mockito.anyInt(), Mockito.anyLong(),
+        Mockito.any(WorkerNetAddress.class))).thenReturn(stream);
     mTestStream = createTestStream(FILE_NAME, options);
 
-    BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
     Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
     Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
     try {
@@ -294,19 +282,22 @@ public class FileOutStreamTest {
   /**
    * Tests that if an exception is thrown by the underlying out stream, and the user is using
    * {@link UnderStorageType#SYNC_PERSIST} for their under storage type, the error is recovered
-   * from by writing the data to the under storage out stream and setting the current block as not
-   * cacheable.
+   * from by writing the data to the under storage out stream.
    */
   @Test
   public void cacheWriteExceptionSyncPersistTest() throws IOException {
     BufferedBlockOutStream stream = Mockito.mock(BufferedBlockOutStream.class);
-    Whitebox.setInternalState(mTestStream, "mCurrentBlockOutStream", stream);
+    Mockito.when(mBlockStore.getOutStream(Mockito.anyLong(), Mockito.anyLong(),
+        Mockito.any(WorkerNetAddress.class))).thenReturn(stream);
+
     Mockito.when(stream.remaining()).thenReturn(BLOCK_LENGTH);
     Mockito.doThrow(new IOException("test error")).when(stream).write((byte) 7);
     mTestStream.write(7);
-    Assert.assertArrayEquals(new byte[]{7}, mUnderStorageOutputStream.toByteArray());
-    Assert
-        .assertFalse((Boolean) Whitebox.getInternalState(mTestStream, "mShouldCacheCurrentBlock"));
+    mTestStream.write(8);
+    Assert.assertArrayEquals(new byte[] {7, 8}, mUnderStorageOutputStream.toByteArray());
+    // The cache stream is written to only once - the FileInStream gives up on it after it throws
+    // the first exception.
+    Mockito.verify(stream, Mockito.times(1)).write(Mockito.anyByte());
   }
 
   /**
@@ -379,25 +370,23 @@ public class FileOutStreamTest {
     Mockito.verify(mFileSystemMasterClient).scheduleAsyncPersist(Mockito.eq(FILE_NAME));
   }
 
-  /**
-   * Tests the location policy created with different options.
-   */
   @Test
-  public void locationPolicyTest() throws IOException {
-    OutStreamOptions options =
-        OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
-            .setWriteType(WriteType.MUST_CACHE);
+  public void useLocationPolicyTest() throws IOException {
+    OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
+        .setLocationPolicy(new FileWriteLocationPolicy() {
+          @Override
+          public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
+              long blockSizeBytes) {
+            throw new RuntimeException("policy threw exception");
+          }
+        });
     mTestStream = createTestStream(FILE_NAME, options);
-
-    // by default local first policy used
-    FileWriteLocationPolicy policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
-    Assert.assertTrue(policy instanceof LocalFirstPolicy);
-
-    // configure a different policy
-    options.setLocationPolicy(new RoundRobinPolicy());
-    mTestStream = createTestStream(FILE_NAME, options);
-    policy = Whitebox.getInternalState(mTestStream, "mLocationPolicy");
-    Assert.assertTrue(policy instanceof RoundRobinPolicy);
+    try {
+      mTestStream.write(5);
+      Assert.fail("An exception should have been thrown");
+    } catch (Exception e) {
+      Assert.assertEquals("policy threw exception", e.getMessage());
+    }
   }
 
   /**
@@ -463,13 +452,8 @@ public class FileOutStreamTest {
 
   private FileOutStream createTestStream(AlluxioURI path, OutStreamOptions options)
       throws IOException {
-    Whitebox.setInternalState(BlockStoreContext.class, "INSTANCE", mBlockStoreContext);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", mFileSystemContext);
-    FileOutStream stream = new FileOutStream(path, options);
-    // Set up under file storage for delegated ufs operations if enabled
-    if (mDelegateUfsOps) {
-      Whitebox.setInternalState(stream, "mUnderStorageOutputStream", mUnderStorageOutputStream);
-    }
+    FileOutStream stream = new FileOutStream(path, options, mFileSystemContext,
+        UnderFileSystemFileOutStream.Factory.get());
     return stream;
   }
 }
