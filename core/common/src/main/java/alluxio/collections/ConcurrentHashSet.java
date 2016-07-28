@@ -11,25 +11,26 @@
 
 package alluxio.collections;
 
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
+
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A concurrent hash set. This is backed by a {@link ConcurrentHashMap}, and {@link Set} operations
- * are translated to {@link ConcurrentHashMap} operations.
+ * A concurrent hash set. This is backed by a {@link ConcurrentHashMapV8}, and {@link Set}
+ * operations are translated to {@link ConcurrentHashMapV8} operations.
  *
  * @param <T> the type of the set objects
  */
 @ThreadSafe
 public class ConcurrentHashSet<T> extends AbstractSet<T> {
   // COMPATIBILITY: This field needs to declared as Map (as opposed to ConcurrentHashMap). The
-  // reason is that the return type of ConcurrentHashMap#keySet() has changed from Set<K> to
+  // reason is that the return type of ConcurrentHashMapV8#keySet() has changed from Set<K> to
   // KeySetView<K,V> between Java 7 and Java 8 and this can result in a NoSuchMethod runtime
   // exception when using Java 7 to run byte code compiled with Java 8 (even if the compiler is
   // told to compile for Java 7).
@@ -52,7 +53,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    * @param concurrencyLevel the estimated number of concurrently updating threads
    */
   public ConcurrentHashSet(int initialCapacity, float loadFactor, int concurrencyLevel) {
-    mMap = new ConcurrentHashMap<>(initialCapacity, loadFactor, concurrencyLevel);
+    mMap = new ConcurrentHashMapV8<>(initialCapacity, loadFactor, concurrencyLevel);
   }
 
   @Override
@@ -77,9 +78,9 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
    * @return true if this set did not already contain the specified element
    */
   public boolean addIfAbsent(T element) {
-    // COMPATIBILITY: We need to cast mMap to ConcurrentHashMap to make sure the code can compile
+    // COMPATIBILITY: We need to cast mMap to ConcurrentHashMapV8 to make sure the code can compile
     // on Java 7 because the Map#putIfAbsent() method has only been introduced in Java 8.
-    return ((ConcurrentHashMap<T, Boolean>) mMap).putIfAbsent(element, Boolean.TRUE) == null;
+    return ((ConcurrentHashMapV8<T, Boolean>) mMap).putIfAbsent(element, Boolean.TRUE) == null;
   }
 
   @Override
@@ -137,7 +138,7 @@ public class ConcurrentHashSet<T> extends AbstractSet<T> {
   }
 
   @Override
-  public <T> T[] toArray(T[] a) {
+  public <E> E[] toArray(E[] a) {
     return mMap.keySet().toArray(a);
   }
 

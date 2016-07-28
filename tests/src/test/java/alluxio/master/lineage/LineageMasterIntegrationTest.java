@@ -52,10 +52,12 @@ import java.util.List;
  * Integration tests for the lineage module.
  */
 public class LineageMasterIntegrationTest {
-  protected static final int BLOCK_SIZE_BYTES = 128;
-  protected static final long WORKER_CAPACITY_BYTES = Constants.GB;
-  protected static final int BUFFER_BYTES = 100;
-  protected static final String OUT_FILE = "/test";
+  private static final int BLOCK_SIZE_BYTES = 128;
+  private static final long WORKER_CAPACITY_BYTES = Constants.GB;
+  private static final int BUFFER_BYTES = 100;
+  private static final String OUT_FILE = "/test";
+  private static final int RECOMPUTE_INTERVAL_MS = 1000;
+  private static final int CHECKPOINT_INTERVAL_MS = 100;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -66,8 +68,8 @@ public class LineageMasterIntegrationTest {
       Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
       Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
       Constants.USER_LINEAGE_ENABLED, "true",
-      Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "1000",
-      Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
+      Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, Integer.toString(RECOMPUTE_INTERVAL_MS),
+      Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, Integer.toString(CHECKPOINT_INTERVAL_MS)
       );
 
   protected CommandLineJob mJob;
@@ -126,8 +128,13 @@ public class LineageMasterIntegrationTest {
 
   /**
    * Tests that a lineage job is executed when the output file for the lineage is reported as lost.
+   *
+   * The checkpoint interval is set high so that we are guaranteed to call reportLostFile
+   * before persistence is complete.
    */
   @Test(timeout = 100000)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
   public void lineageRecoveryTest() throws Exception {
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the
