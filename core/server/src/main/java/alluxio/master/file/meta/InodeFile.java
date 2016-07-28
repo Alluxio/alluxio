@@ -283,6 +283,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setBlockSizeBytes(entry.getBlockSizeBytes())
         .setCacheable(entry.getCacheable())
         .setCompleted(entry.getCompleted())
+        .setCreationTimeMs(entry.getCreationTimeMs())
         .setLastModificationTimeMs(entry.getLastModificationTimeMs())
         .setLength(entry.getLength())
         .setParentId(entry.getParentId())
@@ -298,15 +299,17 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param id id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
+   * @param creationTimeMs the creation time for this inode
    * @param fileOptions options to create this file
    * @return the {@link InodeFile} representation
    */
-  public static InodeFile create(long id, long parentId, String name,
+  public static InodeFile create(long id, long parentId, String name, long creationTimeMs,
       CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
     return new InodeFile(id)
         .setParentId(parentId)
         .setName(name)
+        .setCreationTimeMs(creationTimeMs)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
         .setTtl(fileOptions.getTtl())
         .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
@@ -328,6 +331,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setLength(getLength())
         .setCompleted(isCompleted())
         .setCacheable(isCacheable())
+        .setCreationTimeMs(getCreationTimeMs())
         .addAllBlocks(getBlockIds())
         .setTtl(getTtl())
         .setOwner(getOwner())

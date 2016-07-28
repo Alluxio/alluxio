@@ -161,6 +161,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
   }
 
   /**
+   * @param creationTimeMs the creation time to use (in milliseconds)
+   * @return the updated object
+   */
+  public T setCreationTimeMs(long creationTimeMs) {
+    mCreationTimeMs = creationTimeMs;
+    return getThis();
+  }
+
+  /**
    * @param deleted the deleted flag to use
    * @return the updated object
    */
