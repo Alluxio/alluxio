@@ -21,6 +21,7 @@ import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.InvalidPathException;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterSource;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.journal.Journal;
@@ -85,10 +86,13 @@ public final class KeyValueMaster extends AbstractMaster {
   /**
    * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
    * @param journal a {@link Journal} to write journal entries to
+   * @param masterSource the master source to use to track metrics
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal) {
+  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal,
+      MasterSource masterSource) {
     super(journal, new SystemClock(),
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("KeyValueMaster-%d", true)));
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("KeyValueMaster-%d", true)),
+        masterSource);
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
     mIncompleteStoreToPartitions = new HashMap<>();
