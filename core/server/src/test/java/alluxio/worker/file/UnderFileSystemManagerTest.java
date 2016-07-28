@@ -30,7 +30,6 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.powermock.api.mockito.PowerMockito;
@@ -84,7 +83,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
     Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(mMockUfs);
-    Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer() {
+    Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         return args[0];
@@ -281,8 +280,9 @@ public final class UnderFileSystemManagerTest {
     long position = 0L;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
+    Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
+    Assert.assertEquals(5, in.read());
     Mockito.verify(mMockInputStream, Mockito.never()).skip(position);
     in.close();
   }
@@ -295,8 +295,9 @@ public final class UnderFileSystemManagerTest {
     long position = FILE_LENGTH - 1;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
+    Mockito.when(mMockInputStream.read()).thenReturn(5);
     InputStream in = mManager.getInputStreamAtPosition(id, position);
-    Assert.assertEquals(mMockInputStream, getInternalInputStream(in));
+    Assert.assertEquals(5, in.read());
     Mockito.verify(mMockInputStream).skip(position);
     in.close();
   }
@@ -361,7 +362,7 @@ public final class UnderFileSystemManagerTest {
   }
 
   /**
-   * Tests cleaning sessions clears the correct state.
+   * Tests that after cleaning a session the session may no longer be used to get an input stream.
    */
   @Test
   public void cleanSessionsTest() throws Exception {
@@ -373,30 +374,17 @@ public final class UnderFileSystemManagerTest {
     long id2 = mManager.openFile(sessionId2, new AlluxioURI(uniqPath2));
     // Both files should be accessible
     InputStream in1 = mManager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, getInternalInputStream(in1));
     InputStream in2 = mManager.getInputStreamAtPosition(id2, position);
-    Assert.assertEquals(mMockInputStream, getInternalInputStream(in2));
     in1.close();
     in2.close();
     // Clean up second session
     mManager.cleanupSession(sessionId2);
     // First file should still be available
     in1 = mManager.getInputStreamAtPosition(id1, position);
-    Assert.assertEquals(mMockInputStream, getInternalInputStream(in1));
     in1.close();
     // Second file should no longer be available
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(id2));
     mManager.getInputStreamAtPosition(id2, position);
-  }
-
-  /**
-   * Used to enable equality checks on the underlying stream.
-   *
-   * @param in the wrapper stream
-   * @return the internal input stream of a wrapper input stream
-   */
-  private InputStream getInternalInputStream(InputStream in) {
-    return (InputStream) Whitebox.getInternalState(in, "in");
   }
 }
