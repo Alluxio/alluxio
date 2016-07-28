@@ -14,7 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DataServer;
 
 import org.junit.After;
@@ -75,9 +75,8 @@ public class SpaceReserverTest {
     // Mock away data server creation which would otherwise happen in BlockWorker construction.
     // We shouldn't need to bind net addresses in unit tests
     PowerMockito.mockStatic(DataServer.Factory.class);
-    PowerMockito.when(
-        DataServer.Factory.create(Mockito.<InetSocketAddress>any(), Mockito.<AlluxioWorker>any()))
-        .thenReturn(Mockito.mock(DataServer.class));
+    PowerMockito.when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
+        Mockito.<AlluxioWorkerService>any())).thenReturn(Mockito.mock(DataServer.class));
 
     BlockWorker blockWorker = new BlockWorker();
     mBlockStore = blockWorker.getBlockStore();

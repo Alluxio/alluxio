@@ -43,11 +43,11 @@ public interface DataServer extends Closeable {
      * @return the generated {@link DataServer}
      */
     public static DataServer create(final InetSocketAddress dataAddress,
-        final AlluxioWorker worker) {
+        final AlluxioWorkerService worker) {
       try {
         return CommonUtils.createNewClassInstance(
             Configuration.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
-            new Class[] {InetSocketAddress.class, AlluxioWorker.class},
+            new Class[] {InetSocketAddress.class, AlluxioWorkerService.class},
             new Object[] {dataAddress, worker});
       } catch (Exception e) {
         throw Throwables.propagate(e);
