@@ -12,11 +12,9 @@
 package alluxio.worker.block;
 
 import alluxio.AbstractClient;
-import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioService.Client;
-import alluxio.thrift.BlockMasterClientService;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -30,7 +28,6 @@ import java.net.InetSocketAddress;
  */
 public final class AbstractClientTest {
   private static final String SERVICE_NAME = "Test Service Name";
-  private static final int CLIENT_SERVICE_VERSION = 1;
 
   private final class TestClient extends AbstractClient {
     private TestClient() {
@@ -49,29 +46,35 @@ public final class AbstractClientTest {
 
     @Override
     protected long getServiceVersion() {
-      return CLIENT_SERVICE_VERSION;
+      return 1;
     }
 
-    public void checkVersion(AlluxioService.Client thriftClient) throws IOException {
-      checkVersion(thriftClient, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION);
+    public void checkVersion(AlluxioService.Client thriftClient, long version) throws IOException {
+      super.checkVersion(thriftClient, version);
     }
   }
 
-  /**
-   * Tests for an unsupported version.
-   */
   @Test
-  public void unsupportedVersionTest() throws Exception {
-    final BlockMasterClientService.Client thriftClient =
-        Mockito.mock(BlockMasterClientService.Client.class);
-    Mockito.when(thriftClient.getServiceVersion()).thenReturn(0L);
+  public void unsupportedVersion() throws Exception {
+    final AlluxioService.Client thriftClient = Mockito.mock(AlluxioService.Client.class);
+    Mockito.when(thriftClient.getServiceVersion()).thenReturn(1L);
 
     try (TestClient client = new TestClient()) {
-      client.checkVersion(thriftClient);
+      client.checkVersion(thriftClient, 0);
       Assert.fail("checkVersion() should fail");
     } catch (IOException e) {
-      Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME,
-          CLIENT_SERVICE_VERSION, 0), e.getMessage());
+      Assert.assertEquals(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(SERVICE_NAME, 0, 1),
+          e.getMessage());
+    }
+  }
+
+  @Test
+  public void supportedVersion() throws Exception {
+    final AlluxioService.Client thriftClient = Mockito.mock(AlluxioService.Client.class);
+    Mockito.when(thriftClient.getServiceVersion()).thenReturn(1L);
+
+    try (TestClient client = new TestClient()) {
+      client.checkVersion(thriftClient, 1);
     }
   }
 }
