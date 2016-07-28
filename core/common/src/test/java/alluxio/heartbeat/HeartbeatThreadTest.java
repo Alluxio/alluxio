@@ -11,16 +11,18 @@
 
 package alluxio.heartbeat;
 
-import org.junit.AfterClass;
+import org.apache.commons.lang3.ObjectUtils.Null;
+import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
-import org.powermock.reflect.Whitebox;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -58,16 +60,16 @@ public final class HeartbeatThreadTest {
 
   private static final int NUMBER_OF_THREADS = 10;
 
-  private static ExecutorService sExecutorService;
+  private ExecutorService mExecutorService;
 
-  @BeforeClass
-  public static void beforeClass() {
-    sExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
+  @Before
+  public void before() {
+    mExecutorService = Executors.newFixedThreadPool(NUMBER_OF_THREADS);
   }
 
-  @AfterClass
-  public static void afterClass() {
-    sExecutorService.shutdownNow();
+  @After
+  public void after() {
+    mExecutorService.shutdownNow();
   }
 
   /**
@@ -76,9 +78,11 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void serialHeartbeatThreadTest() throws Exception {
-    Thread thread = new DummyHeartbeatTestThread();
+    FutureTask<Null> task = new FutureTask<>(new DummyHeartbeatTestCallable());
+    Thread thread = new Thread(task);
     thread.start();
     thread.join();
+    task.get();
   }
 
   /**
@@ -87,49 +91,49 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void concurrentHeartbeatThreadTest() throws Exception {
-    List<Thread> mThreads = new LinkedList<>();
+    List<FutureTask<Null>> tasks = new LinkedList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-      Thread thread = new DummyHeartbeatTestThread(i);
+      FutureTask<Null> task = new FutureTask<>(new DummyHeartbeatTestCallable(i));
+      Thread thread = new Thread(task);
       thread.start();
-      mThreads.add(thread);
+      tasks.add(task);
     }
 
     // Wait for the threads to finish.
-    for (Thread thread : mThreads) {
-      thread.join();
+    for (FutureTask<Null> task: tasks) {
+      task.get();
     }
   }
 
-  private class DummyHeartbeatTestThread extends Thread  {
-    private String mThreadName;
+  private class DummyHeartbeatTestCallable implements Callable<Null>  {
+    private final String mThreadName;
 
-    public DummyHeartbeatTestThread() {
+    public DummyHeartbeatTestCallable() {
       mThreadName = THREAD_NAME;
     }
 
-    public DummyHeartbeatTestThread(int id) {
+    public DummyHeartbeatTestCallable(int id) {
       mThreadName = THREAD_NAME + "-" + id;
     }
 
     @Override
-    public void run()  {
+    public Null call() throws Exception {
       try {
-        Whitebox.invokeMethod(HeartbeatContext.class, "setTimerClass", mThreadName,
-            HeartbeatContext.SCHEDULED_TIMER_CLASS);
+        HeartbeatContext.setTimerClass(mThreadName, HeartbeatContext.SCHEDULED_TIMER_CLASS);
 
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
         HeartbeatThread ht = new HeartbeatThread(mThreadName, executor, 1);
 
         // Run the HeartbeatThread.
-        sExecutorService.submit(ht);
+        mExecutorService.submit(ht);
 
         // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
-        Assert.assertTrue("Initial wait failed.",
+        Assert.assertTrue("Initial wait failed for " + mThreadName,
             HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
 
-        final int numIterations = 100000;
+        final int numIterations = 200;
         for (int i = 0; i < numIterations; i++) {
           HeartbeatScheduler.schedule(mThreadName);
           Assert.assertTrue("Iteration " + i + " failed.",
@@ -140,6 +144,7 @@ public final class HeartbeatThreadTest {
       } catch (Exception e) {
         throw new RuntimeException(e.getMessage());
       }
+      return null;
     }
   }
 
