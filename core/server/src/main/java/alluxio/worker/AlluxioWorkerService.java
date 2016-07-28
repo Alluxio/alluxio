@@ -31,9 +31,7 @@ public interface AlluxioWorkerService extends Server {
     private static AlluxioWorkerService sAlluxioWorker;
 
     /**
-     * Returns a the default Alluxio worker.
-     *
-     * @return Alluxio worker handle
+     * @return the default Alluxio worker
      */
     public static synchronized AlluxioWorkerService get() {
       if (sAlluxioWorker == null) {

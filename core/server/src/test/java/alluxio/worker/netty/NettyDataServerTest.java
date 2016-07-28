@@ -13,12 +13,14 @@ package alluxio.worker.netty;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Matchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import alluxio.client.netty.ClientHandler;
 import alluxio.client.netty.NettyClient;
 import alluxio.client.netty.SingleResponseListener;
+import alluxio.exception.BlockDoesNotExistException;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockWriteRequest;
 import alluxio.network.protocol.RPCFileReadRequest;
@@ -99,6 +101,36 @@ public final class NettyDataServerTest {
   }
 
   @Test
+  public void blockWorkerExceptionCausesReadFailedStatus() throws Exception {
+    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
+        .thenThrow(new RuntimeException());
+    RPCResponse response = request(new RPCBlockReadRequest(1, 2, 3, 4, 0));
+
+    // Verify that the read request failed with UFS_READ_FAILED status.
+    assertEquals(RPCResponse.Status.UFS_READ_FAILED, response.getStatus());
+  }
+
+  @Test
+  public void blockWorkerBlockDoesNotExistExceptionCausesFileDneStatus() throws Exception {
+    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
+        .thenThrow(new BlockDoesNotExistException(""));
+    RPCResponse response = request(new RPCBlockReadRequest(1, 2, 3, 4, 0));
+
+    // Verify that the read request failed with a FILE_DNE status.
+    assertEquals(RPCResponse.Status.FILE_DNE, response.getStatus());
+  }
+
+  @Test
+  public void blockWorkerExceptionCausesFailStatusOnRead() throws Exception {
+    when(mBlockWorker.readBlockRemote(anyLong(), anyLong(), anyLong()))
+        .thenThrow(new RuntimeException());
+    RPCResponse response = request(new RPCBlockReadRequest(1, 2, 3, 4, 0));
+
+    // Verify that the write request failed.
+    assertEquals(RPCResponse.Status.UFS_READ_FAILED, response.getStatus());
+  }
+
+  @Test
   public void writeNewBlock() throws Exception {
     long sessionId = 0;
     long blockId = 1;
@@ -139,6 +171,22 @@ public final class NettyDataServerTest {
   }
 
   @Test
+  public void blockWorkerExceptionCausesFailStatusOnWrite() throws Exception {
+    long sessionId = 0;
+    long blockId = 1;
+    long offset = 0;
+    long length = 2;
+    when(mBlockWorker.getTempBlockWriterRemote(sessionId, blockId))
+        .thenThrow(new RuntimeException());
+    DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
+    RPCResponse response =
+        request(new RPCBlockWriteRequest(sessionId, blockId, offset, length, data));
+
+    // Verify that the write request failed.
+    assertEquals(RPCResponse.Status.WRITE_ERROR, response.getStatus());
+  }
+
+  @Test
   public void readFile() throws Exception {
     long tempUfsFileId = 1;
     long offset = 0;
@@ -153,6 +201,16 @@ public final class NettyDataServerTest {
   }
 
   @Test
+  public void fileSystemWorkerExceptionCausesFailStatusOnRead() throws Exception {
+    when(mFileSystemWorker.getUfsInputStream(1, 0))
+        .thenThrow(new RuntimeException());
+    RPCResponse response = request(new RPCFileReadRequest(1, 0, 3));
+
+    // Verify that the write request failed.
+    assertEquals(RPCResponse.Status.UFS_READ_FAILED, response.getStatus());
+  }
+
+  @Test
   public void writeFile() throws Exception {
     long tempUfsFileId = 1;
     long offset = 0;
@@ -160,12 +218,21 @@ public final class NettyDataServerTest {
     DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
     ByteArrayOutputStream outStream = new ByteArrayOutputStream();
     when(mFileSystemWorker.getUfsOutputStream(tempUfsFileId)).thenReturn(outStream);
-    RPCResponse response =
-        request(new RPCFileWriteRequest(tempUfsFileId, offset, length, data));
+    RPCResponse response = request(new RPCFileWriteRequest(tempUfsFileId, offset, length, data));
 
     // Verify that the write request writes to the OutputStream returned by the worker.
     assertEquals(RPCResponse.Status.SUCCESS, response.getStatus());
     assertEquals("abc", new String(outStream.toByteArray(), Charsets.UTF_8));
+  }
+
+  @Test
+  public void fileSystemWorkerExceptionCausesFailStatusOnWrite() throws Exception {
+    DataByteArrayChannel data = new DataByteArrayChannel("abc".getBytes(Charsets.UTF_8), 0, 3);
+    when(mFileSystemWorker.getUfsOutputStream(1)).thenThrow(new RuntimeException());
+    RPCResponse response = request(new RPCFileWriteRequest(1, 0, 3, data));
+
+    // Verify that the write request failed.
+    assertEquals(RPCResponse.Status.UFS_WRITE_FAILED, response.getStatus());
   }
 
   private RPCResponse request(RPCRequest rpcBlockWriteRequest) throws Exception {
