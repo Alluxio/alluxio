@@ -11,319 +11,266 @@
 
 package alluxio;
 
-import alluxio.util.network.NetworkAddressUtils;
-
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Properties;
-
 /**
- * Unit test for the {@link Configuration} class.
+ * Unit tests for the {@link Configuration} class.
  */
 public class ConfigurationTest {
-
-  /**
-   * The exception expected to be thrown.
-   */
   @Rule
   public final ExpectedException mThrown = ExpectedException.none();
-  private static final String DEFAULT_HADOOP_UFS_PREFIX = "hdfs://,glusterfs:///";
-
-  private static Map<String, String> sTestProperties = new LinkedHashMap<>();
-
-  /**
-   * Sets the properties and configuration before the test suite runs.
-   */
-  @BeforeClass
-  public static void beforeClass() {
-    // initialize the test properties.
-    sTestProperties.put("home", "hometest");
-    sTestProperties.put("homeandpath", "${home}/path1");
-    sTestProperties.put("homeandstring", "${home} string1");
-    sTestProperties.put("path2", "path2");
-    sTestProperties.put("multiplesubs", "${home}/path1/${path2}");
-    sTestProperties.put("recursive", "${multiplesubs}");
-    sTestProperties.put("home.port", "8080");
-    sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
-  }
 
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
   }
 
-  /**
-   * Tests the default common properties.
-   */
   @Test
-  public void commonDefaultTest() {
+  public void defaultHomeCorrectlyLoaded() {
     String alluxioHome = Configuration.get(Constants.HOME);
-    Assert.assertNotNull(alluxioHome);
     Assert.assertEquals("/mnt/alluxio_default_home", alluxioHome);
-
-    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
-    Assert.assertNotNull(ufsAddress);
-    Assert.assertEquals(alluxioHome + "/underFSStorage", ufsAddress);
-
-    String value = Configuration.get(Constants.WEB_RESOURCES);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(alluxioHome + "/core/server/src/main/webapp", value);
-
-    value = Configuration.get(Constants.UNDERFS_HDFS_IMPL);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", value);
-
-    value = Configuration.get(Constants.UNDERFS_HDFS_PREFIXES);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(DEFAULT_HADOOP_UFS_PREFIX, value);
-
-    value = Configuration.get(Constants.UNDERFS_GLUSTERFS_IMPL);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("org.apache.hadoop.fs.glusterfs.GlusterFileSystem", value);
-
-    boolean booleanValue = Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED);
-    Assert.assertFalse(booleanValue);
-
-    booleanValue = Configuration.getBoolean(Constants.IN_TEST_MODE);
-    Assert.assertFalse(booleanValue);
-
-    int intValue = Configuration.getInt(Constants.NETWORK_HOST_RESOLUTION_TIMEOUT_MS);
-    Assert.assertEquals(Constants.DEFAULT_HOST_RESOLUTION_TIMEOUT_MS, intValue);
-
-    long longBytesValue =
-        Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
-    Assert.assertEquals(Constants.MB * 8, longBytesValue);
-
-    longBytesValue = Configuration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
-    Assert.assertEquals(Constants.MB * 16, longBytesValue);
-
-    int maxTry = Configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
-    Assert.assertEquals(10, maxTry);
   }
 
-  /**
-   * Tests the default properties for the master.
-   */
   @Test
-  public void masterDefaultTest() {
-    String alluxioHome = Configuration.get(Constants.HOME);
-    Assert.assertNotNull(alluxioHome);
-    Assert.assertEquals("/mnt/alluxio_default_home", alluxioHome);
-
-    String value = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(alluxioHome + "/journal/", value);
-
-    value = Configuration.get(Constants.MASTER_HOSTNAME);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.getLocalHostName(100), value);
-
-    value = Configuration.get(Constants.MASTER_FORMAT_FILE_PREFIX);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(Constants.FORMAT_FILE_PREFIX, value);
-
-    value = Configuration.get(Constants.MASTER_ADDRESS);
-    Assert.assertNotNull(value);
-
-    value = Configuration.get(Constants.MASTER_BIND_HOST);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
-
-    int intValue = Configuration.getInt(Constants.MASTER_RPC_PORT);
-    Assert.assertEquals(19998, intValue);
-
-    value = Configuration.get(Constants.MASTER_WEB_BIND_HOST);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
-
-    intValue = Configuration.getInt(Constants.MASTER_WEB_PORT);
-    Assert.assertEquals(19999, intValue);
-
-    intValue = Configuration.getInt(Constants.WEB_THREAD_COUNT);
-    Assert.assertEquals(1, intValue);
-
-    intValue = Configuration.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(Constants.SECOND_MS, intValue);
-
-    intValue = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    Assert.assertEquals(512, intValue);
-
-    intValue = Configuration.getInt(Constants.MASTER_WORKER_TIMEOUT_MS);
-    Assert.assertEquals(300 * Constants.SECOND_MS, intValue);
+  public void getInt() {
+    Configuration.set("key", "1");
+    Assert.assertEquals(1, Configuration.getInt("key"));
   }
 
-  /**
-   * Tests the default properties for the worker.
-   */
   @Test
-  public void workerDefaultTest() {
-    String value = Configuration.get(Constants.WORKER_DATA_FOLDER);
-    Assert.assertNotNull(value);
-    Assert.assertEquals("/alluxioworker/", value);
-
-    value = Configuration.get(Constants.WORKER_BIND_HOST);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
-
-    int intValue = Configuration.getInt(Constants.WORKER_RPC_PORT);
-    Assert.assertEquals(29998, intValue);
-
-    value = Configuration.get(Constants.WORKER_DATA_BIND_HOST);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
-
-    intValue = Configuration.getInt(Constants.WORKER_DATA_PORT);
-    Assert.assertEquals(29999, intValue);
-
-    value = Configuration.get(Constants.WORKER_WEB_BIND_HOST);
-    Assert.assertNotNull(value);
-    Assert.assertEquals(NetworkAddressUtils.WILDCARD_ADDRESS, value);
-
-    intValue = Configuration.getInt(Constants.WORKER_WEB_PORT);
-    Assert.assertEquals(30000, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
-    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(Constants.SECOND_MS, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
-    Assert.assertEquals(256, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
-    Assert.assertEquals(10 * Constants.SECOND_MS, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_NETWORK_NETTY_BOSS_THREADS);
-    Assert.assertEquals(1, intValue);
-
-    intValue = Configuration.getInt(Constants.WORKER_NETWORK_NETTY_WORKER_THREADS);
-    Assert.assertEquals(0, intValue);
-
-    long longValue = Configuration.getBytes(Constants.WORKER_MEMORY_SIZE);
-    Assert.assertEquals(Constants.GB, longValue);
+  public void getMalformedIntThrowsException() {
+    Configuration.set("key", "9448367483758473854738"); // bigger than MAX_INT
+    mThrown.expect(RuntimeException.class);
+    Configuration.getInt("key");
   }
 
-  /**
-   * Tests the default properties for the user.
-   */
   @Test
-  public void userDefaultTest() {
-    int intValue = Configuration.getInt(Constants.USER_FAILED_SPACE_REQUEST_LIMITS);
-    Assert.assertEquals(3, intValue);
-
-    intValue = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
-    Assert.assertEquals(Constants.SECOND_MS, intValue);
-
-    long longValue = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
-    Assert.assertEquals(Constants.MB, longValue);
-
-    longValue = Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
-    Assert.assertEquals(8 * Constants.MB, longValue);
+  public void getLong() {
+    Configuration.set("key", "12345678910"); // bigger than MAX_INT
+    Assert.assertEquals(12345678910L, Configuration.getLong("key"));
   }
 
-  /**
-   * Tests the simple substitution of variables.
-   */
   @Test
-  public void variableSubstitutionSimpleTest() {
-    Configuration.merge(sTestProperties);
-
-    String home = Configuration.get("home");
-    Assert.assertEquals("hometest", home);
-
-    String homeAndPath = Configuration.get("homeandpath");
-    Assert.assertEquals(home + "/path1", homeAndPath);
-
-    String homeAndString = Configuration.get("homeandstring");
-    Assert.assertEquals(home + " string1", homeAndString);
-
-    String path2 = Configuration.get("path2");
-    Assert.assertEquals("path2", path2);
-
-    String multiplesubs = Configuration.get("multiplesubs");
-    Assert.assertEquals(home + "/path1/" + path2, multiplesubs);
-
-    String homePort = Configuration.get("home.port");
-    Assert.assertEquals("8080", homePort);
-
-    sTestProperties.put("complex.address", "alluxio://${home}:${home.port}");
-    String complexAddress = Configuration.get("complex.address");
-    Assert.assertEquals("alluxio://" + home + ":" + homePort, complexAddress);
-
+  public void getMalformedLongThrowsException() {
+    Configuration.set("key", "999999999999999999999999999999999999"); // bigger than MAX_LONG
+    mThrown.expect(RuntimeException.class);
+    Configuration.getLong("key");
   }
 
-  /**
-   * Tests the recursive substitution of variables.
-   */
   @Test
-  public void variableSubstitutionRecursiveTest() {
-    Configuration.merge(sTestProperties);
-    String multiplesubs = Configuration.get("multiplesubs");
-    String recursive = Configuration.get("recursive");
-    Assert.assertEquals(multiplesubs, recursive);
+  public void getDouble() {
+    Configuration.set("key", "1.1");
+    Assert.assertEquals(1.1, Configuration.getDouble("key"), /*tolerance=*/0.0001);
   }
 
-  /**
-   * Tests the substitution of system variables.
-   */
   @Test
-  public void systemVariableSubstitutionSampleTest() {
-    // set system properties
-    System.setProperty(Constants.MASTER_HOSTNAME, "master");
-    System.setProperty(Constants.MASTER_RPC_PORT, "20001");
-    System.setProperty(Constants.ZOOKEEPER_ENABLED, "true");
-
-    Configuration.defaultInit();
-    String masterAddress = Configuration.get(Constants.MASTER_ADDRESS);
-    Assert.assertNotNull(masterAddress);
-    Assert.assertEquals("alluxio-ft://master:20001", masterAddress);
-
-    // clear system properties
-    System.clearProperty(Constants.MASTER_HOSTNAME);
-    System.clearProperty(Constants.MASTER_RPC_PORT);
-    System.clearProperty(Constants.ZOOKEEPER_ENABLED);
+  public void getMalformedDoubleThrowsException() {
+    Configuration.set("key", "1a");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getDouble("key");
   }
 
-  /**
-   * Tests that an exception is thrown when the {@link Constants#USER_FILE_BUFFER_BYTES} overflows.
-   */
   @Test
-  public void variableUserFileBufferBytesOverFlowCheckTest() {
-    Properties mProperties = new Properties();
-    mProperties.put(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
+  public void getFloat() {
+    Configuration.set("key", "1.1");
+    Assert.assertEquals(1.1, Configuration.getFloat("key"), /*tolerance=*/0.0001);
+  }
+
+  @Test
+  public void getMalformedFloatThrowsException() {
+    Configuration.set("key", "1a");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getFloat("key");
+  }
+
+  @Test
+  public void getTrueBoolean() {
+    Configuration.set("key", "true");
+    Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getTrueBooleanUppercase() {
+    Configuration.set("key", "True");
+    Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getTrueBooleanMixcase() {
+    Configuration.set("key", "tRuE");
+    Assert.assertTrue(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBoolean() {
+    Configuration.set("key", "false");
+    Assert.assertFalse(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBooleanUppercase() {
+    Configuration.set("key", "False");
+    Assert.assertFalse(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getFalseBooleanMixcase() {
+    Configuration.set("key", "fAlSe");
+    Assert.assertFalse(Configuration.getBoolean("key"));
+  }
+
+  @Test
+  public void getMalformedBooleanThrowsException() {
+    Configuration.set("key", "x");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getBoolean("key");
+  }
+
+  @Test
+  public void getList() {
+    Configuration.set("key", "a,b,c");
+    Assert.assertEquals(Lists.newArrayList("a", "b", "c"), Configuration.getList("key", ","));
+  }
+
+  private static enum TestEnum {
+    VALUE
+  }
+
+  @Test
+  public void getEnum() {
+    Configuration.set("key", "VALUE");
+    Assert.assertEquals(TestEnum.VALUE, Configuration.getEnum("key", TestEnum.class));
+  }
+
+  @Test
+  public void getMalformedEnum() {
+    Configuration.set("key", "not_a_value");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getEnum("key", TestEnum.class);
+  }
+
+  @Test
+  public void getBytes() {
+    Configuration.set("key", "10b");
+    Assert.assertEquals(10, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesKb() {
+    Configuration.set("key", "10kb");
+    Assert.assertEquals(10 * Constants.KB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesMb() {
+    Configuration.set("key", "10mb");
+    Assert.assertEquals(10 * Constants.MB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesGb() {
+    Configuration.set("key", "10gb");
+    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesGbUppercase() {
+    Configuration.set("key", "10GB");
+    Assert.assertEquals(10 * (long) Constants.GB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytesTb() {
+    Configuration.set("key", "10tb");
+    Assert.assertEquals(10 * Constants.TB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getBytespT() {
+    Configuration.set("key", "10pb");
+    Assert.assertEquals(10 * Constants.PB, Configuration.getBytes("key"));
+  }
+
+  @Test
+  public void getMalformedBytesThrowsException() {
+    Configuration.set("key", "100a");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getBoolean("key");
+  }
+
+  @Test
+  public void getClassTest() { // The name getClass is already reserved.
+    Configuration.set("key", "java.lang.String");
+    Assert.assertEquals(String.class, Configuration.getClass("key"));
+  }
+
+  @Test
+  public void getMalformedClassThrowsException() {
+    Configuration.set("key", "java.util.not.a.class");
+    mThrown.expect(RuntimeException.class);
+    Configuration.getClass("key");
+  }
+
+  @Test
+  public void variableSubstitution() {
+    Configuration.merge(ImmutableMap.of(
+        "key", "value",
+        "substitution", "${key}"));
+    String substitution = Configuration.get("substitution");
+    Assert.assertEquals("value", substitution);
+  }
+
+  @Test
+  public void twoVariableSubstitution() {
+    Configuration.merge(ImmutableMap.of(
+        "key1", "value1",
+        "key2", "value2",
+        "substitution", "${key1},${key2}"));
+    String substitution = Configuration.get("substitution");
+    Assert.assertEquals("value1,value2", substitution);
+  }
+
+  @Test
+  public void recursiveVariableSubstitution() {
+    Configuration.merge(ImmutableMap.of(
+        "key", "value",
+        "substitution1", "${key}",
+        "substitution2", "${substitution1}"));
+    String substitution2 = Configuration.get("substitution2");
+    Assert.assertEquals("value", substitution2);
+  }
+
+  @Test
+  public void systemVariableSubstitution() throws Exception {
+    try (SetAndRestoreSystemProperty c =
+        new SetAndRestoreSystemProperty(Constants.MASTER_HOSTNAME, "new_master")) {
+      Configuration.defaultInit();
+      Assert.assertEquals("new_master", Configuration.get(Constants.MASTER_HOSTNAME));
+    }
+  }
+
+  @Test
+  public void userFileBufferBytesOverFlowException() {
     mThrown.expect(IllegalArgumentException.class);
-    Configuration.merge(mProperties);
+    Configuration.set(Constants.USER_FILE_BUFFER_BYTES,
+        String.valueOf(Integer.MAX_VALUE + 1) + "B");
   }
 
-  /**
-   * Tests that an exception is thrown when the {@link Constants#USER_FILE_BUFFER_BYTES} overflows.
-   */
   @Test
-  public void variableUserFileBufferBytesOverFlowCheckTest1() {
-    Map<String, String> properties = new LinkedHashMap<>();
-    properties.put(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE + 1) + "B");
-    mThrown.expect(IllegalArgumentException.class);
-    Configuration.merge(properties);
-  }
-
-  /**
-   * Tests that setting the {@link Constants#USER_FILE_BUFFER_BYTES} runs correctly.
-   */
-  @Test
-  public void variableUserFileBufferBytesNormalCheckTest() {
-    Properties mProperties = new Properties();
-    mProperties.put(Constants.USER_FILE_BUFFER_BYTES , String.valueOf(Integer.MAX_VALUE) + "B");
-    Configuration.merge(mProperties);
+  public void setUserFileBufferBytesMaxInteger() {
+    Configuration.set(Constants.USER_FILE_BUFFER_BYTES, String.valueOf(Integer.MAX_VALUE) + "B");
     Assert.assertEquals(Integer.MAX_VALUE,
         (int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+  }
+
+  @Test
+  public void setUserFileBufferBytes1GB() {
     Configuration.set(Constants.USER_FILE_BUFFER_BYTES, "1GB");
     Assert.assertEquals(1073741824, (int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
   }

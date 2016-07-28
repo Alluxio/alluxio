@@ -18,7 +18,7 @@ import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
 import alluxio.wire.LockBlockResult;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -63,7 +63,7 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String UNLOCK_BLOCK = "unlock_block";
   public static final String WRITE_BLOCK = "write_block";
 
-  private final BlockWorker mBlockWorker = AlluxioWorker.get().getBlockWorker();
+  private final BlockWorker mBlockWorker = AlluxioWorkerService.Factory.get().getBlockWorker();
   private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
 
   /**
