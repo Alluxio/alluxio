@@ -16,6 +16,7 @@ import alluxio.clock.TestClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterContext;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
@@ -83,7 +84,8 @@ public class BlockMasterTest {
     mClock = new TestClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
-    mMaster = new BlockMaster(blockJournal, mClock, mExecutorService);
+    mMaster =
+        new BlockMaster(blockJournal, mClock, mExecutorService, MasterContext.getMasterSource());
     mMaster.start(true);
   }
 
