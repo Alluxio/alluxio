@@ -18,8 +18,29 @@ import alluxio.client.file.policy.LocalFirstPolicy;
 /**
  * A util class to obtain common CreateFile/OpenFile options for tests.
  */
-// TODO(calvin): We can make these methods into constants
 public final class StreamOptionUtils {
+
+  private static final CreateFileOptions WRITE_CACHE_THROUGH =
+      getWriteOptions(WriteType.CACHE_THROUGH);
+  private static final CreateFileOptions WRITE_CACHE_THROUGH_LOCAL =
+      getWriteOptions(WriteType.CACHE_THROUGH).setLocationPolicy(new LocalFirstPolicy());
+  private static final CreateFileOptions WRITE_MUST_CACHE =
+      getWriteOptions(WriteType.MUST_CACHE);
+  private static final CreateFileOptions WRITE_THROUGH = getWriteOptions(WriteType.THROUGH);
+  private static final CreateFileOptions WRITE_ASYNC_THROUGH =
+      getWriteOptions(WriteType.ASYNC_THROUGH);
+  private static final OpenFileOptions READ_CACHE_PROMOTE =
+      getReadOptions(ReadType.CACHE_PROMOTE);
+  private static final OpenFileOptions READ_NO_CACHE = getReadOptions(ReadType.NO_CACHE);
+
+  private static CreateFileOptions getWriteOptions(final WriteType writeType) {
+    return CreateFileOptions.defaults().setWriteType(writeType);
+  }
+
+  private static OpenFileOptions getReadOptions(final ReadType readType) {
+    return OpenFileOptions.defaults().setReadType(readType);
+  }
+
   private StreamOptionUtils() {
     // not intended for instantiation
   }
@@ -30,7 +51,7 @@ public final class StreamOptionUtils {
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsCacheThrough() {
-    return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    return WRITE_CACHE_THROUGH;
   }
 
   /**
@@ -39,7 +60,7 @@ public final class StreamOptionUtils {
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsMustCache() {
-    return CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    return WRITE_MUST_CACHE;
   }
 
   /**
@@ -48,7 +69,7 @@ public final class StreamOptionUtils {
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsThrough() {
-    return CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    return WRITE_THROUGH;
   }
 
   /**
@@ -57,8 +78,7 @@ public final class StreamOptionUtils {
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsWriteLocal() {
-    return CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
-        .setLocationPolicy(new LocalFirstPolicy());
+    return WRITE_CACHE_THROUGH_LOCAL;
   }
 
   /**
@@ -67,7 +87,7 @@ public final class StreamOptionUtils {
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsCache() {
-    return OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    return READ_CACHE_PROMOTE;
   }
 
   /**
@@ -76,7 +96,7 @@ public final class StreamOptionUtils {
    * @return the {@link OpenFileOptions}
    */
   public static OpenFileOptions getOpenFileOptionsNoCache() {
-    return OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
+    return READ_NO_CACHE;
   }
 
   /**
@@ -85,6 +105,6 @@ public final class StreamOptionUtils {
    * @return the {@link CreateFileOptions}
    */
   public static CreateFileOptions getCreateFileOptionsAsync() {
-    return CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
+    return WRITE_ASYNC_THROUGH;
   }
 }
