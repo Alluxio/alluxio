@@ -20,6 +20,7 @@ import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.policy.LocalFirstPolicy;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.underfs.hdfs.LocalMiniDFSCluster;
@@ -62,11 +63,12 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   @Before
   public void before() throws Exception {
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
-    mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal();
-    mWriteAsync = StreamOptionUtils.getCreateFileOptionsAsync();
+    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    mWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    mWriteLocal = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
+        .setLocationPolicy(new LocalFirstPolicy());
+    mWriteAsync = CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH);
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
