@@ -64,15 +64,18 @@ public final class HeartbeatContext {
   /**
    * Sets the timer class to use for the specified executor thread.
    *
+   * This method should only be used by tests.
+   *
    * @param name a name of a heartbeat executor thread
    * @param timerClass the timer class to use for the executor thread
    */
-  public static synchronized void setTimerClass(String name,
+  @SuppressWarnings("unused")
+  private static synchronized void setTimerClass(String name,
       Class<? extends HeartbeatTimer> timerClass) {
-    if (!sTimerClasses.containsKey(name)) {
-      sTimerClasses.put(name, timerClass);
+    if (timerClass == null) {
+      sTimerClasses.remove(name);
     } else {
-      throw new RuntimeException("There is already a timer class for " + name);
+      sTimerClasses.put(name, timerClass);
     }
   }
 }
