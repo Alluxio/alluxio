@@ -58,6 +58,13 @@ public final class LoginUser {
   }
 
   /**
+   * Resets the login user so that the next call to get() will have to log in again.
+   */
+  public static synchronized void reset() {
+    sLoginUser = null;
+  }
+
+  /**
    * Logs in based on the LoginModules.
    *
    * @return the login user
