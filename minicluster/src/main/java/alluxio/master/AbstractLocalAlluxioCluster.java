@@ -20,8 +20,8 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
+import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUser;
-import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
@@ -424,7 +424,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void reset() {
     ClientTestUtils.resetClient();
-    GroupMappingService.Factory.resetCache();
+    GroupMappingServiceTestUtils.resetCache();
   }
 
   /**

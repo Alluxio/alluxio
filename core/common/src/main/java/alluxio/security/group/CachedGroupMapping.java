@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * Class to map user to groups. It maintains a cache for user to groups mapping. The underlying
  * implementation depends on {@link GroupMappingService}.
  */
-public class CachedGroupMapping {
+public class CachedGroupMapping implements GroupMappingService {
   /** The underlying implementation of GroupMappingService. */
   private final GroupMappingService mService;
   /** Whether the cache is enabled. Set timeout to non-positive value to disable cache. */
@@ -46,9 +46,9 @@ public class CachedGroupMapping {
   private static final long MAXSIZE = 10000;
 
   /** Create an executor service that provide ListenableFuture instances. */
-  private ThreadFactory mThreadFactory = new ThreadFactoryBuilder()
+  private final ThreadFactory mThreadFactory = new ThreadFactoryBuilder()
       .setNameFormat("UserGroupMappingCachePool-%d").setDaemon(true).build();
-  private ExecutorService mParentExecutor = Executors.newSingleThreadExecutor(mThreadFactory);
+  private final ExecutorService mParentExecutor = Executors.newSingleThreadExecutor(mThreadFactory);
   private final ListeningExecutorService mExecutorService =
       MoreExecutors.listeningDecorator(mParentExecutor);
 

@@ -39,67 +39,36 @@ public interface GroupMappingService {
 
     // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
     // Currently the single global cached GroupMappingService assumes that there is no dynamic
-    // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CALSS}.
-    private static GroupMappingService sGroupMappingService = null;
+    // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
     private static CachedGroupMapping sCachedGroupMapping = null;
 
     // prevent instantiation
     private Factory() {}
 
     /**
-     * Gets the groups mapping service being used to map user-to-groups.
+     * Gets the cached groups mapping service being used to map user-to-groups.
      *
      * @return the groups mapping service being used to map user-to-groups
      */
     public static GroupMappingService get() {
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating new Groups object");
-      }
-      try {
-        if (sGroupMappingService == null) {
-          synchronized (Factory.class) {
-            if (sGroupMappingService == null) {
-              sGroupMappingService = CommonUtils.createNewClassInstance(
-                  Configuration.<GroupMappingService>getClass(
-                      Constants.SECURITY_GROUP_MAPPING_CLASS), null, null);
-            }
-          }
-        }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return sGroupMappingService;
-    }
-
-    /**
-     * Gets the cached user-to-groups mapping object.
-     *
-     * @return the cached user-to-groups mapping object
-     */
-    public static CachedGroupMapping getCachedGroupMapping() {
       if (sCachedGroupMapping == null) {
         synchronized (Factory.class) {
           if (sCachedGroupMapping == null) {
-            sCachedGroupMapping = new CachedGroupMapping(get());
+            try {
+              LOG.debug("Creating new Groups object");
+              GroupMappingService groupMappingService = CommonUtils.createNewClassInstance(
+                  Configuration.<GroupMappingService>getClass(
+                      Constants.SECURITY_GROUP_MAPPING_CLASS), null, null);
+              sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
           }
         }
       }
       return sCachedGroupMapping;
     }
 
-    /**
-     * Resets the cache for GroupMappingService and CachedGroupMapping.
-     */
-    public static void resetCache() {
-      if (sGroupMappingService != null || sCachedGroupMapping != null) {
-        synchronized (Factory.class) {
-          if (sGroupMappingService != null || sCachedGroupMapping != null) {
-            sGroupMappingService = null;
-            sCachedGroupMapping = null;
-          }
-        }
-      }
-    }
   }
 
   /**
