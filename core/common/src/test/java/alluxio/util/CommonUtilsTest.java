@@ -225,8 +225,7 @@ public class CommonUtilsTest {
     PowerMockito.when(cachedGroupService.getGroups(Mockito.anyString())).thenReturn(
         Lists.newArrayList(userGroup1, userGroup2));
     PowerMockito.mockStatic(GroupMappingService.Factory.class);
-    Mockito.when(GroupMappingService.Factory.getCachedGroupMapping())
-        .thenReturn(cachedGroupService);
+    Mockito.when(GroupMappingService.Factory.get()).thenReturn(cachedGroupService);
 
     List<String> groups = CommonUtils.getGroups(userName);
     Assert.assertEquals(Arrays.asList(userGroup1, userGroup2), groups);

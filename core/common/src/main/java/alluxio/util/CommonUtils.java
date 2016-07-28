@@ -231,8 +231,8 @@ public final class CommonUtils {
    * @throws IOException if getting group list failed
    */
   public static List<String> getGroups(String userName) throws IOException {
-    CachedGroupMapping cachedGroupMapping = GroupMappingService.Factory.getCachedGroupMapping();
-    return cachedGroupMapping.getGroups(userName);
+    GroupMappingService groupMappingService = GroupMappingService.Factory.get();
+    return groupMappingService.getGroups(userName);
   }
 
   /**
