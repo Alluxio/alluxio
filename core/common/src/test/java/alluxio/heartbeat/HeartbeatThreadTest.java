@@ -129,14 +129,12 @@ public final class HeartbeatThreadTest {
         mExecutorService.submit(ht);
 
         // Wait for the DummyHeartbeatExecutor executor to be ready to execute its heartbeat.
-        Assert.assertTrue("Initial wait failed for " + mThreadName,
-            HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
+        HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS);
 
         final int numIterations = 5000;
         for (int i = 0; i < numIterations; i++) {
           HeartbeatScheduler.schedule(mThreadName);
-          Assert.assertTrue("Iteration " + i + " failed.",
-              HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
+          HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS);
         }
 
         Assert.assertEquals("The executor counter is wrong.", numIterations, executor.getCounter());

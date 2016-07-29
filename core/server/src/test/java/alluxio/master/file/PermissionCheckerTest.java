@@ -167,7 +167,8 @@ public final class PermissionCheckerTest {
 
     blockMaster.start(true);
 
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING_CLASS,
+        FakeUserGroupsMapping.class.getName());
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
     Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);

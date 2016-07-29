@@ -87,7 +87,8 @@ public final class PermissionTest {
     verifyPermission("", "", (short) 0777, permission);
 
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
 
     // When authentication is enabled, user and group are inferred from thrift transport
@@ -110,7 +111,8 @@ public final class PermissionTest {
     // When authentication is enabled, user and group are inferred from login module
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
     Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
 
     permission.setOwnerFromLoginModule();

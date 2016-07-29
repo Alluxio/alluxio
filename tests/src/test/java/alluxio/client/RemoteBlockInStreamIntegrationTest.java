@@ -94,10 +94,10 @@ public class RemoteBlockInStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
-    mReadCache = StreamOptionUtils.getOpenFileOptionsCache();
-    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache();
+    mWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
   /**
@@ -514,16 +514,14 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void remoteReadLockTest() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-          TimeUnit.SECONDS));
+      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
@@ -534,8 +532,7 @@ public class RemoteBlockInStreamIntegrationTest {
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-          TimeUnit.SECONDS));
+      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
       // The file has been deleted.
       Assert.assertFalse(mFileSystem.exists(uri));
