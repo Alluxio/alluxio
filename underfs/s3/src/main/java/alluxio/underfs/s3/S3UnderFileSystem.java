@@ -136,10 +136,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
       props.setProperty("httpclient.max-connections",
           Configuration.get(Constants.UNDERFS_S3_THREADS_MAX));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_REQUEST_SIGNATURE_VERSION)) {
-      props.setProperty("storage-service.request-signature-version",
-          Configuration.get(Constants.UNDERFS_S3_REQUEST_SIGNATURE_VERSION));
-    }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);

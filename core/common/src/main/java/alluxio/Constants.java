@@ -151,8 +151,6 @@ public final class Constants {
   public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
   public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
   public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
-  public static final String UNDERFS_S3_REQUEST_SIGNATURE_VERSION =
-          "alluxio.underfs.s3.request.signature.version";
   public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
       "alluxio.underfs.s3.endpoint.http.port";
   public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
