@@ -65,6 +65,14 @@ output:
 
 {% include Command-Line-Interface/cat.md %}
 
+## checksum
+The `checksum` command outputs the md5 value of a file in Alluxio. 
+
+For example, `checksum` can be used to verify the content of a file stored in Alluxio
+matches the content stored in an UnderFS or local filesystem:
+
+{% include Command-Line-Interface/checksum.md %}
+
 ## chgrp
 The `chgrp` command changes the group of the file or directory in Alluxio. Alluxio supports file
 authorization with Posix file permission. Group is an authorizable entity in Posix file permission
@@ -140,6 +148,16 @@ For example, if data files are stored by their date, `count` can be used to dete
 data files and their total size for any date, month, or year.
 
 {% include Command-Line-Interface/count.md %}
+
+## cp
+The `cp` command copies a file or directory in the Alluxio filesystem.
+
+If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
+source to the destination.
+
+For example, `cp` can be used to copy files between UnderFS filesystems.
+
+{% include Command-Line-Interface/cp.md %}
 
 ## du
 The `du` command outputs the size of a file. If a directory is specified, it will output the
