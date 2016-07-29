@@ -11,7 +11,6 @@
 
 package alluxio.heartbeat;
 
-import org.apache.commons.lang3.ObjectUtils.Null;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -79,7 +78,7 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void serialHeartbeatThreadTest() throws Exception {
-    FutureTask<Null> task = new FutureTask<>(new DummyHeartbeatTestCallable());
+    FutureTask<Void> task = new FutureTask<>(new DummyHeartbeatTestCallable());
     Thread thread = new Thread(task);
     thread.start();
     thread.join();
@@ -92,23 +91,23 @@ public final class HeartbeatThreadTest {
    */
   @Test
   public void concurrentHeartbeatThreadTest() throws Exception {
-    List<FutureTask<Null>> tasks = new LinkedList<>();
+    List<FutureTask<Void>> tasks = new LinkedList<>();
 
     // Start the threads.
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
-      FutureTask<Null> task = new FutureTask<>(new DummyHeartbeatTestCallable(i));
+      FutureTask<Void> task = new FutureTask<>(new DummyHeartbeatTestCallable(i));
       Thread thread = new Thread(task);
       thread.start();
       tasks.add(task);
     }
 
     // Wait for the threads to finish.
-    for (FutureTask<Null> task: tasks) {
+    for (FutureTask<Void> task: tasks) {
       task.get();
     }
   }
 
-  private class DummyHeartbeatTestCallable implements Callable<Null>  {
+  private class DummyHeartbeatTestCallable implements Callable<Void>  {
     private final String mThreadName;
 
     public DummyHeartbeatTestCallable() {
@@ -120,7 +119,7 @@ public final class HeartbeatThreadTest {
     }
 
     @Override
-    public Null call() throws Exception {
+    public Void call() throws Exception {
       try (ManuallyScheduleHeartbeat.Resource r =
           new ManuallyScheduleHeartbeat.Resource(Arrays.asList(mThreadName))) {
         DummyHeartbeatExecutor executor = new DummyHeartbeatExecutor();
@@ -133,7 +132,7 @@ public final class HeartbeatThreadTest {
         Assert.assertTrue("Initial wait failed for " + mThreadName,
             HeartbeatScheduler.await(mThreadName, 5, TimeUnit.SECONDS));
 
-        final int numIterations = 200;
+        final int numIterations = 5000;
         for (int i = 0; i < numIterations; i++) {
           HeartbeatScheduler.schedule(mThreadName);
           Assert.assertTrue("Iteration " + i + " failed.",
