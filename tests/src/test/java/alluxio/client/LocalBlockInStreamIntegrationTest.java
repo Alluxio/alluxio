@@ -46,7 +46,7 @@ public final class LocalBlockInStreamIntegrationTest {
   private static CreateFileOptions sWriteBoth;
   private static CreateFileOptions sWriteAlluxio;
   private static OpenFileOptions sReadNoCache;
-  private static OpenFileOptions sReadCache;
+  private static OpenFileOptions sReadCachePromote;
   private static String sTestPath;
 
   @Rule
@@ -57,7 +57,7 @@ public final class LocalBlockInStreamIntegrationTest {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
     sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
     sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
-    sReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    sReadCachePromote = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
     sReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
     sTestPath = PathUtils.uniqPath();
 
@@ -100,7 +100,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = sFileSystem.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCachePromote);
         ret = new byte[k];
         value = is.read();
         cnt = 0;
@@ -133,7 +133,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
         is.close();
 
-        is = sFileSystem.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCachePromote);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -158,7 +158,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k / 2, ret));
         is.close();
 
-        is = sFileSystem.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCachePromote);
         ret = new byte[k];
         Assert.assertEquals(k, is.read(ret, 0, k));
         Assert.assertTrue(BufferUtils.equalIncreasingByteArray(k, ret));
@@ -244,7 +244,7 @@ public final class LocalBlockInStreamIntegrationTest {
         Assert.assertEquals(k / 2, is.read());
         is.close();
 
-        is = sFileSystem.openFile(uri, sReadCache);
+        is = sFileSystem.openFile(uri, sReadCachePromote);
         int t = k / 3;
         Assert.assertEquals(t, is.skip(t));
         Assert.assertEquals(t, is.read());
