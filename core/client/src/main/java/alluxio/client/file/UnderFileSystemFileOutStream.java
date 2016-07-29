@@ -59,7 +59,7 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
     /**
      * @return an instance of a factory for creating {@link UnderFileSystemFileOutStream}
      */
-    public static Factory get() {
+    public static synchronized Factory get() {
       if (sInstance == null) {
         sInstance = new Factory();
       }
