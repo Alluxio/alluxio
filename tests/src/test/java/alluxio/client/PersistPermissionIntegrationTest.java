@@ -110,7 +110,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
       return;
     }
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH)).close();
+    mFileSystem.createFile(filePath, CreateFileOptions.defaults()
+        .setWriteType(WriteType.ASYNC_THROUGH)).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);
