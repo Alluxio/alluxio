@@ -74,8 +74,8 @@ public class TtlBucketTest {
    */
   @Test
   public void addAndRemoveFileTest() {
-    InodeFile mFileTtl1 = InodeFile.create(0, 0, "test1", CreateFileOptions.defaults().setTtl(1));
-    InodeFile mFileTtl2 = InodeFile.create(1, 0, "test1", CreateFileOptions.defaults().setTtl(2));
+    InodeFile mFileTtl1 = InodeFile.create(0, 0, "test1", 0, CreateFileOptions.defaults().setTtl(1));
+    InodeFile mFileTtl2 = InodeFile.create(1, 0, "test1", 0, CreateFileOptions.defaults().setTtl(2));
     Assert.assertTrue(mBucket.getFiles().isEmpty());
 
     mBucket.addFile(mFileTtl1);
