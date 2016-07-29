@@ -178,14 +178,14 @@ public final class BlockWorker extends AbstractWorker {
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
+    // Setup session cleaner
+    setupSessionCleaner();
+
     // Setup space reserver
     SpaceReserver spaceReserver = null;
     if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       spaceReserver = new SpaceReserver(this);
     }
-
-    // Setup session cleaner
-    setupSessionCleaner();
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
