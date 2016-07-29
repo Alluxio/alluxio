@@ -104,7 +104,7 @@ public abstract class AbstractClient implements Closeable {
    * @param client the service client
    * @param version the client version
    */
-  private void checkVersion(AlluxioService.Client client, long version) throws IOException {
+  protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = client.getServiceVersion();
