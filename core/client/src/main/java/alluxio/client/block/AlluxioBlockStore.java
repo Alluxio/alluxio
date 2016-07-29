@@ -43,7 +43,7 @@ public final class AlluxioBlockStore {
   private static AlluxioBlockStore sClient = null;
 
   /**
-   * @return an instance of the Alluxio block store
+   * @return the Alluxio block store instance
    */
   public static synchronized AlluxioBlockStore get() {
     if (sClient == null) {
@@ -62,7 +62,7 @@ public final class AlluxioBlockStore {
    * @param context the block store context to use for acquiring worker and master clients
    * @param localHostName the local hostname for the block store
    */
-  public AlluxioBlockStore(BlockStoreContext context, String localHostName) {
+  AlluxioBlockStore(BlockStoreContext context, String localHostName) {
     mContext = context;
     mLocalHostName = localHostName;
 
