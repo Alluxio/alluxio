@@ -90,7 +90,7 @@ public class SpaceReserverTest {
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
     mExecutorService.submit(
-        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, spaceReserver, 10000));
+        new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, spaceReserver, 0));
 
     // Run the space reserver once.
     HeartbeatScheduler.await(HeartbeatContext.WORKER_SPACE_RESERVER, 5, TimeUnit.SECONDS);
