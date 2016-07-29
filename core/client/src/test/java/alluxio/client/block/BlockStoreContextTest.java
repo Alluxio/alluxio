@@ -120,7 +120,8 @@ public final class BlockStoreContextTest {
 
     // Use mocks for the block worker client to prevent it from trying to invoke the session
     // heartbeat RPC.
-    RetryHandlingBlockWorkerClient workerClientMock = PowerMockito.mock(RetryHandlingBlockWorkerClient.class);
+    RetryHandlingBlockWorkerClient workerClientMock =
+        Mockito.mock(RetryHandlingBlockWorkerClient.class);
     PowerMockito.doNothing().when(workerClientMock).sessionHeartbeat();
     PowerMockito.doReturn(true).when(workerClientMock).isLocal();
     PowerMockito.doReturn(list.get(0).getAddress()).when(workerClientMock).getWorkerNetAddress();
