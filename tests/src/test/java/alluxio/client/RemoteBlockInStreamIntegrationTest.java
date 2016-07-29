@@ -94,10 +94,10 @@ public class RemoteBlockInStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
-    mReadCache = StreamOptionUtils.getOpenFileOptionsCache();
-    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache();
+    mWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
   /**
