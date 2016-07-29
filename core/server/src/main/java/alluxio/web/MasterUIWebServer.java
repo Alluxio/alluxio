@@ -11,16 +11,15 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -61,7 +60,10 @@ public final class MasterUIWebServer extends UIWebServer {
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
         master.getMasterMetricsSystem())), "/metricsui");
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/master.xml"));
+    ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
+        "alluxio.master.file", "alluxio.master.lineage");
+    ServletHolder servlet =
+        new ServletHolder("Alluxio Master Web Service", new ServletContainer(config));
+    mWebAppContext.addServlet(servlet, "/v1/api/*");
   }
 }
