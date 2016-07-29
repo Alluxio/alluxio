@@ -178,13 +178,11 @@ public final class BlockWorker extends AbstractWorker {
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
+    // Setup space reserver
+    SpaceReserver spaceReserver = new SpaceReserver(this);
+
     // Setup session cleaner
     setupSessionCleaner();
-
-    // Setup space reserver
-    if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
-      mSpaceReserver = new SpaceReserver(this);
-    }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
@@ -199,8 +197,9 @@ public final class BlockWorker extends AbstractWorker {
     getExecutorService().submit(mSessionCleaner);
 
     // Start the space reserver
-    if (mSpaceReserver != null) {
-      getExecutorService().submit(mSpaceReserver);
+    if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
+          spaceReserver, Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
   }
 
@@ -213,9 +212,6 @@ public final class BlockWorker extends AbstractWorker {
   public void stop() throws IOException {
     mSessionCleaner.stop();
     mBlockMasterClient.close();
-    if (mSpaceReserver != null) {
-      mSpaceReserver.stop();
-    }
     mFileSystemMasterClient.close();
     // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
     getExecutorService().shutdownNow();
