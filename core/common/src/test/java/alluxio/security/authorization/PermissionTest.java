@@ -14,7 +14,7 @@ package alluxio.security.authorization;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
-import alluxio.security.LoginUser;
+import alluxio.GlobalStateManagement;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
@@ -112,7 +112,7 @@ public final class PermissionTest {
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
     Configuration.set(Constants.SECURITY_GROUP_MAPPING_CLASS,
         IdentityUserGroupsMapping.class.getName());
-    LoginUser.reset();
+    GlobalStateManagement.resetLoginUser();
 
     permission.setOwnerFromLoginModule();
     verifyPermission("test_login_user", "test_login_user", (short) 0777, permission);
