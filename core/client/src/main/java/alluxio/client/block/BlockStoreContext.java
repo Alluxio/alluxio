@@ -195,7 +195,7 @@ public enum BlockStoreContext {
     Preconditions.checkArgument(!address.getHost().equals(NetworkAddressUtils.getLocalHostName()),
         PreconditionMessage.REMOTE_CLIENT_BUT_LOCAL_HOSTNAME);
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new DefaultBlockWorkerClient(address, ClientContext.getBlockClientExecutorService(),
+    return new RetryHandlingBlockWorkerClient(address, ClientContext.getBlockClientExecutorService(),
         clientId, false, new ClientMetrics());
   }
 

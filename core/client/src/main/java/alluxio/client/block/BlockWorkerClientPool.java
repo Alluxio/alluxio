@@ -67,7 +67,7 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
   @Override
   protected BlockWorkerClient createNewResource() {
     long clientId = IdUtils.getRandomNonNegativeLong();
-    return new DefaultBlockWorkerClient(mWorkerNetAddress,
+    return new RetryHandlingBlockWorkerClient(mWorkerNetAddress,
         ClientContext.getBlockClientExecutorService(), clientId, true,
         ClientContext.getClientMetrics());
   }

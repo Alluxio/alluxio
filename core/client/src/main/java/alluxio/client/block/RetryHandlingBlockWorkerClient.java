@@ -54,7 +54,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * has to guarantee thread safety.
  */
 @ThreadSafe
-public final class DefaultBlockWorkerClient extends AbstractClient implements BlockWorkerClient {
+public final class RetryHandlingBlockWorkerClient extends AbstractClient implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
@@ -72,7 +72,7 @@ public final class DefaultBlockWorkerClient extends AbstractClient implements Bl
   private final ClientMetrics mClientMetrics;
 
   /**
-   * Creates a {@link DefaultBlockWorkerClient}.
+   * Creates a {@link RetryHandlingBlockWorkerClient}.
    *
    * @param workerNetAddress to worker's location
    * @param executorService the executor service
@@ -80,7 +80,7 @@ public final class DefaultBlockWorkerClient extends AbstractClient implements Bl
    * @param isLocal true if it is a local client, false otherwise
    * @param clientMetrics metrics of the client
    */
-  public DefaultBlockWorkerClient(WorkerNetAddress workerNetAddress,
+  public RetryHandlingBlockWorkerClient(WorkerNetAddress workerNetAddress,
       ExecutorService executorService, long sessionId, boolean isLocal,
       ClientMetrics clientMetrics) {
     super(NetworkAddressUtils.getRpcPortSocketAddress(workerNetAddress), "blockWorker");
