@@ -143,14 +143,11 @@ public final class HeartbeatScheduler {
    */
   public static boolean await(String name, long time, TimeUnit unit) throws InterruptedException {
     try (LockResource r = new LockResource(sLock)) {
-      System.out.println("Sleep " + name);
-      System.out.println(sTimers.keySet());
       while (!sTimers.containsKey(name)) {
         if (!sCondition.await(time, unit)) {
           return false;
         }
       }
-      System.out.println("Wake up " + name);
     }
     return true;
   }
