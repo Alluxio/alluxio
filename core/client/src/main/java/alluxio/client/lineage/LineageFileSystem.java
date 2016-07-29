@@ -38,12 +38,12 @@ public class LineageFileSystem extends BaseFileSystem {
    * @return the current lineage file system for Alluxio
    */
   public static synchronized LineageFileSystem get() {
-    return new LineageFileSystem();
+    return new LineageFileSystem(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
   }
 
-  protected LineageFileSystem() {
-    super(FileSystemContext.INSTANCE);
-    mLineageContext = LineageContext.INSTANCE;
+  protected LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
+    super(fileSystemContext);
+    mLineageContext = lineageContext;
   }
 
   /**
