@@ -54,7 +54,8 @@ import javax.annotation.concurrent.ThreadSafe;
  * has to guarantee thread safety.
  */
 @ThreadSafe
-public final class RetryHandlingBlockWorkerClient extends AbstractClient implements BlockWorkerClient {
+public final class RetryHandlingBlockWorkerClient extends AbstractClient
+    implements BlockWorkerClient {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int CONNECTION_RETRY_TIMES = 5;
 
