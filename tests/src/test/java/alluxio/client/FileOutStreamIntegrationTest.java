@@ -98,13 +98,12 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
     FileOutStream os = mFileSystem.createFile(filePath,
-        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH).
-            setLocationPolicy(new LocalFirstPolicy()));
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH)
+            .setLocationPolicy(new LocalFirstPolicy()));
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH).
-        setLocationPolicy(new LocalFirstPolicy()).getUnderStorageType(), length, length);
+    checkWrite(filePath, UnderStorageType.SYNC_PERSIST, length, length);
   }
 
   /**
@@ -121,8 +120,7 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     Thread.sleep(Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS) * 2);
     os.write((byte) 1);
     os.close();
-    checkWrite(filePath, CreateFileOptions.defaults().setWriteType(WriteType.THROUGH).getUnderStorageType(),
-        length, length);
+    checkWrite(filePath, UnderStorageType.SYNC_PERSIST, length, length);
   }
 
   /**
@@ -146,7 +144,6 @@ public final class FileOutStreamIntegrationTest extends AbstractFileOutStreamInt
     os.write(BufferUtils.getIncreasingByteArray(1, length));
     os.close();
 
-    checkWrite(filePath, CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE).getUnderStorageType(),
-        length + 1, length + 1);
+    checkWrite(filePath, UnderStorageType.NO_PERSIST, length + 1, length + 1);
   }
 }

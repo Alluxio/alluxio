@@ -53,14 +53,14 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH).getUnderStorageType(),
-        length, length);
+    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, length, length);
   }
 
   @Test
   public void asyncWriteEmptyFileTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH)).close();
+    mFileSystem.createFile(filePath, CreateFileOptions.defaults()
+        .setWriteType(WriteType.ASYNC_THROUGH)).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);
@@ -72,7 +72,6 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     status = mFileSystem.getStatus(filePath);
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
-    checkWrite(filePath, CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH).getUnderStorageType(),
-        0, 0);
+    checkWrite(filePath, UnderStorageType.ASYNC_PERSIST, 0, 0);
   }
 }
