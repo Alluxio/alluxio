@@ -89,8 +89,6 @@ public final class BlockWorker extends AbstractWorker {
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
 
-  /** Space reserver for the block data manager. */
-  private SpaceReserver mSpaceReserver = null;
   /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Metrics reporter that listens on block events and increases metrics counters. */
