@@ -59,7 +59,8 @@ public final class MkdirsOptionsTest {
     Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(Constants.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
 
     MkdirsOptions options = new MkdirsOptions();
 

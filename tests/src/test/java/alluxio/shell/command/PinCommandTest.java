@@ -70,10 +70,8 @@ public final class PinCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   public void setPinTest() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 
     AlluxioURI filePathA = new AlluxioURI("/testFileA");
     AlluxioURI filePathB = new AlluxioURI("/testFileB");
@@ -82,28 +80,23 @@ public final class PinCommandTest extends AbstractAlluxioShellTest {
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathA, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     Assert.assertTrue(fileExists(filePathA));
     Assert.assertEquals(0, mFsShell.run("pin", filePathA.toString()));
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_PIN_LIST_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathB, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     Assert.assertTrue(fileExists(filePathB));
     Assert.assertEquals(0, mFsShell.run("unpin", filePathB.toString()));
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_PIN_LIST_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 
     FileSystemTestUtils.createByteFile(mFileSystem, filePathC, WriteType.MUST_CACHE, fileSize);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     Assert.assertTrue(fileExists(filePathC));
 
     // fileA is in memory because it is pinned, but fileB should have been evicted to hold fileC.

@@ -28,7 +28,6 @@ import alluxio.Constants;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
-import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.BlockWorkerInfo;
 import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.TestBufferedBlockOutStream;
@@ -70,8 +69,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Tests for the {@link FileOutStream} class.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class,
-    AlluxioBlockStore.class, UnderFileSystem.class, BlockWorkerClient.class})
+@PrepareForTest({FileSystemContext.class, FileSystemMasterClient.class, AlluxioBlockStore.class,
+    UnderFileSystem.class})
 public class FileOutStreamTest {
 
   private static final long BLOCK_LENGTH = 100L;

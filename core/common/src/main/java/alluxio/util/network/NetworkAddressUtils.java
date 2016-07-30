@@ -308,17 +308,17 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local host name for the host this JVM is running on.
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local host is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local host is
    *        reachable
    * @return the local host name, which is not based on a loopback ip address
    */
-  public static synchronized String getLocalHostName(int timeout) {
+  public static synchronized String getLocalHostName(int timeoutMs) {
     if (sLocalHost != null) {
       return sLocalHost;
     }
 
     try {
-      sLocalHost = InetAddress.getByName(getLocalIpAddress(timeout)).getCanonicalHostName();
+      sLocalHost = InetAddress.getByName(getLocalIpAddress(timeoutMs)).getCanonicalHostName();
       return sLocalHost;
     } catch (UnknownHostException e) {
       LOG.error(e.getMessage(), e);
@@ -342,11 +342,11 @@ public final class NetworkAddressUtils {
   /**
    * Gets a local IP address for the host this JVM is running on.
    *
-   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return the local ip address, which is not a loopback address and is reachable
    */
-  public static synchronized String getLocalIpAddress(int timeout) {
+  public static synchronized String getLocalIpAddress(int timeoutMs) {
     if (sLocalIP != null) {
       return sLocalIP;
     }
@@ -359,7 +359,7 @@ public final class NetworkAddressUtils {
       // Make sure that the address is actually reachable since in some network configurations
       // it is possible for the InetAddress.getLocalHost() call to return a non-reachable
       // address e.g. a broadcast address
-      if (!isValidAddress(address, timeout)) {
+      if (!isValidAddress(address, timeoutMs)) {
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
 
         // Make getNetworkInterfaces have the same order of network interfaces as listed on
@@ -379,7 +379,7 @@ public final class NetworkAddressUtils {
             address = addresses.nextElement();
 
             // Address must not be link local or loopback. And it must be reachable
-            if (isValidAddress(address, timeout)) {
+            if (isValidAddress(address, timeoutMs)) {
               sLocalIP = address.getHostAddress();
               return sLocalIP;
             }
@@ -422,14 +422,14 @@ public final class NetworkAddressUtils {
    * loopback address, non-IPv4, or other unreachable addresses.
    *
    * @param address The testing address
-   * @param timeout Timeout in milliseconds to use for checking that a possible local IP is
+   * @param timeoutMs Timeout in milliseconds to use for checking that a possible local IP is
    *        reachable
    * @return a {@code boolean} indicating if the given address is externally resolvable address
    * @throws IOException if the address resolution fails
    */
-  private static boolean isValidAddress(InetAddress address, int timeout) throws IOException {
+  private static boolean isValidAddress(InetAddress address, int timeoutMs) throws IOException {
     return !address.isAnyLocalAddress() && !address.isLinkLocalAddress()
-        && !address.isLoopbackAddress() && address.isReachable(timeout)
+        && !address.isLoopbackAddress() && address.isReachable(timeoutMs)
         && (address instanceof Inet4Address);
   }
 
