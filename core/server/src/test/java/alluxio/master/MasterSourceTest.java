@@ -107,10 +107,11 @@ public final class MasterSourceTest {
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
     MasterSource masterSource = new MasterSource();
+    MasterContext masterContext = new MasterContext(masterSource);
     mBlockMaster = new BlockMaster(blockJournal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-source-test-%d", true)),
-        masterSource);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, masterSource);
+        masterContext);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, masterContext);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

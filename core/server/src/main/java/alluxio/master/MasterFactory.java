@@ -32,7 +32,9 @@ public interface MasterFactory {
    *
    * @param masters a list of other masters created
    * @param journalDirectory base directory of journals
+   * @param masterContext master context
    * @return a new {@link Master} instance or null if failed to launch the master
    */
-  Master create(List<? extends Master> masters, String journalDirectory);
+  Master create(List<? extends Master> masters, String journalDirectory,
+      MasterContext masterContext);
 }

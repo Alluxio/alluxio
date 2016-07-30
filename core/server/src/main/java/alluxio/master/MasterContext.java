@@ -14,21 +14,23 @@ package alluxio.master;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A singleton for storing shared master state.
+ * A class for aggregating state which should be shared across masters.
  */
 @ThreadSafe
 public final class MasterContext {
-  private MasterContext() {} // to prevent initialization
-
   /**
-   * The {@link MasterSource} for collecting master metrics.
+   * A {@link MasterSource} for collecting master metrics.
    */
-  private static MasterSource sMasterSource = new MasterSource();
+  private final MasterSource mMasterSource;
+
+  public MasterContext(MasterSource masterSource) {
+    mMasterSource = masterSource;
+  }
 
   /**
    * @return the {@link MasterSource} for the master process
    */
-  public static MasterSource getMasterSource() {
-    return sMasterSource;
+  public MasterSource getMasterSource() {
+    return mMasterSource;
   }
 }

@@ -53,7 +53,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final long CLUSTER_READY_POLL_INTERVAL_MS = 10;
-  private static final long CLUSTER_READY_TIMEOUT_MS = 60000;
+  private static final long CLUSTER_READY_TIMEOUT_MS = 6000000;
   private static final String ELLIPSIS = "…";
   private static final Random RANDOM_GENERATOR = new Random();
 

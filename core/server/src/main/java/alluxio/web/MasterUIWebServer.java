@@ -22,12 +22,15 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletException;
 
 /**
  * A master's UI web server.
  */
 @NotThreadSafe
 public final class MasterUIWebServer extends UIWebServer {
+
+  public static final String ALLUXIO_MASTER_SERVLET_RESOURCE_KEY = "Alluxio Master";
 
   /**
    * Creates a new instance of {@link MasterUIWebServer}.
@@ -36,7 +39,7 @@ public final class MasterUIWebServer extends UIWebServer {
    * @param address the service address
    * @param master the Alluxio master
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, AlluxioMaster master) {
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address, final AlluxioMaster master) {
     super(service, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
@@ -62,8 +65,28 @@ public final class MasterUIWebServer extends UIWebServer {
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
         "alluxio.master.file", "alluxio.master.lineage");
-    ServletHolder servlet =
-        new ServletHolder("Alluxio Master Web Service", new ServletContainer(config));
-    mWebAppContext.addServlet(servlet, "/v1/api/*");
+    ServletContainer servlet = new ServletContainer(config) {
+      private static final long serialVersionUID = 7756010860672831556L;
+
+      @Override
+      public void init() throws ServletException {
+        super.init();
+        getServletContext().setAttribute(ALLUXIO_MASTER_SERVLET_RESOURCE_KEY, master);
+      }
+    };
+
+    /*
+    ServletContextListener listener = new ServletContextListener() {
+      public void contextInitialized(ServletContextEvent event) {
+        event.getServletContext()
+      }
+
+      @Override
+      public void contextDestroyed(ServletContextEvent event) {}
+    };*/
+
+    ServletHolder servletHolder =
+        new ServletHolder("Alluxio Master Web Service", servlet);
+    mWebAppContext.addServlet(servletHolder, "/v1/api/*");
   }
 }

@@ -62,7 +62,7 @@ import javax.annotation.concurrent.ThreadSafe;
 public class AlluxioMaster implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static AlluxioMaster sAlluxioMaster = null;
+  protected final MasterContext mMasterContext;
 
   /**
    * Starts the Alluxio master.
@@ -82,7 +82,9 @@ public class AlluxioMaster implements Server {
       System.exit(-1);
     }
 
-    AlluxioMaster master = get();
+    MasterSource masterSource = new MasterSource();
+    MasterContext masterContext = new MasterContext(masterSource);
+    AlluxioMaster master = new AlluxioMaster(masterContext);
     try {
       master.start();
     } catch (Exception e) {
@@ -95,18 +97,6 @@ public class AlluxioMaster implements Server {
       }
       System.exit(-1);
     }
-  }
-
-  /**
-   * Returns a handle to the Alluxio master instance.
-   *
-   * @return Alluxio master handle
-   */
-  public static synchronized AlluxioMaster get() {
-    if (sAlluxioMaster == null) {
-      sAlluxioMaster = Factory.create();
-    }
-    return sAlluxioMaster;
   }
 
   /** Maximum number of threads to serve the rpc server. */
@@ -213,17 +203,18 @@ public class AlluxioMaster implements Server {
      * @return {@link FaultTolerantAlluxioMaster} if Alluxio configuration is set to use zookeeper,
      *         otherwise, return {@link AlluxioMaster}.
      */
-    public static AlluxioMaster create() {
+    public static AlluxioMaster create(MasterContext masterContext) {
       if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
-        return new FaultTolerantAlluxioMaster();
+        return new FaultTolerantAlluxioMaster(masterContext);
       }
-      return new AlluxioMaster();
+      return new AlluxioMaster(masterContext);
     }
 
     private Factory() {} // prevent instantiation.
   }
 
-  protected AlluxioMaster() {
+  protected AlluxioMaster(MasterContext masterContext) {
+    mMasterContext = masterContext;
     mMinWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
     mMaxWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MAX);
 
@@ -266,24 +257,25 @@ public class AlluxioMaster implements Server {
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
-      mBlockMaster = new BlockMaster(mBlockMasterJournal);
-      mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
+      mBlockMaster = new BlockMaster(mBlockMasterJournal, masterContext);
+      mFileSystemMaster =
+          new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal, masterContext);
       if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal, masterContext);
       }
 
       mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
-        Master master = factory.create(masters, journalDirectory);
+        Master master = factory.create(masters, journalDirectory, masterContext);
         if (master != null) {
           mAdditionalMasters.add(master);
         }
       }
 
-      MasterContext.getMasterSource().registerGauges(this);
+      masterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master");
-      mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
+      mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -371,6 +363,13 @@ public class AlluxioMaster implements Server {
    */
   public long getUptimeMs() {
     return System.currentTimeMillis() - mStartTimeMs;
+  }
+
+  /**
+   * @return the master context for this master.
+   */
+  public MasterContext getMasterContext() {
+    return mMasterContext;
   }
 
   /**

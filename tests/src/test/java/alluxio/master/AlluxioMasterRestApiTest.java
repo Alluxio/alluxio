@@ -181,7 +181,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     metricsMap.put(CommonUtils.randomString(10), random.nextLong());
     metricsMap.put(CommonUtils.randomString(10), random.nextLong());
     String filesPinnedProperty = CommonUtils.argsToString(".",
-        MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
+        mAlluxioMaster.getMasterContext().getMasterSource().getName(), MasterSource.FILES_PINNED);
     Integer filesPinned = random.nextInt();
     metricsMap.put(filesPinnedProperty, filesPinned.longValue());
 
