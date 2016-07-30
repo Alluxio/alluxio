@@ -72,7 +72,8 @@ public class ReadOnlyMountIntegrationTest {
 
   @Test
   public void createFileTest() throws IOException, AlluxioException {
-    CreateFileOptions writeBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    CreateFileOptions writeBoth =
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
 
     AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {

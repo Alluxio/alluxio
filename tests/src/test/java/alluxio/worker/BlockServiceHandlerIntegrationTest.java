@@ -17,6 +17,7 @@ import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -73,7 +74,7 @@ public class BlockServiceHandlerIntegrationTest {
     mBlockWorkerServiceHandler =
         mLocalAlluxioClusterResource.get().getWorker().getBlockWorker().getWorkerServiceHandler();
 
-    mBlockMasterClient = new BlockMasterClient(
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterPort()));
   }
@@ -291,11 +292,9 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Waits for a worker heartbeat to master to be processed
   private void waitForHeartbeat() throws InterruptedException {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
     HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
     // Wait for the next heartbeat to be ready to guarantee that the previous heartbeat has finished
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
   }
 }
