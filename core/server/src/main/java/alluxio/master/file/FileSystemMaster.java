@@ -32,7 +32,6 @@ import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
@@ -235,26 +234,16 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a new instance of {@link FileSystemMaster} with the default {@link MasterSource}.
-   *
-   * @param blockMaster the {@link BlockMaster} to use
-   * @param journal the journal to use for tracking master operations
-   */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
-    this(blockMaster, journal, MasterContext.getMasterSource());
-  }
-
-  /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
-   * @param masterSource the master source to use to track metrics
+   * @param masterContext the master context
    */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal, MasterSource masterSource) {
+  public FileSystemMaster(BlockMaster blockMaster, Journal journal, MasterContext masterContext) {
     super(journal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)),
-        masterSource);
+        masterContext);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

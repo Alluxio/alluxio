@@ -50,7 +50,8 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(List<? extends Master> masters, String journalDirectory) {
+  public KeyValueMaster create(List<? extends Master> masters, String journalDirectory,
+      MasterContext masterContext) {
     if (!isEnabled()) {
       return null;
     }
@@ -63,8 +64,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
     for (Master master : masters) {
       if (master instanceof FileSystemMaster) {
         LOG.info("{} is created", KeyValueMaster.class.getName());
-        return new KeyValueMaster((FileSystemMaster) master, journal,
-            MasterContext.getMasterSource());
+        return new KeyValueMaster((FileSystemMaster) master, journal, masterContext);
       }
     }
     LOG.error("Fail to create {} due to missing {}", KeyValueMaster.class.getName(),

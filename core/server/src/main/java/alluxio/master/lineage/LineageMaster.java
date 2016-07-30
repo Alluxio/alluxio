@@ -30,7 +30,6 @@ import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
 import alluxio.master.MasterContext;
-import alluxio.master.MasterSource;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.Journal;
@@ -104,27 +103,17 @@ public final class LineageMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a new instance of {@link LineageMaster} with the default {@link MasterSource}.
-   *
-   * @param fileSystemMaster the file system master
-   * @param journal the journal
-   */
-  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    this(fileSystemMaster, journal, MasterContext.getMasterSource());
-  }
-
-  /**
    * Creates a new instance of {@link LineageMaster}.
    *
    * @param fileSystemMaster the file system master
    * @param journal the journal
-   * @param masterSource the master source to use to track metrics
+   * @param masterContext the master context
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal,
-      MasterSource masterSource) {
+      MasterContext masterContext) {
     super(journal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)),
-        masterSource);
+        masterContext);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();

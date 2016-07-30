@@ -24,6 +24,8 @@ import alluxio.exception.InvalidPathException;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.master.file.meta.TtlIntervalRule;
@@ -130,8 +132,9 @@ public final class FileSystemMasterTest {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    mBlockMaster = new BlockMaster(blockJournal);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
+    MasterContext masterContext = new MasterContext(new MasterSource());
+    mBlockMaster = new BlockMaster(blockJournal, masterContext);
+    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, masterContext);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

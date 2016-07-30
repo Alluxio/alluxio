@@ -64,17 +64,21 @@ public abstract class AbstractMaster implements Master {
   /** Keeps track of operation metrics. */
   protected final MasterSource mMasterSource;
 
+  protected final MasterContext mMasterContext;
+
   /**
    * @param journal the journal to use for tracking master operations
    * @param clock the Clock to use for determining the time
    * @param executorService the executor service to use for running maintenance threads
-   * @param masterSource the master source to use to track metrics
+   * @param masterContext the master context
    */
-  protected AbstractMaster(Journal journal, Clock clock, ExecutorService executorService, MasterSource masterSource) {
+  protected AbstractMaster(Journal journal, Clock clock, ExecutorService executorService,
+      MasterContext masterContext) {
     mJournal = Preconditions.checkNotNull(journal);
     mClock = Preconditions.checkNotNull(clock);
     mExecutorService = Preconditions.checkNotNull(executorService);
-    mMasterSource = masterSource;
+    mMasterContext = masterContext;
+    mMasterSource = masterContext.getMasterSource();
   }
 
   @Override
