@@ -21,6 +21,7 @@ import alluxio.client.WriteType;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -92,7 +93,7 @@ public class DataServerIntegrationTest {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
 
     mBlockWorkerClient = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
-    mBlockMasterClient = new BlockMasterClient(
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
             mLocalAlluxioClusterResource.get().getMasterPort()));
   }
