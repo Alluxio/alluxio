@@ -79,6 +79,8 @@ public final class AlluxioMasterRestServiceHandler {
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
   public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.

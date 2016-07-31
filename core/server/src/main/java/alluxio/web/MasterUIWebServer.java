@@ -39,7 +39,8 @@ public final class MasterUIWebServer extends UIWebServer {
    * @param address the service address
    * @param master the Alluxio master
    */
-  public MasterUIWebServer(ServiceType service, InetSocketAddress address, final AlluxioMaster master) {
+  public MasterUIWebServer(ServiceType service, InetSocketAddress address,
+      final AlluxioMaster master) {
     super(service, address);
     Preconditions.checkNotNull(master, "Alluxio master cannot be null");
 
@@ -62,6 +63,7 @@ public final class MasterUIWebServer extends UIWebServer {
         "/header");
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceMasterMetricsServlet(
         master.getMasterMetricsSystem())), "/metricsui");
+
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
         "alluxio.master.file", "alluxio.master.lineage");
@@ -75,18 +77,7 @@ public final class MasterUIWebServer extends UIWebServer {
       }
     };
 
-    /*
-    ServletContextListener listener = new ServletContextListener() {
-      public void contextInitialized(ServletContextEvent event) {
-        event.getServletContext()
-      }
-
-      @Override
-      public void contextDestroyed(ServletContextEvent event) {}
-    };*/
-
-    ServletHolder servletHolder =
-        new ServletHolder("Alluxio Master Web Service", servlet);
+    ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
     mWebAppContext.addServlet(servletHolder, "/v1/api/*");
   }
 }

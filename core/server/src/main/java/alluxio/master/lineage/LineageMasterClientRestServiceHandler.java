@@ -62,6 +62,8 @@ public final class LineageMasterClientRestServiceHandler {
 
   /**
    * Constructs a new {@link LineageMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
   public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.

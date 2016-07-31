@@ -23,6 +23,9 @@ public final class MasterContext {
    */
   private final MasterSource mMasterSource;
 
+  /**
+   * @param masterSource the {@link MasterSource} for this {@link MasterContext}
+   */
   public MasterContext(MasterSource masterSource) {
     mMasterSource = masterSource;
   }
