@@ -84,7 +84,7 @@ public final class UnderFileSystemManagerTest {
     Mockito.when(mMockUfs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
     Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(mMockUfs);
-    Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer() {
+    Mockito.when(mMockInputStream.skip(Mockito.anyInt())).thenAnswer(new Answer<Object>() {
       public Object answer(InvocationOnMock invocation) {
         Object[] args = invocation.getArguments();
         return args[0];
