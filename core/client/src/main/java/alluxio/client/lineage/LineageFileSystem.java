@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.annotation.PublicApi;
 import alluxio.client.file.BaseFileSystem;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.FileDoesNotExistException;
@@ -37,12 +38,12 @@ public class LineageFileSystem extends BaseFileSystem {
    * @return the current lineage file system for Alluxio
    */
   public static synchronized LineageFileSystem get() {
-    return new LineageFileSystem();
+    return new LineageFileSystem(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
   }
 
-  protected LineageFileSystem() {
-    super();
-    mLineageContext = LineageContext.INSTANCE;
+  protected LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
+    super(fileSystemContext);
+    mLineageContext = lineageContext;
   }
 
   /**
