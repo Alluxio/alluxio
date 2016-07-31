@@ -91,7 +91,6 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Assert.assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 
-
   @Test
   public void getConfigurationTest() throws Exception {
     Configuration.set("alluxio.testkey", "abc");
@@ -136,8 +135,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getUptimeMsTest() throws Exception {
-    String uptime = new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UPTIME_MS),
-        NO_PARAMS, HttpMethod.GET, null).call();
+    String uptime =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UPTIME_MS),
+            NO_PARAMS, HttpMethod.GET, null).call();
 
     Assert.assertTrue(Long.valueOf(uptime) > 0);
   }
@@ -166,8 +166,9 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getUfsFreeBytesTest() throws Exception {
-    String ufsFreeBytes = new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES),
-        NO_PARAMS, HttpMethod.GET, null).call();
+    String ufsFreeBytes = new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES), NO_PARAMS, HttpMethod.GET,
+        null).call();
 
     Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0);
   }

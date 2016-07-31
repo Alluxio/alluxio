@@ -50,6 +50,8 @@ public final class BlockMasterClientRestServiceHandler {
 
   /**
    * Constructs a new {@link BlockMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
   public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.

@@ -84,6 +84,8 @@ public final class FileSystemMasterClientRestServiceHandler {
 
   /**
    * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
   public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
     // Poor man's dependency injection through the Jersey application scope.

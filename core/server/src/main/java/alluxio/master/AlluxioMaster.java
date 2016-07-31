@@ -200,6 +200,7 @@ public class AlluxioMaster implements Server {
   @ThreadSafe
   public static final class Factory {
     /**
+     * @param masterContext context for the master
      * @return {@link FaultTolerantAlluxioMaster} if Alluxio configuration is set to use zookeeper,
      *         otherwise, return {@link AlluxioMaster}.
      */
@@ -366,7 +367,7 @@ public class AlluxioMaster implements Server {
   }
 
   /**
-   * @return the master context for this master.
+   * @return the master context for this master
    */
   public MasterContext getMasterContext() {
     return mMasterContext;
