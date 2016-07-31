@@ -67,6 +67,8 @@ public final class MasterUIWebServer extends UIWebServer {
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.master", "alluxio.master.block",
         "alluxio.master.file", "alluxio.master.lineage");
+    // Override the init method to inject a reference to AlluxioMaster into the servlet context.
+    // ServletContext may not be modified until after super.init() is called.
     ServletContainer servlet = new ServletContainer(config) {
       private static final long serialVersionUID = 7756010860672831556L;
 
