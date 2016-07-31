@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -24,6 +25,7 @@ import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -130,5 +132,58 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         getEndpoint(AlluxioMasterRestServiceHandler.GET_START_TIME_MS), NO_PARAMS, HttpMethod.GET,
         null).call();
     Assert.assertTrue(Long.valueOf(startTime) > 0);
+  }
+
+  @Test
+  public void getUptimeMsTest() throws Exception {
+    String uptime = new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UPTIME_MS),
+        NO_PARAMS, HttpMethod.GET, null).call();
+
+    Assert.assertTrue(Long.valueOf(uptime) > 0);
+  }
+
+  @Test
+  public void getVersionTest() throws Exception {
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_VERSION),
+        NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
+  }
+
+  @Test
+  public void getUfsCapacityBytesTest() throws Exception {
+    String ufsCapacity = new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_CAPACITY_BYTES), NO_PARAMS,
+        HttpMethod.GET, null).call();
+
+    Assert.assertTrue(Long.valueOf(ufsCapacity) > 0);
+  }
+
+  @Test
+  public void getUfsUsedBytesTest() throws Exception {
+    // Don't check the exact value, which could differ between systems.
+    new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_USED_BYTES),
+        NO_PARAMS, HttpMethod.GET, null).call();
+  }
+
+  @Test
+  public void getUfsFreeBytesTest() throws Exception {
+    String ufsFreeBytes = new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES),
+        NO_PARAMS, HttpMethod.GET, null).call();
+
+    Assert.assertTrue(Long.valueOf(ufsFreeBytes) > 0);
+  }
+
+  @Test
+  public void getCapacityBytesOnTiersTest() throws Exception {
+    Long memorySize = Configuration.getLong(Constants.WORKER_MEMORY_SIZE);
+    new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioMasterRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, ImmutableMap.of("MEM", memorySize)).run();
+  }
+
+  @Test
+  public void getUsedBytesOnTiersTest() throws Exception {
+    new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioMasterRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS,
+        HttpMethod.GET, ImmutableMap.of("MEM", 0)).run();
   }
 }
