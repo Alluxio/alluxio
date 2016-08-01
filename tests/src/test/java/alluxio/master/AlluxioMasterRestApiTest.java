@@ -14,24 +14,18 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.RuntimeConstants;
-import alluxio.master.block.BlockMaster;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.thrift.WorkerInfo;
-import alluxio.underfs.UnderFileSystem;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import com.codahale.metrics.MetricRegistry;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Map;
 
@@ -40,9 +34,6 @@ import javax.ws.rs.HttpMethod;
 /**
  * Test cases for {@link AlluxioMasterRestServiceHandler}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioMaster.class, BlockMaster.class, Configuration.class, MasterContext.class,
-    MetricRegistry.class, UnderFileSystem.class})
 public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Before

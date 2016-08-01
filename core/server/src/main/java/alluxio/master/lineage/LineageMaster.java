@@ -111,9 +111,9 @@ public final class LineageMaster extends AbstractMaster {
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal,
       MasterContext masterContext) {
-    super(journal, new SystemClock(),
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)),
-        masterContext);
+    super(masterContext, journal,
+        new SystemClock(),
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)));
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();

@@ -241,9 +241,9 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param masterContext the master context
    */
   public FileSystemMaster(BlockMaster blockMaster, Journal journal, MasterContext masterContext) {
-    super(journal, new SystemClock(),
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)),
-        masterContext);
+    super(masterContext, journal,
+        new SystemClock(),
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)));
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
