@@ -550,7 +550,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   private void seekInternalWithCachingPartiallyReadBlock(long pos) throws IOException {
     // Precompute this because mPos will be updated several times in this function.
-    boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
+    final boolean isInCurrentBlock = pos / mBlockSize == mPos / mBlockSize;
 
     // Make sure that mCurrentBlockInStream and mCurrentCacheStream is updated.
     // mPos is not updated here.
