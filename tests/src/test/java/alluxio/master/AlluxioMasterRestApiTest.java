@@ -195,7 +195,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Mockito.doReturn(counters).when(metricRegistry).getCounters();
 
     // Mock gauges.
-    Gauge filesPinnedGauge = PowerMockito.mock(Gauge.class);
+    Gauge<?> filesPinnedGauge = PowerMockito.mock(Gauge.class);
     Mockito.doReturn(filesPinned).when(filesPinnedGauge).getValue();
     SortedMap<String, Gauge<?>> gauges = new TreeMap<>();
     gauges.put(filesPinnedProperty, filesPinnedGauge);
