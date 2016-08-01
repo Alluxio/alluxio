@@ -17,8 +17,6 @@ import alluxio.Constants;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
-
 /**
  * Tests for the {@link ConfUtils} class.
  */
@@ -36,10 +34,10 @@ public final class ConfUtilsTest {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
 
-    Map<String, String> before = Configuration.toMap();
+    long beforeSize = Configuration.toMap().size();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
-    Map<String, String> after = Configuration.toMap();
-    Assert.assertEquals(before.size(), after.size());
+    long afterSize = Configuration.toMap().size();
+    Assert.assertEquals(beforeSize, afterSize);
   }
 
   /**
@@ -56,10 +54,10 @@ public final class ConfUtilsTest {
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
 
-    Map<String, String> before = Configuration.toMap();
+    long beforeSize = Configuration.toMap().size();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
-    Map<String, String> after = Configuration.toMap();
-    Assert.assertEquals(before.size() + 3, after.size());
+    long afterSize = Configuration.toMap().size();
+    Assert.assertEquals(beforeSize + 3, afterSize);
     Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(Constants.S3N_ACCESS_KEY));
     Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(Constants.S3N_SECRET_KEY));
     Assert.assertEquals(TEST_ALLUXIO_VALUE, Configuration.get(TEST_ALLUXIO_PROPERTY));
