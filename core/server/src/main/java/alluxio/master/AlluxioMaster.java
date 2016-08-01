@@ -82,9 +82,7 @@ public class AlluxioMaster implements Server {
       System.exit(-1);
     }
 
-    MasterSource masterSource = new MasterSource();
-    MasterContext masterContext = new MasterContext(masterSource);
-    AlluxioMaster master = new AlluxioMaster(masterContext);
+    AlluxioMaster master = new AlluxioMaster(new MasterContext(new MasterSource()));
     try {
       master.start();
     } catch (Exception e) {

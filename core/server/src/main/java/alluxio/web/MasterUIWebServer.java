@@ -11,7 +11,9 @@
 
 package alluxio.web;
 
+import alluxio.Constants;
 import alluxio.master.AlluxioMaster;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
@@ -80,6 +82,6 @@ public final class MasterUIWebServer extends UIWebServer {
     };
 
     ServletHolder servletHolder = new ServletHolder("Alluxio Master Web Service", servlet);
-    mWebAppContext.addServlet(servletHolder, "/v1/api/*");
+    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

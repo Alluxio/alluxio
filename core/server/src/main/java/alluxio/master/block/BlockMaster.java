@@ -180,8 +180,8 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param masterContext context for the master
    */
   public BlockMaster(Journal journal, MasterContext masterContext) {
-    super(journal, new SystemClock(), Executors.newFixedThreadPool(2,
-        ThreadFactoryUtils.build("BlockMaster-%d", true)), masterContext);
+    super(masterContext, journal, new SystemClock(), Executors.newFixedThreadPool(2,
+            ThreadFactoryUtils.build("BlockMaster-%d", true)));
   }
 
   /**
@@ -194,7 +194,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    */
   public BlockMaster(Journal journal, Clock clock, ExecutorService executorService,
       MasterContext masterContext) {
-    super(journal, clock, executorService, masterContext);
+    super(masterContext, journal, clock, executorService);
   }
 
   @Override

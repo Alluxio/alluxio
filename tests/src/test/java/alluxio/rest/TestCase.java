@@ -97,7 +97,7 @@ public final class TestCase {
       sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
     }
     return new URL(
-        "http://" + mHostname + ":" + mPort + "/" + Constants.REST_API_PREFIX + "/" + mEndpoint
+        "http://" + mHostname + ":" + mPort + Constants.REST_API_PREFIX + "/" + mEndpoint
             + "?" + sb.toString());
   }
 
