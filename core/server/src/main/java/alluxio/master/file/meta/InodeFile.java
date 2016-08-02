@@ -296,8 +296,8 @@ public final class InodeFile extends Inode<InodeFile> {
    * @param fileOptions options to create this file
    * @return the {@link InodeFile} representation
    */
-  public static InodeFile create(long blockContainerId, long parentId, String name, long creationTimeMs,
-      CreateFileOptions fileOptions) {
+  public static InodeFile create(long blockContainerId, long parentId, String name,
+      long creationTimeMs, CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
