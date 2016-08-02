@@ -46,24 +46,17 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * Creates a new instance of {@link InodeFile}.
    *
-   * @param id the block container id to use
+   * @param blockContainerId the block container id to use
    */
-  private InodeFile(long id) {
-    super(0);
+  private InodeFile(long blockContainerId) {
+    super(BlockId.createBlockId(blockContainerId, BlockId.getMaxSequenceNumber()), false);
     mBlocks = new ArrayList<>(1);
-    mBlockContainerId = id;
+    mBlockContainerId = blockContainerId;
     mBlockSizeBytes = 0;
     mCacheable = false;
     mCompleted = false;
-    mDirectory = false;
-    mId = BlockId.createBlockId(mBlockContainerId, BlockId.getMaxSequenceNumber());
     mLength = 0;
     mTtl = Constants.NO_TTL;
-  }
-
-  private InodeFile(long id, long creationTimeMs) {
-    this(id);
-    mCreationTimeMs = creationTimeMs;
   }
 
   @Override
@@ -277,7 +270,7 @@ public final class InodeFile extends Inode<InodeFile> {
     Permission permission =
         new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
 
-    return new InodeFile(BlockId.getContainerId(entry.getId()), entry.getCreationTimeMs())
+    return new InodeFile(BlockId.getContainerId(entry.getId()))
         .setName(entry.getName())
         .setBlockIds(entry.getBlocksList())
         .setBlockSizeBytes(entry.getBlockSizeBytes())
@@ -296,47 +289,47 @@ public final class InodeFile extends Inode<InodeFile> {
   /**
    * Creates an {@link InodeFile}.
    *
-   * @param id id of this inode
+   * @param blockContainerId block container id of this inode
    * @param parentId id of the parent of this inode
    * @param name name of this inode
    * @param creationTimeMs the creation time for this inode
    * @param fileOptions options to create this file
    * @return the {@link InodeFile} representation
    */
-  public static InodeFile create(long id, long parentId, String name, long creationTimeMs,
+  public static InodeFile create(long blockContainerId, long parentId, String name, long creationTimeMs,
       CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
-    return new InodeFile(id)
-        .setParentId(parentId)
-        .setName(name)
-        .setCreationTimeMs(creationTimeMs)
+    return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
+        .setCreationTimeMs(creationTimeMs)
+        .setName(name)
         .setTtl(fileOptions.getTtl())
+        .setParentId(parentId)
+        .setPermission(permission)
         .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-            PersistenceState.NOT_PERSISTED)
-        .setPermission(permission);
+            PersistenceState.NOT_PERSISTED);
+
   }
 
   @Override
   public JournalEntry toJournalEntry() {
     InodeFileEntry inodeFile = InodeFileEntry.newBuilder()
+        .addAllBlocks(getBlockIds())
+        .setBlockSizeBytes(getBlockSizeBytes())
+        .setCacheable(isCacheable())
+        .setCompleted(isCompleted())
         .setCreationTimeMs(getCreationTimeMs())
+        .setGroup(getGroup())
         .setId(getId())
+        .setLastModificationTimeMs(getLastModificationTimeMs())
+        .setLength(getLength())
+        .setMode(getMode())
         .setName(getName())
+        .setOwner(getOwner())
         .setParentId(getParentId())
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
-        .setLastModificationTimeMs(getLastModificationTimeMs())
-        .setBlockSizeBytes(getBlockSizeBytes())
-        .setLength(getLength())
-        .setCompleted(isCompleted())
-        .setCacheable(isCacheable())
-        .setCreationTimeMs(getCreationTimeMs())
-        .addAllBlocks(getBlockIds())
         .setTtl(getTtl())
-        .setOwner(getOwner())
-        .setGroup(getGroup())
-        .setMode(getMode())
         .build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }

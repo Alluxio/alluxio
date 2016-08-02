@@ -54,7 +54,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param id the id to use
    */
   private InodeDirectory(long id) {
-    super(id);
+    super(id, true);
     mDirectory = true;
     mMountPoint = false;
   }
