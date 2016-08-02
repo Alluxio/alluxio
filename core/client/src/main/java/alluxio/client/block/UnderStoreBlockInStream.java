@@ -36,28 +36,37 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    */
   private final long mFileBlockSize;
   /** The start of this block. This is the absolute position within the UFS file. */
-  protected final long mInitPos;
+  private final long mInitPos;
+  /** The factory to use to create under storage input streams. */
+  private final UnderStoreStreamFactory mUnderStoreStreamFactory;
   /**
    * The length of this current block. This may be {@link Constants#UNKNOWN_SIZE}, and may be
    * updated to a valid length. See {@link #getLength()} for more length information.
    */
-  protected long mLength;
+  private long mLength;
   /**
    * The current position for this block stream. This is the position within this block, and not
    * the absolute position within the UFS file.
    */
-  protected long mPos;
+  private long mPos;
   /** The current under store stream. */
-  protected InputStream mUnderStoreStream;
-
-  private UnderStoreStreamFactory mUnderStoreStreamFactory;
+  private InputStream mUnderStoreStream;
 
   /**
    * A factory which can create an input stream to under storage.
    */
   public interface UnderStoreStreamFactory extends AutoCloseable {
+    /**
+     * @return an input stream to under storage
+     * @throws IOException if an IO exception occurs
+     */
     InputStream create() throws IOException;
 
+    /**
+     * Closes the factory, releasing any resources it was holding.
+     *
+     * @throws IOException if an IO exception occurs
+     */
     void close() throws IOException;
   }
 
@@ -68,9 +77,9 @@ public final class UnderStoreBlockInStream extends BlockInStream {
    * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param fileBlockSize the block size for the file
    * @param underStoreStreamFactory a factory for getting input streams from the under storage
-   * @throws IOException
+   * @throws IOException if an IO exception occurs while creating the under storage input stream
    */
-  protected UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+  private UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
     mInitPos = initPos;
     mLength = length;
