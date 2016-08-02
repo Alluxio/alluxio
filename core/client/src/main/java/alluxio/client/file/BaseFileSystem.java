@@ -262,7 +262,7 @@ public class BaseFileSystem implements FileSystem {
       throw new FileNotFoundException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    return FileInStream.create(status, options.toInStreamOptions());
+    return FileInStream.create(status, options.toInStreamOptions(), FileSystemContext.INSTANCE);
   }
 
   @Override

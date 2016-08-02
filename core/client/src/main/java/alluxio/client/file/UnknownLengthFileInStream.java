@@ -52,9 +52,11 @@ public final class UnknownLengthFileInStream extends FileInStream {
    *
    * @param status the file status
    * @param options the client options
+   * @param context file system context
    */
-  public UnknownLengthFileInStream(URIStatus status, InStreamOptions options) {
-    super(status, options);
+  public UnknownLengthFileInStream(URIStatus status, InStreamOptions options,
+      FileSystemContext context) {
+    super(status, options, context);
   }
 
   @Override
