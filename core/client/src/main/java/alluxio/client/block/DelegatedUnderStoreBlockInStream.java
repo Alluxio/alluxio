@@ -17,6 +17,7 @@ import alluxio.client.file.FileSystemWorkerClient;
 import alluxio.client.file.UnderFileSystemFileInStream;
 import alluxio.client.file.options.CloseUfsFileOptions;
 import alluxio.client.file.options.OpenUfsFileOptions;
+import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.PreconditionMessage;
@@ -80,8 +81,8 @@ public final class DelegatedUnderStoreBlockInStream extends UnderStoreBlockInStr
     Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
     Preconditions.checkArgument(pos <= mLength,
         PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
-    mUnderStoreStream =
-        new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(), mUfsFileId);
+    mUnderStoreStream = new UnderFileSystemFileInStream(mClient.getWorkerDataServerAddress(),
+        mUfsFileId, new NettyUnderFileSystemFileReader());
     long streamStart = mInitPos + pos;
     // The stream is at the beginning of the file, so skip to the correct absolute position.
     if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
