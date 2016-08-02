@@ -90,8 +90,7 @@ public final class KeyValueMaster extends AbstractMaster {
    */
   public KeyValueMaster(MasterContext masterContext, FileSystemMaster fileSystemMaster,
       Journal journal) {
-    super(masterContext, journal,
-        new SystemClock(),
+    super(masterContext, journal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("KeyValueMaster-%d", true)));
     mFileSystemMaster = fileSystemMaster;
     mCompleteStoreToPartitions = new HashMap<>();
