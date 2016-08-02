@@ -84,12 +84,12 @@ public final class KeyValueMaster extends AbstractMaster {
   }
 
   /**
+   * @param masterContext the master context
    * @param fileSystemMaster handler to a {@link FileSystemMaster} to use for filesystem operations
    * @param journal a {@link Journal} to write journal entries to
-   * @param masterContext the master context
    */
-  public KeyValueMaster(FileSystemMaster fileSystemMaster, Journal journal,
-      MasterContext masterContext) {
+  public KeyValueMaster(MasterContext masterContext, FileSystemMaster fileSystemMaster,
+      Journal journal) {
     super(masterContext, journal,
         new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("KeyValueMaster-%d", true)));

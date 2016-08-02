@@ -148,9 +148,9 @@ public final class PermissionCheckTest {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     MasterContext masterContext = new MasterContext(new MasterSource());
-    BlockMaster blockMaster = new BlockMaster(blockJournal, masterContext);
+    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
 
-    mFileSystemMaster = new FileSystemMaster(blockMaster, fsJournal, masterContext);
+    mFileSystemMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
 
     blockMaster.start(true);
     mFileSystemMaster.start(true);

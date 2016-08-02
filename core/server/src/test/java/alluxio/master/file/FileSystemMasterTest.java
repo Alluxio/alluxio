@@ -133,8 +133,8 @@ public final class FileSystemMasterTest {
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
     MasterContext masterContext = new MasterContext(new MasterSource());
-    mBlockMaster = new BlockMaster(blockJournal, masterContext);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, masterContext);
+    mBlockMaster = new BlockMaster(masterContext, blockJournal);
+    mFileSystemMaster = new FileSystemMaster(masterContext, mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

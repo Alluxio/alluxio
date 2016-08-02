@@ -78,7 +78,7 @@ public final class InodeTreeTest {
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal, new MasterContext(new MasterSource()));
+    BlockMaster blockMaster = new BlockMaster(new MasterContext(new MasterSource()), blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     mTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);
