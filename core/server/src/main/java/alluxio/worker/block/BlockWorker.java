@@ -180,9 +180,10 @@ public final class BlockWorker extends AbstractWorker {
     setupSessionCleaner();
 
     // Setup space reserver
-    SpaceReserver spaceReserver = null;
     if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
-      spaceReserver = new SpaceReserver(this);
+      getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, new SpaceReserver(this),
+              Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
 
     getExecutorService()
@@ -196,12 +197,6 @@ public final class BlockWorker extends AbstractWorker {
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);
-
-    // Start the space reserver
-    if (spaceReserver != null) {
-      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER,
-          spaceReserver, Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
-    }
   }
 
   /**
