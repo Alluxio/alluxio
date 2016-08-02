@@ -55,7 +55,6 @@ import alluxio.wire.LineageInfo;
 
 import com.google.common.base.Preconditions;
 import com.google.protobuf.Message;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +66,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -82,17 +80,6 @@ public final class LineageMaster extends AbstractMaster {
   private final LineageStore mLineageStore;
   private final FileSystemMaster mFileSystemMaster;
   private final LineageIdGenerator mLineageIdGenerator;
-
-  /**
-   * The service that checkpoints lineages. We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mCheckpointExecutionService;
-  /**
-   * The service that recomputes lineages. We store it here so that it can be accessed from tests.
-   */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private Future<?> mRecomputeExecutionService;
 
   /**
    * @param baseDirectory the base journal directory
@@ -160,15 +147,13 @@ public final class LineageMaster extends AbstractMaster {
   public void start(boolean isLeader) throws IOException {
     super.start(isLeader);
     if (isLeader) {
-      mCheckpointExecutionService = getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
-              new CheckpointSchedulingExecutor(this, mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
-      mRecomputeExecutionService = getExecutorService()
-          .submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
-              new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
-                  mFileSystemMaster),
-              Configuration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
+      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING,
+          new CheckpointSchedulingExecutor(this, mFileSystemMaster),
+          Configuration.getInt(Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS)));
+      getExecutorService().submit(new HeartbeatThread(HeartbeatContext.MASTER_FILE_RECOMPUTATION,
+          new RecomputeExecutor(new RecomputePlanner(mLineageStore, mFileSystemMaster),
+              mFileSystemMaster),
+          Configuration.getInt(Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS)));
     }
   }
 
