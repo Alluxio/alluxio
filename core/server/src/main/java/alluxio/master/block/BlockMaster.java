@@ -175,16 +175,18 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
 
   /**
    * Creates a new instance of {@link BlockMaster} with the default {@link MasterSource}.
+   *
    * @param masterContext context for the master
    * @param journal the journal to use for tracking master operations
    */
   public BlockMaster(MasterContext masterContext, Journal journal) {
     super(masterContext, journal, new SystemClock(), Executors.newFixedThreadPool(2,
-            ThreadFactoryUtils.build("BlockMaster-%d", true)));
+        ThreadFactoryUtils.build("BlockMaster-%d", true)));
   }
 
   /**
    * Creates a new instance of {@link BlockMaster}.
+   *
    * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time

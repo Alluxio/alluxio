@@ -104,14 +104,14 @@ public final class LineageMaster extends AbstractMaster {
 
   /**
    * Creates a new instance of {@link LineageMaster}.
+   *
    * @param masterContext the master context
    * @param fileSystemMaster the file system master
    * @param journal the journal
    */
   public LineageMaster(MasterContext masterContext, FileSystemMaster fileSystemMaster,
       Journal journal) {
-    super(masterContext, journal,
-        new SystemClock(),
+    super(masterContext, journal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)));
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
