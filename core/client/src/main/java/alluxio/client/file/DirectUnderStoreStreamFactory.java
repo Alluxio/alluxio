@@ -18,11 +18,15 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
+ * Factory which creates input streams to a specified path in under storage. The streams are created
+ * through the {@link UnderFileSystem} API.
  */
 public class DirectUnderStoreStreamFactory implements UnderStoreStreamFactory {
   private final String mPath;
 
+  /**
+   * @param path the path in under storage to read from
+   */
   public DirectUnderStoreStreamFactory(String path) {
     mPath = path;
   }
@@ -32,9 +36,6 @@ public class DirectUnderStoreStreamFactory implements UnderStoreStreamFactory {
     return UnderFileSystem.get(mPath).open(mPath);
   }
 
-  /* (non-Javadoc)
-   * @see alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory#close()
-   */
   @Override
   public void close() throws IOException {
     // Nothing needs to be closed.

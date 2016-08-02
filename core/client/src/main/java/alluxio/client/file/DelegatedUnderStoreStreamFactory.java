@@ -21,12 +21,18 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
+ * Factory which creates input streams to a specified path in under storage. The streams are created
+ * through the file system worker API.
  */
 public class DelegatedUnderStoreStreamFactory implements UnderStoreStreamFactory {
   private final FileSystemWorkerClient mClient;
   private final long mFileId;
 
+  /**
+   * @param context file system context
+   * @param path the ufs path to create streams to
+   * @throws IOException if an IO exception occurs
+   */
   public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path) throws IOException {
     mClient = FileSystemContext.INSTANCE.createWorkerClient();
     try {
