@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
@@ -22,6 +23,7 @@ import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
@@ -285,7 +287,16 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return UnderStoreBlockInStream.Factory.create(blockStart, length, mBlockSize, path);
+    return UnderStoreBlockInStream.Factory.create(blockStart, length, mBlockSize,
+        getUnderStoreStreamFactory(path));
+  }
+
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path) throws IOException {
+    if (Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
+      return new DelegatedUnderStoreStreamFactory(FileSystemContext.INSTANCE, path);
+    } else {
+      return new DirectUnderStoreStreamFactory(path);
+    }
   }
 
   /**
