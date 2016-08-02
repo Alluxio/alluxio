@@ -82,8 +82,8 @@ final class BlockDataServerHandler {
     BlockReader reader = null;
     DataBuffer buffer;
     try {
-      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
       req.validate();
+      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
