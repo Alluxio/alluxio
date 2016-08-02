@@ -12,101 +12,20 @@
 package alluxio.worker.file;
 
 import alluxio.AlluxioURI;
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.Sessions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
-import alluxio.heartbeat.HeartbeatContext;
-import alluxio.heartbeat.HeartbeatThread;
 import alluxio.security.authorization.Permission;
-import alluxio.thrift.FileSystemWorkerClientService;
-import alluxio.util.ThreadFactoryUtils;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.worker.AbstractWorker;
-import alluxio.worker.SessionCleaner;
-import alluxio.worker.SessionCleanupCallback;
-import alluxio.worker.block.BlockWorker;
-
-import com.google.common.base.Preconditions;
-import org.apache.thrift.TProcessor;
+import alluxio.worker.Worker;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-
-import javax.annotation.concurrent.NotThreadSafe;
 
 /**
- * This class is responsible for managing all top level components of the file system worker.
+ * Interface representing a file system worker.
  */
-@NotThreadSafe // TODO(jiri): make thread-safe (c.f. ALLUXIO-1624)
-public final class FileSystemWorker extends AbstractWorker {
-  /** Logic for managing file persistence. */
-  private final FileDataManager mFileDataManager;
-  /** Client for file system master communication. */
-  private final FileSystemMasterClient mFileSystemMasterWorkerClient;
-  /** Logic for handling RPC requests. */
-  private final FileSystemWorkerClientServiceHandler mServiceHandler;
-  /** Object for managing this worker's sessions. */
-  private final Sessions mSessions;
-  /** Runnable responsible for clean up potential zombie sessions. */
-  private final SessionCleaner mSessionCleaner;
-  /** Manager for under file system operations. */
-  private final UnderFileSystemManager mUnderFileSystemManager;
-
-  /** The service that persists files. */
-  private Future<?> mFilePersistenceService;
-
-  /**
-   * Creates a new instance of {@link FileSystemWorker}.
-   *
-   * @param blockWorker the block worker handle
-   * @throws IOException if an I/O error occurs
-   */
-  public FileSystemWorker(BlockWorker blockWorker) throws IOException {
-    super(Executors.newFixedThreadPool(3,
-        ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
-
-    mSessions = new Sessions();
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker));
-    mUnderFileSystemManager = new UnderFileSystemManager();
-
-    // Setup AbstractMasterClient
-    mFileSystemMasterWorkerClient = new FileSystemMasterClient(
-        NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
-    // Setup session cleaner
-    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
-      /**
-       * Cleans up after sessions, to prevent zombie sessions holding ufs resources.
-       */
-      @Override
-      public void cleanupSessions() {
-        for (long session : mSessions.getTimedOutSessions()) {
-          mSessions.removeSession(session);
-          mUnderFileSystemManager.cleanupSession(session);
-        }
-      }
-    });
-
-    mServiceHandler = new FileSystemWorkerClientServiceHandler(this);
-  }
-
-  @Override
-  public Map<String, TProcessor> getServices() {
-    Map<String, TProcessor> services = new HashMap<>();
-    services.put(
-        Constants.FILE_SYSTEM_WORKER_CLIENT_SERVICE_NAME,
-        new FileSystemWorkerClientService.Processor<>(getWorkerServiceHandler()));
-    return services;
-  }
+public interface FileSystemWorker extends Worker {
 
   /**
    * Cancels a file currently being written to the under file system. The open stream will be
@@ -118,10 +37,8 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws FileDoesNotExistException if this worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void cancelUfsFile(long sessionId, long tempUfsFileId)
-      throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.cancelFile(sessionId, tempUfsFileId);
-  }
+  void cancelUfsFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException;
 
   /**
    * Closes a file currently being read from the under file system. The open stream will be
@@ -133,10 +50,8 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws FileDoesNotExistException if the worker is not reading the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public void closeUfsFile(long sessionId, long tempUfsFileId)
-      throws FileDoesNotExistException, IOException {
-    mUnderFileSystemManager.closeFile(sessionId, tempUfsFileId);
-  }
+  void closeUfsFile(long sessionId, long tempUfsFileId)
+      throws FileDoesNotExistException, IOException;
 
   /**
    * Completes a file currently being written to the under file system. The open stream will be
@@ -150,10 +65,8 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws FileDoesNotExistException if the worker is not writing the specified file
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public long completeUfsFile(long sessionId, long tempUfsFileId, Permission perm)
-      throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.completeFile(sessionId, tempUfsFileId, perm);
-  }
+  long completeUfsFile(long sessionId, long tempUfsFileId, Permission perm)
+      throws FileDoesNotExistException, IOException;
 
   /**
    * Creates a new file in the under file system. This will register a new stream in the under
@@ -167,10 +80,8 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws IOException if an error occurs interacting with the under file system
    * @return the temporary worker specific file id which references the in-progress ufs file
    */
-  public long createUfsFile(long sessionId, AlluxioURI ufsUri, Permission perm)
-      throws FileAlreadyExistsException, IOException {
-    return mUnderFileSystemManager.createFile(sessionId, ufsUri, perm);
-  }
+  long createUfsFile(long sessionId, AlluxioURI ufsUri, Permission perm)
+      throws FileAlreadyExistsException, IOException;
 
   /**
    * Opens a stream to the under file system file denoted by the temporary file id. This call
@@ -185,10 +96,8 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws FileDoesNotExistException if the worker file id is invalid
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public InputStream getUfsInputStream(long tempUfsFileId, long position)
-      throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.getInputStreamAtPosition(tempUfsFileId, position);
-  }
+  InputStream getUfsInputStream(long tempUfsFileId, long position)
+      throws FileDoesNotExistException, IOException;
 
   /**
    * Returns the output stream to the under file system file denoted by the temporary file id.
@@ -199,16 +108,12 @@ public final class FileSystemWorker extends AbstractWorker {
    * @return the output stream writing the contents of the file
    * @throws FileDoesNotExistException if the temporary file id is invalid
    */
-  public OutputStream getUfsOutputStream(long tempUfsFileId) throws FileDoesNotExistException {
-    return mUnderFileSystemManager.getOutputStream(tempUfsFileId);
-  }
+  OutputStream getUfsOutputStream(long tempUfsFileId) throws FileDoesNotExistException;
 
   /**
    * @return the worker service handler
    */
-  public FileSystemWorkerClientServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
-  }
+  FileSystemWorkerClientServiceHandler getWorkerServiceHandler();
 
   /**
    * Opens a file in the under file system and registers a temporary file id with the file. This
@@ -220,10 +125,7 @@ public final class FileSystemWorker extends AbstractWorker {
    * @throws FileDoesNotExistException if the file does not exist in the under file system
    * @throws IOException if an error occurs interacting with the under file system
    */
-  public long openUfsFile(long sessionId, AlluxioURI ufsUri)
-      throws FileDoesNotExistException, IOException {
-    return mUnderFileSystemManager.openFile(sessionId, ufsUri);
-  }
+  long openUfsFile(long sessionId, AlluxioURI ufsUri) throws FileDoesNotExistException, IOException;
 
   /**
    * Registers a client's heartbeat to keep its session alive. The client can also
@@ -232,36 +134,5 @@ public final class FileSystemWorker extends AbstractWorker {
    * @param sessionId the session id to renew
    * @param metrics a list of metrics to update from the client
    */
-  public void sessionHeartbeat(long sessionId, List<Long> metrics) {
-    // Metrics currently ignored
-    mSessions.sessionHeartbeat(sessionId);
-  }
-
-  /**
-   * Starts the filesystem worker service.
-   */
-  @Override
-  public void start() {
-    mFilePersistenceService = getExecutorService()
-        .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
-            new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            Configuration.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
-
-    // Start the session cleanup checker to perform the periodical checking
-    getExecutorService().submit(mSessionCleaner);
-  }
-
-  /**
-   * Stops the filesystem worker service.
-   */
-  @Override
-  public void stop() {
-    mSessionCleaner.stop();
-    if (mFilePersistenceService != null) {
-      mFilePersistenceService.cancel(true);
-    }
-    mFileSystemMasterWorkerClient.close();
-    // This needs to be shutdownNow because heartbeat threads will only stop when interrupted.
-    getExecutorService().shutdownNow();
-  }
+  void sessionHeartbeat(long sessionId, List<Long> metrics);
 }
