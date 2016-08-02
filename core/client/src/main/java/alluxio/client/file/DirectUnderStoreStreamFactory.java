@@ -21,7 +21,7 @@ import java.io.InputStream;
  * Factory which creates input streams to a specified path in under storage. The streams are created
  * through the {@link UnderFileSystem} API.
  */
-public class DirectUnderStoreStreamFactory implements UnderStoreStreamFactory {
+public final class DirectUnderStoreStreamFactory implements UnderStoreStreamFactory {
   private final String mPath;
 
   /**

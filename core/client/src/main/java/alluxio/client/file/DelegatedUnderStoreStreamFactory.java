@@ -24,7 +24,7 @@ import java.io.InputStream;
  * Factory which creates input streams to a specified path in under storage. The streams are created
  * through the file system worker API.
  */
-public class DelegatedUnderStoreStreamFactory implements UnderStoreStreamFactory {
+public final class DelegatedUnderStoreStreamFactory implements UnderStoreStreamFactory {
   private final FileSystemWorkerClient mClient;
   private final long mFileId;
 
@@ -33,7 +33,8 @@ public class DelegatedUnderStoreStreamFactory implements UnderStoreStreamFactory
    * @param path the ufs path to create streams to
    * @throws IOException if an IO exception occurs
    */
-  public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path) throws IOException {
+  public DelegatedUnderStoreStreamFactory(FileSystemContext context, String path)
+      throws IOException {
     mClient = FileSystemContext.INSTANCE.createWorkerClient();
     try {
       mFileId = mClient.openUfsFile(new AlluxioURI(path), OpenUfsFileOptions.defaults());
