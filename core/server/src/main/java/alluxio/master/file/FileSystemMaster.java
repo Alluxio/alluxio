@@ -1980,13 +1980,15 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param alluxioPath the Alluxio path to mount to
    * @param ufsPath the UFS path to mount
    * @param options the mount options
-   * @throws FileAlreadyExistsException if the path to be mounted already exists
+   * @throws FileAlreadyExistsException if the path to be mounted to already exists
+   * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
    * @throws InvalidPathException if an invalid path is encountered
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
   public void mount(AlluxioURI alluxioPath, AlluxioURI ufsPath, MountOptions options)
-      throws FileAlreadyExistsException, InvalidPathException, IOException, AccessControlException {
+      throws FileAlreadyExistsException, FileDoesNotExistException, InvalidPathException,
+      IOException, AccessControlException {
     MasterContext.getMasterSource().incMountOps(1);
     long flushCounter = AsyncJournalWriter.INVALID_FLUSH_COUNTER;
     try (LockedInodePath inodePath = mInodeTree
@@ -2011,12 +2013,14 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param options the mount options
    * @return the flush counter for journaling
    * @throws InvalidPathException if an invalid path is encountered
-   * @throws FileAlreadyExistsException if the path to be mounted already exists
+   * @throws FileAlreadyExistsException if the path to be mounted to already exists
+   * @throws FileDoesNotExistException if the parent of the path to be mounted to does not exist
    * @throws IOException if an I/O error occurs
    * @throws AccessControlException if the permission check fails
    */
   private long mountAndJournal(LockedInodePath inodePath, AlluxioURI ufsPath, MountOptions options)
-      throws InvalidPathException, FileAlreadyExistsException, IOException, AccessControlException {
+      throws InvalidPathException, FileAlreadyExistsException, FileDoesNotExistException,
+      IOException, AccessControlException {
     // Check that the Alluxio Path does not exist
     if (inodePath.fullPathExists()) {
       // TODO(calvin): Add a test to validate this (ALLUXIO-1831)
@@ -2031,14 +2035,10 @@ public final class FileSystemMaster extends AbstractMaster {
       loadDirectoryMetadataAndJournal(inodePath,
           LoadMetadataOptions.defaults().setCreateAncestors(false));
       loadMetadataSucceeded = true;
-    } catch (FileDoesNotExistException e) {
-      // This exception should be impossible since we just mounted this path
-      throw Throwables.propagate(e);
     } finally {
       if (!loadMetadataSucceeded) {
         unmountInternal(inodePath.getUri());
       }
-      // Exception will be propagated from loadDirectoryMetadataAndJournal
     }
 
     // For proto, build a list of String pairs representing the properties map.
