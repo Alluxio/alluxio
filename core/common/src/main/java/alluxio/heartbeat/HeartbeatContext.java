@@ -74,6 +74,10 @@ public final class HeartbeatContext {
   @SuppressWarnings("unused")
   private static synchronized void setTimerClass(String name,
       Class<? extends HeartbeatTimer> timerClass) {
-    sTimerClasses.put(name, timerClass);
+    if (timerClass == null) {
+      sTimerClasses.remove(name);
+    } else {
+      sTimerClasses.put(name, timerClass);
+    }
   }
 }

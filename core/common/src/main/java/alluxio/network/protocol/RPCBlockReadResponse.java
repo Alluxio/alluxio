@@ -140,9 +140,7 @@ public final class RPCBlockReadResponse extends RPCResponse {
     return mOffset;
   }
 
-  /**
-   * @return the status
-   */
+  @Override
   public Status getStatus() {
     return mStatus;
   }

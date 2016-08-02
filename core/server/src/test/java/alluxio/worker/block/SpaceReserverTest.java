@@ -43,9 +43,6 @@ import java.util.concurrent.TimeUnit;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockWorker.class, BlockStoreMeta.class})
 public class SpaceReserverTest {
-  private static final long SESSION_ID = 1;
-  private static final long BLOCK_SIZE = 100;
-
   private ExecutorService mExecutorService;
 
   /** Rule to create a new temporary folder during each test. */

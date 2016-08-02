@@ -125,4 +125,9 @@ public abstract class RPCResponse extends RPCMessage {
       }
     }
   }
+
+  /**
+   * @return the status
+   */
+  public abstract Status getStatus();
 }

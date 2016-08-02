@@ -52,7 +52,7 @@ public class FileSystemUtilsIntegrationTest {
   @BeforeClass
   public static void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
   @Test

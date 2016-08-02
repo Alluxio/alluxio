@@ -52,21 +52,10 @@ public abstract class AbstractFileOutStreamIntegrationTest {
           Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
           Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER);
 
-  protected CreateFileOptions mWriteBoth;
-  protected CreateFileOptions mWriteAlluxio;
-  protected CreateFileOptions mWriteLocal;
-  protected CreateFileOptions mWriteAsync;
-  protected CreateFileOptions mWriteUnderStore;
-
   protected FileSystem mFileSystem = null;
 
   @Before
   public void before() throws Exception {
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
-    mWriteLocal = StreamOptionUtils.getCreateFileOptionsWriteLocal();
-    mWriteAsync = StreamOptionUtils.getCreateFileOptionsAsync();
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
   }
 
@@ -112,9 +101,9 @@ public abstract class AbstractFileOutStreamIntegrationTest {
 
   protected List<CreateFileOptions> getOptionSet() {
     List<CreateFileOptions> ret = new ArrayList<>(3);
-    ret.add(mWriteBoth);
-    ret.add(mWriteAlluxio);
-    ret.add(mWriteUnderStore);
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE));
+    ret.add(CreateFileOptions.defaults().setWriteType(WriteType.THROUGH));
     return ret;
   }
 }

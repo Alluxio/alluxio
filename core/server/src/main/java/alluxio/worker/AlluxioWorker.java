@@ -19,7 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Class for launching an Alluxio worker.
+ * Class for running an Alluxio worker.
  */
 public final class AlluxioWorker {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
@@ -60,5 +60,5 @@ public final class AlluxioWorker {
     }
   }
 
-  private AlluxioWorker() {} // not intended for instantiation
+  private AlluxioWorker() {} // Not intended for instantiation
 }

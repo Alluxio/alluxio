@@ -58,9 +58,9 @@ public class FileInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    sWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from
