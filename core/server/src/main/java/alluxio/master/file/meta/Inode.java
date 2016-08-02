@@ -46,10 +46,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   private final ReentrantReadWriteLock mLock;
 
-  protected Inode(long id) {
+  protected Inode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
-    mDirectory = false;
+    mDirectory = isDirectory;
     mGroup = "";
     mId = id;
     mLastModificationTimeMs = mCreationTimeMs;
