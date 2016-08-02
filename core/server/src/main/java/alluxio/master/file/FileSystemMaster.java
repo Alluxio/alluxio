@@ -235,12 +235,11 @@ public final class FileSystemMaster extends AbstractMaster {
 
   /**
    * Creates a new instance of {@link FileSystemMaster}.
-   *
+   * @param masterContext the master context
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
-   * @param masterContext the master context
    */
-  public FileSystemMaster(BlockMaster blockMaster, Journal journal, MasterContext masterContext) {
+  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal) {
     super(masterContext, journal,
         new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)));

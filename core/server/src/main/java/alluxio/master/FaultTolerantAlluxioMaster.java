@@ -96,12 +96,12 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
 
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()),
-              mMasterContext);
-          mFileSystemMaster = new FileSystemMaster(mBlockMaster,
-              new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()), mMasterContext);
-          mLineageMaster = new LineageMaster(mFileSystemMaster,
-              new ReadOnlyJournal(mLineageMasterJournal.getDirectory()), mMasterContext);
+          mBlockMaster = new BlockMaster(mMasterContext,
+              new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
+          mFileSystemMaster = new FileSystemMaster(mMasterContext,
+              mBlockMaster, new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
+          mLineageMaster = new LineageMaster(mMasterContext,
+              mFileSystemMaster, new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
           startMasters(false);
           started = true;
         }

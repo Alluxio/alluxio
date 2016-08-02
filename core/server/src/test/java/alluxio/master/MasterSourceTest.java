@@ -108,10 +108,10 @@ public final class MasterSourceTest {
 
     MasterSource masterSource = new MasterSource();
     MasterContext masterContext = new MasterContext(masterSource);
-    mBlockMaster = new BlockMaster(blockJournal, new SystemClock(),
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-source-test-%d", true)),
-        masterContext);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal, masterContext);
+    mBlockMaster = new BlockMaster(masterContext, blockJournal,
+        new SystemClock(),
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-source-test-%d", true)));
+    mFileSystemMaster = new FileSystemMaster(masterContext, mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);

@@ -256,17 +256,17 @@ public class AlluxioMaster implements Server {
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
-      mBlockMaster = new BlockMaster(mBlockMasterJournal, masterContext);
+      mBlockMaster = new BlockMaster(masterContext, mBlockMasterJournal);
       mFileSystemMaster =
-          new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal, masterContext);
+          new FileSystemMaster(masterContext, mBlockMaster, mFileSystemMasterJournal);
       if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal, masterContext);
+        mLineageMaster = new LineageMaster(masterContext, mFileSystemMaster, mLineageMasterJournal);
       }
 
       mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
-        Master master = factory.create(masters, journalDirectory, masterContext);
+        Master master = factory.create(masterContext, masters, journalDirectory);
         if (master != null) {
           mAdditionalMasters.add(master);
         }

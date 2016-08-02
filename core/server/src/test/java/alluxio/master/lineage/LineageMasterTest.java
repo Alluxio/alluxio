@@ -68,7 +68,7 @@ public final class LineageMasterTest {
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
     mLineageMaster =
-        new LineageMaster(mFileSystemMaster, journal, new MasterContext(new MasterSource()));
+        new LineageMaster(new MasterContext(new MasterSource()), mFileSystemMaster, journal);
     mLineageMaster.start(true);
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
