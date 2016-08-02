@@ -57,12 +57,10 @@ public class UnderStoreBlockInStreamTest {
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
-    mBlockStream =
-        UnderStoreBlockInStream.Factory.create(0, BLOCK_LENGTH, BLOCK_LENGTH,
-            new FileUnderStoreStreamFactory(file));
-    mEOFBlockStream =
-        UnderStoreBlockInStream.Factory.create(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
-            new FileUnderStoreStreamFactory(file));
+    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
+    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
   }
 
   /**

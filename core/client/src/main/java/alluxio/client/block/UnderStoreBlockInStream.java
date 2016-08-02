@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.annotation.concurrent.NotThreadSafe;
-import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a fixed chunk from a file in the under storage
@@ -71,47 +70,21 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   }
 
   /**
-   * Creates a new under storage file input stream.
-   *
+   * Creates an under store block in stream which will read from the streams created by the given
+   * {@link UnderStoreStreamFactory}. The stream will be set to the beginning of the block.
    * @param initPos the initial position
    * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param fileBlockSize the block size for the file
    * @param underStoreStreamFactory a factory for getting input streams from the under storage
    * @throws IOException if an IO exception occurs while creating the under storage input stream
    */
-  private UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+  public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
       UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
     mInitPos = initPos;
     mLength = length;
     mFileBlockSize = fileBlockSize;
     mUnderStoreStreamFactory = underStoreStreamFactory;
     setUnderStoreStream(0);
-  }
-
-  /**
-   * Factory for creating {@link UnderStoreBlockInStream}s.
-   */
-  @ThreadSafe
-  public static final class Factory {
-
-    private Factory() {} // prevent instantiation
-
-    /**
-     * Creates an under store block in stream, if ufs operation delegation is enabled, the stream
-     * will read from an Alluxio worker, if not the stream will be directly from an under storage
-     * system client. The stream will be set to the beginning of the block.
-     *
-     * @param blockStart the start position of the block stream relative to the entire file
-     * @param length length of this block
-     * @param blockSize the block size of the file
-     * @param factory a factory which can be used to create input streams from under storage
-     * @return a stream which can access data from blockStart to blockStart + length
-     * @throws IOException if an error occurs creating the stream
-     */
-    public static UnderStoreBlockInStream create(long blockStart, long length, long blockSize,
-        UnderStoreStreamFactory factory) throws IOException {
-      return new UnderStoreBlockInStream(blockStart, length, blockSize, factory);
-    }
   }
 
   @Override
