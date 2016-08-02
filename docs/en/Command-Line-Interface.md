@@ -155,7 +155,7 @@ The `cp` command copies a file or directory in the Alluxio filesystem.
 If the `-R` option is used and the source designates a directory, cp copies the entire subtree at
 source to the destination.
 
-For example, `cp` can be used to copy files between UnderFS filesystems.
+For example, `cp` can be used to copy files between Under file systems.
 
 {% include Command-Line-Interface/cp.md %}
 
