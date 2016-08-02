@@ -35,6 +35,8 @@ public class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
   /**
+   * @param fileSystemContext file system context
+   * @param lineageContext lineage context
    * @return the current lineage file system for Alluxio
    */
   public static synchronized LineageFileSystem get(FileSystemContext fileSystemContext,
