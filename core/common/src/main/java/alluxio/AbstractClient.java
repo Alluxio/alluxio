@@ -32,7 +32,6 @@ import org.apache.thrift.transport.TTransportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -42,7 +41,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * The base class for clients.
  */
 @ThreadSafe
-public abstract class AbstractClient implements Closeable {
+public abstract class AbstractClient implements Client {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /** The number of times to retry a particular RPC. */
@@ -104,7 +103,7 @@ public abstract class AbstractClient implements Closeable {
    * @param client the service client
    * @param version the client version
    */
-  private void checkVersion(AlluxioService.Client client, long version) throws IOException {
+  protected void checkVersion(AlluxioService.Client client, long version) throws IOException {
     if (mServiceVersion == Constants.UNKNOWN_SERVICE_VERSION) {
       try {
         mServiceVersion = client.getServiceVersion();

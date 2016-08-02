@@ -49,16 +49,17 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the worker address
+   * @param context the block store context to use for acquiring worker and master clients
    * @throws IOException if the block is not available on the remote worker
    */
-  public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
-      throws IOException {
+  public RemoteBlockInStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress,
+      BlockStoreContext context) throws IOException {
     super(blockId, blockSize);
     mWorkerNetAddress = workerNetAddress;
     mWorkerInetSocketAddress =
         new InetSocketAddress(workerNetAddress.getHost(), workerNetAddress.getDataPort());
 
-    mContext = BlockStoreContext.INSTANCE;
+    mContext = context;
     mBlockWorkerClient = mContext.acquireWorkerClient(workerNetAddress);
 
     try {
