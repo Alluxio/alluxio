@@ -29,7 +29,7 @@ public final class MockFileInStream extends FileInStream {
    * @param bytes the bytes to supply
    */
   public MockFileInStream(byte[] bytes) {
-    super(new URIStatus(new FileInfo()), InStreamOptions.defaults());
+    super(new URIStatus(new FileInfo()), InStreamOptions.defaults(), FileSystemContext.INSTANCE);
     mStream = new ByteArrayInputStream(bytes);
   }
 
