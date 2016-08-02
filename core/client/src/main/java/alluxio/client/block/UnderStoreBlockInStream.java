@@ -11,9 +11,11 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.exception.ExceptionMessage;
+import alluxio.exception.PreconditionMessage;
+
+import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,15 +30,13 @@ import javax.annotation.concurrent.ThreadSafe;
  * storage client.
  */
 @NotThreadSafe
-public abstract class UnderStoreBlockInStream extends BlockInStream {
+public final class UnderStoreBlockInStream extends BlockInStream {
   /**
    * The block size of the file. See {@link #getLength()} for more length information.
    */
   private final long mFileBlockSize;
   /** The start of this block. This is the absolute position within the UFS file. */
   protected final long mInitPos;
-  /** The UFS path for this block. */
-  protected final String mUfsPath;
   /**
    * The length of this current block. This may be {@link Constants#UNKNOWN_SIZE}, and may be
    * updated to a valid length. See {@link #getLength()} for more length information.
@@ -50,19 +50,33 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
   /** The current under store stream. */
   protected InputStream mUnderStoreStream;
 
+  private UnderStoreStreamFactory mUnderStoreStreamFactory;
+
+  /**
+   * A factory which can create an input stream to under storage.
+   */
+  public interface UnderStoreStreamFactory extends AutoCloseable {
+    InputStream create() throws IOException;
+
+    void close() throws IOException;
+  }
+
   /**
    * Creates a new under storage file input stream.
    *
    * @param initPos the initial position
    * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param fileBlockSize the block size for the file
-   * @param ufsPath the under file system path
+   * @param underStoreStreamFactory a factory for getting input streams from the under storage
+   * @throws IOException
    */
-  protected UnderStoreBlockInStream(long initPos, long length, long fileBlockSize, String ufsPath) {
+  protected UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
+      UnderStoreStreamFactory underStoreStreamFactory) throws IOException {
     mInitPos = initPos;
     mLength = length;
     mFileBlockSize = fileBlockSize;
-    mUfsPath = ufsPath;
+    mUnderStoreStreamFactory = underStoreStreamFactory;
+    setUnderStoreStream(0);
   }
 
   /**
@@ -81,25 +95,19 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
      * @param blockStart the start position of the block stream relative to the entire file
      * @param length length of this block
      * @param blockSize the block size of the file
-     * @param path the path of the file in the under storage
+     * @param factory a factory which can be used to create input streams from under storage
      * @return a stream which can access data from blockStart to blockStart + length
      * @throws IOException if an error occurs creating the stream
      */
     public static UnderStoreBlockInStream create(long blockStart, long length, long blockSize,
-        String path) throws IOException {
-      UnderStoreBlockInStream stream;
-      if (Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
-        stream = new DelegatedUnderStoreBlockInStream(blockStart, length, blockSize, path);
-      } else {
-        stream = new DirectUnderStoreBlockInStream(blockStart, length, blockSize, path);
-      }
-      stream.setUnderStoreStream(0);
-      return stream;
+        UnderStoreStreamFactory factory) throws IOException {
+      return new UnderStoreBlockInStream(blockStart, length, blockSize, factory);
     }
   }
 
   @Override
   public void close() throws IOException {
+    mUnderStoreStreamFactory.close();
     mUnderStoreStream.close();
   }
 
@@ -185,7 +193,23 @@ public abstract class UnderStoreBlockInStream extends BlockInStream {
    * @param pos the position within this block
    * @throws IOException if the stream from the position cannot be created
    */
-  protected abstract void setUnderStoreStream(long pos) throws IOException;
+  private void setUnderStoreStream(long pos) throws IOException {
+    if (mUnderStoreStream != null) {
+      mUnderStoreStream.close();
+    }
+    Preconditions.checkArgument(pos >= 0, PreconditionMessage.ERR_SEEK_NEGATIVE.toString(), pos);
+    Preconditions.checkArgument(pos <= mLength,
+        PreconditionMessage.ERR_SEEK_PAST_END_OF_BLOCK.toString(), pos);
+    mUnderStoreStream = mUnderStoreStreamFactory.create();
+    long streamStart = mInitPos + pos;
+    // The stream is at the beginning of the file, so skip to the correct absolute position.
+    if (streamStart != 0 && streamStart != mUnderStoreStream.skip(streamStart)) {
+      mUnderStoreStream.close();
+      throw new IOException(ExceptionMessage.FAILED_SKIP.getMessage(pos));
+    }
+    // Set the current block position to the specified block position.
+    mPos = pos;
+  }
 
   /**
    * Returns the length of the current UFS block. This method handles the situation when the UFS
