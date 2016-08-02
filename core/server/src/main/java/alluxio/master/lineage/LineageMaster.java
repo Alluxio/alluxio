@@ -65,6 +65,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -108,8 +109,20 @@ public final class LineageMaster extends AbstractMaster {
    * @param journal the journal
    */
   public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, new SystemClock(),
+    this(fileSystemMaster, journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)));
+  }
+
+  /**
+   * Creates a new instance of {@link LineageMaster}.
+   *
+   * @param fileSystemMaster the file system master
+   * @param journal the journal
+   * @param executorService the executor service to use for running maintenance threads
+   */
+  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal,
+      ExecutorService executorService) {
+    super(journal, new SystemClock(), executorService);
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);
     mLineageIdGenerator = new LineageIdGenerator();

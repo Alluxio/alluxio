@@ -23,6 +23,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
 
@@ -35,14 +36,13 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
 
 /**
  * Unit tests for {@link LineageMaster}.
@@ -50,6 +50,7 @@ import java.util.concurrent.Future;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({FileSystemMaster.class})
 public final class LineageMasterTest {
+  private ExecutorService mExecutorService;
   private LineageMaster mLineageMaster;
   private FileSystemMaster mFileSystemMaster;
   private Job mJob;
@@ -65,7 +66,9 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    mLineageMaster = new LineageMaster(mFileSystemMaster, journal);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMasterTest-%d", true));
+    mLineageMaster = new LineageMaster(mFileSystemMaster, journal, mExecutorService);
     mLineageMaster.start(true);
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
@@ -183,23 +186,10 @@ public final class LineageMasterTest {
         Mockito.any(CompleteFileOptions.class));
   }
 
-  /**
-   * Tests the {@link LineageMaster#stop()} method.
-   */
   @Test
   public void stopTest() throws Exception {
-    ExecutorService service =
-        (ExecutorService) Whitebox.getInternalState(mLineageMaster, "mExecutorService");
-    Future<?> checkpointThread =
-        (Future<?>) Whitebox.getInternalState(mLineageMaster, "mCheckpointExecutionService");
-    Future<?> recomputeThread =
-        (Future<?>) Whitebox.getInternalState(mLineageMaster, "mRecomputeExecutionService");
-    Assert.assertFalse(checkpointThread.isDone());
-    Assert.assertFalse(recomputeThread.isDone());
-    Assert.assertFalse(service.isShutdown());
     mLineageMaster.stop();
-    Assert.assertTrue(checkpointThread.isDone());
-    Assert.assertTrue(recomputeThread.isDone());
-    Assert.assertTrue(service.isShutdown());
+    Assert.assertTrue(mExecutorService.isShutdown());
+    Assert.assertTrue(mExecutorService.isTerminated());
   }
 }
