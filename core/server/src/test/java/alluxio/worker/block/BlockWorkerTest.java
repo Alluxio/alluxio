@@ -25,12 +25,16 @@ import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.io.PathUtils;
+import alluxio.worker.WorkerContext;
 import alluxio.worker.WorkerIdRegistry;
+import alluxio.worker.WorkerSource;
+import alluxio.worker.WorkerTestUtils;
 import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.StorageDir;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.codahale.metrics.Counter;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,7 +47,8 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,8 +72,6 @@ public class BlockWorkerTest {
   private BlockMasterClient mBlockMasterClient;
   private BlockStore mBlockStore;
   private FileSystemMasterClient mFileSystemMasterClient;
-  private BlockHeartbeatReporter mHeartbeatReporter;
-  private BlockMetricsReporter mMetricsReporter;
   private Random mRandom;
   private Sessions mSessions;
   private BlockWorker mBlockWorker;
@@ -78,20 +81,19 @@ public class BlockWorkerTest {
    */
   @Before
   public void before() throws IOException {
+    WorkerTestUtils.resetWorkerSource();
     mRandom = new Random();
     mBlockMasterClient = PowerMockito.mock(BlockMasterClient.class);
     mBlockStore = PowerMockito.mock(BlockStore.class);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
-    mHeartbeatReporter = PowerMockito.mock(BlockHeartbeatReporter.class);
-    mMetricsReporter = PowerMockito.mock(BlockMetricsReporter.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
     Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
         mFolder.newFolder().getAbsolutePath());
     Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
 
-    mBlockWorker = new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient,
-        mHeartbeatReporter, mMetricsReporter, mSessions, mBlockStore);
+    mBlockWorker =
+        new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions, mBlockStore);
   }
 
   /**
@@ -257,12 +259,12 @@ public class BlockWorkerTest {
 
   /**
    * Tests the {@link BlockWorker#getReport()} method.
-   *
    */
   @Test
   public void getReportTest() {
-    mBlockWorker.getReport();
-    verify(mHeartbeatReporter).generateReport();
+    BlockHeartbeatReport report = mBlockWorker.getReport();
+    assertEquals(0, report.getAddedBlocks().size());
+    assertEquals(0, report.getRemovedBlocks().size());
   }
 
   /**
@@ -438,12 +440,16 @@ public class BlockWorkerTest {
   @Test
   public void sessionHeartbeatTest() {
     long sessionId = mRandom.nextLong();
-    List<Long> metrics = new ArrayList<>();
-    metrics.add(mRandom.nextLong());
+    long metricIncrease = 3;
+    List<Long> metrics = Arrays.asList(new Long[Constants.CLIENT_METRICS_SIZE]);
+    Collections.fill(metrics, Long.valueOf(metricIncrease));
+    metrics.set(0, Constants.CLIENT_METRICS_VERSION);
 
     mBlockWorker.sessionHeartbeat(sessionId, metrics);
     verify(mSessions).sessionHeartbeat(sessionId);
-    verify(mMetricsReporter).updateClientMetrics(metrics);
+    Counter counter = WorkerContext.getWorkerSource().getMetricRegistry().getCounters()
+        .get(WorkerSource.BLOCKS_READ_LOCAL);
+    assertEquals(metricIncrease, counter.getCount());
   }
 
   /**
