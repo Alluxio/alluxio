@@ -133,8 +133,7 @@ public class UnderFileSystemFileInStreamTest {
   }
 
   /**
-   * Tests that the stream stops at EOF when reading more than available data and sets the flag
-   * appropriately after detecting EOF.
+   * Tests that the stream stops at EOF when reading more than available data.
    */
   @Test
   public void readToEOFTest() throws Exception {
