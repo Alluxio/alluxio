@@ -107,13 +107,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param status the file status
    * @param options the client options
+   * @param context file system context
    * @return the created {@link FileInStream} instance
    */
-  public static FileInStream create(URIStatus status, InStreamOptions options) {
+  public static FileInStream create(URIStatus status, InStreamOptions options,
+      FileSystemContext context) {
     if (status.getLength() == Constants.UNKNOWN_SIZE) {
-      return new UnknownLengthFileInStream(status, options);
+      return new UnknownLengthFileInStream(status, options, context);
     }
-    return new FileInStream(status, options);
+    return new FileInStream(status, options, context);
   }
 
   /**
@@ -122,11 +124,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param status the file status
    * @param options the client options
    */
-  protected FileInStream(URIStatus status, InStreamOptions options) {
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
-    mContext = FileSystemContext.INSTANCE;
+    mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
