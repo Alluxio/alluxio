@@ -122,6 +122,12 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /**
    * Constructs a default block worker.
    *
+   * @param blockMasterClient a client for talking to the block master
+   * @param fileSystemMasterClient a client for talking to the file system master
+   * @param blockHeartbeatReporter an object which generates block reports for block master
+   * @param blockMetricsReporter an object which aggregates block worker metrics
+   * @param sessions an object for tracking and cleaning up client sessions
+   * @param blockStore an Alluxio block store
    * @throws IOException if an IO exception occurs
    */
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
@@ -137,7 +143,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mSessions = sessions;
     mBlockStore = blockStore;
 
-    // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
