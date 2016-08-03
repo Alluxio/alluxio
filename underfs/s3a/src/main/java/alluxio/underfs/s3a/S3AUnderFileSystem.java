@@ -141,6 +141,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     }
 
     mClient = new AmazonS3Client(credentials, clientConf);
+    if (Configuration.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
+      mClient.setEndpoint(Configuration.get(Constants.UNDERFS_S3_ENDPOINT));
+    }
     mManager = new TransferManager(mClient);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();

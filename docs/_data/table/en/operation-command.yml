@@ -1,5 +1,7 @@
 cat:
   Print the content of the file to the console.
+checksum:
+  Calculate the md5 checksum for a file.
 chgrp:
   Change the group of the directory or file.
 chmod:
@@ -14,6 +16,8 @@ copyToLocal:
   destination.
 count:
   Display the number of folders and files matching the specified prefix in "path".
+cp:
+  Copy a file or directory within the Alluxio file system.
 du:
   Display the size of a file or a directory specified by the input path.
 fileInfo:

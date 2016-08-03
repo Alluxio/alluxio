@@ -55,14 +55,14 @@ public class BaseFileSystem implements FileSystem {
   private final FileSystemContext mContext;
 
   /**
-   * @return the {@link BaseFileSystem}
+   * @return a {@link BaseFileSystem}
    */
   public static BaseFileSystem get() {
-    return new BaseFileSystem();
+    return new BaseFileSystem(FileSystemContext.INSTANCE);
   }
 
-  protected BaseFileSystem() {
-    mContext = FileSystemContext.INSTANCE;
+  protected BaseFileSystem(FileSystemContext context) {
+    mContext = context;
   }
 
   @Override
@@ -262,7 +262,7 @@ public class BaseFileSystem implements FileSystem {
       throw new FileNotFoundException(
           ExceptionMessage.CANNOT_READ_DIRECTORY.getMessage(status.getName()));
     }
-    return FileInStream.create(status, options.toInStreamOptions());
+    return FileInStream.create(status, options.toInStreamOptions(), mContext);
   }
 
   @Override

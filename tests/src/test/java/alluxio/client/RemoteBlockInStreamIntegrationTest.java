@@ -16,6 +16,7 @@ import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.AlluxioBlockStore;
+import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
@@ -94,10 +95,10 @@ public class RemoteBlockInStreamIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    mWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
-    mReadCache = StreamOptionUtils.getOpenFileOptionsCache();
-    mReadNoCache = StreamOptionUtils.getOpenFileOptionsNoCache();
+    mWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    mWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
+    mReadCache = OpenFileOptions.defaults().setReadType(ReadType.CACHE_PROMOTE);
+    mReadNoCache = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
   }
 
   /**
@@ -248,8 +249,8 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
+      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+          workerAddr, BlockStoreContext.INSTANCE);
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -279,8 +280,8 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
+      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+          workerAddr, BlockStoreContext.INSTANCE);
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -306,8 +307,8 @@ public class RemoteBlockInStreamIntegrationTest {
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
+      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+          workerAddr, BlockStoreContext.INSTANCE);
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -514,28 +515,25 @@ public class RemoteBlockInStreamIntegrationTest {
    */
   @Test
   public void remoteReadLockTest() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
       FileSystemTestUtils.createByteFile(mFileSystem, uri, mWriteAlluxio, k);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-          TimeUnit.SECONDS));
+      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
       long blockId = mFileSystem.getStatus(uri).getBlockIds().get(0);
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
-      RemoteBlockInStream is =
-          new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
+      RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
+          workerAddr, BlockStoreContext.INSTANCE);
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
-      Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,
-          TimeUnit.SECONDS));
+      HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
       // The file has been deleted.
       Assert.assertFalse(mFileSystem.exists(uri));
@@ -548,7 +546,8 @@ public class RemoteBlockInStreamIntegrationTest {
       // Try to create an in stream again, and it should fail.
       RemoteBlockInStream is2 = null;
       try {
-        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr);
+        is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
+            BlockStoreContext.INSTANCE);
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
       } finally {
