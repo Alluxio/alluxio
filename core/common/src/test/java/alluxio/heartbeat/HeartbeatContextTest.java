@@ -28,12 +28,13 @@ public class HeartbeatContextTest {
   }
 
   @Test
-  public void canUpdateToScheduledTimer() throws Exception {
-    try (ManuallyScheduleHeartbeat.Resource h = new ManuallyScheduleHeartbeat.Resource(
-        ImmutableList.of(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING))) {
-      Class<? extends HeartbeatTimer> timerClass =
-          HeartbeatContext.getTimerClass(HeartbeatContext.MASTER_CHECKPOINT_SCHEDULING);
-      Assert.assertTrue(timerClass.isAssignableFrom(ScheduledTimer.class));
+  public void canTemporarilySwitchToScheduledTimer() throws Exception {
+    try (ManuallyScheduleHeartbeat.Resource h =
+        new ManuallyScheduleHeartbeat.Resource(ImmutableList.of(HeartbeatContext.WORKER_CLIENT))) {
+      Assert.assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
+          .isAssignableFrom(ScheduledTimer.class));
     }
+    Assert.assertTrue(HeartbeatContext.getTimerClass(HeartbeatContext.WORKER_CLIENT)
+        .isAssignableFrom(SleepingTimer.class));
   }
 }
