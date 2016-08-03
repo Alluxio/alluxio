@@ -72,10 +72,13 @@ public final class UnderStoreBlockInStream extends BlockInStream {
   /**
    * Creates an under store block in stream which will read from the streams created by the given
    * {@link UnderStoreStreamFactory}. The stream will be set to the beginning of the block.
+   *
    * @param initPos the initial position
    * @param length the length of this current block (allowed to be {@link Constants#UNKNOWN_SIZE})
    * @param fileBlockSize the block size for the file
-   * @param underStoreStreamFactory a factory for getting input streams from the under storage
+   * @param underStoreStreamFactory a factory for getting input streams from the under storage; the
+   *        constructed {@link UnderStoreBlockInStream} is responsible for closing it
+   *
    * @throws IOException if an IO exception occurs while creating the under storage input stream
    */
   public UnderStoreBlockInStream(long initPos, long length, long fileBlockSize,
