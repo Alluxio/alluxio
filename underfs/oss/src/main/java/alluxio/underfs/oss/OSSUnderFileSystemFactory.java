@@ -69,8 +69,8 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckOSSCredentials() {
-    return Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY)
-        && Configuration.containsKey(PropertyKey.OSS_SECRET_KEY)
-        && Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY);
+    return Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY_ID)
+        && Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY_SECRET)
+        && Configuration.containsKey(PropertyKey.OSS_ENDPOINT);
   }
 }

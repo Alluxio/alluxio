@@ -301,27 +301,27 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
 
   @Override
   public void connectFromMaster(String host) throws IOException {
-    if (!Configuration.containsKey(PropertyKey.MASTER_KEYTAB_KEY)
-        || !Configuration.containsKey(PropertyKey.MASTER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.MASTER_KEYTAB_KEY_FILE)
+        || !Configuration.containsKey(PropertyKey.MASTER_PRINCIPAL)) {
       return;
     }
-    String masterKeytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY);
-    String masterPrincipal = Configuration.get(PropertyKey.MASTER_PRINCIPAL_KEY);
+    String masterKeytab = Configuration.get(PropertyKey.MASTER_KEYTAB_KEY_FILE);
+    String masterPrincipal = Configuration.get(PropertyKey.MASTER_PRINCIPAL);
 
-    login(PropertyKey.MASTER_KEYTAB_KEY, masterKeytab, PropertyKey.MASTER_PRINCIPAL_KEY,
+    login(PropertyKey.MASTER_KEYTAB_KEY_FILE, masterKeytab, PropertyKey.MASTER_PRINCIPAL,
         masterPrincipal, host);
   }
 
   @Override
   public void connectFromWorker(String host) throws IOException {
-    if (!Configuration.containsKey(PropertyKey.WORKER_KEYTAB_KEY)
-        || !Configuration.containsKey(PropertyKey.WORKER_PRINCIPAL_KEY)) {
+    if (!Configuration.containsKey(PropertyKey.WORKER_KEYTAB_FILE)
+        || !Configuration.containsKey(PropertyKey.WORKER_PRINCIPAL)) {
       return;
     }
-    String workerKeytab = Configuration.get(PropertyKey.WORKER_KEYTAB_KEY);
-    String workerPrincipal = Configuration.get(PropertyKey.WORKER_PRINCIPAL_KEY);
+    String workerKeytab = Configuration.get(PropertyKey.WORKER_KEYTAB_FILE);
+    String workerPrincipal = Configuration.get(PropertyKey.WORKER_PRINCIPAL);
 
-    login(PropertyKey.WORKER_KEYTAB_KEY, workerKeytab, PropertyKey.WORKER_PRINCIPAL_KEY,
+    login(PropertyKey.WORKER_KEYTAB_FILE, workerKeytab, PropertyKey.WORKER_PRINCIPAL,
         workerPrincipal, host);
   }
 
