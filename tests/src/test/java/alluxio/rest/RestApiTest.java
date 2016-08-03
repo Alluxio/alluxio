@@ -26,7 +26,7 @@ public abstract class RestApiTest {
   protected String mServicePrefix;
 
   @Rule
-  protected LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
+  public LocalAlluxioClusterResource mResource = new LocalAlluxioClusterResource();
 
   protected String getEndpoint(String suffix) {
     return mServicePrefix + "/" + suffix;

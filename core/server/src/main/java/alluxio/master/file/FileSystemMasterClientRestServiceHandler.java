@@ -23,6 +23,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.web.MasterUIWebServer;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -37,12 +38,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -77,12 +80,19 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String SET_ATTRIBUTE = "set_attribute";
   public static final String UNMOUNT = "unmount";
 
-  private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public  FileSystemMasterClientRestServiceHandler() {}
+  public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mFileSystemMaster = master.getFileSystemMaster();
+  }
 
   /**
    * @summary get the service name
