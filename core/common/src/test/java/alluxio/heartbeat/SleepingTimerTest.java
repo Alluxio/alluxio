@@ -24,7 +24,7 @@ import org.slf4j.Logger;
  */
 public final class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
-  private static final long INTERVAL_MS = 1000;
+  private static final long INTERVAL_MS = 500;
   private Logger mMockLogger;
   private FakeClock mFakeClock;
   private Sleeper mMockSleeper;

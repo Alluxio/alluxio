@@ -35,8 +35,7 @@ public final class SleepingTimer implements HeartbeatTimer {
   private final Sleeper mSleeper;
 
   /**
-   * Creates a new instance of {@link SleepingTimer} which uses the default logger and sleeping
-   * utility.
+   * Creates a new instance of {@link SleepingTimer}.
    *
    * @param threadName the thread name
    * @param intervalMs the heartbeat interval
