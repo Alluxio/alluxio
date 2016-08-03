@@ -87,6 +87,11 @@ struct PersistFile {
   2: list<i64> blockIds
 }
 
+struct PersistInProgressFile {
+  1: i64 workerId
+  2: string path
+}
+
 struct SetAttributeTOptions {
   1: optional bool pinned
   2: optional i64 ttl
@@ -231,6 +236,12 @@ service FileSystemMasterClientService extends common.AlluxioService {
    */
   void unmount( /** the path of the alluxio mount point */ 1: string alluxioPath)
     throws (1: exception.AlluxioTException e, 2: exception.ThriftIOException ioe)
+
+  /**
+   * Gets all the files with async persistence in progress. Returns the file path.
+   */
+  list<string> getFilesPersistInProgress()
+    throws (1: exception.AlluxioTException e)
 }
 
 /**

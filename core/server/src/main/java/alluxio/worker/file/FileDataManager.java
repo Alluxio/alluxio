@@ -219,7 +219,7 @@ public final class FileDataManager {
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
       if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(new HashSet<>(blockIds))) {
-        throw new IOException("Not all the blocks of file " + fileId + " are blocked");
+        throw new IOException("Not all the blocks of file " + fileId + " are locked");
       }
     }
 

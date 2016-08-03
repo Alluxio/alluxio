@@ -79,6 +79,7 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String SCHEDULE_ASYNC_PERSIST = "schedule_async_persist";
   public static final String SET_ATTRIBUTE = "set_attribute";
   public static final String UNMOUNT = "unmount";
+  public static final String GET_FILES_PERSIST_IN_PROGRESS = "files_persist_in_progress";
 
   private final FileSystemMaster mFileSystemMaster;
 
@@ -474,5 +475,16 @@ public final class FileSystemMasterClientRestServiceHandler {
       LOG.warn(e.getMessage());
       return RestUtils.createErrorResponse(e.getMessage());
     }
+  }
+
+  /**
+   * @summary get a list of files that are being persisted in the worker.
+   * @return path of the files being persisted and their workerId
+   */
+  @GET
+  @Path(GET_FILES_PERSIST_IN_PROGRESS)
+  @ReturnType("java.util.List<alluxio.wire.PersistInProgressFile>")
+  public Response getFilesPersistInProgress() {
+    return RestUtils.createResponse(mFileSystemMaster.getFilesPersistInProgress());
   }
 }

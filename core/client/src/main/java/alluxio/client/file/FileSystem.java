@@ -390,4 +390,16 @@ public interface FileSystem {
    * @throws AlluxioException if an Alluxio exception occurs
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
+
+
+  /**
+   * Gets all the files with async persistence in progress.
+   *
+   * @return a list of file paths
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public List<String> getFilesPersistInProgress()
+      throws AlluxioException, IOException;
+
 }

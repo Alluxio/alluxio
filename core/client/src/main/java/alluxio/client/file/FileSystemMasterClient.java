@@ -340,4 +340,21 @@ public final class FileSystemMasterClient extends AbstractMasterClient {
       }
     });
   }
+
+  /**
+   * Gets all the files with async persistence in progress.
+   *
+   * @return a list of file paths.
+   * @throws AlluxioException if an Alluxio error occurs
+   * @throws IOException an I/O error occurs
+   */
+  public synchronized List<String> getFilesPersistInProgress()
+      throws AlluxioException, IOException {
+    return retryRPC(new RpcCallableThrowsAlluxioTException<List<String>>() {
+      @Override
+      public List<String> call() throws AlluxioTException, TException {
+        return mClient.getFilesPersistInProgress();
+      }
+    });
+  }
 }

@@ -290,4 +290,15 @@ public final class FileSystemMasterClientServiceHandler implements
       }
     });
   }
+
+  @Override
+  public List<String> getFilesPersistInProgress() throws AlluxioTException, ThriftIOException {
+    return RpcUtils.call(new RpcCallableThrowsIOException<List<String>>() {
+      @Override
+      public List<String> call() throws AlluxioException {
+        return mFileSystemMaster.getFilesPersistInProgress();
+      }
+    });
+  }
+
 }

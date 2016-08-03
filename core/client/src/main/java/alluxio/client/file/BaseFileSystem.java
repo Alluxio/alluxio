@@ -318,4 +318,16 @@ public class BaseFileSystem implements FileSystem {
       mContext.releaseMasterClient(masterClient);
     }
   }
+
+  @Override
+  public List<String> getFilesPersistInProgress()
+      throws AlluxioException, IOException {
+    FileSystemMasterClient masterClient = mContext.acquireMasterClient();
+    try {
+      return masterClient.getFilesPersistInProgress();
+    } finally {
+      mContext.releaseMasterClient(masterClient);
+    }
+  }
+
 }
