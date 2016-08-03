@@ -174,7 +174,18 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    setupSessionCleaner();
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding local resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mBlockStore.cleanupSession(session);
+        }
+      }
+    });
 
     // Setup space reserver
     if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
@@ -380,24 +391,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {
     mSessions.sessionHeartbeat(sessionId);
     mMetricsReporter.updateClientMetrics(metrics);
-  }
-
-  /**
-   * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
-   */
-  private void setupSessionCleaner() {
-    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
-      /**
-       * Cleans up after sessions, to prevent zombie sessions holding local resources.
-       */
-      @Override
-      public void cleanupSessions() {
-        for (long session : mSessions.getTimedOutSessions()) {
-          mSessions.removeSession(session);
-          mBlockStore.cleanupSession(session);
-        }
-      }
-    });
   }
 
   @Override
