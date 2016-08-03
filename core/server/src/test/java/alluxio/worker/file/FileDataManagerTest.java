@@ -37,7 +37,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.mockito.internal.util.reflection.Whitebox;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
@@ -58,13 +57,16 @@ import java.util.List;
 public final class FileDataManagerTest {
   private UnderFileSystem mUfs;
   private BlockWorker mBlockWorker;
+  private MockRateLimiter mMockRateLimiter;
   private FileDataManager mManager;
 
   @Before
   public void before() throws Exception {
     mUfs = Mockito.mock(UnderFileSystem.class);
     mBlockWorker = Mockito.mock(BlockWorker.class);
-    mManager = new FileDataManager(mBlockWorker, mUfs);
+    mMockRateLimiter =
+        new MockRateLimiter(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
   }
 
   @After
@@ -109,6 +111,14 @@ public final class FileDataManagerTest {
    */
   @Test
   public void persistFileRateLimitingTest() throws Exception {
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
+    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
+    mUfs = Mockito.mock(UnderFileSystem.class);
+    mBlockWorker = Mockito.mock(BlockWorker.class);
+    mMockRateLimiter =
+        new MockRateLimiter(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+    mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
+
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
 
@@ -129,18 +139,8 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
-    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
-
-    // mock ufs
     String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
     Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
-
-    // Setup a mock rate limiter.
-    MockRateLimiter mockRateLimiter = new MockRateLimiter(
-        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
-    Whitebox.setInternalState(
-        mManager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
@@ -156,35 +156,24 @@ public final class FileDataManagerTest {
     mManager.persistFile(fileId, blockIds);
 
     List<String> expectedEvents = Lists.newArrayList("R0.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
+    assertEquals(expectedEvents, mMockRateLimiter.readEventsAndClear());
 
     // Simulate waiting for 1 second.
-    mockRateLimiter.sleepMillis(1000);
+    mMockRateLimiter.sleepMillis(1000);
 
     mManager.lockBlocks(fileId, blockIds);
     mManager.persistFile(fileId, blockIds);
 
     // The first write will go through immediately without throttling.
     expectedEvents = Lists.newArrayList("U1.00", "R0.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
+    assertEquals(expectedEvents, mMockRateLimiter.readEventsAndClear());
 
     // Repeat persistence without sleeping.
-    mockRateLimiter = new MockRateLimiter(
-        Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
-    Whitebox.setInternalState(
-        mManager, "mPersistenceRateLimiter", mockRateLimiter.getGuavaRateLimiter());
-
-    mManager.lockBlocks(fileId, blockIds);
-    mManager.persistFile(fileId, blockIds);
-
-    expectedEvents = Lists.newArrayList("R0.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
-
     mManager.lockBlocks(fileId, blockIds);
     mManager.persistFile(fileId, blockIds);
 
     expectedEvents = Lists.newArrayList("R1.00", "R1.00", "R1.00");
-    assertEquals(expectedEvents, mockRateLimiter.readEventsAndClear());
+    assertEquals(expectedEvents, mMockRateLimiter.readEventsAndClear());
   }
 
   /**

@@ -79,12 +79,16 @@ public final class FileDataManager {
    * Creates a new instance of {@link FileDataManager}.
    *
    * @param blockWorker the block worker handle
+   * @param ufs the under file system to persist files to
+   * @param persistenceRateLimiter a per worker rate limiter to throttle async persistence
    */
-  public FileDataManager(BlockWorker blockWorker, UnderFileSystem ufs) {
+  public FileDataManager(BlockWorker blockWorker, UnderFileSystem ufs,
+      RateLimiter persistenceRateLimiter) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
     mUfs = ufs;
+    mPersistenceRateLimiter = persistenceRateLimiter;
   }
 
   /**
@@ -238,7 +242,7 @@ public final class FileDataManager {
         if (Configuration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
           BlockMeta blockMeta =
               mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
-          getRateLimiter().acquire((int) blockMeta.getBlockSize());
+          mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
         }
 
         // obtain block reader
@@ -337,18 +341,5 @@ public final class FileDataManager {
     synchronized (mLock) {
       mPersistedFiles.removeAll(persistedFiles);
     }
-  }
-
-  /**
-   * Gets the {@link RateLimiter} in a thread-safe manner.
-   *
-   * @return the per-worker rate limiter
-   */
-  private synchronized RateLimiter getRateLimiter() {
-    if (mPersistenceRateLimiter == null) {
-      mPersistenceRateLimiter = RateLimiter.create(
-          Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
-    }
-    return mPersistenceRateLimiter;
   }
 }
