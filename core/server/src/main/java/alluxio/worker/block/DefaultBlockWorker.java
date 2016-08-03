@@ -113,10 +113,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public DefaultBlockWorker() throws IOException {
     this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
         new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new BlockHeartbeatReporter(),
-        new BlockMetricsReporter(WorkerContext.getWorkerSource()),
-        new Sessions(),
-        new TieredBlockStore());
+        new Sessions(), new TieredBlockStore());
   }
 
   /**
@@ -131,15 +128,14 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @throws IOException if an IO exception occurs
    */
   public DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, BlockHeartbeatReporter blockHeartbeatReporter,
-      BlockMetricsReporter blockMetricsReporter, Sessions sessions, BlockStore blockStore)
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore)
           throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
     mBlockMasterClient = blockMasterClient;
     mFileSystemMasterClient = fileSystemMasterClient;
-    mHeartbeatReporter = blockHeartbeatReporter;
-    mMetricsReporter = blockMetricsReporter;
+    mHeartbeatReporter = new BlockHeartbeatReporter();
+    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
     mSessions = sessions;
     mBlockStore = blockStore;
 
