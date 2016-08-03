@@ -121,8 +121,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    *
    * @param blockMasterClient a client for talking to the block master
    * @param fileSystemMasterClient a client for talking to the file system master
-   * @param blockHeartbeatReporter an object which generates block reports for block master
-   * @param blockMetricsReporter an object which aggregates block worker metrics
    * @param sessions an object for tracking and cleaning up client sessions
    * @param blockStore an Alluxio block store
    * @throws IOException if an IO exception occurs
