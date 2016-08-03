@@ -553,9 +553,8 @@ public class FileInStreamTest {
   @Test
   public void missingLocationPolicyTest() {
     try {
-      mTestStream =
-          new FileInStream(mStatus, InStreamOptions.defaults().setReadType(ReadType.CACHE)
-              .setLocationPolicy(null), FileSystemContext.INSTANCE);
+      mTestStream = new FileInStream(mStatus,
+          InStreamOptions.defaults().setReadType(ReadType.CACHE).setLocationPolicy(null), mContext);
     } catch (NullPointerException e) {
       Assert.assertEquals(PreconditionMessage.FILE_WRITE_LOCATION_POLICY_UNSPECIFIED.toString(),
           e.getMessage());
