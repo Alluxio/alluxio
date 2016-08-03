@@ -31,6 +31,7 @@ import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
+import com.google.common.util.concurrent.RateLimiter;
 import org.apache.thrift.TProcessor;
 
 import java.io.IOException;
@@ -77,7 +78,8 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
 
     mSessions = new Sessions();
     UnderFileSystem ufs = UnderFileSystem.get(Configuration.get(Constants.UNDERFS_ADDRESS));
-    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), ufs);
+    mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), ufs,
+        RateLimiter.create(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT)));
     mUnderFileSystemManager = new UnderFileSystemManager();
 
     // Setup AbstractMasterClient
