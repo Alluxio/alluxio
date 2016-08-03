@@ -12,6 +12,8 @@
 package alluxio.heartbeat;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
+import alluxio.clock.SystemClock;
 import alluxio.time.Sleeper;
 import alluxio.time.ThreadSleeper;
 
@@ -29,6 +31,7 @@ public final class SleepingTimer implements HeartbeatTimer {
   private long mPreviousTickMs;
   private final String mThreadName;
   private final Logger mLogger;
+  private final Clock mClock;
   private final Sleeper mSleeper;
 
   /**
@@ -40,7 +43,7 @@ public final class SleepingTimer implements HeartbeatTimer {
    */
   public SleepingTimer(String threadName, long intervalMs) {
     this(threadName, intervalMs, LoggerFactory.getLogger(Constants.LOGGER_TYPE),
-        new ThreadSleeper());
+        new SystemClock(), new ThreadSleeper());
   }
 
   /**
@@ -49,12 +52,15 @@ public final class SleepingTimer implements HeartbeatTimer {
    * @param threadName the thread name
    * @param intervalMs the heartbeat interval
    * @param logger the logger to log to
-   * @param sleeper the utility to use for lseeper
+   * @param clock for telling the current time
+   * @param sleeper the utility to use for sleeping
    */
-  public SleepingTimer(String threadName, long intervalMs, Logger logger, Sleeper sleeper) {
+  public SleepingTimer(String threadName, long intervalMs, Logger logger, Clock clock,
+      Sleeper sleeper) {
     mIntervalMs = intervalMs;
     mThreadName = threadName;
     mLogger = logger;
+    mClock = clock;
     mSleeper = sleeper;
   }
 
@@ -67,7 +73,7 @@ public final class SleepingTimer implements HeartbeatTimer {
     if (mPreviousTickMs == 0) {
       mSleeper.sleep(mIntervalMs);
     } else {
-      long executionTimeMs = System.currentTimeMillis() - mPreviousTickMs;
+      long executionTimeMs = mClock.millis() - mPreviousTickMs;
       if (executionTimeMs > mIntervalMs) {
         mLogger.warn("{} last execution took {} ms. Longer than the interval {}", mThreadName,
             executionTimeMs, mIntervalMs);
@@ -75,6 +81,6 @@ public final class SleepingTimer implements HeartbeatTimer {
         mSleeper.sleep(mIntervalMs - executionTimeMs);
       }
     }
-    mPreviousTickMs = System.currentTimeMillis();
+    mPreviousTickMs = mClock.millis();
   }
 }
