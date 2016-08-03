@@ -12,6 +12,7 @@
 package alluxio.master;
 
 import alluxio.Constants;
+import alluxio.clock.Clock;
 import alluxio.exception.PreconditionMessage;
 import alluxio.master.journal.AsyncJournalWriter;
 import alluxio.master.journal.Journal;
@@ -22,7 +23,6 @@ import alluxio.master.journal.JournalTailerThread;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.proto.journal.Journal.JournalEntry;
-import alluxio.util.ThreadFactoryUtils;
 
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -46,13 +45,7 @@ public abstract class AbstractMaster implements Master {
 
   private static final long SHUTDOWN_TIMEOUT_MS = 10000;
 
-  /** The number of threads to use when creating the {@link ExecutorService}. */
-  private final int mNumThreads;
-
-  /**
-   * The executor used for running maintenance threads for the master. It is created in
-   * {@link #start(boolean)} and destroyed in {@link #stop}.
-   */
+  /** The executor used for running maintenance threads for the master. */
   private ExecutorService mExecutorService = null;
   /** A handler to the journal for this master. */
   private Journal mJournal;
@@ -65,13 +58,24 @@ public abstract class AbstractMaster implements Master {
   /** The {@link AsyncJournalWriter} for async journal writes. */
   private AsyncJournalWriter mAsyncJournalWriter = null;
 
+  /** The clock to use for determining the time. */
+  protected final Clock mClock;
+
+  /** Keeps track of operation metrics. */
+  protected final MasterSource mMasterSource;
+
   /**
+   * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
-   * @param numThreads the number of threads to use in the Master's {@link ExecutorService}
+   * @param clock the Clock to use for determining the time
+   * @param executorService the executor service to use for running maintenance threads
    */
-  protected AbstractMaster(Journal journal, int numThreads) {
+  protected AbstractMaster(MasterContext masterContext, Journal journal, Clock clock,
+      ExecutorService executorService) {
     mJournal = Preconditions.checkNotNull(journal);
-    mNumThreads = numThreads;
+    mClock = Preconditions.checkNotNull(clock);
+    mExecutorService = Preconditions.checkNotNull(executorService);
+    mMasterSource = masterContext.getMasterSource();
   }
 
   @Override
@@ -89,11 +93,6 @@ public abstract class AbstractMaster implements Master {
   @Override
   public void start(boolean isLeader) throws IOException {
     mIsLeader = isLeader;
-    if (mExecutorService == null) {
-      // mExecutorService starts as null and is reset to null when Master is stopped.
-      mExecutorService = Executors.newFixedThreadPool(mNumThreads,
-          ThreadFactoryUtils.build(this.getClass().getSimpleName() + "-%d", true));
-    }
     LOG.info("{}: Starting {} master.", getName(), mIsLeader ? "leader" : "standby");
     if (mIsLeader) {
       Preconditions.checkState(mJournal instanceof ReadWriteJournal);
@@ -178,19 +177,16 @@ public abstract class AbstractMaster implements Master {
         mStandbyJournalTailer.shutdownAndJoin();
       }
     }
-    if (mExecutorService != null) {
-      // Shut down the executor service, interrupting any running threads.
-      mExecutorService.shutdownNow();
-      String awaitFailureMessage =
-          "waiting for {} executor service to shut down. Daemons may still be running";
-      try {
-        if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
-          LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
-        }
-      } catch (InterruptedException e) {
-        LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
+    // Shut down the executor service, interrupting any running threads.
+    mExecutorService.shutdownNow();
+    String awaitFailureMessage =
+        "waiting for {} executor service to shut down. Daemons may still be running";
+    try {
+      if (!mExecutorService.awaitTermination(SHUTDOWN_TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        LOG.warn("Timed out " + awaitFailureMessage, this.getClass().getSimpleName());
       }
-      mExecutorService = null;
+    } catch (InterruptedException e) {
+      LOG.warn("Interrupted while " + awaitFailureMessage, this.getClass().getSimpleName());
     }
   }
 

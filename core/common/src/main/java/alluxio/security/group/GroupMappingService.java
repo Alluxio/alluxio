@@ -37,28 +37,38 @@ public interface GroupMappingService {
   class Factory {
     private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
+    // TODO(chaomin): maintain a map from SECURITY_GROUP_MAPPING_CLASS name to cachedGroupMapping.
+    // Currently the single global cached GroupMappingService assumes that there is no dynamic
+    // configuration change for {@link Constants#SECURITY_GROUP_MAPPING_CLASS}.
+    private static CachedGroupMapping sCachedGroupMapping = null;
+
     // prevent instantiation
     private Factory() {}
 
     /**
-     * Gets the groups being used to map user-to-groups.
+     * Gets the cached groups mapping service being used to map user-to-groups.
      *
-     * @return the groups being used to map user-to-groups
+     * @return the groups mapping service being used to map user-to-groups
      */
-    public static GroupMappingService getUserToGroupsMappingService() {
-      GroupMappingService mGroupMappingService;
-      if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating new Groups object");
+    public static GroupMappingService get() {
+      if (sCachedGroupMapping == null) {
+        synchronized (Factory.class) {
+          if (sCachedGroupMapping == null) {
+            try {
+              LOG.debug("Creating new Groups object");
+              GroupMappingService groupMappingService = CommonUtils.createNewClassInstance(
+                  Configuration.<GroupMappingService>getClass(
+                      Constants.SECURITY_GROUP_MAPPING_CLASS), null, null);
+              sCachedGroupMapping = new CachedGroupMapping(groupMappingService);
+            } catch (Exception e) {
+              throw new RuntimeException(e);
+            }
+          }
+        }
       }
-      try {
-        mGroupMappingService = CommonUtils.createNewClassInstance(
-            Configuration.<GroupMappingService>getClass(Constants.SECURITY_GROUP_MAPPING), null,
-            null);
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-      return mGroupMappingService;
+      return sCachedGroupMapping;
     }
+
   }
 
   /**

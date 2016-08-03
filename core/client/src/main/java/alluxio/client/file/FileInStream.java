@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
@@ -22,6 +23,7 @@ import alluxio.client.block.BufferedBlockOutStream;
 import alluxio.client.block.LocalBlockInStream;
 import alluxio.client.block.RemoteBlockInStream;
 import alluxio.client.block.UnderStoreBlockInStream;
+import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.file.options.InStreamOptions;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.exception.AlluxioException;
@@ -105,13 +107,15 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    *
    * @param status the file status
    * @param options the client options
+   * @param context file system context
    * @return the created {@link FileInStream} instance
    */
-  public static FileInStream create(URIStatus status, InStreamOptions options) {
+  public static FileInStream create(URIStatus status, InStreamOptions options,
+      FileSystemContext context) {
     if (status.getLength() == Constants.UNKNOWN_SIZE) {
-      return new UnknownLengthFileInStream(status, options);
+      return new UnknownLengthFileInStream(status, options, context);
     }
-    return new FileInStream(status, options);
+    return new FileInStream(status, options, context);
   }
 
   /**
@@ -120,11 +124,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    * @param status the file status
    * @param options the client options
    */
-  protected FileInStream(URIStatus status, InStreamOptions options) {
+  protected FileInStream(URIStatus status, InStreamOptions options, FileSystemContext context) {
     mStatus = status;
     mBlockSize = status.getBlockSizeBytes();
     mFileLength = status.getLength();
-    mContext = FileSystemContext.INSTANCE;
+    mContext = context;
     mAlluxioStorageType = options.getAlluxioStorageType();
     mShouldCache = mAlluxioStorageType.isStore();
     mShouldCachePartiallyReadBlock = options.isCachePartiallyReadBlock();
@@ -285,7 +289,16 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
    */
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return UnderStoreBlockInStream.Factory.create(blockStart, length, mBlockSize, path);
+    return new UnderStoreBlockInStream(blockStart, length, mBlockSize,
+        getUnderStoreStreamFactory(path));
+  }
+
+  protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path) throws IOException {
+    if (Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
+      return new DelegatedUnderStoreStreamFactory(FileSystemContext.INSTANCE, path);
+    } else {
+      return new DirectUnderStoreStreamFactory(path);
+    }
   }
 
   /**

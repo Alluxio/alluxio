@@ -12,14 +12,12 @@
 package alluxio.web;
 
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.master.LocalAlluxioCluster;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimap;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -46,11 +44,6 @@ public class WebServerIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource();
-
-  @Before
-  public final void before() throws Exception {
-    LocalAlluxioCluster localAlluxioCluster = mLocalAlluxioClusterResource.get();
-  }
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {

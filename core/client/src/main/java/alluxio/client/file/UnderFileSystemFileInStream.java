@@ -52,16 +52,18 @@ public final class UnderFileSystemFileInStream extends InputStream {
   private boolean mClosed;
 
   /**
-   * Constructs a new input stream for the under file system file. Creates the initial buffer
-   * which is empty and invalid.
+   * Constructs a new input stream for the under file system file. Creates the initial buffer which
+   * is empty and invalid.
    *
    * @param address worker address to read from
    * @param ufsFileId worker specific file id referencing the file to read
+   * @param reader a reader for reading from the worker
    */
-  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId) {
+  public UnderFileSystemFileInStream(InetSocketAddress address, long ufsFileId,
+      NettyUnderFileSystemFileReader reader) {
     mAddress = address;
     mUfsFileId = ufsFileId;
-    mReader = new NettyUnderFileSystemFileReader();
+    mReader = reader;
     mBuffer = allocateBuffer();
     mIsBufferValid = false; // No data in buffer
     mEOF = false;

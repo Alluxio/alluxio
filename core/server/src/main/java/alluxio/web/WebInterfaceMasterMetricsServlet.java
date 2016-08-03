@@ -11,7 +11,6 @@
 
 package alluxio.web;
 
-import alluxio.master.MasterContext;
 import alluxio.master.MasterSource;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
@@ -81,13 +80,11 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
   private void populateValues(HttpServletRequest request) throws IOException {
     MetricRegistry mr = mMasterMetricsSystem.getMetricRegistry();
 
-    MasterSource masterSource = MasterContext.getMasterSource();
-
-    Long masterCapacityTotal = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", masterSource.getName(), MasterSource.CAPACITY_TOTAL))
+    Long masterCapacityTotal = (Long) mr.getGauges().get(
+        CommonUtils.argsToString(".", MasterSource.MASTER_SOURCE_NAME, MasterSource.CAPACITY_TOTAL))
         .getValue();
-    Long masterCapacityUsed = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", masterSource.getName(), MasterSource.CAPACITY_USED))
+    Long masterCapacityUsed = (Long) mr.getGauges().get(
+        CommonUtils.argsToString(".", MasterSource.MASTER_SOURCE_NAME, MasterSource.CAPACITY_USED))
         .getValue();
 
     int masterCapacityUsedPercentage =
@@ -95,12 +92,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityUsedPercentage", masterCapacityUsedPercentage);
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
-    Long masterUnderfsCapacityTotal = (Long) mr.getGauges().get(
-        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UFS_CAPACITY_TOTAL))
-        .getValue();
-    Long masterUnderfsCapacityUsed = (Long) mr.getGauges().get(
-        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.UFS_CAPACITY_USED))
-        .getValue();
+    Long masterUnderfsCapacityTotal = (Long) mr.getGauges().get(CommonUtils.argsToString(".",
+        MasterSource.MASTER_SOURCE_NAME, MasterSource.UFS_CAPACITY_TOTAL)).getValue();
+    Long masterUnderfsCapacityUsed = (Long) mr.getGauges().get(CommonUtils.argsToString(".",
+        MasterSource.MASTER_SOURCE_NAME, MasterSource.UFS_CAPACITY_USED)).getValue();
 
     int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
         ? (int) (100L * masterUnderfsCapacityUsed / masterUnderfsCapacityTotal) : 0;
@@ -126,7 +121,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     Map<String, Metric> operations = new TreeMap<>();
     operations.putAll(counters);
     String filesPinnedProperty =
-        CommonUtils.argsToString(".", masterSource.getName(), MasterSource.FILES_PINNED);
+        CommonUtils.argsToString(".", MasterSource.MASTER_SOURCE_NAME, MasterSource.FILES_PINNED);
     operations.put(filesPinnedProperty, mr.getGauges().get(filesPinnedProperty));
 
     populateCounterValues(operations, rpcInvocations, request);
