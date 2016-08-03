@@ -26,8 +26,9 @@ public class MasterTestUtils {
     String masterJournal = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
     Journal fsJournal = new ReadWriteJournal(FileSystemMaster.getJournalDirectory(masterJournal));
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
-    FileSystemMaster fsMaster = new FileSystemMaster(blockMaster, fsJournal);
+    MasterContext masterContext = new MasterContext(new MasterSource());
+    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
+    FileSystemMaster fsMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);
     return fsMaster;

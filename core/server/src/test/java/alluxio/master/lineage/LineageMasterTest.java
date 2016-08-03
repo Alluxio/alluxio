@@ -19,6 +19,8 @@ import alluxio.exception.LineageDoesNotExistException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.job.JobConf;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterSource;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.Journal;
@@ -65,7 +67,8 @@ public final class LineageMasterTest {
   public void before() throws Exception {
     Journal journal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     mFileSystemMaster = Mockito.mock(FileSystemMaster.class);
-    mLineageMaster = new LineageMaster(mFileSystemMaster, journal);
+    mLineageMaster =
+        new LineageMaster(new MasterContext(new MasterSource()), mFileSystemMaster, journal);
     mLineageMaster.start(true);
     mJob = new CommandLineJob("test", new JobConf("output"));
   }
