@@ -18,6 +18,8 @@ import alluxio.Constants;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.meta.Inode;
 import alluxio.master.file.meta.InodeDirectoryIdGenerator;
@@ -160,7 +162,7 @@ public final class PermissionCheckerTest {
     // setup an InodeTree
     Journal blockJournal = new ReadWriteJournal(sTestFolder.newFolder().getAbsolutePath());
 
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    BlockMaster blockMaster = new BlockMaster(new MasterContext(new MasterSource()), blockJournal);
     InodeDirectoryIdGenerator directoryIdGenerator = new InodeDirectoryIdGenerator(blockMaster);
     MountTable mountTable = new MountTable();
     sTree = new InodeTree(blockMaster, directoryIdGenerator, mountTable);

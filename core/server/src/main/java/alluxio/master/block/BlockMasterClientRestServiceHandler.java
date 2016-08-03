@@ -15,6 +15,7 @@ import alluxio.Constants;
 import alluxio.RestUtils;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
+import alluxio.web.MasterUIWebServer;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -22,10 +23,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -43,12 +46,19 @@ public final class BlockMasterClientRestServiceHandler {
   public static final String SERVICE_VERSION = "service_version";
   public static final String GET_BLOCK_INFO = "block_info";
 
-  private final BlockMaster mBlockMaster = AlluxioMaster.get().getBlockMaster();
+  private final BlockMaster mBlockMaster;
 
   /**
    * Constructs a new {@link BlockMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public BlockMasterClientRestServiceHandler() {}
+  public BlockMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mBlockMaster = master.getBlockMaster();
+  }
 
   /**
    * @summary get the service name
