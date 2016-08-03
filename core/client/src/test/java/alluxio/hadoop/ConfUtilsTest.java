@@ -25,6 +25,8 @@ import java.util.Map;
 public final class ConfUtilsTest {
   private static final String TEST_S3_ACCCES_KEY = "TEST ACCESS KEY";
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
+  private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
+  private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
 
   /**
    * Test for the {@link ConfUtils#mergeHadoopConfiguration} method for an empty configuration.
@@ -47,8 +49,9 @@ public final class ConfUtilsTest {
   public void mergeHadoopConfigurationTest() {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-    hadoopConfig.set(PropertyKey.S3N_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);
-    hadoopConfig.set(PropertyKey.S3N_SECRET_KEY.toString(), TEST_S3_SECRET_KEY);
+    hadoopConfig.set(PropertyKey.S3N_AWS_ACCESS_KEY_ID.toString(), TEST_S3_ACCCES_KEY);
+    hadoopConfig.set(PropertyKey.S3N_AWS_SECRET_ACESS_KEY.toString(), TEST_S3_SECRET_KEY);
+    hadoopConfig.set(TEST_ALLUXIO_PROPERTY, TEST_ALLUXIO_VALUE);
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
@@ -57,7 +60,7 @@ public final class ConfUtilsTest {
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
     Map<String, String> after = Configuration.toMap();
     Assert.assertEquals(before.size() + 2, after.size());
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_ACCESS_KEY));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_SECRET_KEY));
+    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_AWS_ACCESS_KEY_ID));
+    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_AWS_SECRET_ACESS_KEY));
   }
 }

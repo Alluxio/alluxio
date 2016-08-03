@@ -276,7 +276,7 @@ public final class Configuration {
    * @param key the key to get the value for
    * @return the value for the given key as a {@code float}
    */
-  public static float PropertyKey(PropertyKey key) {
+  public static float getFloat(PropertyKey key) {
     if (PROPERTIES.containsKey(key.toString())) {
       String rawValue = PROPERTIES.getProperty(key.toString());
       try {

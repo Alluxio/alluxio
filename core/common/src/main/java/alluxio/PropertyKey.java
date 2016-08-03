@@ -84,8 +84,7 @@ public enum PropertyKey {
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS("alluxio.master.journal.flush.batch.time.ms"),
   MASTER_JOURNAL_FOLDER("alluxio.master.journal.folder"),
   MASTER_JOURNAL_FORMATTER_CLASS("alluxio.master.journal.formatter.class"),
-  MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS(
-      "alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"),
+  MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS( "alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"),
   MASTER_JOURNAL_TAILER_SLEEP_TIME_MS("alluxio.master.journal.tailer.sleep.time.ms"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX("alluxio.master.journal.log.size.bytes.max"),
   MASTER_FILE_ASYNC_PERSIST_HANDLER("alluxio.master.file.async.persist.handler"),
@@ -102,9 +101,9 @@ public enum PropertyKey {
   MASTER_WORKER_THREADS_MIN("alluxio.master.worker.threads.min"),
   MASTER_WORKER_TIMEOUT_MS("alluxio.master.worker.timeout.ms"),
   MASTER_WHITELIST("alluxio.master.whitelist"),
-  MASTER_KEYTAB_KEY("alluxio.master.keytab.file"),
-  MASTER_PRINCIPAL_KEY("alluxio.master.principal"),
-  MASTER_RETRY_COUNT("alluxio.master.retry"),
+  MASTER_KEYTAB_KEY_FILE("alluxio.master.keytab.file"),
+  MASTER_PRINCIPAL("alluxio.master.principal"),
+  MASTER_RETRY("alluxio.master.retry"),
   MASTER_LINEAGE_CHECKPOINT_CLASS("alluxio.master.lineage.checkpoint.class"),
   MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS("alluxio.master.lineage.checkpoint.interval.ms"),
   MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS("alluxio.master.lineage.recompute.interval.ms"),
@@ -164,26 +163,23 @@ public enum PropertyKey {
   WORKER_TIERED_STORE_LEVEL0_ALIAS("alluxio.worker.tieredstore.level0.alias"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_PATH("alluxio.worker.tieredstore.level0.dirs.path"),
   WORKER_TIERED_STORE_LEVEL0_DIRS_QUOTA("alluxio.worker.tieredstore.level0.dirs.quota"),
-  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO(
-      "alluxio.worker.tieredstore.level0.reserved.ratio"),
+  WORKER_TIERED_STORE_LEVEL0_RESERVED_RATIO("alluxio.worker.tieredstore.level0.reserved.ratio"),
 
   WORKER_TIERED_STORE_LEVEL1_ALIAS("alluxio.worker.tieredstore.level1.alias"),
   WORKER_TIERED_STORE_LEVEL1_DIRS_PATH("alluxio.worker.tieredstore.level1.dirs.path"),
   WORKER_TIERED_STORE_LEVEL1_DIRS_QUOTA("alluxio.worker.tieredstore.level1.dirs.quota"),
-  WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO(
-      "alluxio.worker.tieredstore.level1.reserved.ratio"),
+  WORKER_TIERED_STORE_LEVEL1_RESERVED_RATIO("alluxio.worker.tieredstore.level1.reserved.ratio"),
 
   WORKER_TIERED_STORE_LEVEL2_ALIAS("alluxio.worker.tieredstore.level2.alias"),
   WORKER_TIERED_STORE_LEVEL2_DIRS_PATH("alluxio.worker.tieredstore.level2.dirs.path"),
   WORKER_TIERED_STORE_LEVEL2_DIRS_QUOTA("alluxio.worker.tieredstore.level2.dirs.quota"),
-  WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO(
-      "alluxio.worker.tieredstore.level2.reserved.ratio"),
+  WORKER_TIERED_STORE_LEVEL2_RESERVED_RATIO("alluxio.worker.tieredstore.level2.reserved.ratio"),
 
   WORKER_TIERED_STORE_RESERVER_INTERVAL_MS("alluxio.worker.tieredstore.reserver.interval.ms"),
   WORKER_TIERED_STORE_RESERVER_ENABLED("alluxio.worker.tieredstore.reserver.enabled"),
-  WORKER_KEYTAB_KEY("alluxio.worker.keytab.file"),
-  WORKER_PRINCIPAL_KEY("alluxio.worker.principal"),
-  WORKER_DATA_SERVER("alluxio.worker.data.server.class"),
+  WORKER_KEYTAB_FILE("alluxio.worker.keytab.file"),
+  WORKER_PRINCIPAL("alluxio.worker.principal"),
+  WORKER_DATA_SERVER_CLASS("alluxio.worker.data.server.class"),
 
   //
   // User related properties
@@ -212,8 +208,7 @@ public enum PropertyKey {
   USER_FILE_WAITCOMPLETED_POLL_MS("alluxio.user.file.waitcompleted.poll.ms"),
   USER_UFS_DELEGATION_ENABLED("alluxio.user.ufs.delegation.enabled"),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES("alluxio.user.ufs.delegation.read.buffer.size.bytes"),
-  USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(
-      "alluxio.user.ufs.delegation.write.buffer.size.bytes"),
+  USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES("alluxio.user.ufs.delegation.write.buffer.size.bytes"),
 
   /**
    * Passed to fuse-mount, maximum granularity of write operations:
@@ -221,10 +216,10 @@ public enum PropertyKey {
    */
   FUSE_MAXWRITE_BYTES("alluxio.fuse.maxwrite.bytes"),
   /** Have the fuse process log every FS request. */
-  FUSE_DEBUG_ENABLE("alluxio.fuse.debug.enabled"),
+  FUSE_DEBUG_ENABLED("alluxio.fuse.debug.enabled"),
   /** Maximum number of Alluxio paths to cache for fuse conversion. */
   FUSE_CACHED_PATHS_MAX("alluxio.fuse.cached.paths.max"),
-  FUSE_DEFAULT_MOUNTPOINT("alluxio.fuse.mount.default"),
+  FUSE_MOUNT_DEFAULT("alluxio.fuse.mount.default"),
   FUSE_FS_ROOT("alluxio.fuse.fs.root"),
   /** FUSE file system name. */
   FUSE_FS_NAME("alluxio.fuse.fs.name"),
@@ -259,8 +254,7 @@ public enum PropertyKey {
   // Authorization
   SECURITY_AUTHORIZATION_PERMISSION_ENABLED("alluxio.security.authorization.permission.enabled"),
   SECURITY_AUTHORIZATION_PERMISSION_UMASK("alluxio.security.authorization.permission.umask"),
-  SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP(
-      "alluxio.security.authorization.permission.supergroup"),
+  SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP( "alluxio.security.authorization.permission.supergroup"),
   // Group Mapping
   SECURITY_GROUP_MAPPING("alluxio.security.group.mapping.class"),
   ;
