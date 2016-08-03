@@ -132,11 +132,11 @@ public final class Configuration {
     }
 
     // Now lets combine, order matters here
-    putFromProperties(PROPERTIES_MAP, defaultProps);
+    putFromProperties(defaultProps);
     if (siteProps != null) {
-      putFromProperties(PROPERTIES_MAP, siteProps);
+      putFromProperties(siteProps);
     }
-    putFromProperties(PROPERTIES_MAP, systemProps);
+    putFromProperties(systemProps);
 
     String masterHostname = PROPERTIES_MAP.get(Constants.MASTER_HOSTNAME);
     String masterPort = PROPERTIES_MAP.get(Constants.MASTER_RPC_PORT);
@@ -163,9 +163,9 @@ public final class Configuration {
     }
   }
 
-  private static void putFromProperties(Map<String, String> map, Properties properties) {
+  private static void putFromProperties(Properties properties) {
     for (String key : properties.stringPropertyNames()) {
-      map.put(key, properties.getProperty(key));
+      PROPERTIES_MAP.put(key, properties.getProperty(key));
     }
   }
 
@@ -209,11 +209,11 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(String key) {
-    if (!PROPERTIES_MAP.containsKey(key)) {
+    String raw = PROPERTIES_MAP.get(key);
+    if (raw == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    String raw = PROPERTIES_MAP.get(key);
     return lookup(raw);
   }
 
