@@ -9,6 +9,9 @@ fs \- command line interface for Alluxio provides users with basic file system o
 [\fBcat\fR \fIpath\fR]
 
 .B fs
+[\fBchecksum\fR \fIpath\fR]
+
+.B fs
 [\fBchgrp\fR \fIgroup path\fR]
 
 .B fs
@@ -34,6 +37,9 @@ fs \- command line interface for Alluxio provides users with basic file system o
 
 .B fs
 [\fBcount\fR \fIpath\fR]
+
+.B fs
+[\fBcp \fR \fIsourcePath destinationPath\fR]
 
 .B fs
 [\fBdu\fR \fIpath\fR]
@@ -120,6 +126,11 @@ command line interface for Alluxio provides users with basic file system operati
 Print the content of the file to the console.
 
 .TP
+.BR checksum
+\fIpath\fR
+Calculate the md5 checksum for a file.
+
+.TP
 .BR chgrp
 \fIgroup path\fR
 Change the group of the directory or file.
@@ -164,6 +175,11 @@ Copy the specified file from the path specified by "remotePath" to a local desti
 .BR count
 \fIpath\fR
 Display the number of folders and files matching the specified prefix in "path".
+
+.TP
+.BR cp
+\fIsourcePath destinationPath\fR
+Copy a file or directory within the Alluxio file system.
 
 .TP
 .BR du

@@ -1,11 +1,13 @@
 operation,syntax
 cat,"cat ""path"""
+checksum,"checksum ""path"""
 chgrp,"chgrp ""group"" ""path"""
 chmod,"chmod ""permission"" ""path"""
 chown,"chown ""owner"" ""path"""
 copyFromLocal,"copyFromLocal ""source path"" ""remote path"""
 copyToLocal,"copyToLocal ""remote path"" ""local path"""
 count,"count ""path"""
+cp,"cp ""src"" ""dst"""
 du,"du ""path"""
 fileInfo,"fileInfo ""path"""
 free,"free ""path"""

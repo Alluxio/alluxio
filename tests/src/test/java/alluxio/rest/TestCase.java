@@ -97,7 +97,7 @@ public final class TestCase {
       sb.append(parameter.getKey() + "=" + parameter.getValue() + "&");
     }
     return new URL(
-        "http://" + mHostname + ":" + mPort + "/" + Constants.REST_API_PREFIX + "/" + mEndpoint
+        "http://" + mHostname + ":" + mPort + Constants.REST_API_PREFIX + "/" + mEndpoint
             + "?" + sb.toString());
   }
 
@@ -117,9 +117,9 @@ public final class TestCase {
   }
 
   /**
-   * Runs the test case.
+   * Runs the test case and returns the output.
    */
-  public void run() throws Exception {
+  public String call() throws Exception {
     HttpURLConnection connection = (HttpURLConnection) createURL().openConnection();
     connection.setRequestMethod(mMethod);
     if (mJsonString != null) {
@@ -133,6 +133,13 @@ public final class TestCase {
     connection.connect();
     Assert.assertEquals(mEndpoint, Response.Status.OK.getStatusCode(),
         connection.getResponseCode());
+    return getResponse(connection);
+  }
+
+  /**
+   * Runs the test case.
+   */
+  public void run() throws Exception {
     String expected = "";
     if (mExpectedResult != null) {
       ObjectMapper mapper = new ObjectMapper();
@@ -140,6 +147,8 @@ public final class TestCase {
           mPrettyPrint ? mapper.writerWithDefaultPrettyPrinter().writeValueAsString(mExpectedResult)
               : mapper.writeValueAsString(mExpectedResult);
     }
-    Assert.assertEquals(mEndpoint, expected, getResponse(connection));
+
+    String result = call();
+    Assert.assertEquals(mEndpoint, expected, result);
   }
 }
