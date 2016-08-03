@@ -11,6 +11,7 @@
 
 package alluxio.heartbeat;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,6 +55,13 @@ public final class HeartbeatContext {
   }
 
   private HeartbeatContext() {} // to prevent initialization
+
+  /**
+   * @return the mapping from executor thread names to timer classes
+   */
+  public static synchronized Map<String, Class<? extends HeartbeatTimer>> getTimerClasses() {
+    return Collections.unmodifiableMap(sTimerClasses);
+  }
 
   /**
    * @param name a name of a heartbeat executor thread
