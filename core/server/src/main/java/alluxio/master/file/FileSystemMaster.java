@@ -116,6 +116,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
@@ -233,16 +234,22 @@ public final class FileSystemMaster extends AbstractMaster {
     return PathUtils.concatPath(baseDirectory, Constants.FILE_SYSTEM_MASTER_NAME);
   }
 
+  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal) {
+    this(masterContext, blockMaster, journal,
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)));
+  }
+
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
    * @param masterContext the master context
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
+   * @param executorService the executor service to use for running maintenance threads
    */
-  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal) {
-    super(masterContext, journal, new SystemClock(),
-        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)));
+  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal,
+      ExecutorService executorService) {
+    super(masterContext, journal, new SystemClock(), executorService);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);

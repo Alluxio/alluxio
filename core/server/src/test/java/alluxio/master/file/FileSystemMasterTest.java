@@ -42,6 +42,7 @@ import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.util.IdUtils;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.wire.FileBlockInfo;
@@ -62,7 +63,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.io.File;
 import java.io.IOException;
@@ -75,7 +75,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -90,6 +90,7 @@ public final class FileSystemMasterTest {
   private static CreateFileOptions sNestedFileOptions;
 
   private BlockMaster mBlockMaster;
+  private ExecutorService mExecutorService;
   private FileSystemMaster mFileSystemMaster;
   private long mWorkerId1;
   private long mWorkerId2;
@@ -134,7 +135,10 @@ public final class FileSystemMasterTest {
 
     MasterContext masterContext = new MasterContext(new MasterSource());
     mBlockMaster = new BlockMaster(masterContext, blockJournal);
-    mFileSystemMaster = new FileSystemMaster(masterContext, mBlockMaster, fsJournal);
+    mExecutorService =
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMasterTest-%d", true));
+    mFileSystemMaster =
+        new FileSystemMaster(masterContext, mBlockMaster, fsJournal, mExecutorService);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
@@ -1026,15 +1030,9 @@ public final class FileSystemMasterTest {
    */
   @Test
   public void stopTest() throws Exception {
-    ExecutorService service =
-        (ExecutorService) Whitebox.getInternalState(mFileSystemMaster, "mExecutorService");
-    Future<?> ttlThread =
-        (Future<?>) Whitebox.getInternalState(mFileSystemMaster, "mTtlCheckerService");
-    Assert.assertFalse(ttlThread.isDone());
-    Assert.assertFalse(service.isShutdown());
     mFileSystemMaster.stop();
-    Assert.assertTrue(ttlThread.isDone());
-    Assert.assertTrue(service.isShutdown());
+    Assert.assertTrue(mExecutorService.isShutdown());
+    Assert.assertTrue(mExecutorService.isTerminated());
   }
 
   /**
