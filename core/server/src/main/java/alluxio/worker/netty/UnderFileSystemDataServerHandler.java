@@ -40,7 +40,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class handles filesystem data server requests.
  */
 @NotThreadSafe
-public class UnderFileSystemDataServerHandler {
+final class UnderFileSystemDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Filesystem worker which handles file level operations for the worker. */

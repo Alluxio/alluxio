@@ -36,7 +36,8 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class MasterSource implements Source {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-  private static final String MASTER_SOURCE_NAME = "master";
+
+  public static final String MASTER_SOURCE_NAME = "master";
 
   public static final String DIRECTORIES_CREATED = "DirectoriesCreated";
   public static final String FILE_BLOCK_INFOS_GOT = "FileBlockInfosGot";

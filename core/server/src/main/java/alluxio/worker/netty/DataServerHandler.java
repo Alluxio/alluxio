@@ -39,7 +39,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @ChannelHandler.Sharable
 @NotThreadSafe
-public final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
+final class DataServerHandler extends SimpleChannelInboundHandler<RPCMessage> {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** Handler for any block store requests. */

@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.clock.SystemClock;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyCompletedException;
 import alluxio.exception.FileAlreadyExistsException;
@@ -34,6 +35,7 @@ import alluxio.master.journal.ReadWriteJournal;
 import alluxio.thrift.Command;
 import alluxio.thrift.CommandType;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.WorkerNetAddress;
 
@@ -49,12 +51,12 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
 
 /**
  * Unit tests for {@link MasterSource}.
@@ -104,23 +106,25 @@ public final class MasterSourceTest {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 
-    mBlockMaster = new BlockMaster(blockJournal);
-    mFileSystemMaster = new FileSystemMaster(mBlockMaster, fsJournal);
+    MasterSource masterSource = new MasterSource();
+    MasterContext masterContext = new MasterContext(masterSource);
+    mBlockMaster = new BlockMaster(masterContext, blockJournal,
+        new SystemClock(),
+        Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("master-source-test-%d", true)));
+    mFileSystemMaster = new FileSystemMaster(masterContext, mBlockMaster, fsJournal);
 
     mBlockMaster.start(true);
     mFileSystemMaster.start(true);
 
     // set up worker
-    mWorkerId =
-        mBlockMaster.getWorkerId(new WorkerNetAddress().setHost("localhost").setRpcPort(80)
-            .setDataPort(81).setWebPort(82));
+    mWorkerId = mBlockMaster.getWorkerId(
+        new WorkerNetAddress().setHost("localhost").setRpcPort(80).setDataPort(81).setWebPort(82));
     mBlockMaster.workerRegister(mWorkerId, Arrays.asList("MEM", "SSD"),
         ImmutableMap.of("MEM", (long) Constants.MB, "SSD", (long) Constants.MB),
         ImmutableMap.of("MEM", (long) Constants.KB, "SSD", (long) Constants.KB),
         new HashMap<String, List<Long>>());
 
-    Whitebox.setInternalState(MasterContext.class, "sMasterSource", new MasterSource());
-    mCounters = MasterContext.getMasterSource().getMetricRegistry().getCounters();
+    mCounters = masterSource.getMetricRegistry().getCounters();
 
     mUfs = UnderFileSystem.get(AlluxioURI.SEPARATOR);
   }

@@ -22,20 +22,16 @@ import java.net.InetSocketAddress;
 /**
  * A worker in the Alluxio system.
  */
-// We would call this interface AlluxioWorker but we want to reserve
-// that name for the main() class for launching an Alluxio worker. When
-// we drop support for java 7, we can include a main() class in an
-// interface and merge this into AlluxioWorker.
 public interface AlluxioWorkerService extends Server {
 
   /**
-   * Factory for {@link AlluxioWorkerService}.
+   * Factory for acquiring an AlluxioWorker.
    */
-  public class Factory {
-    private static AlluxioWorkerService sAlluxioWorker = null;
+  public static class Factory {
+    private static AlluxioWorkerService sAlluxioWorker;
 
     /**
-     * @return the default Alluxio worker instance
+     * @return the default Alluxio worker
      */
     public static synchronized AlluxioWorkerService get() {
       if (sAlluxioWorker == null) {
@@ -44,7 +40,7 @@ public interface AlluxioWorkerService extends Server {
       return sAlluxioWorker;
     }
 
-    private Factory() {} // prevent instantiation
+    private Factory() {} // Not intended for instantiation
   }
 
   /**
