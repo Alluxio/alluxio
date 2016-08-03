@@ -20,7 +20,7 @@ import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
 import alluxio.exception.WorkerOutOfSpaceException;
-import alluxio.util.CommonUtils;
+import alluxio.heartbeat.HeartbeatExecutor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +36,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * if there is no enough free space on some tier, free space from it.
  */
 @NotThreadSafe
-public class SpaceReserver implements Runnable {
+public class SpaceReserver implements HeartbeatExecutor  {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private final BlockWorker mBlockWorker;
 
@@ -45,12 +45,6 @@ public class SpaceReserver implements Runnable {
 
   /** Mapping from tier alias to space size to be reserved on the tier. */
   private final Map<String, Long> mBytesToReserveOnTiers = new HashMap<>();
-
-  /** Milliseconds between each check. */
-  private final int mCheckIntervalMs;
-
-  /** Flag to indicate if the checking should continue. */
-  private volatile boolean mRunning;
 
   /**
    * Creates a new instance of {@link SpaceReserver}.
@@ -71,33 +65,6 @@ public class SpaceReserver implements Runnable {
       mBytesToReserveOnTiers.put(tierAlias, reservedSpaceBytes + lastTierReservedBytes);
       lastTierReservedBytes += reservedSpaceBytes;
     }
-    mCheckIntervalMs = Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS);
-    mRunning = true;
-  }
-
-  @Override
-  public void run() {
-    long lastCheckMs = System.currentTimeMillis();
-    while (mRunning) {
-      // Check the time since last check, and wait until it is within check interval
-      long lastIntervalMs = System.currentTimeMillis() - lastCheckMs;
-      long toSleepMs = mCheckIntervalMs - lastIntervalMs;
-      if (toSleepMs > 0) {
-        CommonUtils.sleepMs(LOG, toSleepMs);
-      } else {
-        LOG.warn("Space reserver took: {}, expected: {}", lastIntervalMs, mCheckIntervalMs);
-      }
-      lastCheckMs = System.currentTimeMillis();
-      reserveSpace();
-    }
-  }
-
-  /**
-   * Stops the checking, once this method is called, the object should be discarded.
-   */
-  public void stop() {
-    LOG.info("Space reserver exits!");
-    mRunning = false;
   }
 
   private void reserveSpace() {
@@ -118,5 +85,15 @@ public class SpaceReserver implements Runnable {
         LOG.warn(e.getMessage());
       }
     }
+  }
+
+  @Override
+  public void heartbeat() {
+    reserveSpace();
+  }
+
+  @Override
+  public void close() {
+    // Nothing to close.
   }
 }
