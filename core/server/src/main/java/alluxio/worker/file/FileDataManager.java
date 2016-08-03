@@ -28,6 +28,7 @@ import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.RateLimiter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,13 +80,11 @@ public final class FileDataManager {
    *
    * @param blockWorker the block worker handle
    */
-  public FileDataManager(BlockWorker blockWorker) {
+  public FileDataManager(BlockWorker blockWorker, UnderFileSystem ufs) {
     mBlockWorker = Preconditions.checkNotNull(blockWorker);
     mPersistingInProgressFiles = new HashMap<>();
     mPersistedFiles = new HashSet<>();
-    // Create Under FileSystem Client
-    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
-    mUfs = UnderFileSystem.get(ufsAddress);
+    mUfs = ufs;
   }
 
   /**
@@ -219,7 +218,7 @@ public final class FileDataManager {
     synchronized (mLock) {
       blockIdToLockId = mPersistingInProgressFiles.get(fileId);
       if (blockIdToLockId == null || !blockIdToLockId.keySet().equals(new HashSet<>(blockIds))) {
-        throw new IOException("Not all the blocks of file " + fileId + " are blocked");
+        throw new IOException("Not all the blocks of file " + fileId + " are locked");
       }
     }
 
@@ -324,10 +323,8 @@ public final class FileDataManager {
    * @return the persisted file
    */
   public List<Long> getPersistedFiles() {
-    List<Long> toReturn = new ArrayList<>();
     synchronized (mLock) {
-      toReturn.addAll(mPersistedFiles);
-      return toReturn;
+      return ImmutableList.copyOf(mPersistedFiles);
     }
   }
 
