@@ -11,7 +11,7 @@
 
 package alluxio.heartbeat;
 
-import alluxio.clock.TestClock;
+import alluxio.clock.FakeClock;
 import alluxio.time.Sleeper;
 
 import org.junit.Before;
@@ -26,23 +26,23 @@ public final class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
   private static final long INTERVAL_MS = 1000;
   private Logger mMockLogger;
-  private TestClock mTestClock;
+  private FakeClock mFakeClock;
   private Sleeper mMockSleeper;
 
   @Before
   public void before() {
     mMockLogger = Mockito.mock(Logger.class);
-    mTestClock = new TestClock();
+    mFakeClock = new FakeClock();
     mMockSleeper = Mockito.mock(Sleeper.class);
   }
 
   @Test
   public void warnWhenExecutionTakesLongerThanInterval() throws Exception {
     SleepingTimer timer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mTestClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
 
     timer.tick();
-    mTestClock.addTimeMs(5 * INTERVAL_MS);
+    mFakeClock.addTimeMs(5 * INTERVAL_MS);
     timer.tick();
 
     Mockito.verify(mMockLogger).warn(Mockito.anyString(), Mockito.anyString(), Mockito.anyLong(),
@@ -52,7 +52,7 @@ public final class SleepingTimerTest {
   @Test
   public void sleepForSpecifiedInterval() throws Exception {
     final SleepingTimer timer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mTestClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
     timer.tick();
     Mockito.verify(mMockSleeper).sleep(INTERVAL_MS);
   }
@@ -65,10 +65,10 @@ public final class SleepingTimerTest {
   @Test
   public void maintainInterval() throws Exception {
     SleepingTimer stimer =
-        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mTestClock, mMockSleeper);
+        new SleepingTimer(THREAD_NAME, INTERVAL_MS, mMockLogger, mFakeClock, mMockSleeper);
 
     stimer.tick();
-    mTestClock.addTimeMs(INTERVAL_MS / 3);
+    mFakeClock.addTimeMs(INTERVAL_MS / 3);
     stimer.tick();
     Mockito.verify(mMockSleeper).sleep(INTERVAL_MS - (INTERVAL_MS / 3));
   }
