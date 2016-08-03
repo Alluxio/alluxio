@@ -78,7 +78,7 @@ public class SpaceReserverTest {
     PowerMockito.when(DataServer.Factory.create(Mockito.<InetSocketAddress>any(),
         Mockito.<AlluxioWorkerService>any())).thenReturn(Mockito.mock(DataServer.class));
 
-    BlockWorker blockWorker = new BlockWorker();
+    BlockWorker blockWorker = new DefaultBlockWorker();
     mBlockStore = blockWorker.getBlockStore();
     String reserveRatioProp =
         String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);

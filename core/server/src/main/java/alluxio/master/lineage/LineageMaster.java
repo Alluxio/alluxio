@@ -29,6 +29,7 @@ import alluxio.heartbeat.HeartbeatThread;
 import alluxio.job.CommandLineJob;
 import alluxio.job.Job;
 import alluxio.master.AbstractMaster;
+import alluxio.master.MasterContext;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.journal.Journal;
@@ -104,11 +105,13 @@ public final class LineageMaster extends AbstractMaster {
   /**
    * Creates a new instance of {@link LineageMaster}.
    *
+   * @param masterContext the master context
    * @param fileSystemMaster the file system master
    * @param journal the journal
    */
-  public LineageMaster(FileSystemMaster fileSystemMaster, Journal journal) {
-    super(journal, new SystemClock(),
+  public LineageMaster(MasterContext masterContext, FileSystemMaster fileSystemMaster,
+      Journal journal) {
+    super(masterContext, journal, new SystemClock(),
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("LineageMaster-%d", true)));
 
     mFileSystemMaster = Preconditions.checkNotNull(fileSystemMaster);

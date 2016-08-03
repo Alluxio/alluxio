@@ -19,6 +19,7 @@ import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
+import alluxio.web.MasterUIWebServer;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Gauge;
@@ -35,9 +36,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -69,15 +72,22 @@ public final class AlluxioMasterRestServiceHandler {
   public static final String GET_WORKER_COUNT = "worker_count";
   public static final String GET_WORKER_INFO_LIST = "worker_info_list";
 
-  private final AlluxioMaster mMaster = AlluxioMaster.get();
-  private final BlockMaster mBlockMaster = mMaster.getBlockMaster();
+  private final AlluxioMaster mMaster;
+  private final BlockMaster mBlockMaster;
   private final String mUfsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
 
   /**
    * Constructs a new {@link AlluxioMasterRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public AlluxioMasterRestServiceHandler() {}
+  public AlluxioMasterRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    mMaster =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mBlockMaster = mMaster.getBlockMaster();
+  }
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
@@ -125,7 +135,7 @@ public final class AlluxioMasterRestServiceHandler {
     // Only the gauge for pinned files is retrieved here, other gauges are statistics of free/used
     // spaces, those statistics can be gotten via other REST apis.
     String filesPinnedProperty = CommonUtils.argsToString(".",
-        MasterContext.getMasterSource().getName(), MasterSource.FILES_PINNED);
+        mMaster.getMasterContext().getMasterSource().getName(), MasterSource.FILES_PINNED);
     @SuppressWarnings("unchecked")
     Gauge<Integer> filesPinned =
         (Gauge<Integer>) metricRegistry.getGauges().get(filesPinnedProperty);

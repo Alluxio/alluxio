@@ -117,7 +117,7 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  public static final String REST_API_PREFIX = "v1/api";
+  public static final String REST_API_PREFIX = "/v1/api";
 
   // Configurations properties constants.
   // Please check and update Configuration-Settings.md file when you change or add Alluxio
