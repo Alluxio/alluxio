@@ -14,13 +14,13 @@ package alluxio.clock;
 /**
  * A modifiable clock useful for testing.
  */
-public final class TestClock implements Clock {
+public final class FakeClock implements Clock {
   private long mTimeMs;
 
   /**
    * Constructs a TestClock set to the current system time.
    */
-  public TestClock() {
+  public FakeClock() {
     this(System.currentTimeMillis());
   }
 
@@ -29,7 +29,7 @@ public final class TestClock implements Clock {
    *
    * @param time the time to set the clock to
    */
-  public TestClock(long time) {
+  public FakeClock(long time) {
     mTimeMs = time;
   }
 
