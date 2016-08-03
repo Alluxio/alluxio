@@ -16,6 +16,11 @@ package alluxio.time;
  */
 public class ThreadSleeper implements Sleeper {
 
+  /**
+   * Constructs a new {@link ThreadSleeper}.
+   */
+  public ThreadSleeper() {}
+
   @Override
   public void sleep(long millis) throws InterruptedException {
     Thread.sleep(millis);
