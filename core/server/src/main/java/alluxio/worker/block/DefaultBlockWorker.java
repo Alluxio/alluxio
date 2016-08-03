@@ -80,9 +80,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Runnable responsible for clean up potential zombie sessions. */
   private SessionCleaner mSessionCleaner;
 
-  /** Logic for handling RPC requests. */
-  private final BlockWorkerClientServiceHandler mServiceHandler;
-
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
 
@@ -105,7 +102,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
+    return new BlockWorkerClientServiceHandler(this);
   }
 
   /**
@@ -114,26 +111,31 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @throws IOException if an IO exception occurs
    */
   public DefaultBlockWorker() throws IOException {
+    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new BlockHeartbeatReporter(),
+        new BlockMetricsReporter(WorkerContext.getWorkerSource()),
+        new Sessions(),
+        new TieredBlockStore());
+  }
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, BlockHeartbeatReporter blockHeartbeatReporter,
+      BlockMetricsReporter blockMetricsReporter, Sessions sessions, BlockStore blockStore)
+          throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    // Setup BlockMasterClient
-    mBlockMasterClient =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
-    mFileSystemMasterClient =
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
-    // Setup RPC ServerHandler
-    mServiceHandler = new BlockWorkerClientServiceHandler(this);
-
-    // Setup BlockHeartbeatReporter
-    mHeartbeatReporter = new BlockHeartbeatReporter();
-    // Setup BlockMetricsReporter
-    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
-    // Setup Sessions
-    mSessions = new Sessions();
-    // Setup the BlockStore
-    mBlockStore = new TieredBlockStore();
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
+    mHeartbeatReporter = blockHeartbeatReporter;
+    mMetricsReporter = blockMetricsReporter;
+    mSessions = sessions;
+    mBlockStore = blockStore;
 
     // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
@@ -166,8 +168,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
 
     // Setup BlockMasterSync
-    mBlockMasterSync =
-        new BlockMasterSync(this, netAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(this, netAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);

@@ -55,7 +55,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Unit tests for {@link BlockWorker}.
+ * Unit tests for {@link DefaultBlockWorker}.
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({BlockMasterClient.class, FileSystemMasterClient.class,
