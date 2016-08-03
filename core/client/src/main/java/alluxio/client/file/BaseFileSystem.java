@@ -55,10 +55,11 @@ public class BaseFileSystem implements FileSystem {
   private final FileSystemContext mContext;
 
   /**
+   * @param context file system context
    * @return a {@link BaseFileSystem}
    */
-  public static BaseFileSystem get() {
-    return new BaseFileSystem(FileSystemContext.INSTANCE);
+  public static BaseFileSystem get(FileSystemContext context) {
+    return new BaseFileSystem(context);
   }
 
   protected BaseFileSystem(FileSystemContext context) {
