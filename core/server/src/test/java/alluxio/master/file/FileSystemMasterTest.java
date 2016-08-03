@@ -1060,7 +1060,6 @@ public final class FileSystemMasterTest {
             .getBlockIds().get(0));
   }
 
-
   /**
    * Tests the {@link FileSystemMaster#getFilesPersistInProgress()} method.
    */

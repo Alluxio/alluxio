@@ -226,7 +226,6 @@ public final class FileSystemMaster extends AbstractMaster {
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
-
   /**
    * Map from worker to the files that have been sent to worker for async persistence and are
    * in progress of async persistence.
@@ -1707,7 +1706,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @throws AccessControlException if the permission check fails
    */
   // Currently used by getFilesPersistInProgress
-  // TODO: Merge with the above getPath method when it has permission check
+  // TODO(siyangy): Merge with the above getPath method when it has permission check
   private AlluxioURI getPathWithPermissionCheck(long fileId)
       throws FileDoesNotExistException, AccessControlException, InvalidPathException {
     try (
@@ -1717,7 +1716,6 @@ public final class FileSystemMaster extends AbstractMaster {
       return mInodeTree.getPath(inodePath.getInode());
     }
   }
-
 
   /**
    * @return the set of inode ids which are pinned
@@ -2589,7 +2587,7 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * @return a list of files that are being persisted in the worker.
+   * @return a list of files that are being persisted in the worker
    */
   public List<String> getFilesPersistInProgress() {
     synchronized (mWorkerToAsyncPersistFilesInProgress) {

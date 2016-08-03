@@ -391,7 +391,6 @@ public interface FileSystem {
    */
   void unmount(AlluxioURI path, UnmountOptions options) throws IOException, AlluxioException;
 
-
   /**
    * Gets all the files with async persistence in progress.
    *
