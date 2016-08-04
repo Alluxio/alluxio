@@ -303,7 +303,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] listRecursive(String path) throws IOException {
-	LOG.debug("List {} recursively", path);
+    LOG.debug("List {} recursively", path);
     return listHelper(path, true);
   }
 
