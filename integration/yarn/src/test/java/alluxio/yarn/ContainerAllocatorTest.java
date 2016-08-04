@@ -104,20 +104,6 @@ public final class ContainerAllocatorTest {
     containerAllocator.allocateContainers();
   }
 
-  private void testFullAllocation(int numHosts, int maxContainersPerHost) throws Exception {
-    int numContainers = numHosts * maxContainersPerHost;
-    ContainerAllocator containerAllocator = setup(numHosts, maxContainersPerHost, numContainers);
-    List<Container> containers = containerAllocator.allocateContainers();
-
-    Set<String> containerHosts = new HashSet<>();
-    for (Container container : containers) {
-      containerHosts.add(container.getNodeId().getHost());
-    }
-    assertEquals("All hosts are allocated", numHosts, containerHosts.size());
-    assertEquals("All containers are allocated", numContainers, containers.size());
-    checkMaxHostsLimitNotExceeded(containers, maxContainersPerHost);
-  }
-
   /*
    * Creates a container allocator for allocating the specified numContainers with the specified
    * maxContainersPerHost.
@@ -140,6 +126,25 @@ public final class ContainerAllocatorTest {
     doAnswer(allocateFirstHostAnswer(containerAllocator)).when(mRMClient)
         .addContainerRequest(any(ContainerRequest.class));
     return containerAllocator;
+  }
+
+  /*
+   * Tests that when there are the specified number of hosts and the specified max containers per
+   * host, a ContainerAllocator can fully allocate all hosts so that every host has
+   * maxContainersPerHost containers.
+   */
+  private void testFullAllocation(int numHosts, int maxContainersPerHost) throws Exception {
+    int numContainers = numHosts * maxContainersPerHost;
+    ContainerAllocator containerAllocator = setup(numHosts, maxContainersPerHost, numContainers);
+    List<Container> containers = containerAllocator.allocateContainers();
+
+    Set<String> containerHosts = new HashSet<>();
+    for (Container container : containers) {
+      containerHosts.add(container.getNodeId().getHost());
+    }
+    assertEquals("All hosts are allocated", numHosts, containerHosts.size());
+    assertEquals("All containers are allocated", numContainers, containers.size());
+    checkMaxHostsLimitNotExceeded(containers, maxContainersPerHost);
   }
 
   /*
