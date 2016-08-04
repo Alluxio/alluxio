@@ -101,7 +101,7 @@ public final class FileDataManagerTest {
    */
   @Test
   public void clearPersistedFilesTest() throws Exception {
-    writeFileWithBlocks(1L, ImmutableList.of(1L, 2L));
+    writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
     Assert.assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
   }
