@@ -32,13 +32,11 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
 /**
- *
+ * A class for negotiating with YARN to allocate containers.
  */
 public final class ContainerAllocator {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final int MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS = 20;
-
-  private static final Priority PRIORITY = Priority.newInstance(0);
 
   private final String mContainerName;
   private final int mTargetNumContainers;
@@ -52,12 +50,29 @@ public final class ContainerAllocator {
   private final List<Container> mAllocatedContainers;
   private CountDownLatch mOutstandingContainerRequestsLatch;
 
+  /**
+   * @param containerName the name of the type of container being allocated
+   * @param targetNumContainers the target number of containers to allocate
+   * @param maxContainersPerHost the maximum number of containers to allocate on the same host
+   * @param resource the resource to allocate per container
+   * @param yarnClient a yarn client for talking to yarn
+   * @param rmClient a resource manager client for talking to the yarn resource manager
+   */
   public ContainerAllocator(String containerName, int targetNumContainers, int maxContainersPerHost,
       Resource resource, YarnClient yarnClient, AMRMClientAsync<ContainerRequest> rmClient) {
     this(containerName, targetNumContainers, maxContainersPerHost, resource, yarnClient, rmClient,
         null);
   }
 
+  /**
+   * @param containerName the name of the type of container being allocated
+   * @param targetNumContainers the target number of containers to allocate
+   * @param maxContainersPerHost the maximum number of containers to allocate on the same host
+   * @param resource the resource to allocate per container
+   * @param yarnClient a yarn client for talking to yarn
+   * @param rmClient a resource manager client for talking to the yarn resource manager
+   * @param preferredHost a specific host to allocate on; if null, any host may be used
+   */
   public ContainerAllocator(String containerName, int targetNumContainers, int maxContainersPerHost,
       Resource resource, YarnClient yarnClient,
       AMRMClientAsync<ContainerRequest> rmClient, String preferredHost) {
@@ -124,14 +139,18 @@ public final class ContainerAllocator {
 
   private void requestContainers(int numContainersToRequest) throws Exception {
     LOG.info("Requesting {} {} containers", numContainersToRequest, mContainerName);
-    boolean relaxLocality;
     String[] hosts;
+    boolean relaxLocality;
+    // YARN requires that priority for relaxed-locality requests is different from strict-locality.
+    Priority priority;
     if (mPreferredHost != null) {
-      relaxLocality = false;
       hosts = new String[]{mPreferredHost};
+      relaxLocality = false;
+      priority = Priority.newInstance(100);
     } else {
-      relaxLocality = true;
       hosts = getPotentialWorkerHosts();
+      relaxLocality = true;
+      priority = Priority.newInstance(101);
     }
 
     if (hosts.length * mMaxContainersPerHost < numContainersToRequest) {
@@ -140,7 +159,7 @@ public final class ContainerAllocator {
     }
 
     ContainerRequest containerRequest = new ContainerRequest(mResource, hosts,
-        null /* any racks */, PRIORITY, relaxLocality);
+        null /* any racks */, priority, relaxLocality);
     LOG.info(
         "Making {} resource request(s) for Alluxio workers with cpu {} memory {}MB on hosts {}",
         numContainersToRequest, mResource.getVirtualCores(), mResource.getMemory(), hosts);
