@@ -48,7 +48,7 @@ public final class NettyUnderFileSystemFileReader implements Closeable {
   /** Handler for Netty messages. */
   private final ClientHandler mHandler;
   /** A reference to read response so we can explicitly release the resource after reading. */
-  private RPCFileReadResponse mReadResponse = null;
+  private RPCFileReadResponse mReadResponse;
 
   /**
    * Creates a new reader for a file in an under file system through a worker's data server.
