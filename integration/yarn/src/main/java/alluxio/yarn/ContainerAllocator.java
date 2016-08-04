@@ -50,7 +50,6 @@ public final class ContainerAllocator {
 
   private final ConcurrentHashMultiset<String> mAllocatedContainerHosts;
   private final List<Container> mAllocatedContainers;
-  private int mNumRunningContainers;
   private CountDownLatch mOutstandingContainerRequestsLatch;
 
   public ContainerAllocator(String containerName, int targetNumContainers, int maxContainersPerHost,
@@ -71,7 +70,6 @@ public final class ContainerAllocator {
     mRMClient = rmClient;
     mAllocatedContainerHosts = ConcurrentHashMultiset.create();
     mAllocatedContainers = new ArrayList<>();
-    mNumRunningContainers = 0;
   }
 
   private String[] getPotentialWorkerHosts() throws YarnException, IOException {
@@ -92,11 +90,14 @@ public final class ContainerAllocator {
    */
   public List<Container> allocateContainers() throws Exception {
     for (int attempt = 0; attempt < MAX_WORKER_CONTAINER_REQUEST_ATTEMPTS; attempt++) {
-      int numContainersToRequest = mTargetNumContainers - mNumRunningContainers;
+      int numContainersToRequest = mTargetNumContainers - mAllocatedContainerHosts.size();
       mOutstandingContainerRequestsLatch = new CountDownLatch(numContainersToRequest);
       requestContainers(numContainersToRequest);
       // Wait for all outstanding requests to be responded to before beginning the next round.
       mOutstandingContainerRequestsLatch.await();
+      if (mAllocatedContainerHosts.size() == mTargetNumContainers) {
+        break;
+      }
     }
     if (mAllocatedContainers.size() != mTargetNumContainers) {
       throw new RuntimeException(String.format("Failed to allocate %d %s containers",
@@ -109,7 +110,6 @@ public final class ContainerAllocator {
    * @param container the container which has been allocated by YARN
    */
   public synchronized void allocateContainer(Container container) {
-    mOutstandingContainerRequestsLatch.countDown();
     String containerHost = container.getNodeId().getHost();
     if (mAllocatedContainerHosts.count(containerHost) < mMaxContainersPerHost
         && mAllocatedContainerHosts.size() < mTargetNumContainers) {
@@ -119,6 +119,7 @@ public final class ContainerAllocator {
       LOG.info("Releasing assigned container on host {}", containerHost);
       mRMClient.releaseAssignedContainer(container.getId());
     }
+    mOutstandingContainerRequestsLatch.countDown();
   }
 
   private void requestContainers(int numContainersToRequest) throws Exception {
@@ -134,8 +135,8 @@ public final class ContainerAllocator {
     }
 
     if (hosts.length * mMaxContainersPerHost < numContainersToRequest) {
-      throw new RuntimeException(
-          ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(numContainersToRequest, hosts.length));
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS
+          .getMessage(numContainersToRequest, mContainerName, hosts.length));
     }
 
     ContainerRequest containerRequest = new ContainerRequest(mResource, hosts,
@@ -143,7 +144,7 @@ public final class ContainerAllocator {
     LOG.info(
         "Making {} resource request(s) for Alluxio workers with cpu {} memory {}MB on hosts {}",
         numContainersToRequest, mResource.getVirtualCores(), mResource.getMemory(), hosts);
-    for (int i = mNumRunningContainers; i < mTargetNumContainers; i++) {
+    for (int i = 0; i < numContainersToRequest; i++) {
       mRMClient.addContainerRequest(containerRequest);
     }
   }
