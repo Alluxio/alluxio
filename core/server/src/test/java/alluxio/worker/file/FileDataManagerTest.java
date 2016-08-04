@@ -113,8 +113,6 @@ public final class FileDataManagerTest {
   public void persistFileRateLimitingTest() throws Exception {
     Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
     Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
-    mUfs = Mockito.mock(UnderFileSystem.class);
-    mBlockWorker = Mockito.mock(BlockWorker.class);
     mMockRateLimiter =
         new MockRateLimiter(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
     mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
