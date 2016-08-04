@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
-public class FileInStreamIntegrationTest {
+public final class FileInStreamIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
