@@ -94,7 +94,15 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
 
   private volatile ContainerAllocator mContainerAllocator;
 
+  /**
+   * A factory which creates an AMRMClientAsync with a heartbeat interval and callback handler.
+   */
   public interface AMRMClientAsyncFactory {
+    /**
+     * @param heartbeatMs the interval at which to send heartbeats to the resource manager
+     * @param handler a handler for callbacks from the resource manager
+     * @return a client for making requests to the resource manager
+     */
     AMRMClientAsync<ContainerRequest> createAMRMClientAsync(int heartbeatMs,
         CallbackHandler handler);
   }
@@ -127,6 +135,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    * @param resourcePath an hdfs path shared by all yarn nodes which can be used to share resources
    * @param yarnClient the client to use for communicating with Yarn
    * @param nMClient the client to use for communicating with the node manager
+   * @param amrmFactory a factory for creating an {@link AMRMClientAsync}
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
       YarnClient yarnClient, NMClient nMClient, AMRMClientAsyncFactory amrmFactory) {
