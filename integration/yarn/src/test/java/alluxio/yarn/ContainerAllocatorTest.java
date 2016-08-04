@@ -19,7 +19,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import alluxio.exception.ExceptionMessage;
-import alluxio.util.CommonUtils;
 
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.NodeId;
@@ -119,52 +118,42 @@ public final class ContainerAllocatorTest {
     checkMaxHostsLimitNotExceeded(containers, maxContainersPerHost);
   }
 
+  /*
+   * Creates a container allocator for allocating the specified numContainers with the specified
+   * maxContainersPerHost.
+   *
+   * The yarn client is mocked to make it look like there are numHosts different hosts in the
+   * system, and the resource manager client is mocked to allocate containers when they are
+   * requested.
+   */
   private ContainerAllocator setup(int numHosts, int maxContainersPerHost, int numContainers)
       throws Exception {
     ContainerAllocator containerAllocator = new ContainerAllocator(CONTAINER_NAME, numContainers,
         maxContainersPerHost, mResource, mYarnClient, mRMClient);
-    when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg()))
-        .thenReturn(nHostsNodeReport(numHosts));
-    doAnswer(allocateFirstHostAnswer(containerAllocator)).when(mRMClient)
-        .addContainerRequest(any(ContainerRequest.class));
-    return containerAllocator;
-  }
-
-  /**
-   * @param numHosts the number of hosts to create node reports for
-   * @return a list of NodeReports representing a cluster with numHosts distinct hosts
-   */
-  private List<NodeReport> nHostsNodeReport(int numHosts) {
     List<NodeReport> nodeReports = new ArrayList<>();
     for (int i = 0; i < numHosts; i++) {
       NodeReport nodeReport = Records.newRecord(NodeReport.class);
       nodeReport.setNodeId(NodeId.newInstance("host" + i, 0));
       nodeReports.add(nodeReport);
     }
-    return nodeReports;
+    when(mYarnClient.getNodeReports(Matchers.<NodeState[]>anyVararg())).thenReturn(nodeReports);
+    doAnswer(allocateFirstHostAnswer(containerAllocator)).when(mRMClient)
+        .addContainerRequest(any(ContainerRequest.class));
+    return containerAllocator;
   }
 
-  /**
-   * Creates an answer for a addContainerRequest method which picks the first node requested and
-   * allocates a container on it.
-   *
-   * @param containerAllocator the containerAllocater to send callbacks to
-   * @return the answer
+  /*
+   * Creates an Answer to an addContainerRequest method. The Answer picks the first node requested
+   * and allocates a container on it, sending a callback to the specified container allocator
    */
   private Answer<Void> allocateFirstHostAnswer(final ContainerAllocator containerAllocator) {
     return new Answer<Void>() {
       @Override
       public Void answer(InvocationOnMock invocation) throws Throwable {
-        final ContainerRequest containerRequest =
-            invocation.getArgumentAt(0, ContainerRequest.class);
-        final Container container = Records.newRecord(Container.class);
-        new Thread(new Runnable() {
-          public void run() {
-            CommonUtils.sleepMs(10);
-            container.setNodeId(NodeId.newInstance(containerRequest.getNodes().get(0), 0));
-            containerAllocator.allocateContainer(container);
-          }
-        }).start();
+        ContainerRequest containerRequest = invocation.getArgumentAt(0, ContainerRequest.class);
+        Container container = Records.newRecord(Container.class);
+        container.setNodeId(NodeId.newInstance(containerRequest.getNodes().get(0), 0));
+        containerAllocator.allocateContainer(container);
         return null;
       }
     };
