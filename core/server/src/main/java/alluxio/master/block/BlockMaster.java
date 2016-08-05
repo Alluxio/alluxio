@@ -190,7 +190,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
-   * @param executorService the executor service to use for launching maintenance threads
+   * @param executorService the executor service to use for launching maintenance threads; the
+   *        {@link BlockMaster} becomes the owner of the executorService and will shut it down when
+   *        the master stops
    */
   public BlockMaster(MasterContext masterContext, Journal journal, Clock clock,
       ExecutorService executorService) {

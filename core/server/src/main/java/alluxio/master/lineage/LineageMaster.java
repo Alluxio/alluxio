@@ -109,7 +109,9 @@ public final class LineageMaster extends AbstractMaster {
    * @param masterContext the master context
    * @param fileSystemMaster the file system master
    * @param journal the journal
-   * @param executorService the executor service to use for running maintenance threads
+   * @param executorService the executor service to use for running maintenance threads; the
+   *        {@link LineageMaster} becomes the owner of the executorService and will shut it down
+   *        when the master stops
    */
   public LineageMaster(MasterContext masterContext, FileSystemMaster fileSystemMaster,
       Journal journal, ExecutorService executorService) {
