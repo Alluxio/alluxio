@@ -37,7 +37,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class AlluxioLineage extends AbstractLineageClient {
-  private static AlluxioLineage sAlluxioLineage;
 
   /**
    * @return the current lineage for Alluxio
@@ -51,13 +50,10 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get(LineageContext context) {
-    if (sAlluxioLineage == null) {
-      if (!Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
-        throw new IllegalStateException("Lineage is not enabled in the configuration.");
-      }
-      sAlluxioLineage = new AlluxioLineage(context);
+    if (!Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+      throw new IllegalStateException("Lineage is not enabled in the configuration.");
     }
-    return sAlluxioLineage;
+    return new AlluxioLineage(context);
   }
 
   protected AlluxioLineage(LineageContext context) {
