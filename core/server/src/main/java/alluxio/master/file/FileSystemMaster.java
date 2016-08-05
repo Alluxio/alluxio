@@ -1934,7 +1934,6 @@ public final class FileSystemMaster extends AbstractMaster {
    * @param inodePath the {@link LockedInodePath} to load the metadata for
    * @param options the load metadata options
    */
-  // TODO(peis): Add a unit test for this function.
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
     boolean inodeExists = inodePath.fullPathExists();
