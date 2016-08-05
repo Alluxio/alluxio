@@ -11,7 +11,7 @@
 
 package alluxio.heartbeat;
 
-import alluxio.clock.FakeClock;
+import alluxio.clock.ManualClock;
 import alluxio.time.Sleeper;
 
 import org.junit.Before;
@@ -26,13 +26,13 @@ public final class SleepingTimerTest {
   private static final String THREAD_NAME = "sleepingtimer-test-thread-name";
   private static final long INTERVAL_MS = 500;
   private Logger mMockLogger;
-  private FakeClock mFakeClock;
+  private ManualClock mFakeClock;
   private Sleeper mMockSleeper;
 
   @Before
   public void before() {
     mMockLogger = Mockito.mock(Logger.class);
-    mFakeClock = new FakeClock();
+    mFakeClock = new ManualClock();
     mMockSleeper = Mockito.mock(Sleeper.class);
   }
 

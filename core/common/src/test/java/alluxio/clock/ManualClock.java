@@ -12,24 +12,24 @@
 package alluxio.clock;
 
 /**
- * A modifiable clock useful for testing.
+ * A manually set clock useful for testing.
  */
-public final class FakeClock implements Clock {
+public final class ManualClock implements Clock {
   private long mTimeMs;
 
   /**
-   * Constructs a TestClock set to the current system time.
+   * Constructs a {@link ManualClock} set to the current system time.
    */
-  public FakeClock() {
+  public ManualClock() {
     this(System.currentTimeMillis());
   }
 
   /**
-   * Constructs a TestClock set to the specified time.
+   * Constructs a {@link ManualClock} set to the specified time.
    *
    * @param time the time to set the clock to
    */
-  public FakeClock(long time) {
+  public ManualClock(long time) {
     mTimeMs = time;
   }
 
