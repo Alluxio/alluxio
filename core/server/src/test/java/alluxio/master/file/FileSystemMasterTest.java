@@ -507,25 +507,34 @@ public final class FileSystemMasterTest {
     AlluxioURI folder = new AlluxioURI("/mnt/local/folder");
     mFileSystemMaster.createDirectory(folder, CreateDirectoryOptions.defaults());
 
+    Assert.assertFalse(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
+
     // Create files in ufs.
     Files.createDirectory(Paths.get(ufsMount.join("folder").getPath()));
     Files.createFile(Paths.get(ufsMount.join("folder").join("file1").getPath()));
     Files.createFile(Paths.get(ufsMount.join("folder").join("file2").getPath()));
 
-    List<FileInfo> fileInfoList =
-        mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
+    // getStatus won't mark folder as persisted.
+    Assert.assertFalse(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
+
+    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
     Assert.assertEquals(2, fileInfoList.size());
     // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
     // exist.
     Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
 
     Set<String> paths = new HashSet<>();
-    for (FileInfo fileInfo : fileInfoList) {
-      paths.add(fileInfo.getPath());
+    for (FileInfo f : fileInfoList) {
+      paths.add(f.getPath());
     }
     Assert.assertEquals(2, paths.size());
     Assert.assertTrue(paths.contains("/mnt/local/folder/file1"));
     Assert.assertTrue(paths.contains("/mnt/local/folder/file2"));
+
+    Assert.assertTrue(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
   }
 
   @Test
