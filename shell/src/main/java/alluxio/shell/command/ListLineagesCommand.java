@@ -13,6 +13,7 @@ package alluxio.shell.command;
 
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.wire.LineageInfo;
 
 import org.apache.commons.cli.CommandLine;
@@ -49,7 +50,7 @@ public final class ListLineagesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     List<LineageInfo> infos = tl.getLineageInfoList();
     for (LineageInfo info : infos) {
       System.out.println(info);

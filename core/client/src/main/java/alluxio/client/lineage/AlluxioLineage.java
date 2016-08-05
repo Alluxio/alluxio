@@ -43,17 +43,24 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get() {
+    return get(LineageContext.INSTANCE);
+  }
+
+  /**
+   * @return the current lineage for Alluxio
+   */
+  public static synchronized AlluxioLineage get(LineageContext context) {
     if (sAlluxioLineage == null) {
       if (!Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
         throw new IllegalStateException("Lineage is not enabled in the configuration.");
       }
-      sAlluxioLineage = new AlluxioLineage();
+      sAlluxioLineage = new AlluxioLineage(context);
     }
     return sAlluxioLineage;
   }
 
-  protected AlluxioLineage() {
-    super();
+  protected AlluxioLineage(LineageContext context) {
+    super(context);
   }
 
   /**
