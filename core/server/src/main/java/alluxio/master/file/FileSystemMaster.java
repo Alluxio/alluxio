@@ -743,8 +743,8 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Creates a file (not actory) for a given path.
-   * <p> dire
+   * Creates a file (not a directory) for a given path.
+   * <p>
    * Writes to the journal.
    *
    * @param inodePath the file to create
