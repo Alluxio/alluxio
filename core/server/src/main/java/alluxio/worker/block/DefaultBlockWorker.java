@@ -152,13 +152,19 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
    *
+   * @param workerNetAddress the hostname and port information for this worker
    * @throws IOException if a non-Alluxio related exception occurs
    */
   @Override
   public void start() throws IOException {
     WorkerNetAddress netAddress;
     try {
-      netAddress = WorkerContext.getNetAddress();
+      netAddress = new WorkerNetAddress()
+          .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+          .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
+          .setDataPort(Configuration.getInt(Constants.WORKER_DATA_PORT))
+          .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
+
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);
