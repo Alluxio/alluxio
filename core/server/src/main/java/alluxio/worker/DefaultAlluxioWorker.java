@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,13 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       workerSource.registerGauges(mBlockWorker);
       mWorkerMetricsSystem.registerSource(workerSource);
 
+      // Determine port for web server
+      if (Configuration.getInt(Constants.WORKER_WEB_PORT) == 0) {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+          int freePort = serverSocket.getLocalPort();
+          Configuration.set(Constants.WORKER_WEB_PORT, Integer.toString(freePort));
+        }
+      }
       // Setup web server
       mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
           NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,

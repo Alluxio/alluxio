@@ -153,12 +153,6 @@ public abstract class UIWebServer {
       mServer.getConnectors()[0].close();
       mServer.getConnectors()[0].open();
       mServer.start();
-      if (mAddress.getPort() == 0) {
-        int webPort = mServer.getConnectors()[0].getLocalPort();
-        mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
-        // reset web service port
-        Configuration.set(mService.getPortKey(), Integer.toString(webPort));
-      }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
