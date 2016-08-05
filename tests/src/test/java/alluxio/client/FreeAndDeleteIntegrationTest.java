@@ -78,14 +78,13 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     final Long blockId = status.getBlockIds().get(0);
-    BlockMaster bm = alluxio.master.PrivateAccess.getBlockMaster(
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster());
+    BlockMaster bm =
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
     Assert.assertEquals(2, blockInfo.getLength());
     Assert.assertFalse(blockInfo.getLocations().isEmpty());
 
-    final BlockWorker bw = alluxio.worker.PrivateAccess.getBlockWorker(
-        mLocalAlluxioClusterResource.get().getWorker());
+    final BlockWorker bw = mLocalAlluxioClusterResource.get().getWorker().getBlockWorker();
     Assert.assertTrue(bw.hasBlockMeta(blockId));
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 
