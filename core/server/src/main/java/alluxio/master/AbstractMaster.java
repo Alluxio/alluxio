@@ -68,7 +68,9 @@ public abstract class AbstractMaster implements Master {
    * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
    * @param clock the Clock to use for determining the time
-   * @param executorService the executor service to use for running maintenance threads
+   * @param executorService the executor service to use for running maintenance threads; the
+   *        {@link AbstractMaster} becomes the owner of the executorService and will shut it down
+   *        when the master stops
    */
   protected AbstractMaster(MasterContext masterContext, Journal journal, Clock clock,
       ExecutorService executorService) {
