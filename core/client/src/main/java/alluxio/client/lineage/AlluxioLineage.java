@@ -47,6 +47,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
   }
 
   /**
+   * @param context lineage context
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get(LineageContext context) {
