@@ -49,9 +49,11 @@ public abstract class AbstractLineageClient implements LineageClient {
 
   /**
    * Constructs a new instance with a {@link LineageContext}.
+   *
+   * @param context lineage context
    */
-  public AbstractLineageClient() {
-    mContext = LineageContext.INSTANCE;
+  public AbstractLineageClient(LineageContext context) {
+    mContext = context;
   }
 
   @Override
