@@ -491,7 +491,6 @@ public final class FileSystemMasterTest {
 
   /**
    * Tests listing status on a non-persisted directory.
-   * @throws Exception
    */
   @Test
   public void listStatusWithLoadMetadataNonPersistedDirTest() throws Exception {
@@ -516,7 +515,8 @@ public final class FileSystemMasterTest {
     List<FileInfo> fileInfoList =
         mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
     Assert.assertEquals(2, fileInfoList.size());
-    // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths exist.
+    // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
+    // exist.
     Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
 
     Set<String> paths = new HashSet<>();
