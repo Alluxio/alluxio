@@ -519,7 +519,8 @@ public final class FileSystemMasterTest {
     Assert.assertFalse(
         mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
 
-    List<FileInfo> fileInfoList = mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
     Assert.assertEquals(2, fileInfoList.size());
     // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
     // exist.
