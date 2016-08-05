@@ -152,7 +152,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * Runs the block worker. The thread must be called after all services (e.g., web, dataserver)
    * started.
    *
-   * @param workerNetAddress the hostname and port information for this worker
    * @throws IOException if a non-Alluxio related exception occurs
    */
   @Override
