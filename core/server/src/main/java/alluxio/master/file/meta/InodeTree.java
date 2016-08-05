@@ -609,7 +609,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
-            currentInodeDirectory.getId(), name, fileOptions);
+            currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
         lockList.lockWrite(lastInode);
         if (currentInodeDirectory.isPinned()) {
