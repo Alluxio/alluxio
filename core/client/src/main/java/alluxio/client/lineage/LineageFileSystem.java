@@ -31,7 +31,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-public class LineageFileSystem extends BaseFileSystem {
+public final class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
   /**
