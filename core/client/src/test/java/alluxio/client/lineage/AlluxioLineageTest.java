@@ -23,7 +23,6 @@ import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,13 +56,6 @@ public final class AlluxioLineageTest {
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
-  }
-
-  @Test
-  public void getInstanceTest() {
-    AlluxioLineage tl = AlluxioLineage.get(mLineageContext);
-    // same as the second get
-    Assert.assertEquals(tl, AlluxioLineage.get(mLineageContext));
   }
 
   @Test
