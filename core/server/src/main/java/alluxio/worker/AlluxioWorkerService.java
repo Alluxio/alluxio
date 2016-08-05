@@ -13,7 +13,6 @@ package alluxio.worker;
 
 import alluxio.Server;
 import alluxio.metrics.MetricsSystem;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -97,14 +96,6 @@ public interface AlluxioWorkerService extends Server {
    * @return this worker's rpc address
    */
   InetSocketAddress getWorkerAddress();
-
-  /**
-   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
-   * server port, data server port, and web server port.
-   *
-   * @return the worker's net address
-   */
-  WorkerNetAddress getNetAddress();
 
   /**
    * @return the worker metric system reference

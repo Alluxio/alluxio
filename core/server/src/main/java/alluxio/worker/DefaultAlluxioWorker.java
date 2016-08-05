@@ -220,11 +220,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   @Override
-  public WorkerNetAddress getNetAddress() {
-    return mNetAddress;
-  }
-
-  @Override
   public void start() throws Exception {
     // NOTE: the order to start different services is sensitive. If you change it, do it cautiously.
 
@@ -244,9 +239,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
         new WorkerNetAddress()
             .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
             .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
-            .setDataPort(getDataLocalPort())
+            .setDataPort(Configuration.getInt(Constants.WORKER_DATA_PORT))
             .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
-    WorkerContext.setWorkerNetAddress(mNetAddress);
 
     // Start each worker
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
