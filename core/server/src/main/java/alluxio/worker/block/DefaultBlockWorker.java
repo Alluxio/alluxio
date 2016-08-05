@@ -89,8 +89,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Client for all file system master communication. */
   private final FileSystemMasterClient mFileSystemMasterClient;
 
-  /** Space reserver for the block data manager. */
-  private SpaceReserver mSpaceReserver = null;
   /** Block store delta reporter for master heartbeat. */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Metrics reporter that listens on block events and increases metrics counters. */
@@ -179,7 +177,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     // Setup space reserver
     if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
-      mSpaceReserver = new SpaceReserver(this);
+      getExecutorService().submit(
+          new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, new SpaceReserver(this),
+              Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
 
     getExecutorService()
@@ -193,11 +193,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);
-
-    // Start the space reserver
-    if (mSpaceReserver != null) {
-      getExecutorService().submit(mSpaceReserver);
-    }
   }
 
   /**
@@ -209,9 +204,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void stop() throws IOException {
     mSessionCleaner.stop();
     mBlockMasterClient.close();
-    if (mSpaceReserver != null) {
-      mSpaceReserver.stop();
-    }
     mFileSystemMasterClient.close();
     // Use shutdownNow because HeartbeatThreads never finish until they are interrupted
     getExecutorService().shutdownNow();

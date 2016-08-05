@@ -17,10 +17,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Test;
-import org.mockito.internal.util.reflection.Whitebox;
 
 import java.util.Collections;
 import java.util.List;
@@ -35,26 +33,16 @@ public class TtlBucketListTest {
   private static final long BUCKET2_START = BUCKET1_END;
   private static final long BUCKET2_END =  BUCKET2_START + BUCKET_INTERVAL;
   private static final InodeFile BUCKET1_FILE1 =
-      InodeFile.create(0, 0, "ignored", CreateFileOptions.defaults().setTtl(BUCKET1_START));
+      InodeFile.create(0, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET1_START));
   private static final InodeFile BUCKET1_FILE2 =
-      InodeFile.create(1, 0, "ignored", CreateFileOptions.defaults().setTtl(BUCKET1_END - 1));
+      InodeFile.create(1, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET1_END - 1));
   private static final InodeFile BUCKET2_FILE =
-      InodeFile.create(2, 0, "ignored", CreateFileOptions.defaults().setTtl(BUCKET2_START));
+      InodeFile.create(2, 0, "ignored", 0, CreateFileOptions.defaults().setTtl(BUCKET2_START));
 
   private TtlBucketList mBucketList;
 
   @ClassRule
   public static TtlIntervalRule sTtlIntervalRule = new TtlIntervalRule(BUCKET_INTERVAL);
-
-  /**
-   * Sets up the TTL interval before a single test runs.
-   */
-  @BeforeClass
-  public static void beforeClass() {
-    Whitebox.setInternalState(BUCKET1_FILE1, "mCreationTimeMs", 0);
-    Whitebox.setInternalState(BUCKET1_FILE2, "mCreationTimeMs", 0);
-    Whitebox.setInternalState(BUCKET2_FILE, "mCreationTimeMs", 0);
-  }
 
   /**
    * Sets up a new {@link TtlBucketList} before a test runs.

@@ -178,7 +178,7 @@ public abstract class AbstractLocalAlluxioCluster {
     if (workerId == WorkerIdRegistry.INVALID_WORKER_ID) {
       return false;
     }
-    BlockMaster blockMaster = PrivateAccess.getBlockMaster(getMaster().getInternalMaster());
+    BlockMaster blockMaster = getMaster().getInternalMaster().getBlockMaster();
     return BlockMasterPrivateAccess.isWorkerRegistered(blockMaster, workerId);
   }
 
