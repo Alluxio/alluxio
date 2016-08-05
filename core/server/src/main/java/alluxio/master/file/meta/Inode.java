@@ -46,10 +46,10 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
 
   private final ReentrantReadWriteLock mLock;
 
-  protected Inode(long id) {
+  protected Inode(long id, boolean isDirectory) {
     mCreationTimeMs = System.currentTimeMillis();
     mDeleted = false;
-    mDirectory = false;
+    mDirectory = isDirectory;
     mGroup = "";
     mId = id;
     mLastModificationTimeMs = mCreationTimeMs;
@@ -158,6 +158,15 @@ public abstract class Inode<T> implements JournalEntryRepresentable {
    */
   public boolean isPersisted() {
     return mPersistenceState == PersistenceState.PERSISTED;
+  }
+
+  /**
+   * @param creationTimeMs the creation time to use (in milliseconds)
+   * @return the updated object
+   */
+  public T setCreationTimeMs(long creationTimeMs) {
+    mCreationTimeMs = creationTimeMs;
+    return getThis();
   }
 
   /**

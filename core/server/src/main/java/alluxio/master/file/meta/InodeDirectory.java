@@ -41,8 +41,7 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
     }
   };
 
-  @SuppressWarnings("unchecked")
-  /** use UniqueFieldIndex directly for name index rather than using IndexedSet */
+  /** Use UniqueFieldIndex directly for name index rather than using IndexedSet. */
   private FieldIndex<Inode<?>> mChildren = new UniqueFieldIndex<Inode<?>>(NAME_INDEX);
 
   private boolean mMountPoint;
@@ -55,15 +54,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
    * @param id the id to use
    */
   private InodeDirectory(long id) {
-    super(id);
-    mDirectory = true;
+    super(id, true);
     mMountPoint = false;
-  }
-
-  private InodeDirectory(long id, long creationTimeMs) {
-    this(id);
-    mCreationTimeMs = creationTimeMs;
-
     mDirectChildrenLoaded = false;
   }
 
@@ -211,7 +203,8 @@ public final class InodeDirectory extends Inode<InodeDirectory> {
   public static InodeDirectory fromJournalEntry(InodeDirectoryEntry entry) {
     Permission permission =
         new Permission(entry.getOwner(), entry.getGroup(), (short) entry.getMode());
-    return new InodeDirectory(entry.getId(), entry.getCreationTimeMs())
+    return new InodeDirectory(entry.getId())
+        .setCreationTimeMs(entry.getCreationTimeMs())
         .setName(entry.getName())
         .setParentId(entry.getParentId())
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
