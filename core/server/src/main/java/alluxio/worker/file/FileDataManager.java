@@ -73,7 +73,7 @@ public final class FileDataManager {
   private final Object mLock = new Object();
 
   /** A per worker rate limiter to throttle async persistence. */
-  private RateLimiter mPersistenceRateLimiter;
+  private final RateLimiter mPersistenceRateLimiter;
 
   /**
    * Creates a new instance of {@link FileDataManager}.
