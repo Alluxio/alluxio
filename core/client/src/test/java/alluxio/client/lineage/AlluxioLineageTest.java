@@ -23,7 +23,6 @@ import alluxio.job.JobConf;
 
 import com.google.common.collect.Lists;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +30,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.List;
 
@@ -51,22 +49,13 @@ public final class AlluxioLineageTest {
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
     Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
-    Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
-    mAlluxioLineage = AlluxioLineage.get();
-    Whitebox.setInternalState(mAlluxioLineage, "mContext", mLineageContext);
+    mAlluxioLineage = AlluxioLineage.get(mLineageContext);
   }
 
   @After
   public void after() {
     ConfigurationTestUtils.resetConfiguration();
     ClientTestUtils.resetClient();
-  }
-
-  @Test
-  public void getInstanceTest() {
-    AlluxioLineage tl = AlluxioLineage.get();
-    // same as the second get
-    Assert.assertEquals(tl, AlluxioLineage.get());
   }
 
   @Test
