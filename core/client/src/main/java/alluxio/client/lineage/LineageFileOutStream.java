@@ -39,17 +39,6 @@ public class LineageFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream when lineage is enabled.
    *
-   * @param path the path of the file
-   * @param options the set of options specific to this operation
-   * @throws IOException if an I/O error occurs
-   */
-  public LineageFileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    this(FileSystemContext.INSTANCE, path, options);
-  }
-
-  /**
-   * Creates a new file output stream when lineage is enabled.
-   *
    * @param context file system context
    * @param path the path of the file
    * @param options the set of options specific to this operation

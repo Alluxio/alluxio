@@ -44,7 +44,7 @@ public class LineageFileSystem extends BaseFileSystem {
     return new LineageFileSystem(fileSystemContext, lineageContext);
   }
 
-  protected LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
+  private LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
     super(fileSystemContext);
     mLineageContext = lineageContext;
   }
@@ -94,7 +94,7 @@ public class LineageFileSystem extends BaseFileSystem {
     if (fileId == -1) {
       return new DummyFileOutputStream(path, options.toOutStreamOptions());
     }
-    return new LineageFileOutStream(path, options.toOutStreamOptions());
+    return new LineageFileOutStream(mFileSystemContext, path, options.toOutStreamOptions());
   }
 
   /**
