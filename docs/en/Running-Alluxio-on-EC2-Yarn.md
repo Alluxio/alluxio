@@ -134,7 +134,7 @@ Use script `integration/bin/alluxio-yarn.sh` to start Alluxio. This script takes
 3. The Yarn name for the node on which to run the Alluxio Master (optional, defaults to `ALLUXIO_MASTER_HOSTNAME`)
 
 For example, here we launch an Alluxio cluster with 3 worker nodes, where an HDFS temp directory is
-`hdfs://AlluxioMaster:9000/tmp/`
+`hdfs://AlluxioMaster:9000/tmp/` and the master hostname is `AlluxioMaster`
 
 {% include Running-Alluxio-on-EC2-Yarn/three-arguments.md %}
 
