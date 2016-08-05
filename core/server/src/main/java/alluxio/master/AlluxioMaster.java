@@ -46,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -240,6 +241,14 @@ public class AlluxioMaster implements Server {
       // reset master port
       Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
+
+      // Determine port for web server
+      if (Configuration.getInt(Constants.MASTER_WEB_PORT) == 0) {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+          int freePort = serverSocket.getLocalPort();
+          Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(freePort));
+        }
+      }
 
       // Check the journal directory
       String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);

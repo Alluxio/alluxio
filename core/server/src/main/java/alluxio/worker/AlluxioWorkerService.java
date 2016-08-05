@@ -73,16 +73,6 @@ public interface AlluxioWorkerService extends Server {
   long getUptimeMs();
 
   /**
-   * @return the worker's RPC service bind host
-   */
-  String getRPCBindHost();
-
-  /**
-   * @return the worker's RPC service port
-   */
-  int getRPCLocalPort();
-
-  /**
    * @return the worker web service bind host (used by unit test only)
    */
   String getWebBindHost();
@@ -95,7 +85,7 @@ public interface AlluxioWorkerService extends Server {
   /**
    * @return this worker's rpc address
    */
-  InetSocketAddress getWorkerAddress();
+  InetSocketAddress getRpcAddress();
 
   /**
    * @return the worker metric system reference

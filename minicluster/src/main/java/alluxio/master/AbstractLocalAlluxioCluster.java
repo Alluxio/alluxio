@@ -149,7 +149,8 @@ public abstract class AbstractLocalAlluxioCluster {
     actionMessage = "waiting for worker to serve rpc";
     LOG.info(actionMessage + ELLIPSIS);
     // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getRPCBindHost(), mWorker.getRPCLocalPort())
+    while (!NetworkAddressUtils.isServing(mWorker.getRpcAddress().getHostName(),
+        mWorker.getRpcAddress().getPort())
         || Configuration.getInt(Constants.WORKER_RPC_PORT) == 0) {
       waitAndCheckTimeout(startTime, actionMessage);
     }

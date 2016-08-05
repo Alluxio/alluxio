@@ -79,12 +79,12 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Random random = new Random();
     InetSocketAddress address = new InetSocketAddress(IntegrationTestUtils.randomString(),
         random.nextInt(8080) + 1);
-    Mockito.doReturn(address).when(mWorker).getWorkerAddress();
+    Mockito.doReturn(address).when(mWorker).getRpcAddress();
 
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS),
         NO_PARAMS, HttpMethod.GET, address.toString()).run();
 
-    Mockito.verify(mWorker).getWorkerAddress();
+    Mockito.verify(mWorker).getRpcAddress();
   }
 
   @Test
