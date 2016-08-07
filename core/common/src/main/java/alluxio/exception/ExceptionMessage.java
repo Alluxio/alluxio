@@ -162,7 +162,8 @@ public enum ExceptionMessage {
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
-      "Not enough usable hosts in the cluster to launch {0} workers. Only {1} hosts available"),
+      "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {2} hosts "
+          + "available"),
 
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
