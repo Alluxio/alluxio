@@ -12,7 +12,7 @@
 package alluxio.master.block;
 
 import alluxio.Constants;
-import alluxio.clock.TestClock;
+import alluxio.clock.ManualClock;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
 import alluxio.heartbeat.ManuallyScheduleHeartbeat;
@@ -61,7 +61,7 @@ public class BlockMasterTest {
   private static final Map<String, List<Long>> NO_BLOCKS_ON_TIERS = ImmutableMap.of();
 
   private BlockMaster mMaster;
-  private TestClock mClock;
+  private ManualClock mClock;
   private ExecutorService mExecutorService;
 
   /** Rule to create a new temporary folder during each test. */
@@ -82,7 +82,7 @@ public class BlockMasterTest {
   @Before
   public void before() throws Exception {
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    mClock = new TestClock();
+    mClock = new ManualClock();
     mExecutorService =
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("TestBlockMaster-%d", true));
     MasterContext masterContext = new MasterContext(new MasterSource());
