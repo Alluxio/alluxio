@@ -162,7 +162,7 @@ public enum ExceptionMessage {
 
   // yarn
   YARN_NOT_ENOUGH_HOSTS(
-      "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {1} hosts "
+      "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {2} hosts "
           + "available"),
 
   // mounting
