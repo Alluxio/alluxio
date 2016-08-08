@@ -209,12 +209,12 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(String key) {
-    String raw = PROPERTIES.get(key);
-    if (raw == null) {
+    String rawValue = PROPERTIES.get(key);
+    if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    return lookup(raw);
+    return lookup(rawValue);
   }
 
   /**
