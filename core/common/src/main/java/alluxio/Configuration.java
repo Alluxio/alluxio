@@ -342,13 +342,15 @@ public final class Configuration {
   public static List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
-    if (PROPERTIES.containsKey(key)) {
-      String rawValue = PROPERTIES.get(key);
-      return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
-          .split(rawValue));
+
+    String rawValue = PROPERTIES.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
+        .split(rawValue));
   }
 
   /**
