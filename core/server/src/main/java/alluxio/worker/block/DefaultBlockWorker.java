@@ -80,9 +80,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Runnable responsible for clean up potential zombie sessions. */
   private SessionCleaner mSessionCleaner;
 
-  /** Logic for handling RPC requests. */
-  private final BlockWorkerClientServiceHandler mServiceHandler;
-
   /** Client for all block master communication. */
   private final BlockMasterClient mBlockMasterClient;
 
@@ -105,7 +102,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
 
   @Override
   public BlockWorkerClientServiceHandler getWorkerServiceHandler() {
-    return mServiceHandler;
+    return new BlockWorkerClientServiceHandler(this);
   }
 
   /**
@@ -114,28 +111,32 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    * @throws IOException if an IO exception occurs
    */
   public DefaultBlockWorker() throws IOException {
+    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new Sessions(), new TieredBlockStore());
+  }
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @param blockMasterClient a client for talking to the block master
+   * @param fileSystemMasterClient a client for talking to the file system master
+   * @param sessions an object for tracking and cleaning up client sessions
+   * @param blockStore an Alluxio block store
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore)
+          throws IOException {
     super(Executors.newFixedThreadPool(4,
         ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    // Setup BlockMasterClient
-    mBlockMasterClient =
-        new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
-    mFileSystemMasterClient =
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC));
-
-    // Setup RPC ServerHandler
-    mServiceHandler = new BlockWorkerClientServiceHandler(this);
-
-    // Setup BlockHeartbeatReporter
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
     mHeartbeatReporter = new BlockHeartbeatReporter();
-    // Setup BlockMetricsReporter
     mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
-    // Setup Sessions
-    mSessions = new Sessions();
-    // Setup the BlockStore
-    mBlockStore = new TieredBlockStore();
+    mSessions = sessions;
+    mBlockStore = blockStore;
 
-    // Register the heartbeat reporter so it can record block store changes
     mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
     mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
   }
@@ -166,14 +167,24 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     }
 
     // Setup BlockMasterSync
-    mBlockMasterSync =
-        new BlockMasterSync(this, netAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(this, netAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
 
     // Setup session cleaner
-    setupSessionCleaner();
+    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
+      /**
+       * Cleans up after sessions, to prevent zombie sessions holding local resources.
+       */
+      @Override
+      public void cleanupSessions() {
+        for (long session : mSessions.getTimedOutSessions()) {
+          mSessions.removeSession(session);
+          mBlockStore.cleanupSession(session);
+        }
+      }
+    });
 
     // Setup space reserver
     if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
@@ -379,24 +390,6 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   public void sessionHeartbeat(long sessionId, List<Long> metrics) {
     mSessions.sessionHeartbeat(sessionId);
     mMetricsReporter.updateClientMetrics(metrics);
-  }
-
-  /**
-   * Sets up the session cleaner thread. This logic is isolated for testing the session cleaner.
-   */
-  private void setupSessionCleaner() {
-    mSessionCleaner = new SessionCleaner(new SessionCleanupCallback() {
-      /**
-       * Cleans up after sessions, to prevent zombie sessions holding local resources.
-       */
-      @Override
-      public void cleanupSessions() {
-        for (long session : mSessions.getTimedOutSessions()) {
-          mSessions.removeSession(session);
-          mBlockStore.cleanupSession(session);
-        }
-      }
-    });
   }
 
   @Override
