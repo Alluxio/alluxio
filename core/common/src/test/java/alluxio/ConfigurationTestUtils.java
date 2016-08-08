@@ -31,8 +31,8 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
-    ConcurrentHashMapV8<String, String>
-        properties = Whitebox.getInternalState(Configuration.class, "PROPERTIES");
+    ConcurrentHashMapV8<String, String> properties =
+        Whitebox.getInternalState(Configuration.class, "PROPERTIES_MAP");
     properties.clear();
     Configuration.defaultInit();
   }
