@@ -263,8 +263,7 @@ public final class Configuration {
     try {
       return Long.parseLong(lookup(rawValue));
     } catch (NumberFormatException e) {
-      LOG.warn("Configuration cannot evaluate key {} as long.", key);
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_LONG.getMessage(key));
     }
   }
 
@@ -304,8 +303,7 @@ public final class Configuration {
     try {
       return Float.parseFloat(lookup(rawValue));
     } catch (NumberFormatException e) {
-      LOG.warn("Configuration cannot evaluate key {} as float.", key);
-      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_FLOAT.getMessage(key));
     }
   }
 
