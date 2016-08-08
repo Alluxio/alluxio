@@ -64,6 +64,10 @@ group: Resources
 	    }
 6. Loop back to step #2 until the class's entire public API has been tested.
 
+# Conventions
+1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
+2. Tests do not need to handle or document specific checked exceptions. Prefer to simply add `throws Exception` to the test method signature.
+3. Aim to keep tests short and simple enough that they don't require comments to understand.
 
 # Patterns to avoid
 
