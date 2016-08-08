@@ -108,7 +108,7 @@ public abstract class AbstractClient implements Client {
       try {
         mServiceVersion = client.getServiceVersion();
       } catch (TException e) {
-        throw new IOException(e.getMessage());
+        throw new IOException(e.toString());
       }
       if (mServiceVersion != version) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
