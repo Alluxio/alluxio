@@ -234,16 +234,17 @@ public final class Configuration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      try {
-        return Integer.parseInt(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    try {
+      return Integer.parseInt(lookup(rawValue));
+    } catch (NumberFormatException e) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+    }
   }
 
   /**
@@ -253,16 +254,18 @@ public final class Configuration {
    * @return the value for the given key as a {@code long}
    */
   public static long getLong(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      try {
-        return Long.parseLong(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key {} as long.", key);
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    try {
+      return Long.parseLong(lookup(rawValue));
+    } catch (NumberFormatException e) {
+      LOG.warn("Configuration cannot evaluate key {} as long.", key);
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_INTEGER.getMessage(key));
+    }
   }
 
   /**
@@ -272,16 +275,17 @@ public final class Configuration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      try {
-        return Double.parseDouble(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    try {
+      return Double.parseDouble(lookup(rawValue));
+    } catch (NumberFormatException e) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+    }
   }
 
   /**
@@ -291,16 +295,18 @@ public final class Configuration {
    * @return the value for the given key as a {@code float}
    */
   public static float getFloat(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      try {
-        return Float.parseFloat(lookup(rawValue));
-      } catch (NumberFormatException e) {
-        LOG.warn("Configuration cannot evaluate key {} as float.", key);
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    try {
+      return Float.parseFloat(lookup(rawValue));
+    } catch (NumberFormatException e) {
+      LOG.warn("Configuration cannot evaluate key {} as float.", key);
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_DOUBLE.getMessage(key));
+    }
   }
 
   /**
@@ -310,19 +316,20 @@ public final class Configuration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      String value = lookup(rawValue);
-      if (value.equalsIgnoreCase("true")) {
-        return true;
-      } else if (value.equalsIgnoreCase("false")) {
-        return false;
-      } else {
-        throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(key));
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+
+    String value = lookup(rawValue);
+    if (value.equalsIgnoreCase("true")) {
+      return true;
+    } else if (value.equalsIgnoreCase("false")) {
+      return false;
+    } else {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BOOLEAN.getMessage(key));
+    }
   }
 
   /**
@@ -353,11 +360,12 @@ public final class Configuration {
    * @return the value for the given key as an enum value
    */
   public static <T extends Enum<T>> T getEnum(String key, Class<T> enumType) {
-    if (!PROPERTIES_MAP.containsKey(key)) {
+    String rawValue = get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    final String val = get(key);
-    return Enum.valueOf(enumType, val);
+    return Enum.valueOf(enumType, rawValue);
   }
 
   /**
@@ -367,15 +375,16 @@ public final class Configuration {
    * @return the bytes of the value for the given key
    */
   public static long getBytes(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = get(key);
-      try {
-        return FormatUtils.parseSpaceSize(rawValue);
-      } catch (Exception ex) {
-        throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(key));
-      }
+    String rawValue = get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+    try {
+      return FormatUtils.parseSpaceSize(rawValue);
+    } catch (Exception ex) {
+      throw new RuntimeException(ExceptionMessage.KEY_NOT_BYTES.getMessage(key));
+    }
   }
 
   /**
@@ -386,19 +395,19 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(String key) {
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
-      try {
-        @SuppressWarnings("unchecked")
-        Class<T> clazz = (Class<T>) Class.forName(rawValue);
-        return clazz;
-      } catch (Exception e) {
-        LOG.error("requested class could not be loaded: {}", rawValue, e);
-        throw Throwables.propagate(e);
-      }
+    String rawValue = PROPERTIES_MAP.get(key);
+    if (rawValue == null) {
+      // if key is not found among the default properties
+      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
     }
-    // if key is not found among the default properties
-    throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+    try {
+      @SuppressWarnings("unchecked")
+      Class<T> clazz = (Class<T>) Class.forName(rawValue);
+      return clazz;
+    } catch (Exception e) {
+      LOG.error("requested class could not be loaded: {}", rawValue, e);
+      throw Throwables.propagate(e);
+    }
   }
 
   /**
