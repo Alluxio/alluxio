@@ -70,7 +70,7 @@ public final class Configuration {
   /** Regex to find ${key} for variable substitution. */
   private static final Pattern CONF_REGEX = Pattern.compile(REGEX_STRING);
   /** Map of properties. */
-  private static final ConcurrentHashMapV8<String, String> PROPERTIES_MAP =
+  private static final ConcurrentHashMapV8<String, String> PROPERTIES =
       new ConcurrentHashMapV8<>();
 
   static {
@@ -132,18 +132,18 @@ public final class Configuration {
     }
 
     // Now lets combine, order matters here
-    putFromProperties(defaultProps);
+    mergeProperties(defaultProps);
     if (siteProps != null) {
-      putFromProperties(siteProps);
+      mergeProperties(siteProps);
     }
-    putFromProperties(systemProps);
+    mergeProperties(systemProps);
 
-    String masterHostname = PROPERTIES_MAP.get(Constants.MASTER_HOSTNAME);
-    String masterPort = PROPERTIES_MAP.get(Constants.MASTER_RPC_PORT);
-    boolean useZk = Boolean.parseBoolean(PROPERTIES_MAP.get(Constants.ZOOKEEPER_ENABLED));
+    String masterHostname = PROPERTIES.get(Constants.MASTER_HOSTNAME);
+    String masterPort = PROPERTIES.get(Constants.MASTER_RPC_PORT);
+    boolean useZk = Boolean.parseBoolean(PROPERTIES.get(Constants.ZOOKEEPER_ENABLED));
     String masterAddress =
         (useZk ? Constants.HEADER_FT : Constants.HEADER) + masterHostname + ":" + masterPort;
-    PROPERTIES_MAP.put(Constants.MASTER_ADDRESS, masterAddress);
+    PROPERTIES.put(Constants.MASTER_ADDRESS, masterAddress);
     checkUserFileBufferBytes();
 
     // Make sure the user hasn't set worker ports when there may be multiple workers per host
@@ -157,15 +157,15 @@ public final class Configuration {
           String.format(message, Constants.WORKER_RPC_PORT));
       Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
           String.format(message, Constants.WORKER_WEB_PORT));
-      PROPERTIES_MAP.put(Constants.WORKER_DATA_PORT, "0");
-      PROPERTIES_MAP.put(Constants.WORKER_RPC_PORT, "0");
-      PROPERTIES_MAP.put(Constants.WORKER_WEB_PORT, "0");
+      PROPERTIES.put(Constants.WORKER_DATA_PORT, "0");
+      PROPERTIES.put(Constants.WORKER_RPC_PORT, "0");
+      PROPERTIES.put(Constants.WORKER_WEB_PORT, "0");
     }
   }
 
-  private static void putFromProperties(Properties properties) {
+  private static void mergeProperties(Properties properties) {
     for (String key : properties.stringPropertyNames()) {
-      PROPERTIES_MAP.put(key, properties.getProperty(key));
+      PROPERTIES.put(key, properties.getProperty(key));
     }
   }
 
@@ -179,7 +179,7 @@ public final class Configuration {
     if (properties != null) {
       // merge the system properties
       for (Map.Entry<?, ?> entry : properties.entrySet()) {
-        PROPERTIES_MAP.put(entry.getKey().toString(), entry.getValue().toString());
+        PROPERTIES.put(entry.getKey().toString(), entry.getValue().toString());
       }
     }
     checkUserFileBufferBytes();
@@ -198,7 +198,7 @@ public final class Configuration {
   public static void set(String key, String value) {
     Preconditions.checkArgument(key != null && value != null,
         String.format("the key value pair (%s, %s) cannot have null", key, value));
-    PROPERTIES_MAP.put(key, value);
+    PROPERTIES.put(key, value);
     checkUserFileBufferBytes();
   }
 
@@ -209,7 +209,7 @@ public final class Configuration {
    * @return the value for the given key
    */
   public static String get(String key) {
-    String raw = PROPERTIES_MAP.get(key);
+    String raw = PROPERTIES.get(key);
     if (raw == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -224,7 +224,7 @@ public final class Configuration {
    * @return true if the key is in the {@link Properties}, false otherwise
    */
   public static boolean containsKey(String key) {
-    return PROPERTIES_MAP.containsKey(key);
+    return PROPERTIES.containsKey(key);
   }
 
   /**
@@ -234,7 +234,7 @@ public final class Configuration {
    * @return the value for the given key as an {@code int}
    */
   public static int getInt(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -254,7 +254,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code long}
    */
   public static long getLong(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -275,7 +275,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code double}
    */
   public static double getDouble(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -295,7 +295,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code float}
    */
   public static float getFloat(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -316,7 +316,7 @@ public final class Configuration {
    * @return the value for the given key as a {@code boolean}
    */
   public static boolean getBoolean(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -342,8 +342,8 @@ public final class Configuration {
   public static List<String> getList(String key, String delimiter) {
     Preconditions.checkArgument(delimiter != null, "Illegal separator for Alluxio properties as "
         + "list");
-    if (PROPERTIES_MAP.containsKey(key)) {
-      String rawValue = PROPERTIES_MAP.get(key);
+    if (PROPERTIES.containsKey(key)) {
+      String rawValue = PROPERTIES.get(key);
       return Lists.newLinkedList(Splitter.on(delimiter).trimResults().omitEmptyStrings()
           .split(rawValue));
     }
@@ -395,7 +395,7 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(String key) {
-    String rawValue = PROPERTIES_MAP.get(key);
+    String rawValue = PROPERTIES.get(key);
     if (rawValue == null) {
       // if key is not found among the default properties
       throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
@@ -414,7 +414,7 @@ public final class Configuration {
    * @return a view of the internal {@link Properties} of as an immutable map
    */
   public static Map<String, String> toMap() {
-    return Collections.unmodifiableMap(PROPERTIES_MAP);
+    return Collections.unmodifiableMap(PROPERTIES);
   }
 
   /**
@@ -448,7 +448,7 @@ public final class Configuration {
       String match = matcher.group(2).trim();
       String value;
       if (!found.containsKey(match)) {
-        value = lookupRecursively(PROPERTIES_MAP.get(match), found);
+        value = lookupRecursively(PROPERTIES.get(match), found);
         found.put(match, value);
       } else {
         value = found.get(match);
