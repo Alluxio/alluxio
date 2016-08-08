@@ -309,6 +309,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] list(String path) throws IOException {
+    LOG.debug("List {}", path);
     return listHelper(path, false);
   }
 
