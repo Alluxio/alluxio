@@ -494,6 +494,55 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
   }
 
+  /**
+   * Tests listing status on a non-persisted directory.
+   */
+  @Test
+  public void listStatusWithLoadMetadataNonPersistedDirTest() throws Exception {
+    AlluxioURI ufsMount = new AlluxioURI(mTestFolder.newFolder().getAbsolutePath());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/mnt/"), CreateDirectoryOptions.defaults());
+
+    // Create ufs file
+    mFileSystemMaster.mount(new AlluxioURI("/mnt/local"), ufsMount, MountOptions.defaults());
+
+    // 3 directories exist.
+    Assert.assertEquals(3, mFileSystemMaster.getNumberOfPaths());
+
+    // Create a drectory in alluxio which is not persisted.
+    AlluxioURI folder = new AlluxioURI("/mnt/local/folder");
+    mFileSystemMaster.createDirectory(folder, CreateDirectoryOptions.defaults());
+
+    Assert.assertFalse(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
+
+    // Create files in ufs.
+    Files.createDirectory(Paths.get(ufsMount.join("folder").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("folder").join("file1").getPath()));
+    Files.createFile(Paths.get(ufsMount.join("folder").join("file2").getPath()));
+
+    // getStatus won't mark folder as persisted.
+    Assert.assertFalse(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
+
+    List<FileInfo> fileInfoList =
+        mFileSystemMaster.listStatus(folder, ListStatusOptions.defaults());
+    Assert.assertEquals(2, fileInfoList.size());
+    // listStatus should have loaded files (folder, folder/file1, folder/file2), so now 6 paths
+    // exist.
+    Assert.assertEquals(6, mFileSystemMaster.getNumberOfPaths());
+
+    Set<String> paths = new HashSet<>();
+    for (FileInfo f : fileInfoList) {
+      paths.add(f.getPath());
+    }
+    Assert.assertEquals(2, paths.size());
+    Assert.assertTrue(paths.contains("/mnt/local/folder/file1"));
+    Assert.assertTrue(paths.contains("/mnt/local/folder/file2"));
+
+    Assert.assertTrue(
+        mFileSystemMaster.getFileInfo(new AlluxioURI("/mnt/local/folder")).isPersisted());
+  }
+
   @Test
   public void listStatusTest() throws Exception {
     final int files = 10;

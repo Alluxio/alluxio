@@ -1823,15 +1823,9 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     try {
       if (!ufs.exists(ufsUri.toString())) {
-        // The root is special as it is considered as PERSISTED by default.
-        // We try to load root once. If it doesn't exist, do not try it again.
-        if (path.isRoot()) {
-          InodeDirectory inode = (InodeDirectory) inodePath.getInode();
-          inode.setDirectChildrenLoaded(true);
-          return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
-        }
-        throw new FileDoesNotExistException(
-            ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage(path.getPath()));
+        InodeDirectory inode = (InodeDirectory) inodePath.getInode();
+        inode.setDirectChildrenLoaded(true);
+        return AsyncJournalWriter.INVALID_FLUSH_COUNTER;
       }
       if (ufs.isFile(ufsUri.toString())) {
         return loadFileMetadataAndJournal(inodePath, resolution, options);
@@ -1954,13 +1948,11 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
-   * Loads metadata for the path if it is (non-existing || (persisted && load direct children is
-   * set).
+   * Loads metadata for the path if it is (non-existing || load direct children is set).
    *
    * @param inodePath the {@link LockedInodePath} to load the metadata for
    * @param options the load metadata options
    */
-  // TODO(peis): Add a unit test for this function.
   private long loadMetadataIfNotExistAndJournal(LockedInodePath inodePath,
       LoadMetadataOptions options) {
     boolean inodeExists = inodePath.fullPathExists();
@@ -1968,8 +1960,7 @@ public final class FileSystemMaster extends AbstractMaster {
     if (inodeExists) {
       try {
         Inode<?> inode = inodePath.getInode();
-        loadDirectChildren =
-            inode.isDirectory() && inode.isPersisted() && options.isLoadDirectChildren();
+        loadDirectChildren = inode.isDirectory() && options.isLoadDirectChildren();
       } catch (FileDoesNotExistException e) {
         // This should never happen.
         throw new RuntimeException(e);
