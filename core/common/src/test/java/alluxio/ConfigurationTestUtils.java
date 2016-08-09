@@ -32,7 +32,7 @@ public final class ConfigurationTestUtils {
    */
   public static void resetConfiguration() {
     ConcurrentHashMapV8<String, String> properties =
-        Whitebox.getInternalState(Configuration.class, "PROPERTIES_MAP");
+        Whitebox.getInternalState(Configuration.class, "PROPERTIES");
     properties.clear();
     Configuration.defaultInit();
   }
