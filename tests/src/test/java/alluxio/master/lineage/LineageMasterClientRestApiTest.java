@@ -14,6 +14,8 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource.Config;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
@@ -50,7 +52,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getMaster().getWebLocalPort();
     mServicePrefix = LineageMasterClientRestServiceHandler.SERVICE_PREFIX;
-    mLineageClient = LineageFileSystem.get();
+    mLineageClient = LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
     mMaster = mResource.get().getMaster().getInternalMaster();
   }
 
