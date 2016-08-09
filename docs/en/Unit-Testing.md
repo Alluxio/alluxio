@@ -15,7 +15,7 @@ group: Resources
 
 # How to write a unit test
 
-1\. If creating an instance of the class takes some work, create `@Before` and `@After` methods which handle setup and cleanup. These methods get run automatically before and after each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
+1\. If creating an instance of the class takes some work, create a `@Before` method to perform common setup. The `@Before` method gets run automatically before each unit test. Only do general setup which will apply to every test. Test-specific setup should be done locally in the tests that need it. In this example, we are testing a `BlockMaster`, which depends on a journal, clock, and executor service. The executor service and journal we provide are real implementations, and the `TestClock` is a fake clock which can be controlled by unit tests.
 
 ```java
 @Before
@@ -27,22 +27,26 @@ public void before() throws Exception {
   mMaster = new BlockMaster(blockJournal, mClock, mExecutorService);
   mMaster.start(true);
 }
+```
 
+2\. If anything created in `@Before` creates something which needs to be cleaned up (e.g. a `BlockMaster`), create an `@After` method to do the cleanup. This method is automatically called after each test.
+
+```java
 @After
 public void after() throws Exception {
   mMaster.stop();
 }
 ```
 
-2\. Decide on an element of functionality to test. The functionality you decide to test should be part of the public API and should not care about implementation details.
+3\. Decide on an element of functionality to test. The functionality you decide to test should be part of the public API and should not care about implementation details. Tests should be focused on testing only one thing.
 
-3\. Give your test a name that describes what functionality it's testing. The functionality being tested should ideally be simple enough to fit into a name, e.g. `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
+4\. Give your test a name that describes what functionality it's testing. The functionality being tested should ideally be simple enough to fit into a name, e.g. `removeNonexistentBlockThrowsException`, `mkdirCreatesDirectory`, or `cannotMkdirExistingFile`.
 
 ```java
 @Test
 public void detectLostWorker() throws Exception {
 ```
-4\. Set up the situation you want to test. Here we register a worker and then simulate an hour passing. The `HeartbeatScheduler` section enforces that the lost worker heartbeat runs at least once.
+5\. Set up the situation you want to test. Here we register a worker and then simulate an hour passing. The `HeartbeatScheduler` section enforces that the lost worker heartbeat runs at least once.
 
 ```java
   // Register a worker.
@@ -61,7 +65,7 @@ public void detectLostWorker() throws Exception {
   HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_WORKER_DETECTION);
   HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_WORKER_DETECTION, 1, TimeUnit.SECONDS);
 ```
-5\. Check that the class behaved correctly:
+6\. Check that the class behaved correctly:
 
 ```java
   // Make sure the worker is detected as lost.
@@ -69,7 +73,7 @@ public void detectLostWorker() throws Exception {
   Assert.assertEquals(worker1, Iterables.getOnlyElement(info).getId());
 }
 ```
-6\. Loop back to step #2 until the class's entire public API has been tested.
+7\. Loop back to step #3 until the class's entire public API has been tested.
 
 # Conventions
 1. The tests for `src/main/java/ClassName.java` should go in `src/test/java/ClassNameTest.java`
@@ -80,6 +84,6 @@ public void detectLostWorker() throws Exception {
 
 1. Avoid randomness. Edge cases should be handled explicitly.
 2. Avoid waiting for something by calling Thread.sleep(). This leads to slower unit tests and can cause flaky failures if the sleep isn't long enough.
-3. Avoid modifying global state. We typically use JUnit `Rule` when this is necessary so that the state is properly restored. See `SystemPropertyRule`, `TtlIntervalRule`, or `LocalAlluxioClusterResource` for examples of this.
+3. Avoid modifying global state. We typically use JUnit `Rule` when this is necessary so that the state is properly restored. See `SystemPropertyRule`, `TtlIntervalRule`, or `LocalAlluxioClusterResource` for examples of this. `SystemPropertyRule` modifies a system property over the course of a test, then resets the property back to its original value before the test. `TtlIntervalRule` is similar, but for Alluxio TTL interval property. `LocalAlluxioClusterResource` starts up a test Alluxio cluster and cleans it up when the test is over.
 4. Avoid using Whitebox to mess with the internal state of objects under test. If you need to mock a dependency, change the object to take the dependency as a parameter in its constructor (see [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection))
 5. Avoid slow tests. Mock expensive dependencies and aim to keep individual test times under 100ms.
