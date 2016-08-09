@@ -100,16 +100,13 @@ public final class Configuration {
    */
   private static void init(String sitePropertiesFile, boolean includeSystemProperties) {
     // Load default
-    Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
-    if (defaultProps == null) {
-      throw new RuntimeException(
-          ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST.getMessage());
-    }
+    ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES, PROPERTIES);
+
     // Override runtime default
-    defaultProps.setProperty(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
-    defaultProps.setProperty(Constants.WORKER_NETWORK_NETTY_CHANNEL,
+    PROPERTIES.put(Constants.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250));
+    PROPERTIES.put(Constants.WORKER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
-    defaultProps.setProperty(Constants.USER_NETWORK_NETTY_CHANNEL,
+    PROPERTIES.put(Constants.USER_NETWORK_NETTY_CHANNEL,
         String.valueOf(ChannelType.defaultType()));
 
     String confPaths;
@@ -117,26 +114,17 @@ public final class Configuration {
     if (System.getProperty(Constants.SITE_CONF_DIR) != null) {
       confPaths = System.getProperty(Constants.SITE_CONF_DIR);
     } else {
-      confPaths = defaultProps.getProperty(Constants.SITE_CONF_DIR);
+      confPaths = PROPERTIES.get(Constants.SITE_CONF_DIR);
     }
     String[] confPathList = confPaths.split(",");
 
     // Load site specific properties file
-    Properties siteProps = ConfigurationUtils
-        .searchPropertiesFile(sitePropertiesFile, confPathList);
+    ConfigurationUtils.searchPropertiesFile(sitePropertiesFile, confPathList, PROPERTIES);
 
     // Load system properties
-    Properties systemProps = new Properties();
     if (includeSystemProperties) {
-      systemProps.putAll(System.getProperties());
+      mergeProperties(System.getProperties());
     }
-
-    // Now lets combine, order matters here
-    mergeProperties(defaultProps);
-    if (siteProps != null) {
-      mergeProperties(siteProps);
-    }
-    mergeProperties(systemProps);
 
     String masterHostname = PROPERTIES.get(Constants.MASTER_HOSTNAME);
     String masterPort = PROPERTIES.get(Constants.MASTER_RPC_PORT);
