@@ -385,11 +385,11 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
       // created the block (either as temp block or committed block). The second sees this
       // exception.
       LOG.info(
-              "The block with ID {} is already stored in the target worker, canceling the cache "
-                      +  "request.", getCurrentBlockId());
+          "The block with ID {} is already stored in the target worker, canceling the cache "
+              + "request.", getCurrentBlockId());
     } else {
       LOG.warn("The block with ID {} could not be cached into Alluxio storage.",
-              getCurrentBlockId());
+          getCurrentBlockId());
     }
     closeOrCancelCacheStream();
   }
