@@ -241,11 +241,6 @@ public class AlluxioMaster implements Server {
       Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-      // reset master web port
-      Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
-
       // Check the journal directory
       String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
@@ -280,6 +275,13 @@ public class AlluxioMaster implements Server {
       masterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master");
       mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
+
+      // The web server needs to be created at the end of the constructor because it needs a
+      // reference to this class.
+      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+      // reset master web port
+      Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
