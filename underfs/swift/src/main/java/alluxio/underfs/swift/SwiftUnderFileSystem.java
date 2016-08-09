@@ -407,7 +407,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public InputStream open(String path) throws IOException {
-    return new SwiftInputStream(mContainerName, stripContainerPrefixIfPresent(path), mAccount);
+    return new SwiftInputStream(mAccount, mContainerName, stripContainerPrefixIfPresent(path));
   }
 
   /**

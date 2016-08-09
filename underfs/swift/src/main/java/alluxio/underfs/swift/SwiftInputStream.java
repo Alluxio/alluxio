@@ -11,14 +11,10 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Constants;
-
 import org.javaswift.joss.headers.object.range.ExcludeStartRange;
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -29,9 +25,6 @@ import java.io.InputStream;
  */
 @NotThreadSafe
 public class SwiftInputStream extends InputStream {
-
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
-
   /** JOSS Swift account. */
   private final Account mAccount;
   /** Name of container the object resides in. */
@@ -40,21 +33,20 @@ public class SwiftInputStream extends InputStream {
   private final String mObjectPath;
 
   /** The backing input stream. */
-  private InputStream mIn;
+  private InputStream mStream;
   /** The current position of the stream. */
   private int mPos;
 
   /**
    * Constructor for an input stream to an object in a Swift API based store.
-   * @param container name of container
-   * @param object path of object in the container
-   * @param account JOSS account
-   * @throws IOException
+   * @param account JOSS account with authentication credentials
+   * @param container the name of container where the object resides
+   * @param object path of the object in the container
    */
-  public SwiftInputStream(String container, String object, Account account) {
+  public SwiftInputStream(Account account, String container, String object) {
+    mAccount = account;
     mContainerName = container;
     mObjectPath = object;
-    mAccount = account;
   }
 
   @Override
@@ -64,10 +56,10 @@ public class SwiftInputStream extends InputStream {
 
   @Override
   public int read() throws IOException {
-    if (mIn == null) {
+    if (mStream == null) {
       openStream();
     }
-    int value = mIn.read();
+    int value = mStream.read();
     if (value != -1) { // valid data read
       mPos++;
     }
@@ -84,10 +76,10 @@ public class SwiftInputStream extends InputStream {
     if (length == 0) {
       return 0;
     }
-    if (mIn == null) {
+    if (mStream == null) {
       openStream();
     }
-    int read = mIn.read(b, offset, length);
+    int read = mStream.read(b, offset, length);
     if (read != -1) {
       mPos += read;
     }
@@ -109,23 +101,23 @@ public class SwiftInputStream extends InputStream {
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
   private void openStream() {
-    if (mIn != null) { // stream is already open
+    if (mStream != null) { // stream is already open
       return;
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
     downloadInstructions.setRange(new ExcludeStartRange(mPos));
-    mIn = storedObject.downloadObjectAsInputStream(downloadInstructions);
+    mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
   }
 
   /**
    * Closes the current stream.
    */
   private void closeStream() throws IOException {
-    if (mIn == null) {
+    if (mStream == null) {
       return;
     }
-    mIn.close();
-    mIn = null;
+    mStream.close();
+    mStream = null;
   }
 }
