@@ -178,7 +178,6 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
   public void mountTest() throws Exception {
     AlluxioURI uri = new AlluxioURI("/file");
 
-
     Map<String, String> params = new HashMap<>();
     params.put("path", uri.toString());
     params.put("ufsPath", mFolder.newFolder().getAbsolutePath());

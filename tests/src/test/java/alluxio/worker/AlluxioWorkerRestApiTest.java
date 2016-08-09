@@ -134,9 +134,10 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getStartTimeMsTest() throws Exception {
-    String startTimeString = new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS),
-        NO_PARAMS, HttpMethod.GET, null).call();
-    long startTime= Long.parseLong(startTimeString);
+    String startTimeString = new TestCase(mHostname, mPort,
+        getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS), NO_PARAMS, HttpMethod.GET,
+        null).call();
+    long startTime = Long.parseLong(startTimeString);
     Assert.assertTrue(startTime > System.currentTimeMillis() - 20 * Constants.SECOND_MS);
     Assert.assertTrue(startTime <= System.currentTimeMillis());
   }
@@ -144,8 +145,9 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   @Test
   public void getUptimeMsTest() throws Exception {
     CommonUtils.sleepMs(1);
-    String uptimeString = new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS),
-        NO_PARAMS, HttpMethod.GET, null).call();
+    String uptimeString =
+        new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS),
+            NO_PARAMS, HttpMethod.GET, null).call();
     long uptime = Long.parseLong(uptimeString);
     Assert.assertTrue(uptime > 0);
     Assert.assertTrue(uptime < 20 * Constants.SECOND_MS);
