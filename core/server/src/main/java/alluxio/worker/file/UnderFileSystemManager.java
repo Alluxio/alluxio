@@ -24,6 +24,7 @@ import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.s3.S3UnderFileSystem;
+import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.util.IdUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -193,7 +194,10 @@ public final class UnderFileSystemManager {
         }
         UnderFileSystem ufs = UnderFileSystem.get(mUri);
         // TODO(calvin): Consider making openAtPosition part of the UFS API
-        if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
+        if (ufs instanceof S3AUnderFileSystem) { // Optimization for S3A UFS
+          mStream =
+              new CountingInputStream(((S3AUnderFileSystem) ufs).openAtPosition(mUri, position));
+        } else if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
           mStream =
               new CountingInputStream(((S3UnderFileSystem) ufs).openAtPosition(mUri, position));
           mInitPos = position;
