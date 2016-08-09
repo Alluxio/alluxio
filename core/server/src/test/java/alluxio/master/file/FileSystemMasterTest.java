@@ -53,6 +53,7 @@ import alluxio.wire.WorkerNetAddress;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import jersey.repackaged.com.google.common.collect.Iterables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -1104,6 +1105,25 @@ public final class FileSystemMasterTest {
     Assert.assertEquals(blockId,
         (long) command.getCommandOptions().getPersistOptions().getPersistFiles().get(0)
             .getBlockIds().get(0));
+  }
+
+  /**
+   * Tests the {@link FileSystemMaster#getFilesPersistInProgress()} method.
+   */
+  @Test
+  public void getFilesPersistInProgressTest() throws Exception {
+    createFileWithSingleBlock(ROOT_FILE_URI);
+
+    long fileId = mFileSystemMaster.getFileId(ROOT_FILE_URI);
+    mFileSystemMaster.scheduleAsyncPersistence(ROOT_FILE_URI);
+    Assert.assertTrue(mFileSystemMaster.getFilesPersistInProgress().isEmpty());
+
+    mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.<Long>newArrayList());
+    String filePath = Iterables.getOnlyElement(mFileSystemMaster.getFilesPersistInProgress());
+    Assert.assertEquals(ROOT_FILE_URI.getPath(), filePath);
+
+    mFileSystemMaster.workerHeartbeat(mWorkerId1, Lists.newArrayList(fileId));
+    Assert.assertTrue(mFileSystemMaster.getFilesPersistInProgress().isEmpty());
   }
 
   /**

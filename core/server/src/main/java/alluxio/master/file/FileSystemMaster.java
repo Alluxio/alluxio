@@ -120,6 +120,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -227,6 +228,13 @@ public final class FileSystemMaster extends AbstractMaster {
   private Future<?> mLostFilesDetectionService;
 
   /**
+   * Map from worker to the files that have been sent to worker for async persistence and are
+   * in progress of async persistence.
+   * */
+  @GuardedBy("itself")
+  private final Map<Long, Set<Long>> mWorkerToAsyncPersistFilesInProgress;
+
+  /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
    */
@@ -268,6 +276,8 @@ public final class FileSystemMaster extends AbstractMaster {
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
+
+    mWorkerToAsyncPersistFilesInProgress = new HashMap<>();
   }
 
   @Override
@@ -1701,6 +1711,27 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * Gets the path of a file with the given id.
+   *
+   * @param fileId the id of the file to look up
+   * @return the path of the file
+   * @throws FileDoesNotExistException raise if the file does not exist
+   * @throws InvalidPathException if the path is invalid
+   * @throws AccessControlException if the permission check fails
+   */
+  // Currently used by getFilesPersistInProgress
+  // TODO(siyangy): Merge with the above getPath method when it has permission check
+  private AlluxioURI getPathWithPermissionCheck(long fileId)
+      throws FileDoesNotExistException, AccessControlException, InvalidPathException {
+    try (
+        LockedInodePath inodePath = mInodeTree.lockFullInodePath(fileId, InodeTree.LockMode.READ)) {
+      // the path is already locked.
+      mPermissionChecker.checkPermission(Mode.Bits.READ, inodePath);
+      return mInodeTree.getPath(inodePath.getInode());
+    }
+  }
+
+  /**
    * @return the set of inode ids which are pinned
    */
   public Set<Long> getPinIdList() {
@@ -2405,13 +2436,31 @@ public final class FileSystemMaster extends AbstractMaster {
    */
   public FileSystemCommand workerHeartbeat(long workerId, List<Long> persistedFiles)
       throws FileDoesNotExistException, InvalidPathException, AccessControlException {
-    for (long fileId : persistedFiles) {
-      // Permission checking for each file is performed inside setAttribute
-      setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+    synchronized (mWorkerToAsyncPersistFilesInProgress) {
+      Set<Long> filesInProgress = mWorkerToAsyncPersistFilesInProgress.get(workerId);
+      if (filesInProgress == null) {
+        filesInProgress = new HashSet<>();
+        mWorkerToAsyncPersistFilesInProgress.put(workerId, filesInProgress);
+      }
+
+      for (long fileId : persistedFiles) {
+        // Permission checking for each file is performed inside setAttribute
+        setAttribute(getPath(fileId), SetAttributeOptions.defaults().setPersisted(true));
+        filesInProgress.remove(fileId);
+      }
     }
 
     // get the files for the given worker to persist
     List<PersistFile> filesToPersist = mAsyncPersistHandler.pollFilesToPersist(workerId);
+
+    // Keep track of the files being persisted.
+    synchronized (mWorkerToAsyncPersistFilesInProgress) {
+      for (PersistFile persistFile : filesToPersist) {
+        // Guaranteed that there's an entry in the map
+        mWorkerToAsyncPersistFilesInProgress.get(workerId).add(persistFile.getFileId());
+      }
+    }
+
     if (!filesToPersist.isEmpty()) {
       LOG.debug("Sent files {} to worker {} to persist", filesToPersist, workerId);
     }
@@ -2543,6 +2592,30 @@ public final class FileSystemMaster extends AbstractMaster {
   }
 
   /**
+   * @return a list of files that are being persisted in the worker
+   */
+  public List<String> getFilesPersistInProgress() {
+    synchronized (mWorkerToAsyncPersistFilesInProgress) {
+      // Removes the files from lost worker.
+      for (WorkerInfo lostWorker : mBlockMaster.getLostWorkersInfo()) {
+        mWorkerToAsyncPersistFilesInProgress.remove(lostWorker.getId());
+      }
+      List<String> result = new ArrayList<>();
+      for (Set<Long> fileIdSet : mWorkerToAsyncPersistFilesInProgress.values()) {
+        for (Long fileId : fileIdSet) {
+          try {
+            result.add(getPathWithPermissionCheck(fileId).toString());
+          } catch (AccessControlException | InvalidPathException | FileDoesNotExistException e) {
+            LOG.error("Exception trying to get path of fileId {}: {}", fileId, e.toString());
+            continue;
+          }
+        }
+      }
+      return result;
+    }
+  }
+
+  /**
    * This class represents the executor for periodic inode ttl check.
    */
   private final class MasterInodeTtlCheckExecutor implements HeartbeatExecutor {
@@ -2617,4 +2690,5 @@ public final class FileSystemMaster extends AbstractMaster {
       // Nothing to clean up
     }
   }
+
 }

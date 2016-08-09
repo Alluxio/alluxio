@@ -221,4 +221,3 @@ public final class ThriftUtils {
     return workerNetAddress.toThrift();
   }
 }
-

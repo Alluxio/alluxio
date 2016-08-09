@@ -22,6 +22,7 @@ import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
+import alluxio.util.CommonUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.FileInfoTest;
 
@@ -274,5 +275,22 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
         params, HttpMethod.POST, unmountResult).run();
 
     Mockito.verify(mFileSystemMaster).unmount(Mockito.<AlluxioURI>any());
+  }
+
+  @Test
+  public void getFilesPersistInProgress() throws Exception {
+    Random random = new Random();
+    List<String> files = new ArrayList<>();
+    int numFiles = random.nextInt(10);
+    for (int i = 0; i < numFiles; i++) {
+      files.add(CommonUtils.randomString(random.nextInt(10)));
+    }
+    Mockito.doReturn(files).when(mFileSystemMaster).getFilesPersistInProgress();
+
+    new TestCase(mHostname, mPort, getEndpoint(
+        FileSystemMasterClientRestServiceHandler.GET_FILES_PERSIST_IN_PROGRESS),
+        NO_PARAMS, HttpMethod.GET, files).run();
+
+    Mockito.verify(mFileSystemMaster).getFilesPersistInProgress();
   }
 }
