@@ -94,7 +94,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Map<String, Long> metrics = (Map<String, Long>) new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    Assert.assertEquals(Long.valueOf(0), metrics.get("worker.BlocksAccessed"));
+    Assert.assertTrue(metrics.get("worker.BlocksAccessed") >= 0);
   }
 
   @Test
