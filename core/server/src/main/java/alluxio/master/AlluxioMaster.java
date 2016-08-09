@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -238,17 +237,14 @@ public class AlluxioMaster implements Server {
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
-      // reset master port
+      // reset master rpc port
       Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
-      // Determine port for web server
-      if (Configuration.getInt(Constants.MASTER_WEB_PORT) == 0) {
-        try (ServerSocket serverSocket = new ServerSocket(0)) {
-          int freePort = serverSocket.getLocalPort();
-          Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(freePort));
-        }
-      }
+      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+      // reset master web port
+      Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
 
       // Check the journal directory
       String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
@@ -458,9 +454,6 @@ public class AlluxioMaster implements Server {
   }
 
   protected void startServingWebServer() {
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     // start web ui
