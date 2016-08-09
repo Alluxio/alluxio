@@ -115,7 +115,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
         CallbackHandler handler);
   }
 
-  /** Security tokens for HDFS.*/
+  /** Security tokens for HDFS. */
   private ByteBuffer mAllTokens;
 
   /**
@@ -224,7 +224,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     ApplicationMaster applicationMaster =
         new ApplicationMaster(numWorkers, masterAddress, resourcePath);
     applicationMaster.start();
-    applicationMaster.requestContainers();
+    applicationMaster.requestAndLaunchContainers();
+    applicationMaster.waitForShutdown();
     applicationMaster.stop();
   }
 
@@ -277,8 +278,8 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
     if (UserGroupInformation.isSecurityEnabled()) {
       Credentials credentials =
           UserGroupInformation.getCurrentUser().getCredentials();
-      DataOutputBuffer dob = new DataOutputBuffer();
-      credentials.writeTokenStorageToStream(dob);
+      DataOutputBuffer credentialsBuffer = new DataOutputBuffer();
+      credentials.writeTokenStorageToStream(credentialsBuffer);
       // Now remove the AM -> RM token so that containers cannot access it.
       Iterator<Token<?>> iter = credentials.getAllTokens().iterator();
       while (iter.hasNext()) {
@@ -287,7 +288,7 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
           iter.remove();
         }
       }
-      mAllTokens = ByteBuffer.wrap(dob.getData(), 0, dob.getLength());
+      mAllTokens = ByteBuffer.wrap(credentialsBuffer.getData(), 0, credentialsBuffer.getLength());
     }
     mNMClient.init(mYarnConf);
     mNMClient.start();
