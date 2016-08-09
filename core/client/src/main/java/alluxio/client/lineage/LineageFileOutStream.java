@@ -16,6 +16,8 @@ import alluxio.Constants;
 import alluxio.annotation.PublicApi;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.file.UnderFileSystemFileOutStream;
 import alluxio.client.file.options.OutStreamOptions;
 
 import org.slf4j.Logger;
@@ -37,12 +39,15 @@ public class LineageFileOutStream extends FileOutStream {
   /**
    * Creates a new file output stream when lineage is enabled.
    *
+   * @param context file system context
    * @param path the path of the file
    * @param options the set of options specific to this operation
    * @throws IOException if an I/O error occurs
    */
-  public LineageFileOutStream(AlluxioURI path, OutStreamOptions options) throws IOException {
-    super(path, updateOutStreamOptions(options));
+  public LineageFileOutStream(FileSystemContext context, AlluxioURI path, OutStreamOptions options)
+      throws IOException {
+    super(path, updateOutStreamOptions(options), context,
+        UnderFileSystemFileOutStream.Factory.get());
   }
 
   private static OutStreamOptions updateOutStreamOptions(OutStreamOptions options) {
