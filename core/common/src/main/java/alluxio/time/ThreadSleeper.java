@@ -9,24 +9,20 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
-
-import alluxio.master.block.BlockMaster;
-
-import org.powermock.reflect.Whitebox;
+package alluxio.time;
 
 /**
- * Class which provides access to private state of {@link AlluxioMaster}.
+ * A sleeping utility which delegates to Thread.sleep().
  */
-public final class PrivateAccess {
+public class ThreadSleeper implements Sleeper {
 
   /**
-   * Gets the {@link BlockMaster}.
-   *
-   * @param master the {@link AlluxioMaster}
-   * @return the {@link BlockMaster}
+   * Constructs a new {@link ThreadSleeper}.
    */
-  public static BlockMaster getBlockMaster(AlluxioMaster master) {
-    return Whitebox.getInternalState(master, "mBlockMaster");
+  public ThreadSleeper() {}
+
+  @Override
+  public void sleep(long millis) throws InterruptedException {
+    Thread.sleep(millis);
   }
 }

@@ -31,17 +31,20 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @PublicApi
 @ThreadSafe
-public class LineageFileSystem extends BaseFileSystem {
+public final class LineageFileSystem extends BaseFileSystem {
   private LineageContext mLineageContext;
 
   /**
+   * @param fileSystemContext file system context
+   * @param lineageContext lineage context
    * @return the current lineage file system for Alluxio
    */
-  public static synchronized LineageFileSystem get() {
-    return new LineageFileSystem(FileSystemContext.INSTANCE, LineageContext.INSTANCE);
+  public static synchronized LineageFileSystem get(FileSystemContext fileSystemContext,
+      LineageContext lineageContext) {
+    return new LineageFileSystem(fileSystemContext, lineageContext);
   }
 
-  protected LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
+  private LineageFileSystem(FileSystemContext fileSystemContext, LineageContext lineageContext) {
     super(fileSystemContext);
     mLineageContext = lineageContext;
   }
@@ -91,7 +94,7 @@ public class LineageFileSystem extends BaseFileSystem {
     if (fileId == -1) {
       return new DummyFileOutputStream(path, options.toOutStreamOptions());
     }
-    return new LineageFileOutStream(path, options.toOutStreamOptions());
+    return new LineageFileOutStream(mFileSystemContext, path, options.toOutStreamOptions());
   }
 
   /**

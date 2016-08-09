@@ -27,7 +27,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Tests {@link LineageFileSystem}.
@@ -49,16 +48,14 @@ public final class LineageFileSystemTest {
   public void before() {
     mLineageMasterClient = PowerMockito.mock(LineageMasterClient.class);
     mLineageContext = PowerMockito.mock(LineageContext.class);
-    Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
-    Whitebox.setInternalState(LineageContext.class, "INSTANCE", mLineageContext);
-    mAlluxioLineageFileSystem = LineageFileSystem.get();
-    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mLineageContext", mLineageContext);
+
     FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
-    FileSystemMasterClient fileSystemMasterClient =
-        PowerMockito.mock(FileSystemMasterClient.class);
+    Mockito.when(mLineageContext.acquireMasterClient()).thenReturn(mLineageMasterClient);
+
+    FileSystemMasterClient fileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(fileSystemContext.acquireMasterClient()).thenReturn(fileSystemMasterClient);
-    Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
-    Whitebox.setInternalState(mAlluxioLineageFileSystem, "mContext", fileSystemContext);
+
+    mAlluxioLineageFileSystem = LineageFileSystem.get(fileSystemContext, mLineageContext);
   }
 
   /**
