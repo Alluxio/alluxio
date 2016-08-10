@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
+import alluxio.Constants;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
@@ -34,9 +35,10 @@ public class FileSystemStatisticsTest {
 
   private static final int BLOCK_SIZE = 128;
   private static final int FILE_LEN = BLOCK_SIZE * 2 + 1;
+
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(10000, BLOCK_SIZE);
+      new LocalAlluxioClusterResource(10 * Constants.KB, BLOCK_SIZE);
   private static org.apache.hadoop.fs.FileSystem.Statistics sStatistics;
   private static org.apache.hadoop.fs.FileSystem sTFS;
 

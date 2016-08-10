@@ -62,15 +62,13 @@ public final class FreeAndDeleteIntegrationTest {
   @Before
   public final void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
   @Test
   public void freeAndDeleteIntegrationTest() throws Exception {
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5,
-        TimeUnit.SECONDS));
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     FileOutStream os = mFileSystem.createFile(filePath, mWriteBoth);
     os.write((byte) 0);
@@ -81,14 +79,13 @@ public final class FreeAndDeleteIntegrationTest {
     Assert.assertEquals(PersistenceState.PERSISTED.toString(), status.getPersistenceState());
 
     final Long blockId = status.getBlockIds().get(0);
-    BlockMaster bm = alluxio.master.PrivateAccess.getBlockMaster(
-        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster());
+    BlockMaster bm =
+        mLocalAlluxioClusterResource.get().getMaster().getInternalMaster().getBlockMaster();
     BlockInfo blockInfo = bm.getBlockInfo(blockId);
     Assert.assertEquals(2, blockInfo.getLength());
     Assert.assertFalse(blockInfo.getLocations().isEmpty());
 
-    final BlockWorker bw = alluxio.worker.PrivateAccess.getBlockWorker(
-        mLocalAlluxioClusterResource.get().getWorker());
+    final BlockWorker bw = mLocalAlluxioClusterResource.get().getWorker().getBlockWorker();
     Assert.assertTrue(bw.hasBlockMeta(blockId));
     Assert.assertTrue(bm.getLostBlocks().isEmpty());
 
@@ -119,8 +116,7 @@ public final class FreeAndDeleteIntegrationTest {
 
     // Execute the lost files detection.
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_LOST_FILES_DETECTION);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
 
     // Verify the blocks are not in mLostBlocks.
     Assert.assertTrue(bm.getLostBlocks().isEmpty());

@@ -36,16 +36,9 @@ public final class SystemPropertyRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        String previousValue = System.getProperty(mPropertyName);
-        System.setProperty(mPropertyName, mValue);
-        try {
+        try (SetAndRestoreSystemProperty c =
+            new SetAndRestoreSystemProperty(mPropertyName, mValue)) {
           statement.evaluate();
-        } finally {
-          if (previousValue == null) {
-            System.clearProperty(mPropertyName);
-          } else {
-            System.setProperty(mPropertyName, previousValue);
-          }
         }
       }
     };

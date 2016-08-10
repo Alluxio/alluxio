@@ -37,23 +37,27 @@ import javax.annotation.concurrent.ThreadSafe;
 @PublicApi
 @ThreadSafe
 public final class AlluxioLineage extends AbstractLineageClient {
-  private static AlluxioLineage sAlluxioLineage;
 
   /**
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get() {
-    if (sAlluxioLineage == null) {
-      if (!Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
-        throw new IllegalStateException("Lineage is not enabled in the configuration.");
-      }
-      sAlluxioLineage = new AlluxioLineage();
-    }
-    return sAlluxioLineage;
+    return get(LineageContext.INSTANCE);
   }
 
-  protected AlluxioLineage() {
-    super();
+  /**
+   * @param context lineage context
+   * @return the current lineage for Alluxio
+   */
+  public static synchronized AlluxioLineage get(LineageContext context) {
+    if (!Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
+      throw new IllegalStateException("Lineage is not enabled in the configuration.");
+    }
+    return new AlluxioLineage(context);
+  }
+
+  protected AlluxioLineage(LineageContext context) {
+    super(context);
   }
 
   /**

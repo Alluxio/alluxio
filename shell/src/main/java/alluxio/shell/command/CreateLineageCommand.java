@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.lineage.AlluxioLineage;
+import alluxio.client.lineage.LineageContext;
 import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
@@ -64,7 +65,7 @@ public final class CreateLineageCommand extends AbstractShellCommand {
   @Override
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
-    AlluxioLineage tl = AlluxioLineage.get();
+    AlluxioLineage tl = AlluxioLineage.get(LineageContext.INSTANCE);
     // TODO(yupeng) more validation
     List<AlluxioURI> inputFiles = new ArrayList<>();
     if (!args[0].equals("noInput")) {

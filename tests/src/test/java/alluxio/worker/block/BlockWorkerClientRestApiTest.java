@@ -17,7 +17,7 @@ import alluxio.rest.TestCase;
 import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.LockBlockResultTest;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
@@ -45,13 +45,14 @@ import javax.ws.rs.core.Response;
  * Test cases for {@link BlockWorkerClientRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
+@PrepareForTest({AlluxioWorkerService.class, BlockReader.class, BlockWorker.class,
+    BlockWriter.class})
 public final class BlockWorkerClientRestApiTest extends RestApiTest {
   private BlockWorker mBlockWorker;
 
   @Before
   public void before() throws Exception {
-    AlluxioWorker alluxioWorker = mResource.get().getWorker();
+    AlluxioWorkerService alluxioWorker = mResource.get().getWorker();
     mBlockWorker = PowerMockito.mock(BlockWorker.class);
     // Replace the block worker created by LocalAlluxioClusterResource with a mock.
     BlockWorker blockWorker = Whitebox.getInternalState(alluxioWorker, "mBlockWorker");

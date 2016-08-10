@@ -12,17 +12,11 @@
 package alluxio.client.block;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  * Tests for the {@link BlockWorkerClientHeartbeatExecutor} class.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(BlockWorkerClient.class)
 public class BlockWorkerClientHeartbeatExecutorTest {
 
   /**
@@ -30,7 +24,7 @@ public class BlockWorkerClientHeartbeatExecutorTest {
    */
   @Test
   public void heartbeatCallsPeriodicHeartbeat() throws Exception {
-    BlockWorkerClient mock = PowerMockito.mock(BlockWorkerClient.class);
+    BlockWorkerClient mock = Mockito.mock(BlockWorkerClient.class);
     BlockWorkerClientHeartbeatExecutor heartbeatExecutor =
         new BlockWorkerClientHeartbeatExecutor(mock);
 

@@ -523,7 +523,7 @@ public class JournalIntegrationTest {
   @LocalAlluxioClusterResource.Config(confParams = {
       PropertyKey.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
       PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      PropertyKey.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME})
+      PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 

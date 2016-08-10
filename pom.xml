@@ -187,6 +187,11 @@
         <version>3.4</version>
       </dependency>
       <dependency>
+        <groupId>commons-codec</groupId>
+        <artifactId>commons-codec</artifactId>
+        <version>1.10</version>
+      </dependency>
+      <dependency>
         <groupId>org.apache.mesos</groupId>
         <artifactId>mesos</artifactId>
         <version>0.23.0</version>
@@ -349,6 +354,8 @@
           <configuration>
             <argLine>-Djava.net.preferIPv4Stack=true -XX:MaxPermSize=512M</argLine>
             <redirectTestOutputToFile>${test.output.redirect}</redirectTestOutputToFile>
+            <!-- Alphabetical order on even hours, reverse-alphabetical on odd hours  -->
+            <runOrder>hourly</runOrder>
             <useSystemClassLoader>${surefire.useSystemClassLoader}</useSystemClassLoader>
           </configuration>
         </plugin>

@@ -24,6 +24,7 @@ import alluxio.worker.block.meta.StorageTierView;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -51,9 +51,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class LRFUEvictor extends AbstractEvictor {
   // Map from block id to the last updated logic time count
-  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMap<>();
+  private final Map<Long, Long> mBlockIdToLastUpdateTime = new ConcurrentHashMapV8<>();
   // Map from block id to the CRF value of the block
-  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMap<>();
+  private final Map<Long, Double> mBlockIdToCRFValue = new ConcurrentHashMapV8<>();
   // In the range of [0, 1]. Closer to 0, LRFU closer to LFU. Closer to 1, LRFU closer to LRU
   private final double mStepFactor;
   // In the range of [2, INF]

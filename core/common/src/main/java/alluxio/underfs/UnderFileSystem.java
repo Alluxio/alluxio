@@ -665,4 +665,13 @@ public abstract class UnderFileSystem {
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract short getMode(String path) throws IOException;
+
+  /**
+   * Whether this type of UFS supports flush.
+   *
+   * @return true if this type of UFS supports flush, false otherwise
+   */
+  public boolean supportsFlush() {
+    return true;
+  }
 }

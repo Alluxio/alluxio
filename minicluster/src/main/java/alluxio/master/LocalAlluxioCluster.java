@@ -14,7 +14,7 @@ package alluxio.master;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 
 import java.io.IOException;
 
@@ -87,7 +87,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the worker
    */
-  public AlluxioWorker getWorker() {
+  public AlluxioWorkerService getWorker() {
     return mWorker;
   }
 
