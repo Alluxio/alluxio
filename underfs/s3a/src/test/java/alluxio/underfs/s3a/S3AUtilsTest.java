@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * Tests for {@link S3AUtils} methods.
  */
-public class S3AUtilsTest {
+public final class S3AUtilsTest {
 
   /**
    * Tests for {@link S3AUtils#translateBucketAcl(AccessControlList, String)}.
