@@ -18,8 +18,6 @@ import alluxio.Constants;
 import alluxio.client.file.FileSystem;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.master.block.BlockMaster;
-import alluxio.master.block.BlockMasterPrivateAccess;
 import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
@@ -30,7 +28,6 @@ import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DefaultAlluxioWorker;
-import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
 import org.powermock.reflect.Whitebox;
@@ -90,7 +87,7 @@ public abstract class AbstractLocalAlluxioCluster {
     startMaster();
     waitForMasterReady();
     startWorker();
-    waitForWorkerReady();
+    mWorker.waitForReady();
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
@@ -120,43 +117,6 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Waits for the worker to be ready.
-   *
-   * Specifically, waits for the worker to register with the master and for it to be possible to
-   * connect to the worker's data, rpc, and web ports.
-   */
-  private void waitForWorkerReady() {
-    long startTime = System.currentTimeMillis();
-    String actionMessage = "waiting for worker to register with master";
-    LOG.info(actionMessage + ELLIPSIS);
-    while (!workerRegistered()) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve web";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getWebBindHost(), mWorker.getWebLocalPort())
-        || Configuration.getInt(Constants.WORKER_WEB_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve data";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getDataBindHost(), mWorker.getDataLocalPort())
-        || Configuration.getInt(Constants.WORKER_DATA_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for worker to serve rpc";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(mWorker.getRpcAddress().getHostName(),
-        mWorker.getRpcAddress().getPort())
-        || Configuration.getInt(Constants.WORKER_RPC_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-  }
-
-  /**
    * Checks whether the time since startTime has exceeded the maximum timeout, then sleeps for
    * {@link #CLUSTER_READY_POLL_INTERVAL_MS}ms.
    *
@@ -169,18 +129,6 @@ public abstract class AbstractLocalAlluxioCluster {
       throw new RuntimeException("Failed to start cluster. Timed out " + actionMessage);
     }
     CommonUtils.sleepMs(CLUSTER_READY_POLL_INTERVAL_MS);
-  }
-
-  /**
-   * @return whether the worker has registered with the master
-   */
-  private boolean workerRegistered() {
-    long workerId = WorkerIdRegistry.getWorkerId();
-    if (workerId == WorkerIdRegistry.INVALID_WORKER_ID) {
-      return false;
-    }
-    BlockMaster blockMaster = getMaster().getInternalMaster().getBlockMaster();
-    return BlockMasterPrivateAccess.isWorkerRegistered(blockMaster, workerId);
   }
 
   /**

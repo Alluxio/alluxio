@@ -333,4 +333,16 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   public MetricsSystem getWorkerMetricsSystem() {
     return mWorkerMetricsSystem;
   }
+
+  @Override
+  public void waitForReady() {
+    while (true) {
+      if (mThriftServer.isServing()
+          && WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID
+          && mWebServer.getServer().isRunning()) {
+        return;
+      }
+      CommonUtils.sleepMs(10);
+    }
+  }
 }
