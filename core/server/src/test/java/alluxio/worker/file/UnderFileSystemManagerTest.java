@@ -310,13 +310,11 @@ public final class UnderFileSystemManagerTest {
   // TODO(calvin): Generalize this when openAtPosition is part of an interface
   @Test
   public void getInputStreamAtPositionOptimizedTest() throws Exception {
+    // Specifically testing S3A to validate the code path taken if the UFS implements the
+    // openAtPosition api.
     S3AUnderFileSystem ufs = Mockito.mock(S3AUnderFileSystem.class);
-    Mockito.when(ufs.create(Mockito.anyString())).thenReturn(mMockOutputStream);
-    Mockito.when(ufs.create(Mockito.anyString(),
-        Mockito.any(CreateOptions.class))).thenReturn(mMockOutputStream);
     Mockito.when(ufs.openAtPosition(Mockito.anyString(), Mockito.anyLong())).thenReturn(
         mMockInputStream);
-    Mockito.when(ufs.rename(Mockito.anyString(), Mockito.anyString())).thenReturn(true);
     Mockito.when(ufs.getFileSize(Mockito.anyString())).thenReturn(FILE_LENGTH);
     PowerMockito.mockStatic(UnderFileSystem.class);
     Mockito.when(UnderFileSystem.get(Mockito.anyString())).thenReturn(ufs);
