@@ -52,9 +52,11 @@ public final class UnknownLengthFileInStream extends FileInStream {
    *
    * @param status the file status
    * @param options the client options
+   * @param context file system context
    */
-  public UnknownLengthFileInStream(URIStatus status, InStreamOptions options) {
-    super(status, options);
+  public UnknownLengthFileInStream(URIStatus status, InStreamOptions options,
+      FileSystemContext context) {
+    super(status, options, context);
   }
 
   @Override
@@ -103,7 +105,8 @@ public final class UnknownLengthFileInStream extends FileInStream {
   @Override
   protected BlockInStream createUnderStoreBlockInStream(long blockStart, long length, String path)
       throws IOException {
-    return UnderStoreBlockInStream.Factory.create(blockStart, Constants.UNKNOWN_SIZE, length, path);
+    return new UnderStoreBlockInStream(blockStart, Constants.UNKNOWN_SIZE, length,
+        getUnderStoreStreamFactory(path));
   }
 
   @Override

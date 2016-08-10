@@ -51,19 +51,19 @@ import javax.ws.rs.HttpMethod;
  * Test cases for {@link AlluxioWorkerRestServiceHandler}.
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class, Configuration.class,
-    WorkerContext.class})
+@PrepareForTest({DefaultAlluxioWorker.class, BlockWorker.class, BlockStoreMeta.class,
+    Configuration.class, WorkerContext.class})
 public final class AlluxioWorkerRestApiTest extends RestApiTest {
   private static final String ALLUXIO_CONF_PREFIX = "alluxio";
   private static final String NOT_ALLUXIO_CONF_PREFIX = "_alluxio_";
 
-  private AlluxioWorker mWorker;
+  private AlluxioWorkerService mWorker;
   private BlockStoreMeta mStoreMeta;
 
   @Before
   public void before() {
     mWorker = PowerMockito.spy(mResource.get().getWorker());
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
+    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorker);
     BlockWorker blockWorker = PowerMockito.mock(BlockWorker.class);
     Whitebox.setInternalState(mWorker, "mBlockWorker", blockWorker);
     mStoreMeta = PowerMockito.mock(BlockStoreMeta.class);

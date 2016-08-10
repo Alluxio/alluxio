@@ -142,6 +142,9 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     }
 
     mClient = new AmazonS3Client(credentials, clientConf);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      mClient.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+    }
     mManager = new TransferManager(mClient);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
@@ -715,5 +718,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       return stripedKey;
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

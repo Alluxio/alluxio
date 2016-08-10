@@ -18,6 +18,7 @@ import alluxio.exception.AlluxioException;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
+import alluxio.web.MasterUIWebServer;
 
 import com.google.common.base.Preconditions;
 import com.qmino.miredot.annotations.ReturnType;
@@ -29,11 +30,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -55,12 +58,19 @@ public final class LineageMasterClientRestServiceHandler {
   public static final String REINITIALIZE_FILE = "reinitialize_file";
   public static final String REPORT_LOST_FILE = "report_lost_file";
 
-  private final LineageMaster mLineageMaster = AlluxioMaster.get().getLineageMaster();
+  private final LineageMaster mLineageMaster;
 
   /**
    * Constructs a new {@link LineageMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public LineageMasterClientRestServiceHandler() {}
+  public LineageMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mLineageMaster = master.getLineageMaster();
+  }
 
   /**
    * @summary get the service name

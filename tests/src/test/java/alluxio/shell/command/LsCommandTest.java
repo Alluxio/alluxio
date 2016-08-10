@@ -111,8 +111,8 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(
-            PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
+        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+            IdentityUserGroupsMapping.class.getCanonicalName())
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
     resetShellTest();
@@ -173,10 +173,9 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(
-            PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(
-            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
+        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+            IdentityUserGroupsMapping.class.getCanonicalName())
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
     resetShellTest();
 
@@ -230,10 +229,9 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(
-            PropertyKey.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(
-            PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
+        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+            IdentityUserGroupsMapping.class.getCanonicalName())
+        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
         .start();
     resetShellTest();
 

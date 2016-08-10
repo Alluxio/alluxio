@@ -143,19 +143,11 @@ public final class HadoopUtils {
    * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
    * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
    *
-   * TODO(hy): Remove duplication in the future.
-   *
    * @param conf Hadoop configuration
    */
   public static void addS3Credentials(Configuration conf) {
-    String accessKeyConf = PropertyKey.S3N_AWS_ACCESS_KEY_ID.toString();
-    if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
-      conf.set(accessKeyConf, System.getProperty(accessKeyConf));
-    }
-    String secretKeyConf = PropertyKey.S3N_AWS_SECRET_ACESS_KEY.toString();
-    if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
-      conf.set(secretKeyConf, System.getProperty(secretKeyConf));
-    }
+    PropertyKey[] propertyNames = {PropertyKey.S3N_ACCESS_KEY, PropertyKey.S3N_SECRET_KEY};
+    setConfigurationFromSystemProperties(conf, propertyNames);
   }
 
   /**
@@ -165,46 +157,45 @@ public final class HadoopUtils {
    * This function is duplicated from {@code alluxio.underfs.hdfs.HdfsUnderFileSystemUtils}, to
    * prevent the module alluxio-core-client from depending on the module alluxio-underfs.
    *
-   * TODO(hy): Remove duplication in the future.
-   *
    * @param configuration Hadoop configuration
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    String tenantApiKeyConf = PropertyKey.SWIFT_API_KEY.toString();
-    if (System.getProperty(tenantApiKeyConf) != null
-        && configuration.get(tenantApiKeyConf) == null) {
-      configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf));
+    PropertyKey[] propertyNames = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
+        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
+        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
+        PropertyKey.SWIFT_SIMULATION};
+    setConfigurationFromSystemProperties(configuration, propertyNames);
+  }
+
+  /**
+   * Set the System properties into Hadoop configuration.
+   *
+   * This method won't override existing properties even if they are set as System properties.
+   *
+   * @param configuration Hadoop configuration
+   * @param propertyNames the properties to be set
+   */
+  private static void setConfigurationFromSystemProperties(Configuration configuration,
+      PropertyKey[] propertyNames) {
+    for (PropertyKey propertyName : propertyNames) {
+      setConfigurationFromSystemProperty(configuration, propertyName.toString());
     }
-    String tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY.toString();
-    if (System.getProperty(tenantKeyConf) != null
-        && configuration.get(tenantKeyConf) == null) {
-      configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf));
-    }
-    String tenantUserConf = PropertyKey.SWIFT_USER_KEY.toString();
-    if (System.getProperty(tenantUserConf) != null
-        && configuration.get(tenantUserConf) == null) {
-      configuration.set(tenantUserConf, System.getProperty(tenantUserConf));
-    }
-    String tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY.toString();
-    if (System.getProperty(tenantAuthURLKeyConf) != null
-        && configuration.get(tenantAuthURLKeyConf) == null) {
-      configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf));
-    }
-    String authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY.toString();
-    if (System.getProperty(authMethodKeyConf) != null
-        && configuration.get(authMethodKeyConf) == null) {
-      configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf));
-    }
-    String passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY.toString();
-    if (System.getProperty(passwordKeyConf) != null
-        && configuration.get(passwordKeyConf) == null) {
-      configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf));
-    }
-    String swiftSimulationConf = PropertyKey.SWIFT_SIMULATION.toString();
-    if (System.getProperty(swiftSimulationConf) != null
-        && configuration.get(swiftSimulationConf) == null) {
-      configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf));
+  }
+
+  /**
+   * Set the System property into Hadoop configuration.
+   *
+   * This method won't override existing property even if it is set as System property.
+   *
+   * @param configuration Hadoop configuration
+   * @param propertyName the property to be set
+   */
+  private static void setConfigurationFromSystemProperty(Configuration configuration,
+      String propertyName) {
+    String propertyValue = System.getProperty(propertyName);
+    if (propertyValue != null && configuration.get(propertyName) == null) {
+      configuration.set(propertyName, propertyValue);
     }
   }
 

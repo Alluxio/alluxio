@@ -36,7 +36,6 @@ import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,6 +56,9 @@ public final class BaseFileSystemTest {
   private FileSystemMasterClient mFileSystemMasterClient;
 
   private class DummyAlluxioFileSystem extends BaseFileSystem {
+    public DummyAlluxioFileSystem(FileSystemContext context) {
+      super(context);
+    }
   }
 
   /**
@@ -64,9 +66,8 @@ public final class BaseFileSystemTest {
    */
   @Before
   public void before() {
-    mFileSystem = new DummyAlluxioFileSystem();
     mFileContext = PowerMockito.mock(FileSystemContext.class);
-    Whitebox.setInternalState(mFileSystem, "mContext", mFileContext);
+    mFileSystem = new DummyAlluxioFileSystem(mFileContext);
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     Mockito.when(mFileContext.acquireMasterClient()).thenReturn(mFileSystemMasterClient);
   }

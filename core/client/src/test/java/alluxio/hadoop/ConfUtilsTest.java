@@ -17,8 +17,6 @@ import alluxio.PropertyKey;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.util.Map;
-
 /**
  * Tests for the {@link ConfUtils} class.
  */
@@ -36,10 +34,10 @@ public final class ConfUtilsTest {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
 
-    Map<String, String> before = Configuration.toMap();
+    long beforeSize = Configuration.toMap().size();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
-    Map<String, String> after = Configuration.toMap();
-    Assert.assertEquals(before.size(), after.size());
+    long afterSize = Configuration.toMap().size();
+    Assert.assertEquals(beforeSize, afterSize);
   }
 
   /**
@@ -49,18 +47,18 @@ public final class ConfUtilsTest {
   public void mergeHadoopConfigurationTest() {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-    hadoopConfig.set(PropertyKey.S3N_AWS_ACCESS_KEY_ID.toString(), TEST_S3_ACCCES_KEY);
-    hadoopConfig.set(PropertyKey.S3N_AWS_SECRET_ACESS_KEY.toString(), TEST_S3_SECRET_KEY);
+    hadoopConfig.set(PropertyKey.S3N_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);
+    hadoopConfig.set(PropertyKey.S3N_SECRET_KEY.toString(), TEST_S3_SECRET_KEY);
     hadoopConfig.set(TEST_ALLUXIO_PROPERTY, TEST_ALLUXIO_VALUE);
 
     // This hadoop config will not be loaded into Alluxio configuration.
     hadoopConfig.set("hadoop.config.parameter", "hadoop config value");
 
-    Map<String, String> before = Configuration.toMap();
+    long beforeSize = Configuration.toMap().size();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
-    Map<String, String> after = Configuration.toMap();
-    Assert.assertEquals(before.size() + 2, after.size());
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_AWS_ACCESS_KEY_ID));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_AWS_SECRET_ACESS_KEY));
+    long afterSize = Configuration.toMap().size();
+    Assert.assertEquals(beforeSize + 2, afterSize);
+    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_ACCESS_KEY));
+    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_SECRET_KEY));
   }
 }

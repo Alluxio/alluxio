@@ -112,16 +112,10 @@ public final class ConfigurationUtils {
    * @return true if the validation succeeds, false otherwise
    */
   public static boolean validateConf() {
-    Set<String> validProperties = new HashSet<>();
-    // Iterate over the array of Field objects in alluxio.PropertyKey by reflection
-    for (PropertyKey key : PropertyKey.values()) {
-      validProperties.add(key.toString());
-    }
-
     boolean valid = true;
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
-      if (!validProperties.contains(propertyName)) {
+      if (!PropertyKey.isValid(propertyName)) {
         LOG.error("Unsupported or deprecated property " + propertyName);
         valid = false;
       }

@@ -23,8 +23,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import java.lang.reflect.Field;
-
 /**
  * Unit test for {@link alluxio.security.LoginUser}.
  */
@@ -36,14 +34,9 @@ public final class LoginUserTest {
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
 
-  /**
-   * User reflection to resetConfiguration the private static member sLoginUser in LoginUser.
-   */
   @Before
   public void before() throws Exception {
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
+    LoginUserTestUtils.resetLoginUser();
   }
 
   @After

@@ -34,7 +34,7 @@ import java.util.List;
 /**
  * Integration tests for {@link alluxio.client.file.FileInStream}.
  */
-public class FileInStreamIntegrationTest {
+public final class FileInStreamIntegrationTest {
   private static final int BLOCK_SIZE = 30;
   private static final int MIN_LEN = BLOCK_SIZE + 1;
   private static final int MAX_LEN = BLOCK_SIZE * 4 + 1;
@@ -58,9 +58,9 @@ public class FileInStreamIntegrationTest {
   @BeforeClass
   public static final void beforeClass() throws Exception {
     sFileSystem = sLocalAlluxioClusterResource.get().getClient();
-    sWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
-    sWriteAlluxio = StreamOptionUtils.getCreateFileOptionsMustCache();
-    sWriteUnderStore = StreamOptionUtils.getCreateFileOptionsThrough();
+    sWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
+    sWriteAlluxio = CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE);
+    sWriteUnderStore = CreateFileOptions.defaults().setWriteType(WriteType.THROUGH);
     sTestPath = PathUtils.uniqPath();
 
     // Create files of varying size and write type to later read from

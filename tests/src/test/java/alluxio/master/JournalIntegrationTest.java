@@ -526,7 +526,8 @@ public class JournalIntegrationTest {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
         .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.FULL_CLASS_NAME)
+        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+            FakeUserGroupsMapping.FULL_CLASS_NAME)
         .start();
 
     AlluxioURI filePath = new AlluxioURI("/file");

@@ -642,4 +642,9 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     }
     return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
   }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
+  }
 }

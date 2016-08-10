@@ -51,12 +51,40 @@ public final class UnderFileSystemFileOutStream extends OutputStream {
   private long mWrittenBytes;
 
   /**
+   * Factory for creating an {@link UnderFileSystemFileOutStream}.
+   */
+  public static class Factory {
+    private static Factory sInstance;
+
+    /**
+     * @return an instance of a factory for creating {@link UnderFileSystemFileOutStream}
+     */
+    public static synchronized Factory get() {
+      if (sInstance == null) {
+        sInstance = new Factory();
+      }
+      return sInstance;
+    }
+
+    protected Factory() {} // prevent external instantiation.
+
+    /**
+     * @param address the address of an Alluxio worker
+     * @param ufsFileId the file ID of the ufs fild to write to
+     * @return a new {@link UnderFileSystemFileOutStream}
+     */
+    public UnderFileSystemFileOutStream create(InetSocketAddress address, long ufsFileId) {
+      return new UnderFileSystemFileOutStream(address, ufsFileId);
+    }
+  }
+
+  /**
    * Constructor for a under file system file output stream.
    *
    * @param address address of the worker
    * @param ufsFileId the worker specific file id
    */
-  public UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
+  private UnderFileSystemFileOutStream(InetSocketAddress address, long ufsFileId) {
     mBuffer = allocateBuffer();
     mAddress = address;
     mUfsFileId = ufsFileId;

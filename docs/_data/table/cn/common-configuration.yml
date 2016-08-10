@@ -30,6 +30,9 @@ alluxio.underfs.hdfs.impl:
   作为底层存储系统的hdfs的实现类。
 alluxio.underfs.hdfs.prefixes:
   可选配置项，指定以哪些前缀开头的文件应该存放在Apache Hadoop底层文件系统。分隔符为任何空白符或者','。
+alluxio.underfs.s3.endpoint:
+  可选配置项，在组织AWS服务请求的时候可以指定某个区域地址来降低数据延迟或者访问某些隔离在不同AWS Region的资源。
+  一个endpoint是某个服务的一个入口地址。举例，s3.cn-north-1.amazonaws.com.cn 就是一个北京区域的亚马逊S3服务的一个endpoing。
 alluxio.underfs.s3.proxy.host:
   可选配置项，指定与S3通信的代理主机。
 alluxio.underfs.s3.proxy.https.only:
