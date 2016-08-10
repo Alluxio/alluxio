@@ -22,7 +22,6 @@ import alluxio.security.GroupMappingServiceTestUtils;
 import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
-import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -85,50 +84,12 @@ public abstract class AbstractLocalAlluxioCluster {
 
     setupTest();
     startMaster();
-    waitForMasterReady();
+    getMaster().getInternalMaster().waitForReady();
     startWorker();
     mWorker.waitForReady();
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
-  }
-
-  /**
-   * Waits for the master to be ready.
-   *
-   * Specifically, waits for it to be possible to connect to the master's rpc and web ports.
-   */
-  private void waitForMasterReady() {
-    long startTime = System.currentTimeMillis();
-    String actionMessage = "waiting for master to serve web";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(getMaster().getWebBindHost(),
-        getMaster().getWebLocalPort()) || Configuration.getInt(Constants.MASTER_WEB_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-    actionMessage = "waiting for master to serve rpc";
-    LOG.info(actionMessage + ELLIPSIS);
-    // The port should be set properly after the server has started
-    while (!NetworkAddressUtils.isServing(getMaster().getRPCBindHost(),
-        getMaster().getRPCLocalPort()) || Configuration.getInt(Constants.MASTER_RPC_PORT) == 0) {
-      waitAndCheckTimeout(startTime, actionMessage);
-    }
-  }
-
-  /**
-   * Checks whether the time since startTime has exceeded the maximum timeout, then sleeps for
-   * {@link #CLUSTER_READY_POLL_INTERVAL_MS}ms.
-   *
-   * @param startTime the time to compare against the current time to check for timeout
-   * @param actionMessage a message describing the action being waited for; this message is included
-   *        in the error message reported if timeout occurs
-   */
-  private void waitAndCheckTimeout(long startTime, String actionMessage) {
-    if (System.currentTimeMillis() - startTime > CLUSTER_READY_TIMEOUT_MS) {
-      throw new RuntimeException("Failed to start cluster. Timed out " + actionMessage);
-    }
-    CommonUtils.sleepMs(CLUSTER_READY_POLL_INTERVAL_MS);
   }
 
   /**
