@@ -39,6 +39,7 @@ public class SwiftInputStream extends InputStream {
 
   /**
    * Constructor for an input stream to an object in a Swift API based store.
+   *
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
