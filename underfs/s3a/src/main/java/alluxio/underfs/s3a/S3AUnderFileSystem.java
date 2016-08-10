@@ -92,7 +92,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** The owner name of the bucket. */
   private final String mBucketOwner;
 
-  /** The owner id of the bucket. */
+  /** The AWS id of the bucket owner. */
   private final String mBucketOwnerId;
 
   /** The permission mode by the owner to the bucket. */
