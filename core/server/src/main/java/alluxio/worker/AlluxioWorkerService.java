@@ -91,4 +91,9 @@ public interface AlluxioWorkerService extends Server {
    * @return the worker metric system reference
    */
   MetricsSystem getWorkerMetricsSystem();
+
+  /**
+   * Waits until the worker is ready to server requests.
+   */
+  void waitForReady();
 }
