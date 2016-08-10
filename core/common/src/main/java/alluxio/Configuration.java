@@ -151,13 +151,13 @@ public final class Configuration {
     int maxWorkersPerHost = getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     if (maxWorkersPerHost > 1) {
       String message = "%s cannot be specified when allowing multiple workers per host with "
-          + Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
-      Preconditions.checkState(System.getProperty(Constants.WORKER_DATA_PORT) == null,
-          String.format(message, Constants.WORKER_DATA_PORT));
-      Preconditions.checkState(System.getProperty(Constants.WORKER_RPC_PORT) == null,
-          String.format(message, Constants.WORKER_RPC_PORT));
-      Preconditions.checkState(System.getProperty(Constants.WORKER_WEB_PORT) == null,
-          String.format(message, Constants.WORKER_WEB_PORT));
+          + PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX + "=" + maxWorkersPerHost;
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_DATA_PORT) == null,
+          String.format(message, PropertyKey.WORKER_DATA_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_RPC_PORT) == null,
+          String.format(message, PropertyKey.WORKER_RPC_PORT));
+      Preconditions.checkState(System.getProperty(PropertyKey.WORKER_WEB_PORT) == null,
+          String.format(message, PropertyKey.WORKER_WEB_PORT));
       PROPERTIES.put(PropertyKey.WORKER_DATA_PORT, "0");
       PROPERTIES.put(PropertyKey.WORKER_RPC_PORT, "0");
       PROPERTIES.put(PropertyKey.WORKER_WEB_PORT, "0");
