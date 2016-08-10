@@ -23,6 +23,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -559,5 +560,18 @@ public class AlluxioMaster implements Server {
    */
   public MetricsSystem getMasterMetricsSystem() {
     return mMasterMetricsSystem;
+  }
+
+  /**
+   * Blocks until the master is ready to serve requests.
+   */
+  public void waitForReady() {
+    while (true) {
+      if (mMasterServiceServer != null && mMasterServiceServer.isServing()
+          && mWebServer != null && mWebServer.getServer().isRunning()) {
+        return;
+      }
+      CommonUtils.sleepMs(10);
+    }
   }
 }
