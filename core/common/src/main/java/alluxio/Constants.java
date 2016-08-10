@@ -117,7 +117,7 @@ public final class Constants {
   public static final String KEY_VALUE_MASTER_CLIENT_SERVICE_NAME = "KeyValueMasterClient";
   public static final String KEY_VALUE_WORKER_CLIENT_SERVICE_NAME = "KeyValueWorkerClient";
 
-  public static final String REST_API_PREFIX = "v1/api";
+  public static final String REST_API_PREFIX = "/v1/api";
   public static final String LOGGER_TYPE = PropertyKey.LOGGER_TYPE;
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
