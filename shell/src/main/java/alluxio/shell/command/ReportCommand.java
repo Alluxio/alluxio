@@ -13,6 +13,8 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.client.file.FileSystem;
+import alluxio.client.file.FileSystemContext;
+import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
 import alluxio.exception.AlluxioException;
 
@@ -42,7 +44,7 @@ public final class ReportCommand extends WithWildCardPathCommand {
 
   @Override
   void runCommand(AlluxioURI path, CommandLine cl) throws AlluxioException, IOException {
-    LineageFileSystem.get().reportLostFile(path);
+    LineageFileSystem.get(FileSystemContext.INSTANCE, LineageContext.INSTANCE).reportLostFile(path);
     System.out.println(path + " has been reported as lost.");
   }
 

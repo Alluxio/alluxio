@@ -9,24 +9,25 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.master;
-
-import alluxio.master.block.BlockMaster;
-
-import org.powermock.reflect.Whitebox;
+package alluxio;
 
 /**
- * Class which provides access to private state of {@link AlluxioMaster}.
+ * Interface representing an Alluxio Server.
  */
-public final class PrivateAccess {
+public interface Server {
 
   /**
-   * Gets the {@link BlockMaster}.
+   * Starts the Alluxio server.
    *
-   * @param master the {@link AlluxioMaster}
-   * @return the {@link BlockMaster}
+   * @throws Exception if the server fails to start
    */
-  public static BlockMaster getBlockMaster(AlluxioMaster master) {
-    return Whitebox.getInternalState(master, "mBlockMaster");
-  }
+  void start() throws Exception;
+
+  /**
+   * Stops the Alluxio server. Here, anything created or started in {@link #start()} should be
+   * cleaned up and shutdown.
+   *
+   * @throws Exception if the server fails to stop
+   */
+  void stop() throws Exception;
 }

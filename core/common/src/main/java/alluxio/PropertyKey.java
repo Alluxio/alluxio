@@ -254,9 +254,11 @@ public enum PropertyKey {
   // Authorization
   SECURITY_AUTHORIZATION_PERMISSION_ENABLED("alluxio.security.authorization.permission.enabled"),
   SECURITY_AUTHORIZATION_PERMISSION_UMASK("alluxio.security.authorization.permission.umask"),
-  SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP( "alluxio.security.authorization.permission.supergroup"),
+  SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP(
+      "alluxio.security.authorization.permission.supergroup"),
   // Group Mapping
-  SECURITY_GROUP_MAPPING("alluxio.security.group.mapping.class"),
+  SECURITY_GROUP_MAPPING_CLASS("alluxio.security.group.mapping.class"),
+  SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS("alluxio.security.group.mapping.cache.timeout.ms"),
   ;
 
   //

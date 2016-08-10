@@ -26,10 +26,11 @@ public final class MockFileInStream extends FileInStream {
   /**
    * Creates a mock {@link FileInStream} which will supply the given bytes.
    *
+   * @param context file system context
    * @param bytes the bytes to supply
    */
-  public MockFileInStream(byte[] bytes) {
-    super(new URIStatus(new FileInfo()), InStreamOptions.defaults());
+  public MockFileInStream(FileSystemContext context, byte[] bytes) {
+    super(new URIStatus(new FileInfo()), InStreamOptions.defaults(), context);
     mStream = new ByteArrayInputStream(bytes);
   }
 

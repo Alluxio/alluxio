@@ -13,40 +13,24 @@ package alluxio.client.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
 import alluxio.resource.CloseableResource;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.wire.WorkerInfo;
-import alluxio.wire.WorkerNetAddress;
 
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tests {@link BlockStoreContext}.
+ * Integration tests for {@link BlockStoreContext}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({BlockMasterClient.class, BlockMasterClientPool.class, BlockStoreContext.class,
-    BlockWorkerClient.class, BlockWorkerClientPool.class})
-public final class BlockStoreContextTest {
-
-  /**
-   * Re-initializes the {@link BlockStoreContext} before a test runs.
-   */
-  @Before
-  public void before() {
-    BlockStoreContext.INSTANCE.reset();
-  }
+public final class BlockStoreContextIntegrationTest {
+  @Rule
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource();
 
   /**
    * This test ensures acquiring all the available BlockStore master clients blocks further
@@ -107,31 +91,10 @@ public final class BlockStoreContextTest {
    * preventing the release of the worker clients.
    */
   @Test(timeout = 10000)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
   public void acquireWorkerLimitTest() throws Exception {
-    // Use mocks for the master client to make sure the pool of local block worker clients is
-    // initialized properly.
-    Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
-    BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
-    List<WorkerInfo> list = new ArrayList<>();
-    list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("localhost")));
-    PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
-    PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any())
-        .thenReturn(masterClientMock);
-
-    // Use mocks for the block worker client to prevent it from trying to invoke the session
-    // heartbeat RPC.
-    BlockWorkerClient workerClientMock = PowerMockito.mock(BlockWorkerClient.class);
-    PowerMockito.doNothing().when(workerClientMock).sessionHeartbeat();
-    PowerMockito.doReturn(true).when(workerClientMock).isLocal();
-    PowerMockito.doReturn(list.get(0).getAddress()).when(workerClientMock).getWorkerNetAddress();
-    PowerMockito.whenNew(BlockWorkerClient.class)
-        .withArguments(Mockito.any(), Mockito.any(), Mockito.anyLong(), Mockito.anyBoolean(),
-            Mockito.any()).thenReturn(workerClientMock);
-
     final List<BlockWorkerClient> clients = new ArrayList<>();
-
-    // Reduce the size of the worker thread pool to lower the chance of a timeout.
-    Configuration.set(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS, "10");
 
     // Acquire all the clients
     for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
@@ -168,48 +131,16 @@ public final class BlockStoreContextTest {
     }
   }
 
-  /**
-   * Tests when there is a local worker, {@link BlockStoreContext#hasLocalWorker()} return true.
-   */
-  @Test
-  public void hasLocalWorkerTest() throws Exception {
-    // Use mocks for the master client to make sure the pool of local block worker clients is
-    // initialized properly.
-    Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
-    BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
-    List<WorkerInfo> list = new ArrayList<>();
-    list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("localhost")));
-    PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
-    PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any())
-        .thenReturn(masterClientMock);
-
-    Assert.assertTrue(BlockStoreContext.INSTANCE.hasLocalWorker());
-  }
-
-  /**
-   * Tests when there is no local worker, {@link BlockStoreContext#hasLocalWorker()} return false.
-   */
-  @Test
-  public void hasNoLocalWorkerTest() throws Exception {
-    // Use mocks for the master client to make sure the pool of local block worker clients is
-    // initialized properly.
-    Whitebox.setInternalState(NetworkAddressUtils.class, "sLocalHost", "localhost");
-    BlockMasterClient masterClientMock = PowerMockito.mock(BlockMasterClient.class);
-    List<WorkerInfo> list = new ArrayList<>();
-    list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("foo")));
-    list.add(new WorkerInfo().setAddress(new WorkerNetAddress().setHost("bar")));
-    PowerMockito.doReturn(list).when(masterClientMock).getWorkerInfoList();
-    PowerMockito.whenNew(BlockMasterClient.class).withArguments(Mockito.any())
-        .thenReturn(masterClientMock);
-
-    Assert.assertFalse(BlockStoreContext.INSTANCE.hasLocalWorker());
-  }
-
   class AcquireWorkerClient implements Runnable {
     @Override
     public void run() {
       BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
       BlockStoreContext.INSTANCE.releaseWorkerClient(client);
     }
+  }
+
+  @Test
+  public void hasLocalWorkerTest() throws Exception {
+    Assert.assertTrue(BlockStoreContext.INSTANCE.hasLocalWorker());
   }
 }

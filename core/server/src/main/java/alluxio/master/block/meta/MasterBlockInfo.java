@@ -90,8 +90,8 @@ public final class MasterBlockInfo {
   /**
    * Adds a location of the block. It means that the worker has the block in one of its tiers.
    *
-   * @param workerId The id of the worker
-   * @param tierAlias The alias of the storage tier that this block is on
+   * @param workerId the id of the worker
+   * @param tierAlias the alias of the storage tier that this block is on
    */
   public void addWorker(long workerId, String tierAlias) {
     mWorkerIdToAlias.put(workerId, tierAlias);
@@ -121,10 +121,9 @@ public final class MasterBlockInfo {
   }
 
   /**
-   * Gets the locations of the block, which are the workers' net address who has the data of the
-   * block in its tiered storage.
+   * Gets the net addresses for all workers which have the block's data in their tiered storage.
    *
-   * @return the net addresses of the locations
+   * @return the net addresses of the workers
    */
   public List<MasterBlockLocation> getBlockLocations() {
     List<MasterBlockLocation> ret = new ArrayList<>(mWorkerIdToAlias.size());

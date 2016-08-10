@@ -11,6 +11,9 @@
 
 package alluxio;
 
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
+import org.powermock.reflect.Whitebox;
+
 /**
  * Utility methods for the configuration tests.
  */
@@ -23,6 +26,9 @@ public final class ConfigurationTestUtils {
    * while any object may be using the {@link Configuration}.
    */
   public static void resetConfiguration() {
+    ConcurrentHashMapV8<String, String> properties =
+        Whitebox.getInternalState(Configuration.class, "PROPERTIES");
+    properties.clear();
     Configuration.defaultInit();
   }
 
