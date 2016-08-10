@@ -13,6 +13,7 @@ package alluxio.client.file;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.BoundedStream;
@@ -288,7 +289,7 @@ public class FileInStream extends InputStream implements BoundedStream, Seekable
   }
 
   protected UnderStoreStreamFactory getUnderStoreStreamFactory(String path) throws IOException {
-    if (Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED)) {
       return new DelegatedUnderStoreStreamFactory(FileSystemContext.INSTANCE, path);
     } else {
       return new DirectUnderStoreStreamFactory(path);
