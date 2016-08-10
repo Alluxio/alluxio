@@ -320,7 +320,9 @@ public final class PropertyKey {
   public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
       "alluxio.security.authorization.permission.supergroup";
   // Group Mapping
-  public static final String SECURITY_GROUP_MAPPING = "alluxio.security.group.mapping.class";
+  public static final String SECURITY_GROUP_MAPPING_CLASS = "alluxio.security.group.mapping.class";
+  public static final String SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
+      "alluxio.security.group.mapping.cache.timeout.ms";
 
   private PropertyKey() {} // prevent instantiation
 }

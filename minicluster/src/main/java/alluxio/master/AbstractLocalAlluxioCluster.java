@@ -21,14 +21,16 @@ import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.block.BlockMasterPrivateAccess;
-import alluxio.security.LoginUser;
+import alluxio.security.GroupMappingServiceTestUtils;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.underfs.LocalFileSystemCluster;
 import alluxio.underfs.UnderFileSystemCluster;
 import alluxio.util.CommonUtils;
 import alluxio.util.UnderFileSystemUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
+import alluxio.worker.DefaultAlluxioWorker;
 import alluxio.worker.WorkerIdRegistry;
 
 import com.google.common.base.Joiner;
@@ -37,7 +39,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -59,7 +60,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
 
-  protected AlluxioWorker mWorker;
+  protected AlluxioWorkerService mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mHome;
@@ -178,7 +179,7 @@ public abstract class AbstractLocalAlluxioCluster {
     if (workerId == WorkerIdRegistry.INVALID_WORKER_ID) {
       return false;
     }
-    BlockMaster blockMaster = PrivateAccess.getBlockMaster(getMaster().getInternalMaster());
+    BlockMaster blockMaster = getMaster().getInternalMaster().getBlockMaster();
     return BlockMasterPrivateAccess.isWorkerRegistered(blockMaster, workerId);
   }
 
@@ -260,7 +261,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     ConfigurationTestUtils.resetConfiguration();
     reset();
-    resetLoginUser();
+    LoginUserTestUtils.resetLoginUser();
   }
 
   /**
@@ -280,18 +281,6 @@ public abstract class AbstractLocalAlluxioCluster {
     if (mUfsCluster != null) {
       mUfsCluster.cleanup();
     }
-  }
-
-  /**
-   * Resets the {@link LoginUser}. This is called when the cluster is stopped.
-   *
-   * @throws Exception when the operation fails
-   */
-  private void resetLoginUser() throws Exception {
-    // Use reflection to reset the private static member sLoginUser in LoginUser.
-    Field field = LoginUser.class.getDeclaredField("sLoginUser");
-    field.setAccessible(true);
-    field.set(null, null);
   }
 
   /**
@@ -389,8 +378,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws ConnectionFailedException if network connection failed
    */
   protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new AlluxioWorker();
-    Whitebox.setInternalState(AlluxioWorker.class, "sAlluxioWorker", mWorker);
+    mWorker = new DefaultAlluxioWorker();
+    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorker);
 
     Runnable runWorker = new Runnable() {
       @Override
@@ -425,6 +414,7 @@ public abstract class AbstractLocalAlluxioCluster {
    */
   protected void reset() {
     ClientTestUtils.resetClient();
+    GroupMappingServiceTestUtils.resetCache();
   }
 
   /**

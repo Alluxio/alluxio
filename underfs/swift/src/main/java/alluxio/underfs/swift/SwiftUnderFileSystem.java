@@ -304,11 +304,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public String[] listRecursive(String path) throws IOException {
+    LOG.debug("List {} recursively", path);
     return listHelper(path, true);
   }
 
   @Override
   public String[] list(String path) throws IOException {
+    LOG.debug("List {}", path);
     return listHelper(path, false);
   }
 
@@ -400,7 +402,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path the path to check
    * @return true if the path is the root, false otherwise
    */
-  private boolean isRoot(String path) {
+  private boolean isRoot(final String path) {
     return addFolderSuffixIfNotPresent(path).equals(mContainerPrefix);
   }
 
@@ -415,7 +417,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @param path URI to the object
    * @return folder path
    */
-  private String addFolderSuffixIfNotPresent(String path) {
+  private String addFolderSuffixIfNotPresent(final String path) {
     return PathUtils.normalizePath(path, FOLDER_SUFFIX);
   }
 

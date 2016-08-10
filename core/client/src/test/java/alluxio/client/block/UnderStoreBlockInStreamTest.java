@@ -11,12 +11,12 @@
 
 package alluxio.client.block;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.PropertyKey;
+import alluxio.client.block.UnderStoreBlockInStream.UnderStoreStreamFactory;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.util.io.BufferUtils;
 
+import com.google.common.base.Throwables;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,13 +25,16 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * Tests for the {@link DirectUnderStoreBlockInStream} class.
+ * Tests for the {@link UnderStoreBlockInStream} class.
  */
-public class DirectUnderStoreBlockInStreamTest {
+public class UnderStoreBlockInStreamTest {
   private static final long BLOCK_LENGTH = 100L;
   private static final long FILE_LENGTH = 2 * BLOCK_LENGTH;
   private static final String TEST_FILENAME = "test_filename.txt";
@@ -49,19 +52,15 @@ public class DirectUnderStoreBlockInStreamTest {
    */
   @Before
   public void before() throws IOException {
-    Configuration.set(PropertyKey.USER_UFS_DELEGATION_ENABLED, "false");
-
     File file = mFolder.newFile(TEST_FILENAME);
     FileOutputStream os = new FileOutputStream(file);
     // Create a file of 2 block sizes.
     os.write(BufferUtils.getIncreasingByteArray((int) FILE_LENGTH));
     os.close();
-    mBlockStream =
-        UnderStoreBlockInStream.Factory.create(0, BLOCK_LENGTH, BLOCK_LENGTH,
-            file.getAbsolutePath());
-    mEOFBlockStream =
-        UnderStoreBlockInStream.Factory.create(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
-            file.getAbsolutePath());
+    mBlockStream = new UnderStoreBlockInStream(0, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
+    mEOFBlockStream = new UnderStoreBlockInStream(BLOCK_LENGTH, BLOCK_LENGTH, BLOCK_LENGTH,
+        new FileUnderStoreStreamFactory(file));
   }
 
   /**
@@ -286,5 +285,30 @@ public class DirectUnderStoreBlockInStreamTest {
     inStream.seek(BLOCK_LENGTH);
     Assert.assertEquals(-1, inStream.read());
     Assert.assertEquals(0, inStream.remaining());
+  }
+
+  /**
+   * {@UnderStoreStreamFactory} which creates streams to a specified file.
+   */
+  private final class FileUnderStoreStreamFactory implements UnderStoreStreamFactory {
+    private final File mFile;
+
+    private FileUnderStoreStreamFactory(File file) {
+      mFile = file;
+    }
+
+    @Override
+    public InputStream create() {
+      try {
+        return new FileInputStream(mFile);
+      } catch (FileNotFoundException e) {
+        throw Throwables.propagate(e);
+      }
+    }
+
+    @Override
+    public void close() {
+      // nothing to close
+    }
   }
 }

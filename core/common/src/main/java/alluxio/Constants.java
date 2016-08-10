@@ -149,7 +149,6 @@ public final class Constants {
   public static final long NO_TTL = -1;
 
   // Security
-
   // Security related constant value
   public static final int DEFAULT_FILE_SYSTEM_UMASK = 0022;
   public static final short DEFAULT_FILE_SYSTEM_MODE = (short) 0777;

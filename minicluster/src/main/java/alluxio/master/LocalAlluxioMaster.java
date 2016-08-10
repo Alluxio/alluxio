@@ -21,7 +21,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Supplier;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -56,8 +55,7 @@ public final class LocalAlluxioMaster {
 
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
 
-    mAlluxioMaster = AlluxioMaster.Factory.create();
-    Whitebox.setInternalState(AlluxioMaster.class, "sAlluxioMaster", mAlluxioMaster);
+    mAlluxioMaster = AlluxioMaster.Factory.create(new MasterContext(new MasterSource()));
 
     // Reset the master port
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));

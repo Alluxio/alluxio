@@ -553,11 +553,9 @@ public class FileSystemMasterIntegrationTest {
     Assert.assertEquals(ttl, folderInfo.getTtl());
     // Sleep for the ttl expiration.
     CommonUtils.sleepMs(2 * TTL_CHECKER_INTERVAL_MS);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
     HeartbeatScheduler.schedule(HeartbeatContext.MASTER_TTL_CHECK);
-    Assert.assertTrue(HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10,
-        TimeUnit.SECONDS));
+    HeartbeatScheduler.await(HeartbeatContext.MASTER_TTL_CHECK, 10, TimeUnit.SECONDS);
     mThrown.expect(FileDoesNotExistException.class);
     mFsMaster.getFileInfo(fileId);
   }
