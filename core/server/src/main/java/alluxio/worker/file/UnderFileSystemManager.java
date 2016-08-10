@@ -197,6 +197,7 @@ public final class UnderFileSystemManager {
         if (ufs instanceof S3AUnderFileSystem) { // Optimization for S3A UFS
           mStream =
               new CountingInputStream(((S3AUnderFileSystem) ufs).openAtPosition(mUri, position));
+          mInitPos = position;
         } else if (ufs instanceof S3UnderFileSystem) { // Optimization for S3 UFS
           mStream =
               new CountingInputStream(((S3UnderFileSystem) ufs).openAtPosition(mUri, position));
