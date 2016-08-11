@@ -137,7 +137,8 @@ public class ConfigurationTest {
   @Test
   public void getList() {
     Configuration.set(PropertyKey.WEB_THREADS, "a,b,c");
-    Assert.assertEquals(Lists.newArrayList("a", "b", "c"), Configuration.getList(PropertyKey.WEB_THREADS, ","));
+    Assert.assertEquals(
+        Lists.newArrayList("a", "b", "c"), Configuration.getList(PropertyKey.WEB_THREADS, ","));
   }
 
   private static enum TestEnum {
@@ -147,7 +148,8 @@ public class ConfigurationTest {
   @Test
   public void getEnum() {
     Configuration.set(PropertyKey.WEB_THREADS, "VALUE");
-    Assert.assertEquals(TestEnum.VALUE, Configuration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
+    Assert.assertEquals(
+        TestEnum.VALUE, Configuration.getEnum(PropertyKey.WEB_THREADS, TestEnum.class));
   }
 
   @Test

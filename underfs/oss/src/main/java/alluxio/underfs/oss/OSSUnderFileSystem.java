@@ -80,17 +80,17 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
     super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY_ID),
-        "Property " + PropertyKey.OSS_ACCESS_KEY_ID + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY_SECRET),
-        "Property " + PropertyKey.OSS_ACCESS_KEY_SECRET + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT),
-        "Property " + PropertyKey.OSS_ENDPOINT + " is required to connect to OSS");
-    mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY_ID);
-    mAccessKey = Configuration.get(PropertyKey.OSS_ACCESS_KEY_SECRET);
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
+        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
+        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
+        "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
+    mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
+    mAccessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
     mBucketName = bucketName;
     mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = Configuration.get(PropertyKey.OSS_ENDPOINT);
+    mEndPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);

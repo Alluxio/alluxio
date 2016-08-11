@@ -60,6 +60,5 @@ public final class AlluxioWorker {
     }
   }
 
-
   private AlluxioWorker() {} // Not intended for instantiation
 }

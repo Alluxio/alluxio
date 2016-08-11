@@ -71,7 +71,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
    * @return true if both access and secret key are present, false otherwise
    */
   private boolean addAndCheckAWSCredentials() {
-    return Configuration.containsKey(PropertyKey.S3N_AWS_ACCESS_KEY_ID)
-        && Configuration.containsKey(PropertyKey.S3N_AWS_SECRET_ACESS_KEY);
+    return Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY)
+        && Configuration.containsKey(PropertyKey.S3N_SECRET_KEY);
   }
 }
