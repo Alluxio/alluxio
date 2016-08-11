@@ -37,8 +37,7 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
   /**
    * Constructs a new {@link SwiftUnderFileSystemFactory}.
    */
-  public SwiftUnderFileSystemFactory() {
-  }
+  public SwiftUnderFileSystemFactory() {}
 
   @Override
   public UnderFileSystem create(String path, Object unusedConf) {

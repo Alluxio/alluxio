@@ -77,6 +77,14 @@ public abstract class AbstractLocalAlluxioCluster {
   public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
+    mStarted = false;
+  }
+
+  /**
+   * @return whether the local cluster has been started.
+   */
+  public boolean isStarted() {
+    return mStarted;
   }
 
   /**
