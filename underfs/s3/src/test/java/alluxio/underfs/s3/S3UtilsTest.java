@@ -17,6 +17,7 @@ import org.jets3t.service.acl.GroupGrantee;
 import org.jets3t.service.acl.Permission;
 import org.jets3t.service.model.StorageOwner;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -24,67 +25,85 @@ import org.junit.Test;
  */
 public final class S3UtilsTest {
 
+  private static final String NAME = "foo";
+  private static final String ID = "123456789012";
+  private static final String OTHER = "987654321098";
+
+  private CanonicalGrantee mOwnerGrantee;
+  private AccessControlList mAcl;
+
+  @Before
+  public void before() throws Exception {
+    // Set up owner id, name and mOwnerGrantee.
+    StorageOwner owner = new StorageOwner(ID /* id */, NAME /* display name */);
+    mOwnerGrantee = new CanonicalGrantee(ID);
+    mOwnerGrantee.setDisplayName(NAME);
+
+    // Create a mAcl with the owner.
+    mAcl = new AccessControlList();
+    mAcl.setOwner(owner);
+  }
+
   /**
    * Tests for {@link S3Utils#translateBucketAcl(AccessControlList, String)}.
    */
   @Test
-  public void translateBucketAclTest() {
-    // Set up owner id, name and ownerGrantee.
-    final String id = "123456789012";
-    final String name = "foo";
-    final String other = "987654321098";
-    StorageOwner owner = new StorageOwner(id /* id */, name /* display name */);
-    CanonicalGrantee ownerGrantee = new CanonicalGrantee(id);
-    ownerGrantee.setDisplayName(name);
-
-    // Create a acl with the owner.
-    AccessControlList acl = new AccessControlList();
-    acl.setOwner(owner);
-
+  public void translateOwnerAclTest() {
     // Grant only READ, READ_ACP permission to the owner. Check the translated mode is 0500.
-    acl.grantPermission(ownerGrantee, Permission.PERMISSION_READ);
-    acl.grantPermission(ownerGrantee, Permission.PERMISSION_READ_ACP);
-    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(acl, other));
+    mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_READ);
+    mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_READ_ACP);
+    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(mAcl, OTHER));
 
     // Grant WRITE permission to the owner. Check the translated mode is 0700.
-    acl.grantPermission(ownerGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, id));
-    // Add WRITE permission to the owner. Check the translated mode is still 0700.
-    acl.grantPermission(ownerGrantee, Permission.PERMISSION_WRITE_ACP);
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(acl, other));
+    mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_WRITE);
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
+    // Add WRITE_ACP permission to the owner. Check the translated mode is still 0700.
+    mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_WRITE_ACP);
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(mAcl, OTHER));
 
+    // Revoke permission to owner.
+    mAcl.revokeAllPermissions(mOwnerGrantee);
+  }
+
+  /**
+   * Tests for translating bucket acl granted to "everyone".
+   */
+  @Test
+  public void translateEveryoneAclTest() {
     GroupGrantee allUsersGrantee = GroupGrantee.ALL_USERS;
-    // Keep the ownerGrantee and permission, while adding another grantee "everyone".
     // Assign READ only permission to "everyone".
-    acl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ);
-    acl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ_ACP);
-    // Check the translated mode is kept 0700.
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(acl, other));
-
-    // Revoke all permission for ownerGrantee and only leave permission for "everyone".
-    acl.revokeAllPermissions(ownerGrantee);
+    mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ);
+    mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ_ACP);
     // Check the translated mode is now 0500, because owner write permission is revoked.
-    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(acl, id));
+    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, OTHER));
     // Add WRITE permission to "everyone", and check the translated mode becomes 0700.
-    acl.grantPermission(allUsersGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, other));
+    mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_WRITE);
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, OTHER));
 
     // Revoke permission to "everyone".
-    acl.revokeAllPermissions(allUsersGrantee);
+    mAcl.revokeAllPermissions(allUsersGrantee);
+  }
+
+  /**
+   * Tests for translating bucket acl granted to all authenticated users.
+   */
+  @Test
+  public void translateAuthenticatedUserAclTest() {
     // Add READ only permission to "all authenticated users".
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AUTHENTICATED_USERS;
-    acl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ);
-    acl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ_ACP);
+    mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ);
+    mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ_ACP);
     // Check the mode is 0500.
-    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(acl, other));
+    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, OTHER));
     // Add WRITE permission to "all authenticated users" and check permission.
-    acl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_WRITE);
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, id));
-    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(acl, other));
+    mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_WRITE);
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, OTHER));
+    mAcl.revokeAllPermissions(authenticatedUsersGrantee);
   }
 }

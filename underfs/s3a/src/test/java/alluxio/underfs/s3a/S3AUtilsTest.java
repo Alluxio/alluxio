@@ -58,7 +58,7 @@ public final class S3AUtilsTest {
     // Grant WRITE permission to the owner. Check the translated mode is 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.Write);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    // Add WRITE permission to the owner. Check the translated mode is still 0700.
+    // Add WRITE_ACP permission to the owner. Check the translated mode is still 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.WriteAcp);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
