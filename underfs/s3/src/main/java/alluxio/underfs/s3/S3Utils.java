@@ -13,6 +13,7 @@ package alluxio.underfs.s3;
 
 import org.jets3t.service.acl.AccessControlList;
 import org.jets3t.service.acl.GrantAndPermission;
+import org.jets3t.service.acl.GranteeInterface;
 import org.jets3t.service.acl.GroupGrantee;
 import org.jets3t.service.acl.Permission;
 
@@ -30,21 +31,21 @@ public final class S3Utils {
   public static short translateBucketAcl(AccessControlList acl, String bucketOwnerId) {
     short mode = (short) 0;
     for (GrantAndPermission gp : acl.getGrantAndPermissions()) {
+      Permission perm = gp.getPermission();
+      GranteeInterface grantee = gp.getGrantee();
       // If the bucket is readable by the owner, add r and x to the owner mode.
-      if (gp.getPermission().equals(Permission.PERMISSION_READ)) {
-        if (gp.getGrantee().getIdentifier().equals(bucketOwnerId)
-            || gp.getGrantee().equals(GroupGrantee.ALL_USERS)
-            || gp.getGrantee().equals(GroupGrantee.AUTHENTICATED_USERS)) {
-          mode |= (short) 0500;
-        }
+      if (perm.equals(Permission.PERMISSION_READ)
+          && (grantee.getIdentifier().equals(bucketOwnerId)
+              || grantee.equals(GroupGrantee.ALL_USERS)
+              || grantee.equals(GroupGrantee.AUTHENTICATED_USERS))) {
+        mode |= (short) 0500;
       }
       // If the bucket is writable by the owner, +w to the owner mode.
-      if (gp.getPermission().equals(Permission.PERMISSION_WRITE)) {
-        if (gp.getGrantee().getIdentifier().equals(bucketOwnerId)
-            || gp.getGrantee().equals(GroupGrantee.ALL_USERS)
-            || gp.getGrantee().equals(GroupGrantee.AUTHENTICATED_USERS)) {
-          mode |= (short) 0200;
-        }
+      if (perm.equals(Permission.PERMISSION_WRITE)
+          && (grantee.getIdentifier().equals(bucketOwnerId)
+              || grantee.equals(GroupGrantee.ALL_USERS)
+              || grantee.equals(GroupGrantee.AUTHENTICATED_USERS))) {
+        mode |= (short) 0200;
       }
     }
     return mode;

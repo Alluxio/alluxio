@@ -34,14 +34,13 @@ public final class S3AUtilsTest {
 
   @Before
   public void before() throws Exception {
-    // Set up owner id, name and mOwnerGrantee.
-    Owner owner = new Owner(ID /* id */, NAME /* display name */);
+    // Setup owner.
     mOwnerGrantee = new CanonicalGrantee(ID);
     mOwnerGrantee.setDisplayName(NAME);
 
-    // Create a mAcl with the owner.
+    // Setup the acl.
     mAcl = new AccessControlList();
-    mAcl.setOwner(owner);
+    mAcl.setOwner(new Owner(ID, NAME));
   }
 
   @Test

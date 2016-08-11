@@ -13,6 +13,7 @@ package alluxio.underfs.s3a;
 
 import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.Grant;
+import com.amazonaws.services.s3.model.Grantee;
 import com.amazonaws.services.s3.model.GroupGrantee;
 import com.amazonaws.services.s3.model.Permission;
 
@@ -30,23 +31,21 @@ public final class S3AUtils {
   public static short translateBucketAcl(AccessControlList acl, String bucketOwnerId) {
     short mode = (short) 0;
     for (Grant grant : acl.getGrantsAsList()) {
+      Permission perm = grant.getPermission();
+      Grantee grantee = grant.getGrantee();
       // If the bucket is readable by the owner, add r and x to the owner mode.
-      if (grant.getPermission().equals(Permission.Read)) {
-        if (grant.getGrantee().getIdentifier().equals(bucketOwnerId)
-            || grant.getGrantee().equals(GroupGrantee.AllUsers)
-            || grant.getGrantee().equals(GroupGrantee.AuthenticatedUsers)) {
-          mode |= (short) 0500;
-        }
+      if (perm.equals(Permission.Read)
+          && (grantee.getIdentifier().equals(bucketOwnerId)
+              || grantee.equals(GroupGrantee.AllUsers)
+              || grantee.equals(GroupGrantee.AuthenticatedUsers))) {
+        mode |= (short) 0500;
       }
-    }
-    for (Grant grant : acl.getGrantsAsList()) {
       // If the bucket is writable by the owner, +w to the owner mode.
-      if (grant.getPermission().equals(Permission.Write)) {
-        if (grant.getGrantee().getIdentifier().equals(bucketOwnerId)
-            || grant.getGrantee().equals(GroupGrantee.AllUsers)
-            || grant.getGrantee().equals(GroupGrantee.AuthenticatedUsers)) {
-          mode |= (short) 0200;
-        }
+      if (perm.equals(Permission.Write)
+          && (grantee.getIdentifier().equals(bucketOwnerId)
+              || grantee.equals(GroupGrantee.AllUsers)
+              || grantee.equals(GroupGrantee.AuthenticatedUsers))) {
+        mode |= (short) 0200;
       }
     }
     return mode;
