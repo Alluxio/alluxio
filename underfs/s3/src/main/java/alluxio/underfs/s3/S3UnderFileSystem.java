@@ -25,6 +25,7 @@ import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
+import org.jets3t.service.acl.AccessControlList;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -72,6 +73,15 @@ public final class S3UnderFileSystem extends UnderFileSystem {
 
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
+
+  /** The owner name of the bucket. */
+  private final String mBucketOwner;
+
+  /** The AWS id of the bucket owner. */
+  private final String mBucketOwnerId;
+
+  /** The permission mode by the owner to the bucket. */
+  private final short mBucketMode;
 
   static {
     try {
@@ -139,6 +149,11 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+
+    AccessControlList acl = mClient.getBucketAcl(mBucketName);
+    mBucketOwner = acl.getOwner().getDisplayName();
+    mBucketOwnerId = acl.getOwner().getId();
+    mBucketMode = S3Utils.translateBucketAcl(acl, mBucketOwnerId);
   }
 
   @Override
@@ -386,22 +401,22 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the translated mode by the owner of the bucket.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mBucketMode;
   }
 
   /**
