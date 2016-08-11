@@ -84,7 +84,8 @@ public enum PropertyKey {
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS("alluxio.master.journal.flush.batch.time.ms"),
   MASTER_JOURNAL_FOLDER("alluxio.master.journal.folder"),
   MASTER_JOURNAL_FORMATTER_CLASS("alluxio.master.journal.formatter.class"),
-  MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS( "alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"),
+  MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS(
+      "alluxio.master.journal.tailer.shutdown.quiet.wait.time.ms"),
   MASTER_JOURNAL_TAILER_SLEEP_TIME_MS("alluxio.master.journal.tailer.sleep.time.ms"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX("alluxio.master.journal.log.size.bytes.max"),
   MASTER_FILE_ASYNC_PERSIST_HANDLER("alluxio.master.file.async.persist.handler"),
@@ -208,7 +209,8 @@ public enum PropertyKey {
   USER_FILE_WAITCOMPLETED_POLL_MS("alluxio.user.file.waitcompleted.poll.ms"),
   USER_UFS_DELEGATION_ENABLED("alluxio.user.ufs.delegation.enabled"),
   USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES("alluxio.user.ufs.delegation.read.buffer.size.bytes"),
-  USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES("alluxio.user.ufs.delegation.write.buffer.size.bytes"),
+  USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES(
+      "alluxio.user.ufs.delegation.write.buffer.size.bytes"),
 
   /**
    * Passed to fuse-mount, maximum granularity of write operations:

@@ -84,14 +84,14 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getConfigurationTest() throws Exception {
-    Configuration.set("alluxio.testkey", "abc");
+    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
         null).call();
     @SuppressWarnings("unchecked")
     Map<String, String> config =
         (Map<String, String>) new ObjectMapper().readValue(result, Map.class);
-    Assert.assertEquals("abc", config.get("alluxio.testkey"));
+    Assert.assertEquals("abc", config.get(PropertyKey.METRICS_CONF_FILE));
   }
 
   @Test
