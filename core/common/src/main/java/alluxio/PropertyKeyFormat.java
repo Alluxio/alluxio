@@ -14,7 +14,7 @@ package alluxio;
 /**
  * A set of format templates to generate the property name for a given level in tiered storage. e
  * .g.,
- * {@code PropertyKey.format(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT, 0)}
+ * {@code PropertyKeyFormat.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT.format(0)}
  */
 public enum PropertyKeyFormat {
   MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT("alluxio.master.tieredstore.global.level%d.alias"),

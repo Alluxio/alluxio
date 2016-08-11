@@ -74,7 +74,7 @@ public abstract class AbstractAlluxioShellTest {
 
   protected void resetShellTest() throws Exception {
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
-    if (mLocalAlluxioCluster == null) {
+    if (!mLocalAlluxioCluster.isStarted()) {
       return;
     }
 
