@@ -54,5 +54,4 @@ public final class HdfsUnderFileSystemUtilsTest {
     System.clearProperty(key.toString());
     ConfigurationTestUtils.resetConfiguration();
   }
-
 }

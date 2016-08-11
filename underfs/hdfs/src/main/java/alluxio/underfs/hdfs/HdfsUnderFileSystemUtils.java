@@ -26,7 +26,7 @@ public final class HdfsUnderFileSystemUtils {
   private HdfsUnderFileSystemUtils() {} // prevent instantiation
 
   /**
-   * Replaces default key with user provided key.
+   * Replaces default key with user provided Alluxio property key.
    *
    * @param hadoopConf configuration to replace the key in
    * @param key the key to replace

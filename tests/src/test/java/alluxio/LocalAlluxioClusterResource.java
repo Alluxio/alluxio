@@ -92,11 +92,9 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * @param workerCapacityBytes the capacity of the worker in bytes
    * @param userBlockSize the block size for a user
    * @param startCluster whether or not to start the cluster before the test method starts
-   * @param confParams specific alluxio configuration parameters, specified as a list of strings,
    */
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-      boolean startCluster, String... confParams) {
-    Preconditions.checkArgument(confParams.length % 2 == 0);
+      boolean startCluster) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
     mStartCluster = startCluster;
@@ -110,13 +108,8 @@ public final class LocalAlluxioClusterResource implements TestRule {
     this(DEFAULT_WORKER_CAPACITY_BYTES, DEFAULT_USER_BLOCK_SIZE);
   }
 
-  public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize,
-      boolean startCluster) {
-    this(workerCapacityBytes, userBlockSize, startCluster, new String[0]);
-  }
-
   public LocalAlluxioClusterResource(long workerCapacityBytes, int userBlockSize) {
-    this(workerCapacityBytes, userBlockSize, true, new String[0]);
+    this(workerCapacityBytes, userBlockSize, true);
   }
 
   /**
@@ -126,17 +119,17 @@ public final class LocalAlluxioClusterResource implements TestRule {
     return mLocalAlluxioCluster;
   }
 
+  /**
+   * Adds a property to the cluster resource.
+   *
+   * @param key property key
+   * @param value property value
+   * @return the cluster resource
+   */
   public LocalAlluxioClusterResource setProperty(PropertyKey key, Object value) {
     mConfKeys.add(key);
     mConfValues.add(value.toString());
     return this;
-  }
-
-  /**
-   * @return whether the local cluster has been started
-   */
-  public boolean isStarted() {
-    return mStartCluster;
   }
 
   /**
@@ -151,7 +144,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
     }
     // Start the cluster
     mLocalAlluxioCluster.start();
-    mStartCluster = true;
   }
 
   @Override
@@ -188,7 +180,6 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Config {
-    //String[] confParams() default {};
     boolean startCluster() default true;
   }
 }
