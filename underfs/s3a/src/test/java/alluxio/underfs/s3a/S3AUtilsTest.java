@@ -44,9 +44,6 @@ public final class S3AUtilsTest {
     mAcl.setOwner(owner);
   }
 
-  /**
-   * Tests for {@link S3AUtils#translateBucketAcl(AccessControlList, String)}.
-   */
   @Test
   public void translateOwnerAclTest() {
     // Grant only READ, READ_ACP permission to the owner. Check the translated mode is 0500.
@@ -62,14 +59,8 @@ public final class S3AUtilsTest {
     mAcl.grantPermission(mOwnerGrantee, Permission.WriteAcp);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
-
-    // Revoke permission to owner.
-    mAcl.revokeAllPermissions(mOwnerGrantee);
   }
 
-  /**
-   * Tests for translating bucket acl granted to "everyone".
-   */
   @Test
   public void translateEveryoneAclTest() {
     GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
@@ -83,14 +74,8 @@ public final class S3AUtilsTest {
     mAcl.grantPermission(allUsersGrantee, Permission.Write);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER));
-
-    // Revoke permission to "everyone".
-    mAcl.revokeAllPermissions(allUsersGrantee);
   }
 
-  /**
-   * Tests for translating bucket acl granted to all authenticated users.
-   */
   @Test
   public void translateAuthenticatedUserAclTest() {
     // Add READ only permission to "all authenticated users".
@@ -104,6 +89,5 @@ public final class S3AUtilsTest {
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.Write);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER));
-    mAcl.revokeAllPermissions(authenticatedUsersGrantee);
   }
 }
