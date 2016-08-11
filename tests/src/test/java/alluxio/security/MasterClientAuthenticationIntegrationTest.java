@@ -77,7 +77,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   public void customAuthenticationOpenCloseTest() throws Exception {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
             NameMatchAuthenticationProvider.FULL_CLASS_NAME)
         .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
         .start();
@@ -89,7 +89,7 @@ public final class MasterClientAuthenticationIntegrationTest {
   public void customAuthenticationDenyConnectTest() throws Exception {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
             NameMatchAuthenticationProvider.FULL_CLASS_NAME)
         .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
         .start();
