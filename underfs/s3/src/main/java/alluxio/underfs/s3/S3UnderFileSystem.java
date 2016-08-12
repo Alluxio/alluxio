@@ -393,13 +393,17 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
   @Override
-  public void setOwner(String path, String user, String group) {}
+  public void setOwner(String path, String user, String group) throws IOException {
+    // Do not allow setting S3 owner via Alluxio yet.
+    throw new IOException("setOwner is not supported to S3 via Alluxio.");
+  }
 
-  // No ACL integration currently, no-op
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {
+    // Do not allow setting S3 owner via Alluxio yet.
+    throw new IOException("setMode is not supported to S3 via Alluxio.");
+  }
 
   // Returns the bucket owner.
   @Override

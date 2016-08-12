@@ -311,4 +311,38 @@ public class CommonUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link CommonUtils#isUfsObjectStorage(String)} method.
+   */
+  @Test
+  public void isUfsObjectStorageTest() throws Exception {
+    final String[] inputs = new String[]{
+        "s3://bucket/",
+        "s3n://bucket",
+        "s3a://bucket/",
+        "gs://bucket/",
+        "swift://bucket/",
+        "oss://bucket/",
+        "hdfs://dir/",
+        "/dir/",
+        "/",
+        ""
+    };
+    final boolean[] results = new boolean[]{
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false
+    };
+    for (int i = 0; i < inputs.length; i++) {
+      Assert.assertEquals(results[i], CommonUtils.isUfsObjectStorage(inputs[i]));
+    }
+  }
+
 }

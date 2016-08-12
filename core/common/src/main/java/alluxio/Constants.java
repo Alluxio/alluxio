@@ -131,6 +131,8 @@ public final class Constants {
   public static final String WEB_THREAD_COUNT = "alluxio.web.threads";
   public static final String LOGS_DIR = "alluxio.logs.dir";
   public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+  public static final String UNDERFS_MOUNT_SHARED_PUBLICLY =
+      "alluxio.underfs.mount.shared.publicly";
   public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
   public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
   public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";

@@ -92,7 +92,7 @@ public final class MountTable implements JournalCheckpointStreamable {
 
       AddMountPointEntry addMountPoint = AddMountPointEntry.newBuilder().setAlluxioPath(alluxioPath)
           .setUfsPath(info.getUfsUri().toString()).setReadOnly(info.getOptions().isReadOnly())
-          .addAllProperties(protoProperties).build();
+          .addAllProperties(protoProperties).setShared(info.getOptions().isShared()).build();
       Journal.JournalEntry journalEntry =
           Journal.JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build();
       outputStream.writeEntry(journalEntry);
@@ -240,9 +240,9 @@ public final class MountTable implements JournalCheckpointStreamable {
         UnderFileSystem ufs = UnderFileSystem.get(ufsUri.toString());
         ufs.setProperties(info.getOptions().getProperties());
         AlluxioURI resolvedUri = ufs.resolveUri(ufsUri, path.substring(mountPoint.length()));
-        return new Resolution(resolvedUri, ufs);
+        return new Resolution(resolvedUri, ufs, info.getOptions().isShared());
       }
-      return new Resolution(uri, null);
+      return new Resolution(uri, null, false);
     }
   }
 
@@ -273,10 +273,12 @@ public final class MountTable implements JournalCheckpointStreamable {
   public final class Resolution {
     private final AlluxioURI mUri;
     private final UnderFileSystem mUfs;
+    private final boolean mShared;
 
-    private Resolution(AlluxioURI uri, UnderFileSystem ufs) {
+    private Resolution(AlluxioURI uri, UnderFileSystem ufs, boolean shared) {
       mUri = uri;
       mUfs = ufs;
+      mShared = shared;
     }
 
     /**
@@ -291,6 +293,13 @@ public final class MountTable implements JournalCheckpointStreamable {
      */
     public UnderFileSystem getUfs() {
       return mUfs;
+    }
+
+    /**
+     * @return the shared option
+     */
+    public boolean getShared() {
+      return mShared;
     }
   }
 }

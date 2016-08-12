@@ -28,6 +28,7 @@ public class MountOptionsTest {
   public void defaultsTest() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
+    Assert.assertFalse(options.isShared());
   }
 
   /**
@@ -40,6 +41,10 @@ public class MountOptionsTest {
     Assert.assertTrue(options.isReadOnly());
     options.setReadOnly(false);
     Assert.assertFalse(options.isReadOnly());
+    options.setShared(true);
+    Assert.assertTrue(options.isShared());
+    options.setShared(false);
+    Assert.assertFalse(options.isShared());
   }
 
   /**
@@ -52,8 +57,10 @@ public class MountOptionsTest {
     Assert.assertFalse(thriftOptions.isReadOnly());
 
     options.setReadOnly(true);
+    options.setShared(true);
     thriftOptions = options.toThrift();
     Assert.assertTrue(thriftOptions.isReadOnly());
+    Assert.assertTrue(thriftOptions.isShared());
   }
 
   @Test
