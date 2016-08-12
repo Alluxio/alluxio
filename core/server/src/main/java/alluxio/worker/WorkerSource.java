@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.metrics.source.Source;
+import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.BlockWorker;
 
 import com.codahale.metrics.Counter;
@@ -25,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class WorkerSource implements Source {
-  private static final String WORKER_SOURCE_NAME = "worker";
+  private static final String WORKER_SOURCE_NAME;
 
   public static final String BLOCKS_ACCESSED = "BlocksAccessed";
   public static final String BLOCKS_CANCELED = "BlocksCanceled";
@@ -85,7 +86,10 @@ public class WorkerSource implements Source {
   /**
    * Constructs a new {@link WorkerSource}.
    */
-  public WorkerSource() {}
+  public WorkerSource() {
+    WORKER_SOURCE_NAME = "worker." + NetworkAddressUtils
+        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC).replace('.', '_');
+  }
 
   @Override
   public String getName() {
