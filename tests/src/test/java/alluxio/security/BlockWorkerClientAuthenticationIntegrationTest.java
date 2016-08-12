@@ -88,13 +88,6 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-            NameMatchAuthenticationProvider.FULL_CLASS_NAME)
-        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
-        .start();
-
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 
