@@ -50,7 +50,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void startClusterTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
@@ -66,7 +66,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterSuccessTest() throws Exception {
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile"));
@@ -88,7 +88,7 @@ public class ClusterInitializationTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
+      confParams = {PropertyKey.Name.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterFailTest() throws Exception {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED

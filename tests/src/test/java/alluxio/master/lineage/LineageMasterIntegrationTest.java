@@ -137,7 +137,7 @@ public class LineageMasterIntegrationTest {
    */
   @Test(timeout = 100000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
+      confParams = {PropertyKey.Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
   public void lineageRecoveryTest() throws Exception {
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the

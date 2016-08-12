@@ -32,7 +32,6 @@ import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.JournalWriter;
 import alluxio.master.journal.ReadWriteJournal;
-import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
 import alluxio.underfs.UnderFileSystem;
@@ -522,9 +521,9 @@ public class JournalIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      PropertyKey.Constants.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
+      PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
