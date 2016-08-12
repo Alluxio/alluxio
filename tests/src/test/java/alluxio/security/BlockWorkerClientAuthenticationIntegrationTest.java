@@ -59,34 +59,34 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          PropertyKey.Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE,
-          "CUSTOM", PropertyKey.Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
+          "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          PropertyKey.Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
