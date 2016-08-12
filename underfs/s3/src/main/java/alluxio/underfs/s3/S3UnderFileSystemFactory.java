@@ -45,7 +45,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, Object unusedConf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckAWSCredentials()) {
+    if (checkAWSCredentials()) {
       try {
         return new S3UnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
@@ -65,12 +65,9 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds AWS credentials from system properties to the Alluxio configuration if they are not
-   * already present.
-   *
    * @return true if both access and secret key are present, false otherwise
    */
-  private boolean addAndCheckAWSCredentials() {
+  private boolean checkAWSCredentials() {
     return Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY)
         && Configuration.containsKey(PropertyKey.S3N_SECRET_KEY);
   }

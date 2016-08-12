@@ -81,13 +81,6 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return whether the local cluster has been started.
-   */
-  public boolean isStarted() {
-    return mStarted;
-  }
-
-  /**
    * Starts both master and a worker using the configurations in test conf respectively.
    *
    * @throws IOException if an I/O error occurs

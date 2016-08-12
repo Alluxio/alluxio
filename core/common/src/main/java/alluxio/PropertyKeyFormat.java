@@ -46,10 +46,10 @@ public enum PropertyKeyFormat {
    * {@link PropertyKeyFormat#WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT})
    * to a {@link PropertyKey} enum instance.
    *
-   * @param ordinal ordinal
+   * @param params ordinal
    * @return corresponding property
    */
-  public PropertyKey format(int ordinal) {
-    return PropertyKey.fromString(String.format(mFormat, ordinal));
+  public PropertyKey format(Object params) {
+    return PropertyKey.fromString(String.format(mFormat, params));
   }
 }

@@ -113,7 +113,7 @@ public final class ConfigurationUtils {
     boolean valid = true;
     for (Map.Entry<String, String> entry : Configuration.toMap().entrySet()) {
       String propertyName = entry.getKey();
-      if (propertyName.startsWith("alluxio.") && !PropertyKey.isValid(propertyName)) {
+      if (!PropertyKey.isValid(propertyName)) {
         LOG.error("Unsupported property " + propertyName);
         valid = false;
       }
