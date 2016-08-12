@@ -264,12 +264,14 @@ public enum PropertyKey {
   SECURITY_AUTHORIZATION_PERMISSION_UMASK(Name.SECURITY_AUTHORIZATION_PERMISSION_UMASK),
   SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS),
   SECURITY_GROUP_MAPPING_CLASS(Name.SECURITY_GROUP_MAPPING_CLASS),
-  SECURITY_LOGIN_USERNAME(Name.SECURITY_LOGIN_USERNAME),;
+  SECURITY_LOGIN_USERNAME(Name.SECURITY_LOGIN_USERNAME),
+  ;
 
   /**
    * A nested class to hold named string constants for their corresponding enum values.
+   * Used for setting configuration in integration tests.
    */
-  public static class Name {
+  public static final class Name {
     public static final String DEBUG = "alluxio.debug";
     public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
     public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
@@ -572,6 +574,8 @@ public enum PropertyKey {
     public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
         "alluxio.zookeeper.leader.inquiry.retry";
     public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
+
+    private Name() {} // prevent instantiation
   }
 
   /** A map from a property key's string name to the key. */

@@ -14,7 +14,6 @@ package alluxio;
 import alluxio.exception.AlluxioException;
 import alluxio.master.LocalAlluxioCluster;
 
-import com.google.common.base.Preconditions;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -30,30 +29,35 @@ import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * A JUnit Rule resource for automatically managing a local alluxio cluster for testing. To use it,
- * create an instance of the class under a {@literal@}Rule annotation, with the required
+ * create an instance of the class under a {@literal @}Rule annotation, with the required
  * configuration parameters, and any necessary explicit {@link Configuration} settings. The Alluxio
  * cluster will be set up from scratch at the end of every method (or at the start of every suite if
- * {@literal@}ClassRule is used), and destroyed at the end. Below is an example of declaring and
+ * {@literal @}ClassRule is used), and destroyed at the end. Below is an example of declaring and
  * using it.
  *
  * <pre>
  *   public class SomethingTest {
- *    {@literal@}Rule
+ *    {@literal @}Rule
  *    public LocalAlluxioClusterResource localAlluxioClusterResource =
- *      new LocalAlluxioClusterResource(
- *        WORKER_CAPACITY, QUOTA_UNIT, BLOCK_SIZE, CONF_KEY_1, CONF_VALUE_1, ...);
+ *      new LocalAlluxioClusterResource(WORKER_CAPACITY, BLOCK_SIZE);
  *
- *    {@literal@}Test
+ *    {@literal @}Test
  *    public void testSomething() {
  *      localAlluxioClusterResource.get().getClient().create("/abced");
  *      ...
  *    }
  *
- *    {@literal@}Test
- *    {@literal@}Config(alluxioConfParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2,
- *                                           CONF_VALUE_2, ...}
- *                      startCluster = false)
- *    public void testSomethingElse() {
+ *    {@literal @}Test
+ *    {@literal @}LocalAlluxioClusterResource.Config(
+ *        confParams = {CONF_KEY_1, CONF_VALUE_1, CONF_KEY_2, CONF_VALUE_2, ...})
+ *    public void testSomethingWithDifferentConf() {
+  *      localAlluxioClusterResource.get().getClient().create("/efghi");
+ *      ...
+ *    }
+ *
+ *    {@literal @}Test
+ *    {@literal @}LocalAlluxioClusterResource.Config(startCluster = false)
+ *    public void testSomethingWithClusterStartedManually() {
  *      localAlluxioClusterResource.start();
  *      localAlluxioClusterResource.get().getClient().create("/efghi");
  *      ...
