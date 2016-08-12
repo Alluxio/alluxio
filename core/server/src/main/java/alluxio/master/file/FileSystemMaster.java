@@ -2487,10 +2487,6 @@ public final class FileSystemMaster extends AbstractMaster {
       permissionChanged = true;
     }
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
-    // DEBUG
-    LOG.error("setAttribute: ownerGroupChanged: {}, perm chaanged = {}, persisted = {} ",
-        ownerGroupChanged, permissionChanged, inode.isPersisted());
-    // END DEBUG
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
