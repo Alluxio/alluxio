@@ -83,7 +83,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
-        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+        "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
         "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
     mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);

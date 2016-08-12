@@ -102,7 +102,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command when security is enabled.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false,
+  @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
           PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
           PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,

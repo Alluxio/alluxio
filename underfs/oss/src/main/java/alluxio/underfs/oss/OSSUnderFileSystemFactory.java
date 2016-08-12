@@ -43,7 +43,7 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   public UnderFileSystem create(String path, Object ufsConf) {
     Preconditions.checkNotNull(path);
 
-    if (addAndCheckOSSCredentials()) {
+    if (checkOSSCredentials()) {
       try {
         return new OSSUnderFileSystem(new AlluxioURI(path));
       } catch (Exception e) {
@@ -63,12 +63,9 @@ public class OSSUnderFileSystemFactory implements UnderFileSystemFactory {
   }
 
   /**
-   * Adds OSS credentials from system properties to the Alluxio configuration if they are not
-   * already present.
-   *
-   * @return true if both access and secret key are present, false otherwise
+   * @return true if both access, secret and endpoint keys are present, false otherwise
    */
-  private boolean addAndCheckOSSCredentials() {
+  private boolean checkOSSCredentials() {
     return Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY)
         && Configuration.containsKey(PropertyKey.OSS_SECRET_KEY)
         && Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY);
