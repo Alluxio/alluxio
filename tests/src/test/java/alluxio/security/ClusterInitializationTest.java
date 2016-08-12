@@ -41,9 +41,7 @@ public class ClusterInitializationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(
-          LocalAlluxioClusterResource.DEFAULT_WORKER_CAPACITY_BYTES,
-          LocalAlluxioClusterResource.DEFAULT_USER_BLOCK_SIZE)
+      new LocalAlluxioClusterResource()
       .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
       .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
 
@@ -51,11 +49,9 @@ public class ClusterInitializationTest {
    * When a user starts a new cluster, an empty root dir is created and owned by the user.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void startClusterTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER).start();
-
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     URIStatus status = fs.getStatus(ROOT);
     Assert.assertEquals(SUPER_USER, status.getOwner());
@@ -69,11 +65,9 @@ public class ClusterInitializationTest {
    * cluster owned by the same user, it should succeed.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterSuccessTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER).start();
-
     FileSystem fs = mLocalAlluxioClusterResource.get().getClient();
     fs.createFile(new AlluxioURI("/testFile"));
     mLocalAlluxioClusterResource.get().stopFS();
@@ -93,11 +87,9 @@ public class ClusterInitializationTest {
    * cluster owned by a different user, it should fail and throw an exception.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_LOGIN_USERNAME, SUPER_USER})
   public void recoverClusterFailTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, SUPER_USER).start();
-
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED
         .getMessage("Unauthorized user on root"));

@@ -104,19 +104,14 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command when security is enabled.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(startCluster = false,
+      confParams = {PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Constants.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
   public void lsTest() throws Exception {
     String testUser = "test_user_ls";
-
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-            IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
-        .start();
-    resetShellTest();
-
     clearAndLogin(testUser);
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
@@ -166,19 +161,15 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command with wildcard when security is enabled.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Constants.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
+          "test_user_lsWildcard"})
   public void lsWildcardTest() throws Exception {
     String testUser = "test_user_lsWildcard";
-
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-            IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
-        .start();
-    resetShellTest();
-
     clearAndLogin(testUser);
 
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
@@ -222,19 +213,15 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests lsr command with wildcard when security is enabled.
    */
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Constants.SECURITY_GROUP_MAPPING_CLASS,
+          "alluxio.security.group.provider.IdentityUserGroupsMapping",
+          PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
+          "test_user_lsr"})
   public void lsrTest() throws Exception {
     String testUser = "test_user_lsr";
-
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-            IdentityUserGroupsMapping.class.getCanonicalName())
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, testUser)
-        .start();
-    resetShellTest();
-
     clearAndLogin(testUser);
 
     URIStatus[] files = createFiles();

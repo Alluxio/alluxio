@@ -58,37 +58,35 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.name())
-        .start();
     authenticationOperationTest();
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .start();
     authenticationOperationTest();
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
-            NameMatchAuthenticationProvider.FULL_CLASS_NAME)
-        .setProperty(PropertyKey.SECURITY_LOGIN_USERNAME, "alluxio")
-        .start();
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE,
+          "CUSTOM", PropertyKey.Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mLocalAlluxioClusterResource
         .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.name())

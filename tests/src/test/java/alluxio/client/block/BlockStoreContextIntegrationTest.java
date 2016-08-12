@@ -91,11 +91,9 @@ public final class BlockStoreContextIntegrationTest {
    * preventing the release of the worker clients.
    */
   @Test(timeout = 10000)
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
   public void acquireWorkerLimitTest() throws Exception {
-    mLocalAlluxioClusterResource.setProperty(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS, "10")
-        .start();
-
     final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Acquire all the clients

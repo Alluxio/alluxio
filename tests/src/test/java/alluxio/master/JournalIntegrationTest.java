@@ -521,15 +521,11 @@ public class JournalIntegrationTest {
   }
 
   @Test
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(confParams = {
+      PropertyKey.Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Constants.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAclTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.name())
-        .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true")
-        .setProperty(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
-            FakeUserGroupsMapping.FULL_CLASS_NAME)
-        .start();
-
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";
