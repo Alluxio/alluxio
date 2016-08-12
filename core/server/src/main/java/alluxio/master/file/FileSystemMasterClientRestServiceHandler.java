@@ -339,6 +339,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       info.setUfsInfo(mountInfo.getUfsUri().toString());
       info.setReadOnly(mountInfo.getOptions().isReadOnly());
       info.setProperties(mountInfo.getOptions().getProperties());
+      info.setShared(mountInfo.getOptions().isShared());
       mountPoints.put(mountPoint.getKey(), info);
     }
     return RestUtils.createResponse(mountPoints);
