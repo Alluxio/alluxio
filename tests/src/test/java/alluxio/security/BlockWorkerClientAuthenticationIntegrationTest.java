@@ -17,7 +17,6 @@ import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.security.MasterClientAuthenticationIntegrationTest.NameMatchAuthenticationProvider;
-import alluxio.security.authentication.AuthType;
 import alluxio.worker.ClientMetrics;
 
 import org.junit.After;
