@@ -267,10 +267,8 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws Exception when the operation fails
    */
   public void stop() throws Exception {
-    if (mStarted) {
-      stopFS();
-      stopUFS();
-    }
+    stopFS();
+    stopUFS();
     ConfigurationTestUtils.resetConfiguration();
     reset();
     LoginUserTestUtils.resetLoginUser();

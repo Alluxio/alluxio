@@ -76,7 +76,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    * If true (default), we start the cluster before running a test method. Otherwise, the method
    * must start the cluster explicitly.
    */
-  private boolean mStartCluster;
+  private final boolean mStartCluster;
 
   /** Configuration keys for the {@link Configuration} object used in the cluster. */
   private final List<PropertyKey> mConfKeys = new ArrayList<>();
@@ -150,13 +150,18 @@ public final class LocalAlluxioClusterResource implements TestRule {
   public Statement apply(final Statement statement, Description description) {
     mLocalAlluxioCluster = new LocalAlluxioCluster(mWorkerCapacityBytes, mUserBlockSize);
     try {
+      boolean startCluster = mStartCluster;
       Annotation configAnnotation = description.getAnnotation(Config.class);
       if (configAnnotation != null) {
         Config config = (Config) configAnnotation;
+        // Override the configuration parameters with any configuration params
+        for (int i = 0; i < config.confParams().length; i += 2) {
+          setProperty(PropertyKey.fromString(config.confParams()[i]), config.confParams()[i + 1]);
+        }
         // Override startCluster
-        mStartCluster = config.startCluster();
+        startCluster = config.startCluster();
       }
-      if (mStartCluster) {
+      if (startCluster) {
         start();
       }
     } catch (Exception e) {
@@ -180,6 +185,7 @@ public final class LocalAlluxioClusterResource implements TestRule {
    */
   @Retention(RetentionPolicy.RUNTIME)
   public @interface Config {
+    String[] confParams() default {};
     boolean startCluster() default true;
   }
 }

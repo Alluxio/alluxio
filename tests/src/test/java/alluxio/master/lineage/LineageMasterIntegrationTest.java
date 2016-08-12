@@ -136,11 +136,9 @@ public class LineageMasterIntegrationTest {
    * before persistence is complete.
    */
   @Test(timeout = 100000)
-  @LocalAlluxioClusterResource.Config(startCluster = false)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
   public void lineageRecoveryTest() throws Exception {
-    mLocalAlluxioClusterResource
-        .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000")
-        .start();
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the
     // lineage recompute job
