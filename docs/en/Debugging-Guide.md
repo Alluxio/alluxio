@@ -23,7 +23,7 @@ Workers, when you ran into any issues. If you do not understand the error messag
 try to search them in the [Mailing List](https://groups.google.com/forum/#!forum/alluxio-users),
 in case the problem has been discussed before.
 
-## Alluxio Setup FAQ
+## Setup FAQ
 
 #### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?
 
@@ -55,7 +55,22 @@ Typical issues:
 bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 - If you are not able to access the UI, please check that your security group allows incoming traffic on port 19999.
 
-## Alluxio Performance FAQ
+
+## Usage FAQ
+
+### Q: I'm seeing error messages like "java.io.IOException: Frame size (67108864) larger than max length (16777216)". What is wrong?
+
+A: This problem can be caused by different possible reasons.
+
+- Please double-check if Alluxio master address has the correct port specified. The default listening port for master is port 19998,
+while a common mistake when this error is seen is to use a wrong port 19999---the default the Web UI port for Alluxio master. 
+- Please make sure that security setting on Alluxio client and master sides are consistent. 
+Alluxio provides different [authentications](Security.html#authentication).
+This error happens if one side is configured to have `alluxio.security.authentication.type` to `SIMPLE`,
+ or `CUSTOM`, while the other side sets this property to `NOSASL` (default value). 
+Please follow [Configuration-Settings](Configuration-Settings.html) for more detailed description.   
+
+## Performance FAQ
 
 #### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
 
