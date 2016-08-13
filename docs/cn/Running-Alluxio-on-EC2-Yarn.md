@@ -111,7 +111,7 @@ Alluxio master/worker读取,将`~/.alluxio/`下的`alluxio-site.properties`放�
 1. 需要启动的Alluxio worker的总数。(必填项)
 2. 分布存储Alluxio ApplicationMaster可执行文件的HDFS路径。(必填项)
 3. 运行Alluxio Master的节点的YARN的名称。（选填项，默认为`ALLUXIO_MASTER_HOSTNAME`）
- 
+
 
 举例而言，启动3个worker节点的Alluxio集群，HDFS临时目录是`hdfs://AlluxioMaster:9000/tmp/`
 
