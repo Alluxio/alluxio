@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -58,7 +59,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacityBytesTest() throws Exception {
-    long memorySize = Configuration.getBytes(Constants.WORKER_MEMORY_SIZE);
+    long memorySize = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
         NO_PARAMS, HttpMethod.GET, memorySize).run();
   }
@@ -69,14 +70,14 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
    */
   @Test
   public void getConfigurationTest() throws Exception {
-    Configuration.set("alluxio.testkey", "abc");
+    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
         null).call();
     @SuppressWarnings("unchecked")
     Map<String, String> config =
         (Map<String, String>) new ObjectMapper().readValue(result, Map.class);
-    Assert.assertEquals("abc", config.get("alluxio.testkey"));
+    Assert.assertEquals("abc", PropertyKey.METRICS_CONF_FILE);
   }
 
   @Test
@@ -107,7 +108,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacityBytesOnTiersTest() throws Exception {
-    Long memorySize = Configuration.getLong(Constants.WORKER_MEMORY_SIZE);
+    Long memorySize = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, ImmutableMap.of("MEM", memorySize)).run();
@@ -131,7 +132,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     Entry<String, List<String>> entry = Iterables.getOnlyElement(pathsOnTiers.entrySet());
     Assert.assertEquals("MEM", entry.getKey());
     String path = Iterables.getOnlyElement(entry.getValue());
-    Assert.assertTrue(path.contains(Configuration.get(Constants.WORKER_DATA_FOLDER)));
+    Assert.assertTrue(path.contains(Configuration.get(PropertyKey.WORKER_DATA_FOLDER)));
   }
 
   @Test

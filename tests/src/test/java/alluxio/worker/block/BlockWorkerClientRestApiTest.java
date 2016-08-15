@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
 import alluxio.wire.LockBlockResult;
@@ -125,7 +126,7 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
             params, HttpMethod.POST, null).call();
     LockBlockResult lockBlockResult = new ObjectMapper().readValue(result, LockBlockResult.class);
     Assert.assertTrue(
-        lockBlockResult.getBlockPath().contains(Configuration.get(Constants.WORKER_DATA_FOLDER)));
+        lockBlockResult.getBlockPath().contains(Configuration.get(PropertyKey.WORKER_DATA_FOLDER)));
   }
 
   @Test
@@ -177,7 +178,7 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
     String location = new TestCase(mHostname, mPort,
         getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION), params,
         HttpMethod.POST, null).call();
-    Assert.assertTrue(location.contains(Configuration.get(Constants.WORKER_DATA_FOLDER)));
+    Assert.assertTrue(location.contains(Configuration.get(PropertyKey.WORKER_DATA_FOLDER)));
   }
 
   @Test
