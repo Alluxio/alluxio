@@ -131,12 +131,11 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
    *
    * @param metricsName the metrics name with hostname builtin
    * @return the metrics with hostname removed
-   * @throws IOException if the metrics name is invalid
    */
-  private String removeHostNameFromWorkerMetricsName(String metricsName) throws IOException {
+  private String removeHostNameFromWorkerMetricsName(String metricsName) {
     String[] pieces = metricsName.split("\\.");
     if (pieces.length < 3) {
-      throw new IOException("Incorrect worker metrics name: " + metricsName);
+      throw new IllegalArgumentException("Incorrect worker metrics name: " + metricsName);
     }
     pieces[1] = null;
     return Joiner.on(".").skipNulls().join(pieces);
