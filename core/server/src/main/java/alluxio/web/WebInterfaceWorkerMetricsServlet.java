@@ -108,11 +108,38 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     });
 
     Map<String, Metric> operations = new TreeMap<>();
-    operations.putAll(counters);
+    for (String key : counters.keySet()) {
+      operations.put(removeHostNameFromWorkerMetricsName(key), counters.get(key));
+    }
     String blockCachedProperty =
         CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
-    operations.put(blockCachedProperty, mr.getGauges().get(blockCachedProperty));
+    operations.put(removeHostNameFromWorkerMetricsName(blockCachedProperty),
+        mr.getGauges().get(blockCachedProperty));
 
-    populateCounterValues(operations, rpcInvocations, request);
+    Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+    for (String key : rpcInvocations.keySet()) {
+      rpcInvocationsUpdated.put(removeHostNameFromWorkerMetricsName(key), rpcInvocations.get(key));
+    }
+    populateCounterValues(operations, rpcInvocationsUpdated, request);
+  }
+
+  /**
+   * Remove the worker name from worker metrics name to make it easier to retrieve worker metrics
+   * in the worker metrics dashboard.
+   *
+   * @param metricsName the metrics name with hostname builtin
+   * @return the metrics with hostname removed
+   * @throws IOException if the metrics name is invalid
+   */
+  private String removeHostNameFromWorkerMetricsName(String metricsName) throws IOException {
+    String[] pieces = metricsName.split("\\.");
+    if (pieces.length < 3) {
+     throw new IOException("Incorrect worker metrics name: " + metricsName);
+    }
+    StringBuilder sb = new StringBuilder(pieces[0]);
+    for (int i = 2; i < pieces.length; i++) {
+      sb.append(pieces[i]);
+    }
+    return sb.toString();
   }
 }
