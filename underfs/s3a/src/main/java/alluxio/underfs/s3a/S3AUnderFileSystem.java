@@ -30,6 +30,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
@@ -88,6 +89,15 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
+
+  /** The owner name of the bucket. */
+  private final String mBucketOwner;
+
+  /** The AWS id of the bucket owner. */
+  private final String mBucketOwnerId;
+
+  /** The permission mode by the owner to the bucket. */
+  private final short mBucketMode;
 
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
@@ -150,6 +160,11 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     mManager.setConfiguration(transferConf);
+
+    AccessControlList acl = mClient.getBucketAcl(mBucketName);
+    mBucketOwner = acl.getOwner().getDisplayName();
+    mBucketOwnerId = acl.getOwner().getId();
+    mBucketMode = S3AUtils.translateBucketAcl(acl, mBucketOwnerId);
   }
 
   @Override
@@ -397,28 +412,32 @@ public class S3AUnderFileSystem extends UnderFileSystem {
 
   // No ACL integration currently, no-op
   @Override
-  public void setOwner(String path, String user, String group) {}
+  public void setOwner(String path, String user, String group) {
+    // Do not allow setting S3 owner via Alluxio yet.
+  }
 
   // No ACL integration currently, no-op
   @Override
-  public void setMode(String path, short mode) throws IOException {}
+  public void setMode(String path, short mode) throws IOException {
+    // Do not allow setting S3 owner permission via Alluxio yet.
+  }
 
-  // No ACL integration currently, returns default empty value
+  // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the translated mode by the owner of the bucket.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mBucketMode;
   }
 
   /**
