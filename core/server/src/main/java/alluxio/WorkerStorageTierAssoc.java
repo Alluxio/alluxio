@@ -25,8 +25,8 @@ public class WorkerStorageTierAssoc extends StorageTierAssoc {
    * Creates a new instance of {@link WorkerStorageTierAssoc} using a {@link Configuration}.
    */
   public WorkerStorageTierAssoc() {
-    super(Constants.WORKER_TIERED_STORE_LEVELS,
-        Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
+    super(PropertyKey.WORKER_TIERED_STORE_LEVELS,
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT);
   }
 
   /**

@@ -13,6 +13,7 @@ package alluxio.security.authorization;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 
 import com.google.common.base.Preconditions;
@@ -299,11 +300,11 @@ public final class Mode {
    */
   public static Mode getUMask() {
     int umask = Constants.DEFAULT_FILE_SYSTEM_UMASK;
-    String confUmask = Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
+    String confUmask = Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK);
     if (confUmask != null) {
       if ((confUmask.length() > 4) || !tryParseInt(confUmask)) {
         throw new IllegalArgumentException(ExceptionMessage.INVALID_CONFIGURATION_VALUE
-            .getMessage(confUmask, Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
+            .getMessage(confUmask, PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
       }
       int newUmask = 0;
       int lastIndex = confUmask.length() - 1;

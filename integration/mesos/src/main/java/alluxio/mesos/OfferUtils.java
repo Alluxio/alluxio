@@ -13,6 +13,7 @@ package alluxio.mesos;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -34,8 +35,8 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_WEB_PORT), ranges)
-        && hasAvailablePorts(Configuration.getInt(Constants.MASTER_RPC_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.MASTER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.MASTER_RPC_PORT), ranges);
   }
 
   /**
@@ -46,9 +47,9 @@ public final class OfferUtils {
     Protos.Value.Ranges ranges = getOfferedPorts(offer);
 
     return ranges != null
-        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_WEB_PORT), ranges)
-        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_RPC_PORT), ranges)
-        && hasAvailablePorts(Configuration.getInt(Constants.WORKER_DATA_PORT), ranges);
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_WEB_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_RPC_PORT), ranges)
+        && hasAvailablePorts(Configuration.getInt(PropertyKey.WORKER_DATA_PORT), ranges);
   }
 
   private static boolean hasAvailablePorts(int port, Protos.Value.Ranges ranges) {

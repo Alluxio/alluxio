@@ -13,6 +13,7 @@ package alluxio.client.file.options;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -47,15 +48,15 @@ public final class CreateFileOptions {
 
   private CreateFileOptions() {
     mRecursive = true;
-    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
       mLocationPolicy =
           CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
-              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
-    mWriteType = Configuration.getEnum(Constants.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
+    mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
   }
 

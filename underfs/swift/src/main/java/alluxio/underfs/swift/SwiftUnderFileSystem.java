@@ -14,6 +14,7 @@ package alluxio.underfs.swift;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -102,8 +103,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
     // Whether to run against a simulated Swift backend
     mSimulationMode = false;
-    if (Configuration.containsKey(Constants.SWIFT_SIMULATION)) {
-      mSimulationMode = Configuration.getBoolean(Constants.SWIFT_SIMULATION);
+    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)) {
+      mSimulationMode = Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION);
     }
 
     if (mSimulationMode) {
@@ -111,16 +112,16 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       config.setMock(true);
       config.setMockAllowEveryone(true);
     } else {
-      if (Configuration.containsKey(Constants.SWIFT_API_KEY)) {
-        config.setPassword(Configuration.get(Constants.SWIFT_API_KEY));
-      } else if (Configuration.containsKey(Constants.SWIFT_PASSWORD_KEY)) {
-        config.setPassword(Configuration.get(Constants.SWIFT_PASSWORD_KEY));
+      if (Configuration.containsKey(PropertyKey.SWIFT_API_KEY)) {
+        config.setPassword(Configuration.get(PropertyKey.SWIFT_API_KEY));
+      } else if (Configuration.containsKey(PropertyKey.SWIFT_PASSWORD_KEY)) {
+        config.setPassword(Configuration.get(PropertyKey.SWIFT_PASSWORD_KEY));
       }
-      config.setAuthUrl(Configuration.get(Constants.SWIFT_AUTH_URL_KEY));
-      String authMethod = Configuration.get(Constants.SWIFT_AUTH_METHOD_KEY);
+      config.setAuthUrl(Configuration.get(PropertyKey.SWIFT_AUTH_URL_KEY));
+      String authMethod = Configuration.get(PropertyKey.SWIFT_AUTH_METHOD_KEY);
       if (authMethod != null) {
-        config.setUsername(Configuration.get(Constants.SWIFT_USER_KEY));
-        config.setTenantName(Configuration.get(Constants.SWIFT_TENANT_KEY));
+        config.setUsername(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+        config.setTenantName(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
@@ -135,8 +136,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
             // tempauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
-            config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+            config.setTenantName(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
         }
       }
     }
@@ -256,7 +257,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override

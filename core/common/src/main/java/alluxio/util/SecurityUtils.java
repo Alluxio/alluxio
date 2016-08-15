@@ -12,7 +12,7 @@
 package alluxio.util;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -39,7 +39,7 @@ public final class SecurityUtils {
    * @return true if authentication is enabled, false otherwise
    */
   public static boolean isAuthenticationEnabled() {
-    return !Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
+    return !Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class)
         .equals(AuthType.NOSASL);
   }
 
@@ -49,6 +49,6 @@ public final class SecurityUtils {
    * @return true if authorization is enabled, false otherwise
    */
   public static boolean isAuthorizationEnabled() {
-    return Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+    return Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
   }
 }

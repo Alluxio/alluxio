@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -161,9 +162,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       netAddress = new WorkerNetAddress()
           .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-          .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
-          .setDataPort(Configuration.getInt(Constants.WORKER_DATA_PORT))
-          .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
+          .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
+          .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
+          .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
 
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
     } catch (ConnectionFailedException e) {
@@ -192,20 +193,20 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     });
 
     // Setup space reserver
-    if (Configuration.getBoolean(Constants.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.WORKER_TIERED_STORE_RESERVER_ENABLED)) {
       getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.WORKER_SPACE_RESERVER, new SpaceReserver(this),
-              Configuration.getInt(Constants.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
+              Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_RESERVER_INTERVAL_MS)));
     }
 
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_BLOCK_SYNC, mBlockMasterSync,
-            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the pinlist syncer to perform the periodical fetching
     getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_PIN_LIST_SYNC, mPinListSync,
-            Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);

@@ -12,7 +12,7 @@
 package alluxio.client.file;
 
 import alluxio.ConfigurationRule;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.netty.NettyUnderFileSystemFileReader;
 import alluxio.util.io.BufferUtils;
 
@@ -47,7 +47,7 @@ public class UnderFileSystemFileInStreamTest {
 
   @Rule
   public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
-       Constants.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, Long.toString(FILE_SIZE)));
+       PropertyKey.USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES, Long.toString(FILE_SIZE)));
 
   @Before
   public final void before() throws Exception {

@@ -12,7 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
@@ -46,7 +46,7 @@ public interface DataServer extends Closeable {
         final AlluxioWorkerService worker) {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<DataServer>getClass(Constants.WORKER_DATA_SERVER),
+            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
             new Class[] {InetSocketAddress.class, AlluxioWorkerService.class},
             new Object[] {dataAddress, worker});
       } catch (Exception e) {

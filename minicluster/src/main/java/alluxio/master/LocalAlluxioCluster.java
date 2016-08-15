@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
@@ -101,9 +101,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   public WorkerNetAddress getWorkerAddress() {
     return new WorkerNetAddress()
         .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-        .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
-        .setDataPort(Configuration.getInt(Constants.WORKER_DATA_PORT))
-        .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
+        .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
+        .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
+        .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
   }
 
   @Override

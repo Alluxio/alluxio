@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.Server;
 import alluxio.master.block.BlockMaster;
@@ -204,7 +205,7 @@ public class AlluxioMaster implements Server {
      *         otherwise, return {@link AlluxioMaster}.
      */
     public static AlluxioMaster create(MasterContext masterContext) {
-      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
         return new FaultTolerantAlluxioMaster(masterContext);
       }
       return new AlluxioMaster(masterContext);
@@ -215,12 +216,12 @@ public class AlluxioMaster implements Server {
 
   protected AlluxioMaster(MasterContext masterContext) {
     mMasterContext = masterContext;
-    mMinWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MAX);
+    mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + Constants.MASTER_WORKER_THREADS_MIN);
+        PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
+            + PropertyKey.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.
@@ -228,10 +229,10 @@ public class AlluxioMaster implements Server {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      if (!Configuration.getBoolean(Constants.IN_TEST_MODE)) {
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_RPC_PORT) > 0,
+      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
             "Alluxio master rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_WEB_PORT) > 0,
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             "Alluxio master web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
@@ -239,11 +240,11 @@ public class AlluxioMaster implements Server {
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
       // reset master rpc port
-      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check the journal directory
-      String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+      String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
@@ -282,7 +283,7 @@ public class AlluxioMaster implements Server {
       mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
           NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
       // reset master web port
-      Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+      Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -494,7 +495,7 @@ public class AlluxioMaster implements Server {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -540,7 +541,7 @@ public class AlluxioMaster implements Server {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = Configuration.get(Constants.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (String file : files) {
       if (file.startsWith(formatFilePrefix)) {
         return true;
@@ -550,7 +551,7 @@ public class AlluxioMaster implements Server {
   }
 
   private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }

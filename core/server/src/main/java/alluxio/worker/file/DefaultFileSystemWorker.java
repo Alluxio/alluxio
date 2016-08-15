@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.FileAlreadyExistsException;
 import alluxio.exception.FileDoesNotExistException;
@@ -77,9 +78,9 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
         ThreadFactoryUtils.build("file-system-worker-heartbeat-%d", true)));
 
     mSessions = new Sessions();
-    UnderFileSystem ufs = UnderFileSystem.get(Configuration.get(Constants.UNDERFS_ADDRESS));
+    UnderFileSystem ufs = UnderFileSystem.get(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mFileDataManager = new FileDataManager(Preconditions.checkNotNull(blockWorker), ufs,
-        RateLimiter.create(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT)));
+        RateLimiter.create(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT)));
     mUnderFileSystemManager = new UnderFileSystemManager();
 
     // Setup AbstractMasterClient
@@ -169,7 +170,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
     mFilePersistenceService = getExecutorService()
         .submit(new HeartbeatThread(HeartbeatContext.WORKER_FILESYSTEM_MASTER_SYNC,
             new FileWorkerMasterSyncExecutor(mFileDataManager, mFileSystemMasterWorkerClient),
-            Configuration.getInt(Constants.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
+            Configuration.getInt(PropertyKey.WORKER_FILESYSTEM_HEARTBEAT_INTERVAL_MS)));
 
     // Start the session cleanup checker to perform the periodical checking
     getExecutorService().submit(mSessionCleaner);

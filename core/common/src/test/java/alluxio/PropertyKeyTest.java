@@ -11,25 +11,20 @@
 
 package alluxio;
 
-import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runners.model.Statement;
 
 /**
- * Unit tests for {@link ConfigurationRule}.
+ * Tests enum type {@link PropertyKey}.
  */
-public final class ConfigurationRuleTest {
+public final class PropertyKeyTest {
 
+  /**
+   * Tests parsing string to PropertyKey by {@link PropertyKey#fromString}.
+   */
   @Test
-  public void changeConfiguration() throws Throwable {
-    Statement statement = new Statement() {
-      @Override
-      public void evaluate() throws Throwable {
-        Assert.assertEquals("testValue", Configuration.get(PropertyKey.MASTER_ADDRESS));
-      }
-    };
-    new ConfigurationRule(ImmutableMap.of(PropertyKey.MASTER_ADDRESS, "testValue"))
-        .apply(statement, null).evaluate();
+  public void fromString() throws Exception {
+    Assert.assertEquals(PropertyKey.VERSION,
+        PropertyKey.fromString(PropertyKey.VERSION.toString()));
   }
 }
