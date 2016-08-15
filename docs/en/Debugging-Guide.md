@@ -62,13 +62,13 @@ bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 
 A: This problem can be caused by different possible reasons.
 
-- Please double-check if Alluxio master address has the correct port specified. The default listening port for master is port 19998,
-while a common mistake when this error is seen is to use a wrong port 19999---the default the Web UI port for Alluxio master. 
-- Please make sure that security setting on Alluxio client and master sides are consistent. 
-Alluxio provides different [authentications](Security.html#authentication).
-This error happens if one side is configured to have `alluxio.security.authentication.type` to `SIMPLE`,
- or `CUSTOM`, while the other side sets this property to `NOSASL` (default value). 
-Please follow [Configuration-Settings](Configuration-Settings.html) for more detailed description.   
+- Please double-check if the port of Alluxio master address is correct. The default listening port for Alluxio master is port 19998,
+while a common mistake causing this error message is due to using a wrong port in master address(e.g., using port 19999 which is the default Web UI port for Alluxio master).
+- Please ensure that the security settings of Alluxio client and master are consistent.
+Alluxio provides different approaches to [authenticate](Security.html#authentication) users by configuring `alluxio.security.authentication.type`.
+This error happens if this property is configured with different values across servers and clients
+(e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
+Please read [Configuration-Settings](Configuration-Settings.html) for how to customize Alluxio clusters and applications.
 
 ## Performance FAQ
 
