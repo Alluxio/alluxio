@@ -21,6 +21,13 @@
     GCS_BUCKET: "{{ gcs_bucket }}"
     GCS_ID: "{{ gcs_id }}"
     GCS_KEY: "{{ gcs_key }}"
+    SWIFT_CONTAINER: "{{ swift_container }}"
+    SWIFT_USER: "{{ swift_user }}"
+    SWIFT_TENANT: "{{ swift_tenant }}"
+    SWIFT_PASSWORD: "{{ swift_password }}"
+    SWIFT_AUTH_URL: "{{ swift_auth_url }}"
+    SWIFT_USE_PUBLIC_URL: "{{ swift_use_public_url }}"
+    SWIFT_AUTH_METHOD: "{{ swift_auth_method }}"
 
 - name: Source the bashrc file
   shell: source ~/.bashrc

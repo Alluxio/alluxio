@@ -92,6 +92,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
               gcs_id:     UfsV.gcs.id,
               gcs_key:    UfsV.gcs.key,
               gcs_bucket: UfsV.gcs.bucket,
+              
+              swift_container: UfsV.swift.container,
+              swift_user: UfsV.swift.user,
+              swift_tenant: UfsV.swift.tenant,
+              swift_password: UfsV.swift.password,
+              swift_auth_url: UfsV.swift.auth_url,
+              swift_use_public_url: UfsV.swift.use_public_url,
+              swift_auth_method: UfsV.swift.auth_method,
 
               provider: Provider,
           }

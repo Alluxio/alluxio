@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -70,6 +71,13 @@ public abstract class UIWebServer {
     connector.setPort(address.getPort());
     connector.setAcceptors(webThreadCount);
     mServer.setConnectors(new Connector[] {connector});
+
+    try {
+      mServer.getConnectors()[0].close();
+      mServer.getConnectors()[0].open();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
 
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
@@ -151,15 +159,7 @@ public abstract class UIWebServer {
    */
   public void startWebServer() {
     try {
-      mServer.getConnectors()[0].close();
-      mServer.getConnectors()[0].open();
       mServer.start();
-      if (mAddress.getPort() == 0) {
-        int webPort = mServer.getConnectors()[0].getLocalPort();
-        mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
-        // reset web service port
-        Configuration.set(mService.getPortKey(), Integer.toString(webPort));
-      }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
