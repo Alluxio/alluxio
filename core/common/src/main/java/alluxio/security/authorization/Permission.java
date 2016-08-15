@@ -205,4 +205,27 @@ public final class Permission {
   public String toString() {
     return mOwner + ":" + mGroup + ":" + mMode;
   }
+
+  /**
+   * Gets the owner bits from the mode in short format. E.g. mode 0775 returns 0007; mode 0500
+   * returns 0005.
+   *
+   * @param mode the mode in short format
+   * @return the owner bits in short format
+   */
+  public static short getOwnerBits(short mode) {
+    return (short) ((mode & (short) 0700) >> 6);
+  }
+
+  /**
+   * Sets the others bits. E.g. mode 0700 with others 0007 returns 0707; mode 0705 with others 0007
+   * returns 0707.
+   *
+   * @param mode the original mode in short format
+   * @param others the others bits to set
+   * @return the updated mode in short format
+   */
+  public static short setOthersBit(short mode, short others) {
+    return (short) (mode | others);
+  }
 }
