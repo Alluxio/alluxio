@@ -164,12 +164,9 @@ public final class ModeTest {
     Mode.getUMask();
   }
 
-  /**
-   * Tests the {@link Mode#setOwnerBits(Mode.Bits)} method.
-   */
   @Test
-  public void setOwnerBitsTest() {
-    Mode mode = new Mode((short) 0640);
+  public void setOwnerBits() {
+    Mode mode = new Mode((short) 0000);
     mode.setOwnerBits(Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOwnerBits());
     mode.setOwnerBits(Mode.Bits.WRITE);
@@ -178,12 +175,9 @@ public final class ModeTest {
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
   }
 
-  /**
-   * Tests the {@link Mode#setGroupBits(Mode.Bits)} mothod.
-   */
   @Test
-  public void setGroupBitsTest() {
-    Mode mode = new Mode((short) 0640);
+  public void setGroupBits() {
+    Mode mode = new Mode((short) 0000);
     mode.setGroupBits(Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
     mode.setGroupBits(Mode.Bits.WRITE);
@@ -192,12 +186,9 @@ public final class ModeTest {
     Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
   }
 
-  /**
-   * Tests the {@link Mode#setOtherBits(Mode.Bits)} mothod.
-   */
   @Test
-  public void setOtherBitsTest() {
-    Mode mode = new Mode((short) 0640);
+  public void setOtherBits() {
+    Mode mode = new Mode((short) 0000);
     mode.setOtherBits(Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
     mode.setOtherBits(Mode.Bits.WRITE);
