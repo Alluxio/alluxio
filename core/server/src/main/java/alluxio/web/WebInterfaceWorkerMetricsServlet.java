@@ -20,6 +20,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -137,11 +138,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     if (pieces.length < 3) {
       throw new IOException("Incorrect worker metrics name: " + metricsName);
     }
-    StringBuilder sb = new StringBuilder(pieces[0]);
-    for (int i = 2; i < pieces.length; i++) {
-      sb.append(".");
-      sb.append(pieces[i]);
-    }
-    return sb.toString();
+    pieces[1] = null;
+    return Joiner.on(".").skipNulls().join(pieces);
   }
 }
