@@ -273,14 +273,6 @@ public enum PropertyKey {
    */
   public static final class Name {
     public static final String DEBUG = "alluxio.debug";
-    public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
-    public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
-    public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
-    public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
-    public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
-    public static final String FUSE_MOUNT_DEFAULT = "alluxio.fuse.mount.default";
-    public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
-    public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
     public static final String HOME = "alluxio.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
@@ -311,6 +303,88 @@ public enum PropertyKey {
         "alluxio.keyvalue.partition.size.bytes.max";
     public static final String LOGGER_TYPE = "alluxio.logger.type";
     public static final String LOGS_DIR = "alluxio.logs.dir";
+    public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
+    public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
+        "alluxio.network.host.resolution.timeout.ms";
+    public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
+        "alluxio.network.thrift.frame.size.bytes.max";
+    public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
+    public static final String TEST_MODE = "alluxio.test.mode";
+    public static final String VERSION = "alluxio.version";
+    public static final String WEB_RESOURCES = "alluxio.web.resources";
+    public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
+    public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
+    public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
+    public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
+        "alluxio.zookeeper.leader.inquiry.retry";
+    public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
+
+    //
+    // UFS related properties
+    //
+    public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
+    public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
+    public static final String UNDERFS_GLUSTERFS_MR_DIR =
+        "alluxio.underfs.glusterfs.mapred.system.dir";
+    public static final String UNDERFS_GLUSTERFS_VOLUMES = "alluxio.underfs.glusterfs.volumes";
+    public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
+    public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
+    public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
+    public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
+    public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
+        "alluxio.underfs.oss.connection.timeout.ms";
+    public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
+    public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
+    public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
+        "alluxio.underfs.s3a.secure.http.enabled";
+    public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
+        "alluxio.underfs.s3a.server.side.encryption.enabled";
+    public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
+        "alluxio.underfs.s3a.socket.timeout.ms";
+    public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
+        "alluxio.underfs.s3.admin.threads.max";
+    public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
+        "alluxio.underfs.s3.disable.dns.buckets";
+    public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
+    public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
+        "alluxio.underfs.s3.endpoint.https.port";
+    public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
+        "alluxio.underfs.s3.endpoint.http.port";
+    public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
+    public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
+    public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
+    public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
+    public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
+        "alluxio.underfs.s3.upload.threads.max";
+
+    //
+    // UFS access control related properties
+    //
+    // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
+    public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
+    public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
+    public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
+    public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
+    public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
+    public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
+    public static final String S3A_SECRET_KEY = "aws.secretKey";
+    public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
+    public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
+    public static final String SWIFT_API_KEY = "fs.swift.apikey";
+    public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
+    public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
+    public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
+    public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
+    public static final String SWIFT_SIMULATION = "fs.swift.simulation";
+    public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
+    public static final String SWIFT_USER_KEY = "fs.swift.user";
+    public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+
+    //
+    // Master related properties
+    //
     public static final String MASTER_ADDRESS = "alluxio.master.address";
     public static final String MASTER_BIND_HOST = "alluxio.master.bind.host";
     public static final String MASTER_FILE_ASYNC_PERSIST_HANDLER =
@@ -359,125 +433,10 @@ public enum PropertyKey {
     public static final String MASTER_WORKER_THREADS_MAX = "alluxio.master.worker.threads.max";
     public static final String MASTER_WORKER_THREADS_MIN = "alluxio.master.worker.threads.min";
     public static final String MASTER_WORKER_TIMEOUT_MS = "alluxio.master.worker.timeout.ms";
-    public static final String METRICS_CONF_FILE = "alluxio.metrics.conf.file";
-    public static final String NETWORK_HOST_RESOLUTION_TIMEOUT_MS =
-        "alluxio.network.host.resolution.timeout.ms";
-    public static final String NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX =
-        "alluxio.network.thrift.frame.size.bytes.max";
-    public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
-    public static final String OSS_ENDPOINT_KEY = "fs.oss.endpoint";
-    public static final String OSS_SECRET_KEY = "fs.oss.accessKeySecret";
-    public static final String S3A_ACCESS_KEY = "aws.accessKeyId";
-    public static final String S3A_SECRET_KEY = "aws.secretKey";
-    public static final String S3N_ACCESS_KEY = "fs.s3n.awsAccessKeyId";
-    public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
-    public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
-        "alluxio.security.authentication.custom.provider.class";
-    public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
-        "alluxio.security.authentication.socket.timeout.ms";
-    public static final String SECURITY_AUTHENTICATION_TYPE =
-        "alluxio.security.authentication.type";
-    public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
-        "alluxio.security.authorization.permission.enabled";
-    public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
-        "alluxio.security.authorization.permission.supergroup";
-    public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
-        "alluxio.security.authorization.permission.umask";
-    public static final String SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
-        "alluxio.security.group.mapping.cache.timeout.ms";
-    public static final String SECURITY_GROUP_MAPPING_CLASS =
-        "alluxio.security.group.mapping.class";
-    public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
-    public static final String SITE_CONF_DIR = "alluxio.site.conf.dir";
-    public static final String SWIFT_API_KEY = "fs.swift.apikey";
-    public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
-    public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
-    public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
-    public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
-    public static final String SWIFT_SIMULATION = "fs.swift.simulation";
-    public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
-    public static final String SWIFT_USER_KEY = "fs.swift.user";
-    public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
-    public static final String TEST_MODE = "alluxio.test.mode";
-    public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
-    public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
-    public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
-    public static final String UNDERFS_GLUSTERFS_MR_DIR =
-        "alluxio.underfs.glusterfs.mapred.system.dir";
-    public static final String UNDERFS_GLUSTERFS_VOLUMES = "alluxio.underfs.glusterfs.volumes";
-    public static final String UNDERFS_HDFS_CONFIGURATION = "alluxio.underfs.hdfs.configuration";
-    public static final String UNDERFS_HDFS_IMPL = "alluxio.underfs.hdfs.impl";
-    public static final String UNDERFS_HDFS_PREFIXES = "alluxio.underfs.hdfs.prefixes";
-    public static final String UNDERFS_OSS_CONNECT_MAX = "alluxio.underfs.oss.connection.max";
-    public static final String UNDERFS_OSS_CONNECT_TIMEOUT =
-        "alluxio.underfs.oss.connection.timeout.ms";
-    public static final String UNDERFS_OSS_CONNECT_TTL = "alluxio.underfs.oss.connection.ttl";
-    public static final String UNDERFS_OSS_SOCKET_TIMEOUT = "alluxio.underfs.oss.socket.timeout.ms";
-    public static final String UNDERFS_S3A_SECURE_HTTP_ENABLED =
-        "alluxio.underfs.s3a.secure.http.enabled";
-    public static final String UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED =
-        "alluxio.underfs.s3a.server.side.encryption.enabled";
-    public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
-        "alluxio.underfs.s3a.socket.timeout.ms";
-    public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
-        "alluxio.underfs.s3.admin.threads.max";
-    public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =
-        "alluxio.underfs.s3.disable.dns.buckets";
-    public static final String UNDERFS_S3_ENDPOINT = "alluxio.underfs.s3.endpoint";
-    public static final String UNDERFS_S3_ENDPOINT_HTTPS_PORT =
-        "alluxio.underfs.s3.endpoint.https.port";
-    public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
-        "alluxio.underfs.s3.endpoint.http.port";
-    public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
-    public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
-    public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
-    public static final String UNDERFS_S3_THREADS_MAX = "alluxio.underfs.s3.threads.max";
-    public static final String UNDERFS_S3_UPLOAD_THREADS_MAX =
-        "alluxio.underfs.s3.upload.threads.max";
-    public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
-        "alluxio.user.block.master.client.threads";
-    public static final String USER_BLOCK_REMOTE_READER = "alluxio.user.block.remote.reader.class";
-    public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.block.remote.read.buffer.size.bytes";
-    public static final String USER_BLOCK_REMOTE_WRITER = "alluxio.user.block.remote.writer.class";
-    public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
-        "alluxio.user.block.size.bytes.default";
-    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
-        "alluxio.user.block.worker.client.threads";
-    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
-        "alluxio.user.failed.space.request.limits";
-    public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
-    public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
-        "alluxio.user.file.cache.partially.read.block";
-    public static final String USER_FILE_MASTER_CLIENT_THREADS =
-        "alluxio.user.file.master.client.threads";
-    public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
-    public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
-        "alluxio.user.file.seek.buffer.size.bytes";
-    public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
-        "alluxio.user.file.waitcompleted.poll.ms";
-    public static final String USER_FILE_WORKER_CLIENT_THREADS =
-        "alluxio.user.file.worker.client.threads";
-    public static final String USER_FILE_WRITE_LOCATION_POLICY =
-        "alluxio.user.file.write.location.policy.class";
-    public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
-    public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
-    public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
-    public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
-        "alluxio.user.lineage.master.client.threads";
-    public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
-    public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
-        "alluxio.user.network.netty.timeout.ms";
-    public static final String USER_NETWORK_NETTY_WORKER_THREADS =
-        "alluxio.user.network.netty.worker.threads";
-    public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
-    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
-    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
-        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
-    public static final String VERSION = "alluxio.version";
-    public static final String WEB_RESOURCES = "alluxio.web.resources";
-    public static final String WEB_THREADS = "alluxio.web.threads";
+
+    //
+    // Worker related properties
+    //
     public static final String WORKER_ALLOCATOR_CLASS = "alluxio.worker.allocator.class";
     public static final String WORKER_BIND_HOST = "alluxio.worker.bind.host";
     public static final String WORKER_BLOCK_HEARTBEAT_INTERVAL_MS =
@@ -568,12 +527,82 @@ public enum PropertyKey {
     public static final String WORKER_WEB_PORT = "alluxio.worker.web.port";
     public static final String WORKER_WORKER_BLOCK_THREADS_MAX = "alluxio.worker.block.threads.max";
     public static final String WORKER_WORKER_BLOCK_THREADS_MIN = "alluxio.worker.block.threads.min";
-    public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
-    public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
-    public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";
-    public static final String ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT =
-        "alluxio.zookeeper.leader.inquiry.retry";
-    public static final String ZOOKEEPER_LEADER_PATH = "alluxio.zookeeper.leader.path";
+
+    //
+    // User related properties
+    //
+    public static final String USER_BLOCK_MASTER_CLIENT_THREADS =
+        "alluxio.user.block.master.client.threads";
+    public static final String USER_BLOCK_REMOTE_READER = "alluxio.user.block.remote.reader.class";
+    public static final String USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES =
+        "alluxio.user.block.remote.read.buffer.size.bytes";
+    public static final String USER_BLOCK_REMOTE_WRITER = "alluxio.user.block.remote.writer.class";
+    public static final String USER_BLOCK_SIZE_BYTES_DEFAULT =
+        "alluxio.user.block.size.bytes.default";
+    public static final String USER_BLOCK_WORKER_CLIENT_THREADS =
+        "alluxio.user.block.worker.client.threads";
+    public static final String USER_FAILED_SPACE_REQUEST_LIMITS =
+        "alluxio.user.failed.space.request.limits";
+    public static final String USER_FILE_BUFFER_BYTES = "alluxio.user.file.buffer.bytes";
+    public static final String USER_FILE_CACHE_PARTIALLY_READ_BLOCK =
+        "alluxio.user.file.cache.partially.read.block";
+    public static final String USER_FILE_MASTER_CLIENT_THREADS =
+        "alluxio.user.file.master.client.threads";
+    public static final String USER_FILE_READ_TYPE_DEFAULT = "alluxio.user.file.readtype.default";
+    public static final String USER_FILE_SEEK_BUFFER_SIZE_BYTES =
+        "alluxio.user.file.seek.buffer.size.bytes";
+    public static final String USER_FILE_WAITCOMPLETED_POLL_MS =
+        "alluxio.user.file.waitcompleted.poll.ms";
+    public static final String USER_FILE_WORKER_CLIENT_THREADS =
+        "alluxio.user.file.worker.client.threads";
+    public static final String USER_FILE_WRITE_LOCATION_POLICY =
+        "alluxio.user.file.write.location.policy.class";
+    public static final String USER_FILE_WRITE_TYPE_DEFAULT = "alluxio.user.file.writetype.default";
+    public static final String USER_HEARTBEAT_INTERVAL_MS = "alluxio.user.heartbeat.interval.ms";
+    public static final String USER_LINEAGE_ENABLED = "alluxio.user.lineage.enabled";
+    public static final String USER_LINEAGE_MASTER_CLIENT_THREADS =
+        "alluxio.user.lineage.master.client.threads";
+    public static final String USER_NETWORK_NETTY_CHANNEL = "alluxio.user.network.netty.channel";
+    public static final String USER_NETWORK_NETTY_TIMEOUT_MS =
+        "alluxio.user.network.netty.timeout.ms";
+    public static final String USER_NETWORK_NETTY_WORKER_THREADS =
+        "alluxio.user.network.netty.worker.threads";
+    public static final String USER_UFS_DELEGATION_ENABLED = "alluxio.user.ufs.delegation.enabled";
+    public static final String USER_UFS_DELEGATION_READ_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.read.buffer.size.bytes";
+    public static final String USER_UFS_DELEGATION_WRITE_BUFFER_SIZE_BYTES =
+        "alluxio.user.ufs.delegation.write.buffer.size.bytes";
+
+    //
+    // FUSE integration related properties
+    //
+    public static final String FUSE_CACHED_PATHS_MAX = "alluxio.fuse.cached.paths.max";
+    public static final String FUSE_DEBUG_ENABLED = "alluxio.fuse.debug.enabled";
+    public static final String FUSE_FS_NAME = "alluxio.fuse.fs.name";
+    public static final String FUSE_FS_ROOT = "alluxio.fuse.fs.root";
+    public static final String FUSE_MAXWRITE_BYTES = "alluxio.fuse.maxwrite.bytes";
+    public static final String FUSE_MOUNT_DEFAULT = "alluxio.fuse.mount.default";
+
+    //
+    // Security related properties
+    //
+    public static final String SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS =
+        "alluxio.security.authentication.custom.provider.class";
+    public static final String SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS =
+        "alluxio.security.authentication.socket.timeout.ms";
+    public static final String SECURITY_AUTHENTICATION_TYPE =
+        "alluxio.security.authentication.type";
+    public static final String SECURITY_AUTHORIZATION_PERMISSION_ENABLED =
+        "alluxio.security.authorization.permission.enabled";
+    public static final String SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP =
+        "alluxio.security.authorization.permission.supergroup";
+    public static final String SECURITY_AUTHORIZATION_PERMISSION_UMASK =
+        "alluxio.security.authorization.permission.umask";
+    public static final String SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS =
+        "alluxio.security.group.mapping.cache.timeout.ms";
+    public static final String SECURITY_GROUP_MAPPING_CLASS =
+        "alluxio.security.group.mapping.class";
+    public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
     private Name() {} // prevent instantiation
   }

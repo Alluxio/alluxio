@@ -49,7 +49,7 @@ public enum PropertyKeyFormat {
    * @param params ordinal
    * @return corresponding property
    */
-  public PropertyKey format(Object params) {
+  public PropertyKey format(Object... params) {
     return PropertyKey.fromString(String.format(mFormat, params));
   }
 }
