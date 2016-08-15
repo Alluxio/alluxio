@@ -115,7 +115,7 @@ public final class ContainerAllocatorTest {
             @Override
             public boolean matches(Object o) {
               ContainerRequest request = (ContainerRequest) o;
-              if (request.getRelaxLocality() == false
+              if (request.getRelaxLocality() == true
                   && request.getNodes().size() == 1
                   && request.getNodes().get(0).equals("localhost")) {
                 return true;
