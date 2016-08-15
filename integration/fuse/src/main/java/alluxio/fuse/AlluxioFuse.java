@@ -147,7 +147,7 @@ public final class AlluxioFuse {
       }
 
       if (mntPointValue == null) {
-        mntPointValue = Configuration.get(PropertyKey.FUSE_DEFAULT_MOUNTPOINT);
+        mntPointValue = Configuration.get(PropertyKey.FUSE_MOUNT_DEFAULT);
         LOG.info("Mounting on default {}", mntPointValue);
       }
 
@@ -156,7 +156,7 @@ public final class AlluxioFuse {
         LOG.info("Using default alluxio root {}", alluxioRootValue);
       }
 
-      final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLE);
+      final boolean fuseDebug = Configuration.getBoolean(PropertyKey.FUSE_DEBUG_ENABLED);
 
       return new AlluxioFuseOptions(mntPointValue, alluxioRootValue, fuseDebug, fuseOpts);
     } catch (ParseException e) {

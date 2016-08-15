@@ -146,7 +146,7 @@ public final class HadoopUtils {
    * @param conf Hadoop configuration
    */
   public static void addS3Credentials(Configuration conf) {
-    String[] propertyNames = {PropertyKey.S3N_ACCESS_KEY, PropertyKey.S3N_SECRET_KEY};
+    PropertyKey[] propertyNames = {PropertyKey.S3N_ACCESS_KEY, PropertyKey.S3N_SECRET_KEY};
     setConfigurationFromSystemProperties(conf, propertyNames);
   }
 
@@ -161,7 +161,7 @@ public final class HadoopUtils {
    */
 
   public static void addSwiftCredentials(Configuration configuration) {
-    String[] propertyNames = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
+    PropertyKey[] propertyNames = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
         PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
         PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
         PropertyKey.SWIFT_SIMULATION};
@@ -177,9 +177,9 @@ public final class HadoopUtils {
    * @param propertyNames the properties to be set
    */
   private static void setConfigurationFromSystemProperties(Configuration configuration,
-      String[] propertyNames) {
-    for (String propertyName : propertyNames) {
-      setConfigurationFromSystemProperty(configuration, propertyName);
+      PropertyKey[] propertyNames) {
+    for (PropertyKey propertyName : propertyNames) {
+      setConfigurationFromSystemProperty(configuration, propertyName.toString());
     }
   }
 

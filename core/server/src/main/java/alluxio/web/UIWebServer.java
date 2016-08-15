@@ -62,7 +62,7 @@ public abstract class UIWebServer {
     mService = service;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREAD_COUNT);
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();

@@ -54,7 +54,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -69,7 +69,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user");
+    Assert.assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -85,7 +85,7 @@ public final class LoginUserTest {
 
     // The user list is considered as a single user name.
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user, superuser");
+    Assert.assertEquals("alluxio-user, superuser", loginUser.getName());
   }
 
   /**
@@ -101,7 +101,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -114,7 +114,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   /**
@@ -129,7 +129,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), "alluxio-user");
+    Assert.assertEquals("alluxio-user", loginUser.getName());
   }
 
   /**
@@ -145,7 +145,7 @@ public final class LoginUserTest {
     User loginUser = LoginUser.get();
 
     Assert.assertNotNull(loginUser);
-    Assert.assertEquals(loginUser.getName(), System.getProperty("user.name"));
+    Assert.assertEquals(System.getProperty("user.name"), loginUser.getName());
   }
 
   // TODO(dong): getKerberosLoginUserTest()

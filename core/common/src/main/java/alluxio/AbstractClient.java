@@ -154,7 +154,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY_COUNT);
+    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);

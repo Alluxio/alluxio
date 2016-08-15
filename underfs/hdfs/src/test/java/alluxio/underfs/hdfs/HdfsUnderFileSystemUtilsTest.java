@@ -13,6 +13,7 @@ package alluxio.underfs.hdfs;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
+import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,21 +24,34 @@ import org.junit.Test;
 public final class HdfsUnderFileSystemUtilsTest {
 
   /**
-   * Tests the {@link HdfsUnderFileSystemUtils#addKey} method.
+   * Tests {@link HdfsUnderFileSystemUtils#addKey} method when a property is set in Alluxio.
    */
   @Test
-  public void addKeyTest() {
-    String key = "key";
+  public void addKeyFromAlluxioConf() {
+    PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     Configuration.set(key, "alluxioKey");
 
-    System.setProperty(key, "systemKey");
     HdfsUnderFileSystemUtils.addKey(conf, key);
-    Assert.assertEquals("systemKey", conf.get(key));
+    Assert.assertEquals("alluxioKey", conf.get(key.toString()));
 
-    System.clearProperty(key);
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
+  /**
+   * Tests {@link HdfsUnderFileSystemUtils#addKey} method when a property is set in system property.
+   */
+  @Test
+  public void addKeyFromSystemProperty() {
+    PropertyKey key = PropertyKey.HOME;
+    org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
+
+    System.setProperty(key.toString(), "systemKey");
+    ConfigurationTestUtils.resetConfiguration();
     HdfsUnderFileSystemUtils.addKey(conf, key);
-    Assert.assertEquals("alluxioKey", conf.get(key));
+    Assert.assertEquals("systemKey", conf.get(key.toString()));
+
+    System.clearProperty(key.toString());
     ConfigurationTestUtils.resetConfiguration();
   }
 }

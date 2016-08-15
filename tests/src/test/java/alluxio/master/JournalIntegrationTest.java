@@ -60,8 +60,8 @@ import java.util.Map;
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, Constants.GB,
-          PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+      new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
+        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
@@ -521,9 +521,9 @@ public class JournalIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      PropertyKey.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      PropertyKey.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
+      PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 

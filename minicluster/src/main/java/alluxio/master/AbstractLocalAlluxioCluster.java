@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.client.file.FileSystem;
 import alluxio.client.util.ClientTestUtils;
 import alluxio.exception.ConnectionFailedException;
@@ -215,8 +216,8 @@ public abstract class AbstractLocalAlluxioCluster {
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 0; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       for (String dirPath : dirPaths) {
         UnderFileSystemUtils.mkdirIfNotExists(dirPath);
@@ -258,7 +259,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public void stop() throws Exception {
     stopFS();
     stopUFS();
-
     ConfigurationTestUtils.resetConfiguration();
     reset();
     LoginUserTestUtils.resetLoginUser();
@@ -288,11 +288,11 @@ public abstract class AbstractLocalAlluxioCluster {
    *
    * @throws IOException when the operation fails
    */
-  public void initializeTestConfiguration() throws IOException {
+  public void initConfiguration() throws IOException {
     setAlluxioHome();
     setHostname();
 
-    Configuration.set(PropertyKey.IN_TEST_MODE, "true");
+    Configuration.set(PropertyKey.TEST_MODE, "true");
     Configuration.set(PropertyKey.HOME, mHome);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
@@ -308,13 +308,13 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // If tests fail to connect they should fail early rather than using the default ridiculously
     // high retries
-    Configuration.set(PropertyKey.MASTER_RETRY_COUNT, "3");
+    Configuration.set(PropertyKey.MASTER_RETRY, "3");
 
     // Since tests are always running on a single host keep the resolution timeout low as otherwise
     // people running with strange network configurations will see very slow tests
     Configuration.set(PropertyKey.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, "250");
 
-    Configuration.set(PropertyKey.WEB_THREAD_COUNT, "1");
+    Configuration.set(PropertyKey.WEB_THREADS, "1");
     Configuration.set(PropertyKey.WEB_RESOURCES,
         PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
@@ -343,16 +343,19 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Sets up the tiered store
     String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, 0), "MEM");
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, 0),
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
         ramdiskPath);
-    Configuration.set(String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, 0),
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(0),
         Long.toString(mWorkerCapacityBytes));
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {
-      String tierLevelDirPath =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+      PropertyKey tierLevelDirPath =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
@@ -360,7 +363,7 @@ public abstract class AbstractLocalAlluxioCluster {
         newPaths.add(newPath);
       }
       Configuration.set(
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level),
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level),
           Joiner.on(',').join(newPaths));
     }
 

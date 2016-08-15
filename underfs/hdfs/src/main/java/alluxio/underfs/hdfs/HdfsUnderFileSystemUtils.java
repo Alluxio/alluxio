@@ -26,16 +26,14 @@ public final class HdfsUnderFileSystemUtils {
   private HdfsUnderFileSystemUtils() {} // prevent instantiation
 
   /**
-   * Replaces default key with user provided key.
+   * Replaces default key with user provided Alluxio property key.
    *
    * @param hadoopConf configuration to replace the key in
    * @param key the key to replace
    */
-  public static void addKey(org.apache.hadoop.conf.Configuration hadoopConf, String key) {
-    if (System.getProperty(key) != null) {
-      hadoopConf.set(key, System.getProperty(key));
-    } else if (Configuration.get(key) != null) {
-      hadoopConf.set(key, Configuration.get(key));
+  public static void addKey(org.apache.hadoop.conf.Configuration hadoopConf, PropertyKey key) {
+    if (Configuration.containsKey(key)) {
+      hadoopConf.set(key.toString(), Configuration.get(key));
     }
   }
 
@@ -46,11 +44,11 @@ public final class HdfsUnderFileSystemUtils {
    * @param conf the Hadoop configuration
    */
   public static void addS3Credentials(org.apache.hadoop.conf.Configuration conf) {
-    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY;
+    String accessKeyConf = PropertyKey.S3N_ACCESS_KEY.toString();
     if (System.getProperty(accessKeyConf) != null && conf.get(accessKeyConf) == null) {
       conf.set(accessKeyConf, System.getProperty(accessKeyConf));
     }
-    String secretKeyConf = PropertyKey.S3N_SECRET_KEY;
+    String secretKeyConf = PropertyKey.S3N_SECRET_KEY.toString();
     if (System.getProperty(secretKeyConf) != null && conf.get(secretKeyConf) == null) {
       conf.set(secretKeyConf, System.getProperty(secretKeyConf));
     }

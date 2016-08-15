@@ -66,9 +66,9 @@ public final class KeyValuePartitionIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          PropertyKey.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {

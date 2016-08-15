@@ -46,7 +46,7 @@ public interface DataServer extends Closeable {
         final AlluxioWorkerService worker) {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER),
+            Configuration.<DataServer>getClass(PropertyKey.WORKER_DATA_SERVER_CLASS),
             new Class[] {InetSocketAddress.class, AlluxioWorkerService.class},
             new Object[] {dataAddress, worker});
       } catch (Exception e) {

@@ -14,6 +14,7 @@ package alluxio.worker.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -58,8 +59,8 @@ public class SpaceReserver implements HeartbeatExecutor  {
     Map<String, Long> capOnTiers = blockWorker.getStoreMeta().getCapacityBytesOnTiers();
     long lastTierReservedBytes = 0;
     for (int ordinal = 0; ordinal < mStorageTierAssoc.size(); ordinal++) {
-      String tierReservedSpaceProp =
-          String.format(PropertyKey.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, ordinal);
+      PropertyKey tierReservedSpaceProp =
+          PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(ordinal);
       String tierAlias = mStorageTierAssoc.getAlias(ordinal);
       long reservedSpaceBytes =
           (long) (capOnTiers.get(tierAlias) * Configuration.getDouble(tierReservedSpaceProp));

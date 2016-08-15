@@ -201,7 +201,7 @@ public final class TransportProviderTest {
   @Test
   public void customAuthenticationExactNamePasswordMatchTest() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -227,7 +227,7 @@ public final class TransportProviderTest {
   @Test
   public void customAuthenticationExactNamePasswordNotMatchTest() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -284,7 +284,7 @@ public final class TransportProviderTest {
   @Test
   public void customAuthenticationEmptyUserTest() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
@@ -310,7 +310,7 @@ public final class TransportProviderTest {
   @Test
   public void customAuthenticationEmptyPasswordTest() throws Exception {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.CUSTOM.getAuthName());
-    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         ExactlyMatchAuthenticationProvider.class.getName());
     mTransportProvider = TransportProvider.Factory.create();
 
