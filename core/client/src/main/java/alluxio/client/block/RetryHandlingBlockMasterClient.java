@@ -41,7 +41,6 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
 
-  /** Remove redundant initialization */
   private BlockMasterClientService.Client mClient;
 
   /**
