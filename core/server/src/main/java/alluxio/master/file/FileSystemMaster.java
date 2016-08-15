@@ -2494,7 +2494,7 @@ public final class FileSystemMaster extends AbstractMaster {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
       if (CommonUtils.isUfsObjectStorage(ufsUri)) {
-        throw new AccessControlException(
+        throw new UnsupportedOperationException(
             "setOwner/setMode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
       }
       UnderFileSystem ufs = resolution.getUfs();
