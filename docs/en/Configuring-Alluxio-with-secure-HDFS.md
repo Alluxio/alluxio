@@ -67,9 +67,7 @@ Optionally, you can set jvm-level system properties for customized Kerberos conf
 the default machine Kerberos configuration. For example, if you use Hadoop or Spark, you can set those two configurations in `HADOOP_OPTS` or `SPARK_OPTS` with `-D`.
 If you use Alluxio shell, you can add it to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
-```bash
-ALLUXIO_JAVA_OPTS+=" -Djava.security.krb5.realm=<YOUR_KERBEROS_REALM> -Djava.security.krb5.kdc=<YOUR_KERBEROS_KDC_ADDRESS>"
-```
+{% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
 Set the following Alluxio properties in `alluxio-site.properties`:
 
