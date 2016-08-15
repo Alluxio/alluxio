@@ -40,7 +40,6 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
-
   private BlockMasterClientService.Client mClient;
 
   /**
