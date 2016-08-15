@@ -2490,6 +2490,10 @@ public final class FileSystemMaster extends AbstractMaster {
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
+      if (CommonUtils.isUfsObjectStorage(ufsUri)) {
+        throw new AccessControlException(
+            "setOwner/setMode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
+      }
       UnderFileSystem ufs = resolution.getUfs();
       if (ownerGroupChanged) {
         try {
