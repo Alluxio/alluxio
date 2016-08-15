@@ -63,8 +63,9 @@ Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.
 `${ALLUXIO_HOME}/conf/`
 
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
-`java.security.krb5.realm` and `java.security.krb5.kdc`. If both are set to empty, Kerberos library will respect
-the default machine Kerberos configuration. For example, if you use Hadoop or Spark, you can set those two configurations in `HADOOP_OPTS` or `SPARK_OPTS` with `-D`.
+`java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
+If both are set to empty, Kerberos library will respect
+the default Kerberos configuration on the machine. For example, if you use Hadoop or Spark, you can set those two configurations in `HADOOP_OPTS` or `SPARK_OPTS` with `-D`.
 If you use Alluxio shell, you can add it to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
