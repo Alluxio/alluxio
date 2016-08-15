@@ -145,7 +145,7 @@ public final class ContainerAllocator {
     Priority priority;
     if (mPreferredHost != null) {
       hosts = new String[]{mPreferredHost};
-      relaxLocality = false;
+      relaxLocality = !mPreferredHost.equals("localhost");
       priority = Priority.newInstance(100);
     } else {
       hosts = getPotentialWorkerHosts();
