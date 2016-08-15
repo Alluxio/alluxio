@@ -362,7 +362,6 @@ public enum PropertyKey {
     //
     // UFS access control related properties
     //
-    // Not prefixed with fs, the s3a property names mirror the aws-sdk property names for ease of use
     public static final String GCS_ACCESS_KEY = "fs.gcs.accessKeyId";
     public static final String GCS_SECRET_KEY = "fs.gcs.secretAccessKey";
     public static final String OSS_ACCESS_KEY = "fs.oss.accessKeyId";
