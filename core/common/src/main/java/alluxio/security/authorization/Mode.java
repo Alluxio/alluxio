@@ -143,6 +143,15 @@ public final class Mode {
   }
 
   /**
+   * Applies extra owner bits.
+   *
+   * @param bits the extra owner bits to apply
+   */
+  public void applyExtraOwnerBits(Bits bits) {
+    mOwnerBits = mOwnerBits.or(bits);
+  }
+
+  /**
    * @return the group {@link Bits}
    */
   public Bits getGroupBits() {
@@ -158,6 +167,15 @@ public final class Mode {
   }
 
   /**
+   * Applies extra group bits.
+   *
+   * @param bits the extra group bits to apply
+   */
+  public void applyExtraGroupBits(Bits bits) {
+    mGroupBits = mGroupBits.or(bits);
+  }
+
+  /**
    * @return the other {@link Bits}
    */
   public Bits getOtherBits() {
@@ -170,6 +188,15 @@ public final class Mode {
    */
   public static Bits extractOtherBits(short mode) {
     return Bits.values()[mode & 7];
+  }
+
+  /**
+   * Applies extra other bits.
+   *
+   * @param bits the extra other bits to apply
+   */
+  public void applyExtraOtherBits(Bits bits) {
+    mOtherBits = mOtherBits.or(bits);
   }
 
   private void set(Bits u, Bits g, Bits o) {
