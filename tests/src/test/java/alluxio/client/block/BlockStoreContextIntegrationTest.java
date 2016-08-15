@@ -92,7 +92,7 @@ public final class BlockStoreContextIntegrationTest {
    */
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
+      confParams = {PropertyKey.Name.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
   public void acquireWorkerLimitTest() throws Exception {
     final List<BlockWorkerClient> clients = new ArrayList<>();
 

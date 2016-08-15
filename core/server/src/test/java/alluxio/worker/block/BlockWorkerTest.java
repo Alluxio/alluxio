@@ -89,7 +89,7 @@ public class BlockWorkerTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
-    Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
 

@@ -63,8 +63,8 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
   private BlockMasterClient mBlockMasterClient;

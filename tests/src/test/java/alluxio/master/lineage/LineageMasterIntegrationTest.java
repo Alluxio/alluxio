@@ -64,14 +64,16 @@ public class LineageMasterIntegrationTest {
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
-      WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
-      PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-      PropertyKey.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
-      PropertyKey.USER_LINEAGE_ENABLED, "true",
-      PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, Integer.toString(RECOMPUTE_INTERVAL_MS),
-      PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, Integer.toString(CHECKPOINT_INTERVAL_MS)
-      );
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
+          .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS,
+              IntegrationTestConstants.NETTY_DATA_SERVER)
+          .setProperty(PropertyKey.USER_LINEAGE_ENABLED, "true")
+          .setProperty(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS,
+              Integer.toString(RECOMPUTE_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS,
+              Integer.toString(CHECKPOINT_INTERVAL_MS));
 
   protected CommandLineJob mJob;
 
@@ -135,7 +137,7 @@ public class LineageMasterIntegrationTest {
    */
   @Test(timeout = 100000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
+      confParams = {PropertyKey.Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
   public void lineageRecoveryTest() throws Exception {
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the

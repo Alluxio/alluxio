@@ -57,8 +57,8 @@ public class TieredStoreIntegrationTest {
   public ExpectedException mThrown = ExpectedException.none();
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000,
-          PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
 
   @Before
   public final void before() throws Exception {
