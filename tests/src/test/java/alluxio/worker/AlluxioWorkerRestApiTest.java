@@ -77,7 +77,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
     @SuppressWarnings("unchecked")
     Map<String, String> config =
         (Map<String, String>) new ObjectMapper().readValue(result, Map.class);
-    Assert.assertEquals("abc", PropertyKey.METRICS_CONF_FILE);
+    Assert.assertEquals("abc", Configuration.get(PropertyKey.METRICS_CONF_FILE));
   }
 
   @Test
