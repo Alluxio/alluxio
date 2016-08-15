@@ -1890,12 +1890,13 @@ public final class FileSystemMaster extends AbstractMaster {
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
+    short ufsMode = ufs.getMode(ufsUri.toString());
     if (resolution.getShared()) {
-      ufsPermission |= (ufsPermission & (short) 0700) >> 6;
+      short othersBits = Permission.getOwnerBits(ufsMode);
+      ufsMode = Permission.setOthersBit(ufsMode, othersBits);
     }
     createFileOptions = createFileOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+        new Permission(ufsOwner, ufsGroup, ufsMode));
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1940,12 +1941,13 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
+    short ufsMode = ufs.getMode(ufsUri.toString());
     if (resolution.getShared()) {
-      ufsPermission |= (ufsPermission & (short) 0700) >> 6;
+      short othersBits = Permission.getOwnerBits(ufsMode);
+      ufsMode = Permission.setOthersBit(ufsMode, othersBits);
     }
     createDirectoryOptions = createDirectoryOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+        new Permission(ufsOwner, ufsGroup, ufsMode));
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
@@ -2495,7 +2497,7 @@ public final class FileSystemMaster extends AbstractMaster {
         try {
           ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setOwner for UFS file " + ufsUri + ": "
+          throw new AccessControlException("Could not set owner for UFS file " + ufsUri + ": "
               + e.getMessage());
         }
       }
@@ -2503,7 +2505,7 @@ public final class FileSystemMaster extends AbstractMaster {
         try {
           ufs.setMode(ufsUri, inode.getMode());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setMode for UFS file " + ufsUri + ": "
+          throw new AccessControlException("Could not set mode for UFS file " + ufsUri + ": "
               + e.getMessage());
         }
       }
