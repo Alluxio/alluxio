@@ -162,9 +162,9 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     try {
       netAddress = new WorkerNetAddress()
           .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-          .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
-          .setDataPort(Configuration.getInt(Constants.WORKER_DATA_PORT))
-          .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
+          .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
+          .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
+          .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
 
       WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
     } catch (ConnectionFailedException e) {
