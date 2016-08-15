@@ -353,7 +353,7 @@ public final class Configuration {
    * @return the value for the given key as a class
    */
   public static <T> Class<T> getClass(PropertyKey key) {
-    String rawValue = PROPERTIES.get(key.toString());
+    String rawValue = get(key);
 
     try {
       @SuppressWarnings("unchecked")

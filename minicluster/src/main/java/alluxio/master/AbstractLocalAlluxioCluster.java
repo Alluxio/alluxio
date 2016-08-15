@@ -68,7 +68,6 @@ public abstract class AbstractLocalAlluxioCluster {
   protected String mHostname;
 
   protected Thread mWorkerThread;
-  protected boolean mStarted;
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
@@ -77,7 +76,6 @@ public abstract class AbstractLocalAlluxioCluster {
   public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
-    mStarted = false;
   }
 
   /**
@@ -98,7 +96,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
-    mStarted = true;
   }
 
   /**
