@@ -40,7 +40,7 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class RetryHandlingBlockMasterClient extends AbstractMasterClient
     implements BlockMasterClient {
-  private BlockMasterClientService.Client mClient = null;
+  private BlockMasterClientService.Client mClient;
 
   /**
    * Creates a new block master client.
