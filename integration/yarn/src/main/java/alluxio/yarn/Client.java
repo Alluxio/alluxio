@@ -41,6 +41,7 @@ import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
@@ -318,7 +319,7 @@ public final class Client {
       org.apache.hadoop.conf.Configuration config = mYarnClient.getConfig();
       Token<TokenIdentifier> token = ConverterUtils.convertFromYarn(
           mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
-          YarnUtils.getRMAddress(config));
+          ClientRMProxy.getRMDelegationTokenService(config));
       LOG.info("Added RM delegation token: " + token);
       credentials.addToken(token.getService(), token);
 
