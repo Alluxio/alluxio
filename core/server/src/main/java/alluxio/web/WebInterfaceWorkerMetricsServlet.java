@@ -108,8 +108,8 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     });
 
     Map<String, Metric> operations = new TreeMap<>();
-    for (String key : counters.keySet()) {
-      operations.put(removeHostNameFromWorkerMetricsName(key), counters.get(key));
+    for (Map.Entry<String, Counter> entry: counters.entrySet()) {
+      operations.put(removeHostNameFromWorkerMetricsName(entry.getKey()), entry.getValue());
     }
     String blockCachedProperty =
         CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
@@ -117,8 +117,9 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
         mr.getGauges().get(blockCachedProperty));
 
     Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
-    for (String key : rpcInvocations.keySet()) {
-      rpcInvocationsUpdated.put(removeHostNameFromWorkerMetricsName(key), rpcInvocations.get(key));
+    for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+      rpcInvocationsUpdated
+          .put(removeHostNameFromWorkerMetricsName(entry.getKey()), entry.getValue());
     }
     populateCounterValues(operations, rpcInvocationsUpdated, request);
   }
