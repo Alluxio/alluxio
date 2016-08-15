@@ -73,15 +73,8 @@ public class SpaceReserver implements HeartbeatExecutor  {
       long bytesReserved = mBytesToReserveOnTiers.get(tierAlias);
       try {
         mBlockWorker.freeSpace(Sessions.MIGRATE_DATA_SESSION_ID, bytesReserved, tierAlias);
-      } catch (WorkerOutOfSpaceException e) {
-        LOG.warn(e.getMessage());
-      } catch (BlockDoesNotExistException e) {
-        LOG.warn(e.getMessage());
-      } catch (BlockAlreadyExistsException e) {
-        LOG.warn(e.getMessage());
-      } catch (InvalidWorkerStateException e) {
-        LOG.warn(e.getMessage());
-      } catch (IOException e) {
+      } catch (WorkerOutOfSpaceException | BlockDoesNotExistException | BlockAlreadyExistsException
+              | InvalidWorkerStateException | IOException e) {
         LOG.warn(e.getMessage());
       }
     }
