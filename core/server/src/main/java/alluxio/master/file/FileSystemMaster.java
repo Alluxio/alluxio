@@ -1893,7 +1893,8 @@ public final class FileSystemMaster extends AbstractMaster {
     short ufsMode = ufs.getMode(ufsUri.toString());
     Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
     if (resolution.getShared()) {
-      permission.getMode().applyExtraOtherBits(permission.getMode().getOwnerBits());
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createFileOptions = createFileOptions.setPermission(permission);
 
@@ -1943,7 +1944,8 @@ public final class FileSystemMaster extends AbstractMaster {
     short ufsMode = ufs.getMode(ufsUri.toString());
     Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
     if (resolution.getShared()) {
-      permission.getMode().applyExtraOtherBits(permission.getMode().getOwnerBits());
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
     }
     createDirectoryOptions = createDirectoryOptions.setPermission(permission);
 
