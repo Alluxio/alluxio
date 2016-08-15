@@ -94,7 +94,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    return RestUtils.createResponse(mWorker.getWorkerAddress().toString());
+    return RestUtils.createResponse(mWorker.getRpcAddress().toString());
   }
 
   /**

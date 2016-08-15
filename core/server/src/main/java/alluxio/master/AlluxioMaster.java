@@ -23,6 +23,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -237,7 +238,7 @@ public class AlluxioMaster implements Server {
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
-      // reset master port
+      // reset master rpc port
       Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
@@ -275,6 +276,13 @@ public class AlluxioMaster implements Server {
       masterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master");
       mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
+
+      // The web server needs to be created at the end of the constructor because it needs a
+      // reference to this class.
+      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+      // reset master web port
+      Configuration.set(Constants.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -449,9 +457,6 @@ public class AlluxioMaster implements Server {
   }
 
   protected void startServingWebServer() {
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     // start web ui
@@ -555,5 +560,18 @@ public class AlluxioMaster implements Server {
    */
   public MetricsSystem getMasterMetricsSystem() {
     return mMasterMetricsSystem;
+  }
+
+  /**
+   * Blocks until the master is ready to serve requests.
+   */
+  public void waitForReady() {
+    while (true) {
+      if (mMasterServiceServer != null && mMasterServiceServer.isServing()
+          && mWebServer != null && mWebServer.getServer().isRunning()) {
+        return;
+      }
+      CommonUtils.sleepMs(10);
+    }
   }
 }
