@@ -165,40 +165,44 @@ public final class ModeTest {
   }
 
   /**
-   * Tests the {@link Mode#applyExtraOwnerBits(Mode.Bits)} method.
+   * Tests the {@link Mode#setOwnerBits(Mode.Bits)} method.
    */
   @Test
-  public void applyExtraOwnerBitsTest() {
+  public void setOwnerBitsTest() {
     Mode mode = new Mode((short) 0640);
-    mode.applyExtraOwnerBits(Mode.Bits.READ_EXECUTE);
-    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
-    mode.applyExtraOwnerBits(Mode.Bits.READ);
+    mode.setOwnerBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOwnerBits());
+    mode.setOwnerBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getOwnerBits());
+    mode.setOwnerBits(Mode.Bits.ALL);
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
   }
 
   /**
-   * Tests the {@link Mode#applyExtraGroupBits(Mode.Bits)} mothod.
+   * Tests the {@link Mode#setGroupBits(Mode.Bits)} mothod.
    */
   @Test
-  public void applyExtraGroupBitsTest() {
+  public void setGroupBitsTest() {
     Mode mode = new Mode((short) 0640);
-    mode.applyExtraGroupBits(Mode.Bits.READ_EXECUTE);
+    mode.setGroupBits(Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
-    mode.applyExtraGroupBits(Mode.Bits.WRITE);
+    mode.setGroupBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getGroupBits());
+    mode.setGroupBits(Mode.Bits.ALL);
     Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
   }
 
   /**
-   * Tests the {@link Mode#applyExtraOtherBits(Mode.Bits)} mothod.
+   * Tests the {@link Mode#setOtherBits(Mode.Bits)} mothod.
    */
   @Test
-  public void applyExtraOtherBitsTest() {
+  public void setOtherBitsTest() {
     Mode mode = new Mode((short) 0640);
-    mode.applyExtraOtherBits(Mode.Bits.READ);
-    Assert.assertEquals(Mode.Bits.READ, mode.getOtherBits());
-    mode.applyExtraOtherBits(Mode.Bits.EXECUTE);
+    mode.setOtherBits(Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
-    mode.applyExtraOtherBits(Mode.Bits.WRITE_EXECUTE);
+    mode.setOtherBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getOtherBits());
+    mode.setOtherBits(Mode.Bits.ALL);
     Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
   }
 }

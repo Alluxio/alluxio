@@ -143,12 +143,12 @@ public final class Mode {
   }
 
   /**
-   * Applies extra owner bits.
+   * Sets owner bits.
    *
-   * @param bits the extra owner bits to apply
+   * @param bits the owner bits to set
    */
-  public void applyExtraOwnerBits(Bits bits) {
-    mOwnerBits = mOwnerBits.or(bits);
+  public void setOwnerBits(Bits bits) {
+    mOwnerBits = bits;
   }
 
   /**
@@ -167,12 +167,12 @@ public final class Mode {
   }
 
   /**
-   * Applies extra group bits.
+   * Sets group bits.
    *
-   * @param bits the extra group bits to apply
+   * @param bits the group bits to set
    */
-  public void applyExtraGroupBits(Bits bits) {
-    mGroupBits = mGroupBits.or(bits);
+  public void setGroupBits(Bits bits) {
+    mGroupBits = bits;
   }
 
   /**
@@ -191,12 +191,12 @@ public final class Mode {
   }
 
   /**
-   * Applies extra other bits.
+   * Sets other bits.
    *
-   * @param bits the extra other bits to apply
+   * @param bits the other bits to set
    */
-  public void applyExtraOtherBits(Bits bits) {
-    mOtherBits = mOtherBits.or(bits);
+  public void setOtherBits(Bits bits) {
+    mOtherBits = bits;
   }
 
   private void set(Bits u, Bits g, Bits o) {
