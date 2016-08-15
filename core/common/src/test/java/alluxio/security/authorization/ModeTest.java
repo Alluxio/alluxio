@@ -163,4 +163,42 @@ public final class ModeTest {
         Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     Mode.getUMask();
   }
+
+  /**
+   * Tests the {@link Mode#applyExtraOwnerBits(Mode.Bits)} method.
+   */
+  @Test
+  public void applyExtraOwnerBitsTest() {
+    Mode mode = new Mode((short) 0640);
+    mode.applyExtraOwnerBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+    mode.applyExtraOwnerBits(Mode.Bits.READ);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+  }
+
+  /**
+   * Tests the {@link Mode#applyExtraGroupBits(Mode.Bits)} mothod.
+   */
+  @Test
+  public void applyExtraGroupBitsTest() {
+    Mode mode = new Mode((short) 0640);
+    mode.applyExtraGroupBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
+    mode.applyExtraGroupBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
+  }
+
+  /**
+   * Tests the {@link Mode#applyExtraOtherBits(Mode.Bits)} mothod.
+   */
+  @Test
+  public void applyExtraOtherBitsTest() {
+    Mode mode = new Mode((short) 0640);
+    mode.applyExtraOtherBits(Mode.Bits.READ);
+    Assert.assertEquals(Mode.Bits.READ, mode.getOtherBits());
+    mode.applyExtraOtherBits(Mode.Bits.EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
+    mode.applyExtraOtherBits(Mode.Bits.WRITE_EXECUTE);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
+  }
 }

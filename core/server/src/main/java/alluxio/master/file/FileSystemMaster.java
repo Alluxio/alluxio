@@ -1891,12 +1891,11 @@ public final class FileSystemMaster extends AbstractMaster {
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
     short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
     if (resolution.getShared()) {
-      short othersBits = Permission.getOwnerBits(ufsMode);
-      ufsMode = Permission.setOthersBit(ufsMode, othersBits);
+      permission.getMode().applyExtraOtherBits(permission.getMode().getOwnerBits());
     }
-    createFileOptions = createFileOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsMode));
+    createFileOptions = createFileOptions.setPermission(permission);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1942,12 +1941,11 @@ public final class FileSystemMaster extends AbstractMaster {
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
     short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
     if (resolution.getShared()) {
-      short othersBits = Permission.getOwnerBits(ufsMode);
-      ufsMode = Permission.setOthersBit(ufsMode, othersBits);
+      permission.getMode().applyExtraOtherBits(permission.getMode().getOwnerBits());
     }
-    createDirectoryOptions = createDirectoryOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsMode));
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
