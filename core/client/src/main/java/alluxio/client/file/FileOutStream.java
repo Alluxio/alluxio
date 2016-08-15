@@ -14,6 +14,7 @@ package alluxio.client.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AbstractOutStream;
 import alluxio.client.AlluxioStorageType;
@@ -114,7 +115,7 @@ public class FileOutStream extends AbstractOutStream {
     mContext = context;
     mUnderOutStreamFactory = underOutStreamFactory;
     mPreviousBlockOutStreams = new LinkedList<>();
-    mUfsDelegation = Configuration.getBoolean(Constants.USER_UFS_DELEGATION_ENABLED);
+    mUfsDelegation = Configuration.getBoolean(PropertyKey.USER_UFS_DELEGATION_ENABLED);
     if (mUnderStorageType.isSyncPersist()) {
       if (mUfsDelegation) {
         updateUfsPath();

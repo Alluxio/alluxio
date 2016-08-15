@@ -12,7 +12,7 @@
 package alluxio.web;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
@@ -48,9 +48,9 @@ public final class WebInterfaceHeaderServlet extends HttpServlet {
   @Override
   protected void doGet(HttpServletRequest request, HttpServletResponse response)
       throws ServletException, IOException {
-    int masterWebPort = Configuration.getInt(Constants.MASTER_WEB_PORT);
+    int masterWebPort = Configuration.getInt(PropertyKey.MASTER_WEB_PORT);
     String masterHostName;
-    if (!Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
+    if (!Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
       masterHostName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
     } else {
       masterHostName = NetworkAddressUtils.getMasterAddressFromZK().getHostName();

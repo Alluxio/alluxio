@@ -12,7 +12,7 @@
 package alluxio.worker.block.allocator;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockMetadataManagerView;
@@ -45,7 +45,7 @@ public interface Allocator {
       BlockMetadataManagerView managerView = Preconditions.checkNotNull(view);
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<Allocator>getClass(Constants.WORKER_ALLOCATOR_CLASS),
+            Configuration.<Allocator>getClass(PropertyKey.WORKER_ALLOCATOR_CLASS),
             new Class[] {BlockMetadataManagerView.class}, new Object[] {managerView});
       } catch (Exception e) {
         throw Throwables.propagate(e);

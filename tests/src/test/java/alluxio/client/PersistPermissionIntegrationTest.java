@@ -13,8 +13,8 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
@@ -41,7 +41,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+    mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mUfs = UnderFileSystem.get(mUfsRoot);
   }
 

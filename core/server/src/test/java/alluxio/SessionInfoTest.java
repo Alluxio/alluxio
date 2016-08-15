@@ -30,7 +30,7 @@ public final class SessionInfoTest {
    */
   @Before
   public final void before() {
-    mSessionTimeoutMs = Configuration.getInt(Constants.WORKER_SESSION_TIMEOUT_MS);
+    mSessionTimeoutMs = Configuration.getInt(PropertyKey.WORKER_SESSION_TIMEOUT_MS);
   }
 
   /**

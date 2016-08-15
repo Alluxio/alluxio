@@ -17,6 +17,7 @@ import static jnr.constants.platform.OpenFlags.O_WRONLY;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.exception.AlluxioException;
@@ -84,12 +85,12 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
   AlluxioFuseFileSystem(FileSystem fs, AlluxioFuseOptions opts) {
     super();
     mFileSystem = fs;
-    mAlluxioMaster = Configuration.get(Constants.MASTER_ADDRESS);
+    mAlluxioMaster = Configuration.get(PropertyKey.MASTER_ADDRESS);
     mAlluxioRootPath = Paths.get(opts.getAlluxioRoot());
     mNextOpenFileId = 0L;
     mOpenFiles = new HashMap<>();
 
-    final int maxCachedPaths = Configuration.getInt(Constants.FUSE_CACHED_PATHS_MAX);
+    final int maxCachedPaths = Configuration.getInt(PropertyKey.FUSE_CACHED_PATHS_MAX);
     mPathResolverCache = CacheBuilder.newBuilder()
         .maximumSize(maxCachedPaths)
         .build(new PathCacheLoader());
@@ -259,7 +260,7 @@ final class AlluxioFuseFileSystem extends FuseStubFS {
    */
   @Override
   public String getFSName() {
-    return Configuration.get(Constants.FUSE_FS_NAME);
+    return Configuration.get(PropertyKey.FUSE_FS_NAME);
   }
 
   /**

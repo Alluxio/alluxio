@@ -14,6 +14,7 @@ package alluxio.client.block;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.resource.CloseableResource;
 
 import org.junit.Assert;
@@ -42,7 +43,7 @@ public final class BlockStoreContextIntegrationTest {
     final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireMasterClientResource());
     }
 
@@ -91,12 +92,12 @@ public final class BlockStoreContextIntegrationTest {
    */
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
+      confParams = {PropertyKey.Name.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
   public void acquireWorkerLimitTest() throws Exception {
     final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Acquire all the clients
-    for (int i = 0; i < Configuration.getInt(Constants.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
+    for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
       clients.add(BlockStoreContext.INSTANCE.acquireLocalWorkerClient());
     }
 

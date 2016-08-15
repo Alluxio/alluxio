@@ -12,7 +12,7 @@
 package alluxio.worker.block.evictor;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.collections.Pair;
 import alluxio.worker.block.BlockMetadataManagerView;
 import alluxio.worker.block.BlockStoreLocation;
@@ -70,8 +70,9 @@ public final class LRFUEvictor extends AbstractEvictor {
    */
   public LRFUEvictor(BlockMetadataManagerView view, Allocator allocator) {
     super(view, allocator);
-    mStepFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_STEP_FACTOR);
-    mAttenuationFactor = Configuration.getDouble(Constants.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
+    mStepFactor = Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_STEP_FACTOR);
+    mAttenuationFactor =
+        Configuration.getDouble(PropertyKey.WORKER_EVICTOR_LRFU_ATTENUATION_FACTOR);
     Preconditions.checkArgument(mStepFactor >= 0.0 && mStepFactor <= 1.0,
         "Step factor should be in the range of [0.0, 1.0]");
     Preconditions.checkArgument(mAttenuationFactor >= 2.0,

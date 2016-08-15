@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.RemoteBlockReader;
 import alluxio.client.WriteType;
@@ -77,11 +78,12 @@ public class DataServerIntegrationTest {
   private BlockWorkerClient mBlockWorkerClient;
 
   public DataServerIntegrationTest(String className, String nettyTransferType, String blockReader) {
-    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES,
-        Constants.MB, Constants.WORKER_DATA_SERVER, className,
-        Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, nettyTransferType,
-        Constants.USER_FILE_BUFFER_BYTES, String.valueOf(100), Constants.USER_BLOCK_REMOTE_READER,
-        blockReader);
+    mLocalAlluxioClusterResource =
+        new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
+            .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, className)
+            .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, nettyTransferType)
+            .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+            .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER, blockReader);
   }
 
   @ClassRule

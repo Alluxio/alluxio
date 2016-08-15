@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.io.BufferUtils;
 
 import org.junit.Assert;
@@ -32,7 +32,7 @@ public class BufferedBlockInStreamTest {
    */
   @Before
   public void before() {
-    mBufferSize = Configuration.getBytes(Constants.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
+    mBufferSize = Configuration.getBytes(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES);
     mBlockSize = mBufferSize * 10;
     mTestStream = new TestBufferedBlockInStream(1L, 0, mBlockSize);
   }

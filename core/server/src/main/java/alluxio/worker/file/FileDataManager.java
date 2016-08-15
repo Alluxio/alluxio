@@ -14,6 +14,7 @@ package alluxio.worker.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -157,7 +158,7 @@ public final class FileDataManager {
    * @throws IOException an I/O exception occurs
    */
   private synchronized boolean fileExistsInUfs(long fileId) throws IOException {
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());
 
@@ -239,7 +240,7 @@ public final class FileDataManager {
       for (long blockId : blockIds) {
         long lockId = blockIdToLockId.get(blockId);
 
-        if (Configuration.getBoolean(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
+        if (Configuration.getBoolean(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED)) {
           BlockMeta blockMeta =
               mBlockWorker.getBlockMeta(Sessions.CHECKPOINT_SESSION_ID, blockId, lockId);
           mPersistenceRateLimiter.acquire((int) blockMeta.getBlockSize());
@@ -296,7 +297,7 @@ public final class FileDataManager {
    * @throws IOException if the folder creation fails
    */
   private String prepareUfsFilePath(long fileId) throws IOException {
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     FileInfo fileInfo = mBlockWorker.getFileInfo(fileId);
     AlluxioURI uri = new AlluxioURI(fileInfo.getPath());
     String dstPath = PathUtils.concatPath(ufsRoot, fileInfo.getPath());

@@ -14,6 +14,7 @@ package alluxio.underfs.s3a;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -114,13 +115,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
-    if (Configuration.containsKey(Constants.S3A_ACCESS_KEY)) {
+    if (Configuration.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
       System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
-          Configuration.get(Constants.S3A_ACCESS_KEY));
+          Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     }
-    if (Configuration.containsKey(Constants.S3A_SECRET_KEY)) {
+    if (Configuration.containsKey(PropertyKey.S3A_SECRET_KEY)) {
       System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
-          Configuration.get(Constants.S3A_SECRET_KEY));
+          Configuration.get(PropertyKey.S3A_SECRET_KEY));
     }
 
     // Checks, in order, env variables, system properties, profile file, and instance profile
@@ -131,28 +132,28 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
-    clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    clientConf.setSocketTimeout(Configuration.getInt(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
     // HTTP protocol
-    if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
 
     // Proxy host
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
-      clientConf.setProxyHost(Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
+      clientConf.setProxyHost(Configuration.get(PropertyKey.UNDERFS_S3_PROXY_HOST));
     }
 
     // Proxy port
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_PORT)) {
-      clientConf.setProxyPort(Configuration.getInt(Constants.UNDERFS_S3_PROXY_PORT));
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
+      clientConf.setProxyPort(Configuration.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
 
     mClient = new AmazonS3Client(credentials, clientConf);
-    if (Configuration.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
-      mClient.setEndpoint(Configuration.get(Constants.UNDERFS_S3_ENDPOINT));
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      mClient.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
     mManager = new TransferManager(mClient);
 
@@ -237,7 +238,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -464,7 +465,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     for (int i = 0; i < retries; i++) {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
-        if (Configuration.getBoolean(Constants.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)) {
+        if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);

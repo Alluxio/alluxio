@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
@@ -92,7 +93,7 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     mBlockWorker = blockWorker;
     mWorkerAddress = workerAddress;
     mMasterClient = masterClient;
-    mHeartbeatTimeoutMs = Configuration.getInt(Constants.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
+    mHeartbeatTimeoutMs = Configuration.getInt(PropertyKey.WORKER_BLOCK_HEARTBEAT_TIMEOUT_MS);
     mRemovingBlockIdToFinished = new HashMap<>();
 
     try {

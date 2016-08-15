@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TTransport;
@@ -38,9 +38,9 @@ public final class NoSaslTransportProvider implements TransportProvider {
    * Constructor for transport provider when authentication type is {@link AuthType#NOSASL}.
    */
   public NoSaslTransportProvider() {
-    mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mSocketTimeoutMs = Configuration.getInt(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
     mThriftFrameSizeMax =
-        (int) Configuration.getBytes(Constants.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
+        (int) Configuration.getBytes(PropertyKey.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX);
   }
 
   @Override

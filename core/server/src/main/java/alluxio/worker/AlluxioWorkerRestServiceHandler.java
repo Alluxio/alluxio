@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -79,7 +80,7 @@ public final class AlluxioWorkerRestServiceHandler {
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey();
-      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+      if (PropertyKey.isValid(key)) {
         configuration.put(key, entry.getValue());
       }
     }

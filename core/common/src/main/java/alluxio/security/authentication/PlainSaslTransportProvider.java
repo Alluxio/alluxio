@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.LoginUser;
 
 import org.apache.thrift.transport.TSaslClientTransport;
@@ -45,7 +45,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
    * Constructor for transport provider with {@link AuthType#SIMPLE} or {@link AuthType#CUSTOM}.
    */
   public PlainSaslTransportProvider() {
-    mSocketTimeoutMs = Configuration.getInt(Constants.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
+    mSocketTimeoutMs = Configuration.getInt(PropertyKey.SECURITY_AUTHENTICATION_SOCKET_TIMEOUT_MS);
   }
 
   @Override
@@ -77,7 +77,7 @@ public final class PlainSaslTransportProvider implements TransportProvider {
   @Override
   public TTransportFactory getServerTransportFactory() throws SaslException {
     AuthType authType =
-        Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     TSaslServerTransport.Factory saslFactory = new TSaslServerTransport.Factory();
     AuthenticationProvider provider =
         AuthenticationProvider.Factory.create(authType);

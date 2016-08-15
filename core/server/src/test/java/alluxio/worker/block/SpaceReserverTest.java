@@ -12,7 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.Sessions;
 import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatScheduler;
@@ -78,11 +79,11 @@ public class SpaceReserverTest {
         new String[][]{new String[]{"/a"}, new String[]{"/b"}},
         new long[][]{new long[]{0}, new long[]{0}}, "/");
 
-    String reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 0);
+    PropertyKey reserveRatioProp =
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(0);
     Configuration.set(reserveRatioProp, "0.2");
     reserveRatioProp =
-        String.format(Constants.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT, 1);
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_RESERVED_RATIO_FORMAT.format(1);
     Configuration.set(reserveRatioProp, "0.3");
     SpaceReserver spaceReserver = new SpaceReserver(blockWorker);
 
