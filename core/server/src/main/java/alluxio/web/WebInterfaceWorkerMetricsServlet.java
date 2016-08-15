@@ -134,10 +134,11 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
   private String removeHostNameFromWorkerMetricsName(String metricsName) throws IOException {
     String[] pieces = metricsName.split("\\.");
     if (pieces.length < 3) {
-     throw new IOException("Incorrect worker metrics name: " + metricsName);
+      throw new IOException("Incorrect worker metrics name: " + metricsName);
     }
     StringBuilder sb = new StringBuilder(pieces[0]);
     for (int i = 2; i < pieces.length; i++) {
+      sb.append(".");
       sb.append(pieces[i]);
     }
     return sb.toString();
