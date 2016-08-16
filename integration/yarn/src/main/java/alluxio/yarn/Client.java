@@ -402,7 +402,7 @@ public final class Client {
                 + state.toString() + ", DSFinalStatus=" + dsStatus.toString());
           }
           return;
-        case KILLED:
+        case KILLED: // intended to fall through
         case FAILED:
           System.out.println("Application did not finish. YarnState=" + state.toString()
               + ", DSFinalStatus=" + dsStatus.toString());
