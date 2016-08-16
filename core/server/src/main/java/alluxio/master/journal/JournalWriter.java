@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.underfs.UnderFileSystem;
@@ -77,7 +78,7 @@ public final class JournalWriter {
     mCompletedDirectory = mJournal.getCompletedDirectory();
     mTempCheckpointPath = mJournal.getCheckpointFilePath() + ".tmp";
     mUfs = UnderFileSystem.get(mJournalDirectory);
-    mMaxLogSize = Configuration.getBytes(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    mMaxLogSize = Configuration.getBytes(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
   }
 
   /**

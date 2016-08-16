@@ -108,7 +108,7 @@ public abstract class AbstractClient implements Client {
       try {
         mServiceVersion = client.getServiceVersion();
       } catch (TException e) {
-        throw new IOException(e.getMessage());
+        throw new IOException(e.toString());
       }
       if (mServiceVersion != version) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
@@ -154,7 +154,7 @@ public abstract class AbstractClient implements Client {
     disconnect();
     Preconditions.checkState(!mClosed, "Client is closed, will not try to connect.");
 
-    int maxConnectsTry = Configuration.getInt(Constants.MASTER_RETRY_COUNT);
+    int maxConnectsTry = Configuration.getInt(PropertyKey.MASTER_RETRY);
     final int BASE_SLEEP_MS = 50;
     RetryPolicy retry =
         new ExponentialBackoffRetry(BASE_SLEEP_MS, Constants.SECOND_MS, maxConnectsTry);

@@ -12,7 +12,7 @@
 package alluxio.worker.block.meta;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.io.PathUtils;
 import alluxio.worker.block.BlockStoreLocation;
 
@@ -28,8 +28,8 @@ public abstract class AbstractBlockMeta {
   /**
    * All blocks are created as temp blocks before committed. They are stored in BlockStore under a
    * subdir of its {@link StorageDir}, the subdir is tmpFolder/sessionId % maxSubdirMax.
-   * tmpFolder is a property of {@link Constants#WORKER_DATA_TMP_FOLDER}.
-   * maxSubdirMax is a property of {@link Constants#WORKER_DATA_TMP_SUBDIR_MAX}.
+   * tmpFolder is a property of {@link PropertyKey#WORKER_DATA_TMP_FOLDER}.
+   * maxSubdirMax is a property of {@link PropertyKey#WORKER_DATA_TMP_SUBDIR_MAX}.
    * The block file name is "sessionId-blockId". e.g. sessionId 2 creates a temp Block 100 in
    * {@link StorageDir} "/mnt/mem/0", this temp block has path:
    * <p>
@@ -41,8 +41,8 @@ public abstract class AbstractBlockMeta {
    * @return temp file path
    */
   public static String tempPath(StorageDir dir, long sessionId, long blockId) {
-    final String tmpDir = Configuration.get(Constants.WORKER_DATA_TMP_FOLDER);
-    final int subDirMax = Configuration.getInt(Constants.WORKER_DATA_TMP_SUBDIR_MAX);
+    final String tmpDir = Configuration.get(PropertyKey.WORKER_DATA_TMP_FOLDER);
+    final int subDirMax = Configuration.getInt(PropertyKey.WORKER_DATA_TMP_SUBDIR_MAX);
 
     return PathUtils.concatPath(dir.getDirPath(), tmpDir, sessionId % subDirMax,
         String.format("%x-%x", sessionId, blockId));

@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.MasterStorageTierAssoc;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.master.block.BlockMaster;
@@ -74,7 +75,7 @@ public final class AlluxioMasterRestServiceHandler {
 
   private final AlluxioMaster mMaster;
   private final BlockMaster mBlockMaster;
-  private final String mUfsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+  private final String mUfsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   private final UnderFileSystem mUfs = UnderFileSystem.get(mUfsRoot);
 
   /**
@@ -101,7 +102,7 @@ public final class AlluxioMasterRestServiceHandler {
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey();
-      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+      if (PropertyKey.isValid(key)) {
         configuration.put(key, entry.getValue());
       }
     }

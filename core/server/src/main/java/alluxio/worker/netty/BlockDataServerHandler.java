@@ -13,6 +13,7 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
@@ -59,7 +60,7 @@ final class BlockDataServerHandler {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
     mTransferType = Configuration
-        .getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**

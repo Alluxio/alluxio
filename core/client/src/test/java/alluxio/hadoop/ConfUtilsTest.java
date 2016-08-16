@@ -12,7 +12,7 @@
 package alluxio.hadoop;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -23,8 +23,8 @@ import org.junit.Test;
 public final class ConfUtilsTest {
   private static final String TEST_S3_ACCCES_KEY = "TEST ACCESS KEY";
   private static final String TEST_S3_SECRET_KEY = "TEST SECRET KEY";
-  private static final String TEST_ALLUXIO_PROPERTY = "alluxio.config.parameter";
-  private static final String TEST_ALLUXIO_VALUE = "alluxio.config.value";
+  private static final String TEST_ALLUXIO_PROPERTY = "alluxio.unsupported.parameter";
+  private static final String TEST_ALLUXIO_VALUE = "alluxio.unsupported.value";
 
   /**
    * Test for the {@link ConfUtils#mergeHadoopConfiguration} method for an empty configuration.
@@ -47,8 +47,8 @@ public final class ConfUtilsTest {
   public void mergeHadoopConfigurationTest() {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
-    hadoopConfig.set(Constants.S3N_ACCESS_KEY, TEST_S3_ACCCES_KEY);
-    hadoopConfig.set(Constants.S3N_SECRET_KEY, TEST_S3_SECRET_KEY);
+    hadoopConfig.set(PropertyKey.S3N_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);
+    hadoopConfig.set(PropertyKey.S3N_SECRET_KEY.toString(), TEST_S3_SECRET_KEY);
     hadoopConfig.set(TEST_ALLUXIO_PROPERTY, TEST_ALLUXIO_VALUE);
 
     // This hadoop config will not be loaded into Alluxio configuration.
@@ -57,9 +57,8 @@ public final class ConfUtilsTest {
     long beforeSize = Configuration.toMap().size();
     ConfUtils.mergeHadoopConfiguration(hadoopConfig);
     long afterSize = Configuration.toMap().size();
-    Assert.assertEquals(beforeSize + 3, afterSize);
-    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(Constants.S3N_ACCESS_KEY));
-    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(Constants.S3N_SECRET_KEY));
-    Assert.assertEquals(TEST_ALLUXIO_VALUE, Configuration.get(TEST_ALLUXIO_PROPERTY));
+    Assert.assertEquals(beforeSize + 2, afterSize);
+    Assert.assertEquals(TEST_S3_ACCCES_KEY, Configuration.get(PropertyKey.S3N_ACCESS_KEY));
+    Assert.assertEquals(TEST_S3_SECRET_KEY, Configuration.get(PropertyKey.S3N_SECRET_KEY));
   }
 }

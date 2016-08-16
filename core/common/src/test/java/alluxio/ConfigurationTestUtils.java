@@ -12,16 +12,11 @@
 package alluxio;
 
 import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.reflect.Whitebox;
 
 /**
  * Utility methods for the configuration tests.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(Configuration.class)
 public final class ConfigurationTestUtils {
 
   /**

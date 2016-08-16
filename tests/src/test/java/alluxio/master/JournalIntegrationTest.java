@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -59,8 +60,8 @@ import java.util.Map;
 public class JournalIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, Constants.GB,
-          Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
+      new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
+        .setProperty(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, Integer.toString(Constants.KB));
 
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private FileSystem mFileSystem = null;
@@ -119,8 +120,8 @@ public class JournalIntegrationTest {
   @Test
   public void multipleFlushTest() throws Exception {
     // Set the max log size to 0 to force a flush to write a new file.
-    String existingMax = Configuration.get(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
-    Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
+    String existingMax = Configuration.get(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX);
+    Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "0");
     try {
       String journalFolder = mLocalAlluxioCluster.getMaster().getJournalFolder();
       ReadWriteJournal journal = new ReadWriteJournal(
@@ -137,7 +138,7 @@ public class JournalIntegrationTest {
       Assert.assertTrue(paths == null || paths.length == 0);
     } finally {
       // Reset the max log size.
-      Configuration.set(Constants.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
+      Configuration.set(PropertyKey.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, existingMax);
     }
   }
 
@@ -146,7 +147,7 @@ public class JournalIntegrationTest {
    */
   @Test
   public void loadMetadataTest() throws Exception {
-    String ufsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+    String ufsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     UnderFileSystem ufs = UnderFileSystem.get(ufsRoot);
     ufs.create(ufsRoot + "/xyz").close();
     mFileSystem.loadMetadata(new AlluxioURI("/xyz"));
@@ -520,14 +521,14 @@ public class JournalIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(confParams = {
-      Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
-      Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-      Constants.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
+      PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+      PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+      PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS, FakeUserGroupsMapping.FULL_CLASS_NAME})
   public void setAclTest() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/file");
 
     String user = "alluxio";
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
     CreateFileOptions op = CreateFileOptions.defaults().setBlockSizeBytes(64);
     mFileSystem.createFile(filePath, op).close();
 

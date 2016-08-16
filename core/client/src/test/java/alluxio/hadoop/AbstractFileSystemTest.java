@@ -15,6 +15,7 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
@@ -128,9 +129,9 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER_FT + "localhost:19998/tmp/path.txt");
 
-    Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    Configuration.set(Constants.ZOOKEEPER_ENABLED, "true");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "true");
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     Assert.assertTrue(fs instanceof FaultTolerantFileSystem);
@@ -145,9 +146,9 @@ public class AbstractFileSystemTest {
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
 
-    Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
-    Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-    Configuration.set(Constants.ZOOKEEPER_ENABLED, "false");
+    Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+    Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, "false");
 
     final org.apache.hadoop.fs.FileSystem fs = org.apache.hadoop.fs.FileSystem.get(uri, conf);
     Assert.assertTrue(fs instanceof FileSystem);

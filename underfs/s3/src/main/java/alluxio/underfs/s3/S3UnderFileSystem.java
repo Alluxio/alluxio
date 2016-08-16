@@ -14,6 +14,7 @@ package alluxio.underfs.s3;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -25,6 +26,7 @@ import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
+import org.jets3t.service.acl.AccessControlList;
 import org.jets3t.service.impl.rest.httpclient.RestS3Service;
 import org.jets3t.service.model.S3Object;
 import org.jets3t.service.model.StorageObject;
@@ -73,6 +75,15 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
 
+  /** The owner name of the bucket. */
+  private final String mBucketOwner;
+
+  /** The AWS id of the bucket owner. */
+  private final String mBucketOwnerId;
+
+  /** The permission mode by the owner to the bucket. */
+  private final short mBucketMode;
+
   static {
     try {
       DIR_HASH = MessageDigest.getInstance("MD5").digest(new byte[0]);
@@ -90,55 +101,62 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   public S3UnderFileSystem(AlluxioURI uri) throws ServiceException {
     super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.S3N_ACCESS_KEY),
-        "Property " + Constants.S3N_ACCESS_KEY + " is required to connect to S3");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.S3N_SECRET_KEY),
-        "Property " + Constants.S3N_SECRET_KEY + " is required to connect to S3");
-    AWSCredentials awsCredentials = new AWSCredentials(Configuration.get(Constants.S3N_ACCESS_KEY),
-        Configuration.get(Constants.S3N_SECRET_KEY));
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY),
+        "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_SECRET_KEY),
+        "Property " + PropertyKey.S3N_SECRET_KEY + " is required to connect to S3");
+    AWSCredentials awsCredentials = new AWSCredentials(
+        Configuration.get(PropertyKey.S3N_ACCESS_KEY),
+        Configuration.get(PropertyKey.S3N_SECRET_KEY));
     mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
       props.setProperty("httpclient.proxy-autodetect", "false");
-      props
-          .setProperty("httpclient.proxy-host", Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
-      props
-          .setProperty("httpclient.proxy-port", Configuration.get(Constants.UNDERFS_S3_PROXY_PORT));
+      props.setProperty(
+          "httpclient.proxy-host", Configuration.get(PropertyKey.UNDERFS_S3_PROXY_HOST));
+      props.setProperty(
+          "httpclient.proxy-port", Configuration.get(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
       props.setProperty("s3service.https-only",
-          Boolean.toString(Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)));
+          Boolean.toString(Configuration.getBoolean(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_ENDPOINT)) {
-      props.setProperty("s3service.s3-endpoint", Configuration.get(Constants.UNDERFS_S3_ENDPOINT));
-      if (Configuration.getBoolean(Constants.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      props.setProperty(
+          "s3service.s3-endpoint", Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+      if (Configuration.getBoolean(PropertyKey.UNDERFS_S3_PROXY_HTTPS_ONLY)) {
         props.setProperty("s3service.s3-endpoint-https-port",
-            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
+            Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT_HTTPS_PORT));
       } else {
         props.setProperty("s3service.s3-endpoint-http-port",
-            Configuration.get(Constants.UNDERFS_S3_ENDPOINT_HTTP_PORT));
+            Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT_HTTP_PORT));
       }
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS)) {
       props.setProperty("s3service.disable-dns-buckets",
-          Configuration.get(Constants.UNDERFS_S3_DISABLE_DNS_BUCKETS));
+          Configuration.get(PropertyKey.UNDERFS_S3_DISABLE_DNS_BUCKETS));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX)) {
       props.setProperty("threaded-service.max-thread-count",
-          Configuration.get(Constants.UNDERFS_S3_UPLOAD_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_UPLOAD_THREADS_MAX));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_ADMIN_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX)) {
       props.setProperty("threaded-service.admin-max-thread-count",
-          Configuration.get(Constants.UNDERFS_S3_ADMIN_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_ADMIN_THREADS_MAX));
     }
-    if (Configuration.containsKey(Constants.UNDERFS_S3_THREADS_MAX)) {
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_THREADS_MAX)) {
       props.setProperty("httpclient.max-connections",
-          Configuration.get(Constants.UNDERFS_S3_THREADS_MAX));
+          Configuration.get(PropertyKey.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+
+    AccessControlList acl = mClient.getBucketAcl(mBucketName);
+    mBucketOwner = acl.getOwner().getDisplayName();
+    mBucketOwnerId = acl.getOwner().getId();
+    mBucketMode = S3Utils.translateBucketAcl(acl, mBucketOwnerId);
   }
 
   @Override
@@ -212,7 +230,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -378,30 +396,30 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the translated mode by the owner of the bucket.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mBucketMode;
   }
 
   /**

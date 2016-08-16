@@ -13,7 +13,7 @@ package alluxio.client.lineage;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.lineage.options.CreateLineageOptions;
 import alluxio.client.lineage.options.DeleteLineageOptions;
@@ -50,7 +50,7 @@ public final class AlluxioLineage extends AbstractLineageClient {
    * @return the current lineage for Alluxio
    */
   public static synchronized AlluxioLineage get(LineageContext context) {
-    if (!Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED)) {
+    if (!Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED)) {
       throw new IllegalStateException("Lineage is not enabled in the configuration.");
     }
     return new AlluxioLineage(context);

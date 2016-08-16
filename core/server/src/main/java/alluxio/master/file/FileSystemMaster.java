@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.clock.SystemClock;
 import alluxio.collections.PrefixList;
 import alluxio.exception.AccessControlException;
@@ -89,6 +90,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
@@ -264,7 +266,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mInodeTree = new InodeTree(mBlockMaster, mDirectoryIdGenerator, mMountTable);
 
     // TODO(gene): Handle default config value for whitelist.
-    mWhitelist = new PrefixList(Configuration.getList(Constants.MASTER_WHITELIST, ","));
+    mWhitelist = new PrefixList(Configuration.getList(PropertyKey.MASTER_WHITELIST, ","));
 
     mAsyncPersistHandler = AsyncPersistHandler.Factory.create(new FileSystemMasterView(this));
     mPermissionChecker = new PermissionChecker(mInodeTree);
@@ -378,10 +380,12 @@ public final class FileSystemMaster extends AbstractMaster {
       // If it is standby, it should be able to load the inode tree from leader's checkpoint.
       mInodeTree
           .initializeRoot(Permission.defaults().applyDirectoryUMask().setOwnerFromLoginModule());
-      String defaultUFS = Configuration.get(Constants.UNDERFS_ADDRESS);
+      String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            MountOptions.defaults());
+            MountOptions.defaults().setShared(CommonUtils.isUfsObjectStorage(defaultUFS)
+                && Configuration.getBoolean(
+                    PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
@@ -393,10 +397,10 @@ public final class FileSystemMaster extends AbstractMaster {
     if (isLeader) {
       mTtlCheckerService = getExecutorService().submit(
           new HeartbeatThread(HeartbeatContext.MASTER_TTL_CHECK, new MasterInodeTtlCheckExecutor(),
-              Configuration.getInt(Constants.MASTER_TTL_CHECKER_INTERVAL_MS)));
+              Configuration.getInt(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS)));
       mLostFilesDetectionService = getExecutorService().submit(new HeartbeatThread(
           HeartbeatContext.MASTER_LOST_FILES_DETECTION, new LostFilesDetectionHeartbeatExecutor(),
-          Configuration.getInt(Constants.MASTER_HEARTBEAT_INTERVAL_MS)));
+          Configuration.getInt(PropertyKey.MASTER_HEARTBEAT_INTERVAL_MS)));
     }
   }
 
@@ -1711,7 +1715,7 @@ public final class FileSystemMaster extends AbstractMaster {
    * @return the ufs address for this master
    */
   public String getUfsAddress() {
-    return Configuration.get(Constants.UNDERFS_ADDRESS);
+    return Configuration.get(PropertyKey.UNDERFS_ADDRESS);
   }
 
   /**
@@ -1888,9 +1892,13 @@ public final class FileSystemMaster extends AbstractMaster {
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
-    createFileOptions = createFileOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+    short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    if (resolution.getShared()) {
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
+    }
+    createFileOptions = createFileOptions.setPermission(permission);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1935,9 +1943,13 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
-    createDirectoryOptions = createDirectoryOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+    short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    if (resolution.getShared()) {
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
+    }
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
@@ -2061,7 +2073,7 @@ public final class FileSystemMaster extends AbstractMaster {
     AddMountPointEntry addMountPoint =
         AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
             .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
-            .addAllProperties(protoProperties).build();
+            .addAllProperties(protoProperties).setShared(options.isShared()).build();
     return appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
   }
 
@@ -2111,7 +2123,7 @@ public final class FileSystemMaster extends AbstractMaster {
             ExceptionMessage.PATH_MUST_BE_DIRECTORY.getMessage(ufsPath.getPath()));
       }
       // Check that the alluxioPath we're creating doesn't shadow a path in the default UFS
-      String defaultUfsPath = Configuration.get(Constants.UNDERFS_ADDRESS);
+      String defaultUfsPath = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       UnderFileSystem defaultUfs = UnderFileSystem.get(defaultUfsPath);
       if (defaultUfs.exists(PathUtils.concatPath(defaultUfsPath, alluxioPath.getPath()))) {
         throw new IOException(
@@ -2482,19 +2494,25 @@ public final class FileSystemMaster extends AbstractMaster {
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
+      if (CommonUtils.isUfsObjectStorage(ufsUri)) {
+        throw new UnsupportedOperationException(
+            "setOwner/setMode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
+      }
       UnderFileSystem ufs = resolution.getUfs();
       if (ownerGroupChanged) {
         try {
           ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+          throw new AccessControlException("Could not set owner for UFS file " + ufsUri + ": "
+              + e.getMessage());
         }
       }
       if (permissionChanged) {
         try {
           ufs.setMode(ufsUri, inode.getMode());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+          throw new AccessControlException("Could not set mode for UFS file " + ufsUri + ": "
+              + e.getMessage());
         }
       }
     }

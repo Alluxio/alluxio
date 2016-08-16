@@ -12,7 +12,7 @@
 package alluxio.security.group;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -60,7 +60,7 @@ public class CachedGroupMapping implements GroupMappingService {
   public CachedGroupMapping(GroupMappingService service) {
     mService = service;
     long timeoutMs = Long.parseLong(Configuration.get(
-        Constants.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS));
+        PropertyKey.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS));
     mCacheEnabled = timeoutMs > 0;
     if (mCacheEnabled) {
       mCache = CacheBuilder.newBuilder()
