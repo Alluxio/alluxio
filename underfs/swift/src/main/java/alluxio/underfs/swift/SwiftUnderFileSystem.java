@@ -133,8 +133,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
             // swiftauth requires authentication header to be of the form tenant:user.
             // JOSS however generates header of the form user:tenant.
             // To resolve this, we switch user with tenant
-            config.setTenantName(Configuration.get(Constants.SWIFT_USER_KEY));
-            config.setUsername(Configuration.get(Constants.SWIFT_TENANT_KEY));
+            config.setTenantName(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
             break;
           default:
             config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
