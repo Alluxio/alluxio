@@ -14,7 +14,7 @@ package alluxio.master.file.options;
 import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
@@ -37,7 +37,7 @@ public class CreateDirectoryOptionsTest {
    */
   @Test
   public void defaultsTest() throws Exception {
-    Configuration.set(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
 

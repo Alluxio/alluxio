@@ -15,7 +15,7 @@ import static org.junit.Assert.assertEquals;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.InvalidWorkerStateException;
@@ -65,7 +65,7 @@ public final class FileDataManagerTest {
     mUfs = Mockito.mock(UnderFileSystem.class);
     mBlockWorker = Mockito.mock(BlockWorker.class);
     mMockRateLimiter =
-        new MockRateLimiter(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
     mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
   }
 
@@ -111,10 +111,10 @@ public final class FileDataManagerTest {
    */
   @Test
   public void persistFileRateLimitingTest() throws Exception {
-    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
-    Configuration.set(Constants.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
+    Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
+    Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
     mMockRateLimiter =
-        new MockRateLimiter(Configuration.getBytes(Constants.WORKER_FILE_PERSIST_RATE_LIMIT));
+        new MockRateLimiter(Configuration.getBytes(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT));
     mManager = new FileDataManager(mBlockWorker, mUfs, mMockRateLimiter.getGuavaRateLimiter());
 
     long fileId = 1;
@@ -137,7 +137,7 @@ public final class FileDataManagerTest {
           .thenReturn(mockedBlockMeta);
     }
 
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
 
     OutputStream outputStream = Mockito.mock(OutputStream.class);
@@ -219,7 +219,7 @@ public final class FileDataManagerTest {
           .readBlockRemote(Sessions.CHECKPOINT_SESSION_ID, blockId, blockId);
     }
 
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 
@@ -255,7 +255,7 @@ public final class FileDataManagerTest {
           .thenReturn(reader);
     }
 
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     Mockito.when(mUfs.exists(ufsRoot)).thenReturn(true);
     OutputStream outputStream = Mockito.mock(OutputStream.class);
 

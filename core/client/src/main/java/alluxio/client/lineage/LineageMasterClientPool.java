@@ -12,7 +12,7 @@
 package alluxio.client.lineage;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.resource.ResourcePool;
 
 import java.net.InetSocketAddress;
@@ -30,7 +30,7 @@ final class LineageMasterClientPool extends ResourcePool<LineageMasterClient> {
    * @param masterAddress the master address
    */
   public LineageMasterClientPool(InetSocketAddress masterAddress) {
-    super(Configuration.getInt(Constants.USER_LINEAGE_MASTER_CLIENT_THREADS));
+    super(Configuration.getInt(PropertyKey.USER_LINEAGE_MASTER_CLIENT_THREADS));
     mMasterAddress = masterAddress;
   }
 

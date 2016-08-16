@@ -11,8 +11,8 @@
 
 package alluxio.security;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockWorkerClient;
 import alluxio.client.block.RetryHandlingBlockWorkerClient;
 import alluxio.client.util.ClientTestUtils;
@@ -58,33 +58,34 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
   public void noAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
   public void simpleAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
-          Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "CUSTOM",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-          Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationOpenCloseTest() throws Exception {
     authenticationOperationTest();
   }
 
   @Test(timeout = 10000)
-  @LocalAlluxioClusterResource.Config(confParams = {Constants.SECURITY_AUTHENTICATION_TYPE,
-      "CUSTOM", Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
-      NameMatchAuthenticationProvider.FULL_CLASS_NAME,
-      Constants.SECURITY_LOGIN_USERNAME, "alluxio"})
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE,
+          "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
+          NameMatchAuthenticationProvider.FULL_CLASS_NAME,
+          PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
   public void customAuthenticationDenyConnectTest() throws Exception {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");

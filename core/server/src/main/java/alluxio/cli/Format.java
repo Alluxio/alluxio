@@ -13,6 +13,8 @@ package alluxio.cli;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.RuntimeConstants;
 import alluxio.master.AlluxioMaster;
 import alluxio.underfs.UnderFileSystem;
@@ -66,7 +68,7 @@ public final class Format {
 
     if ("MASTER".equalsIgnoreCase(args[0])) {
       String masterJournal =
-          Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+          Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
       if (!formatFolder("JOURNAL_FOLDER", masterJournal)) {
         System.exit(-1);
       }
@@ -83,11 +85,11 @@ public final class Format {
       UnderFileSystemUtils.touch(PathUtils
           .concatPath(masterJournal, Constants.FORMAT_FILE_PREFIX + System.currentTimeMillis()));
     } else if ("WORKER".equalsIgnoreCase(args[0])) {
-      String workerDataFolder = Configuration.get(Constants.WORKER_DATA_FOLDER);
-      int storageLevels = Configuration.getInt(Constants.WORKER_TIERED_STORE_LEVELS);
+      String workerDataFolder = Configuration.get(PropertyKey.WORKER_DATA_FOLDER);
+      int storageLevels = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
       for (int level = 0; level < storageLevels; level++) {
-        String tierLevelDirPath =
-            String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, level);
+        PropertyKey tierLevelDirPath =
+            PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(level);
         String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
         String name = "TIER_" + level + "_DIR_PATH";
         for (String dirPath : dirPaths) {

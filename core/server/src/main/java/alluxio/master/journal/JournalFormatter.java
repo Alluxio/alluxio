@@ -12,7 +12,7 @@
 package alluxio.master.journal;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.util.CommonUtils;
 
@@ -42,7 +42,7 @@ public interface JournalFormatter {
     public static JournalFormatter create() {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<JournalFormatter>getClass(Constants.MASTER_JOURNAL_FORMATTER_CLASS),
+            Configuration.<JournalFormatter>getClass(PropertyKey.MASTER_JOURNAL_FORMATTER_CLASS),
             null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);

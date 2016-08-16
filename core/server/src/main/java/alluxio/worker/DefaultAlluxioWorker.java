@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
@@ -21,7 +22,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
 import alluxio.web.WorkerUIWebServer;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
@@ -87,14 +87,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   /** Server socket for thrift. */
   private TServerSocket mThriftServerSocket;
 
-  /** RPC local port for thrift. */
-  private int mRPCPort;
-
   /** The address for the rpc server. */
-  private InetSocketAddress mWorkerAddress;
-
-  /** Net address of this worker. */
-  private WorkerNetAddress mNetAddress;
+  private InetSocketAddress mRpcAddress;
 
   /** Worker start time in milliseconds. */
   private long mStartTimeMs;
@@ -131,13 +125,18 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
           NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
           NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
+      // Reset worker web port based on assigned port number
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
       mThriftServerSocket = createThriftServerSocket();
-      mRPCPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
+      int rpcPort = NetworkAddressUtils.getThriftPort(mThriftServerSocket);
+      String rpcBindHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket)
+          .getInetAddress().getHostAddress();
+      mRpcAddress = new InetSocketAddress(rpcBindHost, rpcPort);
       // Reset worker RPC port based on assigned port number
-      Configuration.set(Constants.WORKER_RPC_PORT, Integer.toString(mRPCPort));
+      Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
       mThriftServer = createThriftServer();
 
       // Setup Data server
@@ -145,10 +144,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
           DataServer.Factory.create(
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
       // Reset data server port
-      Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
-
-      mWorkerAddress =
-          NetworkAddressUtils.getConnectAddress(NetworkAddressUtils.ServiceType.WORKER_RPC);
+      Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
@@ -163,17 +159,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   @Override
   public long getUptimeMs() {
     return System.currentTimeMillis() - mStartTimeMs;
-  }
-
-  @Override
-  public String getRPCBindHost() {
-    return NetworkAddressUtils.getThriftSocket(mThriftServerSocket).getInetAddress()
-        .getHostAddress();
-  }
-
-  @Override
-  public int getRPCLocalPort() {
-    return mRPCPort;
   }
 
   @Override
@@ -207,13 +192,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   @Override
-  public InetSocketAddress getWorkerAddress() {
-    return mWorkerAddress;
-  }
-
-  @Override
-  public WorkerNetAddress getNetAddress() {
-    return mNetAddress;
+  public InetSocketAddress getRpcAddress() {
+    return mRpcAddress;
   }
 
   @Override
@@ -229,17 +209,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     mWebServer.addHandler(mWorkerMetricsSystem.getServletHandler());
     mWebServer.startWebServer();
 
-    // Set updated net address for this worker in context
-    // Requirement: RPC, web, and dataserver ports are updated
-    // Consequence: create a NetAddress object and set it into WorkerContext
-    mNetAddress =
-        new WorkerNetAddress()
-            .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-            .setRpcPort(Configuration.getInt(Constants.WORKER_RPC_PORT))
-            .setDataPort(getDataLocalPort())
-            .setWebPort(Configuration.getInt(Constants.WORKER_WEB_PORT));
-    WorkerContext.setWorkerNetAddress(mNetAddress);
-
     // Start each worker
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
@@ -249,20 +218,20 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     mIsServingRPC = true;
 
     // Start serving RPC, this will block
-    LOG.info("Alluxio worker version {} started @ {}", RuntimeConstants.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} started @ {}", RuntimeConstants.VERSION, mRpcAddress);
     mThriftServer.serve();
-    LOG.info("Alluxio worker version {} ended @ {}", RuntimeConstants.VERSION, mWorkerAddress);
+    LOG.info("Alluxio worker version {} ended @ {}", RuntimeConstants.VERSION, mRpcAddress);
   }
 
   @Override
   public void stop() throws Exception {
     if (mIsServingRPC) {
-      LOG.info("Stopping RPC server on Alluxio worker @ {}", mWorkerAddress);
+      LOG.info("Stopping RPC server on Alluxio worker @ {}", mRpcAddress);
       stopServing();
       stopWorkers();
       mIsServingRPC = false;
     } else {
-      LOG.info("Stopping Alluxio worker @ {}", mWorkerAddress);
+      LOG.info("Stopping Alluxio worker @ {}", mRpcAddress);
     }
   }
 
@@ -317,8 +286,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = Configuration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MIN);
-    int maxWorkerThreads = Configuration.getInt(Constants.WORKER_WORKER_BLOCK_THREADS_MAX);
+    int minWorkerThreads = Configuration.getInt(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = Configuration.getInt(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX);
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     registerServices(processor, mBlockWorker.getServices());
@@ -339,7 +308,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
         .minWorkerThreads(minWorkerThreads).maxWorkerThreads(maxWorkerThreads).processor(processor)
         .transportFactory(tTransportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -364,5 +333,17 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   @Override
   public MetricsSystem getWorkerMetricsSystem() {
     return mWorkerMetricsSystem;
+  }
+
+  @Override
+  public void waitForReady() {
+    while (true) {
+      if (mThriftServer.isServing()
+          && WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID
+          && mWebServer.getServer().isRunning()) {
+        return;
+      }
+      CommonUtils.sleepMs(10);
+    }
   }
 }

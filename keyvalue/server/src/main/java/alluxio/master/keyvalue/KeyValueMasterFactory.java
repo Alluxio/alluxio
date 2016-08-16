@@ -13,6 +13,7 @@ package alluxio.master.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
@@ -41,7 +42,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(Constants.KEY_VALUE_ENABLED);
+    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
   }
 
   @Override

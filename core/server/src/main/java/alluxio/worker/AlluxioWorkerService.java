@@ -13,7 +13,6 @@ package alluxio.worker;
 
 import alluxio.Server;
 import alluxio.metrics.MetricsSystem;
-import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -74,16 +73,6 @@ public interface AlluxioWorkerService extends Server {
   long getUptimeMs();
 
   /**
-   * @return the worker's RPC service bind host
-   */
-  String getRPCBindHost();
-
-  /**
-   * @return the worker's RPC service port
-   */
-  int getRPCLocalPort();
-
-  /**
    * @return the worker web service bind host (used by unit test only)
    */
   String getWebBindHost();
@@ -96,18 +85,15 @@ public interface AlluxioWorkerService extends Server {
   /**
    * @return this worker's rpc address
    */
-  InetSocketAddress getWorkerAddress();
-
-  /**
-   * Gets this worker's {@link WorkerNetAddress}, which is the worker's hostname, rpc
-   * server port, data server port, and web server port.
-   *
-   * @return the worker's net address
-   */
-  WorkerNetAddress getNetAddress();
+  InetSocketAddress getRpcAddress();
 
   /**
    * @return the worker metric system reference
    */
   MetricsSystem getWorkerMetricsSystem();
+
+  /**
+   * Waits until the worker is ready to server requests.
+   */
+  void waitForReady();
 }

@@ -12,7 +12,7 @@
 package alluxio.client.netty;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCMessageDecoder;
@@ -39,7 +39,7 @@ public final class NettyClient {
   private static final RPCMessageDecoder DECODER = new RPCMessageDecoder();
 
   private static final ChannelType CHANNEL_TYPE =
-      Configuration.getEnum(Constants.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
+      Configuration.getEnum(PropertyKey.USER_NETWORK_NETTY_CHANNEL, ChannelType.class);
   private static final Class<? extends SocketChannel> CLIENT_CHANNEL_CLASS = NettyUtils
       .getClientChannelClass(CHANNEL_TYPE);
   /**
@@ -48,12 +48,12 @@ public final class NettyClient {
    * (#processors * 2) threads by default.
    */
   private static final EventLoopGroup WORKER_GROUP = NettyUtils.createEventLoop(CHANNEL_TYPE,
-      Configuration.getInt(Constants.USER_NETWORK_NETTY_WORKER_THREADS), "netty-client-worker-%d",
+      Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_WORKER_THREADS), "netty-client-worker-%d",
       true);
 
   /** The maximum number of milliseconds to wait for a response from the server. */
   public static final long TIMEOUT_MS =
-      Configuration.getInt(Constants.USER_NETWORK_NETTY_TIMEOUT_MS);
+      Configuration.getInt(PropertyKey.USER_NETWORK_NETTY_TIMEOUT_MS);
 
   private NettyClient() {} // prevent instantiation
 

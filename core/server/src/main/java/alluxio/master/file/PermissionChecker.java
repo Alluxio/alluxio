@@ -12,7 +12,7 @@
 package alluxio.master.file;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidPathException;
@@ -55,9 +55,9 @@ public final class PermissionChecker {
   public PermissionChecker(InodeTree inodeTree) {
     mInodeTree = Preconditions.checkNotNull(inodeTree);
     mPermissionCheckEnabled =
-        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
+        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED);
     mFileSystemSuperGroup =
-        Configuration.get(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
+        Configuration.get(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP);
   }
 
   /**

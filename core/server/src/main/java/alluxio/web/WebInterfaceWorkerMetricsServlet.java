@@ -20,6 +20,7 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
@@ -108,11 +109,35 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     });
 
     Map<String, Metric> operations = new TreeMap<>();
-    operations.putAll(counters);
+    for (Map.Entry<String, Counter> entry: counters.entrySet()) {
+      operations.put(removeHostNameFromWorkerMetricsName(entry.getKey()), entry.getValue());
+    }
     String blockCachedProperty =
         CommonUtils.argsToString(".", workerSource.getName(), WorkerSource.BLOCKS_CACHED);
-    operations.put(blockCachedProperty, mr.getGauges().get(blockCachedProperty));
+    operations.put(removeHostNameFromWorkerMetricsName(blockCachedProperty),
+        mr.getGauges().get(blockCachedProperty));
 
-    populateCounterValues(operations, rpcInvocations, request);
+    Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
+    for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
+      rpcInvocationsUpdated
+          .put(removeHostNameFromWorkerMetricsName(entry.getKey()), entry.getValue());
+    }
+    populateCounterValues(operations, rpcInvocationsUpdated, request);
+  }
+
+  /**
+   * Remove the worker name from worker metrics name to make it easier to retrieve worker metrics
+   * in the worker metrics dashboard.
+   *
+   * @param metricsName the metrics name with hostname builtin
+   * @return the metrics with hostname removed
+   */
+  private String removeHostNameFromWorkerMetricsName(String metricsName) {
+    String[] pieces = metricsName.split("\\.");
+    if (pieces.length < 3) {
+      throw new IllegalArgumentException("Incorrect worker metrics name: " + metricsName);
+    }
+    pieces[1] = null;
+    return Joiner.on(".").skipNulls().join(pieces);
   }
 }

@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileAlreadyExistsException;
@@ -84,8 +85,9 @@ public class FileSystemMasterIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(1000, Constants.GB,
-          Constants.MASTER_TTL_CHECKER_INTERVAL_MS, String.valueOf(TTL_CHECKER_INTERVAL_MS));
+      new LocalAlluxioClusterResource(1000, Constants.GB)
+          .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
+              String.valueOf(TTL_CHECKER_INTERVAL_MS));
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

@@ -29,6 +29,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class MountOptions {
   private boolean mReadOnly;
   private Map<String, String> mProperties;
+  private boolean mShared;
 
   /**
    * @return the default {@link CompleteFileOptions}
@@ -40,6 +41,7 @@ public final class MountOptions {
   private MountOptions() {
     mReadOnly = false;
     mProperties = new HashMap<>();
+    mShared = false;
   }
 
   /**
@@ -55,6 +57,9 @@ public final class MountOptions {
       }
       if (options.isSetProperties()) {
         mProperties.putAll(options.getProperties());
+      }
+      if (options.isShared()) {
+        mShared = options.isShared();
       }
     }
   }
@@ -72,6 +77,9 @@ public final class MountOptions {
       }
       for (File.StringPairEntry entry : options.getPropertiesList()) {
         mProperties.put(entry.getKey(), entry.getValue());
+      }
+      if (options.hasShared()) {
+        mShared = options.getShared();
       }
     }
   }
@@ -112,6 +120,23 @@ public final class MountOptions {
     return this;
   }
 
+  /**
+   * @return the shared flag; if true, the mounted point is shared with all Alluxio users
+   */
+  public boolean isShared() {
+    return mShared;
+  }
+
+  /**
+   * @param shared the shared flag to set; if true, the mounted point is shared with all Alluxio
+   *               users.
+   * @return the updated option object
+   */
+  public MountOptions setShared(boolean shared) {
+    mShared = shared;
+    return this;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -122,12 +147,13 @@ public final class MountOptions {
     }
     MountOptions that = (MountOptions) o;
     return Objects.equal(mReadOnly, that.mReadOnly)
-        && Objects.equal(mProperties, that.mProperties);
+        && Objects.equal(mProperties, that.mProperties)
+        && Objects.equal(mShared, that.mShared);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mReadOnly, mProperties);
+    return Objects.hashCode(mReadOnly, mProperties, mShared);
   }
 
   @Override
@@ -135,6 +161,7 @@ public final class MountOptions {
     return Objects.toStringHelper(this)
         .add("readOnly", mReadOnly)
         .add("properties", mProperties)
+        .add("shared", mShared)
         .toString();
   }
 }

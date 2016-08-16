@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileOutStream;
@@ -230,7 +231,7 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
 
   @Override
   public long getDefaultBlockSize() {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   @Override
@@ -416,9 +417,9 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // modifications to ClientContext are global, affecting all Alluxio clients in this JVM.
       // We assume here that all clients use the same configuration.
       ConfUtils.mergeHadoopConfiguration(conf);
-      Configuration.set(Constants.MASTER_HOSTNAME, uri.getHost());
-      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
-      Configuration.set(Constants.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
+      Configuration.set(PropertyKey.MASTER_HOSTNAME, uri.getHost());
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(uri.getPort()));
+      Configuration.set(PropertyKey.ZOOKEEPER_ENABLED, Boolean.toString(isZookeeperMode()));
 
       // These must be reset to pick up the change to the master address.
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.

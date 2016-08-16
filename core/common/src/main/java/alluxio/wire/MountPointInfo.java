@@ -32,6 +32,7 @@ public class MountPointInfo {
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
   private Map<String, String> mProperties = new HashMap<>();
+  private boolean mShared;
 
   /**
    * Creates a new instance of {@link MountPointInfo}.
@@ -78,6 +79,13 @@ public class MountPointInfo {
    */
   public Map<String, String> getProperties() {
     return mProperties;
+  }
+
+  /**
+   * @return whether the mount point is shared
+   */
+  public boolean getShared() {
+    return mShared;
   }
 
   /**
@@ -135,6 +143,15 @@ public class MountPointInfo {
   }
 
   /**
+   * @param shared the indicator of whether the mount point is shared with all Alluxio users
+   * @return the mount point descriptor
+   */
+  public MountPointInfo setShared(boolean shared) {
+    mShared = shared;
+    return this;
+  }
+
+  /**
    * Sets information related to under filesystem, including its uri, type, storage usage.
    *
    * @param ufsUri the under filesystem uri
@@ -166,19 +183,21 @@ public class MountPointInfo {
     MountPointInfo that = (MountPointInfo) o;
     return mUfsUri.equals(that.mUfsUri) && mUfsType.equals(that.mUfsType)
         && mUfsCapacityBytes == that.mUfsCapacityBytes && mUfsUsedBytes == that.mUfsUsedBytes
-        && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties);
+        && mReadOnly == that.mReadOnly && mProperties.equals(that.mProperties)
+        && mShared == that.mShared;
   }
 
   @Override
   public int hashCode() {
     return Objects.hashCode(mUfsUri, mUfsType, mUfsCapacityBytes, mUfsUsedBytes, mReadOnly,
-        mProperties);
+        mProperties, mShared);
   }
 
   @Override
   public String toString() {
     return Objects.toStringHelper(this).add("ufsUrl", mUfsUri).add("ufsType", mUfsType)
         .add("ufsCapacityBytes", mUfsCapacityBytes).add("ufsUsedBytes", mUfsUsedBytes)
-        .add("readOnly", mReadOnly).add("properties", mProperties).toString();
+        .add("readOnly", mReadOnly).add("properties", mProperties)
+        .add("shared", mShared).toString();
   }
 }

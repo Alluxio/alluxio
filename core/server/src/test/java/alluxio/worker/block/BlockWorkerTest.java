@@ -21,6 +21,7 @@ import static org.mockito.Mockito.when;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
 import alluxio.underfs.UnderFileSystem;
@@ -88,9 +89,9 @@ public class BlockWorkerTest {
     mFileSystemMasterClient = PowerMockito.mock(FileSystemMasterClient.class);
     mSessions = PowerMockito.mock(Sessions.class);
 
-    Configuration.set("alluxio.worker.tieredstore.level0.dirs.path",
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVEL0_DIRS_PATH,
         mFolder.newFolder().getAbsolutePath());
-    Configuration.set(Constants.WORKER_DATA_PORT, Integer.toString(0));
+    Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
 
     mBlockWorker =
         new DefaultBlockWorker(mBlockMasterClient, mFileSystemMasterClient, mSessions, mBlockStore);
