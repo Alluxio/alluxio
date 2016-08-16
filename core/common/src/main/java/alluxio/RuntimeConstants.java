@@ -18,10 +18,10 @@ public final class RuntimeConstants {
   static {
     VERSION = Configuration.get(PropertyKey.VERSION);
     if (Configuration.get(PropertyKey.VERSION).endsWith("SNAPSHOT")) {
-      ALLUXIO_WEB_DOC = "http://www.alluxio.org/docs/master/";
+      ALLUXIO_DOCS_URL = "http://www.alluxio.org/docs/master/";
     } else {
       String[] numbers = Configuration.get(PropertyKey.VERSION).split("\\.");
-      ALLUXIO_WEB_DOC = String.format("http://www.alluxio.org/docs/%s.%s", numbers[0], numbers[1]);
+      ALLUXIO_DOCS_URL = String.format("http://www.alluxio.org/docs/%s.%s", numbers[0], numbers[1]);
     }
   }
 
@@ -33,7 +33,7 @@ public final class RuntimeConstants {
       "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
 
   /** The URL to Alluxio documentation for this version on project web site. */
-  public static final String ALLUXIO_WEB_DOC;
+  public static final String ALLUXIO_DOCS_URL;
 
   private RuntimeConstants() {} // prevent instantiation
 }
