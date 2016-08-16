@@ -37,6 +37,9 @@ alluxio.underfs.hdfs.impl:
 alluxio.underfs.hdfs.prefixes:
   Optionally, specify which prefixes should run through the Apache Hadoop implementation of
   UnderFileSystem. The delimiter is any whitespace and/or ','.
+alluxio.underfs.object.store.mount.shared.publicly:
+  Whether or not to share object storage under storage system mounted point with all Alluxio users.
+  Note that this configuration has no effect on HDFS nor local UFS. The default value is false.
 alluxio.underfs.s3.endpoint:
   Optinally, to reduce data latency or visit resources which are sepreted in defferent AWS regions, specify a regional endpoint to make aws requests.
   An endpoint is a URL that is the entry point for a web service. For example,
