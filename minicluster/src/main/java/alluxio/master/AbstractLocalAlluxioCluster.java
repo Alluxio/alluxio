@@ -239,8 +239,8 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
     Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);

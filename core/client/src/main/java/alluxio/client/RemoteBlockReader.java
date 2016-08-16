@@ -42,7 +42,7 @@ public interface RemoteBlockReader extends Closeable {
     public static RemoteBlockReader create() {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockReader>getClass(PropertyKey.USER_BLOCK_REMOTE_READER), null,
+            Configuration.<RemoteBlockReader>getClass(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS), null,
             null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
