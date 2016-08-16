@@ -90,6 +90,7 @@ import alluxio.thrift.PersistCommandOptions;
 import alluxio.thrift.PersistFile;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.IdUtils;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.util.io.PathUtils;
@@ -382,7 +383,9 @@ public final class FileSystemMaster extends AbstractMaster {
       String defaultUFS = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
-            MountOptions.defaults());
+            MountOptions.defaults().setShared(CommonUtils.isUfsObjectStorage(defaultUFS)
+                && Configuration.getBoolean(
+                    PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
@@ -1889,9 +1892,13 @@ public final class FileSystemMaster extends AbstractMaster {
             .setRecursive(options.isCreateAncestors()).setMetadataLoad(true).setPersisted(true);
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
-    createFileOptions = createFileOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+    short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    if (resolution.getShared()) {
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
+    }
+    createFileOptions = createFileOptions.setPermission(permission);
 
     try {
       long counter = createFileAndJournal(inodePath, createFileOptions);
@@ -1936,9 +1943,13 @@ public final class FileSystemMaster extends AbstractMaster {
     UnderFileSystem ufs = resolution.getUfs();
     String ufsOwner = ufs.getOwner(ufsUri.toString());
     String ufsGroup = ufs.getGroup(ufsUri.toString());
-    short ufsPermission = ufs.getMode(ufsUri.toString());
-    createDirectoryOptions = createDirectoryOptions.setPermission(
-        new Permission(ufsOwner, ufsGroup, ufsPermission));
+    short ufsMode = ufs.getMode(ufsUri.toString());
+    Permission permission = new Permission(ufsOwner, ufsGroup, ufsMode);
+    if (resolution.getShared()) {
+      Mode mode = permission.getMode();
+      mode.setOtherBits(mode.getOtherBits().or(mode.getOwnerBits()));
+    }
+    createDirectoryOptions = createDirectoryOptions.setPermission(permission);
 
     try {
       return createDirectoryAndJournal(inodePath, createDirectoryOptions);
@@ -2062,7 +2073,7 @@ public final class FileSystemMaster extends AbstractMaster {
     AddMountPointEntry addMountPoint =
         AddMountPointEntry.newBuilder().setAlluxioPath(inodePath.getUri().toString())
             .setUfsPath(ufsPath.toString()).setReadOnly(options.isReadOnly())
-            .addAllProperties(protoProperties).build();
+            .addAllProperties(protoProperties).setShared(options.isShared()).build();
     return appendJournalEntry(JournalEntry.newBuilder().setAddMountPoint(addMountPoint).build());
   }
 
@@ -2483,19 +2494,25 @@ public final class FileSystemMaster extends AbstractMaster {
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
       MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
       String ufsUri = resolution.getUri().toString();
+      if (CommonUtils.isUfsObjectStorage(ufsUri)) {
+        throw new UnsupportedOperationException(
+            "setOwner/setMode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
+      }
       UnderFileSystem ufs = resolution.getUfs();
       if (ownerGroupChanged) {
         try {
           ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+          throw new AccessControlException("Could not set owner for UFS file " + ufsUri + ": "
+              + e.getMessage());
         }
       }
       if (permissionChanged) {
         try {
           ufs.setMode(ufsUri, inode.getMode());
         } catch (IOException e) {
-          throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+          throw new AccessControlException("Could not set mode for UFS file " + ufsUri + ": "
+              + e.getMessage());
         }
       }
     }

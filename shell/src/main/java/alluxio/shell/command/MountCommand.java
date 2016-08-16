@@ -53,7 +53,8 @@ public final class MountCommand extends AbstractShellCommand {
 
   @Override
   protected Options getOptions() {
-    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION);
+    return new Options().addOption(PROPERTY_FILE_OPTION).addOption(READONLY_OPTION)
+        .addOption(MOUNT_SHARED_OPTION);
   }
 
   @Override
@@ -87,13 +88,17 @@ public final class MountCommand extends AbstractShellCommand {
       options.setReadOnly(true);
     }
 
+    if (cl.hasOption("shared")) {
+      options.setShared(true);
+    }
+
     mFileSystem.mount(alluxioPath, ufsPath, options);
     System.out.println("Mounted " + ufsPath + " at " + alluxioPath);
   }
 
   @Override
   public String getUsage() {
-    return "mount [-readonly] [-P <properties file name>] <alluxioPath> <ufsURI>";
+    return "mount [-readonly] [-shared] [-P <properties file name>] <alluxioPath> <ufsURI>";
   }
 
   @Override

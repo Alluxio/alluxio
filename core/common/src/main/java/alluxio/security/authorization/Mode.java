@@ -144,6 +144,15 @@ public final class Mode {
   }
 
   /**
+   * Sets owner bits.
+   *
+   * @param bits the owner bits to set
+   */
+  public void setOwnerBits(Bits bits) {
+    mOwnerBits = bits;
+  }
+
+  /**
    * @return the group {@link Bits}
    */
   public Bits getGroupBits() {
@@ -159,6 +168,15 @@ public final class Mode {
   }
 
   /**
+   * Sets group bits.
+   *
+   * @param bits the group bits to set
+   */
+  public void setGroupBits(Bits bits) {
+    mGroupBits = bits;
+  }
+
+  /**
    * @return the other {@link Bits}
    */
   public Bits getOtherBits() {
@@ -171,6 +189,15 @@ public final class Mode {
    */
   public static Bits extractOtherBits(short mode) {
     return Bits.values()[mode & 7];
+  }
+
+  /**
+   * Sets other bits.
+   *
+   * @param bits the other bits to set
+   */
+  public void setOtherBits(Bits bits) {
+    mOtherBits = bits;
   }
 
   private void set(Bits u, Bits g, Bits o) {
