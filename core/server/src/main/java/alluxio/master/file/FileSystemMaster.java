@@ -384,7 +384,8 @@ public final class FileSystemMaster extends AbstractMaster {
       try {
         mMountTable.add(new AlluxioURI(MountTable.ROOT), new AlluxioURI(defaultUFS),
             MountOptions.defaults().setShared(CommonUtils.isUfsObjectStorage(defaultUFS)
-                && Configuration.getBoolean(PropertyKey.UNDERFS_MOUNT_SHARED_PUBLICLY)));
+                && Configuration.getBoolean(
+                    PropertyKey.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY)));
       } catch (FileAlreadyExistsException | InvalidPathException e) {
         throw new IOException("Failed to mount the default UFS " + defaultUFS);
       }
