@@ -70,6 +70,16 @@ This error happens if this property is configured with different values across s
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
 Please read [Configuration-Settings](Configuration-Settings.html) for how to customize Alluxio clusters and applications.
 
+### Q: How do I copy a file larger than worker's memory size from local to Alluxio?
+
+A: When writing files to Alluxio, by default Alluxio is using `LocalFirstPolicy` (see [location policy](File-System-API.html#location-policy))
+to select workers to store the data. One can change this policy to `RoundRobinPolicy` (see below) or `MostAvailableFirstPolicy`
+to distribute the blocks of this file to more worker nodes.
+
+```bash
+$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+```
+
 ## Performance FAQ
 
 #### Q: I tested Alluxio/Spark against HDFS/Spark (running simple word count of GBs of files). There is no discernible performance difference. Why?
