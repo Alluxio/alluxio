@@ -122,8 +122,7 @@ fi
 
 get_env
 check_java_version && check_tfuse_jar
-set_java_opt 
-
+set_java_opt
 if [[ $? -ne 0 ]]; then
   exit 1
 fi
