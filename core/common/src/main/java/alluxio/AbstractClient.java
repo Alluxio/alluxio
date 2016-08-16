@@ -185,7 +185,7 @@ public abstract class AbstractClient implements Client {
           // pointing to the helper page.
           LOG.error("Failed to set up a connection to " + getServiceName() + " "
               + mMode + " @ " + mAddress + " due to the mismatched transport. Please refer to "
-              + RuntimeConstants.ALLUXIO_WEB_DOC + "/en/Debugging-Guide.html "
+              + RuntimeConstants.ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html "
               + "for the possible reasons and suggestions.");
         }
         throw e;
