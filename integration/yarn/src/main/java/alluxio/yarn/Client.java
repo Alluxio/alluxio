@@ -376,15 +376,15 @@ public final class Client {
   }
 
   /**
-   * Monitors the submitted application util app is running, finished, killed or failed.
+   * Monitor the submitted application until app is running, finished, killed or failed.
    *
    * @throws YarnException if errors occur when obtaining application report from ResourceManager
    * @throws IOException if errors occur when obtaining application report from ResourceManager
    */
   private void monitorApplication() throws YarnException, IOException {
     while (true) {
-      // Check app status every 10 second.
-      CommonUtils.sleepMs(10 * Constants.SECOND_MS);
+      // Check app status every 5 seconds
+      CommonUtils.sleepMs(5 * Constants.SECOND_MS);
       // Get application report for the appId we are interested in
       ApplicationReport report = mYarnClient.getApplicationReport(mAppId);
 
@@ -398,7 +398,7 @@ public final class Client {
           if (FinalApplicationStatus.SUCCEEDED == dsStatus) {
             System.out.println("Application has completed successfully");
           } else {
-            System.out.println("Application did finished unsuccessfully. YarnState="
+            System.out.println("Application finished unsuccessfully. YarnState="
                 + state.toString() + ", DSFinalStatus=" + dsStatus.toString());
           }
           return;
@@ -408,7 +408,7 @@ public final class Client {
               + ", DSFinalStatus=" + dsStatus.toString());
           return;
         default:
-          System.out.println("Application is " + state + ". Waiting.");
+          System.out.println("Application is in state " + state +". Waiting.");
       }
     }
   }
