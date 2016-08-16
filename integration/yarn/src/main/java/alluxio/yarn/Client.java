@@ -408,7 +408,7 @@ public final class Client {
               + ", DSFinalStatus=" + dsStatus.toString());
           return;
         default:
-          System.out.println("Application is in state " + state +". Waiting.");
+          System.out.println("Application is in state " + state + ". Waiting.");
       }
     }
   }
