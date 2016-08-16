@@ -29,7 +29,7 @@ of Alluxio source code.
 
 * Modify the `hadoop.version` tag defined in `${ALLUXIO_HOME}/pom.xml`. E.g., to work with Hadoop
 `2.6.0`, modify this pom file to set "`<hadoop.version>2.6.0</hadoop.version>`" instead of
-"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven. 
+"`<hadoop.version>2.2.0</hadoop.version>`". Then recompile the source using maven.
 To make compiling faster, you can add `-DskipTests` option to skip unit tests.
 
 {% include Configuring-Alluxio-with-HDFS/mvn-package.md %}
@@ -65,8 +65,17 @@ Copy secure HDFS conf xml files (`core-site.xml`, `hdfs-site.xml`, `mapred-site.
 Optionally, you can set jvm-level system properties for customized Kerberos configurations:
 `java.security.krb5.realm` and `java.security.krb5.kdc`. Those Kerberos configurations route java libraries to specified Kerberos realm and KDC server address.
 If both are set to empty, Kerberos library will respect
-the default Kerberos configuration on the machine. For example, if you use Hadoop or Spark, you can set those two configurations in `HADOOP_OPTS` or `SPARK_OPTS` with `-D`.
-If you use Alluxio shell, you can add it to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
+the default Kerberos configuration on the machine. For example:
+
+* If you use Hadoop, you can add to `HADOOP_OPTS` in `{HADOOP_CONF_DIR}/hadoop-env.sh`. 
+
+{% include Configuring-Alluxio-with-secure-HDFS/hadoop-opts.md %}
+
+* If you use Spark, you can add to `SPARK_JAVA_OPTS` in `{SPARK_CONF_DIR}/spark-env.sh`.
+
+{% include Configuring-Alluxio-with-secure-HDFS/spark-opts.md %}
+
+* If you use Alluxio shell, you can add to `ALLUXIO_JAVA_OPTS` in `conf/alluxio-env.sh`.
 
 {% include Configuring-Alluxio-with-secure-HDFS/alluxio-opts.md %}
 
