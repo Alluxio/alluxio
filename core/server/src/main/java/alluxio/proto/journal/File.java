@@ -715,12 +715,21 @@ public final class File {
      */
     alluxio.proto.journal.File.StringPairEntryOrBuilder getPropertiesOrBuilder(
         int index);
+
+    /**
+     * <code>optional bool shared = 5;</code>
+     */
+    boolean hasShared();
+    /**
+     * <code>optional bool shared = 5;</code>
+     */
+    boolean getShared();
   }
   /**
    * Protobuf type {@code alluxio.proto.journal.AddMountPointEntry}
    *
    * <pre>
-   * next available id: 5
+   * next available id: 6
    * </pre>
    */
   public static final class AddMountPointEntry extends
@@ -795,6 +804,11 @@ public final class File {
                 mutable_bitField0_ |= 0x00000008;
               }
               properties_.add(input.readMessage(alluxio.proto.journal.File.StringPairEntry.PARSER, extensionRegistry));
+              break;
+            }
+            case 40: {
+              bitField0_ |= 0x00000008;
+              shared_ = input.readBool();
               break;
             }
           }
@@ -974,11 +988,27 @@ public final class File {
       return properties_.get(index);
     }
 
+    public static final int SHARED_FIELD_NUMBER = 5;
+    private boolean shared_;
+    /**
+     * <code>optional bool shared = 5;</code>
+     */
+    public boolean hasShared() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    /**
+     * <code>optional bool shared = 5;</code>
+     */
+    public boolean getShared() {
+      return shared_;
+    }
+
     private void initFields() {
       alluxioPath_ = "";
       ufsPath_ = "";
       readOnly_ = false;
       properties_ = java.util.Collections.emptyList();
+      shared_ = false;
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -1005,6 +1035,9 @@ public final class File {
       for (int i = 0; i < properties_.size(); i++) {
         output.writeMessage(4, properties_.get(i));
       }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        output.writeBool(5, shared_);
+      }
       getUnknownFields().writeTo(output);
     }
 
@@ -1029,6 +1062,10 @@ public final class File {
       for (int i = 0; i < properties_.size(); i++) {
         size += com.google.protobuf.CodedOutputStream
           .computeMessageSize(4, properties_.get(i));
+      }
+      if (((bitField0_ & 0x00000008) == 0x00000008)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBoolSize(5, shared_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -1112,7 +1149,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.AddMountPointEntry}
      *
      * <pre>
-     * next available id: 5
+     * next available id: 6
      * </pre>
      */
     public static final class Builder extends
@@ -1164,6 +1201,8 @@ public final class File {
         } else {
           propertiesBuilder_.clear();
         }
+        shared_ = false;
+        bitField0_ = (bitField0_ & ~0x00000010);
         return this;
       }
 
@@ -1213,6 +1252,10 @@ public final class File {
         } else {
           result.properties_ = propertiesBuilder_.build();
         }
+        if (((from_bitField0_ & 0x00000010) == 0x00000010)) {
+          to_bitField0_ |= 0x00000008;
+        }
+        result.shared_ = shared_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1267,6 +1310,9 @@ public final class File {
               propertiesBuilder_.addAllMessages(other.properties_);
             }
           }
+        }
+        if (other.hasShared()) {
+          setShared(other.getShared());
         }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
@@ -1717,6 +1763,38 @@ public final class File {
           properties_ = null;
         }
         return propertiesBuilder_;
+      }
+
+      private boolean shared_ ;
+      /**
+       * <code>optional bool shared = 5;</code>
+       */
+      public boolean hasShared() {
+        return ((bitField0_ & 0x00000010) == 0x00000010);
+      }
+      /**
+       * <code>optional bool shared = 5;</code>
+       */
+      public boolean getShared() {
+        return shared_;
+      }
+      /**
+       * <code>optional bool shared = 5;</code>
+       */
+      public Builder setShared(boolean value) {
+        bitField0_ |= 0x00000010;
+        shared_ = value;
+        onChanged();
+        return this;
+      }
+      /**
+       * <code>optional bool shared = 5;</code>
+       */
+      public Builder clearShared() {
+        bitField0_ = (bitField0_ & ~0x00000010);
+        shared_ = false;
+        onChanged();
+        return this;
       }
 
       // @@protoc_insertion_point(builder_scope:alluxio.proto.journal.AddMountPointEntry)
@@ -4032,7 +4110,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
    *
    * <pre>
-   * next available id: 16
+   * next available id: 13
    * </pre>
    */
   public static final class InodeDirectoryEntry extends
@@ -4678,7 +4756,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeDirectoryEntry}
      *
      * <pre>
-     * next available id: 16
+     * next available id: 13
      * </pre>
      */
     public static final class Builder extends
@@ -6134,7 +6212,7 @@ public final class File {
    * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
    *
    * <pre>
-   * next available id: 20
+   * next available id: 17
    * </pre>
    */
   public static final class InodeFileEntry extends
@@ -6923,7 +7001,7 @@ public final class File {
      * Protobuf type {@code alluxio.proto.journal.InodeFileEntry}
      *
      * <pre>
-     * next available id: 20
+     * next available id: 17
      * </pre>
      */
     public static final class Builder extends
@@ -11850,45 +11928,46 @@ public final class File {
     java.lang.String[] descriptorData = {
       "\n\nfile.proto\022\025alluxio.proto.journal\"-\n\017S" +
       "tringPairEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001" +
-      "(\t\"\212\001\n\022AddMountPointEntry\022\024\n\014alluxio_pat" +
+      "(\t\"\232\001\n\022AddMountPointEntry\022\024\n\014alluxio_pat" +
       "h\030\001 \001(\t\022\020\n\010ufs_path\030\002 \001(\t\022\020\n\010readOnly\030\003 " +
       "\001(\010\022:\n\nproperties\030\004 \003(\0132&.alluxio.proto." +
-      "journal.StringPairEntry\"+\n\030AsyncPersistR" +
-      "equestEntry\022\017\n\007file_id\030\001 \001(\003\"V\n\021Complete" +
-      "FileEntry\022\021\n\tblock_ids\030\001 \003(\003\022\n\n\002id\030\002 \001(\003" +
-      "\022\016\n\006length\030\003 \001(\003\022\022\n\nop_time_ms\030\004 \001(\003\"D\n\017" +
-      "DeleteFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\trecursive",
-      "\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001(\003\"-\n\025DeleteMoun" +
-      "tPointEntry\022\024\n\014alluxio_path\030\001 \001(\t\"\213\002\n\023In" +
-      "odeDirectoryEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_" +
-      "id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_st" +
-      "ate\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_ti" +
-      "me_ms\030\006 \001(\003\022!\n\031last_modification_time_ms" +
-      "\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n\005group\030\t \001(\t\022\014\n\004" +
-      "mode\030\n \001(\005\022\023\n\013mount_point\030\013 \001(\010\022\036\n\026direc" +
-      "t_children_loaded\030\014 \001(\010\"O\n\036InodeDirector" +
-      "yIdGeneratorEntry\022\024\n\014container_id\030\001 \001(\003\022",
-      "\027\n\017sequence_number\030\002 \001(\003\"\276\002\n\016InodeFileEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004na" +
-      "me\030\003 \001(\t\022\031\n\021persistence_state\030\004 \001(\t\022\016\n\006p" +
-      "inned\030\005 \001(\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n" +
-      "\031last_modification_time_ms\030\007 \001(\003\022\030\n\020bloc" +
-      "k_size_bytes\030\010 \001(\003\022\016\n\006length\030\t \001(\003\022\021\n\tco" +
-      "mpleted\030\n \001(\010\022\021\n\tcacheable\030\013 \001(\010\022\016\n\006bloc" +
-      "ks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n\005owner\030\016 \001(\t\022\r\n\005" +
-      "group\030\017 \001(\t\022\014\n\004mode\030\020 \001(\005\"O\n\036InodeLastMo" +
-      "dificationTimeEntry\022\n\n\002id\030\001 \001(\003\022!\n\031last_",
-      "modification_time_ms\030\002 \001(\003\"#\n\025PersistDir" +
-      "ectoryEntry\022\n\n\002id\030\001 \001(\003\"B\n\020PersistFileEn" +
-      "try\022\n\n\002id\030\001 \001(\003\022\016\n\006length\030\002 \001(\003\022\022\n\nop_ti" +
-      "me_ms\030\003 \001(\003\"L\n\025ReinitializeFileEntry\022\014\n\004" +
-      "path\030\001 \001(\t\022\030\n\020block_size_bytes\030\002 \001(\003\022\013\n\003" +
-      "ttl\030\003 \001(\003\"?\n\013RenameEntry\022\n\n\002id\030\001 \001(\003\022\020\n\010" +
-      "dst_path\030\002 \001(\t\022\022\n\nop_time_ms\030\003 \001(\003\"\225\001\n\021S" +
-      "etAttributeEntry\022\n\n\002id\030\001 \001(\003\022\022\n\nop_time_" +
-      "ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010\022\013\n\003ttl\030\004 \001(\003\022\021\n" +
-      "\tpersisted\030\005 \001(\010\022\r\n\005owner\030\006 \001(\t\022\r\n\005group",
-      "\030\007 \001(\t\022\022\n\npermission\030\010 \001(\005"
+      "journal.StringPairEntry\022\016\n\006shared\030\005 \001(\010\"" +
+      "+\n\030AsyncPersistRequestEntry\022\017\n\007file_id\030\001" +
+      " \001(\003\"V\n\021CompleteFileEntry\022\021\n\tblock_ids\030\001" +
+      " \003(\003\022\n\n\002id\030\002 \001(\003\022\016\n\006length\030\003 \001(\003\022\022\n\nop_t" +
+      "ime_ms\030\004 \001(\003\"D\n\017DeleteFileEntry\022\n\n\002id\030\001 ",
+      "\001(\003\022\021\n\trecursive\030\002 \001(\010\022\022\n\nop_time_ms\030\003 \001" +
+      "(\003\"-\n\025DeleteMountPointEntry\022\024\n\014alluxio_p" +
+      "ath\030\001 \001(\t\"\213\002\n\023InodeDirectoryEntry\022\n\n\002id\030" +
+      "\001 \001(\003\022\021\n\tparent_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031" +
+      "\n\021persistence_state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(" +
+      "\010\022\030\n\020creation_time_ms\030\006 \001(\003\022!\n\031last_modi" +
+      "fication_time_ms\030\007 \001(\003\022\r\n\005owner\030\010 \001(\t\022\r\n" +
+      "\005group\030\t \001(\t\022\014\n\004mode\030\n \001(\005\022\023\n\013mount_poin" +
+      "t\030\013 \001(\010\022\036\n\026direct_children_loaded\030\014 \001(\010\"" +
+      "O\n\036InodeDirectoryIdGeneratorEntry\022\024\n\014con",
+      "tainer_id\030\001 \001(\003\022\027\n\017sequence_number\030\002 \001(\003" +
+      "\"\276\002\n\016InodeFileEntry\022\n\n\002id\030\001 \001(\003\022\021\n\tparen" +
+      "t_id\030\002 \001(\003\022\014\n\004name\030\003 \001(\t\022\031\n\021persistence_" +
+      "state\030\004 \001(\t\022\016\n\006pinned\030\005 \001(\010\022\030\n\020creation_" +
+      "time_ms\030\006 \001(\003\022!\n\031last_modification_time_" +
+      "ms\030\007 \001(\003\022\030\n\020block_size_bytes\030\010 \001(\003\022\016\n\006le" +
+      "ngth\030\t \001(\003\022\021\n\tcompleted\030\n \001(\010\022\021\n\tcacheab" +
+      "le\030\013 \001(\010\022\016\n\006blocks\030\014 \003(\003\022\013\n\003ttl\030\r \001(\003\022\r\n" +
+      "\005owner\030\016 \001(\t\022\r\n\005group\030\017 \001(\t\022\014\n\004mode\030\020 \001(" +
+      "\005\"O\n\036InodeLastModificationTimeEntry\022\n\n\002i",
+      "d\030\001 \001(\003\022!\n\031last_modification_time_ms\030\002 \001" +
+      "(\003\"#\n\025PersistDirectoryEntry\022\n\n\002id\030\001 \001(\003\"" +
+      "B\n\020PersistFileEntry\022\n\n\002id\030\001 \001(\003\022\016\n\006lengt" +
+      "h\030\002 \001(\003\022\022\n\nop_time_ms\030\003 \001(\003\"L\n\025Reinitial" +
+      "izeFileEntry\022\014\n\004path\030\001 \001(\t\022\030\n\020block_size" +
+      "_bytes\030\002 \001(\003\022\013\n\003ttl\030\003 \001(\003\"?\n\013RenameEntry" +
+      "\022\n\n\002id\030\001 \001(\003\022\020\n\010dst_path\030\002 \001(\t\022\022\n\nop_tim" +
+      "e_ms\030\003 \001(\003\"\225\001\n\021SetAttributeEntry\022\n\n\002id\030\001" +
+      " \001(\003\022\022\n\nop_time_ms\030\002 \001(\003\022\016\n\006pinned\030\003 \001(\010" +
+      "\022\013\n\003ttl\030\004 \001(\003\022\021\n\tpersisted\030\005 \001(\010\022\r\n\005owne",
+      "r\030\006 \001(\t\022\r\n\005group\030\007 \001(\t\022\022\n\npermission\030\010 \001" +
+      "(\005"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -11913,7 +11992,7 @@ public final class File {
     internal_static_alluxio_proto_journal_AddMountPointEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_alluxio_proto_journal_AddMountPointEntry_descriptor,
-        new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", "Properties", });
+        new java.lang.String[] { "AlluxioPath", "UfsPath", "ReadOnly", "Properties", "Shared", });
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_descriptor =
       getDescriptor().getMessageTypes().get(2);
     internal_static_alluxio_proto_journal_AsyncPersistRequestEntry_fieldAccessorTable = new
