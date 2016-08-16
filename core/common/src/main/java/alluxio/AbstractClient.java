@@ -180,7 +180,7 @@ public abstract class AbstractClient implements Client {
         checkVersion(getClient(), getServiceVersion());
         return;
       } catch (IOException e) {
-        if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.toString()).find()) {
+        if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
           // See an error like "Frame size (67108864) larger than max length (16777216)!",
           // pointing to the helper page.
           LOG.error("Failed to set up a connection to " + getServiceName() + " "
