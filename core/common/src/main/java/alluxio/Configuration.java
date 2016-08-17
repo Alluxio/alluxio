@@ -96,6 +96,13 @@ public final class Configuration {
         defaultProps.setProperty(key.toString(), value);
       }
     }
+    // Override runtime default
+    defaultProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(),
+        NetworkAddressUtils.getLocalHostName(250));
+    defaultProps.setProperty(PropertyKey.WORKER_NETWORK_NETTY_CHANNEL.toString(),
+        String.valueOf(ChannelType.defaultType()));
+    defaultProps.setProperty(PropertyKey.USER_NETWORK_NETTY_CHANNEL.toString(),
+        String.valueOf(ChannelType.defaultType()));
 
     String confPaths;
     // If site conf is overwritten in system properties, overwrite the default setting
