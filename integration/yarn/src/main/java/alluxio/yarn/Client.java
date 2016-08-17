@@ -13,6 +13,7 @@ package alluxio.yarn;
 
 import alluxio.Configuration;
 import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
 import alluxio.Constants;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
@@ -257,17 +258,50 @@ public final class Client {
     monitorApplication();
   }
 
-  // Checks if the cluster has enough resource to launch application master
+  // Checks if the cluster has enough resource to launch application master,
+  // alluxio master and alluxio workers
   private void checkClusterResource(GetNewApplicationResponse appResponse) {
     int maxMem = appResponse.getMaximumResourceCapability().getMemory();
     int maxVCores = appResponse.getMaximumResourceCapability().getVirtualCores();
 
-    Preconditions.checkArgument(mAmMemoryInMB <= maxMem,
-        "ApplicationMaster memory specified above max threshold of cluster, specified="
-            + mAmMemoryInMB + ", max=" + maxMem);
-    Preconditions.checkArgument(mAmVCores <= maxVCores,
-        "ApplicationMaster virtual cores specified above max threshold of cluster, specified="
-            + mAmVCores + ", max=" + maxVCores);
+    if (mAmMemoryInMB <= maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("ApplicationMaster", "memory", mAmMemoryInMB, maxMem));
+    }
+
+    if (mAmVCores <= maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("ApplicationMaster", "virtual cores", mAmVCores, maxVCores));
+    }
+
+    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    int masterMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    if (masterMemInMB <= maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Master", "memory", masterMemInMB, maxMem));
+    }
+
+    if (masterVCores <= maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio Master", "virtual cores", masterVCores, maxVCores));
+    }
+
+    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    int workerMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+    int ramdiskMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+
+    if ((workerMemInMB + ramdiskMemInMB) <= maxMem) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio worker", "memory", (workerMemInMB + ramdiskMemInMB), maxMem));
+    }
+
+    if (workerVCore <= maxVCores) {
+      throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
+          .getMessage("Alluxio worker", "virtual cores", masterVCores, maxVCores));
+    }
   }
 
   // Checks that there are enough nodes in the cluster to run the desired number of workers
