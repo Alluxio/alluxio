@@ -203,6 +203,7 @@ public abstract class AbstractLocalAlluxioCluster {
     setHostname();
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
+    Configuration.set(PropertyKey.VERSION, "test-version");
     Configuration.set(PropertyKey.HOME, mHome);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
@@ -301,6 +302,8 @@ public abstract class AbstractLocalAlluxioCluster {
           mWorker.start();
 
         } catch (Exception e) {
+          // LOG the exception as the RuntimeException will be handled silently by JUNIT
+          LOG.error("Start worker error", e);
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }
       }
