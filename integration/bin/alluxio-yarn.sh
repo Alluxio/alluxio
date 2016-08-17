@@ -42,7 +42,7 @@ source "${SCRIPT_DIR}/common.sh"
 
 NUM_WORKERS=$1
 HDFS_PATH=$2
-MASTER_ADDRESS=${3:-${ALLUXIO_MASTER_HOSTNAME}}
+MASTER_ADDRESS="${3:-${ALLUXIO_MASTER_HOSTNAME}}"
 
 ALLUXIO_TARFILE="alluxio.tar.gz"
 rm -rf $ALLUXIO_TARFILE
@@ -72,5 +72,5 @@ export YARN_OPTS="${YARN_OPTS:-${ALLUXIO_JAVA_OPTS}}"
 
 ${HADOOP_HOME}/bin/yarn jar ${JAR_LOCAL} alluxio.yarn.Client \
     -num_workers $NUM_WORKERS \
-    -master_address ${MASTER_ADDRESS} \
+    -master_address "${MASTER_ADDRESS}"\
     -resource_path ${HDFS_PATH}
