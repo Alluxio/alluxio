@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportFactory;
@@ -45,7 +45,7 @@ public interface TransportProvider {
      */
     public static TransportProvider create() {
       AuthType authType =
-          Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+          Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
       switch (authType) {
         case NOSASL:
           return new NoSaslTransportProvider();

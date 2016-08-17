@@ -13,6 +13,7 @@ package alluxio.master;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.metrics.source.Source;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.wire.FileBlockInfo;
@@ -167,7 +168,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_TOTAL);
         } catch (IOException e) {
@@ -182,7 +183,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_USED);
         } catch (IOException e) {
@@ -197,7 +198,7 @@ public class MasterSource implements Source {
       public Long getValue() {
         long ret = 0L;
         try {
-          String ufsDataFolder = Configuration.get(Constants.UNDERFS_ADDRESS);
+          String ufsDataFolder = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
           UnderFileSystem ufs = UnderFileSystem.get(ufsDataFolder);
           ret = ufs.getSpace(ufsDataFolder, UnderFileSystem.SpaceType.SPACE_FREE);
         } catch (IOException e) {

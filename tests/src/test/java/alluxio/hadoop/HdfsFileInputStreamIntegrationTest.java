@@ -12,8 +12,8 @@
 package alluxio.hadoop;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.ReadType;
 import alluxio.client.WriteType;
@@ -78,12 +78,12 @@ public final class HdfsFileInputStreamIntegrationTest {
   }
 
   private void createUfsInStream(ReadType readType) throws IOException {
-    String defaultReadType = alluxio.Configuration.get(Constants.USER_FILE_READ_TYPE_DEFAULT);
-    alluxio.Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, readType.name());
+    String defaultReadType = alluxio.Configuration.get(PropertyKey.USER_FILE_READ_TYPE_DEFAULT);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, readType.name());
     FileSystemTestUtils.createByteFile(mFileSystem, UFS_ONLY_FILE, WriteType.THROUGH, FILE_LEN);
     mUfsInputStream = new HdfsFileInputStream(
         new AlluxioURI(UFS_ONLY_FILE), new Configuration(), BUFFER_SIZE, null);
-    alluxio.Configuration.set(Constants.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
+    alluxio.Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, defaultReadType);
   }
 
   /**

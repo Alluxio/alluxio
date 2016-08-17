@@ -311,4 +311,20 @@ public class CommonUtilsTest {
     }
   }
 
+  /**
+   * Tests the {@link CommonUtils#isUfsObjectStorage(String)} method.
+   */
+  @Test
+  public void isUfsObjectStorageTest() throws Exception {
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3://bucket/"));
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3n://bucket"));
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3a://bucket/"));
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("gs://bucket/"));
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("swift://bucket/"));
+    Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("oss://bucket/"));
+    Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("hdfs://dir/"));
+    Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("/dir/"));
+    Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("/"));
+    Assert.assertEquals(false, CommonUtils.isUfsObjectStorage(""));
+  }
 }

@@ -14,6 +14,7 @@ package alluxio.shell.command;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.file.URIStatus;
@@ -102,11 +103,12 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
-  public void lsTest() throws IOException, AlluxioException {
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
+  public void lsTest() throws Exception {
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
     URIStatus[] files = createFiles();
@@ -158,11 +160,13 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsWildcard"})
-  public void lsWildcardTest() throws IOException, AlluxioException {
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
+          "test_user_lsWildcard"})
+  public void lsWildcardTest() throws Exception {
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
@@ -208,11 +212,13 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    */
   @Test
   @LocalAlluxioClusterResource.Config(
-      confParams = {Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
-          Constants.SECURITY_AUTHENTICATION_TYPE, "SIMPLE", Constants.SECURITY_GROUP_MAPPING_CLASS,
+      confParams = {PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true",
+          PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE",
+          PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_lsr"})
-  public void lsrTest() throws IOException, AlluxioException {
+          PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
+          "test_user_lsr"})
+  public void lsrTest() throws Exception {
     String testUser = "test_user_lsr";
     clearAndLogin(testUser);
 

@@ -12,7 +12,7 @@
 package alluxio.security;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.login.AppLoginModule;
 import alluxio.security.login.LoginModuleConfiguration;
@@ -69,7 +69,7 @@ public final class LoginUser {
    */
   private static User login() throws IOException {
     AuthType authType =
-        Configuration.getEnum(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
+        Configuration.getEnum(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.class);
     checkSecurityEnabled(authType);
 
     try {

@@ -12,7 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.Cancelable;
 import alluxio.exception.PreconditionMessage;
 import alluxio.util.io.BufferUtils;
@@ -141,6 +141,6 @@ public abstract class BufferedBlockOutStream extends OutputStream implements Can
    * @return a newly allocated byte buffer of the user defined default size
    */
   private ByteBuffer allocateBuffer() {
-    return ByteBuffer.allocate((int) Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES));
+    return ByteBuffer.allocate((int) Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES));
   }
 }

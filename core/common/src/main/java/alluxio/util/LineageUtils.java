@@ -12,7 +12,7 @@
 package alluxio.util;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -29,6 +29,6 @@ public final class LineageUtils {
    * @return true if lineage is enabled, false otherwise
    */
   public static boolean isLineageEnabled() {
-    return Configuration.getBoolean(Constants.USER_LINEAGE_ENABLED);
+    return Configuration.getBoolean(PropertyKey.USER_LINEAGE_ENABLED);
   }
 }

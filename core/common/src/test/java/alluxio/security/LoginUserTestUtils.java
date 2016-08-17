@@ -12,7 +12,7 @@
 package alluxio.security;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.powermock.reflect.Whitebox;
 
@@ -41,7 +41,7 @@ public final class LoginUserTestUtils {
   public static void resetLoginUser(String user) throws IOException {
     synchronized (LoginUser.class) {
       resetLoginUser();
-      Configuration.set(Constants.SECURITY_LOGIN_USERNAME, user);
+      Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, user);
       LoginUser.get();
     }
   }

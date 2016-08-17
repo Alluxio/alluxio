@@ -13,6 +13,7 @@ package alluxio.yarn;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -150,17 +151,17 @@ public final class ApplicationMaster implements AMRMClientAsync.CallbackHandler 
    */
   public ApplicationMaster(int numWorkers, String masterAddress, String resourcePath,
       YarnClient yarnClient, NMClient nMClient, AMRMClientAsyncFactory amrmFactory) {
-    mMasterCpu = Configuration.getInt(Constants.INTEGRATION_MASTER_RESOURCE_CPU);
+    mMasterCpu = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
     mMasterMemInMB =
-        (int) (Configuration.getBytes(Constants.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
-    mWorkerCpu = Configuration.getInt(Constants.INTEGRATION_WORKER_RESOURCE_CPU);
+        (int) (Configuration.getBytes(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    mWorkerCpu = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     // TODO(binfan): request worker container and ramdisk container separately
     // memory for running worker
     mWorkerMemInMB =
-        (int) (Configuration.getBytes(Constants.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+        (int) (Configuration.getBytes(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     // memory for running ramdisk
-    mRamdiskMemInMB = (int) (Configuration.getBytes(Constants.WORKER_MEMORY_SIZE) / Constants.MB);
-    mMaxWorkersPerHost = Configuration.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+    mRamdiskMemInMB = (int) (Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    mMaxWorkersPerHost = Configuration.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
     mNumWorkers = numWorkers;
     mMasterAddress = masterAddress;
     mResourcePath = resourcePath;

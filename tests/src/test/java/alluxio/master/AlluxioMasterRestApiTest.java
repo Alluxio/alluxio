@@ -12,7 +12,7 @@
 package alluxio.master;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
@@ -45,7 +45,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacityBytesTest() throws Exception {
-    long memorySize = Configuration.getBytes(Constants.WORKER_MEMORY_SIZE);
+    long memorySize = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_CAPACITY_BYTES),
         NO_PARAMS, HttpMethod.GET, memorySize).run();
   }
@@ -58,7 +58,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getFreeBytesTest() throws Exception {
-    long freeBytes = Configuration.getBytes(Constants.WORKER_MEMORY_SIZE);
+    long freeBytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_FREE_BYTES),
         NO_PARAMS, HttpMethod.GET, freeBytes).run();
   }
@@ -78,20 +78,20 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Assert.assertEquals(1, workerInfos.length);
     WorkerInfo workerInfo = workerInfos[0];
     Assert.assertEquals(0, workerInfo.getUsedBytes());
-    long bytes = Configuration.getBytes(Constants.WORKER_MEMORY_SIZE);
+    long bytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     Assert.assertEquals(bytes, workerInfo.getCapacityBytes());
   }
 
   @Test
   public void getConfigurationTest() throws Exception {
-    Configuration.set("alluxio.testkey", "abc");
+    Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
         null).call();
     @SuppressWarnings("unchecked")
     Map<String, String> config =
         (Map<String, String>) new ObjectMapper().readValue(result, Map.class);
-    Assert.assertEquals("abc", config.get("alluxio.testkey"));
+    Assert.assertEquals("abc", config.get(PropertyKey.METRICS_CONF_FILE.toString()));
   }
 
   @Test
@@ -166,7 +166,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
 
   @Test
   public void getCapacityBytesOnTiersTest() throws Exception {
-    Long memorySize = Configuration.getLong(Constants.WORKER_MEMORY_SIZE);
+    Long memorySize = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, ImmutableMap.of("MEM", memorySize)).run();

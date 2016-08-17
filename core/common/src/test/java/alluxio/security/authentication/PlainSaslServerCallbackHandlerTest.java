@@ -13,7 +13,7 @@ package alluxio.security.authentication;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import org.junit.After;
 import org.junit.Before;
@@ -47,7 +47,7 @@ public class PlainSaslServerCallbackHandlerTest {
    */
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER,
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
         NameMatchAuthenticationProvider.class.getName());
     mPlainServerCBHandler = new PlainSaslServerCallbackHandler(
         AuthenticationProvider.Factory.create(AuthType.CUSTOM));

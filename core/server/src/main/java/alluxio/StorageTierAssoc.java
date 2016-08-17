@@ -39,11 +39,11 @@ public abstract class StorageTierAssoc {
    * @param levelsProperty the property in the conf that specifies how many levels there are
    * @param aliasFormat the format for the conf that identifies the alias for each level
    */
-  protected StorageTierAssoc(String levelsProperty, String aliasFormat) {
+  protected StorageTierAssoc(PropertyKey levelsProperty, PropertyKeyFormat aliasFormat) {
     int levels = Configuration.getInt(levelsProperty);
     ImmutableBiMap.Builder<String, Integer> builder = new ImmutableBiMap.Builder<>();
     for (int i = 0; i < levels; i++) {
-      String alias = Configuration.get(String.format(aliasFormat, i));
+      String alias = Configuration.get(aliasFormat.format(i));
       builder.put(alias, i);
     }
     mAliasToOrdinal = builder.build();
