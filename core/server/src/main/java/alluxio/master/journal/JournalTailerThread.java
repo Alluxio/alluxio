@@ -13,6 +13,7 @@ package alluxio.master.journal;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.Master;
 import alluxio.util.CommonUtils;
 
@@ -56,8 +57,9 @@ public final class JournalTailerThread extends Thread {
     mMaster = Preconditions.checkNotNull(master);
     mJournal = Preconditions.checkNotNull(journal);
     mShutdownQuietWaitTimeMs =
-        Configuration.getInt(Constants.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
-    mJournalTailerSleepTimeMs = Configuration.getInt(Constants.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SHUTDOWN_QUIET_WAIT_TIME_MS);
+    mJournalTailerSleepTimeMs =
+        Configuration.getInt(PropertyKey.MASTER_JOURNAL_TAILER_SLEEP_TIME_MS);
   }
 
   /**

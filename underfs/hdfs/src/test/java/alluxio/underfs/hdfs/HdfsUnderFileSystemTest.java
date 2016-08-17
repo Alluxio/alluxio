@@ -12,7 +12,7 @@
 package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem.UnderFSType;
 
 import org.junit.Assert;
@@ -51,6 +51,6 @@ public final class HdfsUnderFileSystemTest {
     mMockHdfsUnderFileSystem.prepareConfiguration("", conf);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertFalse(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
-    Assert.assertNotNull(conf.get(Constants.UNDERFS_HDFS_CONFIGURATION));
+    Assert.assertNotNull(conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString()));
   }
 }

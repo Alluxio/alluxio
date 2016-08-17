@@ -13,6 +13,7 @@ package alluxio.metrics;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
@@ -95,7 +96,7 @@ public class MetricsSystem {
    */
   public MetricsSystem(String instance) {
     mInstance = instance;
-    String metricsConfFile = Configuration.get(Constants.METRICS_CONF_FILE);
+    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
     mMetricsConfig = new MetricsConfig(metricsConfFile);
   }
 

@@ -23,12 +23,12 @@ import java.util.Map.Entry;
  * A rule for modifying Alluxio configuration during a test suite.
  */
 public class ConfigurationRule implements TestRule {
-  private final Map<String, String> mKeyValuePairs;
+  private final Map<PropertyKey, String> mKeyValuePairs;
 
   /**
    * @param keyValuePairs map from configuration keys to the values to set them to
    */
-  public ConfigurationRule(Map<String, String> keyValuePairs) {
+  public ConfigurationRule(Map<PropertyKey, String> keyValuePairs) {
     mKeyValuePairs = keyValuePairs;
   }
 
@@ -37,9 +37,9 @@ public class ConfigurationRule implements TestRule {
     return new Statement() {
       @Override
       public void evaluate() throws Throwable {
-        Map<String, String> originalValues = new HashMap<>();
-        for (Entry<String, String> entry : mKeyValuePairs.entrySet()) {
-          String key = entry.getKey();
+        Map<PropertyKey, String> originalValues = new HashMap<>();
+        for (Entry<PropertyKey, String> entry : mKeyValuePairs.entrySet()) {
+          PropertyKey key = entry.getKey();
           String value = entry.getValue();
           originalValues.put(key, Configuration.get(key));
           Configuration.set(key, value);
@@ -47,7 +47,7 @@ public class ConfigurationRule implements TestRule {
         try {
           statement.evaluate();
         } finally {
-          for (Entry<String, String> entry : originalValues.entrySet()) {
+          for (Entry<PropertyKey, String> entry : originalValues.entrySet()) {
             Configuration.set(entry.getKey(), entry.getValue());
           }
         }

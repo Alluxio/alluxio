@@ -13,6 +13,7 @@ package alluxio.worker.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.worker.Worker;
 import alluxio.worker.WorkerFactory;
 import alluxio.worker.block.BlockWorker;
@@ -38,7 +39,7 @@ public final class KeyValueWorkerFactory implements WorkerFactory {
 
   @Override
   public KeyValueWorker create(List<? extends Worker> workers) {
-    if (!Configuration.getBoolean(Constants.KEY_VALUE_ENABLED)) {
+    if (!Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED)) {
       return null;
     }
     LOG.info("Creating {} ", KeyValueWorker.class.getName());

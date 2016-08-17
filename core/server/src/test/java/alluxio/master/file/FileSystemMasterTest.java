@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -129,7 +130,7 @@ public final class FileSystemMasterTest {
     // This makes sure that the mount point of the UFS corresponding to the Alluxio root ("/")
     // doesn't exist by default (helps loadRootTest).
     mUnderFS = PathUtils.concatPath(mTestFolder.newFolder().getAbsolutePath(), "underFs");
-    Configuration.set(Constants.UNDERFS_ADDRESS, mUnderFS);
+    Configuration.set(PropertyKey.UNDERFS_ADDRESS, mUnderFS);
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
 

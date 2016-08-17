@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.ReadType;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
@@ -136,9 +137,9 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
     if (SecurityUtils.isSecurityEnabled() && AuthenticatedClientUser.get() == null) {
       AuthenticatedClientUser.set(LoginUser.get().getName());
     }
-    request.setAttribute("debug", Configuration.getBoolean(Constants.DEBUG));
+    request.setAttribute("debug", Configuration.getBoolean(PropertyKey.DEBUG));
     request.setAttribute("showPermissions",
-        Configuration.getBoolean(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
+        Configuration.getBoolean(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED));
 
     request.setAttribute("masterNodeAddress", mMaster.getMasterAddress().toString());
     request.setAttribute("invalidPathError", "");
@@ -160,7 +161,7 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
       }
       request.setAttribute("currentDirectory", currentFileInfo);
       request.setAttribute("blockSizeBytes", currentFileInfo.getBlockSizeBytes());
-      request.setAttribute("workerWebPort", Configuration.getInt(Constants.WORKER_WEB_PORT));
+      request.setAttribute("workerWebPort", Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
       if (!currentFileInfo.getIsDirectory()) {
         String offsetParam = request.getParameter("offset");
         long relativeOffset = 0;

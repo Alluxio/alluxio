@@ -14,6 +14,7 @@ package alluxio.underfs.oss;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -79,17 +80,17 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
     super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ACCESS_KEY),
-        "Property " + Constants.OSS_ACCESS_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_SECRET_KEY),
-        "Property " + Constants.OSS_SECRET_KEY + " is required to connect to OSS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.OSS_ENDPOINT_KEY),
-        "Property " + Constants.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = Configuration.get(Constants.OSS_ACCESS_KEY);
-    mAccessKey = Configuration.get(Constants.OSS_SECRET_KEY);
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
+        "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_SECRET_KEY),
+        "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
+        "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
+    mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
+    mAccessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
     mBucketName = bucketName;
     mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = Configuration.get(Constants.OSS_ENDPOINT_KEY);
+    mEndPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
@@ -166,7 +167,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -439,11 +440,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   private ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
-        Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_TIMEOUT));
+        Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));
     ossClientConf.setSocketTimeout(
-        Configuration.getInt(Constants.UNDERFS_OSS_SOCKET_TIMEOUT));
-    ossClientConf.setConnectionTTL(Configuration.getLong(Constants.UNDERFS_OSS_CONNECT_TTL));
-    ossClientConf.setMaxConnections(Configuration.getInt(Constants.UNDERFS_OSS_CONNECT_MAX));
+        Configuration.getInt(PropertyKey.UNDERFS_OSS_SOCKET_TIMEOUT));
+    ossClientConf.setConnectionTTL(Configuration.getLong(PropertyKey.UNDERFS_OSS_CONNECT_TTL));
+    ossClientConf.setMaxConnections(Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_MAX));
     return ossClientConf;
   }
 

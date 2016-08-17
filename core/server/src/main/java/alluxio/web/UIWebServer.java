@@ -14,6 +14,7 @@ package alluxio.web;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
@@ -31,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
@@ -61,7 +63,7 @@ public abstract class UIWebServer {
     mService = service;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
-    int webThreadCount = Configuration.getInt(Constants.WEB_THREAD_COUNT);
+    int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
 
     mServer = new Server();
     SelectChannelConnector connector = new SelectChannelConnector();
@@ -70,6 +72,13 @@ public abstract class UIWebServer {
     connector.setAcceptors(webThreadCount);
     mServer.setConnectors(new Connector[] {connector});
 
+    try {
+      mServer.getConnectors()[0].close();
+      mServer.getConnectors()[0].open();
+    } catch (IOException e) {
+      throw Throwables.propagate(e);
+    }
+
     // Jetty needs at least (1 + selectors + acceptors) threads.
     threadPool.setMinThreads(webThreadCount * 2 + 1);
     threadPool.setMaxThreads(webThreadCount * 2 + 100);
@@ -77,7 +86,7 @@ public abstract class UIWebServer {
 
     mWebAppContext = new WebAppContext();
     mWebAppContext.setContextPath(AlluxioURI.SEPARATOR);
-    File warPath = new File(Configuration.get(Constants.WEB_RESOURCES));
+    File warPath = new File(Configuration.get(PropertyKey.WEB_RESOURCES));
     mWebAppContext.setWar(warPath.getAbsolutePath());
     HandlerList handlers = new HandlerList();
     handlers.setHandlers(new Handler[] {mWebAppContext, new DefaultHandler()});
@@ -150,15 +159,7 @@ public abstract class UIWebServer {
    */
   public void startWebServer() {
     try {
-      mServer.getConnectors()[0].close();
-      mServer.getConnectors()[0].open();
       mServer.start();
-      if (mAddress.getPort() == 0) {
-        int webPort = mServer.getConnectors()[0].getLocalPort();
-        mAddress = new InetSocketAddress(mAddress.getHostName(), webPort);
-        // reset web service port
-        Configuration.set(mService.getPortKey(), Integer.toString(webPort));
-      }
       LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);

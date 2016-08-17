@@ -12,7 +12,9 @@
 package alluxio.yarn;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.Constants;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
@@ -34,13 +36,17 @@ import org.apache.hadoop.yarn.api.ApplicationConstants;
 import org.apache.hadoop.yarn.api.ApplicationConstants.Environment;
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.ApplicationId;
+import org.apache.hadoop.yarn.api.records.ApplicationReport;
 import org.apache.hadoop.yarn.api.records.ApplicationSubmissionContext;
 import org.apache.hadoop.yarn.api.records.ContainerLaunchContext;
+import org.apache.hadoop.yarn.api.records.FinalApplicationStatus;
 import org.apache.hadoop.yarn.api.records.LocalResource;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
+import org.apache.hadoop.yarn.api.records.YarnApplicationState;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.apache.hadoop.yarn.client.ClientRMProxy;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 import org.apache.hadoop.yarn.exceptions.YarnException;
 import org.apache.hadoop.yarn.util.Apps;
@@ -200,7 +206,7 @@ public final class Client {
     mAmVCores = Integer.parseInt(cliParser.getOptionValue("am_vcores", "1"));
     mNumWorkers = Integer.parseInt(cliParser.getOptionValue("num_workers", "1"));
     mMaxWorkersPerHost =
-        Configuration.getInt(Constants.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
+        Configuration.getInt(PropertyKey.INTEGRATION_YARN_WORKERS_PER_HOST_MAX);
 
     Preconditions.checkArgument(mAmMemoryInMB > 0,
         "Invalid memory specified for application master, " + "exiting. Specified memory="
@@ -248,6 +254,7 @@ public final class Client {
     mAppId = mAppContext.getApplicationId();
     System.out.println("Submitting application of id " + mAppId + " to ResourceManager");
     mYarnClient.submitApplication(mAppContext);
+    monitorApplication();
   }
 
   // Checks if the cluster has enough resource to launch application master
@@ -318,7 +325,7 @@ public final class Client {
       org.apache.hadoop.conf.Configuration config = mYarnClient.getConfig();
       Token<TokenIdentifier> token = ConverterUtils.convertFromYarn(
           mYarnClient.getRMDelegationToken(new org.apache.hadoop.io.Text(tokenRenewer)),
-          YarnUtils.getRMAddress(config));
+          ClientRMProxy.getRMDelegationTokenService(config));
       LOG.info("Added RM delegation token: " + token);
       credentials.addToken(token.getService(), token);
 
@@ -366,5 +373,43 @@ public final class Client {
 
     // Set the priority for the application master
     mAppContext.setPriority(Priority.newInstance(mAmPriority));
+  }
+
+  /**
+   * Monitor the submitted application until app is running, finished, killed or failed.
+   *
+   * @throws YarnException if errors occur when obtaining application report from ResourceManager
+   * @throws IOException if errors occur when obtaining application report from ResourceManager
+   */
+  private void monitorApplication() throws YarnException, IOException {
+    while (true) {
+      // Check app status every 5 seconds
+      CommonUtils.sleepMs(5 * Constants.SECOND_MS);
+      // Get application report for the appId we are interested in
+      ApplicationReport report = mYarnClient.getApplicationReport(mAppId);
+
+      YarnApplicationState state = report.getYarnApplicationState();
+      FinalApplicationStatus dsStatus = report.getFinalApplicationStatus();
+      switch (state) {
+        case RUNNING:
+          System.out.println("Application is running. Tracking url is " + report.getTrackingUrl());
+          return;
+        case FINISHED:
+          if (FinalApplicationStatus.SUCCEEDED == dsStatus) {
+            System.out.println("Application has completed successfully");
+          } else {
+            System.out.println("Application finished unsuccessfully. YarnState="
+                + state.toString() + ", DSFinalStatus=" + dsStatus.toString());
+          }
+          return;
+        case KILLED: // intended to fall through
+        case FAILED:
+          System.out.println("Application did not finish. YarnState=" + state.toString()
+              + ", DSFinalStatus=" + dsStatus.toString());
+          return;
+        default:
+          System.out.println("Application is in state " + state + ". Waiting.");
+      }
+    }
   }
 }
