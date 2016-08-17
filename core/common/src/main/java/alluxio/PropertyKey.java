@@ -11,9 +11,6 @@
 
 package alluxio;
 
-import alluxio.network.ChannelType;
-import alluxio.util.network.NetworkAddressUtils;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -126,7 +123,7 @@ public enum PropertyKey {
       "alluxio.master.file.async.DefaultAsyncPersistHandler"),
   MASTER_FORMAT_FILE_PREFIX(Name.MASTER_FORMAT_FILE_PREFIX, "_format_"),
   MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
-  MASTER_HOSTNAME(Name.MASTER_HOSTNAME, NetworkAddressUtils.getLocalHostName(250)),
+  MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
   MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.home}/journal/"),
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
@@ -189,8 +186,7 @@ public enum PropertyKey {
   WORKER_NETWORK_NETTY_BOSS_THREADS(Name.WORKER_NETWORK_NETTY_BOSS_THREADS, 1),
   WORKER_NETWORK_NETTY_BUFFER_RECEIVE(Name.WORKER_NETWORK_NETTY_BUFFER_RECEIVE, null),
   WORKER_NETWORK_NETTY_BUFFER_SEND(Name.WORKER_NETWORK_NETTY_BUFFER_SEND, null),
-  WORKER_NETWORK_NETTY_CHANNEL(Name.WORKER_NETWORK_NETTY_CHANNEL,
-      String.valueOf(ChannelType.defaultType())),
+  WORKER_NETWORK_NETTY_CHANNEL(Name.WORKER_NETWORK_NETTY_CHANNEL, null),
   WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE(Name.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, "MAPPED"),
   WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD(Name.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD, 2),
   WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT(Name.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, 15),
@@ -246,8 +242,7 @@ public enum PropertyKey {
   USER_HEARTBEAT_INTERVAL_MS(Name.USER_HEARTBEAT_INTERVAL_MS, 1000),
   USER_LINEAGE_ENABLED(Name.USER_LINEAGE_ENABLED, false),
   USER_LINEAGE_MASTER_CLIENT_THREADS(Name.USER_LINEAGE_MASTER_CLIENT_THREADS, 10),
-  USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL,
-      String.valueOf(ChannelType.defaultType())),
+  USER_NETWORK_NETTY_CHANNEL(Name.USER_NETWORK_NETTY_CHANNEL, null),
   USER_NETWORK_NETTY_TIMEOUT_MS(Name.USER_NETWORK_NETTY_TIMEOUT_MS, 30000),
   USER_NETWORK_NETTY_WORKER_THREADS(Name.USER_NETWORK_NETTY_WORKER_THREADS, 0),
   USER_UFS_DELEGATION_ENABLED(Name.USER_UFS_DELEGATION_ENABLED, false),
@@ -289,7 +284,8 @@ public enum PropertyKey {
   SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS(Name.SECURITY_GROUP_MAPPING_CACHE_TIMEOUT_MS, "60000"),
   SECURITY_GROUP_MAPPING_CLASS(Name.SECURITY_GROUP_MAPPING_CLASS,
       "alluxio.security.group.provider.ShellBasedUnixGroupsMapping"),
-  SECURITY_LOGIN_USERNAME(Name.SECURITY_LOGIN_USERNAME, null),;
+  SECURITY_LOGIN_USERNAME(Name.SECURITY_LOGIN_USERNAME, null),
+  ;
 
   /**
    * A nested class to hold named string constants for their corresponding enum values.
@@ -686,7 +682,11 @@ public enum PropertyKey {
    */
   PropertyKey(String property, Object defaultValue) {
     mName = property;
-    mDefaultValue = String.valueOf(defaultValue);
+    if (defaultValue == null) {
+      mDefaultValue = null;
+    } else {
+      mDefaultValue = defaultValue.toString();
+    }
   }
 
   @Override

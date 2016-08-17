@@ -41,8 +41,8 @@ public interface RemoteBlockWriter extends Closeable {
     public static RemoteBlockWriter create() {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockWriter>getClass(PropertyKey.USER_BLOCK_REMOTE_WRITER_CLASS), null,
-            null);
+            Configuration.<RemoteBlockWriter>getClass(PropertyKey.USER_BLOCK_REMOTE_WRITER_CLASS),
+            null, null);
       } catch (Exception e) {
         throw Throwables.propagate(e);
       }
