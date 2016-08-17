@@ -2473,7 +2473,7 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
-      if (inode instanceof InodeFile && ((InodeFile) inode).isCompleted() == false) {
+      if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
         LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
       } else {
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
