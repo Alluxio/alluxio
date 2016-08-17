@@ -34,7 +34,7 @@ public enum ExceptionMessage {
   // general block
   BLOCK_NOT_LOCALLY_AVAILABLE("Block {0} is not available on local machine"),
   BLOCK_UNAVAILABLE("Block {0} is not available in Alluxio"),
-  CANNOT_REQUEST_SPACE("Unable to request space from worker"),
+  CANNOT_REQUEST_SPACE("Not enough space left on worker {0} to store block {0}"),
   NO_LOCAL_WORKER("Local {0} requested but there is no local worker"),
   NO_WORKER_AVAILABLE_ON_ADDRESS("No Alluxio worker available for address {0}"),
   NO_WORKER_AVAILABLE("No available Alluxio worker found"),

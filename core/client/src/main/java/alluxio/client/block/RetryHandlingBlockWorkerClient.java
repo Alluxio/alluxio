@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.exception.WorkerOutOfSpaceException;
 import alluxio.heartbeat.HeartbeatContext;
@@ -294,12 +295,10 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
           return mClient.requestBlockLocation(mSessionId, blockId, initialBytes);
         }
       });
+    } catch (WorkerOutOfSpaceException e) {
+      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage(mAddress, blockId));
     } catch (AlluxioException e) {
-      if (e instanceof WorkerOutOfSpaceException) {
-        throw new IOException("Failed to request " + initialBytes, e);
-      } else {
-        throw new IOException(e);
-      }
+      throw new IOException(e);
     }
   }
 
@@ -307,12 +306,16 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
   public synchronized boolean requestSpace(final long blockId, final long requestBytes)
       throws IOException {
     try {
-      return retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
+      boolean requested = retryRPC(new RpcCallableThrowsAlluxioTException<Boolean>() {
         @Override
         public Boolean call() throws AlluxioTException, TException {
           return mClient.requestSpace(mSessionId, blockId, requestBytes);
         }
       });
+      if (!requested) {
+        throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage(mAddress, blockId));
+      }
+      return true;
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
