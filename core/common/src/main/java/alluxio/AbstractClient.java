@@ -183,7 +183,7 @@ public abstract class AbstractClient implements Client {
         if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
           // See an error like "Frame size (67108864) larger than max length (16777216)!",
           // pointing to the helper page.
-          String debugDocsUrl = RuntimeConstants.ALLUXIO_DOCS_URL + "en/Debugging-Guide.html";
+          String debugDocsUrl = RuntimeConstants.ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
           String message = String.format("Failed to connect to %s %s @ %s: %s. "
               + "This exception may be caused by wrong network configurations. "
               + "Please consult %s for common solutions to address this problem.",
