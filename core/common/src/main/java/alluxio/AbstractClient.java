@@ -185,7 +185,7 @@ public abstract class AbstractClient implements Client {
           // pointing to the helper page.
           String debugDocsUrl = RuntimeConstants.ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
           String message = String.format("Failed to connect to %s %s @ %s: %s. "
-              + "This exception may be caused by wrong network configurations. "
+              + "This exception may be caused by incorrect network configuration. "
               + "Please consult %s for common solutions to address this problem.",
               getServiceName(), mMode, mAddress, e.getMessage(), debugDocsUrl);
           throw new IOException(message, e);
