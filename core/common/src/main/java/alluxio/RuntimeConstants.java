@@ -18,7 +18,7 @@ public final class RuntimeConstants {
   static {
     VERSION = Configuration.get(PropertyKey.VERSION);
     if (Configuration.get(PropertyKey.VERSION).endsWith("SNAPSHOT")) {
-      ALLUXIO_DOCS_URL = "http://www.alluxio.org/docs/master/";
+      ALLUXIO_DOCS_URL = "http://www.alluxio.org/docs/master";
     } else {
       String[] majorMinor = Configuration.get(PropertyKey.VERSION).split("\\.");
       ALLUXIO_DOCS_URL = String.format(
