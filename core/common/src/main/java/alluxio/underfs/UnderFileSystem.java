@@ -419,7 +419,7 @@ public abstract class UnderFileSystem {
    * Gets the list of locations of the indicated path given its offset.
    *
    * @param path the file name
-   * @param offset offset in bytes
+   * @param offset the offset in bytes
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -592,7 +592,7 @@ public abstract class UnderFileSystem {
    * overridden if a subclass needs alternate functionality.
    *
    * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
-   * @param alluxioPath the path in alluxio from the given base
+   * @param alluxioPath the path in Alluxio from the given base
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
