@@ -33,6 +33,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -403,19 +404,12 @@ public final class FileSystemAclIntegrationTest {
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
   }
 
-  /**
-   * Tests for the permission of S3 UFS files.
-   */
   @Test
-  public void s3PermissionTest() throws Exception {
-    if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)) {
-      // Only test S3 UFS.
-      return;
-    }
-    Path fileA = new Path("/objectfileA");
-    final String newOwner = "new-user1";
-    final String newGroup = "new-group1";
+  public void s3GetPermissionTest() throws Exception {
+    Assume.assumeTrue((sUfs instanceof S3UnderFileSystem) || (sUfs instanceof S3AUnderFileSystem));
 
+    alluxio.Configuration.set(PropertyKey.UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING, "");
+    Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
@@ -424,26 +418,14 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
-
-    // chown to Alluxio file which is persisted in S3 is not allowed.
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
-    sTFS.setOwner(fileA, newOwner, newGroup);
   }
 
-  /**
-   * Tests for the permission of GCS UFS files.
-   */
   @Test
-  public void gcsPermissionTest() throws Exception {
-    if (!(sUfs instanceof GCSUnderFileSystem)) {
-      // Only test GCS UFS.
-      return;
-    }
-    Path fileA = new Path("/objectfileA");
-    final String newOwner = "new-user1";
-    final String newGroup = "new-group1";
+  public void gcsGetPermissionTest() throws Exception {
+    Assume.assumeTrue(sUfs instanceof GCSUnderFileSystem);
 
+    alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
+    Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
@@ -452,27 +434,14 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
-
-    // chown to Alluxio file which is persisted in GCS is not allowed.
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
-    sTFS.setOwner(fileA, newOwner, newGroup);
   }
 
-  /**
-   * Tests for the permission of Swift UFS files.
-   */
   @Test
-  public void swiftPermissionTest() throws Exception {
+  public void swiftGetPermissionTest() throws Exception {
     // TODO(chaomin): update Swift permission integration test once the Swift implementation is done
-    if (!(sUfs instanceof SwiftUnderFileSystem)) {
-      // Only test Swift UFS.
-      return;
-    }
-    Path fileA = new Path("/objectfileA");
-    final String newOwner = "new-user1";
-    final String newGroup = "new-group1";
+    Assume.assumeTrue(sUfs instanceof SwiftUnderFileSystem);
 
+    Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
@@ -482,26 +451,13 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
-
-    // chown to Alluxio file which is persisted in Swift is not allowed.
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
-    sTFS.setOwner(fileA, newOwner, newGroup);
   }
 
-  /**
-   * Tests for the permission of OSS UFS files.
-   */
   @Test
-  public void ossPermissionTest() throws Exception {
-    if (!(sUfs instanceof OSSUnderFileSystem)) {
-      // Only test OSS UFS.
-      return;
-    }
-    Path fileA = new Path("/objectfileA");
-    final String newOwner = "new-user1";
-    final String newGroup = "new-group1";
+  public void ossGetPermissionTest() throws Exception {
+    Assume.assumeTrue(sUfs instanceof OSSUnderFileSystem);
 
+    Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
@@ -511,6 +467,16 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
+
+  @Test
+  public void objectStoreSetOwnerTest() throws Exception {
+    Assume.assumeTrue(CommonUtils.isUfsObjectStorage(sUfsRoot));
+
+    Path fileA = new Path("/objectfileA");
+    final String newOwner = "new-user1";
+    final String newGroup = "new-group1";
+    create(sTFS, fileA);
 
     // chown to Alluxio file which is persisted in OSS is not allowed.
     mThrown.expect(IOException.class);
