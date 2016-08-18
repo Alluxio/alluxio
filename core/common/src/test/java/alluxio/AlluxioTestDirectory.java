@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import com.google.common.base.Throwables;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,11 +44,10 @@ public final class AlluxioTestDirectory {
    */
   public static File createTemporaryDirectory(String prefix) {
     final File file = new File(ALLUXIO_TEST_DIRECTORY, prefix + "-" + UUID.randomUUID());
-    try {
-      file.createNewFile();
-    } catch (IOException e) {
-      throw Throwables.propagate(e);
+    if (!file.mkdir()) {
+      throw new RuntimeException("Failed to create directory " + file.getAbsolutePath());
     }
+
     Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
       public void run() {
         try {

@@ -12,7 +12,7 @@
 package alluxio.client;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.util.CommonUtils;
 
 import com.google.common.base.Throwables;
@@ -41,7 +41,7 @@ public interface RemoteBlockWriter extends Closeable {
     public static RemoteBlockWriter create() {
       try {
         return CommonUtils.createNewClassInstance(
-            Configuration.<RemoteBlockWriter>getClass(Constants.USER_BLOCK_REMOTE_WRITER), null,
+            Configuration.<RemoteBlockWriter>getClass(PropertyKey.USER_BLOCK_REMOTE_WRITER), null,
             null);
       } catch (Exception e) {
         throw Throwables.propagate(e);

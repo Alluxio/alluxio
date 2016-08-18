@@ -39,7 +39,7 @@ public abstract class AbstractMasterClient extends AbstractClient {
    */
   public AbstractMasterClient(InetSocketAddress masterAddress) {
     super(masterAddress, "master");
-    mUseZookeeper = Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED);
+    mUseZookeeper = Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED);
   }
 
   /**

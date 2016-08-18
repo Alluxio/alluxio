@@ -11,10 +11,14 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
+import alluxio.util.network.NetworkAddressUtils;
+import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 
 import java.io.IOException;
 
@@ -87,7 +91,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   /**
    * @return the worker
    */
-  public AlluxioWorker getWorker() {
+  public AlluxioWorkerService getWorker() {
     return mWorker;
   }
 
@@ -95,7 +99,11 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @return the address of the worker
    */
   public WorkerNetAddress getWorkerAddress() {
-    return mWorker.getNetAddress();
+    return new WorkerNetAddress()
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+        .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
+        .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
+        .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
   }
 
   @Override

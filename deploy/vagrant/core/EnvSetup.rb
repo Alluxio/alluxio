@@ -345,6 +345,91 @@ class S3Version
   end
 end
 
+class SwiftVersion
+  def initialize(yml)
+    @container = ''
+    @user = ''
+    @tenant = ''
+    @password = ''
+    @auth_url = ''
+    @user_public_url = ''
+    @auth_method = ''
+
+    if yml == nil
+      return
+    end
+
+    @container = yml['Container']
+    if @container == nil
+      puts 'ERROR: Swift:Container is not set'
+      exit(1)
+    end
+    @user = ENV['SWIFT_USER']
+    if @user == nil
+      puts 'ERROR: SWIFT_USER needs to be set as environment variable'
+      exit(1)
+    end
+    @tenant = ENV['SWIFT_TENANT']
+    if @tenant == nil
+      puts 'ERROR: SWIFT_TENANT needs to be set as environment variable'
+      exit(1)
+    end
+    @password = ENV['SWIFT_PASSWORD']
+    if @password == nil
+      puts 'ERROR: SWIFT_PASSWORD needs to be set as environment variable'
+      exit(1)
+    end
+    @auth_url = ENV['SWIFT_AUTH_URL']
+    if @auth_url == nil
+      puts 'ERROR: SWIFT_AUTH_URL needs to be set as environment variable'
+      exit(1)
+    end
+    @use_public_url = ENV['SWIFT_USE_PUBLIC_URL']
+    if @use_public_url == nil
+      puts 'ERROR: SWIFT_USE_PUBLIC_URL needs to be set as environment variable'
+      exit(1)
+    end
+    @auth_method = ENV['SWIFT_AUTH_METHOD']
+    if @auth_method == nil
+      puts 'ERROR: SWIFT_AUTH_METHOD needs to be set as environment variable'
+      exit(1)
+    end
+  end
+
+  def user
+    return @user
+  end
+
+  def tenant
+    return @tenant
+  end
+
+  def password
+    return @password
+  end
+
+  def auth_url
+    return @auth_url
+  end
+
+  def use_public_url
+    return @use_public_url
+  end
+
+  def auth_method
+    return @auth_method
+  end
+
+  def container
+    return @container
+  end
+
+  def alluxio_dist(alluxio_version)
+    # The base version should work for Swift
+    return "alluxio-#{alluxio_version}-bin.tar.gz"
+  end
+end
+
 class GCSVersion
   def initialize(yml)
     @bucket = ''
@@ -417,6 +502,7 @@ class UfsVersion
     @hadoop = HadoopVersion.new(nil)
     @s3 = S3Version.new(nil)
     @gcs = GCSVersion.new(nil)
+    @swift = SwiftVersion.new(nil)
 
     case @yml['Type']
     when 'hadoop1', 'hadoop2'
@@ -425,6 +511,8 @@ class UfsVersion
       @s3 = S3Version.new(@yml['S3'])
     when 'gcs'
       @gcs = GCSVersion.new(@yml['GCS'])
+    when 'swift'
+      @swift = SwiftVersion.new(@yml['Swift'])
     when 'glusterfs'
     else
       puts 'unsupported ufs'
@@ -447,6 +535,10 @@ class UfsVersion
   def gcs
     return @gcs
   end
+  
+  def swift
+    return @swift
+  end
 
   def alluxio_dist(alluxio_version)
     case @yml['Type']
@@ -456,6 +548,8 @@ class UfsVersion
       return @s3.alluxio_dist(alluxio_version)
     when 'gcs'
       return @gcs.alluxio_dist(alluxio_version)
+    when 'swift'
+      return @swift.alluxio_dist(alluxio_version)
     when 'glusterfs'
     # The base version should work for glusterfs
       return "alluxio-#{alluxio_version}-bin.tar.gz"

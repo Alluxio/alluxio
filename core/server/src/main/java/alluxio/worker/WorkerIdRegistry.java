@@ -27,9 +27,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 /**
  * The single place to get, set, and update worker id.
  *
- * When worker process starts in {@link AlluxioWorker}, worker is temporarily lost from master,
- * or when leader master is down in fault tolerant mode, this class will try to get a new worker id
- * from {@link BlockMaster}.
+ * When worker process starts in {@link AlluxioWorkerService}, worker is temporarily lost from
+ * master, or when leader master is down in fault tolerant mode, this class will try to get a new
+ * worker id from {@link BlockMaster}.
  *
  * Worker id will only be regained in {@link BlockMasterSync} when it receives {@link Command} with
  * type {@link CommandType#Register} from {@link BlockMaster}.

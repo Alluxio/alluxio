@@ -23,6 +23,7 @@ import alluxio.master.file.options.CreateFileOptions;
 import alluxio.master.file.options.ListStatusOptions;
 import alluxio.master.file.options.MountOptions;
 import alluxio.master.file.options.SetAttributeOptions;
+import alluxio.web.MasterUIWebServer;
 import alluxio.wire.LoadMetadataType;
 import alluxio.wire.MountPointInfo;
 
@@ -37,12 +38,14 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -77,12 +80,19 @@ public final class FileSystemMasterClientRestServiceHandler {
   public static final String SET_ATTRIBUTE = "set_attribute";
   public static final String UNMOUNT = "unmount";
 
-  private final FileSystemMaster mFileSystemMaster = AlluxioMaster.get().getFileSystemMaster();
+  private final FileSystemMaster mFileSystemMaster;
 
   /**
    * Constructs a new {@link FileSystemMasterClientRestServiceHandler}.
+   *
+   * @param context context for the servlet
    */
-  public  FileSystemMasterClientRestServiceHandler() {}
+  public FileSystemMasterClientRestServiceHandler(@Context ServletContext context) {
+    // Poor man's dependency injection through the Jersey application scope.
+    AlluxioMaster master =
+        (AlluxioMaster) context.getAttribute(MasterUIWebServer.ALLUXIO_MASTER_SERVLET_RESOURCE_KEY);
+    mFileSystemMaster = master.getFileSystemMaster();
+  }
 
   /**
    * @summary get the service name
@@ -295,18 +305,26 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @summary mount a UFS path
    * @param path the alluxio mount point
    * @param ufsPath the UFS path to mount
+   * @param readOnly whether to make the mount option read only
+   * @param shared whether to make the mount option shared with all Alluxio users
    * @return the response object
    */
   @POST
   @Path(MOUNT)
   @ReturnType("java.lang.Void")
-  public Response mount(@QueryParam("path") String path, @QueryParam("ufsPath") String ufsPath) {
+  public Response mount(@QueryParam("path") String path, @QueryParam("ufsPath") String ufsPath,
+      @QueryParam("readOnly") Boolean readOnly, @QueryParam("shared") Boolean shared) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       Preconditions.checkNotNull(ufsPath, "required 'ufsPath' parameter is missing");
-      // TODO(gpang): Update the rest API to get the mount options.
-      mFileSystemMaster
-          .mount(new AlluxioURI(path), new AlluxioURI(ufsPath), MountOptions.defaults());
+      MountOptions options = MountOptions.defaults();
+      if (readOnly != null) {
+        options.setReadOnly(readOnly);
+      }
+      if (shared != null) {
+        options.setShared(shared);
+      }
+      mFileSystemMaster.mount(new AlluxioURI(path), new AlluxioURI(ufsPath), options);
       return RestUtils.createResponse();
     } catch (AlluxioException | IOException | NullPointerException | IllegalArgumentException e) {
       LOG.warn(e.getMessage());
@@ -329,6 +347,7 @@ public final class FileSystemMasterClientRestServiceHandler {
       info.setUfsInfo(mountInfo.getUfsUri().toString());
       info.setReadOnly(mountInfo.getOptions().isReadOnly());
       info.setProperties(mountInfo.getOptions().getProperties());
+      info.setShared(mountInfo.getOptions().isShared());
       mountPoints.put(mountPoint.getKey(), info);
     }
     return RestUtils.createResponse(mountPoints);

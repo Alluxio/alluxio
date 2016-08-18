@@ -14,7 +14,9 @@ package alluxio.master;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
+import alluxio.Server;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -22,6 +24,7 @@ import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.ConfigurationUtils;
 import alluxio.util.LineageUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -58,10 +61,10 @@ import javax.annotation.concurrent.ThreadSafe;
  * Entry point for the Alluxio master program.
  */
 @NotThreadSafe
-public class AlluxioMaster {
+public class AlluxioMaster implements Server {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static AlluxioMaster sAlluxioMaster = null;
+  protected final MasterContext mMasterContext;
 
   /**
    * Starts the Alluxio master.
@@ -81,7 +84,7 @@ public class AlluxioMaster {
       System.exit(-1);
     }
 
-    AlluxioMaster master = get();
+    AlluxioMaster master = new AlluxioMaster(new MasterContext(new MasterSource()));
     try {
       master.start();
     } catch (Exception e) {
@@ -94,18 +97,6 @@ public class AlluxioMaster {
       }
       System.exit(-1);
     }
-  }
-
-  /**
-   * Returns a handle to the Alluxio master instance.
-   *
-   * @return Alluxio master handle
-   */
-  public static synchronized AlluxioMaster get() {
-    if (sAlluxioMaster == null) {
-      sAlluxioMaster = Factory.create();
-    }
-    return sAlluxioMaster;
   }
 
   /** Maximum number of threads to serve the rpc server. */
@@ -209,26 +200,28 @@ public class AlluxioMaster {
   @ThreadSafe
   public static final class Factory {
     /**
+     * @param masterContext context for the master
      * @return {@link FaultTolerantAlluxioMaster} if Alluxio configuration is set to use zookeeper,
      *         otherwise, return {@link AlluxioMaster}.
      */
-    public static AlluxioMaster create() {
-      if (Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED)) {
-        return new FaultTolerantAlluxioMaster();
+    public static AlluxioMaster create(MasterContext masterContext) {
+      if (Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED)) {
+        return new FaultTolerantAlluxioMaster(masterContext);
       }
-      return new AlluxioMaster();
+      return new AlluxioMaster(masterContext);
     }
 
     private Factory() {} // prevent instantiation.
   }
 
-  protected AlluxioMaster() {
-    mMinWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MIN);
-    mMaxWorkerThreads = Configuration.getInt(Constants.MASTER_WORKER_THREADS_MAX);
+  protected AlluxioMaster(MasterContext masterContext) {
+    mMasterContext = masterContext;
+    mMinWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MIN);
+    mMaxWorkerThreads = Configuration.getInt(PropertyKey.MASTER_WORKER_THREADS_MAX);
 
     Preconditions.checkArgument(mMaxWorkerThreads >= mMinWorkerThreads,
-        Constants.MASTER_WORKER_THREADS_MAX + " can not be less than "
-            + Constants.MASTER_WORKER_THREADS_MIN);
+        PropertyKey.MASTER_WORKER_THREADS_MAX + " can not be less than "
+            + PropertyKey.MASTER_WORKER_THREADS_MIN);
 
     try {
       // Extract the port from the generated socket.
@@ -236,22 +229,22 @@ public class AlluxioMaster {
       // use (any random free port).
       // In a production or any real deployment setup, port '0' should not be used as it will make
       // deployment more complicated.
-      if (!Configuration.getBoolean(Constants.IN_TEST_MODE)) {
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_RPC_PORT) > 0,
+      if (!Configuration.getBoolean(PropertyKey.TEST_MODE)) {
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_RPC_PORT) > 0,
             "Alluxio master rpc port is only allowed to be zero in test mode.");
-        Preconditions.checkState(Configuration.getInt(Constants.MASTER_WEB_PORT) > 0,
+        Preconditions.checkState(Configuration.getInt(PropertyKey.MASTER_WEB_PORT) > 0,
             "Alluxio master web port is only allowed to be zero in test mode.");
       }
       mTransportProvider = TransportProvider.Factory.create();
       mTServerSocket =
           new TServerSocket(NetworkAddressUtils.getBindAddress(ServiceType.MASTER_RPC));
       mPort = NetworkAddressUtils.getThriftPort(mTServerSocket);
-      // reset master port
-      Configuration.set(Constants.MASTER_RPC_PORT, Integer.toString(mPort));
+      // reset master rpc port
+      Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(mPort));
       mMasterAddress = NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC);
 
       // Check the journal directory
-      String journalDirectory = Configuration.get(Constants.MASTER_JOURNAL_FOLDER);
+      String journalDirectory = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
       if (!journalDirectory.endsWith(AlluxioURI.SEPARATOR)) {
         journalDirectory += AlluxioURI.SEPARATOR;
       }
@@ -265,24 +258,32 @@ public class AlluxioMaster {
       mLineageMasterJournal =
           new ReadWriteJournal(LineageMaster.getJournalDirectory(journalDirectory));
 
-      mBlockMaster = new BlockMaster(mBlockMasterJournal);
-      mFileSystemMaster = new FileSystemMaster(mBlockMaster, mFileSystemMasterJournal);
+      mBlockMaster = new BlockMaster(masterContext, mBlockMasterJournal);
+      mFileSystemMaster =
+          new FileSystemMaster(masterContext, mBlockMaster, mFileSystemMasterJournal);
       if (LineageUtils.isLineageEnabled()) {
-        mLineageMaster = new LineageMaster(mFileSystemMaster, mLineageMasterJournal);
+        mLineageMaster = new LineageMaster(masterContext, mFileSystemMaster, mLineageMasterJournal);
       }
 
       mAdditionalMasters = new ArrayList<>();
       List<? extends Master> masters = Lists.newArrayList(mBlockMaster, mFileSystemMaster);
       for (MasterFactory factory : getServiceLoader()) {
-        Master master = factory.create(masters, journalDirectory);
+        Master master = factory.create(masterContext, masters, journalDirectory);
         if (master != null) {
           mAdditionalMasters.add(master);
         }
       }
 
-      MasterContext.getMasterSource().registerGauges(this);
+      masterContext.getMasterSource().registerGauges(this);
       mMasterMetricsSystem = new MetricsSystem("master");
-      mMasterMetricsSystem.registerSource(MasterContext.getMasterSource());
+      mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
+
+      // The web server needs to be created at the end of the constructor because it needs a
+      // reference to this class.
+      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+          NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
+      // reset master web port
+      Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -373,27 +374,26 @@ public class AlluxioMaster {
   }
 
   /**
+   * @return the master context for this master
+   */
+  public MasterContext getMasterContext() {
+    return mMasterContext;
+  }
+
+  /**
    * @return true if the system is the leader (serving the rpc server), false otherwise
    */
   boolean isServing() {
     return mIsServing;
   }
 
-  /**
-   * Starts the Alluxio master server.
-   *
-   * @throws Exception if starting the master fails
-   */
+  @Override
   public void start() throws Exception {
     startMasters(true);
     startServing();
   }
 
-  /**
-   * Stops the Alluxio master server.
-   *
-   * @throws Exception if stopping the master fails
-   */
+  @Override
   public void stop() throws Exception {
     if (mIsServing) {
       LOG.info("Stopping RPC server on Alluxio master @ {}", mMasterAddress);
@@ -458,9 +458,6 @@ public class AlluxioMaster {
   }
 
   protected void startServingWebServer() {
-    mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
-        NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
     mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
     // start web ui
@@ -498,7 +495,7 @@ public class AlluxioMaster {
     Args args = new TThreadPoolServer.Args(mTServerSocket).maxWorkerThreads(mMaxWorkerThreads)
         .minWorkerThreads(mMinWorkerThreads).processor(processor).transportFactory(transportFactory)
         .protocolFactory(new TBinaryProtocol.Factory(true, true));
-    if (Configuration.getBoolean(Constants.IN_TEST_MODE)) {
+    if (Configuration.getBoolean(PropertyKey.TEST_MODE)) {
       args.stopTimeoutVal = 0;
     } else {
       args.stopTimeoutVal = Constants.THRIFT_STOP_TIMEOUT_SECONDS;
@@ -544,7 +541,7 @@ public class AlluxioMaster {
       return false;
     }
     // Search for the format file.
-    String formatFilePrefix = Configuration.get(Constants.MASTER_FORMAT_FILE_PREFIX);
+    String formatFilePrefix = Configuration.get(PropertyKey.MASTER_FORMAT_FILE_PREFIX);
     for (String file : files) {
       if (file.startsWith(formatFilePrefix)) {
         return true;
@@ -554,7 +551,7 @@ public class AlluxioMaster {
   }
 
   private void connectToUFS() throws IOException {
-    String ufsAddress = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     UnderFileSystem ufs = UnderFileSystem.get(ufsAddress);
     ufs.connectFromMaster(NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC));
   }
@@ -564,5 +561,18 @@ public class AlluxioMaster {
    */
   public MetricsSystem getMasterMetricsSystem() {
     return mMasterMetricsSystem;
+  }
+
+  /**
+   * Blocks until the master is ready to serve requests.
+   */
+  public void waitForReady() {
+    while (true) {
+      if (mMasterServiceServer != null && mMasterServiceServer.isServing()
+          && mWebServer != null && mWebServer.getServer().isRunning()) {
+        return;
+      }
+      CommonUtils.sleepMs(10);
+    }
   }
 }

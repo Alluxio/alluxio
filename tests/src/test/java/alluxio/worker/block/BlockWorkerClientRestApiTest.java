@@ -11,31 +11,25 @@
 
 package alluxio.worker.block;
 
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.rest.RestApiTest;
 import alluxio.rest.TestCase;
-import alluxio.util.CommonUtils;
 import alluxio.wire.LockBlockResult;
-import alluxio.wire.LockBlockResultTest;
-import alluxio.worker.AlluxioWorker;
-import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
+import java.io.FileInputStream;
 import java.net.HttpURLConnection;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 import javax.ws.rs.HttpMethod;
 import javax.ws.rs.core.MediaType;
@@ -44,22 +38,21 @@ import javax.ws.rs.core.Response;
 /**
  * Test cases for {@link BlockWorkerClientRestServiceHandler}.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({AlluxioWorker.class, BlockReader.class, BlockWorker.class, BlockWriter.class})
 public final class BlockWorkerClientRestApiTest extends RestApiTest {
+  private static final long SESSION_ID = 1;
+  private static final long BLOCK_ID = 2;
+  private static final String TIER_ALIAS = "MEM";
+  private static final int INITIAL_BYTES = 5;
+  private static final ByteBuffer BYTE_BUFFER = ByteBuffer.wrap("hello".getBytes());
+
   private BlockWorker mBlockWorker;
 
   @Before
   public void before() throws Exception {
-    AlluxioWorker alluxioWorker = mResource.get().getWorker();
-    mBlockWorker = PowerMockito.mock(BlockWorker.class);
-    // Replace the block worker created by LocalAlluxioClusterResource with a mock.
-    BlockWorker blockWorker = Whitebox.getInternalState(alluxioWorker, "mBlockWorker");
-    blockWorker.stop();
-    Whitebox.setInternalState(alluxioWorker, "mBlockWorker", mBlockWorker);
     mHostname = mResource.get().getHostname();
     mPort = mResource.get().getWorker().getWebLocalPort();
     mServicePrefix = BlockWorkerClientRestServiceHandler.SERVICE_PREFIX;
+    mBlockWorker = mResource.get().getWorker().getBlockWorker();
   }
 
   @Test
@@ -76,13 +69,14 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
 
   @Test
   public void accessBlockTest() throws Exception {
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
+    params.put("blockId", Long.toString(BLOCK_ID));
 
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.ACCESS_BLOCK),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker).accessBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
@@ -97,91 +91,82 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
 
   @Test
   public void cacheBlockTest() throws Exception {
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
 
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.CACHE_BLOCK),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker).commitBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void cancelBlockTest() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
 
+    Map<String, String> params = new HashMap<>();
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.CANCEL_BLOCK),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker).abortBlock(Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void lockBlockTest() throws Exception {
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
-
-    LockBlockResult lockBlockResult = LockBlockResultTest.createRandom();
-    Mockito.doReturn(lockBlockResult.getLockId()).when(mBlockWorker)
-        .lockBlock(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doReturn(lockBlockResult.getBlockPath()).when(mBlockWorker)
-        .readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
-
-    new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.LOCK_BLOCK),
-        params, HttpMethod.POST, lockBlockResult).run();
-
-    Mockito.verify(mBlockWorker).lockBlock(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.verify(mBlockWorker).readBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
+    String result =
+        new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.LOCK_BLOCK),
+            params, HttpMethod.POST, null).call();
+    LockBlockResult lockBlockResult = new ObjectMapper().readValue(result, LockBlockResult.class);
+    Assert.assertTrue(
+        lockBlockResult.getBlockPath().contains(Configuration.get(PropertyKey.WORKER_DATA_FOLDER)));
   }
 
   @Test
   public void promoteBlockTest() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
 
+    Map<String, String> params = new HashMap<>();
+    params.put("blockId", Long.toString(BLOCK_ID));
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.PROMOTE_BLOCK),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker)
-        .moveBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString());
   }
 
   @Test
   public void readBlockTest() throws Exception {
+    // Write a block and acquire a lock for it.
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    BlockWriter writer = mBlockWorker.getTempBlockWriterRemote(SESSION_ID, BLOCK_ID);
+    writer.append(BYTE_BUFFER);
+    writer.close();
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+    long lockId = mBlockWorker.lockBlock(SESSION_ID, BLOCK_ID);
+
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
-    params.put("lockId", "1");
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
+    params.put("lockId", Long.toString(lockId));
     params.put("offset", "0");
-    params.put("length", "-1");
-
-    Random random = new Random();
-    byte[] bytes = CommonUtils.randomBytes(random.nextInt(64));
-    ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-
-    BlockReader blockReader = PowerMockito.mock(BlockReader.class);
-    Mockito.doReturn(byteBuffer).when(blockReader).read(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.doReturn((long) bytes.length).when(blockReader).getLength();
-    Mockito.doReturn(blockReader).when(mBlockWorker)
-        .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    params.put("length", Long.toString(INITIAL_BYTES));
 
     TestCase testCase =
         new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.READ_BLOCK),
-            params, HttpMethod.GET, byteBuffer);
+            params, HttpMethod.GET, BYTE_BUFFER);
 
     HttpURLConnection connection = (HttpURLConnection) testCase.createURL().openConnection();
     connection.setRequestMethod(testCase.getMethod());
     connection.connect();
-    Assert.assertEquals(testCase.getEndpoint(), connection.getResponseCode(),
-        Response.Status.OK.getStatusCode());
-    Assert.assertEquals(new String(byteBuffer.array()), testCase.getResponse(connection));
-
-    Mockito.verify(mBlockWorker)
-        .readBlockRemote(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
+    Assert.assertEquals(testCase.getEndpoint(), Response.Status.OK.getStatusCode(),
+        connection.getResponseCode());
+    Assert.assertEquals(new String(BYTE_BUFFER.array()), testCase.getResponse(connection));
   }
 
   @Test
@@ -190,61 +175,50 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
     params.put("blockId", "1");
     params.put("sessionId", "1");
     params.put("initialBytes", "1");
-
-    String blockLocation = CommonUtils.randomString(10);
-    Mockito.doReturn(blockLocation).when(mBlockWorker)
-        .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
-
-    new TestCase(mHostname, mPort,
+    String location = new TestCase(mHostname, mPort,
         getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_BLOCK_LOCATION), params,
-        HttpMethod.POST, blockLocation).run();
-
-    Mockito.verify(mBlockWorker)
-        .createBlock(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyString(), Mockito.anyLong());
-
+        HttpMethod.POST, null).call();
+    Assert.assertTrue(location.contains(Configuration.get(PropertyKey.WORKER_DATA_FOLDER)));
   }
 
   @Test
   public void requestSpaceTest() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
-    params.put("requestBytes", "1");
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
 
+    Map<String, String> params = new HashMap<>();
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
+    params.put("requestBytes", "10");
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.REQUEST_SPACE),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker)
-        .requestSpace(Mockito.anyLong(), Mockito.anyLong(), Mockito.anyLong());
   }
 
   @Test
   public void unlockBlockTest() throws Exception {
+    // Write a block and acquire a lock for it.
+    mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
+    BlockWriter writer = mBlockWorker.getTempBlockWriterRemote(SESSION_ID, BLOCK_ID);
+    writer.append(BYTE_BUFFER);
+    writer.close();
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+    mBlockWorker.lockBlock(SESSION_ID, BLOCK_ID);
+
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
 
     new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.UNLOCK_BLOCK),
         params, HttpMethod.POST, null).run();
-
-    Mockito.verify(mBlockWorker).unlockBlock(Mockito.anyLong(), Mockito.anyLong());
 
   }
 
   @Test
   public void writeBlockTest() throws Exception {
     Map<String, String> params = new HashMap<>();
-    params.put("blockId", "1");
-    params.put("sessionId", "1");
+    params.put("blockId", Long.toString(BLOCK_ID));
+    params.put("sessionId", Long.toString(SESSION_ID));
     params.put("offset", "0");
-    params.put("length", "-1");
-
-    Random random = new Random();
-    byte[] bytes = CommonUtils.randomBytes(random.nextInt(64));
-
-    BlockWriter blockWriter = PowerMockito.mock(BlockWriter.class);
-    Mockito.doReturn(blockWriter).when(mBlockWorker)
-        .getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
+    params.put("length", Long.toString(INITIAL_BYTES));
 
     TestCase testCase =
         new TestCase(mHostname, mPort, getEndpoint(BlockWorkerClientRestServiceHandler.WRITE_BLOCK),
@@ -255,12 +229,17 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
     connection.setRequestMethod(testCase.getMethod());
     connection.setDoOutput(true);
     connection.connect();
-    connection.getOutputStream().write(bytes);
+    connection.getOutputStream().write(BYTE_BUFFER.array());
     Assert.assertEquals(testCase.getEndpoint(), Response.Status.OK.getStatusCode(),
         connection.getResponseCode());
     Assert.assertEquals("", testCase.getResponse(connection));
 
-    Mockito.verify(mBlockWorker).getTempBlockWriterRemote(Mockito.anyLong(), Mockito.anyLong());
-    Mockito.verify(blockWriter).append(ByteBuffer.wrap(bytes));
+    // Verify that the right data was written.
+    mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);
+    long lockId = mBlockWorker.lockBlock(SESSION_ID, BLOCK_ID);
+    String file = mBlockWorker.readBlock(SESSION_ID, BLOCK_ID, lockId);
+    byte[] result = new byte[INITIAL_BYTES];
+    IOUtils.readFully(new FileInputStream(file), result);
+    Assert.assertArrayEquals(BYTE_BUFFER.array(), result);
   }
 }

@@ -12,7 +12,7 @@
 package alluxio.underfs.glusterfs;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystemCluster;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,10 +27,10 @@ public class GlusterFSCluster extends UnderFileSystemCluster {
   }
 
   private void checkGlusterConfigured() {
-    if (StringUtils.isEmpty(Configuration.get(Constants.UNDERFS_GLUSTERFS_MOUNTS))) {
+    if (StringUtils.isEmpty(Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_MOUNTS))) {
       throw new IllegalArgumentException("Gluster FS Mounts are undefined");
     }
-    if (StringUtils.isEmpty(Configuration.get(Constants.UNDERFS_GLUSTERFS_VOLUMES))) {
+    if (StringUtils.isEmpty(Configuration.get(PropertyKey.UNDERFS_GLUSTERFS_VOLUMES))) {
       throw new IllegalArgumentException("Gluster FS Volumes are undefined");
     }
   }

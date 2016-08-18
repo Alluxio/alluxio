@@ -14,6 +14,7 @@ package alluxio.client.keyvalue;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.util.io.PathUtils;
 
@@ -65,9 +66,9 @@ public final class KeyValuePartitionIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          Constants.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {

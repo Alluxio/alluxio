@@ -11,17 +11,16 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
+import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
-import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,9 +39,6 @@ public class ServiceSocketBindIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource(100, Constants.GB, false);
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
-  private Configuration mWorkerConfiguration = null;
-  private Configuration mMasterConfiguration = null;
-
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;
   private BlockWorkerClient mBlockWorkerClient;
@@ -51,7 +47,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
-      Configuration.set(service.getBindHostKey(), bindHost);
+      mLocalAlluxioClusterResource.setProperty(service.getBindHostKey(), bindHost);
     }
     mLocalAlluxioClusterResource.start();
     mLocalAlluxioCluster = mLocalAlluxioClusterResource.get();
@@ -59,7 +55,7 @@ public class ServiceSocketBindIntegrationTest {
 
   private void connectServices() throws IOException, ConnectionFailedException {
     // connect Master RPC service
-    mBlockMasterClient = new BlockMasterClient(
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
             mLocalAlluxioCluster.getMasterPort()));
     mBlockMasterClient.connect();
@@ -121,52 +117,6 @@ public class ServiceSocketBindIntegrationTest {
   }
 
   @Test
-  public void listenWildcardTest() throws Exception {
-    startCluster(NetworkAddressUtils.WILDCARD_ADDRESS);
-    connectServices();
-
-    // test Master RPC socket bind (session layer)
-    String bindHost = mLocalAlluxioCluster.getMaster().getRPCBindHost();
-    Assert.assertThat("Master RPC bind address " + bindHost + " is not wildcard address", bindHost,
-        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
-    // test Master RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker RPC socket bind (session layer)
-    bindHost = mLocalAlluxioCluster.getWorker().getRPCBindHost();
-    Assert.assertThat("Worker RPC address " + bindHost + " is not wildcard address", bindHost,
-        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
-    // test Worker RPC service connectivity (application layer)
-    Assert.assertTrue(mBlockMasterClient.isConnected());
-
-    // test Worker data socket bind (session layer)
-    bindHost = mLocalAlluxioCluster.getWorker().getDataBindHost();
-    Assert.assertThat(
-        "Worker Data bind address " + bindHost + " is not wildcard address. Make sure the System"
-            + " property -Djava.net.preferIPv4Stack is set to true.",
-        bindHost, CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
-
-    // test Worker data service connectivity (application layer)
-    Assert.assertTrue(mWorkerDataService.isConnected());
-
-    // test Master Web socket bind (session layer)
-    bindHost = mLocalAlluxioCluster.getMaster().getWebBindHost();
-    Assert.assertThat("Master Web bind address " + bindHost + " is not wildcard address", bindHost,
-        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
-    // test Master Web service connectivity (application layer)
-    Assert.assertEquals(200, mMasterWebService.getResponseCode());
-
-    // test Worker Web socket bind (session layer)
-    bindHost = mLocalAlluxioCluster.getWorker().getWebBindHost();
-    Assert.assertThat("Worker Web bind address " + bindHost + " is not wildcard address", bindHost,
-        CoreMatchers.containsString(NetworkAddressUtils.WILDCARD_ADDRESS));
-    // test Worker Web service connectivity (application layer)
-    Assert.assertEquals(200, mWorkerWebService.getResponseCode());
-
-    closeServices();
-  }
-
-  @Test
   public void listenSameAddressTest() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
     connectServices();
@@ -196,7 +146,7 @@ public class ServiceSocketBindIntegrationTest {
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.
     InetSocketAddress masterRPCAddr =
         new InetSocketAddress("127.0.0.1", mLocalAlluxioCluster.getMaster().getRPCLocalPort());
-    mBlockMasterClient = new BlockMasterClient(masterRPCAddr);
+    mBlockMasterClient = new RetryHandlingBlockMasterClient(masterRPCAddr);
     try {
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to master RPC service.");
@@ -206,8 +156,8 @@ public class ServiceSocketBindIntegrationTest {
 
     // Connect to Worker RPC service on loopback, while Worker is listening on local hostname.
     try {
-      mBlockWorkerClient = BlockStoreContext.INSTANCE
-          .acquireWorkerClient(mLocalAlluxioCluster.getWorker().getNetAddress());
+      mBlockWorkerClient =
+          BlockStoreContext.INSTANCE.acquireWorkerClient(mLocalAlluxioCluster.getWorkerAddress());
       mBlockMasterClient.connect();
       Assert.fail("Client should not have successfully connected to Worker RPC service.");
     } catch (Exception e) {

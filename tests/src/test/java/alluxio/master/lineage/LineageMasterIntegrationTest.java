@@ -17,6 +17,7 @@ import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.IntegrationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.WriteType;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -56,19 +57,23 @@ public class LineageMasterIntegrationTest {
   protected static final long WORKER_CAPACITY_BYTES = Constants.GB;
   protected static final int BUFFER_BYTES = 100;
   protected static final String OUT_FILE = "/test";
+  protected static final int RECOMPUTE_INTERVAL_MS = 1000;
+  protected static final int CHECKPOINT_INTERVAL_MS = 100;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
 
   @Rule
-  public LocalAlluxioClusterResource mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(
-      WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES,
-      Constants.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES),
-      Constants.WORKER_DATA_SERVER, IntegrationTestConstants.NETTY_DATA_SERVER,
-      Constants.USER_LINEAGE_ENABLED, "true",
-      Constants.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS, "1000",
-      Constants.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100"
-      );
+  public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
+          .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS,
+              IntegrationTestConstants.NETTY_DATA_SERVER)
+          .setProperty(PropertyKey.USER_LINEAGE_ENABLED, "true")
+          .setProperty(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS,
+              Integer.toString(RECOMPUTE_INTERVAL_MS))
+          .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS,
+              Integer.toString(CHECKPOINT_INTERVAL_MS));
 
   protected CommandLineJob mJob;
 
@@ -126,8 +131,13 @@ public class LineageMasterIntegrationTest {
 
   /**
    * Tests that a lineage job is executed when the output file for the lineage is reported as lost.
+   *
+   * The checkpoint interval is set high so that we are guaranteed to call reportLostFile
+   * before persistence is complete.
    */
-  @Test(timeout = 30000)
+  @Test(timeout = 100000)
+  @LocalAlluxioClusterResource.Config(
+      confParams = {PropertyKey.Name.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS, "100000"})
   public void lineageRecoveryTest() throws Exception {
     final File logFile = mFolder.newFile();
     // Delete the log file so that when it starts to exist we know that it was created by the
@@ -157,7 +167,7 @@ public class LineageMasterIntegrationTest {
           throw Throwables.propagate(e);
         }
       }
-    }, 20 * Constants.SECOND_MS);
+    }, 100 * Constants.SECOND_MS);
   }
 
   /**

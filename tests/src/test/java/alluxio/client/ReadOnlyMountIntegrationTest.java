@@ -13,8 +13,8 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.options.LoadMetadataOptions;
@@ -72,7 +72,8 @@ public class ReadOnlyMountIntegrationTest {
 
   @Test
   public void createFileTest() throws IOException, AlluxioException {
-    CreateFileOptions writeBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    CreateFileOptions writeBoth =
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
 
     AlluxioURI uri = new AlluxioURI(FILE_PATH + "_create");
     try {
@@ -277,7 +278,8 @@ public class ReadOnlyMountIntegrationTest {
    * @return the path of the alternate Ufs directory
    */
   private String createAlternateUfs() throws Exception {
-    AlluxioURI parentURI = new AlluxioURI(Configuration.get(Constants.UNDERFS_ADDRESS)).getParent();
+    AlluxioURI parentURI =
+        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;

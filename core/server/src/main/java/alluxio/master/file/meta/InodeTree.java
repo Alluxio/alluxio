@@ -14,8 +14,9 @@ package alluxio.master.file.meta;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.collections.ConcurrentHashSet;
+import alluxio.collections.FieldIndex;
 import alluxio.collections.IndexDefinition;
-import alluxio.collections.IndexedSet;
+import alluxio.collections.UniqueFieldIndex;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.ExceptionMessage;
@@ -64,6 +65,13 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Value to be used for an inode with no parent. */
   public static final long NO_PARENT = -1;
 
+  private static final IndexDefinition<Inode<?>> ID_INDEX = new IndexDefinition<Inode<?>>(true) {
+    @Override
+    public Object getFieldValue(Inode<?> o) {
+      return o.getId();
+    }
+  };
+
   /**
    * The type of lock to lock inode paths with.
    */
@@ -94,14 +102,9 @@ public final class InodeTree implements JournalCheckpointStreamable {
   /** Mount table manages the file system mount points. */
   private final MountTable mMountTable;
 
-  private final IndexDefinition<Inode<?>> mIdIndex = new IndexDefinition<Inode<?>>(true) {
-    @Override
-    public Object getFieldValue(Inode<?> o) {
-      return o.getId();
-    }
-  };
   @SuppressWarnings("unchecked")
-  private final IndexedSet<Inode<?>> mInodes = new IndexedSet<>(mIdIndex);
+  /** use UniqueFieldIndex directly for Id index rather than using IndexedSet */
+  private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<Inode<?>>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 
@@ -180,7 +183,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @return whether the inode exists
    */
   public boolean inodeIdExists(long id) {
-    return mInodes.getFirstByField(mIdIndex, id) != null;
+    return mInodes.containsField(id);
   }
 
   /**
@@ -346,7 +349,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       throws FileDoesNotExistException {
     int count = 0;
     while (true) {
-      Inode<?> inode = mInodes.getFirstByField(mIdIndex, id);
+      Inode<?> inode = mInodes.getFirst(id);
       if (inode == null) {
         throw new FileDoesNotExistException(ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(id));
       }
@@ -423,7 +426,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       builder.append(AlluxioURI.SEPARATOR);
       builder.append(name);
     } else {
-      Inode<?> parentInode = mInodes.getFirstByField(mIdIndex, parentId);
+      Inode<?> parentInode = mInodes.getFirst(parentId);
       if (parentInode == null) {
         throw new FileDoesNotExistException(
             ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(parentId));
@@ -606,7 +609,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
       if (options instanceof CreateFileOptions) {
         CreateFileOptions fileOptions = (CreateFileOptions) options;
         lastInode = InodeFile.create(mContainerIdGenerator.getNewContainerId(),
-            currentInodeDirectory.getId(), name, fileOptions);
+            currentInodeDirectory.getId(), name, System.currentTimeMillis(), fileOptions);
         // Lock the created inode before subsequent operations, and add it to the lock group.
         lockList.lockWrite(lastInode);
         if (currentInodeDirectory.isPinned()) {
@@ -707,7 +710,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   public void deleteInode(LockedInodePath inodePath, long opTimeMs)
       throws FileDoesNotExistException {
     Inode<?> inode = inodePath.getInode();
-    InodeDirectory parent = (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+    InodeDirectory parent = (InodeDirectory) mInodes.getFirst(inode.getParentId());
     if (parent == null) {
       throw new FileDoesNotExistException(
           ExceptionMessage.INODE_DOES_NOT_EXIST.getMessage(inode.getParentId()));
@@ -856,8 +859,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
   private void addInodeFromJournalInternal(Inode<?> inode) {
     InodeDirectory parentDirectory = mCachedInode;
     if (inode.getParentId() != mCachedInode.getId()) {
-      parentDirectory =
-          (InodeDirectory) mInodes.getFirstByField(mIdIndex, inode.getParentId());
+      parentDirectory = (InodeDirectory) mInodes.getFirst(inode.getParentId());
       mCachedInode = parentDirectory;
     }
     parentDirectory.addChild(inode);
@@ -870,7 +872,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRoot, mIdIndex, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
+    return Objects.hashCode(mRoot, mInodes, mPinnedInodeFileIds, mContainerIdGenerator,
         mDirectoryIdGenerator, mCachedInode);
   }
 
@@ -884,7 +886,6 @@ public final class InodeTree implements JournalCheckpointStreamable {
     }
     InodeTree that = (InodeTree) o;
     return Objects.equal(mRoot, that.mRoot)
-        && Objects.equal(mIdIndex, that.mIdIndex)
         && Objects.equal(mInodes, that.mInodes)
         && Objects.equal(mPinnedInodeFileIds, that.mPinnedInodeFileIds)
         && Objects.equal(mContainerIdGenerator, that.mContainerIdGenerator)

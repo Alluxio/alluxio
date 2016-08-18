@@ -13,6 +13,7 @@ package alluxio.worker.block;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.BlockDoesNotExistException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.InvalidWorkerStateException;
@@ -21,6 +22,7 @@ import alluxio.resource.ResourcePool;
 import com.google.common.base.Objects;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Sets;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +31,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -51,7 +52,7 @@ public final class BlockLockManager {
 
   /** A pool of read write locks. */
   private final ResourcePool<ClientRWLock> mLockPool = new ResourcePool<ClientRWLock>(
-      Configuration.getInt(Constants.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
+      Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_BLOCK_LOCKS)) {
     @Override
     public void close() {}
 
@@ -86,7 +87,7 @@ public final class BlockLockManager {
   /**
    * Locks a block. Note that even if this block does not exist, a lock id is still returned.
    *
-   * If all {@link Constants#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
+   * If all {@link PropertyKey#WORKER_TIERED_STORE_BLOCK_LOCKS} are already in use and no lock has
    * been allocated for the specified block, this method will need to wait until a lock can be
    * acquired from the lock pool.
    *
@@ -341,7 +342,7 @@ public final class BlockLockManager {
   public void validate() {
     synchronized (mSharedMapsLock) {
       // Compute block lock reference counts based off of lock records
-      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMap<>();
+      ConcurrentMap<Long, AtomicInteger> blockLockReferenceCounts = new ConcurrentHashMapV8<>();
       for (LockRecord record : mLockIdToRecordMap.values()) {
         blockLockReferenceCounts.putIfAbsent(record.getBlockId(), new AtomicInteger(0));
         blockLockReferenceCounts.get(record.getBlockId()).incrementAndGet();

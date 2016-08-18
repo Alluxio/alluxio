@@ -12,7 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.ReadType;
@@ -48,18 +48,18 @@ public final class InStreamOptions {
   }
 
   private InStreamOptions() {
-    mReadType = Configuration.getEnum(Constants.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
+    mReadType = Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
     try {
       mLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
-              Constants.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
+              PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mCachePartiallyReadBlock =
-        Configuration.getBoolean(Constants.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
+        Configuration.getBoolean(PropertyKey.USER_FILE_CACHE_PARTIALLY_READ_BLOCK);
     mSeekBufferSizeBytes =
-        Configuration.getBytes(Constants.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
+        Configuration.getBytes(PropertyKey.USER_FILE_SEEK_BUFFER_SIZE_BYTES);
   }
 
   /**

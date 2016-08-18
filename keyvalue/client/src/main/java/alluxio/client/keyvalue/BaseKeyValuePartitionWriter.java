@@ -13,6 +13,7 @@ package alluxio.client.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.AbstractOutStream;
 import alluxio.util.io.ByteIOUtils;
 
@@ -69,7 +70,7 @@ final class BaseKeyValuePartitionWriter implements KeyValuePartitionWriter {
     mIndex = LinearProbingIndex.createEmptyIndex();
     mClosed = false;
     mCanceled = false;
-    mMaxSizeBytes = Configuration.getBytes(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX);
+    mMaxSizeBytes = Configuration.getBytes(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX);
   }
 
   @Override

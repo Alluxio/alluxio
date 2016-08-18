@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateDirectoryOptions;
@@ -39,13 +40,13 @@ import java.io.IOException;
 /**
  * Integration tests on Alluxio Client (reuse the {@link LocalAlluxioCluster}).
  */
-public class FileSystemIntegrationTest {
+public final class FileSystemIntegrationTest {
   private static final int WORKER_CAPACITY_BYTES = 2 * Constants.MB;
   private static final int USER_QUOTA_UNIT_BYTES = 1000;
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB,
-          Constants.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
+      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, Integer.toString(USER_QUOTA_UNIT_BYTES));
   private FileSystem mFileSystem = null;
   private CreateFileOptions mWriteBoth;
 
@@ -55,7 +56,7 @@ public class FileSystemIntegrationTest {
   @Before
   public void before() throws Exception {
     mFileSystem = mLocalAlluxioClusterResource.get().getClient();
-    mWriteBoth = StreamOptionUtils.getCreateFileOptionsCacheThrough();
+    mWriteBoth = CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH);
   }
 
   @Test
@@ -174,7 +175,8 @@ public class FileSystemIntegrationTest {
    * @return the path of the alternate Ufs directory
    */
   private String createAlternateUfs() throws Exception {
-    AlluxioURI parentURI = new AlluxioURI(Configuration.get(Constants.UNDERFS_ADDRESS)).getParent();
+    AlluxioURI parentURI =
+        new AlluxioURI(Configuration.get(PropertyKey.UNDERFS_ADDRESS)).getParent();
     String alternateUfsRoot = parentURI.join("alternateUnderFSStorage").toString();
     UnderFileSystemUtils.mkdirIfNotExists(alternateUfsRoot);
     return alternateUfsRoot;
@@ -230,7 +232,7 @@ public class FileSystemIntegrationTest {
   @Test
   public void mountPrefixUfsTest() throws Exception {
     // Primary UFS cannot be re-mounted
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir);
     try {
@@ -267,7 +269,7 @@ public class FileSystemIntegrationTest {
 
   @Test
   public void mountShadowUfsTest() throws Exception {
-    String ufsRoot = Configuration.get(Constants.UNDERFS_ADDRESS);
+    String ufsRoot = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
     String ufsSubdir = PathUtils.concatPath(ufsRoot, "dir1");
     UnderFileSystemUtils.mkdirIfNotExists(ufsSubdir);
 

@@ -12,7 +12,8 @@
 package alluxio.worker.block;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.PropertyKeyFormat;
 import alluxio.util.io.BufferUtils;
 import alluxio.util.io.FileUtils;
 import alluxio.util.io.PathUtils;
@@ -84,9 +85,9 @@ public class TieredBlockStoreTestUtils {
 
     tierPath = createDirHierarchy(baseDir, tierPath);
     if (workerDataFolder != null) {
-      Configuration.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(nTier));
 
     // sets up each tier in turn
     for (int i = 0; i < nTier; i++) {
@@ -117,9 +118,9 @@ public class TieredBlockStoreTestUtils {
       tierPath = createDirHierarchy(baseDir, tierPath);
     }
     if (workerDataFolder != null) {
-      Configuration.set(Constants.WORKER_DATA_FOLDER, workerDataFolder);
+      Configuration.set(PropertyKey.WORKER_DATA_FOLDER, workerDataFolder);
     }
-    Configuration.set(Constants.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
+    Configuration.set(PropertyKey.WORKER_TIERED_STORE_LEVELS, String.valueOf(1));
     setupConfTier(tierOrdinal, tierAlias, tierPath, tierCapacity);
   }
 
@@ -138,17 +139,19 @@ public class TieredBlockStoreTestUtils {
     Preconditions.checkNotNull(tierPath);
     Preconditions.checkNotNull(tierCapacity);
     Preconditions.checkArgument(tierPath.length == tierCapacity.length,
-        String.format("tierPath and tierCapacity should have the same length"));
+        "tierPath and tierCapacity should have the same length");
 
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT, ordinal),
-        tierAlias);
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(ordinal), tierAlias);
 
     String tierPathString = StringUtils.join(tierPath, ",");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT, ordinal),
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(ordinal),
         tierPathString);
 
     String tierCapacityString = StringUtils.join(ArrayUtils.toObject(tierCapacity), ",");
-    Configuration.set(String.format(Constants.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT, ordinal),
+    Configuration.set(
+        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(ordinal),
         tierCapacityString);
   }
 

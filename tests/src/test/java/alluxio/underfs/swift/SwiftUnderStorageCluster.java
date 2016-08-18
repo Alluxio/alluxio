@@ -11,7 +11,7 @@
 
 package alluxio.underfs.swift;
 
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.UnderFileSystemCluster;
 
@@ -33,6 +33,7 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
   private static final String INTEGRATION_SWIFT_CONTAINER_KEY = "containerKey";
   private static final String INTEGRATION_SWIFT_AUTH_METHOD_KEY = "authMethodKey";
   private static final String INTEGRATION_SWIFT_AUTH_URL_KEY = "authUrlKey";
+  private static final String INTEGRATION_SWIFT_SIMULATION = "simulation";
 
   private String mSwiftContainer;
 
@@ -43,12 +44,18 @@ public class SwiftUnderStorageCluster extends UnderFileSystemCluster {
     String userKey = System.getProperty(INTEGRATION_SWIFT_USER_KEY);
     String authMethodKey = System.getProperty(INTEGRATION_SWIFT_AUTH_METHOD_KEY);
     String authUrlKey = System.getProperty(INTEGRATION_SWIFT_AUTH_URL_KEY);
+    String simulation = System.getProperty(INTEGRATION_SWIFT_SIMULATION);
+    if (simulation == null) {
+      // By default, simulation is turned off
+      simulation = Boolean.FALSE.toString();
+    }
 
-    System.setProperty(Constants.SWIFT_API_KEY, swiftAPIKey);
-    System.setProperty(Constants.SWIFT_TENANT_KEY, tenantKey);
-    System.setProperty(Constants.SWIFT_USER_KEY, userKey);
-    System.setProperty(Constants.SWIFT_AUTH_METHOD_KEY, authMethodKey);
-    System.setProperty(Constants.SWIFT_AUTH_URL_KEY, authUrlKey);
+    System.setProperty(PropertyKey.SWIFT_API_KEY.toString(), swiftAPIKey);
+    System.setProperty(PropertyKey.SWIFT_TENANT_KEY.toString(), tenantKey);
+    System.setProperty(PropertyKey.SWIFT_USER_KEY.toString(), userKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_METHOD_KEY.toString(), authMethodKey);
+    System.setProperty(PropertyKey.SWIFT_AUTH_URL_KEY.toString(), authUrlKey);
+    System.setProperty(PropertyKey.SWIFT_SIMULATION.toString(), simulation);
 
     mSwiftContainer = System.getProperty(INTEGRATION_SWIFT_CONTAINER_KEY);
     mBaseDir = mSwiftContainer + UUID.randomUUID();
