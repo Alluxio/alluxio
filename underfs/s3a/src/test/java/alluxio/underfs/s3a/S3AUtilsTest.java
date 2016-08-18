@@ -27,16 +27,16 @@ import org.junit.Test;
 public final class S3AUtilsTest {
   private static final String NAME = "foo";
   private static final String ID = "123456789012";
-  private static final String OTHER = "987654321098";
+  private static final String OTHER_ID = "987654321098";
 
-  private CanonicalGrantee mOwnerGrantee;
+  private CanonicalGrantee mUserGrantee;
   private AccessControlList mAcl;
 
   @Before
   public void before() throws Exception {
     // Setup owner.
-    mOwnerGrantee = new CanonicalGrantee(ID);
-    mOwnerGrantee.setDisplayName(NAME);
+    mUserGrantee = new CanonicalGrantee(ID);
+    mUserGrantee.setDisplayName(NAME);
 
     // Setup the acl.
     mAcl = new AccessControlList();
@@ -44,56 +44,75 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateUserAcl() {
-    // Grant only READ, READ_ACP permission to the user. Check the translated mode is 0500.
-    mAcl.grantPermission(mOwnerGrantee, Permission.Read);
-    mAcl.grantPermission(mOwnerGrantee, Permission.ReadAcp);
+  public void translateUserReadPermission() {
+    mAcl.grantPermission(mUserGrantee, Permission.Read);
     Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
+    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+    mAcl.grantPermission(mUserGrantee, Permission.ReadAcp);
+    Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
 
-    // Grant WRITE permission to the user. Check the translated mode is 0700.
-    mAcl.grantPermission(mOwnerGrantee, Permission.Write);
+  @Test
+  public void translateUserWritePermission() {
+    mAcl.grantPermission(mUserGrantee, Permission.Write);
+    Assert.assertEquals((short) 0200, S3AUtils.translateBucketAcl(mAcl, ID));
+    mAcl.grantPermission(mUserGrantee, Permission.Read);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    // Add WRITE_ACP permission to the user. Check the translated mode is still 0700.
-    mAcl.grantPermission(mOwnerGrantee, Permission.WriteAcp);
-    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
   }
 
   @Test
   public void translateUserFullPermission() {
-    mAcl.grantPermission(mOwnerGrantee, Permission.FullControl);
+    mAcl.grantPermission(mUserGrantee, Permission.FullControl);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
+    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
-  public void translateEveryoneAcl() {
+  public void translateEveryoneReadPermission() {
     GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
-    // Assign READ only permission to "everyone".
     mAcl.grantPermission(allUsersGrantee, Permission.Read);
-    mAcl.grantPermission(allUsersGrantee, Permission.ReadAcp);
-    // Check the translated mode is now 0500, because owner write permission is revoked.
     Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, OTHER));
-    // Add WRITE permission to "everyone", and check the translated mode becomes 0700.
-    mAcl.grantPermission(allUsersGrantee, Permission.Write);
-    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER));
+    Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 
   @Test
-  public void translateAuthenticatedUserAcl() {
-    // Add READ only permission to "all authenticated users".
+  public void translateEveryoneWritePermission() {
+    GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
+    mAcl.grantPermission(allUsersGrantee, Permission.Write);
+    Assert.assertEquals((short) 0200, S3AUtils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0200, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
+
+  @Test
+  public void translateEveryoneFullPermission() {
+    GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
+    mAcl.grantPermission(allUsersGrantee, Permission.FullControl);
+    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
+
+  @Test
+  public void translateAuthenticatedUserReadPermission() {
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AuthenticatedUsers;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.Read);
-    mAcl.grantPermission(authenticatedUsersGrantee, Permission.ReadAcp);
-    // Check the mode is 0500.
     Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, OTHER));
-    // Add WRITE permission to "all authenticated users" and check permission.
+    Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
+
+  @Test
+  public void translateAuthenticatedUserWritePermission() {
+    GroupGrantee authenticatedUsersGrantee = GroupGrantee.AuthenticatedUsers;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.Write);
+    Assert.assertEquals((short) 0200, S3AUtils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0200, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
+  }
+
+  @Test
+  public void translateAuthenticatedUserFullPermission() {
+    GroupGrantee authenticatedUsersGrantee = GroupGrantee.AuthenticatedUsers;
+    mAcl.grantPermission(authenticatedUsersGrantee, Permission.FullControl);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER));
+    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, OTHER_ID));
   }
 }
