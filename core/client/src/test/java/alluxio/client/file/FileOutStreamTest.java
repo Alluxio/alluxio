@@ -176,7 +176,7 @@ public class FileOutStreamTest {
    * Tests that a single byte is written to the out stream correctly.
    */
   @Test
-  public void singleByteWriteTest() throws Exception {
+  public void singleByteWrite() throws Exception {
     mTestStream.write(5);
     Assert.assertArrayEquals(new byte[] {5}, mAlluxioOutStreamMap.get(0L).getWrittenData());
   }
@@ -185,7 +185,7 @@ public class FileOutStreamTest {
    * Tests that many bytes, written one at a time, are written to the out streams correctly.
    */
   @Test
-  public void manyBytesWriteTest() throws IOException {
+  public void manyBytesWrite() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     for (int i = 0; i < bytesToWrite; i++) {
       mTestStream.write(i);
@@ -197,7 +197,7 @@ public class FileOutStreamTest {
    * Tests that writing a buffer all at once will write bytes to the out streams correctly.
    */
   @Test
-  public void writeBufferTest() throws IOException {
+  public void writeBuffer() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite));
     verifyIncreasingBytesWritten(bytesToWrite);
@@ -207,7 +207,7 @@ public class FileOutStreamTest {
    * Tests writing a buffer at an offset.
    */
   @Test
-  public void writeOffsetTest() throws IOException {
+  public void writeOffset() throws IOException {
     int bytesToWrite = (int) ((BLOCK_LENGTH * 5) + (BLOCK_LENGTH / 2));
     int offset = (int) (BLOCK_LENGTH / 3);
     mTestStream.write(BufferUtils.getIncreasingByteArray(bytesToWrite + offset), offset,
@@ -220,7 +220,7 @@ public class FileOutStreamTest {
    * Also checks that {@link FileOutStream#close()} persists and completes the file.
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     when(mUnderFileSystem.rename(anyString(), anyString())).thenReturn(true);
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.close();
@@ -237,7 +237,7 @@ public class FileOutStreamTest {
    * complete the file.
    */
   @Test
-  public void cancelTest() throws Exception {
+  public void cancel() throws Exception {
     mTestStream.write(BufferUtils.getIncreasingByteArray((int) (BLOCK_LENGTH * 1.5)));
     mTestStream.cancel();
     for (long streamIndex = 0; streamIndex < 2; streamIndex++) {
@@ -254,7 +254,7 @@ public class FileOutStreamTest {
    * Tests that {@link FileOutStream#flush()} will flush the under store stream.
    */
   @Test
-  public void flushTest() throws IOException {
+  public void flush() throws IOException {
     Assert.assertFalse(mUnderStorageFlushed.get());
     mTestStream.flush();
     Assert.assertTrue(mUnderStorageFlushed.get());
@@ -266,7 +266,7 @@ public class FileOutStreamTest {
    * message will be thrown.
    */
   @Test
-  public void cacheWriteExceptionNonSyncPersistTest() throws IOException {
+  public void cacheWriteExceptionNonSyncPersist() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE);
@@ -291,7 +291,7 @@ public class FileOutStreamTest {
    * from by writing the data to the under storage out stream.
    */
   @Test
-  public void cacheWriteExceptionSyncPersistTest() throws IOException {
+  public void cacheWriteExceptionSyncPersist() throws IOException {
     BufferedBlockOutStream stream = mock(BufferedBlockOutStream.class);
     when(mBlockStore.getOutStream(anyLong(), anyLong(), any(WorkerNetAddress.class)))
         .thenReturn(stream);
@@ -310,7 +310,7 @@ public class FileOutStreamTest {
    * Tests that write only writes a byte.
    */
   @Test
-  public void truncateWriteTest() throws IOException {
+  public void truncateWrite() throws IOException {
     // Only writes the lowest byte
     mTestStream.write(0x1fffff00);
     mTestStream.write(0x1fffff01);
@@ -321,7 +321,7 @@ public class FileOutStreamTest {
    * Tests that the correct exception is thrown when a buffer is written with invalid offset/length.
    */
   @Test
-  public void writeBadBufferOffsetTest() throws IOException {
+  public void writeBadBufferOffset() throws IOException {
     try {
       mTestStream.write(new byte[10], 5, 6);
       Assert.fail("buffer write with invalid offset/length should fail");
@@ -335,7 +335,7 @@ public class FileOutStreamTest {
    * Tests that writing a null buffer throws the correct exception.
    */
   @Test
-  public void writeNullBufferTest() throws IOException {
+  public void writeNullBuffer() throws IOException {
     try {
       mTestStream.write(null);
       Assert.fail("writing null should fail");
@@ -348,7 +348,7 @@ public class FileOutStreamTest {
    * Tests that writing a null buffer with offset/length information throws the correct exception.
    */
   @Test
-  public void writeNullBufferOffsetTest() throws IOException {
+  public void writeNullBufferOffset() throws IOException {
     try {
       mTestStream.write(null, 0, 0);
       Assert.fail("writing null should fail");
@@ -361,7 +361,7 @@ public class FileOutStreamTest {
    * Tests that the async write invokes the expected client APIs.
    */
   @Test
-  public void asyncWriteTest() throws Exception {
+  public void asyncWrite() throws Exception {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.ASYNC_THROUGH);
@@ -375,7 +375,7 @@ public class FileOutStreamTest {
   }
 
   @Test
-  public void useLocationPolicyTest() throws IOException {
+  public void useLocationPolicy() throws IOException {
     OutStreamOptions options = OutStreamOptions.defaults().setWriteType(WriteType.MUST_CACHE)
         .setLocationPolicy(new FileWriteLocationPolicy() {
           @Override
@@ -397,7 +397,7 @@ public class FileOutStreamTest {
    * Tests that the correct exception message is produced when the location policy is not specified.
    */
   @Test
-  public void missingLocationPolicyTest() throws IOException {
+  public void missingLocationPolicy() throws IOException {
     OutStreamOptions options =
         OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH)
             .setWriteType(WriteType.MUST_CACHE).setLocationPolicy(null);
@@ -415,7 +415,7 @@ public class FileOutStreamTest {
    * under storage types.
    */
   @Test
-  public void getBytesWrittenWithDifferentUnderStorageTypeTest() throws IOException {
+  public void getBytesWrittenWithDifferentUnderStorageType() throws IOException {
     for (WriteType type : WriteType.values()) {
       OutStreamOptions options =
           OutStreamOptions.defaults().setBlockSizeBytes(BLOCK_LENGTH).setWriteType(type);

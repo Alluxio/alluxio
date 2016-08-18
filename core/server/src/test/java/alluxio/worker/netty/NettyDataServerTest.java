@@ -74,12 +74,12 @@ public final class NettyDataServerTest {
   }
 
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mNettyDataServer.close();
   }
 
   @Test
-  public void portTest() {
+  public void port() {
     assertTrue(mNettyDataServer.getPort() > 0);
   }
 

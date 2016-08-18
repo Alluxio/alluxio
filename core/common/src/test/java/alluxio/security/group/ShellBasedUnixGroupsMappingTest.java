@@ -42,7 +42,7 @@ public final class ShellBasedUnixGroupsMappingTest {
    * Tests the {@link ShellBasedUnixGroupsMapping#getGroups(String)} method.
    */
   @Test
-  public void userGroupTest() throws Throwable {
+  public void userGroup() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";

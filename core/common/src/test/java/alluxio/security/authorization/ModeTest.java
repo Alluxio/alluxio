@@ -42,7 +42,7 @@ public final class ModeTest {
    * Tests the {@link Mode#toShort()} method.
    */
   @Test
-  public void toShortTest() {
+  public void toShort() {
     Mode mode = new Mode(Mode.Bits.ALL, Mode.Bits.READ_EXECUTE, Mode.Bits.READ_EXECUTE);
     Assert.assertEquals(0755, mode.toShort());
 
@@ -57,7 +57,7 @@ public final class ModeTest {
    * Tests the {@link Mode#fromShort(short)} method.
    */
   @Test
-  public void fromShortTest() {
+  public void fromShort() {
     Mode mode = new Mode((short) 0777);
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
@@ -78,7 +78,7 @@ public final class ModeTest {
    * Tests the {@link Mode#Mode(Mode)} constructor.
    */
   @Test
-  public void copyConstructorTest() {
+  public void copyConstructor() {
     Mode mode = new Mode(Mode.getDefault());
     Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
     Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
@@ -90,7 +90,7 @@ public final class ModeTest {
    * Tests the {@link Mode#createNoAccess()} method.
    */
   @Test
-  public void createNoAccessTest() {
+  public void createNoAccess() {
     Mode mode = Mode.createNoAccess();
     Assert.assertEquals(Mode.Bits.NONE, mode.getOwnerBits());
     Assert.assertEquals(Mode.Bits.NONE, mode.getGroupBits());
@@ -102,7 +102,7 @@ public final class ModeTest {
    * Tests the {@link Mode#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
+  public void equals() {
     Mode allAccess = new Mode((short) 0777);
     Assert.assertTrue(allAccess.equals(Mode.getDefault()));
     Mode noAccess = new Mode((short) 0000);
@@ -126,7 +126,7 @@ public final class ModeTest {
    * {@link Mode#applyUMask(Mode)} methods.
    */
   @Test
-  public void umaskTest() {
+  public void umask() {
     String umask = "0022";
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     Mode umaskMode = Mode.getUMask();
@@ -142,7 +142,7 @@ public final class ModeTest {
    * Tests the {@link Mode#getUMask()} method to thrown an exception when it exceeds the length.
    */
   @Test
-  public void umaskExceedLengthTest() {
+  public void umaskExceedLength() {
     String umask = "00022";
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);
@@ -155,7 +155,7 @@ public final class ModeTest {
    * Tests the {@link Mode#getUMask()} method to thrown an exception when it is not an integer.
    */
   @Test
-  public void umaskNotIntegerTest() {
+  public void umaskNotInteger() {
     String umask = "NotInteger";
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, umask);
     mThrown.expect(IllegalArgumentException.class);

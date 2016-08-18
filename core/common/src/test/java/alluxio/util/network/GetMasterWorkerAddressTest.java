@@ -39,7 +39,7 @@ public class GetMasterWorkerAddressTest {
    * a master node.
    */
   @Test
-  public void getMasterAddressTest() {
+  public void getMasterAddress() {
     // connect host and port
     Configuration.set(PropertyKey.MASTER_HOSTNAME, "RemoteMaster1");
     Configuration.set(PropertyKey.MASTER_RPC_PORT, "10000");
@@ -72,7 +72,7 @@ public class GetMasterWorkerAddressTest {
    * a worker node.
    */
   @Test
-  public void getWorkerAddressTest() {
+  public void getWorkerAddress() {
     // port only
     Configuration.set(PropertyKey.WORKER_RPC_PORT, "10001");
     String defaultHostname = NetworkAddressUtils.getLocalHostName();
