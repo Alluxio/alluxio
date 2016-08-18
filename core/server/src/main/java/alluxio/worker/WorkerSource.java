@@ -26,7 +26,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class WorkerSource implements Source {
-  private final String mWorkerSourceName;
+  private static final String mWorkerSourceName = "worker";
 
   public static final String BLOCKS_ACCESSED = "BlocksAccessed";
   public static final String BLOCKS_CANCELED = "BlocksCanceled";
@@ -86,10 +86,7 @@ public class WorkerSource implements Source {
   /**
    * Constructs a new {@link WorkerSource}.
    */
-  public WorkerSource() {
-    mWorkerSourceName = "worker." + NetworkAddressUtils
-        .getConnectHost(NetworkAddressUtils.ServiceType.WORKER_RPC).replace('.', '_');
-  }
+  public WorkerSource() {}
 
   @Override
   public String getName() {
