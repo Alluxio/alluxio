@@ -282,7 +282,7 @@ public final class Client {
   private void setupContainerLaunchContext() throws IOException, YarnException {
     Map<String, String> applicationMasterArgs = ImmutableMap.<String, String>of(
         "-num_workers", Integer.toString(mNumWorkers),
-        "-master_address", mMasterAddress,
+        "-master_address", "\"" + mMasterAddress + "\"",
         "-resource_path", mResourcePath);
 
     final String amCommand =

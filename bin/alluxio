@@ -72,7 +72,7 @@ function bootstrapConf {
   fi
 
   # Set the master hostname
-  ALLUXIO_MASTER_HOSTNAME="${master}"
+  ALLUXIO_MASTER_HOSTNAME=${master}
 
   # Set the worker memory size
   ALLUXIO_WORKER_MEMORY_SIZE="${TOTAL_MEM}MB"
