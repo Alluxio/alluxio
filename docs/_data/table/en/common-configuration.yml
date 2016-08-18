@@ -44,7 +44,7 @@ alluxio.underfs.hdfs.prefixes:
 alluxio.underfs.object.store.mount.shared.publicly:
   Whether or not to share object storage under storage system mounted point with all Alluxio users.
   Note that this configuration has no effect on HDFS nor local UFS. The default value is false.
-alluxio.underfs.s3.canonical.user.id.to.username.mapping:
+alluxio.underfs.s3.owner.id.to.username.mapping:
   Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the following
   format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address:
   https://console.aws.amazon.com/iam/home?#security_credential . Please expand the

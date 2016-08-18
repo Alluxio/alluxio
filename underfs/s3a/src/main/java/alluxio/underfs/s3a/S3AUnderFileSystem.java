@@ -165,7 +165,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
-        Configuration.get(PropertyKey.UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING),
+        Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
         mAccountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {

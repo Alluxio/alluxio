@@ -17,7 +17,7 @@ alluxio.underfs.hdfs.configuration,${alluxio.home}/conf/core-site.xml
 alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
 alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
 alluxio.underfs.object.store.mount.shared.publicly,false
-alluxio.underfs.s3.canonical.user.id.to.username.mapping,No default
+alluxio.underfs.s3.owner.id.to.username.mapping,No default
 alluxio.underfs.s3.endpoint,No default
 alluxio.underfs.s3.proxy.host,No default
 alluxio.underfs.s3.proxy.https.only,true
