@@ -11,6 +11,14 @@
 
 package alluxio.yarn;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doReturn;
+
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+import alluxio.exception.ExceptionMessage;
+
 import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.YarnClient;
@@ -25,17 +33,9 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
-import static org.mockito.Mockito.*;
-
-import alluxio.Configuration;
-import alluxio.Constants;
-import alluxio.PropertyKey;
-import alluxio.exception.ExceptionMessage;
-
-
 /**
  * Unit tests for {@link Client}.
- * TODO: ALLUXIO-1503: add more unit test for alluxio.yarn.Client
+ * TODO(xuan gong): ALLUXIO-1503: add more unit test for alluxio.yarn.Client
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({Client.class, YarnClient.class})
@@ -52,45 +52,111 @@ public final class ClientTest {
     PowerMockito.mockStatic(YarnClient.class);
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
     Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
+
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
   }
 
-  /**
-   * Tests that the main method properly reads args.
-   */
-  @Test(timeout = 10000)
-  public void mainTest() throws Exception {
-    Client mockClient = spy(new Client());
-    Mockito.doNothing().when(mockClient).run();
-    PowerMockito.whenNew(Client.class)
-        .withNoArguments()
-        .thenReturn(mockClient);
-
-    Client.main(new String[] {
-        "-resource_path", "hdfs://test",
-        "-am_memory", "1024",
+  @Test(timeout = 1000)
+  public void notEnoughMemoryForApplicationMaster() throws Exception {
+    int appMasterMem = 1024;
+    Resource resource = Resource.newInstance(appMasterMem / 2, 4);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "ApplicationMaster", "memory", appMasterMem, resource.getMemory()));
+    Client client = new Client();
+    client.parseArgs(new String[] {
+        "-resource_path", "test",
+        "-am_memory", Integer.toString(appMasterMem),
         "-am_vcores", "2"});
-    PowerMockito.verifyNew(Client.class).withNoArguments();
+    client.run();
+  }
 
-    Mockito.verify(mockClient).run();
+  @Test(timeout = 1000)
+  public void notEnoughVCoreForApplicationMaster() throws Exception {
+    int appMasterMem = 1024;
+    int appMasterCore = 2;
+    Resource resource = Resource.newInstance(appMasterMem, appMasterCore / 2);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "ApplicationMaster", "virtual cores", appMasterCore, resource.getVirtualCores()));
+    Client client = new Client();
+    client.parseArgs(new String[] {
+        "-resource_path", "test",
+        "-am_memory", Integer.toString(appMasterMem),
+        "-am_vcores", Integer.toString(appMasterCore)});
+    client.run();
   }
 
   @Test(timeout = 10000)
-  public void notEnoughResources() throws Exception {
+  public void notEnoughMemoryForAlluxioMaster() throws Exception {
     int masterMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    Resource resource = Resource.newInstance(masterMemInMB / 2, 4);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "Alluxio Master", "memory", masterMemInMB, resource.getMemory()));
+    Client client = new Client();
+    client.run();
+  }
+
+  @Test(timeout = 10000)
+  public void notEnoughVCoreForAlluxioMaster() throws Exception {
+    int masterMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
+    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    Resource resource = Resource.newInstance(masterMemInMB, 3);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "Alluxio Master", "virtual cores", masterVCores, resource.getVirtualCores()));
+    Client client = new Client();
+    client.run();
+  }
+
+  @Test(timeout = 10000)
+  public void notEnoughMemoryForAlluxioWorker() throws Exception {
+    int workerMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+    int ramdiskMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB) / 2, 4);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "Alluxio Worker", "memory", (workerMemInMB + ramdiskMemInMB), resource.getMemory()));
+    Client client = new Client();
+    client.run();
+  }
+
+  @Test(timeout = 10000)
+  public void notEnoughVCoreForAlluxioWorker() throws Exception {
+    int workerMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
+    int ramdiskMemInMB = (int) (Configuration.getBytes(
+        PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
+    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    Resource resource = Resource.newInstance((workerMemInMB + ramdiskMemInMB), 4);
+    generateMaxAllocation(resource);
+    mThrown.expect(RuntimeException.class);
+    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
+        "Alluxio Worker", "virtual cores", workerVCore, resource.getVirtualCores()));
+    Client client = new Client();
+    client.run();
+  }
+
+  private void generateMaxAllocation(Resource resource) throws Exception {
     YarnClientApplication mockYarnClientApplication = mock(YarnClientApplication.class);
     doReturn(mockYarnClientApplication).when(mYarnClient).createApplication();
     GetNewApplicationResponse mockNewApplicationResponse = mock(GetNewApplicationResponse.class);
     doReturn(mockNewApplicationResponse).when(mockYarnClientApplication)
         .getNewApplicationResponse();
-    int maxAllocationMem = masterMemInMB/2;
-    Resource resource = Resource.newInstance(maxAllocationMem, 1);
     doReturn(resource).when(mockNewApplicationResponse).getMaximumResourceCapability();
-    mThrown.expect(IllegalArgumentException.class);
-    mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage("Alluxio Master",
-        "memory", masterMemInMB, maxAllocationMem));
-    Client client = new Client();
-    client.run();
   }
-
 }

@@ -19,6 +19,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
@@ -184,7 +185,8 @@ public final class Client {
    * @return Whether the parseArgs was successful to run the client
    * @throws ParseException if an error occurs when parsing the argument
    */
-  private boolean parseArgs(String[] args) throws ParseException {
+  @VisibleForTesting
+  public boolean parseArgs(String[] args) throws ParseException {
     Preconditions.checkArgument(args.length > 0, "No args specified for client to initialize");
     CommandLine cliParser = new GnuParser().parse(mOptions, args);
 
@@ -264,43 +266,43 @@ public final class Client {
     int maxMem = appResponse.getMaximumResourceCapability().getMemory();
     int maxVCores = appResponse.getMaximumResourceCapability().getVirtualCores();
 
-    if (mAmMemoryInMB <= maxMem) {
+    if (mAmMemoryInMB > maxMem) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("ApplicationMaster", "memory", mAmMemoryInMB, maxMem));
     }
 
-    if (mAmVCores <= maxVCores) {
+    if (mAmVCores > maxVCores) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("ApplicationMaster", "virtual cores", mAmVCores, maxVCores));
     }
 
-    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
     int masterMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
-    if (masterMemInMB <= maxMem) {
+    if (masterMemInMB > maxMem) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("Alluxio Master", "memory", masterMemInMB, maxMem));
     }
 
-    if (masterVCores <= maxVCores) {
+    int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
+    if (masterVCores > maxVCores) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
           .getMessage("Alluxio Master", "virtual cores", masterVCores, maxVCores));
     }
 
-    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
     int workerMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (Configuration.getBytes(
         PropertyKey.WORKER_MEMORY_SIZE) / Constants.MB);
 
-    if ((workerMemInMB + ramdiskMemInMB) <= maxMem) {
+    if ((workerMemInMB + ramdiskMemInMB) > maxMem) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
-          .getMessage("Alluxio worker", "memory", (workerMemInMB + ramdiskMemInMB), maxMem));
+          .getMessage("Alluxio Worker", "memory", (workerMemInMB + ramdiskMemInMB), maxMem));
     }
 
-    if (workerVCore <= maxVCores) {
+    int workerVCore = Configuration.getInt(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU);
+    if (workerVCore > maxVCores) {
       throw new RuntimeException(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES
-          .getMessage("Alluxio worker", "virtual cores", masterVCores, maxVCores));
+          .getMessage("Alluxio Worker", "virtual cores", workerVCore, maxVCores));
     }
   }
 
