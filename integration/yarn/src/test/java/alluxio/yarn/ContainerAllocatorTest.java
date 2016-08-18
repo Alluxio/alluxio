@@ -108,7 +108,7 @@ public final class ContainerAllocatorTest {
   @Test(timeout = 1000)
   public void allocateMasterInAnyHost() throws Exception {
     ContainerAllocator containerAllocator = new ContainerAllocator(CONTAINER_NAME, 1,
-        1, mResource, mYarnClient, mRMClient, "*");
+        1, mResource, mYarnClient, mRMClient, "localhost");
     doAnswer(allocateFirstHostAnswer(containerAllocator))
         .when(mRMClient).addContainerRequest(Matchers.argThat(
           new ArgumentMatcher<ContainerRequest>() {
@@ -117,7 +117,7 @@ public final class ContainerAllocatorTest {
               ContainerRequest request = (ContainerRequest) o;
               if (request.getRelaxLocality() == true
                   && request.getNodes().size() == 1
-                  && request.getNodes().get(0).equals("*")) {
+                  && request.getNodes().get(0).equals("localhost")) {
                 return true;
               }
               return false;

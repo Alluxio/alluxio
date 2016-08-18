@@ -19,7 +19,6 @@ import com.google.common.collect.Lists;
 import org.apache.hadoop.yarn.api.records.Container;
 import org.apache.hadoop.yarn.api.records.Priority;
 import org.apache.hadoop.yarn.api.records.Resource;
-import org.apache.hadoop.yarn.api.records.ResourceRequest;
 import org.apache.hadoop.yarn.client.api.AMRMClient.ContainerRequest;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.async.AMRMClientAsync;
@@ -146,7 +145,7 @@ public final class ContainerAllocator {
     Priority priority;
     if (mPreferredHost != null) {
       hosts = new String[]{mPreferredHost};
-      relaxLocality = mPreferredHost.equals(ResourceRequest.ANY);
+      relaxLocality = mPreferredHost.equals("localhost");
       priority = Priority.newInstance(100);
     } else {
       hosts = getPotentialWorkerHosts();

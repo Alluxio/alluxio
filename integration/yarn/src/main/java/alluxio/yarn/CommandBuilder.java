@@ -57,7 +57,7 @@ public class CommandBuilder {
    * @return the {@link CommandBuilder} with the argument added
    */
   public CommandBuilder addArg(String opt, Object arg) {
-    mArgs.add(opt + " \"" + String.valueOf(arg) + "\"");
+    mArgs.add(opt + " " + String.valueOf(arg));
     return this;
   }
 
