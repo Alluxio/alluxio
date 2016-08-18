@@ -288,7 +288,7 @@ public class UnderStoreBlockInStreamTest {
   }
 
   /**
-   * {@UnderStoreStreamFactory} which creates streams to a specified file.
+   * {@link UnderStoreStreamFactory} which creates streams to a specified file.
    */
   private final class FileUnderStoreStreamFactory implements UnderStoreStreamFactory {
     private final File mFile;
