@@ -59,6 +59,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS),
+  UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL),
   UNDERFS_GLUSTERFS_MOUNTS(Name.UNDERFS_GLUSTERFS_MOUNTS),
   UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR),
@@ -71,6 +72,8 @@ public enum PropertyKey {
   UNDERFS_OSS_CONNECT_TIMEOUT(Name.UNDERFS_OSS_CONNECT_TIMEOUT),
   UNDERFS_OSS_CONNECT_TTL(Name.UNDERFS_OSS_CONNECT_TTL),
   UNDERFS_OSS_SOCKET_TIMEOUT(Name.UNDERFS_OSS_SOCKET_TIMEOUT),
+  UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING(
+      Name.UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING),
   UNDERFS_S3_ADMIN_THREADS_MAX(Name.UNDERFS_S3_ADMIN_THREADS_MAX),
   UNDERFS_S3_DISABLE_DNS_BUCKETS(Name.UNDERFS_S3_DISABLE_DNS_BUCKETS),
   UNDERFS_S3_ENDPOINT(Name.UNDERFS_S3_ENDPOINT),
@@ -325,6 +328,8 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
+        "alluxio.underfs.gcs.owner.id.to.username.mapping";
     public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
     public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
     public static final String UNDERFS_GLUSTERFS_MR_DIR =
@@ -346,6 +351,8 @@ public enum PropertyKey {
         "alluxio.underfs.s3a.server.side.encryption.enabled";
     public static final String UNDERFS_S3A_SOCKET_TIMEOUT_MS =
         "alluxio.underfs.s3a.socket.timeout.ms";
+    public static final String UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING =
+        "alluxio.underfs.s3.canonical.user.id.to.username.mapping";
     public static final String UNDERFS_S3_ADMIN_THREADS_MAX =
         "alluxio.underfs.s3.admin.threads.max";
     public static final String UNDERFS_S3_DISABLE_DNS_BUCKETS =

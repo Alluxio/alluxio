@@ -91,10 +91,10 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   private final TransferManager mManager;
 
   /** The owner name of the bucket. */
-  private final String mBucketOwner;
+  private final String mAccountOwner;
 
   /** The AWS id of the bucket owner. */
-  private final String mBucketOwnerId;
+  private final String mAccountOwnerId;
 
   /** The permission mode by the owner to the bucket. */
   private final short mBucketMode;
@@ -161,10 +161,20 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     mManager.setConfiguration(transferConf);
 
+    mAccountOwnerId = mClient.getS3AccountOwner().getId();
+    // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
+    // user name.
+    String owner = CommonUtils.getValueFromStaticMapping(
+        Configuration.get(PropertyKey.UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING),
+        mAccountOwnerId);
+    // If there is no user-defined mapping, use the display name.
+    if (owner == null) {
+      owner = mClient.getS3AccountOwner().getDisplayName();
+    }
+    mAccountOwner = owner == null ? "" : owner;
+
     AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketOwner = acl.getOwner().getDisplayName();
-    mBucketOwnerId = acl.getOwner().getId();
-    mBucketMode = S3AUtils.translateBucketAcl(acl, mBucketOwnerId);
+    mBucketMode = S3AUtils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
   @Override
@@ -421,13 +431,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return mBucketOwner;
+    return mAccountOwner;
   }
 
   // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return mBucketOwner;
+    return mAccountOwner;
   }
 
   // Returns the translated mode by the owner of the bucket.
