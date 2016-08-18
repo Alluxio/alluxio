@@ -17,6 +17,13 @@ package alluxio;
 public final class RuntimeConstants {
   static {
     VERSION = Configuration.get(PropertyKey.VERSION);
+    if (Configuration.get(PropertyKey.VERSION).endsWith("SNAPSHOT")) {
+      ALLUXIO_DOCS_URL = "http://www.alluxio.org/docs/master";
+    } else {
+      String[] majorMinor = Configuration.get(PropertyKey.VERSION).split("\\.");
+      ALLUXIO_DOCS_URL = String.format(
+          "http://www.alluxio.org/docs/%s.%s", majorMinor[0], majorMinor[1]);
+    }
   }
 
   /** The version of this Alluxio instance. */
@@ -25,6 +32,9 @@ public final class RuntimeConstants {
   /** The relative path to the Alluxio target jar. */
   public static final String ALLUXIO_JAR =
       "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
+
+  /** The URL to Alluxio documentation for this version on project web site. */
+  public static final String ALLUXIO_DOCS_URL;
 
   private RuntimeConstants() {} // prevent instantiation
 }
