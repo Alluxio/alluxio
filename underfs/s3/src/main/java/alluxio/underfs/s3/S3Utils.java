@@ -22,7 +22,7 @@ import org.jets3t.service.acl.Permission;
  */
 public final class S3Utils {
   /**
-   * Translates S3 bucket owner ACL to Alluxio owner mode.
+   * Translates S3 bucket ACL to Alluxio owner mode.
    *
    * @param acl the acl of S3 bucket
    * @param userId the S3 user id of the Alluxio owner
