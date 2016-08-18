@@ -32,7 +32,7 @@ public final class FileSystemContextTest {
    * occurred preventing the release of the master clients.
    */
   @Test(timeout = 10000)
-  public void acquireAtMaxLimitTest() throws Exception {
+  public void acquireAtMaxLimit() throws Exception {
     final List<FileSystemMasterClient> clients = new ArrayList<>();
 
     // Acquire all the clients

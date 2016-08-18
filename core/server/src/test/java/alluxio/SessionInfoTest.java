@@ -37,7 +37,7 @@ public final class SessionInfoTest {
    * Tests the {@link SessionInfo#SessionInfo(long, int)} constructor.
    */
   @Test
-  public void constructorTest() {
+  public void constructor() {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -49,7 +49,7 @@ public final class SessionInfoTest {
    * when using an invalid id for the session.
    */
   @Test(expected = RuntimeException.class)
-  public void constructorWithExceptionTest() {
+  public void constructorWithException() {
     for (int k = 0; k >= -1000; k -= DELTA) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -61,7 +61,7 @@ public final class SessionInfoTest {
    * Tests the {@link SessionInfo#getSessionId()} method.
    */
   @Test
-  public void getSessionIdTest() {
+  public void getSessionId() {
     for (int k = MIN_LEN; k < MAX_LEN; k += 66) {
       SessionInfo tSessionInfo = new SessionInfo(k, mSessionTimeoutMs);
       Assert.assertEquals(k, tSessionInfo.getSessionId());
@@ -72,7 +72,7 @@ public final class SessionInfoTest {
    * Tests the {@link SessionInfo#timeout()} method.
    */
   @Test
-  public void timeoutTest() {
+  public void timeout() {
     SessionInfo tSessionInfo = new SessionInfo(1, mSessionTimeoutMs);
     Assert.assertFalse(tSessionInfo.timeout());
   }

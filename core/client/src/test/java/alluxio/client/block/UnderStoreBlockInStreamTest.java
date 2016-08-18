@@ -76,7 +76,7 @@ public class UnderStoreBlockInStreamTest {
    * Verifies the byte-by-byte read returns the correct data, for the first block in the file.
    */
   @Test
-  public void singleByteReadTest() throws IOException {
+  public void singleByteRead() throws IOException {
     singleByteReadInternal(mBlockStream, 0);
   }
 
@@ -84,7 +84,7 @@ public class UnderStoreBlockInStreamTest {
    * Verifies the byte-by-byte read returns the correct data, for the last block in the file.
    */
   @Test
-  public void singleByteReadEOFTest() throws IOException {
+  public void singleByteReadEOF() throws IOException {
     singleByteReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -112,7 +112,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests that array read methods read the correct data, for the first block of the file.
    */
   @Test
-  public void arrayReadTest() throws IOException {
+  public void arrayRead() throws IOException {
     arrayReadInternal(mBlockStream, 0);
   }
 
@@ -120,7 +120,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests that array read methods read the correct data, for the last block of the file.
    */
   @Test
-  public void arrayReadEOFTest() throws IOException {
+  public void arrayReadEOF() throws IOException {
     arrayReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -160,7 +160,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the array read when completely reading the first block of the file.
    */
   @Test
-  public void arrayFullReadTest() throws IOException {
+  public void arrayFullRead() throws IOException {
     arrayFullReadInternal(mBlockStream, 0);
   }
 
@@ -168,7 +168,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the array read when completely reading the last block of the file.
    */
   @Test
-  public void arrayFullReadEOFTest() throws IOException {
+  public void arrayFullReadEOF() throws IOException {
     arrayFullReadInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -198,7 +198,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the first block of the file.
    */
   @Test
-  public void skipTest() throws IOException {
+  public void skip() throws IOException {
     skipInternal(mBlockStream, 0);
   }
 
@@ -206,7 +206,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the {@link UnderStoreBlockInStream#skip(long)} method for the last block of the file.
    */
   @Test
-  public void skipEOFTest() throws IOException {
+  public void skipEOF() throws IOException {
     skipInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 
@@ -248,7 +248,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the first block of the file.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     seekInternal(mBlockStream, 0);
   }
 
@@ -256,7 +256,7 @@ public class UnderStoreBlockInStreamTest {
    * Tests the {@link UnderStoreBlockInStream#seek(long)} method for the last block of the file.
    */
   @Test
-  public void seekEOFTest() throws IOException {
+  public void seekEOF() throws IOException {
     seekInternal(mEOFBlockStream, (int) BLOCK_LENGTH);
   }
 

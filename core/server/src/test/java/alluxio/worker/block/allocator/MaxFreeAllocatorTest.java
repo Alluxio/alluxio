@@ -26,7 +26,7 @@ public class MaxFreeAllocatorTest extends AllocatorTestBase {
    * Tests that blocks are allocated in the storage directory with the most available free space.
    */
   @Test
-  public void allocateBlockTest() throws Exception {
+  public void allocateBlock() throws Exception {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //

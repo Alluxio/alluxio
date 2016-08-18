@@ -34,7 +34,7 @@ public class MountOptionsTest {
    * Tests the {@link MountOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     MountOptions options = MountOptions.defaults();
     Assert.assertFalse(options.isReadOnly());
     Assert.assertTrue(options.getProperties().isEmpty());
@@ -45,7 +45,7 @@ public class MountOptionsTest {
    * Tests creating a {@link MountOptions} from a thrift object.
    */
   @Test
-  public void FromThriftTest() {
+  public void FromThrift() {
     // Null thrift options
     MountTOptions thriftOptions = null;
     MountOptions options = new MountOptions(thriftOptions);
@@ -76,7 +76,7 @@ public class MountOptionsTest {
    * Tests creating a {@link MountOptions} from a proto object.
    */
   @Test
-  public void FromProtoTest() {
+  public void FromProto() {
     // Null proto options
     File.AddMountPointEntry protoOptions = null;
     MountOptions options = new MountOptions(protoOptions);
@@ -108,7 +108,7 @@ public class MountOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     MountOptions options = MountOptions.defaults().setReadOnly(true);
     Assert.assertTrue(options.isReadOnly());
 

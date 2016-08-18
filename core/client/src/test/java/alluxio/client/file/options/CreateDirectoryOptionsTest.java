@@ -30,7 +30,7 @@ public class CreateDirectoryOptionsTest {
       Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
 
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
     Assert.assertFalse(options.isAllowExists());
     Assert.assertFalse(options.isRecursive());
@@ -41,7 +41,7 @@ public class CreateDirectoryOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();
@@ -61,7 +61,7 @@ public class CreateDirectoryOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean recursive = random.nextBoolean();

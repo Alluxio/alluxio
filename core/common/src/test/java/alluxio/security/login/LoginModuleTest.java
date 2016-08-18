@@ -41,7 +41,7 @@ public class LoginModuleTest {
    * Simple mode login get the OS user and convert to Alluxio user.
    */
   @Test
-  public void simpleLoginTest() throws Exception {
+  public void simpleLogin() throws Exception {
     String clazzName = LoginModuleConfigurationUtils.OS_PRINCIPAL_CLASS_NAME;
     @SuppressWarnings("unchecked")
     Class<? extends Principal> clazz = (Class<? extends Principal>) ClassLoader

@@ -36,7 +36,7 @@ public class CreateFileOptionsTest {
 
   // TODO(calvin): Test location policy when a factory is created
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CreateFileOptions options = CreateFileOptions.defaults();
     Assert.assertTrue(options.isRecursive());
     Assert.assertEquals(mDefaultBlockSizeBytes, options.getBlockSizeBytes());
@@ -49,7 +49,7 @@ public class CreateFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     long blockSize = random.nextLong();
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
@@ -76,7 +76,7 @@ public class CreateFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     CreateFileOptions options = CreateFileOptions.defaults();
     CreateFileTOptions thriftOptions = options.toThrift();
     Assert.assertTrue(thriftOptions.isRecursive());
