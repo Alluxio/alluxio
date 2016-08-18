@@ -163,4 +163,37 @@ public final class ModeTest {
         PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK));
     Mode.getUMask();
   }
+
+  @Test
+  public void setOwnerBits() {
+    Mode mode = new Mode((short) 0000);
+    mode.setOwnerBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOwnerBits());
+    mode.setOwnerBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getOwnerBits());
+    mode.setOwnerBits(Mode.Bits.ALL);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getOwnerBits());
+  }
+
+  @Test
+  public void setGroupBits() {
+    Mode mode = new Mode((short) 0000);
+    mode.setGroupBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getGroupBits());
+    mode.setGroupBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getGroupBits());
+    mode.setGroupBits(Mode.Bits.ALL);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getGroupBits());
+  }
+
+  @Test
+  public void setOtherBits() {
+    Mode mode = new Mode((short) 0000);
+    mode.setOtherBits(Mode.Bits.READ_EXECUTE);
+    Assert.assertEquals(Mode.Bits.READ_EXECUTE, mode.getOtherBits());
+    mode.setOtherBits(Mode.Bits.WRITE);
+    Assert.assertEquals(Mode.Bits.WRITE, mode.getOtherBits());
+    mode.setOtherBits(Mode.Bits.ALL);
+    Assert.assertEquals(Mode.Bits.ALL, mode.getOtherBits());
+  }
 }
