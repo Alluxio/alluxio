@@ -44,24 +44,31 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateOwnerAclTest() {
-    // Grant only READ, READ_ACP permission to the owner. Check the translated mode is 0500.
+  public void translateUserAcl() {
+    // Grant only READ, READ_ACP permission to the user. Check the translated mode is 0500.
     mAcl.grantPermission(mOwnerGrantee, Permission.Read);
     mAcl.grantPermission(mOwnerGrantee, Permission.ReadAcp);
     Assert.assertEquals((short) 0500, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
 
-    // Grant WRITE permission to the owner. Check the translated mode is 0700.
+    // Grant WRITE permission to the user. Check the translated mode is 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.Write);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
-    // Add WRITE_ACP permission to the owner. Check the translated mode is still 0700.
+    // Add WRITE_ACP permission to the user. Check the translated mode is still 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.WriteAcp);
     Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
   }
 
   @Test
-  public void translateEveryoneAclTest() {
+  public void translateUserFullPermission() {
+    mAcl.grantPermission(mOwnerGrantee, Permission.FullControl);
+    Assert.assertEquals((short) 0700, S3AUtils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0000, S3AUtils.translateBucketAcl(mAcl, OTHER));
+  }
+
+  @Test
+  public void translateEveryoneAcl() {
     GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
     // Assign READ only permission to "everyone".
     mAcl.grantPermission(allUsersGrantee, Permission.Read);
@@ -76,7 +83,7 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateAuthenticatedUserAclTest() {
+  public void translateAuthenticatedUserAcl() {
     // Add READ only permission to "all authenticated users".
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AuthenticatedUsers;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.Read);
