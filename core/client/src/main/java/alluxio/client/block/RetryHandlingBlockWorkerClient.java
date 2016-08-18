@@ -15,6 +15,7 @@ import alluxio.AbstractClient;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.RuntimeConstants;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
@@ -296,7 +297,8 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
         }
       });
     } catch (WorkerOutOfSpaceException e) {
-      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage(mAddress, blockId));
+      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
+          .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mAddress, blockId));
     } catch (AlluxioException e) {
       throw new IOException(e);
     }
@@ -313,7 +315,8 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
         }
       });
       if (!requested) {
-        throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage(mAddress, blockId));
+        throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE
+            .getMessageWithUrl(RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL, mAddress, blockId));
       }
       return true;
     } catch (AlluxioException e) {
