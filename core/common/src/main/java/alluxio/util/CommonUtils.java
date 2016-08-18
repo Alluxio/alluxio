@@ -284,7 +284,7 @@ public final class CommonUtils {
   }
 
   /**
-   * Gets the value from the static key:value mapping in string format. E.g. mapping
+   * Gets the value from the static key=value mapping in string format. E.g. mapping
    * "id1=user1;id2=user2" returns value "user1" with key "id1", returns value null with key
    * "invalid". Returns null if the given key does not exist in the mapping.
    *
