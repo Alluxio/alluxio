@@ -17,8 +17,10 @@ import alluxio.PropertyKey;
 import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
+import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.MetricRegistry;
+import com.google.common.base.Joiner;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +43,10 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  // Supported special instance names.
+  public static final String MASTER_INSTANCE = "master";
+  public static final String WORKER_INSTANCE = "worker";
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
   public static final String SOURCE_REGEX = "^source\\.(.+)\\.(.+)";
@@ -125,6 +131,22 @@ public class MetricsSystem {
   }
 
   /**
+   * Build unique metric registry names. The pattern is [master|worker|client].hostname.sourceName.
+   * The hostname is skipped for master.
+   *
+   * @param source the metrics source (e.g. JvmSource, MasterSource)
+   * @return the registry name
+   */
+  private String buildSourceRegistryName(Source source) {
+    // Do not add hostname to the master metrics.
+    if (mInstance == MASTER_INSTANCE) {
+      return Joiner.on(".").join(mInstance, source.getName());
+    } else {
+      return Joiner.on(".").join(mInstance, NetworkAddressUtils.getLocalHostName());
+    }
+  }
+
+  /**
    * Registers a {@link Source}.
    *
    * @param source the source to register
@@ -132,7 +154,7 @@ public class MetricsSystem {
   public void registerSource(Source source) {
     mSources.add(source);
     try {
-      mMetricRegistry.register(source.getName(), source.getMetricRegistry());
+      mMetricRegistry.register(buildSourceRegistryName(source), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
       LOG.warn("Metrics already registered. Exception: {}", e.getMessage());
     }

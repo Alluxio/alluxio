@@ -137,6 +137,7 @@ public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstract
     if (pieces.length < 3) {
       throw new IllegalArgumentException("Incorrect worker metrics name: " + metricsName);
     }
+    pieces[0] = null;
     pieces[1] = null;
     return Joiner.on(".").skipNulls().join(pieces);
   }
