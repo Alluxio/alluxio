@@ -210,6 +210,7 @@ public enum ExceptionMessage {
   /**
    * Formats the message of the exception with a url to consult.
    *
+   * @param url the url to consult
    * @param params the parameters for the exception message
    * @return the formatted message
    */
