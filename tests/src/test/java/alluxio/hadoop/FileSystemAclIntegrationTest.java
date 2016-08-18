@@ -409,7 +409,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void s3PermissionTest() throws Exception {
     if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)) {
-      // Only test S3 UFSs.
+      // Only test S3 UFS.
       return;
     }
     Path fileA = new Path("/objectfileA");
@@ -437,7 +437,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void gcsPermissionTest() throws Exception {
     if (!(sUfs instanceof GCSUnderFileSystem)) {
-      // Only test GCS UFSs.
+      // Only test GCS UFS.
       return;
     }
     Path fileA = new Path("/objectfileA");
@@ -466,7 +466,7 @@ public final class FileSystemAclIntegrationTest {
   public void swiftPermissionTest() throws Exception {
     // TODO(chaomin): update Swift permission integration test once the Swift implementation is done
     if (!(sUfs instanceof SwiftUnderFileSystem)) {
-      // Only test Swift UFSs.
+      // Only test Swift UFS.
       return;
     }
     Path fileA = new Path("/objectfileA");
@@ -476,7 +476,7 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    // Verify the owner, group and permission of UFS is not supported and thus returns default
+    // Verify the owner, group and permission of Swift UFS is not supported and thus returns default
     // values.
     Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
@@ -495,7 +495,7 @@ public final class FileSystemAclIntegrationTest {
   @Test
   public void ossPermissionTest() throws Exception {
     if (!(sUfs instanceof OSSUnderFileSystem)) {
-      // Only test OSS UFSs.
+      // Only test OSS UFS.
       return;
     }
     Path fileA = new Path("/objectfileA");
@@ -505,7 +505,7 @@ public final class FileSystemAclIntegrationTest {
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    // Verify the owner, group and permission of UFS is not supported and thus returns default
+    // Verify the owner, group and permission of OSS UFS is not supported and thus returns default
     // values.
     Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
