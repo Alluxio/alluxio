@@ -408,7 +408,7 @@ public final class FileSystemAclIntegrationTest {
   public void s3GetPermissionTest() throws Exception {
     Assume.assumeTrue((sUfs instanceof S3UnderFileSystem) || (sUfs instanceof S3AUnderFileSystem));
 
-    alluxio.Configuration.set(PropertyKey.UNDERFS_S3_CANONICAL_USER_ID_TO_USERNAME_MAPPING, "");
+    alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
