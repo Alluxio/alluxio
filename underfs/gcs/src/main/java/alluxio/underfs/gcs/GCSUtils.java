@@ -25,30 +25,38 @@ public final class GCSUtils {
    * Translates GCS bucket owner ACL to Alluxio owner mode.
    *
    * @param acl the acl of GCS bucket
-   * @param bucketOwnerId the bucket owner id
+   * @param userId the S3 user id of the Alluxio owner
    * @return the translated posix mode in short format
    */
-  public static short translateBucketAcl(GSAccessControlList acl, String bucketOwnerId) {
+  public static short translateBucketAcl(GSAccessControlList acl, String userId) {
     short mode = (short) 0;
     for (GrantAndPermission gp : acl.getGrantAndPermissions()) {
       Permission perm = gp.getPermission();
       GranteeInterface grantee = gp.getGrantee();
-      // If the bucket is readable by the owner, add r and x to the owner mode.
-      if (perm.equals(Permission.PERMISSION_READ)
-          && (grantee.getIdentifier().equals(bucketOwnerId)
-              || grantee.equals(GroupGrantee.ALL_USERS)
-              || grantee.equals(GroupGrantee.AUTHENTICATED_USERS))) {
-        mode |= (short) 0500;
-      }
-      // If the bucket is writable by the owner, +w to the owner mode.
-      if (perm.equals(Permission.PERMISSION_FULL_CONTROL)
-          && (grantee.getIdentifier().equals(bucketOwnerId)
-              || grantee.equals(GroupGrantee.ALL_USERS)
-              || grantee.equals(GroupGrantee.AUTHENTICATED_USERS))) {
-        mode |= (short) 0700;
+      if (perm.equals(Permission.PERMISSION_READ)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the bucket is readable by the user, add r and x to the owner mode.
+          mode |= (short) 0500;
+        }
+      } else if (perm.equals(Permission.PERMISSION_WRITE)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the bucket is writable by the user, +w to the owner mode.
+          mode |= (short) 0200;
+        }
+      } else if (perm.equals(Permission.PERMISSION_FULL_CONTROL)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the user has full control to the bucket, +rwx to the owner mode.
+          mode |= (short) 0700;
+        }
       }
     }
     return mode;
+  }
+
+  private static boolean isUserIdInGrantee(GranteeInterface grantee, String userId) {
+    return grantee.getIdentifier().equals(userId)
+        || grantee.equals(GroupGrantee.ALL_USERS)
+        || grantee.equals(GroupGrantee.AUTHENTICATED_USERS);
   }
 
   private GCSUtils() {} // prevent instantiation
