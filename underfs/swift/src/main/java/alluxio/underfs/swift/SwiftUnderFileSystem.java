@@ -287,6 +287,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getFileSize(String path) throws IOException {
+    LOG.debug("Get modification time for {}", path);
     return getObject(path).getContentLength();
   }
 
