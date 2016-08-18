@@ -44,29 +44,36 @@ public final class S3UtilsTest {
   }
 
   @Test
-  public void translateOwnerAclTest() {
-    // Grant only READ, READ_ACP permission to the owner. Check the translated mode is 0500.
+  public void translateUserAcl() {
+    // Grant only READ, READ_ACP permission to the user. Check the translated mode is 0500.
     mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_READ);
     mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_READ_ACP);
     Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(mAcl, OTHER));
 
-    // Grant WRITE permission to the owner. Check the translated mode is 0700.
+    // Grant WRITE permission to the user. Check the translated mode is 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_WRITE);
     Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
-    // Add WRITE_ACP permission to the owner. Check the translated mode is still 0700.
+    // Add WRITE_ACP permission to the user. Check the translated mode is still 0700.
     mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_WRITE_ACP);
     Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(mAcl, OTHER));
   }
 
   @Test
-  public void translateEveryoneAclTest() {
+  public void translateUserFullPermission() {
+    mAcl.grantPermission(mOwnerGrantee, Permission.PERMISSION_FULL_CONTROL);
+    Assert.assertEquals((short) 0700, S3Utils.translateBucketAcl(mAcl, ID));
+    Assert.assertEquals((short) 0000, S3Utils.translateBucketAcl(mAcl, OTHER));
+  }
+
+  @Test
+  public void translateEveryoneAcl() {
     GroupGrantee allUsersGrantee = GroupGrantee.ALL_USERS;
     // Assign READ only permission to "everyone".
     mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ);
     mAcl.grantPermission(allUsersGrantee, Permission.PERMISSION_READ_ACP);
-    // Check the translated mode is now 0500, because owner write permission is revoked.
+    // Check the translated mode is now 0500.
     Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, ID));
     Assert.assertEquals((short) 0500, S3Utils.translateBucketAcl(mAcl, OTHER));
     // Add WRITE permission to "everyone", and check the translated mode becomes 0700.
@@ -76,7 +83,7 @@ public final class S3UtilsTest {
   }
 
   @Test
-  public void translateAuthenticatedUserAclTest() {
+  public void translateAuthenticatedUserAcl() {
     // Add READ only permission to "all authenticated users".
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AUTHENTICATED_USERS;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.PERMISSION_READ);
