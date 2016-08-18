@@ -130,6 +130,11 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
             // swiftauth authenticates directly against swift
             // note: this method is supported in swift object storage api v1
             config.setAuthenticationMethod(AuthenticationMethod.BASIC);
+            // swiftauth requires authentication header to be of the form tenant:user.
+            // JOSS however generates header of the form user:tenant.
+            // To resolve this, we switch user with tenant
+            config.setTenantName(Configuration.get(PropertyKey.SWIFT_USER_KEY));
+            config.setUsername(Configuration.get(PropertyKey.SWIFT_TENANT_KEY));
             break;
           default:
             config.setAuthenticationMethod(AuthenticationMethod.TEMPAUTH);
@@ -287,6 +292,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    LOG.debug("Get modification time for {}", path);
     return getObject(path).getLastModifiedAsDate().getTime();
   }
 
