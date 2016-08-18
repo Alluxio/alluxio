@@ -153,7 +153,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
 
-    // TODO(chaomin): add a preset mapping from account owner id to Alluxio user name.
     mAccountOwnerId = mClient.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
     // user name.
