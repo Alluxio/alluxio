@@ -113,8 +113,8 @@ public abstract class UnderFileSystem {
      * Gets a UFS instance from the cache if exists. Otherwise, creates a new instance and adds
      * that to the cache.
      *
-     * @param path the UFS path
-     * @param ufsConf the UFS configuration
+     * @param path the ufs path
+     * @param ufsConf the ufs configuration
      * @return the UFS instance
      */
     UnderFileSystem get(String path, Object ufsConf) {
@@ -178,7 +178,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the UnderFileSystem instance according to its schema.
    *
-   * @param path file path storing over the ufs
+   * @param path the file path storing over the ufs
    * @return instance of the under layer file system
    */
   public static UnderFileSystem get(String path) {
@@ -188,7 +188,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the UnderFileSystem instance according to its scheme and configuration.
    *
-   * @param path file path storing over the ufs
+   * @param path the file path storing over the ufs
    * @param ufsConf the configuration object for ufs only
    * @return instance of the under layer file system
    */
@@ -300,7 +300,7 @@ public abstract class UnderFileSystem {
   /**
    * Constructs an {@link UnderFileSystem}.
    *
-   * @param uri the {@link AlluxioURI} used to create this UFS
+   * @param uri the {@link AlluxioURI} used to create this ufs
    */
   protected UnderFileSystem(AlluxioURI uri) {
     Preconditions.checkNotNull(uri);
@@ -326,7 +326,7 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param hostname The host that wants to connect to the under file system
+   * @param hostname the host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void connectFromMaster(String hostname) throws IOException;
@@ -338,7 +338,7 @@ public abstract class UnderFileSystem {
    * Depending on the implementation this may be a no-op
    * </p>
    *
-   * @param hostname The host that wants to connect to the under file system
+   * @param hostname the host that wants to connect to the under file system
    * @throws IOException if a non-Alluxio error occurs
    */
   public abstract void connectFromWorker(String hostname) throws IOException;
@@ -353,7 +353,7 @@ public abstract class UnderFileSystem {
   /**
    * Creates a file in the under file system with the indicated name.
    *
-   * @param path The file name
+   * @param path the file name
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -363,7 +363,7 @@ public abstract class UnderFileSystem {
    * Creates a file in the under file system with the specified
    * {@link CreateOptions}.
    *
-   * @param path The file name
+   * @param path the file name
    * @param options the options for create
    * @return A {@code OutputStream} object
    * @throws IOException if a non-Alluxio error occurs
@@ -374,8 +374,8 @@ public abstract class UnderFileSystem {
   /**
    * Deletes a file or folder from the under file system with the indicated name.
    *
-   * @param path The file or folder name
-   * @param recursive Whether we delete folder and its children
+   * @param path the file or folder name
+   * @param recursive the boolean indicates whether we delete folder and its children
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -384,7 +384,7 @@ public abstract class UnderFileSystem {
   /**
    * Checks if a file or folder exists in under file system.
    *
-   * @param path The file name
+   * @param path the file name
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -393,7 +393,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the block size of a file in under file system, in bytes.
    *
-   * @param path The file name
+   * @param path the file name
    * @return the block size in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -409,7 +409,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the list of locations of the indicated path.
    *
-   * @param path The file name
+   * @param path the file name
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -418,8 +418,8 @@ public abstract class UnderFileSystem {
   /**
    * Gets the list of locations of the indicated path given its offset.
    *
-   * @param path The file name
-   * @param offset Offset in bytes
+   * @param path the file name
+   * @param offset offset in bytes
    * @return The list of locations
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -428,7 +428,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the file size in bytes.
    *
-   * @param path The file name
+   * @param path the file name
    * @return the file size in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -437,7 +437,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the UTC time of when the indicated path was modified recently in ms.
    *
-   * @param path The file or folder name
+   * @param path the file or folder name
    * @return modification time in milliseconds
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -454,8 +454,8 @@ public abstract class UnderFileSystem {
    * Queries the under file system about the space of the indicated path (e.g., space left, space
    * used and etc).
    *
-   * @param path The path to query
-   * @param type The type of queries
+   * @param path the path to query
+   * @param type the type of queries
    * @return The space in bytes
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -464,7 +464,7 @@ public abstract class UnderFileSystem {
   /**
    * Checks if the indicated path is a file or not.
    *
-   * @param path The path name
+   * @param path the path name
    * @return true if this is a file, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -546,7 +546,7 @@ public abstract class UnderFileSystem {
    * returns false.
    *
    * @param path the folder to create
-   * @param createParent If true, the method creates any necessary but nonexistent parent
+   * @param createParent if true, the method creates any necessary but nonexistent parent
    *        directories. Otherwise, the method does not create nonexistent parent directories
    * @return {@code true} if and only if the directory was created; {@code false} otherwise
    * @throws IOException if a non-Alluxio error occurs
@@ -568,7 +568,7 @@ public abstract class UnderFileSystem {
   /**
    * Opens an {@link InputStream} at the indicated path.
    *
-   * @param path The file name
+   * @param path the file name
    * @return The {@code InputStream} object
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -577,8 +577,8 @@ public abstract class UnderFileSystem {
   /**
    * Renames a file or folder from {@code src} to {@code dst} in under file system.
    *
-   * @param src The source file or folder name
-   * @param dst The destination file or folder name
+   * @param src the source file or folder name
+   * @param dst the destination file or folder name
    * @return true if succeed, false otherwise
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -591,8 +591,8 @@ public abstract class UnderFileSystem {
    * The default implementation simply concatenates the path to the base URI. This should be
    * overridden if a subclass needs alternate functionality.
    *
-   * @param ufsBaseUri the base {@link AlluxioURI} in the UFS
-   * @param alluxioPath the path in Alluxio from the given base
+   * @param ufsBaseUri the base {@link AlluxioURI} in the ufs
+   * @param alluxioPath the path in alluxio from the given base
    * @return the UFS {@link AlluxioURI} representing the Alluxio path
    */
   public AlluxioURI resolveUri(AlluxioURI ufsBaseUri, String alluxioPath) {
@@ -612,7 +612,7 @@ public abstract class UnderFileSystem {
    * Sets the user and group of the given path. An empty implementation should be provided if
    * unsupported.
    *
-   * @param path path of the file
+   * @param path the path of the file
    * @param owner the new owner to set, unchanged if null
    * @param group the new group to set, unchanged if null
    * @throws IOException if a non-Alluxio error occurs
@@ -632,7 +632,7 @@ public abstract class UnderFileSystem {
   /**
    * Changes posix file mode.
    *
-   * @param path path of the file
+   * @param path the path of the file
    * @param mode the mode to set in short format, e.g. 0777
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -641,7 +641,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the owner of the given path. An empty implementation should be provided if not supported.
    *
-   * @param path path of the file
+   * @param path the path of the file
    * @return the owner of the file
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -650,7 +650,7 @@ public abstract class UnderFileSystem {
   /**
    * Gets the group of the given path. An empty implementation should be provided if not supported.
    *
-   * @param path path of the file
+   * @param path the path of the file
    * @return the group of the file
    * @throws IOException if a non-Alluxio error occurs
    */
@@ -660,7 +660,7 @@ public abstract class UnderFileSystem {
    * Gets the mode of the given path in short format, e.g 0700. An empty implementation should
    * be provided if not supported.
    *
-   * @param path path of the file
+   * @param path the path of the file
    * @return the mode of the file
    * @throws IOException if a non-Alluxio error occurs
    */
