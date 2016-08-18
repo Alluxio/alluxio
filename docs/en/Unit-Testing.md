@@ -83,7 +83,7 @@ public void detectLostWorker() throws Exception {
 # Patterns to avoid
 
 1. Avoid randomness. Edge cases should be handled explicitly.
-2. Avoid waiting for something by calling Thread.sleep(). This leads to slower unit tests and can cause flaky failures if the sleep isn't long enough.
+2. Avoid waiting for something by calling `Thread.sleep()`. This leads to slower unit tests and can cause flaky failures if the sleep isn't long enough.
 3. Avoid modifying global state. We typically use JUnit `Rule` when this is necessary so that the state is properly restored. See `SystemPropertyRule`, `TtlIntervalRule`, or `LocalAlluxioClusterResource` for examples of this. `SystemPropertyRule` modifies a system property over the course of a test, then resets the property back to its original value before the test. `TtlIntervalRule` is similar, but for Alluxio TTL interval property. `LocalAlluxioClusterResource` starts up a test Alluxio cluster and cleans it up when the test is over.
 4. Avoid using Whitebox to mess with the internal state of objects under test. If you need to mock a dependency, change the object to take the dependency as a parameter in its constructor (see [dependency injection](https://en.wikipedia.org/wiki/Dependency_injection))
 5. Avoid slow tests. Mock expensive dependencies and aim to keep individual test times under 100ms.
