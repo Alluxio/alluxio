@@ -2473,21 +2473,25 @@ public final class FileSystemMaster extends AbstractMaster {
     }
     // If the file is persisted in UFS, also update corresponding owner/group/permission.
     if ((ownerGroupChanged || permissionChanged) && inode.isPersisted()) {
-      MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
-      String ufsUri = resolution.getUri().toString();
-      UnderFileSystem ufs = resolution.getUfs();
-      if (ownerGroupChanged) {
-        try {
-          ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
-        } catch (IOException e) {
-          throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+      if ((inode instanceof InodeFile) && !((InodeFile) inode).isCompleted()) {
+        LOG.debug("Alluxio does not propagate chown/chgrp/chmod to UFS for incomplete files.");
+      } else {
+        MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
+        String ufsUri = resolution.getUri().toString();
+        UnderFileSystem ufs = resolution.getUfs();
+        if (ownerGroupChanged) {
+          try {
+            ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
+          } catch (IOException e) {
+            throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+          }
         }
-      }
-      if (permissionChanged) {
-        try {
-          ufs.setMode(ufsUri, inode.getMode());
-        } catch (IOException e) {
-          throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+        if (permissionChanged) {
+          try {
+            ufs.setMode(ufsUri, inode.getMode());
+          } catch (IOException e) {
+            throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+          }
         }
       }
     }
