@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -60,9 +61,9 @@ public final class KeyValueSystemIntegrationTest {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE,
+      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE)
           /* ensure key-value service is turned on */
-          Constants.KEY_VALUE_ENABLED, "true");
+          .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true");
 
   @BeforeClass
   public static void beforeClass() throws Exception {
@@ -248,7 +249,7 @@ public final class KeyValueSystemIntegrationTest {
     final int valueLength = 500 * Constants.KB; // 500KB value
 
     Configuration
-        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
+        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     byte[] key = BufferUtils.getIncreasingByteArray(0, keyLength);
     byte[] value = BufferUtils.getIncreasingByteArray(0, valueLength);
@@ -312,7 +313,7 @@ public final class KeyValueSystemIntegrationTest {
   /**
    * Creates a store with the specified number of partitions.
    *
-   * NOTE: calling this method will set {@link Constants#KEY_VALUE_PARTITION_SIZE_BYTES_MAX} to
+   * NOTE: calling this method will set {@link PropertyKey#KEY_VALUE_PARTITION_SIZE_BYTES_MAX} to
    * {@link Constants#MB}.
    *
    * @param partitionNumber the number of partitions
@@ -324,7 +325,7 @@ public final class KeyValueSystemIntegrationTest {
     // These sizes are carefully selected, one partition holds only one key-value pair.
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     Configuration
-        .set(Constants.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
+        .set(PropertyKey.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, String.valueOf(maxPartitionSize));
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
 

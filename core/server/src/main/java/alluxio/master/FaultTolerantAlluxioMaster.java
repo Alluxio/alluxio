@@ -14,6 +14,7 @@ package alluxio.master;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LeaderSelectorClient;
+import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadOnlyJournal;
@@ -41,18 +42,18 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
   /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public FaultTolerantAlluxioMaster() {
-    super();
-    Preconditions.checkArgument(Configuration.getBoolean(Constants.ZOOKEEPER_ENABLED));
+  public FaultTolerantAlluxioMaster(MasterContext masterContext) {
+    super(masterContext);
+    Preconditions.checkArgument(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
     try {
       // InetSocketAddress.toString causes test issues, so build the string by hand
       String zkName = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC) + ":"
           + getMasterAddress().getPort();
-      String zkAddress = Configuration.get(Constants.ZOOKEEPER_ADDRESS);
-      String zkElectionPath = Configuration.get(Constants.ZOOKEEPER_ELECTION_PATH);
-      String zkLeaderPath = Configuration.get(Constants.ZOOKEEPER_LEADER_PATH);
+      String zkAddress = Configuration.get(PropertyKey.ZOOKEEPER_ADDRESS);
+      String zkElectionPath = Configuration.get(PropertyKey.ZOOKEEPER_ELECTION_PATH);
+      String zkLeaderPath = Configuration.get(PropertyKey.ZOOKEEPER_LEADER_PATH);
       mLeaderSelectorClient =
           new LeaderSelectorClient(zkAddress, zkElectionPath, zkLeaderPath, zkName);
     } catch (Exception e) {
@@ -79,7 +80,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
         stopServing();
         stopMasters();
 
-        // Transitioning from standby to master, replace readonly journal with writable journal.
+        // Transitioning from standby to master, replace read-only journal with writable journal.
         mBlockMaster.upgradeToReadWriteJournal(mBlockMasterJournal);
         mFileSystemMaster.upgradeToReadWriteJournal(mFileSystemMasterJournal);
         mLineageMaster.upgradeToReadWriteJournal(mLineageMasterJournal);
@@ -94,13 +95,14 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
           stopServing();
           stopMasters();
 
-          // When transitioning from master to standby, recreate the masters with a readonly
+          // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
-          mFileSystemMaster = new FileSystemMaster(mBlockMaster,
-              new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
-          mLineageMaster = new LineageMaster(mFileSystemMaster,
-              new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
+          mBlockMaster = new BlockMaster(mMasterContext,
+              new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
+          mFileSystemMaster = new FileSystemMaster(mMasterContext,
+              mBlockMaster, new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
+          mLineageMaster = new LineageMaster(mMasterContext,
+              mFileSystemMaster, new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
           startMasters(false);
           started = true;
         }

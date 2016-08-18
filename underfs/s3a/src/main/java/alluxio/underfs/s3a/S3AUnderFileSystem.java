@@ -14,6 +14,7 @@ package alluxio.underfs.s3a;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
@@ -29,6 +30,7 @@ import com.amazonaws.auth.AWSCredentialsProviderChain;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.internal.Mimetypes;
+import com.amazonaws.services.s3.model.AccessControlList;
 import com.amazonaws.services.s3.model.CopyObjectRequest;
 import com.amazonaws.services.s3.model.ListObjectsV2Request;
 import com.amazonaws.services.s3.model.ListObjectsV2Result;
@@ -88,6 +90,15 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
 
+  /** The owner name of the bucket. */
+  private final String mBucketOwner;
+
+  /** The AWS id of the bucket owner. */
+  private final String mBucketOwnerId;
+
+  /** The permission mode by the owner to the bucket. */
+  private final short mBucketMode;
+
   static {
     byte[] dirByteHash = DigestUtils.md5(new byte[0]);
     DIR_HASH = new String(Base64.encode(dirByteHash));
@@ -104,13 +115,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
-    if (Configuration.containsKey(Constants.S3A_ACCESS_KEY)) {
+    if (Configuration.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
       System.setProperty(SDKGlobalConfiguration.ACCESS_KEY_SYSTEM_PROPERTY,
-          Configuration.get(Constants.S3A_ACCESS_KEY));
+          Configuration.get(PropertyKey.S3A_ACCESS_KEY));
     }
-    if (Configuration.containsKey(Constants.S3A_SECRET_KEY)) {
+    if (Configuration.containsKey(PropertyKey.S3A_SECRET_KEY)) {
       System.setProperty(SDKGlobalConfiguration.SECRET_KEY_SYSTEM_PROPERTY,
-          Configuration.get(Constants.S3A_SECRET_KEY));
+          Configuration.get(PropertyKey.S3A_SECRET_KEY));
     }
 
     // Checks, in order, env variables, system properties, profile file, and instance profile
@@ -121,31 +132,39 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     ClientConfiguration clientConf = new ClientConfiguration();
 
     // Socket timeout
-    clientConf.setSocketTimeout(Configuration.getInt(Constants.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
+    clientConf.setSocketTimeout(Configuration.getInt(PropertyKey.UNDERFS_S3A_SOCKET_TIMEOUT_MS));
 
     // HTTP protocol
-    if (Configuration.getBoolean(Constants.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
+    if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SECURE_HTTP_ENABLED)) {
       clientConf.setProtocol(Protocol.HTTPS);
     } else {
       clientConf.setProtocol(Protocol.HTTP);
     }
 
     // Proxy host
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_HOST)) {
-      clientConf.setProxyHost(Configuration.get(Constants.UNDERFS_S3_PROXY_HOST));
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
+      clientConf.setProxyHost(Configuration.get(PropertyKey.UNDERFS_S3_PROXY_HOST));
     }
 
     // Proxy port
-    if (Configuration.containsKey(Constants.UNDERFS_S3_PROXY_PORT)) {
-      clientConf.setProxyPort(Configuration.getInt(Constants.UNDERFS_S3_PROXY_PORT));
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_PORT)) {
+      clientConf.setProxyPort(Configuration.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
 
     mClient = new AmazonS3Client(credentials, clientConf);
+    if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
+      mClient.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+    }
     mManager = new TransferManager(mClient);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
     mManager.setConfiguration(transferConf);
+
+    AccessControlList acl = mClient.getBucketAcl(mBucketName);
+    mBucketOwner = acl.getOwner().getDisplayName();
+    mBucketOwnerId = acl.getOwner().getId();
+    mBucketMode = S3AUtils.translateBucketAcl(acl, mBucketOwnerId);
   }
 
   @Override
@@ -219,7 +238,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -391,30 +410,30 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting S3 mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mBucketOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the translated mode by the owner of the bucket.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mBucketMode;
   }
 
   /**
@@ -446,7 +465,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     for (int i = 0; i < retries; i++) {
       try {
         CopyObjectRequest request = new CopyObjectRequest(mBucketName, src, mBucketName, dst);
-        if (Configuration.getBoolean(Constants.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)) {
+        if (Configuration.getBoolean(PropertyKey.UNDERFS_S3A_SERVER_SIDE_ENCRYPTION_ENABLED)) {
           ObjectMetadata meta = new ObjectMetadata();
           meta.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
           request.setNewObjectMetadata(meta);
@@ -709,12 +728,15 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * @return the key without the s3 bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
     }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

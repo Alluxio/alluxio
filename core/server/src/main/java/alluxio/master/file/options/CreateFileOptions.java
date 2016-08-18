@@ -13,6 +13,7 @@ package alluxio.master.file.options;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 
@@ -55,7 +56,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
 
   private CreateFileOptions() {
     super();
-    mBlockSizeBytes = Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
   }
 

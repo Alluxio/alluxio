@@ -12,7 +12,7 @@
 package alluxio.security.authentication;
 
 import alluxio.Configuration;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 
 import javax.security.sasl.AuthenticationException;
 
@@ -42,7 +42,7 @@ public interface AuthenticationProvider {
           return new SimpleAuthenticationProvider();
         case CUSTOM:
           String customProviderName =
-              Configuration.get(Constants.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER);
+              Configuration.get(PropertyKey.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS);
           return new CustomAuthenticationProvider(customProviderName);
         default:
           throw new AuthenticationException("Unsupported AuthType: " + authType.getAuthName());

@@ -14,6 +14,7 @@ package alluxio.hadoop;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -75,7 +76,7 @@ public class HdfsFileInputStream extends InputStream implements Seekable, Positi
   public HdfsFileInputStream(AlluxioURI uri, org.apache.hadoop.conf.Configuration conf,
       int bufferSize, org.apache.hadoop.fs.FileSystem.Statistics stats) throws IOException {
     LOG.debug("HdfsFileInputStream({}, {}, {}, {}, {})", uri, conf, bufferSize, stats);
-    long bufferBytes = Configuration.getBytes(Constants.USER_FILE_BUFFER_BYTES);
+    long bufferBytes = Configuration.getBytes(PropertyKey.USER_FILE_BUFFER_BYTES);
     mBuffer = new byte[Ints.checkedCast(bufferBytes) * 4];
     mCurrentPosition = 0;
     FileSystem fs = FileSystem.Factory.get();

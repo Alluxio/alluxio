@@ -11,17 +11,18 @@
 
 package alluxio.web;
 
-import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.util.io.PathUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
-import alluxio.worker.AlluxioWorker;
+import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.BlockWorker;
 
 import com.google.common.base.Preconditions;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.net.InetSocketAddress;
-import java.util.Collections;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -42,7 +43,7 @@ public final class WorkerUIWebServer extends UIWebServer {
    * @param startTimeMs start time milliseconds
    */
   public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      AlluxioWorker alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+      AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
       long startTimeMs) {
     super(serviceType, webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
@@ -61,7 +62,9 @@ public final class WorkerUIWebServer extends UIWebServer {
         WebInterfaceWorkerMetricsServlet(alluxioWorker.getWorkerMetricsSystem())), "/metricsui");
 
     // REST configuration
-    mWebAppContext.setOverrideDescriptors(Collections
-        .singletonList(Configuration.get(Constants.WEB_RESOURCES) + "/WEB-INF/worker.xml"));
+    ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
+    ServletContainer servlet = new ServletContainer(config);
+    ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
+    mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }
 }

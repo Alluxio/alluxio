@@ -13,10 +13,11 @@ package alluxio.client;
 
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
-import alluxio.Constants;
 import alluxio.IntegrationTestUtils;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.URIStatus;
+import alluxio.client.file.options.CreateFileOptions;
 import alluxio.master.file.meta.PersistenceState;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
@@ -40,7 +41,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   public void before() throws Exception {
     super.before();
 
-    mUfsRoot = PathUtils.concatPath(Configuration.get(Constants.UNDERFS_ADDRESS));
+    mUfsRoot = PathUtils.concatPath(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     mUfs = UnderFileSystem.get(mUfsRoot);
   }
 
@@ -51,7 +52,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
       return;
     }
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath, mWriteBoth);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFileOptions.defaults().setWriteType(WriteType.CACHE_THROUGH));
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -76,7 +78,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
       return;
     }
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    FileOutStream os = mFileSystem.createFile(filePath, mWriteAsync);
+    FileOutStream os = mFileSystem.createFile(filePath,
+        CreateFileOptions.defaults().setWriteType(WriteType.ASYNC_THROUGH));
     os.write((byte) 0);
     os.write((byte) 1);
     os.close();
@@ -107,7 +110,8 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
       return;
     }
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
-    mFileSystem.createFile(filePath, mWriteAsync).close();
+    mFileSystem.createFile(filePath, CreateFileOptions.defaults()
+        .setWriteType(WriteType.ASYNC_THROUGH)).close();
 
     // check the file is completed but not persisted
     URIStatus status = mFileSystem.getStatus(filePath);

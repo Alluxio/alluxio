@@ -15,12 +15,13 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
+import alluxio.master.MasterContext;
+import alluxio.master.MasterSource;
 import alluxio.master.block.BlockMaster;
-import alluxio.master.file.meta.InodeTree;
-import alluxio.master.file.meta.LockedInodePath;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateDirectoryOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -44,7 +45,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.rules.TemporaryFolder;
-import org.powermock.reflect.Whitebox;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -135,18 +135,20 @@ public final class PermissionCheckTest {
   @Before
   public void before() throws Exception {
     // authentication
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "admin");
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "admin");
     // authorization
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, FakeUserGroupsMapping.class.getName());
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        FakeUserGroupsMapping.class.getName());
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, TEST_SUPER_GROUP);
 
     Journal blockJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
     Journal fsJournal = new ReadWriteJournal(mTestFolder.newFolder().getAbsolutePath());
-    BlockMaster blockMaster = new BlockMaster(blockJournal);
+    MasterContext masterContext = new MasterContext(new MasterSource());
+    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
 
-    mFileSystemMaster = new FileSystemMaster(blockMaster, fsJournal);
+    mFileSystemMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
 
     blockMaster.start(true);
     mFileSystemMaster.start(true);
@@ -167,34 +169,22 @@ public final class PermissionCheckTest {
    *    /testFile       user2     group2      644
    */
   private void createDirAndFileForTest() throws Exception {
-    InodeTree inodeTree = Whitebox.getInternalState(mFileSystemMaster, "mInodeTree");
-
     // create "/testDir" for user1
-    AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_URI),
-        InodeTree.LockMode.WRITE)) {
-      inodeTree.createPath(inodePath,
-          CreateDirectoryOptions.defaults()
-              .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0755)));
-    }
+    AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+    mFileSystemMaster.createDirectory(new AlluxioURI("/testDir"), CreateDirectoryOptions.defaults()
+        .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0755)));
 
     // create "/testDir/file" for user1
     AuthenticatedClientUser.set(TEST_USER_1.getUser());
-    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_DIR_FILE_URI),
-        InodeTree.LockMode.WRITE)) {
-      inodeTree.createPath(inodePath,
-          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0644)));
-    }
+    mFileSystemMaster.createFile(new AlluxioURI("/testDir/file"),
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+            .setPermission(new Permission(TEST_USER_1.getUser(), "group1", (short) 0644)));
 
     // create "/testFile" for user2
-    AuthenticatedClientUser.set(TEST_USER_2.getUser());
-    try (LockedInodePath inodePath = inodeTree.lockInodePath(new AlluxioURI(TEST_FILE_URI),
-        InodeTree.LockMode.WRITE)) {
-      inodeTree.createPath(inodePath,
-          CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
-              .setPermission(new Permission(TEST_USER_2.getUser(), "group2", (short) 0644)));
-    }
+    AuthenticatedClientUser.set(TEST_USER_ADMIN.getUser());
+    mFileSystemMaster.createFile(new AlluxioURI("/testFile"),
+        CreateFileOptions.defaults().setBlockSizeBytes(Constants.KB)
+            .setPermission(new Permission(TEST_USER_2.getUser(), "group2", (short) 0644)));
   }
 
   /**
@@ -504,7 +494,7 @@ public final class PermissionCheckTest {
   @Test
   public void readNotExecuteDirTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
 
     String dir = PathUtils.concatPath(TEST_DIR_URI, "/notExecuteDir");
     // create dir "/testDir/notExecuteDir" [user1, group1, drwxr--r--]
@@ -519,7 +509,7 @@ public final class PermissionCheckTest {
 
   private String createUnreadableFileOrDir(boolean isFile) throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String fileOrDir = PathUtils.concatPath(TEST_DIR_URI, "/onlyReadByUser1");
     if (isFile) {
@@ -565,7 +555,7 @@ public final class PermissionCheckTest {
   @Test
   public void setStateSuccessTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -579,7 +569,7 @@ public final class PermissionCheckTest {
   @Test
   public void setStateFailTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -612,7 +602,7 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileSuccessTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testState1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -623,7 +613,7 @@ public final class PermissionCheckTest {
   @Test
   public void completeFileFailTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "/testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -668,7 +658,7 @@ public final class PermissionCheckTest {
   @Test
   public void freeFileFailTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI, "testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);
@@ -682,7 +672,7 @@ public final class PermissionCheckTest {
   @Test
   public void freeNonNullDirectoryFailTest() throws Exception {
     // set unmask
-    Configuration.set(Constants.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
+    Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
     String file = PathUtils.concatPath(TEST_DIR_URI + "/testComplete1");
     verifyCreateFile(TEST_USER_1, file, false);

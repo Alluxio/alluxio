@@ -205,7 +205,7 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
    * @param blockId the id of the block to add the space to, this must be a temporary block
    * @param requestBytes the amount of bytes to add to the block
    * @return true if the worker successfully allocates space for the block on block’s location,
-   *         false if there is no enough space
+   *         false if there is not enough space
    * @throws AlluxioTException if an Alluxio error occurs
    * @throws ThriftIOException if an I/O error occurs
    */

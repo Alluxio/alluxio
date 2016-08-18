@@ -13,8 +13,8 @@ package alluxio.security.authorization;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
-import alluxio.security.LoginUser;
+import alluxio.PropertyKey;
+import alluxio.security.LoginUserTestUtils;
 import alluxio.security.authentication.AuthType;
 import alluxio.security.authentication.AuthenticatedClientUser;
 import alluxio.security.group.GroupMappingService;
@@ -28,7 +28,6 @@ import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.reflect.Whitebox;
 
 /**
  * Tests the {@link Permission} class.
@@ -69,7 +68,7 @@ public final class PermissionTest {
   @Test
   public void defaultsTest() throws Exception {
     // no authentication
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Permission permission = Permission.defaults();
     verifyPermission("", "", (short) 0777, permission);
   }
@@ -82,12 +81,13 @@ public final class PermissionTest {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     permission.setOwnerFromThriftClient();
     verifyPermission("", "", (short) 0777, permission);
 
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
     AuthenticatedClientUser.set("test_client_user");
 
     // When authentication is enabled, user and group are inferred from thrift transport
@@ -103,15 +103,17 @@ public final class PermissionTest {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     permission.setOwnerFromThriftClient();
     verifyPermission("", "", (short) 0777, permission);
 
     // When authentication is enabled, user and group are inferred from login module
-    Configuration.set(Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
-    Configuration.set(Constants.SECURITY_LOGIN_USERNAME, "test_login_user");
-    Configuration.set(Constants.SECURITY_GROUP_MAPPING, IdentityUserGroupsMapping.class.getName());
-    Whitebox.setInternalState(LoginUser.class, "sLoginUser", (String) null);
+    Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
+    Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "test_login_user");
+    Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,
+        IdentityUserGroupsMapping.class.getName());
+
+    LoginUserTestUtils.resetLoginUser();
 
     permission.setOwnerFromLoginModule();
     verifyPermission("test_login_user", "test_login_user", (short) 0777, permission);

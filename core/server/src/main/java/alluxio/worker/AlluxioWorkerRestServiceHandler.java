@@ -12,6 +12,7 @@
 package alluxio.worker;
 
 import alluxio.Configuration;
+import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
@@ -59,7 +60,7 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String GET_VERSION = "version";
   public static final String GET_METRICS = "metrics";
 
-  private final AlluxioWorker mWorker = AlluxioWorker.get();
+  private final AlluxioWorkerService mWorker = AlluxioWorkerService.Factory.get();
   private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
 
   /**
@@ -79,7 +80,7 @@ public final class AlluxioWorkerRestServiceHandler {
     SortedMap<String, String> configuration = new TreeMap<>();
     for (Map.Entry<String, String> entry : properties) {
       String key = entry.getKey();
-      if (key.startsWith(ALLUXIO_CONF_PREFIX)) {
+      if (PropertyKey.isValid(key)) {
         configuration.put(key, entry.getValue());
       }
     }
@@ -94,7 +95,7 @@ public final class AlluxioWorkerRestServiceHandler {
   @Path(GET_RPC_ADDRESS)
   @ReturnType("java.lang.String")
   public Response getRpcAddress() {
-    return RestUtils.createResponse(mWorker.getWorkerAddress().toString());
+    return RestUtils.createResponse(mWorker.getRpcAddress().toString());
   }
 
   /**

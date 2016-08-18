@@ -67,7 +67,7 @@ public final class LeaderInquireClient {
             Constants.SECOND_MS, 3));
     mClient.start();
 
-    mMaxTry = Configuration.getInt(Constants.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
+    mMaxTry = Configuration.getInt(PropertyKey.ZOOKEEPER_LEADER_INQUIRY_RETRY_COUNT);
   }
 
   /**

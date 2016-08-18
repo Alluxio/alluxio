@@ -14,9 +14,11 @@ package alluxio.underfs.gcs;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.underfs.options.CreateOptions;
 import alluxio.underfs.options.MkdirsOptions;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
@@ -87,12 +89,13 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   public GCSUnderFileSystem(AlluxioURI uri) throws ServiceException {
     super(uri);
     String bucketName = uri.getHost();
-    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_ACCESS_KEY),
-        "Property " + Constants.GCS_ACCESS_KEY + " is required to connect to GCS");
-    Preconditions.checkArgument(Configuration.containsKey(Constants.GCS_SECRET_KEY),
-        "Property " + Constants.GCS_SECRET_KEY + " is required to connect to GCS");
-    GSCredentials googleCredentials = new GSCredentials(Configuration.get(Constants.GCS_ACCESS_KEY),
-        Configuration.get(Constants.GCS_SECRET_KEY));
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
+        "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
+    Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_SECRET_KEY),
+        "Property " + PropertyKey.GCS_SECRET_KEY + " is required to connect to GCS");
+    GSCredentials googleCredentials = new GSCredentials(
+        Configuration.get(PropertyKey.GCS_ACCESS_KEY),
+        Configuration.get(PropertyKey.GCS_SECRET_KEY));
     mBucketName = bucketName;
 
     // TODO(chaomin): maybe add proxy support for GCS.
@@ -170,7 +173,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
-    return Configuration.getBytes(Constants.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
   // Not supported
@@ -563,7 +566,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
           // Remove parent portion of the key
           String child = getChildName(obj.getKey(), path);
           // Prune the special folder suffix
-          child = stripFolderSuffixIfPresent(child);
+          child = CommonUtils.stripSuffixIfPresent(child, FOLDER_SUFFIX);
           // Only add if the path is not empty (removes results equal to the path)
           if (!child.isEmpty()) {
             children.add(child);
@@ -630,20 +633,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
-   * Strips the folder suffix if it exists. This is a string manipulation utility and does not
-   * guarantee the existence of the folder. This method will leave keys without a suffix unaltered.
-   *
-   * @param key the key to strip the suffix from
-   * @return the key with the suffix removed, or the key unaltered if the suffix is not present
-   */
-  private String stripFolderSuffixIfPresent(String key) {
-    if (key.endsWith(FOLDER_SUFFIX)) {
-      return key.substring(0, key.length() - FOLDER_SUFFIX.length());
-    }
-    return key;
-  }
-
-  /**
    * Strips the GCS bucket prefix or the preceding path separator from the key if it is present. For
    * example, for input key gs://my-bucket-name/my-path/file, the output would be my-path/file. If
    * key is an absolute path like /my-path/file, the output would be my-path/file. This method will
@@ -653,12 +642,15 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return the key without the gcs bucket prefix
    */
   private String stripPrefixIfPresent(String key) {
-    if (key.startsWith(mBucketPrefix)) {
-      return key.substring(mBucketPrefix.length());
+    String stripedKey = CommonUtils.stripPrefixIfPresent(key, mBucketPrefix);
+    if (!stripedKey.equals(key)) {
+      return stripedKey;
     }
-    if (key.startsWith(PATH_SEPARATOR)) {
-      return key.substring(PATH_SEPARATOR.length());
-    }
-    return key;
+    return CommonUtils.stripPrefixIfPresent(key, PATH_SEPARATOR);
+  }
+
+  @Override
+  public boolean supportsFlush() {
+    return false;
   }
 }

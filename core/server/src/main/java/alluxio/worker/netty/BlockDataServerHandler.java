@@ -13,10 +13,10 @@ package alluxio.worker.netty;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.BlockDoesNotExistException;
-import alluxio.exception.InvalidWorkerStateException;
 import alluxio.network.protocol.RPCBlockReadRequest;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCBlockWriteRequest;
@@ -46,7 +46,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  * This class handles {@link RPCBlockReadRequest}s and {@link RPCBlockWriteRequest}s.
  */
 @NotThreadSafe
-public final class BlockDataServerHandler {
+final class BlockDataServerHandler {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   /** The Block Worker which handles blocks stored in the Alluxio storage of the worker. */
@@ -60,7 +60,7 @@ public final class BlockDataServerHandler {
     mWorker = worker;
     mStorageTierAssoc = new WorkerStorageTierAssoc();
     mTransferType = Configuration
-        .getEnum(Constants.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
+        .getEnum(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, FileTransferType.class);
   }
 
   /**
@@ -80,15 +80,11 @@ public final class BlockDataServerHandler {
     final long lockId = req.getLockId();
     final long sessionId = req.getSessionId();
 
-    BlockReader reader;
+    BlockReader reader = null;
     DataBuffer buffer;
     try {
-      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
-    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
-      throw new IOException(e);
-    }
-    try {
       req.validate();
+      reader = mWorker.readBlockRemote(sessionId, blockId, lockId);
       final long fileLength = reader.getLength();
       validateBounds(req, fileLength);
       final long readLength = returnLength(offset, len, fileLength);
@@ -102,9 +98,13 @@ public final class BlockDataServerHandler {
       mWorker.accessBlock(sessionId, blockId);
       LOG.info("Preparation for responding to remote block request for: {} done.", blockId);
     } catch (Exception e) {
-      LOG.error("The file is not here : {}", e.getMessage(), e);
-      RPCBlockReadResponse resp =
-          RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+      LOG.error("Exception reading block {}", blockId, e);
+      RPCBlockReadResponse resp;
+      if (e instanceof BlockDoesNotExistException) {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.FILE_DNE);
+      } else {
+        resp = RPCBlockReadResponse.createErrorResponse(req, RPCResponse.Status.UFS_READ_FAILED);
+      }
       ChannelFuture future = ctx.writeAndFlush(resp);
       future.addListener(ChannelFutureListener.CLOSE);
       if (reader != null) {

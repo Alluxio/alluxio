@@ -26,7 +26,7 @@ import static org.mockito.Mockito.when;
 import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.file.FileInStream;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
@@ -65,8 +65,8 @@ public class AlluxioFuseFileSystemTest {
 
   @Before
   public void before() throws Exception {
-    Configuration.set(Constants.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
-    Configuration.set(Constants.FUSE_CACHED_PATHS_MAX, "0");
+    Configuration.set(PropertyKey.MASTER_ADDRESS, TEST_MASTER_ADDRESS);
+    Configuration.set(PropertyKey.FUSE_CACHED_PATHS_MAX, "0");
 
     final List<String> empty = Collections.emptyList();
     AlluxioFuseOptions opts = new AlluxioFuseOptions(

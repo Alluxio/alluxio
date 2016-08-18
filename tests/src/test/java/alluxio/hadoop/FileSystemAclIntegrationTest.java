@@ -13,10 +13,16 @@ package alluxio.hadoop;
 
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.security.authentication.AuthType;
 import alluxio.underfs.UnderFileSystem;
+import alluxio.underfs.gcs.GCSUnderFileSystem;
 import alluxio.underfs.hdfs.HdfsUnderFileSystem;
 import alluxio.underfs.local.LocalUnderFileSystem;
+import alluxio.underfs.oss.OSSUnderFileSystem;
+import alluxio.underfs.s3.S3UnderFileSystem;
+import alluxio.underfs.s3a.S3AUnderFileSystem;
+import alluxio.underfs.swift.SwiftUnderFileSystem;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -49,9 +55,9 @@ public final class FileSystemAclIntegrationTest {
   private static final int BLOCK_SIZE = 1024;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(100000000, BLOCK_SIZE,
-          Constants.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName(),
-          Constants.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
+      new LocalAlluxioClusterResource(100 * Constants.MB, BLOCK_SIZE)
+          .setProperty(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName())
+          .setProperty(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_ENABLED, "true");
   private static String sUfsRoot;
   private static UnderFileSystem sUfs;
   private static org.apache.hadoop.fs.FileSystem sTFS;
@@ -77,7 +83,7 @@ public final class FileSystemAclIntegrationTest {
     URI uri = URI.create(sLocalAlluxioClusterResource.get().getMasterURI());
 
     sTFS = org.apache.hadoop.fs.FileSystem.get(uri, conf);
-    sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(Constants.UNDERFS_ADDRESS));
+    sUfsRoot = PathUtils.concatPath(alluxio.Configuration.get(PropertyKey.UNDERFS_ADDRESS));
     sUfs = UnderFileSystem.get(sUfsRoot);
   }
 
@@ -133,7 +139,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Expect a IOException for not able to setOwner for UFS with invalid owner name.
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setOwner for UFS file");
+    mThrown.expectMessage("Could not set owner for UFS file");
     sTFS.setOwner(fileA, nonexistentOwner, null);
   }
 
@@ -166,7 +172,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Expect a IOException for not able to setOwner for UFS with invalid group name.
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setOwner for UFS file");
+    mThrown.expectMessage("Could not set owner for UFS file");
     sTFS.setOwner(fileB, null, nonexistentGroup);
   }
 
@@ -198,7 +204,7 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
 
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not setOwner for UFS file");
+    mThrown.expectMessage("Could not set owner for UFS file");
     sTFS.setOwner(fileC, nonexistentOwner, nonexistentGroup);
   }
 
@@ -387,5 +393,39 @@ public final class FileSystemAclIntegrationTest {
     sTFS.rename(dirA, dirB);
     Assert.assertEquals((int) parentMode,
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
+  }
+
+  /**
+   * Tests for the permission of object storage UFS files.
+   */
+  @Test
+  public void objectStoragePermissionTest() throws Exception {
+    if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)
+        && !(sUfs instanceof SwiftUnderFileSystem) && !(sUfs instanceof GCSUnderFileSystem)
+        && !(sUfs instanceof OSSUnderFileSystem)) {
+      // Only test object storage UFSs.
+      return;
+    }
+    Path fileA = new Path("/objectfileA");
+    final String newOwner = "new-user1";
+    final String newGroup = "new-group1";
+
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Verify the owner, group and permission of UFS is not supported and thus returns default
+    // values.
+    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
+        sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // chown and chmod to Alluxio file would not affect the permission of UFS file.
+    sTFS.setOwner(fileA, newOwner, newGroup);
+    sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0700));
+    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
+        sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 }

@@ -13,7 +13,9 @@ package alluxio.master.keyvalue;
 
 import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.master.Master;
+import alluxio.master.MasterContext;
 import alluxio.master.MasterFactory;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
@@ -40,7 +42,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
 
   @Override
   public boolean isEnabled() {
-    return Configuration.getBoolean(Constants.KEY_VALUE_ENABLED);
+    return Configuration.getBoolean(PropertyKey.KEY_VALUE_ENABLED);
   }
 
   @Override
@@ -49,7 +51,8 @@ public final class KeyValueMasterFactory implements MasterFactory {
   }
 
   @Override
-  public KeyValueMaster create(List<? extends Master> masters, String journalDirectory) {
+  public KeyValueMaster create(MasterContext masterContext, List<? extends Master> masters,
+      String journalDirectory) {
     if (!isEnabled()) {
       return null;
     }
@@ -62,7 +65,7 @@ public final class KeyValueMasterFactory implements MasterFactory {
     for (Master master : masters) {
       if (master instanceof FileSystemMaster) {
         LOG.info("{} is created", KeyValueMaster.class.getName());
-        return new KeyValueMaster((FileSystemMaster) master, journal);
+        return new KeyValueMaster(masterContext, (FileSystemMaster) master, journal);
       }
     }
     LOG.error("Fail to create {} due to missing {}", KeyValueMaster.class.getName(),

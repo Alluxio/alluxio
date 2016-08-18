@@ -12,11 +12,11 @@
 package alluxio.collections;
 
 import com.google.common.collect.Iterables;
+import io.netty.util.internal.chmv8.ConcurrentHashMapV8;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -27,15 +27,17 @@ import javax.annotation.concurrent.ThreadSafe;
  * @param <T> type of objects in this {@link IndexedSet}
  */
 @ThreadSafe
-class NonUniqueFieldIndex<T> implements FieldIndex<T> {
+public class NonUniqueFieldIndex<T> implements FieldIndex<T> {
   private final IndexDefinition<T> mIndexDefinition;
-  private final ConcurrentHashMap<Object, ConcurrentHashSet<T>> mIndexMap;
+  private final ConcurrentHashMapV8<Object, ConcurrentHashSet<T>> mIndexMap;
 
   /**
    * Constructs a new {@link NonUniqueFieldIndex} instance.
+   *
+   * @param indexDefinition definition of index
    */
   public NonUniqueFieldIndex(IndexDefinition<T> indexDefinition) {
-    mIndexMap = new ConcurrentHashMap<>(8, 0.95f, 8);
+    mIndexMap = new ConcurrentHashMapV8<>(8, 0.95f, 8);
     mIndexDefinition = indexDefinition;
   }
 
@@ -81,6 +83,11 @@ class NonUniqueFieldIndex<T> implements FieldIndex<T> {
       }
     }
     return res;
+  }
+
+  @Override
+  public void clear() {
+    mIndexMap.clear();
   }
 
   @Override
