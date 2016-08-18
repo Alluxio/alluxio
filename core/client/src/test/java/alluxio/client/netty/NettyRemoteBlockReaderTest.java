@@ -159,7 +159,7 @@ public class NettyRemoteBlockReaderTest {
           // ignore
         }
         try {
-          TimeUnit.SECONDS.sleep(1);
+          TimeUnit.MILLISECONDS.sleep(10);
         } catch (InterruptedException e) {
           // ignore
         }
