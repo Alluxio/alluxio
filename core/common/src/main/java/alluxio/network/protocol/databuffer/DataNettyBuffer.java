@@ -80,6 +80,6 @@ public final class DataNettyBuffer implements DataBuffer {
     Preconditions.checkState(mNettyBuf != null);
     Preconditions.checkState(mNettyBuf.refCnt() == 1,
         "Reference count of the netty buffer is %s (1 expected).", mNettyBuf.refCnt());
-    Preconditions.checkState(mNettyBuf.release() == true, "Release Netty ByteBuf failed.");
+    Preconditions.checkState(mNettyBuf.release(), "Release Netty ByteBuf failed.");
   }
 }
