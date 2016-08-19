@@ -20,7 +20,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 
 import java.io.IOException;
