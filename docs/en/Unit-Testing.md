@@ -99,17 +99,18 @@ public void after() {
   ConfigurationTestUtils.resetConfiguration();
 }
 ```
+
 ### Changing System properties during a test
 If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`. To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
 
 ```java
 @Test
 public void test() {
-  try (SetAndRestorySystemProperty p = new SetAndRestorySystemProperty("propertyKey", "propertyValue)) {
+  try (SetAndRestorySystemProperty p = new SetAndRestorySystemProperty("propertyKey", "propertyValue")) {
      // Test something with propertyKey set to propertyValue.
   }
 }
 ```
 
 ### Other global state
-If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is `TtlIntervalRule`.
+If a test needs to modify other types of global state, create a new `@Rule` for managing the state so that it can be shared across tests. One example of this is [`TtlIntervalRule`](https://github.com/Alluxio/alluxio/blob/master/core/server/src/test/java/alluxio/master/file/meta/TtlIntervalRule.java).
