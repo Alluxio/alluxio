@@ -36,7 +36,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadWriter#insert} by adding zero-byte key or value.
    */
   @Test
-  public void addZeroLengthKeyOrValueTest() throws Exception {
+  public void addZeroLengthKeyOrValue() throws Exception {
     int offset;
     int expectedLength = 0;
 
@@ -67,7 +67,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadWriter#insert} by adding multiple key-value pairs.
    */
   @Test
-  public void addMultipleKeyAndValuePairsTest() throws Exception {
+  public void addMultipleKeyAndValuePairs() throws Exception {
     int offset;
     int expectedLength = 0;
 
@@ -90,7 +90,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadReader#getKey} to read data at offset 0.
    */
   @Test
-  public void getKeyAndValueZeroOffsetTest() throws Exception {
+  public void getKeyAndValueZeroOffset() throws Exception {
     int offset = mTestWriter.insert(KEY1, VALUE1);
     Assert.assertEquals(0, offset);
     mTestWriter.close();
@@ -105,7 +105,7 @@ public class PayloadReaderWriterTest {
    * Tests {@link BasePayloadReader#getKey} to read data at non-zero offset.
    */
   @Test
-  public void getKeyAndValueNonZeroOffsetTest() throws Exception {
+  public void getKeyAndValueNonZeroOffset() throws Exception {
     mTestOutStream.write("meaningless padding".getBytes());
     int offset = mTestWriter.insert(KEY1, VALUE1);
     mTestWriter.close();
