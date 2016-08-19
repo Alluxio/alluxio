@@ -116,7 +116,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       }
 
       // Setup metrics collection system
-      mWorkerMetricsSystem = new MetricsSystem("worker");
+      mWorkerMetricsSystem = new MetricsSystem(MetricsSystem.WORKER_INSTANCE);
       WorkerSource workerSource = WorkerContext.getWorkerSource();
       workerSource.registerGauges(mBlockWorker);
       mWorkerMetricsSystem.registerSource(workerSource);

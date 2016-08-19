@@ -71,6 +71,12 @@ public final class LocalBlockInStream extends BufferedBlockInStream {
   }
 
   @Override
+  public void seek(long pos) throws IOException {
+    super.seek(pos);
+    ClientContext.getClientMetrics().incSeeksLocal(1);
+  }
+
+  @Override
   public void close() throws IOException {
     if (mClosed) {
       return;

@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.metrics.source.Source;
-import alluxio.util.network.NetworkAddressUtils;
 import alluxio.worker.block.BlockWorker;
 
 import com.codahale.metrics.Counter;
@@ -47,6 +46,8 @@ public class WorkerSource implements Source {
   public static final String CAPACITY_USED = "CapacityUsed";
   public static final String CAPACITY_FREE = "CapacityFree";
   public static final String BLOCKS_CACHED = "BlocksCached";
+  public static final String SEEKS_LOCAL = "SeeksLocal";
+  public static final String SEEKS_REMOTE = "SeeksRemote";
 
   private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
@@ -82,6 +83,8 @@ public class WorkerSource implements Source {
       .name(BYTES_WRITTEN_REMOTE));
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name(BYTES_WRITTEN_UFS));
+  private final Counter mSeeksLocal = mMetricRegistry.counter(MetricRegistry.name(SEEKS_LOCAL));
+  private final Counter mSeeksRemote= mMetricRegistry.counter(MetricRegistry.name(SEEKS_REMOTE));
 
   /**
    * Constructs a new {@link WorkerSource}.
@@ -233,6 +236,23 @@ public class WorkerSource implements Source {
     mBytesWrittenUfs.inc(n);
   }
 
+  /**
+   * Increments SEEKS_LOCAL counter by the amount specified.
+   *
+   * @param n amount to increment
+   */
+  public synchronized void incSeeksLocal(long n) {
+    mSeeksLocal.inc(n);
+  }
+
+  /**
+   * Increments SEEKS_REMOTE counter by the amount specified.
+   *
+   * @param n amount to increment
+   */
+  public synchronized void incSeeksRemote(long n) {
+    mSeeksRemote.inc(n);
+  }
   /**
    * Registers metric gauges.
    *

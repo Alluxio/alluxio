@@ -275,7 +275,7 @@ public class AlluxioMaster implements Server {
       }
 
       masterContext.getMasterSource().registerGauges(this);
-      mMasterMetricsSystem = new MetricsSystem("master");
+      mMasterMetricsSystem = new MetricsSystem(MetricsSystem.MASTER_INSTANCE);
       mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
 
       // The web server needs to be created at the end of the constructor because it needs a
