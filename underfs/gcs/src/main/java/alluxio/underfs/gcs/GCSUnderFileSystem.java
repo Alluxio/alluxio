@@ -73,13 +73,13 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example gs://my-bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The owner name of the bucket. */
+  /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /** The AWS id of the bucket owner. */
+  /** The GCS user id of the account owner. */
   private final String mAccountOwnerId;
 
-  /** The permission mode by the owner to the bucket. */
+  /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
   static {
@@ -120,7 +120,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     if (owner == null) {
       owner = mClient.getAccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? "" : owner;
+    mAccountOwner = owner == null ? mAccountOwnerId : owner;
 
     GSAccessControlList acl = mClient.getBucketAcl(mBucketName);
     mBucketMode = GCSUtils.translateBucketAcl(acl, mAccountOwnerId);

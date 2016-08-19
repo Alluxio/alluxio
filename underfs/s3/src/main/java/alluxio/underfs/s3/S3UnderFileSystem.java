@@ -78,10 +78,10 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** The owner name of the account. */
   private final String mAccountOwner;
 
-  /** The AWS id of the account owner. */
+  /** The AWS canonical user id of the account owner. */
   private final String mAccountOwnerId;
 
-  /** The permission mode by the owner to the bucket. */
+  /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
   static {
@@ -154,7 +154,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
 
     mAccountOwnerId = mClient.getAccountOwner().getId();
-    // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
+    // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
         Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
@@ -163,7 +163,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     if (owner == null) {
       owner = mClient.getAccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? "" : owner;
+    mAccountOwner = owner == null ? mAccountOwnerId : owner;
 
     AccessControlList acl = mClient.getBucketAcl(mBucketName);
     mBucketMode = S3Utils.translateBucketAcl(acl, mAccountOwnerId);

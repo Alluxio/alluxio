@@ -17,7 +17,6 @@ import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
 import com.google.common.base.Splitter;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -284,9 +283,9 @@ public final class CommonUtils {
   }
 
   /**
-   * Gets the value from the static key=value mapping in string format. E.g. mapping
-   * "id1=user1;id2=user2" returns value "user1" with key "id1", returns value null with key
-   * "invalid". Returns null if the given key does not exist in the mapping.
+   * Gets the value with a given key from a static key/value mapping in string format. E.g. with
+   * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
+   * key does not exist in the mapping.
    *
    * @param mapping the "key=value" mapping in string format separated by ";"
    * @param key the key to query

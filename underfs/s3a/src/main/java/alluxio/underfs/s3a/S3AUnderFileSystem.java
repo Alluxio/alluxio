@@ -90,13 +90,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
 
-  /** The owner name of the bucket. */
+  /** The owner name of the account. */
   private final String mAccountOwner;
 
-  /** The AWS id of the bucket owner. */
+  /** The AWS canonical user id of the account owner. */
   private final String mAccountOwnerId;
 
-  /** The permission mode by the owner to the bucket. */
+  /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
   static {
@@ -171,7 +171,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     if (owner == null) {
       owner = mClient.getS3AccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? "" : owner;
+    mAccountOwner = owner == null ? mAccountOwnerId : owner;
 
     AccessControlList acl = mClient.getBucketAcl(mBucketName);
     mBucketMode = S3AUtils.translateBucketAcl(acl, mAccountOwnerId);
