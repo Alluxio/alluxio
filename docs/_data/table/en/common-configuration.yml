@@ -26,6 +26,10 @@ alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
   Alluxio folder in the underlayer file system.
+alluxio.underfs.gcs.owner.id.to.username.mapping:
+  Optionally, specify a preset gcs owner id to Alluxio username static mapping, in the following
+  format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address:
+  https://console.cloud.google.com/storage/settings . Please use the "Owners" one.
 alluxio.underfs.glusterfs.impl:
   Glusterfs hook with hadoop.
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir:
@@ -40,6 +44,11 @@ alluxio.underfs.hdfs.prefixes:
 alluxio.underfs.object.store.mount.shared.publicly:
   Whether or not to share object storage under storage system mounted point with all Alluxio users.
   Note that this configuration has no effect on HDFS nor local UFS. The default value is false.
+alluxio.underfs.s3.owner.id.to.username.mapping:
+  Optionally, specify a preset s3 canonical id to Alluxio username static mapping, in the following
+  format "id1=user1;id2=user2". The AWS S3 canonical ID can be found at the console address:
+  https://console.aws.amazon.com/iam/home?#security_credential . Please expand the
+  "Account Identifiers" tab and refer to "Canonical User ID".
 alluxio.underfs.s3.endpoint:
   Optinally, to reduce data latency or visit resources which are sepreted in defferent AWS regions, specify a regional endpoint to make aws requests.
   An endpoint is a URL that is the entry point for a web service. For example,

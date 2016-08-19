@@ -9,41 +9,41 @@
  * See the NOTICE file distributed with this work for information regarding copyright ownership.
  */
 
-package alluxio.underfs.s3a;
+package alluxio.underfs.gcs;
 
-import com.amazonaws.services.s3.model.AccessControlList;
-import com.amazonaws.services.s3.model.Grant;
-import com.amazonaws.services.s3.model.Grantee;
-import com.amazonaws.services.s3.model.GroupGrantee;
-import com.amazonaws.services.s3.model.Permission;
+import org.jets3t.service.acl.GrantAndPermission;
+import org.jets3t.service.acl.GranteeInterface;
+import org.jets3t.service.acl.GroupGrantee;
+import org.jets3t.service.acl.Permission;
+import org.jets3t.service.acl.gs.GSAccessControlList;
 
 /**
- * Util functions for S3A under file system.
+ * Util functions for GCS under file system.
  */
-public final class S3AUtils {
+public final class GCSUtils {
   /**
-   * Translates S3 bucket ACL to Alluxio owner mode.
+   * Translates GCS bucket owner ACL to Alluxio owner mode.
    *
-   * @param acl the acl of S3 bucket
+   * @param acl the acl of GCS bucket
    * @param userId the S3 user id of the Alluxio owner
    * @return the translated posix mode in short format
    */
-  public static short translateBucketAcl(AccessControlList acl, String userId) {
+  public static short translateBucketAcl(GSAccessControlList acl, String userId) {
     short mode = (short) 0;
-    for (Grant grant : acl.getGrantsAsList()) {
-      Permission perm = grant.getPermission();
-      Grantee grantee = grant.getGrantee();
-      if (perm.equals(Permission.Read)) {
+    for (GrantAndPermission gp : acl.getGrantAndPermissions()) {
+      Permission perm = gp.getPermission();
+      GranteeInterface grantee = gp.getGrantee();
+      if (perm.equals(Permission.PERMISSION_READ)) {
         if (isUserIdInGrantee(grantee, userId)) {
           // If the bucket is readable by the user, add r and x to the owner mode.
           mode |= (short) 0500;
         }
-      } else if (perm.equals(Permission.Write)) {
+      } else if (perm.equals(Permission.PERMISSION_WRITE)) {
         if (isUserIdInGrantee(grantee, userId)) {
           // If the bucket is writable by the user, +w to the owner mode.
           mode |= (short) 0200;
         }
-      } else if (perm.equals(Permission.FullControl)) {
+      } else if (perm.equals(Permission.PERMISSION_FULL_CONTROL)) {
         if (isUserIdInGrantee(grantee, userId)) {
           // If the user has full control to the bucket, +rwx to the owner mode.
           mode |= (short) 0700;
@@ -53,11 +53,12 @@ public final class S3AUtils {
     return mode;
   }
 
-  private static boolean isUserIdInGrantee(Grantee grantee, String userId) {
+  private static boolean isUserIdInGrantee(GranteeInterface grantee, String userId) {
     return grantee.getIdentifier().equals(userId)
-        || grantee.equals(GroupGrantee.AllUsers)
-        || grantee.equals(GroupGrantee.AuthenticatedUsers);
+        || grantee.equals(GroupGrantee.ALL_USERS)
+        || grantee.equals(GroupGrantee.AUTHENTICATED_USERS);
   }
 
-  private S3AUtils() {} // prevent instantiation
+  private GCSUtils() {} // prevent instantiation
 }
+

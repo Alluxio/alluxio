@@ -16,6 +16,7 @@ import alluxio.security.group.CachedGroupMapping;
 import alluxio.security.group.GroupMappingService;
 import alluxio.util.ShellUtils.ExitCodeException;
 
+import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,6 +25,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.StringTokenizer;
 
@@ -278,6 +280,24 @@ public final class CommonUtils {
         || ufsAddress.startsWith(Constants.HEADER_GCS)
         || ufsAddress.startsWith(Constants.HEADER_SWIFT)
         || ufsAddress.startsWith(Constants.HEADER_OSS);
+  }
+
+  /**
+   * Gets the value with a given key from a static key/value mapping in string format. E.g. with
+   * mapping "id1=user1;id2=user2", it returns "user1" with key "id1". It returns null if the given
+   * key does not exist in the mapping.
+   *
+   * @param mapping the "key=value" mapping in string format separated by ";"
+   * @param key the key to query
+   * @return the mapped value if the key exists, otherwise returns ""
+   */
+  public static String getValueFromStaticMapping(String mapping, String key) {
+    Map<String, String> m = Splitter.on(";")
+        .omitEmptyStrings()
+        .trimResults()
+        .withKeyValueSeparator("=")
+        .split(mapping);
+    return m.get(key);
   }
 
   private CommonUtils() {} // prevent instantiation

@@ -327,4 +327,18 @@ public class CommonUtilsTest {
     Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("/"));
     Assert.assertEquals(false, CommonUtils.isUfsObjectStorage(""));
   }
+
+  @Test
+  public void getValueFromStaticMapping() throws Exception {
+    String mapping = "k=v; a=a; alice=bob; id1=userA; foo=bar";
+    Assert.assertEquals("v",     CommonUtils.getValueFromStaticMapping(mapping, "k"));
+    Assert.assertEquals("a",     CommonUtils.getValueFromStaticMapping(mapping, "a"));
+    Assert.assertEquals("bob",   CommonUtils.getValueFromStaticMapping(mapping, "alice"));
+    Assert.assertEquals("userA", CommonUtils.getValueFromStaticMapping(mapping, "id1"));
+    Assert.assertEquals("bar",   CommonUtils.getValueFromStaticMapping(mapping, "foo"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, ""));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "/"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "v"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "nonexist"));
+  }
 }
