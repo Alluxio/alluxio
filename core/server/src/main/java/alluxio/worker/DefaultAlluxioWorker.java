@@ -286,8 +286,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
    * @return a thrift server
    */
   private TThreadPoolServer createThriftServer() {
-    int minWorkerThreads = Configuration.getInt(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MIN);
-    int maxWorkerThreads = Configuration.getInt(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX);
+    int minWorkerThreads = Configuration.getInt(PropertyKey.WORKER_BLOCK_THREADS_MIN);
+    int maxWorkerThreads = Configuration.getInt(PropertyKey.WORKER_BLOCK_THREADS_MAX);
     TMultiplexedProcessor processor = new TMultiplexedProcessor();
 
     registerServices(processor, mBlockWorker.getServices());

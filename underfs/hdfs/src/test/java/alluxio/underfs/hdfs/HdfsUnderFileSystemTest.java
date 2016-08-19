@@ -36,7 +36,7 @@ public final class HdfsUnderFileSystemTest {
    * Confirm the UnderFSType for HdfsUnderFileSystem
    */
   @Test
-  public void getUnderFSTypeTest() throws Exception {
+  public void getUnderFSType() throws Exception {
     Assert.assertEquals(UnderFSType.HDFS, mMockHdfsUnderFileSystem.getUnderFSType());
   }
 
@@ -46,7 +46,7 @@ public final class HdfsUnderFileSystemTest {
    * Checks the hdfs implements class and alluxio underfs config setting
    */
   @Test
-  public void prepareConfigurationTest() throws Exception {
+  public void prepareConfiguration() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     mMockHdfsUnderFileSystem.prepareConfiguration("", conf);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));

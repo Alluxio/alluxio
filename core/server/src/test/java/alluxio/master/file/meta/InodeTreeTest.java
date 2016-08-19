@@ -115,7 +115,7 @@ public final class InodeTreeTest {
    * Tests that initializing the root twice results in the same root.
    */
   @Test
-  public void initializeRootTwiceTest() throws Exception {
+  public void initializeRootTwice() throws Exception {
     Inode<?> root = getInodeByPath(mTree, new AlluxioURI("/"));
     // initializeRoot call does nothing
     mTree.initializeRoot(TEST_PERMISSION);
@@ -129,7 +129,7 @@ public final class InodeTreeTest {
    * directories.
    */
   @Test
-  public void createDirectoryTest() throws Exception {
+  public void createDirectory() throws Exception {
     // create directory
     createPath(mTree, TEST_URI, sDirectoryOptions);
     Assert.assertTrue(mTree.inodePathExists(TEST_URI));
@@ -157,7 +157,7 @@ public final class InodeTreeTest {
    * {@code allowExists} flag set to {@code false}.
    */
   @Test
-  public void createExistingDirectoryTest() throws Exception {
+  public void createExistingDirectory() throws Exception {
     // create directory
     createPath(mTree, TEST_URI, sDirectoryOptions);
 
@@ -174,7 +174,7 @@ public final class InodeTreeTest {
    * Tests that creating a file under a pinned directory works.
    */
   @Test
-  public void createFileUnderPinnedDirectoryTest() throws Exception {
+  public void createFileUnderPinnedDirectory() throws Exception {
     // create nested directory
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
 
@@ -196,7 +196,7 @@ public final class InodeTreeTest {
    * creating a file.
    */
   @Test
-  public void createFileTest() throws Exception {
+  public void createFile() throws Exception {
     // created nested file
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
     Inode<?> nestedFile = getInodeByPath(mTree, NESTED_FILE_URI);
@@ -266,7 +266,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create the root path twice.
    */
   @Test
-  public void createRootPathTest() throws Exception {
+  public void createRootPath() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/");
 
@@ -277,7 +277,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create a file with invalid block size.
    */
   @Test
-  public void createFileWithInvalidBlockSizeTest() throws Exception {
+  public void createFileWithInvalidBlockSize() throws Exception {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size 0");
 
@@ -289,7 +289,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create a file with a negative block size.
    */
   @Test
-  public void createFileWithNegativeBlockSizeTest() throws Exception {
+  public void createFileWithNegativeBlockSize() throws Exception {
     mThrown.expect(BlockInfoException.class);
     mThrown.expectMessage("Invalid block size -1");
 
@@ -301,7 +301,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create a file under a non-existing directory.
    */
   @Test
-  public void createFileUnderNonexistingDirTest() throws Exception {
+  public void createFileUnderNonexistingDir() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("File /nested/test creation failed. Component 1(nested) does not exist");
 
@@ -312,7 +312,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create a file twice.
    */
   @Test
-  public void createFileTwiceTest() throws Exception {
+  public void createFileTwice() throws Exception {
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage("/nested/test");
 
@@ -324,7 +324,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to create a file under a file path.
    */
   @Test
-  public void createFileUnderFileTest() throws Exception {
+  public void createFileUnderFile() throws Exception {
     mThrown.expect(InvalidPathException.class);
     mThrown.expectMessage("Traversal failed. Component 2(test) is a file");
 
@@ -336,7 +336,7 @@ public final class InodeTreeTest {
    * Tests {@link InodeTree#inodeIdExists(long)}.
    */
   @Test
-  public void inodeIdExistsTest() throws Exception {
+  public void inodeIdExists() throws Exception {
     Assert.assertTrue(mTree.inodeIdExists(0));
     Assert.assertFalse(mTree.inodeIdExists(1));
 
@@ -352,7 +352,7 @@ public final class InodeTreeTest {
    * Tests {@link InodeTree#inodePathExists(AlluxioURI)}.
    */
   @Test
-  public void inodePathExistsTest() throws Exception {
+  public void inodePathExists() throws Exception {
     Assert.assertFalse(mTree.inodePathExists(TEST_URI));
 
     createPath(mTree, TEST_URI, sFileOptions);
@@ -366,7 +366,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to get an Inode by a non-existing path.
    */
   @Test
-  public void getInodeByNonexistingPathTest() throws Exception {
+  public void getInodeByNonexistingPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path /test does not exist");
 
@@ -378,7 +378,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to get an Inode by a non-existing, nested path.
    */
   @Test
-  public void getInodeByNonexistingNestedPathTest() throws Exception {
+  public void getInodeByNonexistingNestedPath() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Path /nested/test/file does not exist");
 
@@ -391,7 +391,7 @@ public final class InodeTreeTest {
    * Tests that an exception is thrown when trying to get an Inode with an invalid id.
    */
   @Test
-  public void getInodeByInvalidIdTest() throws Exception {
+  public void getInodeByInvalidId() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage("Inode id 1 does not exist");
 
@@ -405,7 +405,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#isRootId(long)} method.
    */
   @Test
-  public void isRootIdTest() {
+  public void isRootId() {
     Assert.assertTrue(mTree.isRootId(0));
     Assert.assertFalse(mTree.isRootId(1));
   }
@@ -414,7 +414,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#getPath(Inode)} method.
    */
   @Test
-  public void getPathTest() throws Exception {
+  public void getPath() throws Exception {
     try (LockedInodePath inodePath = mTree.lockFullInodePath(0, InodeTree.LockMode.READ)) {
       Inode<?> root = inodePath.getInode();
       // test root path
@@ -438,7 +438,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#lockDescendants(LockedInodePath, InodeTree.LockMode)} method.
    */
   @Test
-  public void getInodeChildrenRecursiveTest() throws Exception {
+  public void getInodeChildrenRecursive() throws Exception {
     createPath(mTree, TEST_URI, sDirectoryOptions);
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
     // add nested file
@@ -458,7 +458,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#deleteInode(LockedInodePath)} method.
    */
   @Test
-  public void deleteInodeTest() throws Exception {
+  public void deleteInode() throws Exception {
     InodeTree.CreatePathResult createResult =
         createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
     List<Inode<?>> created = createResult.getCreated();
@@ -487,7 +487,7 @@ public final class InodeTreeTest {
    * Tests the {@link InodeTree#setPinned(LockedInodePath, boolean)} method.
    */
   @Test
-  public void setPinnedTest() throws Exception {
+  public void setPinned() throws Exception {
     createPath(mTree, NESTED_URI, sNestedDirectoryOptions);
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
 
@@ -514,7 +514,7 @@ public final class InodeTreeTest {
    * Tests that streaming to a journal checkpoint works.
    */
   @Test
-  public void streamToJournalCheckpointTest() throws Exception {
+  public void streamToJournalCheckpoint() throws Exception {
     InodeDirectory root = mTree.getRoot();
 
     // test root
@@ -539,7 +539,7 @@ public final class InodeTreeTest {
    * method.
    */
   @Test
-  public void addInodeFromJournalTest() throws Exception {
+  public void addInodeFromJournal() throws Exception {
     createPath(mTree, NESTED_FILE_URI, sNestedFileOptions);
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory root = mTree.getRoot();

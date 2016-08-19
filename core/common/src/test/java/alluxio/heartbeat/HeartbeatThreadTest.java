@@ -77,7 +77,7 @@ public final class HeartbeatThreadTest {
    * single dummy executor.
    */
   @Test
-  public void serialHeartbeatThreadTest() throws Exception {
+  public void serialHeartbeatThread() throws Exception {
     FutureTask<Void> task = new FutureTask<>(new DummyHeartbeatTestCallable());
     Thread thread = new Thread(task);
     thread.start();
@@ -90,7 +90,7 @@ public final class HeartbeatThreadTest {
    * execution of multiple dummy executors.
    */
   @Test
-  public void concurrentHeartbeatThreadTest() throws Exception {
+  public void concurrentHeartbeatThread() throws Exception {
     List<FutureTask<Void>> tasks = new LinkedList<>();
 
     // Start the threads.

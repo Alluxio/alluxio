@@ -78,7 +78,7 @@ public final class FileDataManagerTest {
    * Tests that a file gets persisted.
    */
   @Test
-  public void persistFileTest() throws Exception {
+  public void persistFile() throws Exception {
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 
@@ -100,7 +100,7 @@ public final class FileDataManagerTest {
    * Tests that persisted file are cleared in the manager.
    */
   @Test
-  public void clearPersistedFilesTest() throws Exception {
+  public void clearPersistedFiles() throws Exception {
     writeFileWithBlocks(1L, ImmutableList.of(2L, 3L));
     mManager.clearPersistedFiles(ImmutableList.of(1L));
     Assert.assertEquals(Collections.emptyList(), mManager.getPersistedFiles());
@@ -110,7 +110,7 @@ public final class FileDataManagerTest {
    * Tests the rate limiting functionality for asynchronous persistence.
    */
   @Test
-  public void persistFileRateLimitingTest() throws Exception {
+  public void persistFileRateLimiting() throws Exception {
     Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT_ENABLED, "true");
     Configuration.set(PropertyKey.WORKER_FILE_PERSIST_RATE_LIMIT, "100");
     mMockRateLimiter =
@@ -179,7 +179,7 @@ public final class FileDataManagerTest {
    * {@link FileDataManager#lockBlocks(long, List)}.
    */
   @Test
-  public void lockBlocksErrorHandlingTest() throws Exception {
+  public void lockBlocksErrorHandling() throws Exception {
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L, 3L);
 
@@ -205,7 +205,7 @@ public final class FileDataManagerTest {
    * Tests that the correct error message is provided when persisting a file fails.
    */
   @Test
-  public void errorHandlingTest() throws Exception {
+  public void errorHandling() throws Exception {
     long fileId = 1;
     List<Long> blockIds = Lists.newArrayList(1L, 2L);
 

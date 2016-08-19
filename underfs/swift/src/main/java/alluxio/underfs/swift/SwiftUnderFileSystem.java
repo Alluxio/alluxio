@@ -292,6 +292,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    LOG.debug("Get modification time for {}", path);
     return getObject(path).getLastModifiedAsDate().getTime();
   }
 

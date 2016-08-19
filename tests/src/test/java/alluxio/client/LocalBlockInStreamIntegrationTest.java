@@ -212,7 +212,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#seek(long)}.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());
@@ -234,7 +234,7 @@ public final class LocalBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.LocalBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws Exception {
+  public void skip() throws Exception {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI uri = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());

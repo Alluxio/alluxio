@@ -42,7 +42,7 @@ public class BufferedBlockInStreamTest {
    * an increasing byte array.
    */
   @Test
-  public void singleByteReadTest() throws Exception {
+  public void singleByteRead() throws Exception {
     for (int i = 0; i < mBlockSize; i++) {
       Assert.assertEquals(i & 0xFF, mTestStream.read());
     }
@@ -52,7 +52,7 @@ public class BufferedBlockInStreamTest {
    * Tests for the {@link BufferedBlockInStream#skip(long)} method.
    */
   @Test
-  public void skipTest() throws Exception {
+  public void skip() throws Exception {
     // Skip forward
     Assert.assertEquals(10, mTestStream.skip(10));
     Assert.assertEquals(10, mTestStream.read());
@@ -66,7 +66,7 @@ public class BufferedBlockInStreamTest {
    * Tests for the {@link BufferedBlockInStream#seek(long)} method.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     // Seek forward
     mTestStream.seek(10);
     Assert.assertEquals(10, mTestStream.read());
@@ -84,7 +84,7 @@ public class BufferedBlockInStreamTest {
    * Tests that {@link BufferedBlockInStream#read(byte[], int, int)} works for bulk reads.
    */
   @Test
-  public void bulkReadTest() throws Exception {
+  public void bulkRead() throws Exception {
     int size = (int) mBlockSize / 10;
     byte[] readBytes = new byte[size];
 
@@ -107,7 +107,7 @@ public class BufferedBlockInStreamTest {
    * @throws Exception when reading from the stream fails
    */
   @Test
-  public void bufferReadTest() throws Exception {
+  public void bufferRead() throws Exception {
     int position = 0;
     int size = (int) mBufferSize / 2;
     byte[] readBytes = new byte[size];

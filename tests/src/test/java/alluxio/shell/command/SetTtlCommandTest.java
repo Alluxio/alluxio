@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void setTtlTest() throws Exception {
+  public void setTtl() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL, mFileSystem.getStatus(new AlluxioURI("/testFile"))
@@ -40,7 +40,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void setTtlNegativeTest() throws IOException {
+  public void setTtlNegative() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 1);
     mException.expect(IllegalArgumentException.class);
     mException.expectMessage("TTL value must be >= 0");

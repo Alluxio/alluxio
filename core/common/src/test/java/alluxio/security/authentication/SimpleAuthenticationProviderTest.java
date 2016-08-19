@@ -22,7 +22,7 @@ public class SimpleAuthenticationProviderTest {
    * Tests the {@link SimpleAuthenticationProvider#authenticate(String, String)}.
    */
   @Test
-  public void anyUserAllowConnectTest() throws Exception {
+  public void anyUserAllowConnect() throws Exception {
     AuthenticationProvider authenticationProvider = new SimpleAuthenticationProvider();
     authenticationProvider.authenticate("", "");
     authenticationProvider.authenticate("foo", "");

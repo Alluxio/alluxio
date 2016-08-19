@@ -64,7 +64,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * @throws Exception thrown if the handler fails
    */
   @Test
-  public void authenticateNameMatchTest() throws Exception {
+  public void authenticateNameMatch() throws Exception {
     String authenticateId = "alluxio-1";
     NameCallback ncb = new NameCallback(" authentication id: ");
     ncb.setName(authenticateId);
@@ -81,7 +81,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the authentication callbacks do not match.
    */
   @Test
-  public void authenticateNameNotMatchTest() throws Exception {
+  public void authenticateNameNotMatch() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Only allow the user starting with alluxio");
 
@@ -101,7 +101,7 @@ public class PlainSaslServerCallbackHandlerTest {
    * Tests that the incorrect password should fail the authentication.
    */
   @Test
-  public void authenticateCorrectPasswordTest() throws Exception {
+  public void authenticateCorrectPassword() throws Exception {
     mThrown.expect(AuthenticationException.class);
     mThrown.expectMessage("Wrong password");
 

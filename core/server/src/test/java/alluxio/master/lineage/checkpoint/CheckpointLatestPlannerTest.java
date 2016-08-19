@@ -62,7 +62,7 @@ public final class CheckpointLatestPlannerTest {
    * method.
    */
   @Test
-  public void scheduleTest() throws Exception {
+  public void schedule() throws Exception {
     long fileId1 = 1L;
     long fileId2 = 2L;
     long l1 =

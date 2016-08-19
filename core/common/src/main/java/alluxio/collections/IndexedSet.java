@@ -133,9 +133,9 @@ public class IndexedSet<T> extends AbstractSet<T> {
     for (IndexDefinition<T> indexDefinition : indexDefinitions) {
       FieldIndex<T> index;
       if (indexDefinition.isUnique()) {
-        index = new UniqueFieldIndex<T>(indexDefinition);
+        index = new UniqueFieldIndex<>(indexDefinition);
       } else {
-        index = new NonUniqueFieldIndex<T>(indexDefinition);
+        index = new NonUniqueFieldIndex<>(indexDefinition);
       }
 
       indices.put(indexDefinition, index);

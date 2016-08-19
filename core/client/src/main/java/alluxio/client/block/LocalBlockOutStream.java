@@ -112,7 +112,10 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   public void flush() throws IOException {
     int bytesToWrite = mBuffer.position();
     if (mReservedBytes < bytesToWrite) {
-      mReservedBytes += requestSpace(bytesToWrite - mReservedBytes);
+      long bytesToRequest = bytesToWrite - mReservedBytes;
+      if (mBlockWorkerClient.requestSpace(mBlockId, bytesToRequest)) {
+        mReservedBytes += bytesToRequest;
+      }
     }
     mBuffer.flip();
     mWriter.append(mBuffer);
@@ -125,19 +128,15 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
   @Override
   protected void unBufferedWrite(byte[] b, int off, int len) throws IOException {
     if (mReservedBytes < len) {
-      mReservedBytes += requestSpace(len - mReservedBytes);
+      long bytesToRequest = len - mReservedBytes;
+      if (mBlockWorkerClient.requestSpace(mBlockId, bytesToRequest)) {
+        mReservedBytes += bytesToRequest;
+      }
     }
     mWriter.append(ByteBuffer.wrap(b, off, len));
     mReservedBytes -= len;
     mFlushedBytes += len;
     ClientContext.getClientMetrics().incBytesWrittenLocal(len);
-  }
-
-  private long requestSpace(long requestBytes) throws IOException {
-    if (!mBlockWorkerClient.requestSpace(mBlockId, requestBytes)) {
-      throw new IOException(ExceptionMessage.CANNOT_REQUEST_SPACE.getMessage());
-    }
-    return requestBytes;
   }
 
   /**

@@ -33,7 +33,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
+  public void equals() {
     InodeFile inode1 = createInodeFile(1);
     // self equal
     Assert.assertEquals(inode1, inode1);
@@ -48,7 +48,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#getId()} method.
    */
   @Test
-  public void getIdTest() {
+  public void getId() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(createInodeFileId(1), inode1.getId());
   }
@@ -57,7 +57,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#setLength(long)} method.
    */
   @Test
-  public void setLengthTest() {
+  public void setLength() {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.setLength(LENGTH);
     Assert.assertEquals(LENGTH, inodeFile.getLength());
@@ -67,7 +67,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests that an exception is thrown when trying to create a file with a negative length.
    */
   @Test
-  public void setNegativeLengthTest() throws Exception {
+  public void setNegativeLength() throws Exception {
     mThrown.expect(InvalidFileSizeException.class);
     mThrown.expectMessage("File testFile1 cannot have negative length.");
     InodeFile inodeFile = createInodeFile(1);
@@ -78,7 +78,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests a file can be complete with an unknown length.
    */
   @Test
-  public void setUnknownLengthTest() throws Exception {
+  public void setUnknownLength() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(Constants.UNKNOWN_SIZE);
   }
@@ -87,7 +87,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests that an exception is thrown when trying to complete a file twice.
    */
   @Test
-  public void completeTwiceTest() throws Exception {
+  public void completeTwice() throws Exception {
     mThrown.expect(FileAlreadyCompletedException.class);
     mThrown.expectMessage("File testFile1 has already been completed.");
     InodeFile inodeFile = createInodeFile(1);
@@ -99,7 +99,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests a file can be completed if its length was unknown previously.
    */
   @Test
-  public void completeUnknownTest() throws Exception {
+  public void completeUnknown() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
     inodeFile.complete(Constants.UNKNOWN_SIZE);
     inodeFile.complete(LENGTH);
@@ -109,7 +109,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#getBlockSizeBytes()} method.
    */
   @Test
-  public void getBlockSizeBytesTest() {
+  public void getBlockSizeBytes() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(Constants.KB, inode1.getBlockSizeBytes());
   }
@@ -118,7 +118,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#getBlockIdByIndex(int)} method.
    */
   @Test
-  public void getBlockIdByIndexTest() throws Exception {
+  public void getBlockIdByIndex() throws Exception {
     InodeFile inodeFile = createInodeFile(1);
     List<Long> blockIds = new ArrayList<>();
     final int NUM_BLOCKS = 3;
@@ -148,7 +148,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#setCompleted(boolean)} method.
    */
   @Test
-  public void setCompletedTest() {
+  public void setCompleted() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertFalse(inode1.isCompleted());
 
@@ -160,7 +160,7 @@ public final class InodeFileTest extends AbstractInodeTest {
    * Tests the {@link InodeFile#getMode()} method.
    */
   @Test
-  public void permissionStatusTest() {
+  public void permissionStatus() {
     InodeFile inode1 = createInodeFile(1);
     Assert.assertEquals(TEST_USER_NAME, inode1.getOwner());
     Assert.assertEquals(TEST_GROUP_NAME, inode1.getGroup());

@@ -48,7 +48,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getRpcAddressTest() throws Exception {
+  public void getRpcAddress() throws Exception {
     // Don't check the exact value, which could differ between systems.
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_RPC_ADDRESS),
@@ -58,7 +58,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getCapacityBytesTest() throws Exception {
+  public void getCapacityBytes() throws Exception {
     long memorySize = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES),
         NO_PARAMS, HttpMethod.GET, memorySize).run();
@@ -69,7 +69,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
    * @throws Exception when any error happens
    */
   @Test
-  public void getConfigurationTest() throws Exception {
+  public void getConfiguration() throws Exception {
     Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
@@ -81,13 +81,13 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUsedBytesTest() throws Exception {
+  public void getUsedBytes() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES),
         NO_PARAMS, HttpMethod.GET, 0).run();
   }
 
   @Test
-  public void getMetricsTest() throws Exception {
+  public void getMetrics() throws Exception {
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_METRICS),
             NO_PARAMS, HttpMethod.GET, null).call();
@@ -101,13 +101,13 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getVersionTest() throws Exception {
+  public void getVersion() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_VERSION),
         NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
   }
 
   @Test
-  public void getCapacityBytesOnTiersTest() throws Exception {
+  public void getCapacityBytesOnTiers() throws Exception {
     Long memorySize = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
@@ -115,14 +115,14 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUsedBytesOnTiersTest() throws Exception {
+  public void getUsedBytesOnTiers() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, ImmutableMap.of("MEM", 0)).run();
   }
 
   @Test
-  public void getDirectoryPathsOnTiersTest() throws Exception {
+  public void getDirectoryPathsOnTiers() throws Exception {
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, null).call();
@@ -136,7 +136,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getStartTimeMsTest() throws Exception {
+  public void getStartTimeMs() throws Exception {
     String startTimeString = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_START_TIME_MS), NO_PARAMS, HttpMethod.GET,
         null).call();
@@ -146,7 +146,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUptimeMsTest() throws Exception {
+  public void getUptimeMs() throws Exception {
     CommonUtils.sleepMs(1);
     String uptimeString =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_UPTIME_MS),
