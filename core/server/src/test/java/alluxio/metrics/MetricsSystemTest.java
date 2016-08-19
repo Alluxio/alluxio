@@ -45,7 +45,7 @@ public class MetricsSystemTest {
    * Tests the metrics for a master and a worker.
    */
   @Test
-  public void metricsSystemTest() {
+  public void metricsSystem() {
     MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig);
     masterMetricsSystem.start();
 

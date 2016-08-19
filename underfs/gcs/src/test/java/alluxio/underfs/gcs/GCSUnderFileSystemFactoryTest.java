@@ -26,7 +26,7 @@ public final class GCSUnderFileSystemFactoryTest {
    * This test ensures the GCS UFS module correctly accepts paths that begin with gs://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("gs://test-bucket/path");
 
     Assert.assertNotNull(

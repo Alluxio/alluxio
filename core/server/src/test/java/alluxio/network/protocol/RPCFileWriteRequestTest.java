@@ -68,7 +68,7 @@ public class RPCFileWriteRequestTest {
    * Tests the {@link RPCFileReadRequest#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
     int encodedLength = req.getEncodedLength();
     req.encode(mBuffer);
@@ -80,7 +80,7 @@ public class RPCFileWriteRequestTest {
    * {@link RPCFileWriteRequest#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
     req.encode(mBuffer);
     RPCFileWriteRequest req2 = RPCFileWriteRequest.decode(mBuffer);
@@ -93,7 +93,7 @@ public class RPCFileWriteRequestTest {
    * {@link RPCFileWriteRequest#decode(ByteBuf)} methods with data.
    */
   @Test
-  public void encodeDecodeDataTest() {
+  public void encodeDecodeData() {
     int length = 10;
     DataBuffer buffer = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, length, buffer);
@@ -108,7 +108,7 @@ public class RPCFileWriteRequestTest {
    * Tests the {@link RPCFileWriteRequest#getPayloadDataBuffer()} method.
    */
   @Test
-  public void getPayloadDataBufferTest() {
+  public void getPayloadDataBuffer() {
     int length = 10;
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, payload);
@@ -120,7 +120,7 @@ public class RPCFileWriteRequestTest {
    * Tests the {@link RPCFileReadRequest#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
     assertValid(req);
   }
@@ -129,7 +129,7 @@ public class RPCFileWriteRequestTest {
    * Tests the constructor with a valid length.
    */
   @Test
-  public void validLengthTest() {
+  public void validLength() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
     assertValid(req);
     req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, 0, null);
@@ -140,7 +140,7 @@ public class RPCFileWriteRequestTest {
    * Tests the constructor with a negative offset.
    */
   @Test
-  public void negativeOffsetTest() {
+  public void negativeOffset() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, -1, LENGTH, null);
     assertInvalid(req);
   }
@@ -149,7 +149,7 @@ public class RPCFileWriteRequestTest {
    * Tests the constructor with an invalid length.
    */
   @Test
-  public void invalidLengthTest() {
+  public void invalidLength() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, -1, null);
     assertInvalid(req);
   }

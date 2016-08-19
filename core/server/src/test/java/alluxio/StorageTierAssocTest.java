@@ -44,7 +44,7 @@ public class StorageTierAssocTest {
    * classes with a {@link Configuration}.
    */
   @Test
-  public void masterWorkerConfConstructorTest() {
+  public void masterWorkerConfConstructor() {
     Configuration.set(PropertyKey.MASTER_TIERED_STORE_GLOBAL_LEVELS, "3");
     Configuration.set(
         PropertyKeyFormat.MASTER_TIERED_STORE_GLOBAL_LEVEL_ALIAS_FORMAT.format(2), "BOTTOM");
@@ -65,7 +65,7 @@ public class StorageTierAssocTest {
    * classes with different storage alias.
    */
   @Test
-  public void storageAliasListConstructorTest() {
+  public void storageAliasListConstructor() {
     List<String> orderedAliases = Arrays.asList("MEM", "HDD", "SOMETHINGELSE", "SSD");
 
     MasterStorageTierAssoc masterAssoc = new MasterStorageTierAssoc(orderedAliases);

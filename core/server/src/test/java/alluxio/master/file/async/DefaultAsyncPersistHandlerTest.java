@@ -46,7 +46,7 @@ public class DefaultAsyncPersistHandlerTest {
   }
 
   @Test
-  public void scheduleAsyncPersistTest() throws Exception {
+  public void scheduleAsyncPersist() throws Exception {
     DefaultAsyncPersistHandler handler =
         new DefaultAsyncPersistHandler(new FileSystemMasterView(mFileSystemMaster));
     AlluxioURI path = new AlluxioURI("/test");

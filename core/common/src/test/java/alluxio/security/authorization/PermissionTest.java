@@ -51,7 +51,7 @@ public final class PermissionTest {
    * Tests the {@link Permission#applyUMask(Mode)} method.
    */
   @Test
-  public void applyUMaskTest() {
+  public void applyUMask() {
     Mode umaskMode = new Mode((short) 0022);
     Permission permission = new Permission("user1", "group1", Mode.getDefault());
     permission.applyUMask(umaskMode);
@@ -66,7 +66,7 @@ public final class PermissionTest {
    * Tests the {@link Permission#defaults()} method.
    */
   @Test
-  public void defaultsTest() throws Exception {
+  public void defaults() throws Exception {
     // no authentication
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.NOSASL.getAuthName());
     Permission permission = Permission.defaults();
@@ -77,7 +77,7 @@ public final class PermissionTest {
    * Tests the {@link Permission#setOwnerFromThriftClient()} method.
    */
   @Test
-  public void setOwnerFromThriftClientTest() throws Exception {
+  public void setOwnerFromThriftClient() throws Exception {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set
@@ -99,7 +99,7 @@ public final class PermissionTest {
    * Tests the {@link Permission#setOwnerFromLoginModule()} method.
    */
   @Test
-  public void setOwnerFromLoginModuleTest() throws Exception {
+  public void setOwnerFromLoginModule() throws Exception {
     Permission permission = Permission.defaults();
 
     // When security is not enabled, user and group are not set

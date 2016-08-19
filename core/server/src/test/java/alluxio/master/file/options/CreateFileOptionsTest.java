@@ -38,7 +38,7 @@ public class CreateFileOptionsTest {
    * Tests the {@link CreateFileOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() throws Exception {
+  public void defaults() throws Exception {
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateFileOptions options = CreateFileOptions.defaults();
@@ -54,7 +54,7 @@ public class CreateFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() throws Exception {
+  public void fields() throws Exception {
     Random random = new Random();
     long blockSize = random.nextLong();
     boolean mountPoint = random.nextBoolean();

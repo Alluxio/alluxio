@@ -26,7 +26,7 @@ public class LoadMetadataOptionsTest {
    * Tests that building a {@link LoadMetadataOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     LoadMetadataOptions options = LoadMetadataOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
@@ -36,7 +36,7 @@ public class LoadMetadataOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
 
