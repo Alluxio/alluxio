@@ -15,6 +15,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.doReturn;
 
 import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.exception.ExceptionMessage;
@@ -23,6 +24,7 @@ import org.apache.hadoop.yarn.api.protocolrecords.GetNewApplicationResponse;
 import org.apache.hadoop.yarn.api.records.Resource;
 import org.apache.hadoop.yarn.client.api.YarnClient;
 import org.apache.hadoop.yarn.client.api.YarnClientApplication;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,12 +54,11 @@ public final class ClientTest {
     PowerMockito.mockStatic(YarnClient.class);
     mYarnClient = (YarnClient) Mockito.mock(YarnClient.class);
     Mockito.when(YarnClient.createYarnClient()).thenReturn(mYarnClient);
+  }
 
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
-    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
   }
 
   @Test(timeout = 1000)
@@ -93,8 +94,10 @@ public final class ClientTest {
     client.run();
   }
 
-  @Test(timeout = 10000)
+  @Test
   public void notEnoughMemoryForAlluxioMaster() throws Exception {
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
     int masterMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
     Resource resource = Resource.newInstance(masterMemInMB / 2, 4);
@@ -106,8 +109,10 @@ public final class ClientTest {
     client.run();
   }
 
-  @Test(timeout = 10000)
+  @Test
   public void notEnoughVCoreForAlluxioMaster() throws Exception {
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU, "4");
     int masterMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_MASTER_RESOURCE_MEM) / Constants.MB);
     int masterVCores = Configuration.getInt(PropertyKey.INTEGRATION_MASTER_RESOURCE_CPU);
@@ -122,6 +127,9 @@ public final class ClientTest {
 
   @Test(timeout = 10000)
   public void notEnoughMemoryForAlluxioWorker() throws Exception {
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
     int workerMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (Configuration.getBytes(
@@ -137,6 +145,9 @@ public final class ClientTest {
 
   @Test(timeout = 10000)
   public void notEnoughVCoreForAlluxioWorker() throws Exception {
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
+    Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_CPU, "8");
     int workerMemInMB = (int) (Configuration.getBytes(
         PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM) / Constants.MB);
     int ramdiskMemInMB = (int) (Configuration.getBytes(
