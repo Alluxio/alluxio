@@ -14,7 +14,6 @@ package alluxio.client.netty;
 import alluxio.network.protocol.RPCBlockReadResponse;
 import alluxio.network.protocol.RPCErrorResponse;
 import alluxio.network.protocol.RPCFileWriteResponse;
-import alluxio.network.protocol.RPCMessage;
 import alluxio.network.protocol.RPCResponse;
 import alluxio.network.protocol.databuffer.DataBuffer;
 import alluxio.network.protocol.databuffer.DataByteBuffer;
@@ -22,17 +21,17 @@ import alluxio.network.protocol.databuffer.DataByteBuffer;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests for the {@link NettyRemoteBlockReader} class.
@@ -42,6 +41,8 @@ public class NettyRemoteBlockReaderTest {
   private NettyRemoteBlockReader mNettyRemoteBlockReader;
   private Bootstrap mBootstrap;
   private ClientHandler mClientHandler;
+  private Channel mChannel;
+  private ChannelFuture mChannelFuture;
 
   private static final InetSocketAddress INET_SOCKET_ADDRESS = new InetSocketAddress(1234);
   private static final long BLOCK_ID = 4242L;
@@ -59,23 +60,27 @@ public class NettyRemoteBlockReaderTest {
     mClientHandler = new ClientHandler();
     mNettyRemoteBlockReader = new NettyRemoteBlockReader(mBootstrap, mClientHandler);
 
-    ChannelFuture channelFuture = Mockito.mock(ChannelFuture.class);
-    Channel channel = Mockito.mock(Channel.class);
-    Mockito.when(channel.close()).thenReturn(channelFuture);
-    Mockito.when(channelFuture.sync()).thenReturn(channelFuture);
-    Mockito.when(channelFuture.channel()).thenReturn(channel);
-    Mockito.when(mBootstrap.connect(Mockito.any(SocketAddress.class))).thenReturn(channelFuture);
+    mChannel = Mockito.mock(Channel.class);
+    mChannelFuture = Mockito.mock(ChannelFuture.class);
+
+    Mockito.when(mChannel.close()).thenReturn(mChannelFuture);
+    Mockito.when(mChannelFuture.sync()).thenReturn(mChannelFuture);
+    Mockito.when(mChannelFuture.channel()).thenReturn(mChannel);
+    Mockito.when(mBootstrap.connect(Mockito.any(SocketAddress.class))).thenReturn(mChannelFuture);
   }
 
   /**
    * Test case for a valid {@link RPCBlockReadResponse} is received.
    */
   @Test
-  public void readRemoteBlockTest() throws IOException {
-    Thread channelThread = new Thread(new ChannelReadThread(
-            RPCResponse.Type.RPC_BLOCK_READ_RESPONSE, RPCResponse.Status.SUCCESS
-    ));
-    channelThread.start();
+  public void readRemoteBlock() throws IOException {
+    Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
+      @Override
+      public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
+        mClientHandler.channelRead0(null, createRPCBlockReadResponse(RPCResponse.Status.SUCCESS));
+        return null;
+      }
+    });
 
     ByteBuffer byteBuffer = mNettyRemoteBlockReader.readRemoteBlock(INET_SOCKET_ADDRESS,
             BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID);
@@ -91,11 +96,15 @@ public class NettyRemoteBlockReaderTest {
    * Test case for an invalid {@link RPCBlockReadResponse} is received.
    */
   @Test(expected = IOException.class)
-  public void readRemoteBlockWithBadStatusTest() throws IOException {
-    Thread channelThread = new Thread(new ChannelReadThread(
-            RPCResponse.Type.RPC_BLOCK_READ_RESPONSE, RPCResponse.Status.BLOCK_LOCK_ERROR
-    ));
-    channelThread.start();
+  public void readRemoteBlockWithBadStatus() throws IOException {
+    Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
+      @Override
+      public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
+        mClientHandler.channelRead0(null,
+                createRPCBlockReadResponse(RPCResponse.Status.UFS_READ_FAILED));
+        return null;
+      }
+    });
 
     mNettyRemoteBlockReader.readRemoteBlock(INET_SOCKET_ADDRESS,
             BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID);
@@ -105,11 +114,15 @@ public class NettyRemoteBlockReaderTest {
    * Test case for {@link RPCErrorResponse} is received.
    */
   @Test(expected = IOException.class)
-  public void readRemoteBlockErrorResponseTest() throws IOException {
-    Thread channelThread = new Thread(new ChannelReadThread(
-            RPCResponse.Type.RPC_ERROR_RESPONSE, RPCResponse.Status.SUCCESS
-    ));
-    channelThread.start();
+  public void readRemoteBlockErrorResponse() throws IOException {
+    Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
+      @Override
+      public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
+        mClientHandler.channelRead0(null, new RPCErrorResponse(RPCResponse.Status.SUCCESS));
+        return null;
+      }
+    });
+
     mNettyRemoteBlockReader.readRemoteBlock(INET_SOCKET_ADDRESS,
             BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID);
   }
@@ -118,53 +131,18 @@ public class NettyRemoteBlockReaderTest {
    * Test case for unexpected {@link RPCFileWriteResponse} is received.
    */
   @Test(expected = IOException.class)
-  public void readRemoteBlockUnexpectedResponseTest() throws IOException {
-    Thread channelThread = new Thread(new ChannelReadThread(
-            RPCResponse.Type.RPC_FILE_READ_RESPONSE, RPCResponse.Status.SUCCESS
-    ));
-    channelThread.start();
+  public void readRemoteBlockUnexpectedResponse() throws IOException {
+    Mockito.when(mChannel.writeAndFlush(Mockito.any())).then(new Answer<ChannelFuture>() {
+      @Override
+      public ChannelFuture answer(InvocationOnMock invocation) throws Throwable {
+        mClientHandler.channelRead0(null,
+                new RPCFileWriteResponse(9876, 0, 20, RPCResponse.Status.SUCCESS));
+        return null;
+      }
+    });
+
     mNettyRemoteBlockReader.readRemoteBlock(INET_SOCKET_ADDRESS,
             BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID);
-  }
-
-  /**
-   * Helper Thread for calling
-   * {@link ClientHandler#channelRead0(ChannelHandlerContext, RPCMessage)}.
-   */
-  private class ChannelReadThread implements Runnable {
-    private RPCResponse.Type mType;
-    private RPCResponse.Status mStatus;
-
-    public ChannelReadThread(RPCResponse.Type type, RPCResponse.Status status) {
-      mType = type;
-      mStatus = status;
-    }
-
-    @Override
-    public void run() {
-      for (int i = 0; i < 5; ++i) {
-        try {
-          switch (mType) {
-            case RPC_BLOCK_READ_RESPONSE:
-              mClientHandler.channelRead0(null, createRPCBlockReadResponse(mStatus));
-              break;
-            case RPC_ERROR_RESPONSE:
-              mClientHandler.channelRead0(null, new RPCErrorResponse(mStatus));
-              break;
-            default:
-              mClientHandler.channelRead0(null, new RPCFileWriteResponse(9876, 0, 20, mStatus));
-              break;
-          }
-        } catch (IOException e) {
-          // ignore
-        }
-        try {
-          TimeUnit.MILLISECONDS.sleep(10);
-        } catch (InterruptedException e) {
-          // ignore
-        }
-      }
-    }
   }
 
   private RPCBlockReadResponse createRPCBlockReadResponse(RPCResponse.Status status) {
