@@ -156,7 +156,8 @@ public class MetricsSystem {
   public void registerSource(Source source) {
     mSources.add(source);
     try {
-      mMetricRegistry.register(buildSourceRegistryName(mInstance, source), source.getMetricRegistry());
+      mMetricRegistry
+          .register(buildSourceRegistryName(mInstance, source), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
       LOG.warn("Metrics already registered. Exception: {}", e.getMessage());
     }

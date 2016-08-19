@@ -25,7 +25,7 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public class WorkerSource implements Source {
-  private static final String mWorkerSourceName = "worker";
+  private static final String WORKER_SOURCE_NAME = "worker";
 
   public static final String BLOCKS_ACCESSED = "BlocksAccessed";
   public static final String BLOCKS_CANCELED = "BlocksCanceled";
@@ -84,7 +84,7 @@ public class WorkerSource implements Source {
   private final Counter mBytesWrittenUfs = mMetricRegistry.counter(MetricRegistry
       .name(BYTES_WRITTEN_UFS));
   private final Counter mSeeksLocal = mMetricRegistry.counter(MetricRegistry.name(SEEKS_LOCAL));
-  private final Counter mSeeksRemote= mMetricRegistry.counter(MetricRegistry.name(SEEKS_REMOTE));
+  private final Counter mSeeksRemote = mMetricRegistry.counter(MetricRegistry.name(SEEKS_REMOTE));
 
   /**
    * Constructs a new {@link WorkerSource}.
@@ -93,7 +93,7 @@ public class WorkerSource implements Source {
 
   @Override
   public String getName() {
-    return mWorkerSourceName;
+    return WORKER_SOURCE_NAME;
   }
 
   @Override

@@ -133,7 +133,8 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
 
     Map<String, Counter> rpcInvocationsUpdated = new TreeMap<>();
     for (Map.Entry<String, Counter> entry : rpcInvocations.entrySet()) {
-      rpcInvocationsUpdated.put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
+      rpcInvocationsUpdated
+          .put(MetricsSystem.stripInstanceAndHost(entry.getKey()), entry.getValue());
     }
     populateCounterValues(operations, rpcInvocationsUpdated, request);
   }
