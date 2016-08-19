@@ -26,7 +26,7 @@ public class LocalUnderFileSystemFactoryTest {
    * This test ensures the local UFS module correctly accepts paths that begin with / or file://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/local/test/path");
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://local/test/path");
     UnderFileSystemFactory factory3 = UnderFileSystemRegistry.find("hdfs://test-bucket/path");

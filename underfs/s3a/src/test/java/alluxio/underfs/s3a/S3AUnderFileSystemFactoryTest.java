@@ -26,7 +26,7 @@ public class S3AUnderFileSystemFactoryTest {
    * This test ensures the S3A UFS module correctly accepts paths that begin with s3a://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("s3a://test-bucket/path");
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("s3n://test-bucket/path");
     UnderFileSystemFactory factory3 = UnderFileSystemRegistry.find("s3://test-bucket/path");
