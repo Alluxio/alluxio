@@ -22,7 +22,8 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * ClientMetrics is used to pass client metrics from client to worker by session heartbeat.
  * TODO(peis): This method limits the types and amount of metrics we can collect. And it is not able
- * to break the metrics by client applications. Refactor this to collect client metrics directly on
+ * to break the metrics by client applications. It is also error-prone because we need to keep the
+ * client and server code in sync. Refactor this to collect client metrics directly on
  * the client side without passing to worker.
  */
 @ThreadSafe
