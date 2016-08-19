@@ -141,7 +141,7 @@ public class FileInStreamTest {
    * Tests that reading through the file one byte at a time will yield the correct data.
    */
   @Test
-  public void singleByteReadTest() throws Exception {
+  public void singleByteRead() throws Exception {
     for (int i = 0; i < FILE_LENGTH; i++) {
       Assert.assertEquals(i & 0xff, mTestStream.read());
     }
@@ -153,7 +153,7 @@ public class FileInStreamTest {
    * Tests that reading half of a file works.
    */
   @Test
-  public void readHalfFileTest() throws Exception {
+  public void readHalfFile() throws Exception {
     testReadBuffer((int) (FILE_LENGTH / 2));
   }
 
@@ -161,7 +161,7 @@ public class FileInStreamTest {
    * Tests that reading a part of a file works.
    */
   @Test
-  public void readPartialBlockTest() throws Exception {
+  public void readPartialBlock() throws Exception {
     testReadBuffer((int) (BLOCK_LENGTH / 2));
   }
 
@@ -169,7 +169,7 @@ public class FileInStreamTest {
    * Tests that reading the complete block works.
    */
   @Test
-  public void readBlockTest() throws Exception {
+  public void readBlock() throws Exception {
     testReadBuffer((int) BLOCK_LENGTH);
   }
 
@@ -177,7 +177,7 @@ public class FileInStreamTest {
    * Tests that reading the complete file works.
    */
   @Test
-  public void readFileTest() throws Exception {
+  public void readFile() throws Exception {
     testReadBuffer((int) FILE_LENGTH);
   }
 
@@ -185,7 +185,7 @@ public class FileInStreamTest {
    * Tests that reading a buffer at an offset writes the bytes to the correct places.
    */
   @Test
-  public void readOffsetTest() throws IOException {
+  public void readOffset() throws IOException {
     int offset = (int) (BLOCK_LENGTH / 3);
     int len = (int) BLOCK_LENGTH;
     byte[] buffer = new byte[offset + len];
@@ -265,7 +265,7 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks backward for more than a block.
    */
   @Test
-  public void longSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
+  public void longSeekBackwardCachingPartiallyReadBlocks() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
             .setCachePartiallyReadBlock(true), mContext);
@@ -287,7 +287,7 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks backward within 1 block.
    */
   @Test
-  public void shortSeekBackwardCachingPartiallyReadBlocksTest() throws IOException {
+  public void shortSeekBackwardCachingPartiallyReadBlocks() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
             .setCachePartiallyReadBlock(true), mContext);
@@ -317,7 +317,7 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks forward for more than a block.
    */
   @Test
-  public void longSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
+  public void longSeekForwardCachingPartiallyReadBlocks() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
             .setCachePartiallyReadBlock(true), mContext);
@@ -343,7 +343,7 @@ public class FileInStreamTest {
    * Tests seeking with incomplete block caching enabled. It seeks forward within a block.
    */
   @Test
-  public void shortSeekForwardCachingPartiallyReadBlocksTest() throws IOException {
+  public void shortSeekForwardCachingPartiallyReadBlocks() throws IOException {
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE_PROMOTE)
             .setCachePartiallyReadBlock(true), mContext);
@@ -434,7 +434,7 @@ public class FileInStreamTest {
    * propagated.
    */
   @Test
-  public void failGetInStreamTest() throws IOException {
+  public void failGetInStream() throws IOException {
     Mockito.when(mBlockStore.getInStream(1L)).thenThrow(new IOException("test IOException"));
 
     try {
@@ -449,7 +449,7 @@ public class FileInStreamTest {
    * Tests the capability to fall back to a ufs stream when getting an alluxio stream fails.
    */
   @Test
-  public void failToUnderFsTest() throws AlluxioException, IOException {
+  public void failToUnderFs() throws AlluxioException, IOException {
     mInfo.setPersisted(true).setUfsPath("testUfsPath");
     mStatus = new URIStatus(mInfo);
     mTestStream = new FileInStream(mStatus,
@@ -478,7 +478,7 @@ public class FileInStreamTest {
    * Tests that reading out of bounds properly returns -1.
    */
   @Test
-  public void readOutOfBoundsTest() throws IOException {
+  public void readOutOfBounds() throws IOException {
     mTestStream.read(new byte[(int) FILE_LENGTH]);
     Assert.assertEquals(-1, mTestStream.read());
     Assert.assertEquals(-1, mTestStream.read(new byte[10]));
@@ -488,7 +488,7 @@ public class FileInStreamTest {
    * Tests that specifying an invalid offset/length for a buffer read throws the right exception.
    */
   @Test
-  public void readBadBufferTest() throws IOException {
+  public void readBadBuffer() throws IOException {
     try {
       mTestStream.read(new byte[10], 5, 6);
       Assert.fail("the buffer read of invalid offset/length should fail");
@@ -502,7 +502,7 @@ public class FileInStreamTest {
    * Tests that seeking to a negative position will throw the right exception.
    */
   @Test
-  public void seekNegativeTest() throws IOException {
+  public void seekNegative() throws IOException {
     try {
       mTestStream.seek(-1);
       Assert.fail("seeking negative position should fail");
@@ -516,7 +516,7 @@ public class FileInStreamTest {
    * Tests that seeking past the end of the stream will throw the right exception.
    */
   @Test
-  public void seekPastEndTest() throws IOException {
+  public void seekPastEnd() throws IOException {
     try {
       mTestStream.seek(FILE_LENGTH + 1);
       Assert.fail("seeking past the end of the stream should fail");
@@ -530,7 +530,7 @@ public class FileInStreamTest {
    * Tests that skipping a negative amount correctly reports that 0 bytes were skipped.
    */
   @Test
-  public void skipNegativeTest() throws IOException {
+  public void skipNegative() throws IOException {
     Assert.assertEquals(0, mTestStream.skip(-10));
   }
 
@@ -538,7 +538,7 @@ public class FileInStreamTest {
    * Tests that the file in stream uses the supplied location policy.
    */
   @Test
-  public void locationPolicyTest() throws Exception {
+  public void locationPolicy() throws Exception {
     FileWriteLocationPolicy policy = Mockito.mock(FileWriteLocationPolicy.class);
     mTestStream = new FileInStream(mStatus,
         InStreamOptions.defaults().setReadType(ReadType.CACHE).setLocationPolicy(policy), mContext);
@@ -551,7 +551,7 @@ public class FileInStreamTest {
    * Tests that the correct exception message is produced when the location policy is not specified.
    */
   @Test
-  public void missingLocationPolicyTest() {
+  public void missingLocationPolicy() {
     try {
       mTestStream = new FileInStream(mStatus,
           InStreamOptions.defaults().setReadType(ReadType.CACHE).setLocationPolicy(null), mContext);

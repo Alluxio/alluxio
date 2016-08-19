@@ -23,7 +23,7 @@ import java.util.Random;
 
 public class MountPointInfoTest {
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     MountPointInfo mountPointInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     MountPointInfo other = mapper.readValue(mapper.writeValueAsBytes(mountPointInfo),

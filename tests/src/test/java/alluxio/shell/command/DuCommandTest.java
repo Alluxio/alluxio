@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class DuCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void duTest() throws IOException {
+  public void du() throws IOException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",

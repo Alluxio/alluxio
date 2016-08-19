@@ -21,7 +21,7 @@ import org.junit.Test;
  */
 public class RenameOptionsTest {
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     RenameOptions options = RenameOptions.defaults();
 
     Assert.assertNotNull(options);

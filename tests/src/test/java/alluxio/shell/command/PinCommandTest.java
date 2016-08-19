@@ -40,7 +40,7 @@ public final class PinCommandTest extends AbstractAlluxioShellTest {
    * it and finally unpinning
    */
   @Test
-  public void setIsPinnedTest() throws Exception {
+  public void setIsPinned() throws Exception {
     AlluxioURI filePath = new AlluxioURI("/testFile");
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
 
@@ -69,7 +69,7 @@ public final class PinCommandTest extends AbstractAlluxioShellTest {
    * the second file will be evicted.
    */
   @Test
-  public void setPinTest() throws Exception {
+  public void setPin() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 

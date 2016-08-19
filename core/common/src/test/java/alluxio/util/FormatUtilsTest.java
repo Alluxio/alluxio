@@ -31,7 +31,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#parametersToString(Object...)} method.
    */
   @Test
-  public void parametersToStringTest() {
+  public void parametersToString() {
     class TestCase {
       String mExpected;
       Object[] mInput;
@@ -63,7 +63,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#byteBufferToString(ByteBuffer)} method.
    */
   @Test
-  public void byteBufferToStringTest() {
+  public void byteBufferToString() {
     class TestCase {
       String mExpected;
       ByteBuffer mInput;
@@ -94,7 +94,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#byteArrayToHexString(byte[])} method.
    */
   @Test
-  public void byteArrayToHexStringTest() {
+  public void byteArrayToHexString() {
     Assert.assertEquals("", FormatUtils.byteArrayToHexString(new byte[0]));
     Assert.assertEquals("0x01", FormatUtils.byteArrayToHexString(new byte[]{1}));
     Assert.assertEquals("0x01 0xAC", FormatUtils.byteArrayToHexString(new byte[]{1, (byte) 0xAC}));
@@ -104,7 +104,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatTimeTakenMs(long, String)} method.
    */
   @Test
-  public void formatTimeTakenMsTest() {
+  public void formatTimeTakenMs() {
     class TestCase {
       Pattern mExpected;
       String mInputMessage;
@@ -134,7 +134,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatTimeTakenNs(long, String)} method.
    */
   @Test
-  public void formatTimeTakenNsTest() {
+  public void formatTimeTakenNs() {
     class TestCase {
       Pattern mExpected;
       String mInputMessage;
@@ -164,7 +164,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#getSizeFromBytes(long)} method.
    */
   @Test
-  public void getSizeFromBytesTest() {
+  public void getSizeFromBytes() {
     class TestCase {
       String mExpected;
       long mInput;
@@ -199,7 +199,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#parseSpaceSize(String)} method.
    */
   @Test
-  public void parseSpaceSizeTest() {
+  public void parseSpaceSize() {
     long max = 10240;
     for (long k = 0; k < max; k++) {
       Assert.assertEquals(k / 10, FormatUtils.parseSpaceSize(k / 10.0 + "b"));
@@ -243,7 +243,7 @@ public class FormatUtilsTest {
    * Tests the {@link FormatUtils#formatMode(short, boolean)} method.
    */
   @Test
-  public void formatPermissionTest() {
+  public void formatPermission() {
     Assert.assertEquals("-rw-rw-rw-", FormatUtils.formatMode((short) 0666, false));
     Assert.assertEquals("drw-rw-rw-", FormatUtils.formatMode((short) 0666, true));
     Assert.assertEquals("-rwxrwxrwx", FormatUtils.formatMode((short) 0777, false));

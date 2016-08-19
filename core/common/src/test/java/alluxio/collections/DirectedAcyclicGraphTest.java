@@ -38,7 +38,7 @@ public final class DirectedAcyclicGraphTest {
    * Tests some simple graphs.
    */
   @Test
-  public void simpleGraphTest() {
+  public void simpleGraph() {
     // Empty graph.
     Assert.assertTrue(mGraph.getRoots().isEmpty());
     Assert.assertTrue(mGraph.sortTopologically(new HashSet<Integer>()).isEmpty());
@@ -56,7 +56,7 @@ public final class DirectedAcyclicGraphTest {
    * are tested indirectly also.
    */
   @Test
-  public void topologicalSortTest() {
+  public void topologicalSort() {
     // Construct a graph.
     // 1->2, 3->2, 4->2, 5->1, 6
     List<Integer> parents = new ArrayList<>();

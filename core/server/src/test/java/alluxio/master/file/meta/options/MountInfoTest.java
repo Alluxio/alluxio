@@ -25,7 +25,7 @@ public class MountInfoTest {
    * Tests getting fields of {@link MountInfo}.
    */
   @Test
-  public void getFieldsTest() {
+  public void getFields() {
     AlluxioURI uri = new AlluxioURI("alluxio://localhost:19998/test");
     MountOptions options = MountOptions.defaults();
     MountInfo info = new MountInfo(uri, options);

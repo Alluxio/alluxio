@@ -54,7 +54,7 @@ public class ClientHandlerTest {
    * Makes sure that a {@link NullPointerException} is thrown if a listener is added which is null.
    */
   @Test
-  public void addListenerTest() {
+  public void addListener() {
     mThrown.expect(NullPointerException.class);
 
     mHandler.addListener(null);
@@ -64,7 +64,7 @@ public class ClientHandlerTest {
    * Makes sure that the response is received as expected.
    */
   @Test
-  public void channelRead0ResponseReceivedTest() throws IOException {
+  public void channelRead0ResponseReceived() throws IOException {
     final ClientHandler.ResponseListener listener =
         Mockito.mock(ClientHandler.ResponseListener.class);
     final DataBuffer buffer = Mockito.mock(DataBuffer.class);
@@ -82,7 +82,7 @@ public class ClientHandlerTest {
    * not a {@link alluxio.network.protocol.RPCResponse}.
    */
   @Test
-  public void channelRead0ThrowsExceptionTest() throws IOException {
+  public void channelRead0ThrowsException() throws IOException {
     final RPCMessage message = new RPCBlockReadRequest(0, 0, 0, 0, 0);
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(ExceptionMessage.NO_RPC_HANDLER.getMessage(message.getType()));
@@ -94,7 +94,7 @@ public class ClientHandlerTest {
    * Makes sure that the {@link ChannelHandlerContext} is closed.
    */
   @Test
-  public void exceptionCaughtClosesContextTest() throws Exception {
+  public void exceptionCaughtClosesContext() throws Exception {
     mHandler.exceptionCaught(mContext, new Throwable());
 
     Mockito.verify(mContext).close();

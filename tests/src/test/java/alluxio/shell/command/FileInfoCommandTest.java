@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void fileInfoNotExistTest() throws IOException {
+  public void fileInfoNotExist() throws IOException {
     int ret = mFsShell.run("fileInfo", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
@@ -34,7 +34,7 @@ public final class FileInfoCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void fileInfoWildCardTest() throws IOException, AlluxioException {
+  public void fileInfoWildCard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("fileInfo", testDir + "/*");

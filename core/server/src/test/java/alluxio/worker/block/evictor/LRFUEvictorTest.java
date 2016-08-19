@@ -117,7 +117,7 @@ public class LRFUEvictorTest {
    * Tests that the eviction in the bottom tier works.
    */
   @Test
-  public void evictInBottomTierTest() throws Exception {
+  public void evictInBottomTier() throws Exception {
     int bottomTierOrdinal = TieredBlockStoreTestUtils
         .TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
     Map<Long, Double> blockIdToCRF = new HashMap<>();

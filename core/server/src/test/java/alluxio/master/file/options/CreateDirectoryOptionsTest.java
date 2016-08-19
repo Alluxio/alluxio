@@ -36,7 +36,7 @@ public class CreateDirectoryOptionsTest {
    * Tests the {@link CreateDirectoryOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() throws Exception {
+  public void defaults() throws Exception {
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
 
     CreateDirectoryOptions options = CreateDirectoryOptions.defaults();
@@ -51,7 +51,7 @@ public class CreateDirectoryOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() throws Exception {
+  public void fields() throws Exception {
     Random random = new Random();
     boolean allowExists = random.nextBoolean();
     boolean mountPoint = random.nextBoolean();

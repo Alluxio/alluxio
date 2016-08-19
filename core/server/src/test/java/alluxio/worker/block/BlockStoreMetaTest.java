@@ -67,7 +67,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getBlockList()} method.
    */
   @Test
-  public void getBlockListTest() {
+  public void getBlockList() {
     Map<String, List<Long>> tierAliasToBlockIds = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       List<Long> blockIdsOnTier = new ArrayList<>();
@@ -85,7 +85,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesTest() {
+  public void getCapacityBytes() {
     Assert.assertEquals(TieredBlockStoreTestUtils.getDefaultTotalCapacityBytes(),
         mBlockStoreMeta.getCapacityBytes());
   }
@@ -94,7 +94,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesOnDirsTest() {
+  public void getCapacityBytesOnDirs() {
     Map<Pair<String, String>, Long> dirsToCapacityBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
@@ -111,7 +111,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getCapacityBytesOnTiers()} method.
    */
   @Test
-  public void getCapacityBytesOnTiersTest() {
+  public void getCapacityBytesOnTiers() {
     Map<String, Long> expectedCapacityBytesOnTiers = ImmutableMap.of("MEM", 5000L, "SSD", 60000L);
     Assert.assertEquals(expectedCapacityBytesOnTiers, mBlockStoreMeta.getCapacityBytesOnTiers());
   }
@@ -120,7 +120,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getNumberOfBlocks()} method.
    */
   @Test
-  public void getNumberOfBlocksTest() {
+  public void getNumberOfBlocks() {
     Assert.assertEquals(COMMITTED_BLOCKS_NUM, mBlockStoreMetaFull.getNumberOfBlocks());
   }
 
@@ -128,7 +128,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getUsedBytes()} method.
    */
   @Test
-  public void getUsedBytesTest() {
+  public void getUsedBytes() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
     Assert.assertEquals(usedBytes, mBlockStoreMeta.getUsedBytes());
   }
@@ -137,7 +137,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getUsedBytesOnDirs()} method.
    */
   @Test
-  public void getUsedBytesOnDirsTest() {
+  public void getUsedBytesOnDirs() {
     Map<Pair<String, String>, Long> dirsToUsedBytes = new HashMap<>();
     for (StorageTier tier : mMetadataManager.getTiers()) {
       for (StorageDir dir : tier.getStorageDirs()) {
@@ -152,7 +152,7 @@ public class BlockStoreMetaTest {
    * Tests the {@link BlockStoreMeta#getUsedBytesOnTiers()} method.
    */
   @Test
-  public void getUsedBytesOnTiersTest() {
+  public void getUsedBytesOnTiers() {
     long usedBytes = TEST_BLOCK_SIZE * COMMITTED_BLOCKS_NUM;
     Map<String, Long> usedBytesOnTiers = ImmutableMap.of("MEM", usedBytes, "SSD", 0L);
     Assert.assertEquals(usedBytesOnTiers, mBlockStoreMeta.getUsedBytesOnTiers());

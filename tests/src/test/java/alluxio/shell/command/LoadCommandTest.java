@@ -28,7 +28,7 @@ import java.io.IOException;
  */
 public final class LoadCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void loadDirTest() throws IOException, AlluxioException {
+  public void loadDir() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.THROUGH, 10);
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileB", WriteType.MUST_CACHE, 10);
@@ -48,7 +48,7 @@ public final class LoadCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void loadFileTest() throws IOException, AlluxioException {
+  public void loadFile() throws IOException, AlluxioException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.THROUGH, 10);
     AlluxioURI uri = new AlluxioURI("/testFile");
     URIStatus status = mFileSystem.getStatus(uri);
