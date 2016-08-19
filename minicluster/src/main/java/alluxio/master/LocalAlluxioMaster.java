@@ -70,7 +70,7 @@ public final class LocalAlluxioMaster {
         try {
           mAlluxioMaster.start();
         } catch (Exception e) {
-          // LOG the exception as the RuntimeException will be handled silently by JUNIT
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
           LOG.error("Start master error", e);
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }

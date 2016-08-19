@@ -49,7 +49,7 @@ public enum PropertyKey {
   NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
-  VERSION(Name.VERSION, null),
+  VERSION(Name.VERSION, ProjectConstants.VERSION),
   WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
   WEB_THREADS(Name.WEB_THREADS, 1),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
@@ -627,8 +627,7 @@ public enum PropertyKey {
         "alluxio.security.group.mapping.class";
     public static final String SECURITY_LOGIN_USERNAME = "alluxio.security.login.username";
 
-    private Name() {
-    } // prevent instantiation
+    private Name() {} // prevent instantiation
   }
 
   /** A map from a property key's string name to the key. */
