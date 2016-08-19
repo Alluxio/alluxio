@@ -33,8 +33,11 @@ public final class RuntimeConstants {
   public static final String ALLUXIO_JAR =
       "target/alluxio-" + VERSION + "-jar-with-dependencies.jar";
 
-  /** The URL to Alluxio documentation for this version on project web site. */
+  /** The URL of Alluxio documentation for this version on project web site. */
   public static final String ALLUXIO_DOCS_URL;
+
+  /** The URL of Alluxio debugging documentation. */
+  public static final String ALLUXIO_DEBUG_DOCS_URL = ALLUXIO_DOCS_URL + "/en/Debugging-Guide.html";
 
   private RuntimeConstants() {} // prevent instantiation
 }
