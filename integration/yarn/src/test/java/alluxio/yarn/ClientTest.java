@@ -61,7 +61,7 @@ public final class ClientTest {
     ConfigurationTestUtils.resetConfiguration();
   }
 
-  @Test(timeout = 1000)
+  @Test
   public void notEnoughMemoryForApplicationMaster() throws Exception {
     int appMasterMem = 1024;
     Resource resource = Resource.newInstance(appMasterMem / 2, 4);
@@ -77,7 +77,7 @@ public final class ClientTest {
     client.run();
   }
 
-  @Test(timeout = 1000)
+  @Test
   public void notEnoughVCoreForApplicationMaster() throws Exception {
     int appMasterMem = 1024;
     int appMasterCore = 2;
@@ -125,7 +125,7 @@ public final class ClientTest {
     client.run();
   }
 
-  @Test(timeout = 10000)
+  @Test
   public void notEnoughMemoryForAlluxioWorker() throws Exception {
     Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
@@ -143,7 +143,7 @@ public final class ClientTest {
     client.run();
   }
 
-  @Test(timeout = 10000)
+  @Test
   public void notEnoughVCoreForAlluxioWorker() throws Exception {
     Configuration.set(PropertyKey.INTEGRATION_WORKER_RESOURCE_MEM, "2048.00MB");
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, "4096.00MB");
