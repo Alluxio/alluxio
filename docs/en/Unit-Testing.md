@@ -102,7 +102,7 @@ public void after() {
 ### Changing System properties during a test
 If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`. To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
 
-```
+```java
 @Test
 public void test() {
   try (SetAndRestorySystemProperty p = new SetAndRestorySystemProperty("propertyKey", "propertyValue)) {
