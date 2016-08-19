@@ -430,9 +430,10 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
     // Without providing "alluxio.underfs.gcs.owner.id.to.username.mapping", the default
-    // display name of the GCS owner account is empty.
-    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
-    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    // display name of the GCS owner account is empty. The owner will be the GCS account id, which
+    // is not empty.
+    Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 
