@@ -48,7 +48,7 @@ public final class FileWorkerMasterSyncExecutorTest {
    * of {@link FileSystemMasterClient} fails.
    */
   @Test
-  public void heartbeatFailureTest() throws Exception {
+  public void heartbeatFailure() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes
@@ -63,7 +63,7 @@ public final class FileWorkerMasterSyncExecutorTest {
    * heartbeat is successful.
    */
   @Test
-  public void heartbeatTest() throws Exception {
+  public void heartbeat() throws Exception {
     List<Long> persistedFiles = Lists.newArrayList(1L);
     Mockito.when(mFileDataManager.getPersistedFiles()).thenReturn(persistedFiles);
     // first time fails, second time passes

@@ -71,7 +71,7 @@ public class TieredStoreIntegrationTest {
    * Tests that deletes go through despite failing initially due to concurrent read.
    */
   @Test
-  public void deleteWhileReadTest() throws Exception {
+  public void deleteWhileRead() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,    TimeUnit.SECONDS);
 
     AlluxioURI file = new AlluxioURI("/test1");
@@ -118,7 +118,7 @@ public class TieredStoreIntegrationTest {
    * Tests that pinning a file prevents it from being evicted.
    */
   @Test
-  public void pinFileTest() throws Exception {
+  public void pinFile() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 
@@ -146,7 +146,7 @@ public class TieredStoreIntegrationTest {
    * Tests that pinning a file and then unpinning.
    */
   @Test
-  public void unpinFileTest() throws Exception {
+  public void unpinFile() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
     HeartbeatScheduler.await(HeartbeatContext.WORKER_PIN_LIST_SYNC, 10, TimeUnit.SECONDS);
 

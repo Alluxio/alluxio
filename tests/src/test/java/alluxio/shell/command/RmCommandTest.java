@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 public final class RmCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void rmNotExistingDirTest() throws IOException {
+  public void rmNotExistingDir() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder"}));
@@ -37,14 +37,14 @@ public final class RmCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void rmNotExistingFileTest() throws IOException {
+  public void rmNotExistingFile() throws IOException {
     mFsShell.run("rm", "/testFile");
     String expected = ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testFile") + "\n";
     Assert.assertEquals(expected, mOutput.toString());
   }
 
   @Test
-  public void rmTest() throws IOException {
+  public void rm() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1/testFolder2");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
@@ -66,7 +66,7 @@ public final class RmCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void rmWildCardTest() throws IOException, AlluxioException {
+  public void rmWildCard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("rm", testDir + "/foo/foo*");

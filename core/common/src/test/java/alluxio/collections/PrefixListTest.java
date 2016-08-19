@@ -27,7 +27,7 @@ public final class PrefixListTest {
    * items correctly.
    */
   @Test
-  public void emptyPrefixTest() {
+  public void emptyPrefix() {
     PrefixList prefixList = new PrefixList(ImmutableList.of(""));
     Assert.assertTrue(prefixList.inList("a"));
 
@@ -38,7 +38,7 @@ public final class PrefixListTest {
    * Tests that the {@link PrefixList#PrefixList(List)} constructor constructs items correctly.
    */
   @Test
-  public void prefixListTest() {
+  public void prefixList() {
     PrefixList prefixList = new PrefixList(ImmutableList.of("test", "apple", "sun"));
     Assert.assertTrue(prefixList.inList("test"));
     Assert.assertTrue(prefixList.inList("apple"));

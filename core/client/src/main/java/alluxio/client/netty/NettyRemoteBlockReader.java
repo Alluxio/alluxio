@@ -55,6 +55,17 @@ public final class NettyRemoteBlockReader implements RemoteBlockReader {
     mClientBootstrap = NettyClient.createClientBootstrap(mHandler);
   }
 
+  /**
+   * Constructor.
+   *
+   * @param clientBootstrap bootstrap class of the client channel
+   * @param clientHandler handler of the client channel
+   */
+  public NettyRemoteBlockReader(Bootstrap clientBootstrap, ClientHandler clientHandler) {
+    mClientBootstrap = clientBootstrap;
+    mHandler = clientHandler;
+  }
+
   @Override
   public ByteBuffer readRemoteBlock(InetSocketAddress address, long blockId, long offset,
       long length, long lockId, long sessionId) throws IOException {

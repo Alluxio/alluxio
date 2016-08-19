@@ -89,7 +89,7 @@ public class CapacityUsageIntegrationTest {
 
   // TODO(calvin): Rethink the approach of this test and what it should be testing.
   // @Test
-  public void deleteDuringEvictionTest() throws IOException, AlluxioException {
+  public void deleteDuringEviction() throws IOException, AlluxioException {
     // This test may not trigger eviction each time, repeat it 20 times.
     for (int i = 0; i < 20; i++) {
       deleteDuringEviction(i);

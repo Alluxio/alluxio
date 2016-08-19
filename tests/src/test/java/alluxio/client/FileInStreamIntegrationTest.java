@@ -175,7 +175,7 @@ public final class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#read(byte[], int, int)} for end of file.
    */
   @Test
-  public void readEndOfFileTest() throws Exception {
+  public void readEndOfFile() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -239,7 +239,7 @@ public final class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#seek(long)}.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();
@@ -261,7 +261,7 @@ public final class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#seek(long)} when at the end of a file at the block boundary.
    */
   @Test
-  public void eofSeekTest() throws Exception {
+  public void eofSeek() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     int length = BLOCK_SIZE * 3;
     for (CreateFileOptions op : getOptionSet()) {
@@ -284,7 +284,7 @@ public final class FileInStreamIntegrationTest {
    * Tests {@link FileInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws Exception {
+  public void skip() throws Exception {
     for (int k = MIN_LEN; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         String filename = sTestPath + "/file_" + k + "_" + op.hashCode();

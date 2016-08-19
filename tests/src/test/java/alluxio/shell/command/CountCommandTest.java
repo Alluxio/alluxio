@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class CountCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void countNotExistTest() throws IOException {
+  public void countNotExist() throws IOException {
     int ret = mFsShell.run("count", "/NotExistFile");
     Assert.assertEquals(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/NotExistFile") + "\n",
         mOutput.toString());
@@ -34,7 +34,7 @@ public final class CountCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void countTest() throws IOException {
+  public void count() throws IOException {
     FileSystemTestUtils
         .createByteFile(mFileSystem, "/testRoot/testFileA", WriteType.MUST_CACHE, 10);
     FileSystemTestUtils.createByteFile(mFileSystem, "/testRoot/testDir/testFileB",

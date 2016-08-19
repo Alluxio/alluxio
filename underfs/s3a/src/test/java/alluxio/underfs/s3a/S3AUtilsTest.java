@@ -44,7 +44,7 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateOwnerAclTest() {
+  public void translateOwnerAcl() {
     // Grant only READ, READ_ACP permission to the owner. Check the translated mode is 0500.
     mAcl.grantPermission(mOwnerGrantee, Permission.Read);
     mAcl.grantPermission(mOwnerGrantee, Permission.ReadAcp);
@@ -61,7 +61,7 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateEveryoneAclTest() {
+  public void translateEveryoneAcl() {
     GroupGrantee allUsersGrantee = GroupGrantee.AllUsers;
     // Assign READ only permission to "everyone".
     mAcl.grantPermission(allUsersGrantee, Permission.Read);
@@ -76,7 +76,7 @@ public final class S3AUtilsTest {
   }
 
   @Test
-  public void translateAuthenticatedUserAclTest() {
+  public void translateAuthenticatedUserAcl() {
     // Add READ only permission to "all authenticated users".
     GroupGrantee authenticatedUsersGrantee = GroupGrantee.AuthenticatedUsers;
     mAcl.grantPermission(authenticatedUsersGrantee, Permission.Read);

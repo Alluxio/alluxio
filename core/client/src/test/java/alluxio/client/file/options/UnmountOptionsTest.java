@@ -21,7 +21,7 @@ import org.junit.Test;
  */
 public class UnmountOptionsTest {
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     UnmountOptions options = UnmountOptions.defaults();
 
     Assert.assertNotNull(options);

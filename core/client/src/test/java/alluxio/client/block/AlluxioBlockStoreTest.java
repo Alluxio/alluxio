@@ -80,7 +80,7 @@ public final class AlluxioBlockStoreTest {
    * the local block is preferred.
    */
   @Test
-  public void getInStreamLocalTest() throws Exception {
+  public void getInStreamLocal() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
         .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE, BLOCK_LOCATION_LOCAL)));
 
@@ -98,7 +98,7 @@ public final class AlluxioBlockStoreTest {
    * the first {@link BlockLocation} in the {@link BlockInfo} list is chosen.
    */
   @Test
-  public void getInStreamRemoteTest() throws Exception {
+  public void getInStreamRemote() throws Exception {
     Mockito.when(mMasterClient.getBlockInfo(BLOCK_ID)).thenReturn(new BlockInfo()
         .setLocations(Arrays.asList(BLOCK_LOCATION_REMOTE)));
 

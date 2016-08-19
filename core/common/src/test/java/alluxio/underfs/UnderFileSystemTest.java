@@ -26,7 +26,7 @@ public final class UnderFileSystemTest {
    * Tests the {@link UnderFileSystem#parse(AlluxioURI)} method.
    */
   @Test
-  public void parseTest() {
+  public void parse() {
     Pair<String, String> result = UnderFileSystem.parse(new AlluxioURI("/path"));
     Assert.assertEquals(result.getFirst(), "/");
     Assert.assertEquals(result.getSecond(), "/path");
@@ -88,7 +88,7 @@ public final class UnderFileSystemTest {
    * factory.
    */
   @Test
-  public void coreFactoryTest() {
+  public void coreFactory() {
     // Supported in core
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("/test/path");
     Assert.assertNull("An UnderFileSystemFactory should not exist for local file paths", factory);
@@ -102,7 +102,7 @@ public final class UnderFileSystemTest {
    * external factory.
    */
   @Test
-  public void externalFactoryTest() {
+  public void externalFactory() {
     // As we are going to use some Maven trickery to re-use the test cases as is in the external
     // modules this test needs to assume that only the core implementations are present as otherwise
     // when we try and run it in the external modules it will fail

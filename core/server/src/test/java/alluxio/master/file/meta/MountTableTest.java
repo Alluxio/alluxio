@@ -45,7 +45,7 @@ public class MountTableTest {
    * Tests the different methods of the {@link MountTable} class with a path.
    */
   @Test
-  public void pathTest() throws Exception {
+  public void path() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("/mnt/foo"), new AlluxioURI("/foo"), mDefaultOptions);
     mMountTable.add(new AlluxioURI("/mnt/bar"), new AlluxioURI("/bar"), mDefaultOptions);
@@ -112,7 +112,7 @@ public class MountTableTest {
    * Tests the different methods of the {@link MountTable} class with an URI.
    */
   @Test
-  public void uriTest() throws Exception {
+  public void uri() throws Exception {
     // Test add()
     mMountTable.add(new AlluxioURI("alluxio://localhost:1234/mnt/foo"),
         new AlluxioURI("file://localhost:5678/foo"), mDefaultOptions);
@@ -184,7 +184,7 @@ public class MountTableTest {
    * Tests check of readonly mount points.
    */
   @Test
-  public void readOnlyMountTest() throws Exception {
+  public void readOnlyMount() throws Exception {
     MountOptions options = MountOptions.defaults().setReadOnly(true);
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
@@ -215,7 +215,7 @@ public class MountTableTest {
    * Tests check of writable mount points.
    */
   @Test
-  public void writableMountTest() throws Exception {
+  public void writableMount() throws Exception {
     String mountPath = "/mnt/foo";
     AlluxioURI alluxioUri = new AlluxioURI("alluxio://localhost:1234" + mountPath);
     mMountTable
@@ -240,7 +240,7 @@ public class MountTableTest {
    * Tests the method for getting a copy of the current mount table.
    */
   @Test
-  public void getMountTableTest() throws Exception {
+  public void getMountTable() throws Exception {
     Map<String, MountInfo> mountTable = new HashMap<>(2);
     mountTable.put("/mnt/foo", new MountInfo(new AlluxioURI("hdfs://localhost:5678/foo"),
         MountOptions.defaults()));

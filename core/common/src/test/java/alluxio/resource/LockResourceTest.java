@@ -27,7 +27,7 @@ public class LockResourceTest {
    * Tests {@link LockResource} with {@link ReentrantLock}.
    */
   @Test
-  public void reentrantLockTest() {
+  public void reentrantLock() {
     Lock lock = new ReentrantLock();
     try (LockResource r1 = new LockResource(lock)) {
       try (LockResource r2 = new LockResource(lock)) {
@@ -41,7 +41,7 @@ public class LockResourceTest {
    * Tests {@link LockResource} with {@link ReentrantReadWriteLock}.
    */
   @Test
-  public void reentrantReadWriteLockTest() {
+  public void reentrantReadWriteLock() {
     ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     try (LockResource r1 = new LockResource(lock.readLock())) {

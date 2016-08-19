@@ -40,7 +40,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests that building an {@link CreateUfsFileOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() throws IOException {
+  public void defaults() throws IOException {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityOwnerGroupMapping to map owner "foo" to group "foo".
@@ -61,7 +61,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() throws IOException {
+  public void fields() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";
@@ -77,7 +77,7 @@ public final class CreateUfsFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() throws IOException {
+  public void toThrift() throws IOException {
     CreateUfsFileOptions options = CreateUfsFileOptions.defaults();
     String owner = "test-owner";
     String group = "test-group";

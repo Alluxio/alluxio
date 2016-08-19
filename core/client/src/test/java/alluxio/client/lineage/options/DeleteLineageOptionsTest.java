@@ -25,7 +25,7 @@ public final class DeleteLineageOptionsTest {
    * Tests that building a {@link DeleteLineageOptions} works.
    */
   @Test
-  public void builderTest() {
+  public void builder() {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     Assert.assertTrue(options.isCascade());
   }
@@ -34,7 +34,7 @@ public final class DeleteLineageOptionsTest {
    * Tests that building a {@link DeleteLineageOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     DeleteLineageOptions options = DeleteLineageOptions.defaults();
     Assert.assertFalse(options.isCascade());
   }

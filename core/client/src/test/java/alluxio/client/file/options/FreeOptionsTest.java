@@ -26,7 +26,7 @@ public class FreeOptionsTest {
    * Tests that building a {@link FreeOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     FreeOptions options = FreeOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
@@ -36,7 +36,7 @@ public class FreeOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
 
