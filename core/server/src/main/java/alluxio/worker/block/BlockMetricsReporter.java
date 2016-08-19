@@ -96,6 +96,8 @@ public final class BlockMetricsReporter extends AbstractBlockStoreEventListener 
       mWorkerSource.incBytesWrittenLocal(metrics.get(Constants.BYTES_WRITTEN_LOCAL_INDEX));
       mWorkerSource.incBytesWrittenRemote(metrics.get(Constants.BYTES_WRITTEN_REMOTE_INDEX));
       mWorkerSource.incBytesWrittenUfs(metrics.get(Constants.BYTES_WRITTEN_UFS_INDEX));
+      mWorkerSource.incSeeksLocal(metrics.get(Constants.SEEKS_LOCAL_INDEX));
+      mWorkerSource.incSeeksRemote(metrics.get(Constants.SEEKS_REMOTE_INDEX));
     }
   }
 }

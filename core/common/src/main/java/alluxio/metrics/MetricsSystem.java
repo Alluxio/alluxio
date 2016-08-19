@@ -134,15 +134,17 @@ public class MetricsSystem {
    * Build unique metric registry names. The pattern is [master|worker|client].hostname.sourceName.
    * The hostname is skipped for master.
    *
+   * @param instance the instance name
    * @param source the metrics source (e.g. JvmSource, MasterSource)
    * @return the registry name
    */
-  private String buildSourceRegistryName(Source source) {
+  public static String buildSourceRegistryName(String instance, Source source) {
     // Do not add hostname to the master metrics.
-    if (mInstance == MASTER_INSTANCE) {
-      return Joiner.on(".").join(mInstance, source.getName());
+    if (instance.equals(MASTER_INSTANCE)) {
+      return Joiner.on(".").join(instance, source.getName());
     } else {
-      return Joiner.on(".").join(mInstance, NetworkAddressUtils.getLocalHostName());
+      return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', ','),
+          source.getName());
     }
   }
 
@@ -154,7 +156,7 @@ public class MetricsSystem {
   public void registerSource(Source source) {
     mSources.add(source);
     try {
-      mMetricRegistry.register(buildSourceRegistryName(source), source.getMetricRegistry());
+      mMetricRegistry.register(buildSourceRegistryName(mInstance, source), source.getMetricRegistry());
     } catch (IllegalArgumentException e) {
       LOG.warn("Metrics already registered. Exception: {}", e.getMessage());
     }
@@ -258,5 +260,24 @@ public class MetricsSystem {
    */
   public MetricRegistry getMetricRegistry() {
     return mMetricRegistry;
+  }
+
+  /**
+   * Util function to remove get the metrics name without instance and host.
+   * @param metricsName the long metrics name with instance and host name
+   * @return the metrics name without instance and host name
+   */
+  public static String stripInstanceAndHost(String metricsName) {
+    String[] pieces = metricsName.split("\\.");
+    if (pieces.length <= 1) {
+      throw new IllegalArgumentException("Incorrect metrics name: " + metricsName);
+    }
+
+    // Master metrics doesn't have hostname included.
+    if (!pieces[0].equals(MASTER_INSTANCE)) {
+      pieces[1] = null;
+    }
+    pieces[0] = null;
+    return Joiner.on(".").skipNulls().join(pieces);
   }
 }
