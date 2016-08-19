@@ -26,7 +26,7 @@ public class SwiftUnderFileSystemFactoryTest {
    * This test ensures the Swift UFS module correctly accepts paths that begin with swift://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory = UnderFileSystemRegistry.find("swift://localhost/test/path");
     UnderFileSystemFactory factory2 = UnderFileSystemRegistry.find("file://localhost/test/path");
 

@@ -60,7 +60,7 @@ public class BlockMetaTest {
    * Tests the {@link BlockMeta#getBlockSize()} method.
    */
   @Test
-  public void getBlockSizeTest() throws IOException {
+  public void getBlockSize() throws IOException {
     // With the block file not really existing, expect committed block size to be zero.
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(0, mBlockMeta.getBlockSize());
@@ -82,7 +82,7 @@ public class BlockMetaTest {
    * Tests the {@link BlockMeta#getPath()} method.
    */
   @Test
-  public void getPathTest() {
+  public void getPath() {
     mBlockMeta = new BlockMeta(mTempBlockMeta);
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID), mBlockMeta.getPath());
   }

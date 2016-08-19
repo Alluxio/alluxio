@@ -75,7 +75,7 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getTierAlias()} method.
    */
   @Test
-  public void getTierAliasTest() {
+  public void getTierAlias() {
     Assert.assertEquals(TEST_TIER_ALIAS, mTier.getTierAlias());
   }
 
@@ -83,7 +83,7 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getTierOrdinal()} method.
    */
   @Test
-  public void getTierLevelTest() {
+  public void getTierLevel() {
     Assert.assertEquals(TEST_TIER_ORDINAL, mTier.getTierOrdinal());
   }
 
@@ -91,7 +91,7 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getCapacityBytes()} method.
    */
   @Test
-  public void getCapacityBytesTest() throws Exception {
+  public void getCapacityBytes() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getCapacityBytes());
 
     // Capacity should not change after adding block to a dir.
@@ -103,7 +103,7 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getAvailableBytes()} method.
    */
   @Test
-  public void getAvailableBytesTest() throws Exception {
+  public void getAvailableBytes() throws Exception {
     Assert.assertEquals(TEST_DIR1_CAPACITY + TEST_DIR2_CAPACITY, mTier.getAvailableBytes());
 
     // Capacity should subtract block size after adding block to a dir.
@@ -116,7 +116,7 @@ public class StorageTierTest {
    * Tests that an exception is thrown when trying to get a directory by a non-existing index.
    */
   @Test
-  public void getDirTest() {
+  public void getDir() {
     mThrown.expect(IndexOutOfBoundsException.class);
     StorageDir dir1 = mTier.getDir(0);
     Assert.assertEquals(mTestDirPath1, dir1.getDirPath());
@@ -130,7 +130,7 @@ public class StorageTierTest {
    * Tests the {@link StorageTier#getStorageDirs()} method.
    */
   @Test
-  public void getStorageDirsTest() {
+  public void getStorageDirs() {
     List<StorageDir> dirs = mTier.getStorageDirs();
     Assert.assertEquals(2, dirs.size());
     Assert.assertEquals(mTestDirPath1, dirs.get(0).getDirPath());
@@ -138,7 +138,7 @@ public class StorageTierTest {
   }
 
   @Test
-  public void blankStorageTierTest() throws Exception {
+  public void blankStorageTier() throws Exception {
     PropertyKey tierDirCapacityConf =
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(0);
     Configuration.set(tierDirCapacityConf, "");

@@ -28,7 +28,7 @@ import java.io.IOException;
 public final class ChownCommandTest extends AbstractAlluxioShellTest {
 
   @Test
-  public void chownTest() throws IOException, AlluxioException {
+  public void chown() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "user1", "/testFile");
@@ -43,7 +43,7 @@ public final class ChownCommandTest extends AbstractAlluxioShellTest {
    * Tests -R option for chown recursively.
    */
   @Test
-  public void chownRecursiveTest() throws IOException, AlluxioException {
+  public void chownRecursive() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chown", "-R", "user1", "/testDir");

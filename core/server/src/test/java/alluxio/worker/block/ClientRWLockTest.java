@@ -40,7 +40,7 @@ public final class ClientRWLockTest {
    * Tests the equality for both {@link ClientRWLock} constructors.
    */
   @Test
-  public void notSameLockTest() {
+  public void notSameLock() {
     Assert.assertNotSame(mReadLock, mWriteLock);
   }
 
@@ -48,7 +48,7 @@ public final class ClientRWLockTest {
    * Tests the {@link ClientRWLock#unlock()} method.
    */
   @Test
-  public void unlockTest() throws Exception {
+  public void unlock() throws Exception {
     mReadLock.unlock();
     Assert.assertTrue(true);
   }
@@ -66,7 +66,7 @@ public final class ClientRWLockTest {
    * Tests the {@link ClientRWLock#lockInterruptibly()} method.
    */
   @Test
-  public void lockInterruptiblyTest() throws Exception {
+  public void lockInterruptibly() throws Exception {
     mReadLock.lockInterruptibly();
     Assert.assertTrue(true);
   }
@@ -75,7 +75,7 @@ public final class ClientRWLockTest {
    * Tests reference counting.
    */
   @Test
-  public void referenceCountingTest() throws Exception {
+  public void referenceCounting() throws Exception {
     Assert.assertEquals(0, mClientRWLock.getReferenceCount());
     mClientRWLock.addReference();
     mClientRWLock.addReference();

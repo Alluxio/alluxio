@@ -60,7 +60,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getDirViews()} method.
    */
   @Test
-  public void getDirViewsTest() {
+  public void getDirViews() {
     Assert.assertEquals(TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length, mTestTierView
         .getDirViews().size());
   }
@@ -69,7 +69,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getDirView(int)} method.
    */
   @Test
-  public void getDirViewTest() {
+  public void getDirView() {
     for (int i = 0; i < TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length; i++) {
       Assert.assertEquals(i, mTestTierView.getDirView(i).getDirViewIndex());
     }
@@ -79,7 +79,7 @@ public class StorageTierViewTest {
    * Tests that an exception is thrown when trying to get a storage directory view with a bad index.
    */
   @Test
-  public void getDirViewBadIndexTest() {
+  public void getDirViewBadIndex() {
     mThrown.expect(IndexOutOfBoundsException.class);
     int badDirIndex = TieredBlockStoreTestUtils.TIER_PATH[TEST_TIER_LEVEL].length;
     Assert.assertEquals(badDirIndex, mTestTierView.getDirView(badDirIndex).getDirViewIndex());
@@ -89,7 +89,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getTierViewAlias()} method.
    */
   @Test
-  public void getTierViewAliasTest() {
+  public void getTierViewAlias() {
     Assert.assertEquals(mTestTier.getTierAlias(), mTestTierView.getTierViewAlias());
   }
 
@@ -97,7 +97,7 @@ public class StorageTierViewTest {
    * Tests the {@link StorageTierView#getTierViewOrdinal()} method.
    */
   @Test
-  public void getTierViewOrdinalTest() {
+  public void getTierViewOrdinal() {
     Assert.assertEquals(mTestTier.getTierOrdinal(), mTestTierView.getTierViewOrdinal());
   }
 }

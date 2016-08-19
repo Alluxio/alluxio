@@ -46,7 +46,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests that an empty file can be created.
    */
   @Test
-  public void createEmptyTest() throws IOException {
+  public void createEmpty() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     Assert.assertTrue(mUfs.exists(testFile));
@@ -56,7 +56,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests that a file can be created and validates the data written to it.
    */
   @Test
-  public void createOpenTest() throws IOException {
+  public void createOpen() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createTestBytesFile(testFile);
     byte[] buf = new byte[TEST_BYTES.length];
@@ -69,7 +69,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests a file can be deleted.
    */
   @Test
-  public void deleteFileTest() throws IOException {
+  public void deleteFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     createEmptyFile(testFile);
     mUfs.delete(testFile, false);
@@ -82,7 +82,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests a non empty directory will be deleted if recursive is specified.
    */
   @Test
-  public void deleteDirTest() throws IOException {
+  public void deleteDir() throws IOException {
     String testDirEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirEmpty");
     String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
     String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
@@ -113,7 +113,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if delete deletes all files or folders for a large directory.
    */
   @Test
-  public void deleteLargeDirectoryTest() throws IOException {
+  public void deleteLargeDirectory() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
     mUfs.delete(config.getTopLevelDirectory(), true);
 
@@ -128,7 +128,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests exists correctly returns true if the dir exists and false if it does not.
    */
   @Test
-  public void existsTest() throws IOException {
+  public void exists() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     Assert.assertFalse(mUfs.exists(testFile));
     createEmptyFile(testFile);
@@ -143,7 +143,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#getFileSize(String)} correctly returns the file size.
    */
   @Test
-  public void getFileSizeTest() throws IOException {
+  public void getFileSize() throws IOException {
     String testFileEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileEmpty");
     String testFileNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testFileNonEmpty");
     createEmptyFile(testFileEmpty);
@@ -156,7 +156,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#getModificationTimeMs(String)} returns a reasonably accurate time.
    */
   @Test
-  public void getModTimeTest() throws IOException {
+  public void getModTime() throws IOException {
     long slack = 1000; // Some file systems may report nearest second.
     long start = System.currentTimeMillis();
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
@@ -172,7 +172,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * otherwise.
    */
   @Test
-  public void isFileTest() throws IOException {
+  public void isFile() throws IOException {
     String testFile = PathUtils.concatPath(mUnderfsAddress, "testFile");
     String testDir = PathUtils.concatPath(mUnderfsAddress, "testDir");
     Assert.assertFalse(mUfs.isFile(testFile));
@@ -186,7 +186,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if list correctly returns file names.
    */
   @Test
-  public void listTest() throws IOException {
+  public void list() throws IOException {
     String testDirNonEmpty = PathUtils.concatPath(mUnderfsAddress, "testDirNonEmpty1");
     String testDirNonEmptyChildDir = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmpty2");
     String testDirNonEmptyChildFile = PathUtils.concatPath(testDirNonEmpty, "testDirNonEmptyF");
@@ -213,7 +213,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if list correctly returns file or folder names for a large directory.
    */
   @Test
-  public void listLargeDirectoryTest() throws IOException {
+  public void listLargeDirectory() throws IOException {
     LargeDirectoryConfig config = prepareLargeDirectoryTest();
     String[] children = config.getChildren();
 
@@ -231,7 +231,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests if list recursive correctly returns all file names in all subdirectories.
    */
   @Test
-  public void listRecursiveTest() throws IOException {
+  public void listRecursive() throws IOException {
     String root = mUnderfsAddress;
     // TODO(andrew): Should this directory be created in LocalAlluxioCluster creation code?
     mUfs.mkdirs(root, true);
@@ -280,7 +280,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * createParent is specified.
    */
   @Test
-  public void mkdirsTest() throws IOException {
+  public void mkdirs() throws IOException {
     // make sure the underfs address dir exists already
     mUfs.mkdirs(mUnderfsAddress, true);
     // empty lsr should be empty
@@ -304,7 +304,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#rename(String, String)} works file to new location.
    */
   @Test
-  public void renameFileTest() throws IOException {
+  public void renameFile() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testFileDst");
     createEmptyFile(testFileSrc);
@@ -317,7 +317,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#rename(String, String)} works file to a folder if supported.
    */
   @Test
-  public void renameFileToFolderTest() throws IOException {
+  public void renameFileToFolder() throws IOException {
     String testFileSrc = PathUtils.concatPath(mUnderfsAddress, "testFileSrc");
     String testFileDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
     String testFileFinalDst = PathUtils.concatPath(testFileDst, "testFileSrc");
@@ -333,7 +333,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * Tests {@link UnderFileSystem#rename(String, String)} works folder to new location.
    */
   @Test
-  public void renameFolderTest() throws IOException {
+  public void renameFolder() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");
@@ -352,7 +352,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
    * supported.
    */
   @Test
-  public void renameFolderToFolderTest() throws IOException {
+  public void renameFolderToFolder() throws IOException {
     String testDirSrc = PathUtils.concatPath(mUnderfsAddress, "testDirSrc");
     String testDirSrcChild = PathUtils.concatPath(testDirSrc, "testFile");
     String testDirDst = PathUtils.concatPath(mUnderfsAddress, "testDirDst");

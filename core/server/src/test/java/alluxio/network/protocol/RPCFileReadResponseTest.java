@@ -70,7 +70,7 @@ public class RPCFileReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCFileReadResponse resp =
         new RPCFileReadResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null, STATUS);
     int encodedLength = resp.getEncodedLength();
@@ -83,7 +83,7 @@ public class RPCFileReadResponseTest {
    * {@link RPCFileReadResponse#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCFileReadResponse resp =
         new RPCFileReadResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null, STATUS);
     resp.encode(mBuffer);
@@ -96,7 +96,7 @@ public class RPCFileReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCFileReadResponse resp =
         new RPCFileReadResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null, STATUS);
     assertValid(resp);
@@ -106,7 +106,7 @@ public class RPCFileReadResponseTest {
    * Tests the {@link RPCBlockReadResponse#getPayloadDataBuffer()} method.
    */
   @Test
-  public void getPayloadDataBufferTest() {
+  public void getPayloadDataBuffer() {
     int length = 10;
     DataByteBuffer payload = new DataByteBuffer(ByteBuffer.allocate(length), length);
     RPCFileReadResponse resp =
@@ -121,7 +121,7 @@ public class RPCFileReadResponseTest {
    * method.
    */
   @Test
-  public void createErrorResponseTest() {
+  public void createErrorResponse() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
 
     for (RPCResponse.Status status : RPCResponse.Status.values()) {

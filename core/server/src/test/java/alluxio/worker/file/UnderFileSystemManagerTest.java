@@ -97,7 +97,7 @@ public final class UnderFileSystemManagerTest {
    * {@link UnderFileSystem#connectFromWorker}.
    */
   @Test
-  public void createUfsFileTest() throws Exception {
+  public void createUfsFile() throws Exception {
     mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     Mockito.verify(mMockUfs).create(Mockito.contains(mUri.toString()),
         Mockito.any(CreateOptions.class));
@@ -108,7 +108,7 @@ public final class UnderFileSystemManagerTest {
    * Tests creating an already existing file with the manager will throw the appropriate exception.
    */
   @Test
-  public void createExistingUfsFileTest() throws Exception {
+  public void createExistingUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     mThrown.expect(FileAlreadyExistsException.class);
     mThrown.expectMessage(ExceptionMessage.FAILED_UFS_CREATE.getMessage(mUri.toString()));
@@ -119,7 +119,7 @@ public final class UnderFileSystemManagerTest {
    * Tests completing a file with the manager will call {@link UnderFileSystem#rename}.
    */
   @Test
-  public void completeUfsFileTest() throws Exception {
+  public void completeUfsFile() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri,
         new Permission("", "", Constants.DEFAULT_FILE_SYSTEM_MODE));
     mManager.completeFile(SESSION_ID, id,
@@ -131,7 +131,7 @@ public final class UnderFileSystemManagerTest {
    * Tests completing a file with user and group.
    */
   @Test
-  public void completeUfsFileWithOwnerTest() throws Exception {
+  public void completeUfsFileWithOwner() throws Exception {
     String user = "User";
     String group = "Group";
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
@@ -144,7 +144,7 @@ public final class UnderFileSystemManagerTest {
    * Tests completing a non existent file throws the correct exception.
    */
   @Test
-  public void completeNonExistentUfsFileTest() throws Exception {
+  public void completeNonExistentUfsFile() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
     mManager.completeFile(SESSION_ID, INVALID_FILE_ID, Permission.defaults());
@@ -154,7 +154,7 @@ public final class UnderFileSystemManagerTest {
    * Tests completing a file with an invalid session will fail.
    */
   @Test
-  public void completeUfsFileInvalidSessionTest() throws Exception {
+  public void completeUfsFileInvalidSession() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
@@ -166,7 +166,7 @@ public final class UnderFileSystemManagerTest {
    * Tests canceling a file with the manager will call {@link UnderFileSystem#delete}.
    */
   @Test
-  public void cancelUfsFileTest() throws Exception {
+  public void cancelUfsFile() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mManager.cancelFile(SESSION_ID, id);
     Mockito.verify(mMockUfs).delete(Mockito.contains(mUri.toString()), Mockito.eq(false));
@@ -176,7 +176,7 @@ public final class UnderFileSystemManagerTest {
    * Tests canceling a non existent file throws the correct exception.
    */
   @Test
-  public void cancelNonExistentUfsFileTest() throws Exception {
+  public void cancelNonExistentUfsFile() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
     mManager.cancelFile(SESSION_ID, INVALID_FILE_ID);
@@ -186,7 +186,7 @@ public final class UnderFileSystemManagerTest {
    * Tests canceling a file with an invalid session fails.
    */
   @Test
-  public void cancelUfsFileInvalidSessionTest() throws Exception {
+  public void cancelUfsFileInvalidSession() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage(String.format(
@@ -199,7 +199,7 @@ public final class UnderFileSystemManagerTest {
    * {@link UnderFileSystem#connectFromWorker}and succeeds when the file exists.
    */
   @Test
-  public void openUfsFileTest() throws Exception {
+  public void openUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     Mockito.verify(mMockUfs).exists(mUri.toString());
@@ -210,7 +210,7 @@ public final class UnderFileSystemManagerTest {
    * Tests opening a file fails when the file does not exist.
    */
   @Test
-  public void openNonExistentUfsFileTest() throws Exception {
+  public void openNonExistentUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(false);
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.UFS_PATH_DOES_NOT_EXIST.getMessage(mUri.toString()));
@@ -221,7 +221,7 @@ public final class UnderFileSystemManagerTest {
    * Tests closing an open file invalidates the id.
    */
   @Test
-  public void closeUfsFileTest() throws Exception {
+  public void closeUfsFile() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, new AlluxioURI(mUri.toString()));
     mManager.closeFile(SESSION_ID, id);
@@ -234,7 +234,7 @@ public final class UnderFileSystemManagerTest {
    * Tests closing an unopened file fails.
    */
   @Test
-  public void closeNonExistentUfsFileTest() throws Exception {
+  public void closeNonExistentUfsFile() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
     mManager.closeFile(SESSION_ID, INVALID_FILE_ID);
@@ -244,7 +244,7 @@ public final class UnderFileSystemManagerTest {
    * Tests closing an opened file with an invalid session fails.
    */
   @Test
-  public void closeUfsFileInvalidSessionTest() throws Exception {
+  public void closeUfsFileInvalidSession() throws Exception {
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     UnderFileSystemManager manager = new UnderFileSystemManager();
     long id = manager.openFile(SESSION_ID, mUri);
@@ -258,7 +258,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an output stream for a valid file returns the correct output stream.
    */
   @Test
-  public void getOutputStreamTest() throws Exception {
+  public void getOutputStream() throws Exception {
     long id = mManager.createFile(SESSION_ID, mUri, Permission.defaults());
     Assert.assertEquals(mMockOutputStream, mManager.getOutputStream(id));
   }
@@ -267,7 +267,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an output stream from an invalid file fails.
    */
   @Test
-  public void getNonExistentOutputStreamTest() throws Exception {
+  public void getNonExistentOutputStream() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
     mManager.getOutputStream(INVALID_FILE_ID);
@@ -277,7 +277,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an input stream to a valid file at the start returns the correct input stream.
    */
   @Test
-  public void getInputStreamTest() throws Exception {
+  public void getInputStream() throws Exception {
     long position = 0L;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
@@ -292,7 +292,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an input stream to a valid file at a position returns the correct input stream.
    */
   @Test
-  public void getInputStreamAtPositionTest() throws Exception {
+  public void getInputStreamAtPosition() throws Exception {
     long position = FILE_LENGTH - 1;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
@@ -309,7 +309,7 @@ public final class UnderFileSystemManagerTest {
    */
   // TODO(calvin): Generalize this when openAtPosition is part of an interface
   @Test
-  public void getInputStreamAtPositionOptimizedTest() throws Exception {
+  public void getInputStreamAtPositionOptimized() throws Exception {
     // Specifically testing S3A to validate the code path taken if the UFS implements the
     // openAtPosition api.
     S3AUnderFileSystem ufs = Mockito.mock(S3AUnderFileSystem.class);
@@ -335,7 +335,7 @@ public final class UnderFileSystemManagerTest {
    * correctly.
    */
   @Test
-  public void getInputStreamAtPositionCacheTest() throws Exception {
+  public void getInputStreamAtPositionCache() throws Exception {
     long position = 0;
     long nextPosition = 100;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
@@ -353,7 +353,7 @@ public final class UnderFileSystemManagerTest {
    * the requested position.
    */
   @Test
-  public void getInputStreamAtPositionInvalidCacheTest() throws Exception {
+  public void getInputStreamAtPositionInvalidCache() throws Exception {
     long position = 0;
     long nextPosition = 100;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
@@ -370,7 +370,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an input stream at EOF returns null.
    */
   @Test
-  public void getInputStreamAtEOFTest() throws Exception {
+  public void getInputStreamAtEOF() throws Exception {
     long position = FILE_LENGTH;
     Mockito.when(mMockUfs.exists(mUri.toString())).thenReturn(true);
     long id = mManager.openFile(SESSION_ID, mUri);
@@ -383,7 +383,7 @@ public final class UnderFileSystemManagerTest {
    * Tests getting an input stream to an invalid file fails.
    */
   @Test
-  public void getNonExistentInputStreamTest() throws Exception {
+  public void getNonExistentInputStream() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.BAD_WORKER_FILE_ID.getMessage(INVALID_FILE_ID));
     mManager.getInputStreamAtPosition(INVALID_FILE_ID, 0L);
@@ -393,7 +393,7 @@ public final class UnderFileSystemManagerTest {
    * Tests that after cleaning a session the session may no longer be used to get an input stream.
    */
   @Test
-  public void cleanSessionsTest() throws Exception {
+  public void cleanSessions() throws Exception {
     String uniqPath2 = PathUtils.uniqPath();
     long sessionId2 = SESSION_ID + 1;
     long position = 0L;

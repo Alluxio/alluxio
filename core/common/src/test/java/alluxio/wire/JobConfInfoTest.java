@@ -22,7 +22,7 @@ import java.util.Random;
 public class JobConfInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     JobConfInfo jobConfInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     JobConfInfo other =
@@ -31,7 +31,7 @@ public class JobConfInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     JobConfInfo jobConfInfo = createRandom();
     JobConfInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(jobConfInfo));
     checkEquality(jobConfInfo, other);

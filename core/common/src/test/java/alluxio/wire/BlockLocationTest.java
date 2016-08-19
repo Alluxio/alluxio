@@ -22,7 +22,7 @@ import java.util.Random;
 public class BlockLocationTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     BlockLocation blockLocation = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     BlockLocation other =
@@ -31,7 +31,7 @@ public class BlockLocationTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     BlockLocation blockLocation = createRandom();
     BlockLocation other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockLocation));
     checkEquality(blockLocation, other);

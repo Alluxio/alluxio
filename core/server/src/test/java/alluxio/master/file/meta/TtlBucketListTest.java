@@ -68,7 +68,7 @@ public class TtlBucketListTest {
    * Tests the {@link TtlBucketList#insert(InodeFile)} method.
    */
   @Test
-  public void insertTest() {
+  public void insert() {
     // No bucket should expire.
     List<TtlBucket> expired = getSortedExpiredBuckets(BUCKET1_START);
     Assert.assertTrue(expired.isEmpty());
@@ -96,7 +96,7 @@ public class TtlBucketListTest {
    * Tests the {@link TtlBucketList#remove(InodeFile)} method.
    */
   @Test
-  public void removeTest() {
+  public void remove() {
     mBucketList.insert(BUCKET1_FILE1);
     mBucketList.insert(BUCKET1_FILE2);
     mBucketList.insert(BUCKET2_FILE);

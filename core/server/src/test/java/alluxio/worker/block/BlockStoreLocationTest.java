@@ -23,7 +23,7 @@ public class BlockStoreLocationTest {
    * Tests that a new location can be created with the constructor.
    */
   @Test
-  public void newLocationTest() {
+  public void newLocation() {
     String tierAlias = "SSD";
     int dirIndex = 3;
     BlockStoreLocation loc = new BlockStoreLocation(tierAlias, dirIndex);
@@ -80,7 +80,7 @@ public class BlockStoreLocationTest {
    * Tests the {@link BlockStoreLocation#equals(Object)} method.
    */
   @Test
-  public void equalsTest() {
+  public void equals() {
     BlockStoreLocation anyTier = BlockStoreLocation.anyTier();
     BlockStoreLocation anyDirInTierMEM =
         BlockStoreLocation.anyDirInTier("MEM");

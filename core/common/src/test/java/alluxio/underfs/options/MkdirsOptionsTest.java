@@ -37,7 +37,7 @@ public final class MkdirsOptionsTest {
    * Tests for default {@link MkdirsOptions}.
    */
   @Test
-  public void defaultsTest() throws IOException {
+  public void defaults() throws IOException {
     MkdirsOptions options = new MkdirsOptions();
 
     Permission expectedPs = Permission.defaults().applyDirectoryUMask();
@@ -55,7 +55,7 @@ public final class MkdirsOptionsTest {
    * configuration.
    */
   @Test
-  public void securityEnabledTest() throws IOException {
+  public void securityEnabled() throws IOException {
     Configuration.set(PropertyKey.SECURITY_AUTHENTICATION_TYPE, AuthType.SIMPLE.getAuthName());
     Configuration.set(PropertyKey.SECURITY_LOGIN_USERNAME, "foo");
     // Use IdentityUserGroupMapping to map user "foo" to group "foo".
@@ -79,7 +79,7 @@ public final class MkdirsOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     boolean createParent = false;
     Permission perm = Permission.defaults();
     MkdirsOptions options = new MkdirsOptions();

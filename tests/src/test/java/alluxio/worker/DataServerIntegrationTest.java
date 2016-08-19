@@ -143,7 +143,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void multiReadTest() throws Exception {
+  public void multiRead() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -205,7 +205,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -227,7 +227,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readThroughClientTest() throws Exception {
+  public void readThroughClient() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -240,7 +240,7 @@ public class DataServerIntegrationTest {
 
   // TODO(calvin): Make this work with the new BlockReader.
   // @Test
-  public void readThroughClientNonExistentTest() throws Exception {
+  public void readThroughClientNonExistent() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
