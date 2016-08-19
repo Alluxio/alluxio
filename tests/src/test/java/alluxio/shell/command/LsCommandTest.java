@@ -85,7 +85,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command when security is not enabled.
    */
   @Test
-  public void lsNoAclTest() throws IOException, AlluxioException {
+  public void lsNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
     mFsShell.run("ls", "/testRoot");
     String expected = "";
@@ -108,7 +108,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           PropertyKey.Name.SECURITY_GROUP_MAPPING_CLASS,
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP, "test_user_ls"})
-  public void lsTest() throws Exception {
+  public void ls() throws Exception {
     String testUser = "test_user_ls";
     clearAndLogin(testUser);
     URIStatus[] files = createFiles();
@@ -130,7 +130,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests ls command with wildcard when security is not enabled.
    */
   @Test
-  public void lsWildcardNoAclTest() throws IOException, AlluxioException {
+  public void lsWildcardNoAcl() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     String expect = "";
@@ -166,7 +166,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
           "test_user_lsWildcard"})
-  public void lsWildcardTest() throws Exception {
+  public void lsWildcard() throws Exception {
     String testUser = "test_user_lsWildcard";
     clearAndLogin(testUser);
 
@@ -191,7 +191,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
    * Tests lsr command with wildcard when security is not enabled.
    */
   @Test
-  public void lsrNoAclTest() throws IOException, AlluxioException {
+  public void lsrNoAcl() throws IOException, AlluxioException {
     URIStatus[] files = createFiles();
     mFsShell.run("lsr", "/testRoot");
     String expected = "";
@@ -218,7 +218,7 @@ public final class LsCommandTest extends AbstractAlluxioShellTest {
           "alluxio.security.group.provider.IdentityUserGroupsMapping",
           PropertyKey.Name.SECURITY_AUTHORIZATION_PERMISSION_SUPERGROUP,
           "test_user_lsr"})
-  public void lsrTest() throws Exception {
+  public void lsr() throws Exception {
     String testUser = "test_user_lsr";
     clearAndLogin(testUser);
 

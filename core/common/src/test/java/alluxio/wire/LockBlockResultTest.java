@@ -22,7 +22,7 @@ import java.util.Random;
 public class LockBlockResultTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     LockBlockResult lockBlockResult = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     LockBlockResult other =
@@ -31,7 +31,7 @@ public class LockBlockResultTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     LockBlockResult lockBlockResult = createRandom();
     LockBlockResult other = ThriftUtils.fromThrift(ThriftUtils.toThrift(lockBlockResult));
     checkEquality(lockBlockResult, other);

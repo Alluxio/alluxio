@@ -27,7 +27,7 @@ import java.io.IOException;
  */
 public final class ChmodCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void chmodTest() throws IOException, AlluxioException {
+  public void chmod() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "777", "/testFile");
@@ -42,7 +42,7 @@ public final class ChmodCommandTest extends AbstractAlluxioShellTest {
    * Tests -R option for chmod recursively.
    */
   @Test
-  public void chmodRecursivelyTest() throws IOException, AlluxioException {
+  public void chmodRecursively() throws IOException, AlluxioException {
     clearLoginUser();
     FileSystemTestUtils.createByteFile(mFileSystem, "/testDir/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("chmod", "-R", "777", "/testDir");

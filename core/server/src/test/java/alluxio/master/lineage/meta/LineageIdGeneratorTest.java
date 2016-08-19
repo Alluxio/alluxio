@@ -26,7 +26,7 @@ public final class LineageIdGeneratorTest {
    * alluxio.proto.journal.Lineage.LineageIdGeneratorEntry)} method.
    */
   @Test
-  public void journalEntrySerializationTest() {
+  public void journalEntrySerialization() {
     LineageIdGenerator generator = new LineageIdGenerator();
     long id = generator.generateId();
     JournalEntry entry = generator.toJournalEntry();

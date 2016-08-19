@@ -151,7 +151,7 @@ public final class BufferedBlockInStreamIntegrationTest {
    * Tests {@link alluxio.client.block.BufferedBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws IOException, AlluxioException {
+  public void skip() throws IOException, AlluxioException {
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       for (CreateFileOptions op : getOptionSet()) {
         AlluxioURI path = new AlluxioURI(sTestPath + "/file_" + k + "_" + op.hashCode());

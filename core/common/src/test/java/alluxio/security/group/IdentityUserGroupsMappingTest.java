@@ -25,7 +25,7 @@ public final class IdentityUserGroupsMappingTest {
    * Tests the {@link IdentityUserGroupsMapping#getGroups(String)} method.
    */
   @Test
-  public void userGroupTest() throws Throwable {
+  public void userGroup() throws Throwable {
     String userName = "alluxio-user1";
 
     GroupMappingService groups = new IdentityUserGroupsMapping();

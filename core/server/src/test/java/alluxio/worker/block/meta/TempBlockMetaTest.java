@@ -56,7 +56,7 @@ public class TempBlockMetaTest {
    * Tests the {@link TempBlockMeta#getPath()} method.
    */
   @Test
-  public void getPathTest() {
+  public void getPath() {
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, ".tmp_blocks", TEST_SESSION_ID % 1024,
         String.format("%x-%x", TEST_SESSION_ID, TEST_BLOCK_ID)),
         mTempBlockMeta.getPath());
@@ -66,7 +66,7 @@ public class TempBlockMetaTest {
    * Tests the {@link TempBlockMeta#getCommitPath()} method.
    */
   @Test
-  public void getCommitPathTest() {
+  public void getCommitPath() {
     Assert.assertEquals(PathUtils.concatPath(mTestDirPath, TEST_BLOCK_ID),
         mTempBlockMeta.getCommitPath());
   }
@@ -75,7 +75,7 @@ public class TempBlockMetaTest {
    * Tests the {@link TempBlockMeta#getSessionId()} method.
    */
   @Test
-  public void getSessionIdTest() {
+  public void getSessionId() {
     Assert.assertEquals(TEST_SESSION_ID, mTempBlockMeta.getSessionId());
   }
 
@@ -83,7 +83,7 @@ public class TempBlockMetaTest {
    * Tests the {@link TempBlockMeta#setBlockSize(long)} method.
    */
   @Test
-  public void setBlockSizeTest() {
+  public void setBlockSize() {
     Assert.assertEquals(TEST_BLOCK_SIZE, mTempBlockMeta.getBlockSize());
     mTempBlockMeta.setBlockSize(1);
     Assert.assertEquals(1, mTempBlockMeta.getBlockSize());

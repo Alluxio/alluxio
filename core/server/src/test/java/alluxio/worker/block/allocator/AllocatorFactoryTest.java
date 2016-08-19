@@ -54,7 +54,7 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createGreedyAllocatorTest() {
+  public void createGreedyAllocator() {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof GreedyAllocator);
@@ -65,7 +65,7 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createMaxFreeAllocatorTest() {
+  public void createMaxFreeAllocator() {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof MaxFreeAllocator);
@@ -76,7 +76,7 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createRoundRobinAllocatorTest() {
+  public void createRoundRobinAllocator() {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(mManagerView);
     Assert.assertTrue(allocator instanceof RoundRobinAllocator);
@@ -87,7 +87,7 @@ public class AllocatorFactoryTest {
    * {@link Allocator.Factory#create(BlockMetadataManagerView)} method.
    */
   @Test
-  public void createDefaultAllocatorTest() {
+  public void createDefaultAllocator() {
     // Create a new instance of Alluxio configuration with original properties to test the default
     // behavior of create.
     Allocator allocator = Allocator.Factory.create(mManagerView);

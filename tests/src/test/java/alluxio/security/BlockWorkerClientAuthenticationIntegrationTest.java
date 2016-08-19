@@ -59,14 +59,14 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void noAuthenticationOpenCloseTest() throws Exception {
+  public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
-  public void simpleAuthenticationOpenCloseTest() throws Exception {
+  public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
@@ -76,7 +76,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationOpenCloseTest() throws Exception {
+  public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest();
   }
 
@@ -86,7 +86,7 @@ public final class BlockWorkerClientAuthenticationIntegrationTest {
           "CUSTOM", PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationDenyConnectTest() throws Exception {
+  public void customAuthenticationDenyConnect() throws Exception {
     mThrown.expect(IOException.class);
     mThrown.expectMessage("Failed to connect to the worker");
 

@@ -54,7 +54,7 @@ public class LocalFileBlockReaderTest {
    * Test for the {@link LocalFileBlockReader#getChannel()} method.
    */
   @Test
-  public void getChannelTest() throws Exception {
+  public void getChannel() throws Exception {
     ReadableByteChannel channel = mReader.getChannel();
     Assert.assertNotNull(channel);
     ByteBuffer buffer = ByteBuffer.allocate((int) TEST_BLOCK_SIZE);
@@ -67,7 +67,7 @@ public class LocalFileBlockReaderTest {
    * Test for the {@link LocalFileBlockReader#getLength()} method.
    */
   @Test
-  public void getLengthTest() {
+  public void getLength() {
     Assert.assertEquals(TEST_BLOCK_SIZE, mReader.getLength());
   }
 
@@ -75,7 +75,7 @@ public class LocalFileBlockReaderTest {
    * Tests that an exception is thrown if the read exceeds the file length limit.
    */
   @Test
-  public void readWithInvalidArgumentTest() throws Exception {
+  public void readWithInvalidArgument() throws Exception {
     mThrown.expect(IllegalArgumentException.class);
     mThrown.expectMessage("exceeding fileSize");
     mReader.read(TEST_BLOCK_SIZE - 1, 2);
@@ -85,7 +85,7 @@ public class LocalFileBlockReaderTest {
    * Test for the {@link LocalFileBlockReader#read(long, long)} method.
    */
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     ByteBuffer buffer;
 
     // Read 1/4 block by setting the length to be 1/4 of the block size.
@@ -107,7 +107,7 @@ public class LocalFileBlockReaderTest {
    * closing it.
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mThrown.expect(ClosedChannelException.class);
     mReader.close();
     mReader.read(0, TEST_BLOCK_SIZE);

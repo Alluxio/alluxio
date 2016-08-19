@@ -55,7 +55,7 @@ public final class FileInStreamConcurrencyIntegrationTest {
    * Tests the concurrent read of {@link FileInStream}.
    */
   @Test
-  public void FileInStreamConcurrencyTest() throws Exception {
+  public void FileInStreamConcurrency() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     FileSystemTestUtils.createByteFile(sFileSystem, uniqPath, BLOCK_SIZE * 2, sWriteAlluxio);
 

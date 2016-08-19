@@ -26,7 +26,7 @@ public class DeleteOptionsTest {
    * Tests that building a {@link DeleteOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     DeleteOptions options = DeleteOptions.defaults();
 
     Assert.assertFalse(options.isRecursive());
@@ -36,7 +36,7 @@ public class DeleteOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean recursive = random.nextBoolean();
     DeleteOptions options = DeleteOptions.defaults();

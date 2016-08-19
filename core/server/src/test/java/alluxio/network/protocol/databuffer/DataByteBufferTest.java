@@ -41,7 +41,7 @@ public class DataByteBufferTest {
    * Tests the {@link DataByteBuffer#getNettyOutput()} method.
    */
   @Test
-  public void nettyOutputTest() {
+  public void nettyOutput() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Object output = data.getNettyOutput();
     Assert.assertTrue(output instanceof ByteBuf || output instanceof FileRegion);
@@ -51,7 +51,7 @@ public class DataByteBufferTest {
    * Tests the {@link DataByteBuffer#getLength()} method.
    */
   @Test
-  public void lengthTest() {
+  public void length() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     Assert.assertEquals(LENGTH, data.getLength());
   }
@@ -60,7 +60,7 @@ public class DataByteBufferTest {
    * Tests the {@link DataByteBuffer#getReadOnlyByteBuffer()} method.
    */
   @Test
-  public void readOnlyByteBufferTest() {
+  public void readOnlyByteBuffer() {
     DataByteBuffer data = new DataByteBuffer(mBuffer, LENGTH);
     ByteBuffer readOnlyBuffer = data.getReadOnlyByteBuffer();
     Assert.assertTrue(readOnlyBuffer.isReadOnly());

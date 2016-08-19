@@ -99,7 +99,7 @@ public final class FileSystemAclIntegrationTest {
    * It will test changing the permission of file using TFS.
    */
   @Test
-  public void chmodTest() throws Exception {
+  public void chmod() throws Exception {
     Path fileA = new Path("/chmodfileA");
 
     create(sTFS, fileA);
@@ -125,7 +125,7 @@ public final class FileSystemAclIntegrationTest {
    * owner does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerForLocalTest() throws Exception {
+  public void changeNonexistentOwnerForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -158,7 +158,7 @@ public final class FileSystemAclIntegrationTest {
    * group does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentGroupForLocalTest() throws Exception {
+  public void changeNonexistentGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -191,7 +191,7 @@ public final class FileSystemAclIntegrationTest {
    * arbitrary owner and group do not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForLocalTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -222,7 +222,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the owner of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -258,7 +258,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentGroupForHdfsTest() throws Exception {
+  public void changeNonexistentGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -292,7 +292,7 @@ public final class FileSystemAclIntegrationTest {
    * changing both owner and group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -326,7 +326,7 @@ public final class FileSystemAclIntegrationTest {
    * are null.
    */
   @Test
-  public void checkNullOwnerAndGroupTest() throws Exception {
+  public void checkNullOwnerAndGroup() throws Exception {
     Path fileD = new Path("/chownfileD");
 
     create(sTFS, fileD);
@@ -346,7 +346,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the directory permission propagation to UFS.
    */
   @Test
-  public void directoryPermissionForUfsTest() throws IOException {
+  public void directoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -378,7 +378,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the parent directory permission when mkdirs recursively.
    */
   @Test
-  public void parentDirectoryPermissionForUfsTest() throws IOException {
+  public void parentDirectoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -405,7 +405,7 @@ public final class FileSystemAclIntegrationTest {
   }
 
   @Test
-  public void s3GetPermissionTest() throws Exception {
+  public void s3GetPermission() throws Exception {
     Assume.assumeTrue((sUfs instanceof S3UnderFileSystem) || (sUfs instanceof S3AUnderFileSystem));
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
@@ -421,7 +421,7 @@ public final class FileSystemAclIntegrationTest {
   }
 
   @Test
-  public void gcsGetPermissionTest() throws Exception {
+  public void gcsGetPermission() throws Exception {
     Assume.assumeTrue(sUfs instanceof GCSUnderFileSystem);
 
     alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
@@ -437,7 +437,7 @@ public final class FileSystemAclIntegrationTest {
   }
 
   @Test
-  public void swiftGetPermissionTest() throws Exception {
+  public void swiftGetPermission() throws Exception {
     // TODO(chaomin): update Swift permission integration test once the Swift implementation is done
     Assume.assumeTrue(sUfs instanceof SwiftUnderFileSystem);
 
@@ -454,7 +454,7 @@ public final class FileSystemAclIntegrationTest {
   }
 
   @Test
-  public void ossGetPermissionTest() throws Exception {
+  public void ossGetPermission() throws Exception {
     Assume.assumeTrue(sUfs instanceof OSSUnderFileSystem);
 
     Path fileA = new Path("/objectfileA");
@@ -470,7 +470,7 @@ public final class FileSystemAclIntegrationTest {
   }
 
   @Test
-  public void objectStoreSetOwnerTest() throws Exception {
+  public void objectStoreSetOwner() throws Exception {
     Assume.assumeTrue(CommonUtils.isUfsObjectStorage(sUfsRoot));
 
     Path fileA = new Path("/objectfileA");

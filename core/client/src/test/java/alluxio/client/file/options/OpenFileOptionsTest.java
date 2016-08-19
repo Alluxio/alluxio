@@ -29,7 +29,7 @@ public class OpenFileOptionsTest {
       Configuration.getEnum(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.class);
 
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     OpenFileOptions options = OpenFileOptions.defaults();
     Assert.assertEquals(mDefaultReadType.getAlluxioStorageType(), options.getAlluxioStorageType());
   }
@@ -38,7 +38,7 @@ public class OpenFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
     ReadType readType = ReadType.NO_CACHE;
 
@@ -54,7 +54,7 @@ public class OpenFileOptionsTest {
    * Tests conversion to {@link InStreamOptions}.
    */
   @Test
-  public void toInStreamOptionsTest() {
+  public void toInStreamOptions() {
     OpenFileOptions options = OpenFileOptions.defaults();
     InStreamOptions inStreamOptions = options.toInStreamOptions();
     Assert.assertEquals(options.getAlluxioStorageType(),

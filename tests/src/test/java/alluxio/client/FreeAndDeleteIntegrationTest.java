@@ -66,7 +66,7 @@ public final class FreeAndDeleteIntegrationTest {
   }
 
   @Test
-  public void freeAndDeleteIntegrationTest() throws Exception {
+  public void freeAndDeleteIntegration() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 5, TimeUnit.SECONDS);
     HeartbeatScheduler.await(HeartbeatContext.MASTER_LOST_FILES_DETECTION, 5, TimeUnit.SECONDS);
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());

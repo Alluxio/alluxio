@@ -22,7 +22,7 @@ import java.util.Random;
 public class WorkerNetAddressTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     WorkerNetAddress workerNetAddress = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     WorkerNetAddress other =
@@ -31,7 +31,7 @@ public class WorkerNetAddressTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     WorkerNetAddress workerNetAddress = createRandom();
     WorkerNetAddress other = ThriftUtils.fromThrift(ThriftUtils.toThrift(workerNetAddress));
     checkEquality(workerNetAddress, other);
