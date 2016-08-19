@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class TouchCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void touchTest() throws IOException, AlluxioException {
+  public void touch() throws IOException, AlluxioException {
     String[] argv = new String[] {"touch", "/testFile"};
     mFsShell.run(argv);
     URIStatus status = mFileSystem.getStatus(new AlluxioURI("/testFile"));

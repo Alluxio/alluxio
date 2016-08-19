@@ -79,7 +79,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests creating and opening an empty store.
    */
   @Test
-  public void createAndOpenEmptyStoreTest() throws Exception {
+  public void createAndOpenEmptyStore() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     Assert.assertNotNull(mWriter);
     mWriter.close();
@@ -93,7 +93,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests creating and opening a store with one key.
    */
   @Test
-  public void createAndOpenStoreWithOneKeyTest() throws Exception {
+  public void createAndOpenStoreWithOneKey() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     mWriter.put(KEY1, VALUE1);
     mWriter.close();
@@ -108,7 +108,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests creating and opening a store with a number of key.
    */
   @Test
-  public void createAndOpenStoreWithMultiKeysTest() throws Exception {
+  public void createAndOpenStoreWithMultiKeys() throws Exception {
     final int numKeys = 100;
     final int keyLength = 4; // 4Byte key
     final int valueLength = 5 * Constants.KB; // 5KB value
@@ -135,7 +135,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that an iterator for an empty store has no next elements.
    */
   @Test
-  public void emptyStoreIteratorTest() throws Exception {
+  public void emptyStoreIterator() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     mWriter.close();
 
@@ -171,7 +171,7 @@ public final class KeyValueSystemIntegrationTest {
    * iterated.
    */
   @Test
-  public void noOrderIteratorTest() throws Exception {
+  public void noOrderIterator() throws Exception {
     List<AlluxioURI> storeUris = new ArrayList<>();
     List<List<KeyValuePair>> keyValuePairs = new ArrayList<>();
 
@@ -211,7 +211,7 @@ public final class KeyValueSystemIntegrationTest {
    * enough to take a separate key-value partition.
    */
   @Test
-  public void createMultiPartitionsTest() throws Exception {
+  public void createMultiPartitions() throws Exception {
     final long maxPartitionSize = Constants.MB; // Each partition is at most 1 MB
     final int numKeys = 10;
     final int keyLength = 4; // 4Byte key
@@ -243,7 +243,7 @@ public final class KeyValueSystemIntegrationTest {
    * expecting exception thrown.
    */
   @Test
-  public void putKeyValueTooLargeTest() throws Exception {
+  public void putKeyValueTooLarge() throws Exception {
     final long maxPartitionSize = 500 * Constants.KB; // Each partition is at most 500 KB
     final int keyLength = 4; // 4Byte key
     final int valueLength = 500 * Constants.KB; // 500KB value
@@ -264,7 +264,7 @@ public final class KeyValueSystemIntegrationTest {
    * thrown.
    */
   @Test
-  public void putKeyAlreadyExistsTest() throws Exception {
+  public void putKeyAlreadyExists() throws Exception {
     mWriter = sKeyValueSystem.createStore(mStoreUri);
     mWriter.put(KEY1, VALUE1);
 
@@ -364,7 +364,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that a store of various sizes (including empty store) can be correctly deleted.
    */
   @Test
-  public void deleteStoreTest() throws Exception {
+  public void deleteStore() throws Exception {
     List<AlluxioURI> storeUris = new ArrayList<>();
     storeUris.add(createStoreOfSize(0, null));
     storeUris.add(createStoreOfSize(2, null));
@@ -404,7 +404,7 @@ public final class KeyValueSystemIntegrationTest {
    * Test that rename a store of 5 key-value pairs.
    */
   @Test
-  public void renameStoreTest() throws Exception {
+  public void renameStore() throws Exception {
     final int storeOfSize = 5;
     final String newPath = "newPath";
     List<KeyValuePair> pairs = new ArrayList<>();
@@ -451,7 +451,7 @@ public final class KeyValueSystemIntegrationTest {
    * Tests that two stores of various sizes (including empty store) can be correctly merged.
    */
   @Test
-  public void mergeStoreTest() throws Exception {
+  public void mergeStore() throws Exception {
     final int storeOfSize = 1;
     final int storeOfPartitions = 2;
     final int[][] storeCreationMethodAndParameter = new int[][]{

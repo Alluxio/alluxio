@@ -28,14 +28,14 @@ import java.io.IOException;
  */
 public final class TailCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void tailEmptyFileTest() throws IOException {
+  public void tailEmptyFile() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/emptyFile", WriteType.MUST_CACHE, 0);
     int ret = mFsShell.run("tail", "/emptyFile");
     Assert.assertEquals(0, ret);
   }
 
   @Test
-  public void tailLargeFileTest() throws IOException {
+  public void tailLargeFile() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 2048);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(1024, 1024);
@@ -43,13 +43,13 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void tailNotExistTest() throws IOException {
+  public void tailNotExist() throws IOException {
     int ret = mFsShell.run("tail", "/testFile");
     Assert.assertEquals(-1, ret);
   }
 
   @Test
-  public void tailSmallFileTest() throws IOException {
+  public void tailSmallFile() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("tail", "/testFile");
     byte[] expect = BufferUtils.getIncreasingByteArray(10);
@@ -57,7 +57,7 @@ public final class TailCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void tailWildcardTest() throws IOException, AlluxioException {
+  public void tailWildcard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     // the expect contents (remember that the order is based on the path)

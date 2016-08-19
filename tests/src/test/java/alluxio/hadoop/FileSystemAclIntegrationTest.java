@@ -97,7 +97,7 @@ public final class FileSystemAclIntegrationTest {
    * It will test changing the permission of file using TFS.
    */
   @Test
-  public void chmodTest() throws Exception {
+  public void chmod() throws Exception {
     Path fileA = new Path("/chmodfileA");
 
     create(sTFS, fileA);
@@ -116,7 +116,7 @@ public final class FileSystemAclIntegrationTest {
    * owner does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerForLocalTest() throws Exception {
+  public void changeNonexistentOwnerForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -149,7 +149,7 @@ public final class FileSystemAclIntegrationTest {
    * group does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentGroupForLocalTest() throws Exception {
+  public void changeNonexistentGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -182,7 +182,7 @@ public final class FileSystemAclIntegrationTest {
    * arbitrary owner and group do not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForLocalTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -213,7 +213,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the owner of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -249,7 +249,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentGroupForHdfsTest() throws Exception {
+  public void changeNonexistentGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -283,7 +283,7 @@ public final class FileSystemAclIntegrationTest {
    * changing both owner and group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -317,7 +317,7 @@ public final class FileSystemAclIntegrationTest {
    * are null.
    */
   @Test
-  public void checkNullOwnerAndGroupTest() throws Exception {
+  public void checkNullOwnerAndGroup() throws Exception {
     Path fileD = new Path("/chownfileD");
 
     create(sTFS, fileD);
@@ -337,7 +337,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the directory permission propagation to UFS.
    */
   @Test
-  public void directoryPermissionForUfsTest() throws IOException {
+  public void directoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -369,7 +369,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the parent directory permission when mkdirs recursively.
    */
   @Test
-  public void parentDirectoryPermissionForUfsTest() throws IOException {
+  public void parentDirectoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -399,7 +399,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests for the permission of object storage UFS files.
    */
   @Test
-  public void objectStoragePermissionTest() throws Exception {
+  public void objectStoragePermission() throws Exception {
     if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)
         && !(sUfs instanceof SwiftUnderFileSystem) && !(sUfs instanceof GCSUnderFileSystem)
         && !(sUfs instanceof OSSUnderFileSystem)) {
