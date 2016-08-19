@@ -16,6 +16,7 @@ import alluxio.PropertyKey;
 import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
+import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 import alluxio.worker.block.BlockStoreMeta;
 
@@ -232,8 +233,10 @@ public final class AlluxioWorkerRestServiceHandler {
 
     // Only the gauge for cached blocks is retrieved here, other gauges are statistics of free/used
     // spaces, those statistics can be gotten via other REST apis.
-    String blocksCachedProperty = CommonUtils.argsToString(".",
-        WorkerContext.getWorkerSource().getName(), WorkerSource.BLOCKS_CACHED);
+    String blocksCachedProperty = CommonUtils.argsToString(".", MetricsSystem
+            .buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE, WorkerContext.getWorkerSource
+                ()),
+        WorkerSource.BLOCKS_CACHED);
     @SuppressWarnings("unchecked")
     Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);
