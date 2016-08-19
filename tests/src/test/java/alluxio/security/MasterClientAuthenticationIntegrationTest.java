@@ -55,14 +55,14 @@ public final class MasterClientAuthenticationIntegrationTest {
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "NOSASL"})
-  public void noAuthenticationOpenCloseTest() throws Exception {
+  public void noAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-nosasl");
   }
 
   @Test
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.SECURITY_AUTHENTICATION_TYPE, "SIMPLE"})
-  public void simpleAuthenticationOpenCloseTest() throws Exception {
+  public void simpleAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-simple");
   }
 
@@ -72,7 +72,7 @@ public final class MasterClientAuthenticationIntegrationTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationOpenCloseTest() throws Exception {
+  public void customAuthenticationOpenClose() throws Exception {
     authenticationOperationTest("/file-custom");
   }
 
@@ -82,7 +82,7 @@ public final class MasterClientAuthenticationIntegrationTest {
           PropertyKey.Name.SECURITY_AUTHENTICATION_CUSTOM_PROVIDER_CLASS,
           NameMatchAuthenticationProvider.FULL_CLASS_NAME,
           PropertyKey.Name.SECURITY_LOGIN_USERNAME, "alluxio"})
-  public void customAuthenticationDenyConnectTest() throws Exception {
+  public void customAuthenticationDenyConnect() throws Exception {
     mThrown.expect(ConnectionFailedException.class);
 
     try (FileSystemMasterClient masterClient = new FileSystemMasterClient(

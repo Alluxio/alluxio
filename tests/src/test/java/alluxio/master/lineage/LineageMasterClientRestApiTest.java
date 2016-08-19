@@ -58,13 +58,13 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void serviceNameTest() throws Exception {
+  public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_NAME),
         NO_PARAMS, HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
-  public void serviceVersionTest() throws Exception {
+  public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.SERVICE_VERSION), NO_PARAMS,
         HttpMethod.GET, Constants.LINEAGE_MASTER_CLIENT_SERVICE_VERSION).run();
@@ -72,7 +72,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
 
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
-  public void createLineageTest() throws Exception {
+  public void createLineage() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/input")).close();
 
     Map<String, String> params = new HashMap<>();
@@ -87,7 +87,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
 
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
-  public void deleteLineageTest() throws Exception {
+  public void deleteLineage() throws Exception {
     LineageMaster lineageMaster = mMaster.getLineageMaster();
     long lineageId = lineageMaster.createLineage(new ArrayList<AlluxioURI>(),
         new ArrayList<AlluxioURI>(), new CommandLineJob("test", new JobConf("/output")));
@@ -102,7 +102,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
 
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
-  public void getLineageInfoListTest() throws Exception {
+  public void getLineageInfoList() throws Exception {
     AlluxioURI input = new AlluxioURI("/input");
     AlluxioURI output = new AlluxioURI("/output");
     LineageMaster lineageMaster = mMaster.getLineageMaster();
@@ -123,7 +123,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
 
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
-  public void reinitializeFileTest() throws Exception {
+  public void reinitializeFile() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/test")).close();
 
     Map<String, String> params = new HashMap<>();
@@ -138,7 +138,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
 
   @Test
   @Config(confParams = {PropertyKey.Name.USER_LINEAGE_ENABLED, "true"})
-  public void reportLostFileTest() throws Exception {
+  public void reportLostFile() throws Exception {
     mLineageClient.createFile(new AlluxioURI("/test")).close();
 
     Map<String, String> params = new HashMap<>();

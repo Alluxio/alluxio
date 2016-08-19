@@ -46,7 +46,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   }
 
   @Test
-  public void syncPersistPermissionTest() throws Exception {
+  public void syncPersistPermission() throws Exception {
     if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -72,7 +72,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   }
 
   @Test
-  public void asyncPersistPermissionTest() throws Exception {
+  public void asyncPersistPermission() throws Exception {
     if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -104,7 +104,7 @@ public final class PersistPermissionIntegrationTest extends AbstractFileOutStrea
   }
 
   @Test
-  public void asyncPersistEmptyFilePermissionTest() throws Exception {
+  public void asyncPersistEmptyFilePermission() throws Exception {
     if (!(mUfs instanceof LocalUnderFileSystem) && !(mUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;

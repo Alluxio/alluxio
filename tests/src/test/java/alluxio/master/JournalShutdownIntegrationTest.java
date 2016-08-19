@@ -162,7 +162,7 @@ public class JournalShutdownIntegrationTest {
   }
 
   @Test
-  public void singleMasterJournalCrashIntegrationTest() throws Exception {
+  public void singleMasterJournalCrashIntegration() throws Exception {
     LocalAlluxioCluster cluster = setupSingleMasterCluster();
     CommonUtils.sleepMs(TEST_TIME_MS);
     // Shutdown the cluster
@@ -178,7 +178,7 @@ public class JournalShutdownIntegrationTest {
 
   @Ignore
   @Test
-  public void multiMasterJournalCrashIntegrationTest() throws Exception {
+  public void multiMasterJournalCrashIntegration() throws Exception {
     MultiMasterLocalAlluxioCluster cluster = setupMultiMasterCluster();
     // Kill the leader one by one.
     for (int kills = 0; kills < TEST_NUM_MASTERS; kills++) {

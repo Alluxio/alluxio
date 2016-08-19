@@ -33,7 +33,7 @@ public final class ChecksumCommandTest  extends AbstractAlluxioShellTest {
    * Tests md5 checksum calculation.
    */
   @Test
-  public void checksumTest() throws IOException {
+  public void checksum() throws IOException {
     FileSystemTestUtils.createByteFile(mFileSystem, "/testFile", WriteType.MUST_CACHE, 10);
     mFsShell.run("checksum", "/testFile");
     String str = mOutput.toString();
