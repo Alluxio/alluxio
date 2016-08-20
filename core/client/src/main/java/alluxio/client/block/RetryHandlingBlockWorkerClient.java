@@ -182,7 +182,7 @@ public final class RetryHandlingBlockWorkerClient extends AbstractClient
    */
   private synchronized void connectOperation() throws IOException {
     if (!mConnected) {
-      LOG.info("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
+      LOG.debug("Connecting to {} worker @ {}", (mIsLocal ? "local" : "remote"), mAddress);
 
       TProtocol binaryProtocol =
           new TBinaryProtocol(mTransportProvider.getClientTransport(mAddress));
