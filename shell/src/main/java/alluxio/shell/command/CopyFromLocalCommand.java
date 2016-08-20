@@ -87,6 +87,9 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    */
   private void copyFromLocalDir(File srcDir, AlluxioURI dstPath)
       throws AlluxioException, IOException {
+    if (!srcDir.canRead()) {
+      throw new IOException(srcDir + " (Permission denied)");
+    }
     boolean dstExistedBefore = mFileSystem.exists(dstPath);
     createDstDir(dstPath);
     List<String> errorMessages = new ArrayList<>();
@@ -235,6 +238,9 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         closer.close();
       }
     } else {
+      if (!src.canRead()) {
+        throw new IOException(src + " (Permission denied)");
+      }
       mFileSystem.createDirectory(dstPath);
       List<String> errorMessages = new ArrayList<>();
       File[] fileList = src.listFiles();

@@ -171,6 +171,47 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
+  public void copyFromLocalDirNotReadable() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
+    // before.
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    emptyDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+
+    srcOuterDir.setReadable(false);
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
+
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(srcOuterDir.getAbsolutePath() + " (Permission denied)\n", mOutput.toString());
+  }
+
+  @Test
+  public void copyFromLocalDirNotReadableInnerDir() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
+    // before.
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    emptyDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+
+    srcInnerDir.setReadable(false);
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
+
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals(srcInnerDir.getAbsolutePath() + " (Permission denied)\n", mOutput.toString());
+  }
+
+
+  @Test
   public void copyFromLocalDirToExistingFile() throws IOException, AlluxioException {
     // Copy a directory from local to a file which exists in Alluxio filesystem. This case should
     // fail.
