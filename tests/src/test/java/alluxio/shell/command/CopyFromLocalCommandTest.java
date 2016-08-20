@@ -187,7 +187,8 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
     Assert.assertEquals(-1, ret);
-    Assert.assertEquals(srcOuterDir.getAbsolutePath() + " (Permission denied)\n", mOutput.toString());
+    Assert.assertEquals(srcOuterDir.getAbsolutePath() + " (Permission denied)\n",
+            mOutput.toString());
   }
 
   @Test
@@ -207,9 +208,9 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
     Assert.assertEquals(-1, ret);
-    Assert.assertEquals(srcInnerDir.getAbsolutePath() + " (Permission denied)\n", mOutput.toString());
+    Assert.assertEquals(srcInnerDir.getAbsolutePath() + " (Permission denied)\n",
+            mOutput.toString());
   }
-
 
   @Test
   public void copyFromLocalDirToExistingFile() throws IOException, AlluxioException {
