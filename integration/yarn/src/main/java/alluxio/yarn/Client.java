@@ -146,7 +146,7 @@ public final class Client {
    * parses command line options.
    *
    * @param args Command line arguments
-   * @throws ParseException
+   * @throws ParseException if an error occurs when parsing the argument
    */
   public Client(String[] args) throws ParseException {
     this();
