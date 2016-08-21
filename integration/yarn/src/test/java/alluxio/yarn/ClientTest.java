@@ -40,7 +40,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
  * TODO(xuan gong): ALLUXIO-1503: add more unit test for alluxio.yarn.Client
  */
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({Client.class, YarnClient.class})
+@PrepareForTest({YarnClient.class})
 public final class ClientTest {
 
   private YarnClient mYarnClient;
@@ -69,11 +69,12 @@ public final class ClientTest {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "ApplicationMaster", "memory", appMasterMem, resource.getMemory()));
-    Client client = new Client();
-    client.parseArgs(new String[] {
+    String[] args = new String[] {
         "-resource_path", "test",
         "-am_memory", Integer.toString(appMasterMem),
-        "-am_vcores", "2"});
+        "-am_vcores", "2"
+    };
+    Client client = new Client(args);
     client.run();
   }
 
@@ -86,11 +87,12 @@ public final class ClientTest {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(ExceptionMessage.YARN_NOT_ENOUGH_RESOURCES.getMessage(
         "ApplicationMaster", "virtual cores", appMasterCore, resource.getVirtualCores()));
-    Client client = new Client();
-    client.parseArgs(new String[] {
+    String[] args = new String[] {
         "-resource_path", "test",
         "-am_memory", Integer.toString(appMasterMem),
-        "-am_vcores", Integer.toString(appMasterCore)});
+        "-am_vcores", Integer.toString(appMasterCore)
+    };
+    Client client = new Client(args);
     client.run();
   }
 
