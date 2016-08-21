@@ -62,6 +62,7 @@ public enum PropertyKey {
   // UFS related properties
   //
   UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.home}/underFSStorage"),
+  UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
       "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"),
   UNDERFS_GLUSTERFS_MOUNTS(Name.UNDERFS_GLUSTERFS_MOUNTS, null),
@@ -81,6 +82,7 @@ public enum PropertyKey {
   UNDERFS_S3_ENDPOINT(Name.UNDERFS_S3_ENDPOINT, null),
   UNDERFS_S3_ENDPOINT_HTTP_PORT(Name.UNDERFS_S3_ENDPOINT_HTTP_PORT, null),
   UNDERFS_S3_ENDPOINT_HTTPS_PORT(Name.UNDERFS_S3_ENDPOINT_HTTPS_PORT, null),
+  UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_S3_PROXY_HOST(Name.UNDERFS_S3_PROXY_HOST, null),
   UNDERFS_S3_PROXY_HTTPS_ONLY(Name.UNDERFS_S3_PROXY_HTTPS_ONLY, true),
   UNDERFS_S3_PROXY_PORT(Name.UNDERFS_S3_PROXY_PORT, null),
@@ -344,6 +346,8 @@ public enum PropertyKey {
     // UFS related properties
     //
     public static final String UNDERFS_ADDRESS = "alluxio.underfs.address";
+    public static final String UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING =
+        "alluxio.underfs.gcs.owner.id.to.username.mapping";
     public static final String UNDERFS_GLUSTERFS_IMPL = "alluxio.underfs.glusterfs.impl";
     public static final String UNDERFS_GLUSTERFS_MOUNTS = "alluxio.underfs.glusterfs.mounts";
     public static final String UNDERFS_GLUSTERFS_MR_DIR =
@@ -374,6 +378,8 @@ public enum PropertyKey {
         "alluxio.underfs.s3.endpoint.https.port";
     public static final String UNDERFS_S3_ENDPOINT_HTTP_PORT =
         "alluxio.underfs.s3.endpoint.http.port";
+    public static final String UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING =
+        "alluxio.underfs.s3.owner.id.to.username.mapping";
     public static final String UNDERFS_S3_PROXY_HOST = "alluxio.underfs.s3.proxy.host";
     public static final String UNDERFS_S3_PROXY_HTTPS_ONLY = "alluxio.underfs.s3.proxy.https.only";
     public static final String UNDERFS_S3_PROXY_PORT = "alluxio.underfs.s3.proxy.port";
