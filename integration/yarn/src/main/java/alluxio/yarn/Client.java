@@ -19,7 +19,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 import alluxio.yarn.YarnUtils.YarnContainerType;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.CommandLine;
@@ -143,6 +142,18 @@ public final class Client {
   }
 
   /**
+   * Constructs a new client for launching an Alluxio application master and
+   * parses command line options.
+   *
+   * @param args Command line arguments
+   * @throws ParseException
+   */
+  public Client(String[] args) throws ParseException {
+    this();
+    parseArgs(args);
+  }
+
+  /**
    * @param args Command line arguments
    */
   public static void main(String[] args) {
@@ -185,8 +196,7 @@ public final class Client {
    * @return Whether the parseArgs was successful to run the client
    * @throws ParseException if an error occurs when parsing the argument
    */
-  @VisibleForTesting
-  public boolean parseArgs(String[] args) throws ParseException {
+  private boolean parseArgs(String[] args) throws ParseException {
     Preconditions.checkArgument(args.length > 0, "No args specified for client to initialize");
     CommandLine cliParser = new GnuParser().parse(mOptions, args);
 
