@@ -341,8 +341,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets alluxio home.
-   *
-   * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() {
     mHome = AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
