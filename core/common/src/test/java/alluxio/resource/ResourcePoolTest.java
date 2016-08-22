@@ -49,7 +49,7 @@ public class ResourcePoolTest {
     @Override
     protected Integer createNewResource() {
       mPort++;
-      return Integer.valueOf(mPort);
+      return mPort;
     }
   }
 
