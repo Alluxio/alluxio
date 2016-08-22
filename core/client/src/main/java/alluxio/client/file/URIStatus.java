@@ -11,6 +11,7 @@
 
 package alluxio.client.file;
 
+import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.wire.FileBlockInfo;
 import alluxio.wire.FileInfo;
@@ -138,6 +139,13 @@ public class URIStatus {
    */
   public long getTtl() {
     return mInfo.getTtl();
+  }
+
+  /**
+   * @return the action to perform on ttl expiry
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mInfo.getTtlExpiryAction();
   }
 
   /**

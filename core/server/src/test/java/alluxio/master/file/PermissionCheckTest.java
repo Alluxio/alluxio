@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.exception.AccessControlException;
 import alluxio.exception.ExceptionMessage;
 import alluxio.exception.FileDoesNotExistException;
@@ -565,6 +566,7 @@ public final class PermissionCheckTest {
     SetAttributeOptions result = verifySetState(TEST_USER_2, file, expect);
 
     Assert.assertEquals(expect.getTtl(), result.getTtl());
+    Assert.assertEquals(expect.getTtlExpiryAction(), result.getTtlExpiryAction());
     Assert.assertEquals(expect.getPinned(), result.getPinned());
   }
 
@@ -587,7 +589,8 @@ public final class PermissionCheckTest {
     boolean recursive = true;
     long ttl = 11;
 
-    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl);
+    return SetAttributeOptions.defaults().setPinned(recursive).setTtl(ttl)
+        .setTtlExpiryAction(TtlExpiryAction.DELETE);
   }
 
   private SetAttributeOptions verifySetState(TestUser user, String path,

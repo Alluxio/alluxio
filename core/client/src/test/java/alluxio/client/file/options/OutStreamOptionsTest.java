@@ -17,6 +17,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
 import alluxio.client.WriteType;
@@ -60,6 +61,7 @@ public class OutStreamOptionsTest {
     Assert.assertEquals(64 * Constants.MB, options.getBlockSizeBytes());
     Assert.assertEquals(alluxioType, options.getAlluxioStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.DELETE, options.getTtlExpiryAction());
     Assert.assertEquals(ufsType, options.getUnderStorageType());
     Assert.assertTrue(options.getLocationPolicy() instanceof LocalFirstPolicy);
     Assert.assertEquals(Permission.defaults().applyFileUMask().setOwnerFromLoginModule(),
@@ -83,12 +85,14 @@ public class OutStreamOptionsTest {
     options.setBlockSizeBytes(blockSize);
     options.setLocationPolicy(policy);
     options.setTtl(ttl);
+    options.setTtlExpiryAction(TtlExpiryAction.FREE);
     options.setWriteType(writeType);
     options.setPermission(perm);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.FREE, options.getTtlExpiryAction());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
     Assert.assertEquals(perm, options.getPermission());

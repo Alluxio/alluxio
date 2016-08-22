@@ -43,6 +43,7 @@ import alluxio.master.lineage.meta.LineageStore;
 import alluxio.master.lineage.meta.LineageStoreView;
 import alluxio.master.lineage.recompute.RecomputeExecutor;
 import alluxio.master.lineage.recompute.RecomputePlanner;
+import alluxio.proto.journal.File.TtlExpiryAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.proto.journal.Lineage.DeleteLineageEntry;
 import alluxio.proto.journal.Lineage.LineageEntry;
@@ -275,13 +276,15 @@ public final class LineageMaster extends AbstractMaster {
    * @param path the path to the file
    * @param blockSizeBytes the block size
    * @param ttl the TTL
+   * @param ttlExpiryAction Action to perform on ttl expiry
    * @return the id of the reinitialized file when the file is lost or not completed, -1 otherwise
    * @throws InvalidPathException the file path is invalid
    * @throws LineageDoesNotExistException when the file does not exist
    * @throws AccessControlException if permission checking fails
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl)
+  public synchronized long reinitializeFile(String path, long blockSizeBytes, long ttl,
+      TtlExpiryAction ttlExpiryAction)
       throws InvalidPathException, LineageDoesNotExistException, AccessControlException,
       FileDoesNotExistException {
     long fileId = mFileSystemMaster.getFileId(new AlluxioURI(path));
@@ -290,7 +293,8 @@ public final class LineageMaster extends AbstractMaster {
       fileInfo = mFileSystemMaster.getFileInfo(fileId);
       if (!fileInfo.isCompleted() || mFileSystemMaster.getLostFiles().contains(fileId)) {
         LOG.info("Recreate the file {} with block size of {} bytes", path, blockSizeBytes);
-        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl);
+        return mFileSystemMaster.reinitializeFile(new AlluxioURI(path), blockSizeBytes, ttl,
+            ttlExpiryAction);
       }
     } catch (FileDoesNotExistException e) {
       throw new LineageDoesNotExistException(

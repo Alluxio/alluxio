@@ -15,6 +15,7 @@ import alluxio.CommonTestUtils;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.client.WriteType;
 import alluxio.client.file.policy.FileWriteLocationPolicy;
 import alluxio.client.file.policy.RoundRobinPolicy;
@@ -43,6 +44,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(mDefaultWriteType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(mDefaultWriteType.getUnderStorageType(), options.getUnderStorageType());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.DELETE, options.getTtlExpiryAction());
   }
 
   /**
@@ -62,12 +64,14 @@ public class CreateFileOptionsTest {
     options.setLocationPolicy(policy);
     options.setRecursive(recursive);
     options.setTtl(ttl);
+    options.setTtlExpiryAction(TtlExpiryAction.FREE);
     options.setWriteType(writeType);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(policy, options.getLocationPolicy());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.FREE, options.getTtlExpiryAction());
     Assert.assertEquals(writeType.getAlluxioStorageType(), options.getAlluxioStorageType());
     Assert.assertEquals(writeType.getUnderStorageType(), options.getUnderStorageType());
   }
@@ -85,6 +89,7 @@ public class CreateFileOptionsTest {
         .isPersisted());
     Assert.assertEquals(mDefaultBlockSizeBytes, thriftOptions.getBlockSizeBytes());
     Assert.assertEquals(Constants.NO_TTL, thriftOptions.getTtl());
+    Assert.assertEquals(alluxio.thrift.TtlExpiryAction.Delete, thriftOptions.getTtlExpiryAction());
   }
 
   @Test

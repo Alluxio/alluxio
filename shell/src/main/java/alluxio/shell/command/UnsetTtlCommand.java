@@ -13,6 +13,7 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.TtlExpiryAction;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.AlluxioException;
 
@@ -49,7 +50,8 @@ public final class UnsetTtlCommand extends AbstractShellCommand {
   public void run(CommandLine cl) throws AlluxioException, IOException {
     String[] args = cl.getArgs();
     AlluxioURI inputPath = new AlluxioURI(args[0]);
-    CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL);
+    // Expiry doesn't matter in this case
+    CommandUtils.setTtl(mFileSystem, inputPath, Constants.NO_TTL, TtlExpiryAction.DELETE);
     System.out.println("TTL of file '" + inputPath + "' was successfully removed.");
   }
 

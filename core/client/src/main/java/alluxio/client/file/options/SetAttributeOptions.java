@@ -12,6 +12,7 @@
 package alluxio.client.file.options;
 
 import alluxio.Constants;
+import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.exception.PreconditionMessage;
 import alluxio.thrift.SetAttributeTOptions;
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class SetAttributeOptions {
   private Boolean mPinned;
   private Long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
   private Boolean mPersisted;
   private String mOwner;
   private String mGroup;
@@ -46,6 +48,7 @@ public final class SetAttributeOptions {
   private SetAttributeOptions() {
     mPinned = null;
     mTtl = null;
+    mTtlExpiryAction = TtlExpiryAction.DELETE;
     mPersisted = null;
     mOwner = null;
     mGroup = null;
@@ -83,6 +86,14 @@ public final class SetAttributeOptions {
   public long getTtl() {
     Preconditions.checkState(hasTtl(), PreconditionMessage.MUST_SET_TTL);
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   *          be either DELETE/FREE.
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
   }
 
   /**
@@ -176,6 +187,16 @@ public final class SetAttributeOptions {
   }
 
   /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction};
+   *        It informs the action to take when Ttl is expired.It can be either DELETE/FREE.
+   * @return the updated options object
+   */
+  public SetAttributeOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
+    return this;
+  }
+
+  /**
    * @param persisted the persisted flag value to use; it specifies whether the file has been
    *        persisted in the under file system or not.
    * @return the updated options object
@@ -233,7 +254,11 @@ public final class SetAttributeOptions {
     }
     if (mTtl != null) {
       options.setTtl(mTtl);
+      options.setTtlExpiryAction(mTtlExpiryAction == TtlExpiryAction.FREE
+          ? alluxio.thrift.TtlExpiryAction.Free
+          : alluxio.thrift.TtlExpiryAction.Delete);
     }
+
     if (mPersisted != null) {
       options.setPersisted(mPersisted);
     }
@@ -261,6 +286,7 @@ public final class SetAttributeOptions {
     SetAttributeOptions that = (SetAttributeOptions) o;
     return Objects.equal(mPinned, that.mPinned)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction)
         && Objects.equal(mPersisted, that.mPersisted)
         && Objects.equal(mOwner, that.mOwner)
         && Objects.equal(mGroup, that.mGroup)
@@ -270,7 +296,8 @@ public final class SetAttributeOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mPinned, mTtl, mPersisted, mOwner, mGroup, mMode, mRecursive);
+    return Objects.hashCode(mPinned, mTtl, mTtlExpiryAction, mPersisted, mOwner,
+        mGroup, mMode, mRecursive);
   }
 
   @Override
@@ -278,6 +305,7 @@ public final class SetAttributeOptions {
     return Objects.toStringHelper(this)
         .add("pinned", mPinned)
         .add("ttl", mTtl)
+        .add("ttlExpiryAction", mTtlExpiryAction)
         .add("persisted", mPersisted)
         .add("owner", mOwner)
         .add("group", mGroup)

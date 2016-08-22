@@ -18,6 +18,7 @@ import alluxio.exception.InvalidFileSizeException;
 import alluxio.master.block.BlockId;
 import alluxio.master.file.options.CreateFileOptions;
 import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.TtlExpiryAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.wire.FileInfo;
@@ -42,6 +43,7 @@ public final class InodeFile extends Inode<InodeFile> {
   private boolean mCompleted;
   private long mLength;
   private long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
 
   /**
    * Creates a new instance of {@link InodeFile}.
@@ -57,6 +59,7 @@ public final class InodeFile extends Inode<InodeFile> {
     mCompleted = false;
     mLength = 0;
     mTtl = Constants.NO_TTL;
+    mTtlExpiryAction = TtlExpiryAction.DELETE;
   }
 
   @Override
@@ -83,6 +86,8 @@ public final class InodeFile extends Inode<InodeFile> {
     ret.setBlockIds(getBlockIds());
     ret.setLastModificationTimeMs(getLastModificationTimeMs());
     ret.setTtl(mTtl);
+    ret.setTtlExpiryAction(mTtlExpiryAction == TtlExpiryAction.FREE ? alluxio.TtlExpiryAction.FREE
+        : alluxio.TtlExpiryAction.DELETE);
     ret.setOwner(getOwner());
     ret.setGroup(getGroup());
     ret.setMode(getMode());
@@ -221,6 +226,16 @@ public final class InodeFile extends Inode<InodeFile> {
   }
 
   /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction}; It informs the action to take when Ttl is
+   *        expired.It can be either DELETE/FREE
+   * @return the updated options object
+   */
+  public InodeFile setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
+    return getThis();
+  }
+
+  /**
    * Completes the file. Cannot set the length if the file is already completed. However, an unknown
    * file size, {@link Constants#UNKNOWN_SIZE}, is valid. Cannot complete an already complete file,
    * unless the completed length was previously {@link Constants#UNKNOWN_SIZE}.
@@ -255,9 +270,15 @@ public final class InodeFile extends Inode<InodeFile> {
 
   @Override
   public String toString() {
-    return toStringHelper().add("blocks", mBlocks).add("blockContainerId", mBlockContainerId)
-        .add("blockSizeBytes", mBlockSizeBytes).add("cacheable", mCacheable)
-        .add("completed", mCompleted).add("length", mLength).add("ttl", mTtl).toString();
+    return toStringHelper()
+        .add("blocks", mBlocks)
+        .add("blockContainerId", mBlockContainerId)
+        .add("blockSizeBytes", mBlockSizeBytes)
+        .add("cacheable", mCacheable)
+        .add("completed", mCompleted)
+        .add("length", mLength)
+        .add("ttl", mTtl)
+        .add("ttlExpiryAction", mTtlExpiryAction).toString();
   }
 
   /**
@@ -283,6 +304,9 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(PersistenceState.valueOf(entry.getPersistenceState()))
         .setPinned(entry.getPinned())
         .setTtl(entry.getTtl())
+        .setTtlExpiryAction(
+            (entry.getTtlExpiryAction() == alluxio.proto.journal.File.TtlExpiryAction.FREE)
+                ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE)
         .setPermission(permission);
   }
 
@@ -299,15 +323,20 @@ public final class InodeFile extends Inode<InodeFile> {
   public static InodeFile create(long blockContainerId, long parentId, String name,
       long creationTimeMs, CreateFileOptions fileOptions) {
     Permission permission = new Permission(fileOptions.getPermission()).applyFileUMask();
+
+    alluxio.TtlExpiryAction ttlExpiryAction = fileOptions.getTtlExpiryAction();
+
     return new InodeFile(blockContainerId)
         .setBlockSizeBytes(fileOptions.getBlockSizeBytes())
         .setCreationTimeMs(creationTimeMs)
         .setName(name)
         .setTtl(fileOptions.getTtl())
+        .setTtlExpiryAction((ttlExpiryAction == alluxio.TtlExpiryAction.FREE ? TtlExpiryAction.FREE
+            : TtlExpiryAction.DELETE))
         .setParentId(parentId)
         .setPermission(permission)
-        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED :
-            PersistenceState.NOT_PERSISTED);
+        .setPersistenceState(fileOptions.isPersisted() ? PersistenceState.PERSISTED
+            : PersistenceState.NOT_PERSISTED);
 
   }
 
@@ -330,7 +359,7 @@ public final class InodeFile extends Inode<InodeFile> {
         .setPersistenceState(getPersistenceState().name())
         .setPinned(isPinned())
         .setTtl(getTtl())
-        .build();
+        .setTtlExpiryAction(getTtlExpiryAction()).build();
     return JournalEntry.newBuilder().setInodeFile(inodeFile).build();
   }
 
@@ -340,4 +369,12 @@ public final class InodeFile extends Inode<InodeFile> {
   public long getTtl() {
     return mTtl;
   }
+
+  /**
+   * @return the action to take when Ttl is expired
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
+  }
+
 }

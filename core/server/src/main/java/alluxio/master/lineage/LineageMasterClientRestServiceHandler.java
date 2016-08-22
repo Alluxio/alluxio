@@ -14,6 +14,7 @@ package alluxio.master.lineage;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
+import alluxio.TtlExpiryAction;
 import alluxio.job.CommandLineJob;
 import alluxio.job.JobConf;
 import alluxio.master.AlluxioMaster;
@@ -176,13 +177,15 @@ public final class LineageMasterClientRestServiceHandler {
    * @param path the file path
    * @param blockSizeBytes the file block size (in bytes)
    * @param ttl the file time-to-live (in seconds)
+   * @param ttlExpiryAction Action to take after Ttl is expired
    * @return the response object
    */
   @POST
   @Path(REINITIALIZE_FILE)
   @ReturnType("java.lang.Long")
   public Response reinitializeFile(@QueryParam("path") final String path,
-      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl) {
+      @QueryParam("blockSizeBytes") final Long blockSizeBytes, @QueryParam("ttl") final Long ttl,
+      @QueryParam("ttlExpiryAction") final TtlExpiryAction ttlExpiryAction) {
     return RestUtils.call(new RestUtils.RestCallable<Long>() {
       @Override
       public Long call() throws Exception {
@@ -190,7 +193,10 @@ public final class LineageMasterClientRestServiceHandler {
         Preconditions
             .checkNotNull(blockSizeBytes, "required 'blockSizeBytes' parameter is missing");
         Preconditions.checkNotNull(ttl, "required 'ttl' parameter is missing");
-        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl);
+        return mLineageMaster.reinitializeFile(path, blockSizeBytes, ttl,
+            (ttlExpiryAction == TtlExpiryAction.FREE)
+            ? alluxio.proto.journal.File.TtlExpiryAction.FREE
+            : alluxio.proto.journal.File.TtlExpiryAction.DELETE);
       }
     });
   }
