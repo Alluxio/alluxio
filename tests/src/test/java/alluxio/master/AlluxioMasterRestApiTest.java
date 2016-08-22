@@ -110,7 +110,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_METRICS),
             NO_PARAMS, HttpMethod.GET, null).call();
     @SuppressWarnings("unchecked")
-    Map<String, Long> metrics = (Map<String, Long>) new ObjectMapper().readValue(result,
+    Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
     Assert.assertEquals(Long.valueOf(0), metrics.get("master.CompleteFileOps"));
