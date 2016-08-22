@@ -26,7 +26,7 @@ public interface AlluxioWorkerService extends Server {
   /**
    * Factory for acquiring an AlluxioWorker.
    */
-  public static class Factory {
+  class Factory {
     private static AlluxioWorkerService sAlluxioWorker;
 
     /**
