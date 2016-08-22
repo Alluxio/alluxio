@@ -19,7 +19,7 @@
   </parent>
   <artifactId>alluxio-keyvalue-client</artifactId>
   <name>Alluxio Key Value - Client</name>
-  <description>Client of Alluxio Key Value System</description>
+  <description>Client of Alluxio Key Value Store</description>
 
   <properties>
     <!-- These need to be defined here as well as in the parent pom so that mvn can run
