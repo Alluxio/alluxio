@@ -77,7 +77,6 @@ public class MetricsSystemTest {
     MetricsSystem masterMetricsSystem = new MetricsSystem("dummy", mMetricsConfig);
     masterMetricsSystem.start();
 
-    Assert.assertNotNull(masterMetricsSystem.getServletHandler());
     Assert.assertEquals(2, masterMetricsSystem.getSinks().size());
     Assert.assertEquals(1, masterMetricsSystem.getSources().size());
     masterMetricsSystem.registerSource(new DummySource());

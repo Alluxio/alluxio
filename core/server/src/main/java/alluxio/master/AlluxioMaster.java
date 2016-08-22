@@ -22,6 +22,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.sink.MetricsServlet;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -459,7 +460,7 @@ public class AlluxioMaster implements Server {
 
   protected void startServingWebServer() {
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
-    mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
+    mWebServer.addHandler(((MetricsServlet) mMasterMetricsSystem.getMetricsServlet()).getHandler());
     // start web ui
     mWebServer.startWebServer();
   }

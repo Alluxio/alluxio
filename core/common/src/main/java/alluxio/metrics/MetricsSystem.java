@@ -14,14 +14,12 @@ package alluxio.metrics;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.metrics.sink.MetricsServlet;
 import alluxio.metrics.sink.Sink;
 import alluxio.metrics.source.Source;
 import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Joiner;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +57,7 @@ public class MetricsSystem {
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private MetricsServlet mMetricsServlet;
+  private Sink mMetricsServlet;
 
   /**
    * Gets the sinks.
@@ -117,17 +115,12 @@ public class MetricsSystem {
     mMetricsConfig = metricsConfig;
   }
 
-  /***
-   * Gets the {@link ServletContextHandler} of the metrics servlet.
-   *
-   * @return the ServletContextHandler if the metrics system is running and the metrics servlet
-   *         exists, otherwise null
+  /**
+   * Returns the MetricsServlet sink.
+   * @return
    */
-  public ServletContextHandler getServletHandler() {
-    if (mRunning && mMetricsServlet != null) {
-      return mMetricsServlet.getHandler();
-    }
-    return null;
+  public Sink getMetricsServlet() {
+    return mMetricsServlet;
   }
 
   /**
@@ -196,7 +189,7 @@ public class MetricsSystem {
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), mMetricRegistry);
           if (entry.getKey().equals("servlet")) {
-            mMetricsServlet = (MetricsServlet) sink;
+            mMetricsServlet = sink;
           } else {
             mSinks.add(sink);
           }
