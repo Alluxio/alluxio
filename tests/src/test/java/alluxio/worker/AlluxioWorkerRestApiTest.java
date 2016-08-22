@@ -92,7 +92,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         new TestCase(mHostname, mPort, getEndpoint(AlluxioWorkerRestServiceHandler.GET_METRICS),
             NO_PARAMS, HttpMethod.GET, null).call();
     @SuppressWarnings("unchecked")
-    Map<String, Long> metrics = (Map<String, Long>) new ObjectMapper().readValue(result,
+    Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
     String blocksAccessedMetricName =
@@ -127,7 +127,7 @@ public final class AlluxioWorkerRestApiTest extends RestApiTest {
         getEndpoint(AlluxioWorkerRestServiceHandler.GET_DIRECTORY_PATHS_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, null).call();
     @SuppressWarnings("unchecked")
-    Map<String, List<String>> pathsOnTiers = (Map<String, List<String>>) new ObjectMapper()
+    Map<String, List<String>> pathsOnTiers = new ObjectMapper()
         .readValue(result, new TypeReference<Map<String, List<String>>>() {});
     Entry<String, List<String>> entry = Iterables.getOnlyElement(pathsOnTiers.entrySet());
     Assert.assertEquals("MEM", entry.getKey());
