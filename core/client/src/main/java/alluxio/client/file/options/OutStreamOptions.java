@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class OutStreamOptions {
   private long mBlockSizeBytes;
   private long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
   private FileWriteLocationPolicy mLocationPolicy;
   private WriteType mWriteType;
   private Permission mPermission;
@@ -51,6 +53,8 @@ public final class OutStreamOptions {
   private OutStreamOptions() {
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
+    mTtlExpiryAction = TtlExpiryAction.DELETE;
+
     try {
       mLocationPolicy = CommonUtils.createNewClassInstance(
           Configuration.<FileWriteLocationPolicy>getClass(
@@ -98,6 +102,14 @@ public final class OutStreamOptions {
   }
 
   /**
+   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   *          be either DELETE/FREE.
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
+  }
+
+  /**
    * @return the under storage type
    */
   public UnderStorageType getUnderStorageType() {
@@ -132,6 +144,16 @@ public final class OutStreamOptions {
    */
   public OutStreamOptions setTtl(long ttl) {
     mTtl = ttl;
+    return this;
+  }
+
+  /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction};
+   *        It informs the action to take when Ttl is expired. It can be either DELETE/FREE.
+   * @return the updated options object
+   */
+  public OutStreamOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
     return this;
   }
 
@@ -178,6 +200,7 @@ public final class OutStreamOptions {
     OutStreamOptions that = (OutStreamOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mWriteType, that.mWriteType)
         && Objects.equal(mPermission, that.mPermission);
@@ -185,7 +208,8 @@ public final class OutStreamOptions {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mBlockSizeBytes, mTtl, mLocationPolicy, mWriteType, mPermission);
+    return Objects.hashCode(mBlockSizeBytes, mTtl, mTtlExpiryAction, mLocationPolicy, mWriteType,
+        mPermission);
   }
 
   @Override
@@ -193,6 +217,7 @@ public final class OutStreamOptions {
     return Objects.toStringHelper(this)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("ttl", mTtl)
+        .add("mTtlExpiryAction", mTtlExpiryAction)
         .add("locationPolicy", mLocationPolicy)
         .add("writeType", mWriteType)
         .add("permission", mPermission)

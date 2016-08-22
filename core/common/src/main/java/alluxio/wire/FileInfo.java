@@ -11,6 +11,8 @@
 
 package alluxio.wire;
 
+import alluxio.TtlExpiryAction;
+
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
@@ -44,6 +46,7 @@ public final class FileInfo implements Serializable {
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
   private String mOwner = "";
   private String mGroup = "";
   private int mMode;
@@ -78,6 +81,9 @@ public final class FileInfo implements Serializable {
     mInMemoryPercentage = fileInfo.getInMemoryPercentage();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mTtl = fileInfo.getTtl();
+    alluxio.thrift.TtlExpiryAction tTtlExpiryAction = fileInfo.getTtlExpiryAction();
+    mTtlExpiryAction = (tTtlExpiryAction == alluxio.thrift.TtlExpiryAction.Free)
+        ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE;
     mOwner = fileInfo.getOwner();
     mGroup = fileInfo.getGroup();
     mMode = fileInfo.getMode();
@@ -201,6 +207,14 @@ public final class FileInfo implements Serializable {
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   *         be either DELETE/FREE.
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
   }
 
   /**
@@ -394,6 +408,16 @@ public final class FileInfo implements Serializable {
   }
 
   /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction}; It informs the action to take when Ttl is
+   *        expired.It can be either DELETE/FREE.
+   * @return the updated options object
+   */
+  public FileInfo setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
+    return this;
+  }
+
+  /**
    * @param owner the file owner
    * @return the file descriptor
    */
@@ -458,10 +482,12 @@ public final class FileInfo implements Serializable {
     for (FileBlockInfo fileBlockInfo : mFileBlockInfos) {
       fileBlockInfos.add(fileBlockInfo.toThrift());
     }
+
     return new alluxio.thrift.FileInfo(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
         mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
         mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
-        mPersistenceState, mMountPoint, fileBlockInfos);
+        mPersistenceState, mMountPoint, fileBlockInfos, (mTtlExpiryAction == TtlExpiryAction.FREE)
+            ? alluxio.thrift.TtlExpiryAction.Free : alluxio.thrift.TtlExpiryAction.Delete);
   }
 
   @Override
@@ -477,21 +503,21 @@ public final class FileInfo implements Serializable {
         && mUfsPath.equals(that.mUfsPath) && mLength == that.mLength
         && mBlockSizeBytes == that.mBlockSizeBytes && mCreationTimeMs == that.mCreationTimeMs
         && mCompleted == that.mCompleted && mFolder == that.mFolder && mPinned == that.mPinned
-        && mCacheable == that.mCacheable && mPersisted == that.mPersisted && mBlockIds
-        .equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
-        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl && mOwner
-        .equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
+        && mCacheable == that.mCacheable && mPersisted == that.mPersisted
+        && mBlockIds.equals(that.mBlockIds) && mInMemoryPercentage == that.mInMemoryPercentage
+        && mLastModificationTimeMs == that.mLastModificationTimeMs && mTtl == that.mTtl
+        && mOwner.equals(that.mOwner) && mGroup.equals(that.mGroup) && mMode == that.mMode
         && mPersistenceState.equals(that.mPersistenceState) && mMountPoint == that.mMountPoint
-        && mFileBlockInfos.equals(that.mFileBlockInfos);
+        && mFileBlockInfos.equals(that.mFileBlockInfos)
+        && mTtlExpiryAction == that.mTtlExpiryAction;
   }
 
   @Override
   public int hashCode() {
-    return Objects
-        .hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes, mCreationTimeMs,
-            mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds, mInMemoryPercentage,
-            mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode, mPersistenceState, mMountPoint,
-            mFileBlockInfos);
+    return Objects.hashCode(mFileId, mName, mPath, mUfsPath, mLength, mBlockSizeBytes,
+        mCreationTimeMs, mCompleted, mFolder, mPinned, mCacheable, mPersisted, mBlockIds,
+        mInMemoryPercentage, mLastModificationTimeMs, mTtl, mOwner, mGroup, mMode,
+        mPersistenceState, mMountPoint, mFileBlockInfos, mTtlExpiryAction);
   }
 
   @Override
@@ -502,8 +528,8 @@ public final class FileInfo implements Serializable {
         .add("pinned", mPinned).add("cacheable", mCacheable).add("persisted", mPersisted)
         .add("blockIds", mBlockIds).add("inMemoryPercentage", mInMemoryPercentage)
         .add("lastModificationTimesMs", mLastModificationTimeMs).add("ttl", mTtl)
-        .add("owner", mOwner).add("group", mGroup).add("mode", mMode)
-        .add("persistenceState", mPersistenceState).add("mountPoint", mMountPoint)
-        .add("fileBlockInfos", mFileBlockInfos).toString();
+        .add("mTtlExpiryAction", mTtlExpiryAction).add("owner", mOwner).add("group", mGroup)
+        .add("mode", mMode).add("persistenceState", mPersistenceState)
+        .add("mountPoint", mMountPoint).add("fileBlockInfos", mFileBlockInfos).toString();
   }
 }

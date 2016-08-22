@@ -33,6 +33,7 @@ import alluxio.master.journal.JournalOutputStream;
 import alluxio.master.journal.JournalProtoUtils;
 import alluxio.proto.journal.File.InodeDirectoryEntry;
 import alluxio.proto.journal.File.InodeFileEntry;
+import alluxio.proto.journal.File.TtlExpiryAction;
 import alluxio.proto.journal.Journal.JournalEntry;
 import alluxio.security.authorization.Permission;
 import alluxio.underfs.UnderFileSystem;
@@ -654,15 +655,18 @@ public final class InodeTree implements JournalCheckpointStreamable {
    * @param inodePath the path to the file
    * @param blockSizeBytes the new block size
    * @param ttl the ttl
+   * @param ttlExpiryAction Action to perform after Ttl expiry
    * @return the file id
    * @throws InvalidPathException if the path is invalid
    * @throws FileDoesNotExistException if the path does not exist
    */
-  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl)
+  public long reinitializeFile(LockedInodePath inodePath, long blockSizeBytes, long ttl,
+      TtlExpiryAction ttlExpiryAction)
       throws InvalidPathException, FileDoesNotExistException {
     InodeFile file = inodePath.getInodeFile();
     file.setBlockSizeBytes(blockSizeBytes);
     file.setTtl(ttl);
+    file.setTtlExpiryAction(ttlExpiryAction);
     return file.getId();
   }
 
