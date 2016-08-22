@@ -116,8 +116,7 @@ public class MetricsSystem {
   }
 
   /**
-   * Returns the MetricsServlet sink.
-   * @return
+   * @return the MetricsServlet sink
    */
   public Sink getMetricsServlet() {
     return mMetricsServlet;
