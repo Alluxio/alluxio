@@ -118,8 +118,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.delete(config.getTopLevelDirectory(), true);
 
     String[] children = config.getChildren();
-    for (int i = 0; i < children.length; ++i) {
-      Assert.assertFalse(mUfs.exists(children[i]));
+    for (String child : children) {
+      Assert.assertFalse(mUfs.exists(child));
     }
   }
 
@@ -392,9 +392,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
 
     final int numFiles = 1500;
-    final int numFolders = numFiles;
 
-    String[] children = new String[numFiles + numFolders];
+    String[] children = new String[numFiles + numFiles];
 
     // Make top level directory
     mUfs.mkdirs(topLevelDirectory, false);
@@ -406,7 +405,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       createEmptyFile(children[i]);
     }
     // Make the children folders
-    for (int i = 0; i < numFolders; ++i) {
+    for (int i = 0; i < numFiles; ++i) {
       children[numFiles + i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
           + String.format("%04d", i));
       mUfs.mkdirs(children[numFiles + i], false);
