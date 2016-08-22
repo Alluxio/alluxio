@@ -81,20 +81,20 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   /**
-   * Tells if the results can match the answer.
+   * Tells if the results can match the answers.
    *
-   * @param answer the correct results
+   * @param answers the correct results
    */
-  private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answer) throws IOException,
+  private void faultTestDataCheck(List<Pair<Long, AlluxioURI>> answers) throws IOException,
       AlluxioException {
     List<String> files = FileSystemTestUtils.listFiles(mFileSystem, AlluxioURI.SEPARATOR);
     Collections.sort(files);
-    Assert.assertEquals(answer.size(), files.size());
-    for (int k = 0; k < answer.size(); k++) {
-      Assert.assertEquals(answer.get(k).getSecond().toString(),
-          mFileSystem.getStatus(answer.get(k).getSecond()).getPath());
-      Assert.assertEquals(answer.get(k).getFirst().longValue(),
-          mFileSystem.getStatus(answer.get(k).getSecond()).getFileId());
+    Assert.assertEquals(answers.size(), files.size());
+    for (Pair<Long, AlluxioURI> answer : answers) {
+      Assert.assertEquals(answer.getSecond().toString(),
+              mFileSystem.getStatus(answer.getSecond()).getPath());
+      Assert.assertEquals(answer.getFirst().longValue(),
+              mFileSystem.getStatus(answer.getSecond()).getFileId());
     }
   }
 
