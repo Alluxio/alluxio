@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.security.authorization.Permission;
 
 import org.junit.Assert;
@@ -47,6 +48,7 @@ public class CreateFileOptionsTest {
     Assert.assertFalse(options.isPersisted());
     Assert.assertFalse(options.isRecursive());
     Assert.assertEquals(Constants.NO_TTL, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.DELETE, options.getTtlExpiryAction());
     ConfigurationTestUtils.resetConfiguration();
   }
 
@@ -71,7 +73,7 @@ public class CreateFileOptionsTest {
         .setPersisted(persisted)
         .setPermission(permission)
         .setRecursive(recursive)
-        .setTtl(ttl);
+        .setTtl(ttl).setTtlExpiryAction(TtlExpiryAction.FREE);
 
     Assert.assertEquals(blockSize, options.getBlockSizeBytes());
     Assert.assertEquals(mountPoint, options.isMountPoint());
@@ -80,6 +82,7 @@ public class CreateFileOptionsTest {
     Assert.assertEquals(persisted, options.isPersisted());
     Assert.assertEquals(recursive, options.isRecursive());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.FREE, options.getTtlExpiryAction());
   }
 
   @Test

@@ -25,6 +25,7 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.journal.Journal;
 import alluxio.master.journal.ReadWriteJournal;
+import alluxio.proto.journal.File.TtlExpiryAction;
 import alluxio.util.ThreadFactoryUtils;
 import alluxio.wire.FileInfo;
 import alluxio.wire.LineageInfo;
@@ -174,8 +175,9 @@ public final class LineageMasterTest {
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
     Mockito.when(mFileSystemMaster.getFileInfo(Mockito.any(Long.class))).thenReturn(fileInfo);
-    mLineageMaster.reinitializeFile("/test1", 500L, 10L);
-    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L);
+    mLineageMaster.reinitializeFile("/test1", 500L, 10L, TtlExpiryAction.DELETE);
+    Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L,
+        TtlExpiryAction.DELETE);
   }
 
   /**

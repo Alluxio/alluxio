@@ -13,6 +13,7 @@ package alluxio.shell.command;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.TtlExpiryAction;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.options.SetAttributeOptions;
 import alluxio.exception.AlluxioException;
@@ -40,12 +41,14 @@ public final class CommandUtils {
    * @param ttlMs the TTL (time to live) value to use; it identifies duration (in milliseconds) the
    *        created file should be kept around before it is automatically deleted, irrespective of
    *        whether the file is pinned; {@link Constants#NO_TTL} means to unset the TTL value
+   * @param ttlExpiryAction Action to perform on Ttl expiry
    * @throws AlluxioException when an Alluxio exception occurs
    * @throws IOException when a non-Alluxio exception occurs
    */
-  public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs)
-      throws AlluxioException, IOException {
-    SetAttributeOptions options = SetAttributeOptions.defaults().setTtl(ttlMs);
+  public static void setTtl(FileSystem fs, AlluxioURI path, long ttlMs,
+      TtlExpiryAction ttlExpiryAction) throws AlluxioException, IOException {
+    SetAttributeOptions options =
+        SetAttributeOptions.defaults().setTtl(ttlMs).setTtlExpiryAction(ttlExpiryAction);
     fs.setAttribute(path, options);
   }
 

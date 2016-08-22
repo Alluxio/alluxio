@@ -18,6 +18,7 @@ import alluxio.client.file.FileSystemContext;
 import alluxio.client.file.FileSystemMasterClient;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.exception.LineageDoesNotExistException;
+import alluxio.thrift.TtlExpiryAction;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -64,10 +65,11 @@ public final class LineageFileSystemTest {
   @Test
   public void getLineageOutStreamTest() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
+    Mockito.when(
+        mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlExpiryAction.Free))
         .thenReturn(1L);
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
+        .setTtl(0).setTtlExpiryAction(alluxio.TtlExpiryAction.FREE);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof LineageFileOutStream);
     // verify client is released
@@ -80,10 +82,11 @@ public final class LineageFileSystemTest {
   @Test
   public void getDummyOutStreamTest() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
+    Mockito.when(
+        mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlExpiryAction.Delete))
         .thenReturn(-1L);
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
+        .setTtl(0);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream instanceof DummyFileOutputStream);
     // verify client is released
@@ -96,11 +99,13 @@ public final class LineageFileSystemTest {
   @Test
   public void getNonLineageStreamTest() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
-    Mockito.when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0))
+    Mockito
+        .when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
+            TtlExpiryAction.Delete))
         .thenThrow(new LineageDoesNotExistException("lineage does not exist"));
 
-    CreateFileOptions options =
-        CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE).setTtl(0);
+    CreateFileOptions options = CreateFileOptions.defaults().setBlockSizeBytes(TEST_BLOCK_SIZE)
+        .setTtl(0);
     FileOutStream outStream = mAlluxioLineageFileSystem.createFile(path, options);
     Assert.assertTrue(outStream != null);
     Assert.assertFalse(outStream instanceof LineageFileOutStream);

@@ -14,6 +14,7 @@ package alluxio.master.file;
 import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.RestUtils;
+import alluxio.TtlExpiryAction;
 import alluxio.exception.AlluxioException;
 import alluxio.master.AlluxioMaster;
 import alluxio.master.file.meta.options.MountInfo;
@@ -182,6 +183,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param recursive whether parent directories should be created if they do not already exist
    * @param blockSizeBytes the target block size in bytes
    * @param ttl the time-to-live (in milliseconds)
+   * @param ttlExpiryAction Action to take after Ttl is expired
    * @return the response object
    */
   @POST
@@ -189,7 +191,8 @@ public final class FileSystemMasterClientRestServiceHandler {
   @ReturnType("java.lang.Void")
   public Response createFile(@QueryParam("path") String path,
       @QueryParam("persisted") Boolean persisted, @QueryParam("recursive") Boolean recursive,
-      @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl) {
+      @QueryParam("blockSizeBytes") Long blockSizeBytes, @QueryParam("ttl") Long ttl,
+      @QueryParam("ttlExpiryAction") TtlExpiryAction ttlExpiryAction) {
     try {
       Preconditions.checkNotNull(path, "required 'path' parameter is missing");
       CreateFileOptions options = CreateFileOptions.defaults();
@@ -204,6 +207,9 @@ public final class FileSystemMasterClientRestServiceHandler {
       }
       if (ttl != null) {
         options.setTtl(ttl);
+        if (ttlExpiryAction != null) {
+          options.setTtlExpiryAction(ttlExpiryAction);
+        }
       }
       mFileSystemMaster.createFile(new AlluxioURI(path), options);
       return RestUtils.createResponse();
@@ -425,6 +431,7 @@ public final class FileSystemMasterClientRestServiceHandler {
    * @param group the file group
    * @param permission the file permission bits
    * @param recursive whether the attribute should be set recursively
+   * @param ttlExpiryAction Action to take after Ttl is expired
    * @return the response object
    */
   @POST
@@ -434,7 +441,8 @@ public final class FileSystemMasterClientRestServiceHandler {
       @QueryParam("pinned") Boolean pinned, @QueryParam("ttl") Long ttl,
       @QueryParam("persisted") Boolean persisted, @QueryParam("owner") String owner,
       @QueryParam("group") String group, @QueryParam("permission") Short permission,
-      @QueryParam("recursive") Boolean recursive) {
+      @QueryParam("recursive") Boolean recursive,
+      @QueryParam("ttxExpiryAction") TtlExpiryAction ttlExpiryAction) {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     Preconditions.checkNotNull(path, "required 'path' parameter is missing");
     if (pinned != null) {
@@ -442,6 +450,9 @@ public final class FileSystemMasterClientRestServiceHandler {
     }
     if (ttl != null) {
       options.setTtl(ttl);
+    }
+    if (ttlExpiryAction != null) {
+      options.setTtlExpiryAction(ttlExpiryAction);
     }
     if (persisted != null) {
       options.setPersisted(persisted);

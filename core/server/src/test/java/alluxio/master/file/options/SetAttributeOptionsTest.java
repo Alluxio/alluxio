@@ -12,6 +12,7 @@
 package alluxio.master.file.options;
 
 import alluxio.CommonTestUtils;
+import alluxio.TtlExpiryAction;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,6 +32,7 @@ public class SetAttributeOptionsTest {
 
     Assert.assertNull(options.getPinned());
     Assert.assertNull(options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.DELETE, options.getTtlExpiryAction());
     Assert.assertNull(options.getPersisted());
   }
 
@@ -44,13 +46,12 @@ public class SetAttributeOptionsTest {
     Long ttl = random.nextLong();
     Boolean persisted = random.nextBoolean();
 
-    SetAttributeOptions options = SetAttributeOptions.defaults()
-        .setPinned(pinned)
-        .setTtl(ttl)
-        .setPersisted(persisted);
+    SetAttributeOptions options = SetAttributeOptions.defaults().setPinned(pinned).setTtl(ttl)
+        .setTtlExpiryAction(TtlExpiryAction.FREE).setPersisted(persisted);
 
     Assert.assertEquals(pinned, options.getPinned());
     Assert.assertEquals(ttl, options.getTtl());
+    Assert.assertEquals(TtlExpiryAction.FREE, options.getTtlExpiryAction());
     Assert.assertEquals(persisted, options.getPersisted());
   }
 

@@ -16,6 +16,7 @@ import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.exception.BlockInfoException;
 import alluxio.exception.DirectoryNotEmptyException;
 import alluxio.exception.ExceptionMessage;
@@ -752,6 +753,28 @@ public final class FileSystemMasterTest {
     // TTL is reset to 0, the file should have been deleted during last TTL check.
     mThrown.expect(FileDoesNotExistException.class);
     mFileSystemMaster.getFileInfo(fileId);
+  }
+
+  /**
+   * Tests that file information is still present after it has been
+   * freed after the TTL has been set to 0.
+   */
+  @Test
+  public void setTtlForFileWithFreeOperationTest() throws Exception {
+    long blockId = createFileWithSingleBlock(NESTED_FILE_URI);
+    Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
+    // Set ttl & operation
+    SetAttributeOptions options = SetAttributeOptions.defaults();
+    options.setTtl(0);
+    options.setTtlExpiryAction(TtlExpiryAction.FREE);
+    mFileSystemMaster.setAttribute(NESTED_FILE_URI, options);
+    executeTtlCheckOnce();
+    Command heartBeat = mBlockMaster
+        .workerHeartbeat(mWorkerId1, ImmutableMap.of("MEM", Constants.KB * 1L),
+            ImmutableList.of(blockId), ImmutableMap.<String, List<Long>>of());
+    // Verify the muted Free command on worker1
+    Assert.assertEquals(new Command(CommandType.Nothing, ImmutableList.<Long>of()), heartBeat);
+    Assert.assertEquals(0, mBlockMaster.getBlockInfo(blockId).getLocations().size());
   }
 
   /**

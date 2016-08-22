@@ -14,6 +14,7 @@ package alluxio.client.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.annotation.PublicApi;
 import alluxio.client.AlluxioStorageType;
 import alluxio.client.UnderStorageType;
@@ -37,6 +38,7 @@ public final class CreateFileOptions {
   private long mBlockSizeBytes;
   private FileWriteLocationPolicy mLocationPolicy;
   private long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
   private WriteType mWriteType;
 
   /**
@@ -50,14 +52,14 @@ public final class CreateFileOptions {
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+      mLocationPolicy = CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }
     mWriteType = Configuration.getEnum(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, WriteType.class);
     mTtl = Constants.NO_TTL;
+    mTtlExpiryAction = TtlExpiryAction.DELETE;
   }
 
   /**
@@ -87,6 +89,14 @@ public final class CreateFileOptions {
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   *          be either DELETE/FREE.
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
   }
 
   /**
@@ -142,6 +152,16 @@ public final class CreateFileOptions {
   }
 
   /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction};
+   *        It informs the action to take when Ttl is expired.It can be either DELETE/FREE.
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
+    return this;
+  }
+
+  /**
    * @param writeType the {@link WriteType} to use for this operation. This will override both the
    *        {@link AlluxioStorageType} and {@link UnderStorageType}.
    * @return the updated options object
@@ -155,8 +175,12 @@ public final class CreateFileOptions {
    * @return representation of this object in the form of {@link OutStreamOptions}
    */
   public OutStreamOptions toOutStreamOptions() {
-    return OutStreamOptions.defaults().setBlockSizeBytes(mBlockSizeBytes)
-        .setLocationPolicy(mLocationPolicy).setTtl(mTtl).setWriteType(mWriteType);
+    return OutStreamOptions.defaults()
+        .setBlockSizeBytes(mBlockSizeBytes)
+        .setLocationPolicy(mLocationPolicy)
+        .setTtl(mTtl)
+        .setTtlExpiryAction(mTtlExpiryAction)
+        .setWriteType(mWriteType);
   }
 
   @Override
@@ -172,12 +196,14 @@ public final class CreateFileOptions {
         && Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
         && Objects.equal(mLocationPolicy, that.mLocationPolicy)
         && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction)
         && Objects.equal(mWriteType, that.mWriteType);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mWriteType);
+    return Objects.hashCode(mRecursive, mBlockSizeBytes, mLocationPolicy, mTtl, mTtlExpiryAction,
+        mWriteType);
   }
 
   @Override
@@ -187,6 +213,7 @@ public final class CreateFileOptions {
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("locationPolicy", mLocationPolicy)
         .add("ttl", mTtl)
+        .add("ttlExpiryAction", mTtlExpiryAction)
         .add("writeType", mWriteType)
         .toString();
   }
@@ -200,6 +227,9 @@ public final class CreateFileOptions {
     options.setPersisted(mWriteType.getUnderStorageType().isSyncPersist());
     options.setRecursive(mRecursive);
     options.setTtl(mTtl);
+    options.setTtlExpiryAction(mTtlExpiryAction == TtlExpiryAction.FREE
+        ? alluxio.thrift.TtlExpiryAction.Free
+        : alluxio.thrift.TtlExpiryAction.Delete);
     return options;
   }
 }
