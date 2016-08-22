@@ -79,7 +79,7 @@ public class MetricsConfigTest {
     MetricsConfig config = new MetricsConfig(mMetricsProps);
 
     Map<String, Properties> propertyCategories = config.getPropertyCategories();
-    Assert.assertEquals(2, propertyCategories.size());
+    Assert.assertEquals(3, propertyCategories.size());
 
     Properties masterProp = config.getInstanceProperties("master");
     Map<String, Properties> sourceProps =
