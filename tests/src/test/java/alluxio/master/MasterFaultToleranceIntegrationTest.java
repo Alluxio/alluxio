@@ -92,9 +92,9 @@ public class MasterFaultToleranceIntegrationTest {
     Assert.assertEquals(answers.size(), files.size());
     for (Pair<Long, AlluxioURI> answer : answers) {
       Assert.assertEquals(answer.getSecond().toString(),
-              mFileSystem.getStatus(answer.getSecond()).getPath());
+          mFileSystem.getStatus(answer.getSecond()).getPath());
       Assert.assertEquals(answer.getFirst().longValue(),
-              mFileSystem.getStatus(answer.getSecond()).getFileId());
+          mFileSystem.getStatus(answer.getSecond()).getFileId());
     }
   }
 
