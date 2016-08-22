@@ -15,6 +15,7 @@ import alluxio.AlluxioURI;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource.Config;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.client.lineage.LineageFileSystem;
@@ -130,6 +131,7 @@ public final class LineageMasterClientRestApiTest extends RestApiTest {
     params.put("path", "/test");
     params.put("blockSizeBytes", "1");
     params.put("ttl", "1");
+    params.put("ttlExpiryAction", TtlExpiryAction.DELETE.toString());
 
     new TestCase(mHostname, mPort,
         getEndpoint(LineageMasterClientRestServiceHandler.REINITIALIZE_FILE), params,

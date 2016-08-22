@@ -11,6 +11,7 @@
 
 package alluxio.wire;
 
+import alluxio.TtlExpiryAction;
 import alluxio.util.CommonUtils;
 
 import org.codehaus.jackson.map.ObjectMapper;
@@ -55,6 +56,7 @@ public class FileInfoTest {
     Assert.assertEquals(a.getInMemoryPercentage(), b.getInMemoryPercentage());
     Assert.assertEquals(a.getLastModificationTimeMs(), b.getLastModificationTimeMs());
     Assert.assertEquals(a.getTtl(), b.getTtl());
+    Assert.assertEquals(a.getTtlExpiryAction(), b.getTtlExpiryAction());
     Assert.assertEquals(a.getOwner(), b.getOwner());
     Assert.assertEquals(a.getGroup(), b.getGroup());
     Assert.assertEquals(a.getMode(), b.getMode());
@@ -115,6 +117,7 @@ public class FileInfoTest {
     result.setInMemoryPercentage(inMemoryPercentage);
     result.setLastModificationTimeMs(lastModificationTimeMs);
     result.setTtl(ttl);
+    result.setTtlExpiryAction(TtlExpiryAction.DELETE);
     result.setOwner(userName);
     result.setGroup(groupName);
     result.setMode(permission);

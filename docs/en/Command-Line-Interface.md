@@ -66,7 +66,7 @@ output:
 {% include Command-Line-Interface/cat.md %}
 
 ## checksum
-The `checksum` command outputs the md5 value of a file in Alluxio. 
+The `checksum` command outputs the md5 value of a file in Alluxio.
 
 For example, `checksum` can be used to verify the content of a file stored in Alluxio
 matches the content stored in an UnderFS or local filesystem:
@@ -338,12 +338,14 @@ For example, `rm` can be used to remove temporary files which are no longer need
 {% include Command-Line-Interface/rm2.md %}
 
 ## setTtl
-The `setTtl` command sets the time-to-live of a file, in milliseconds. The file will automatically
-be deleted once the current time is greater than the TTL + creation time of the file. This delete
-will affect both Alluxio and the under storage system.
+The `setTtl` command sets the time-to-live of a file, in milliseconds. Action parameter will
+indicate the action to perform once the current time is greater than the TTL + creation time of the file.
+Action `delete` (default) will delete file from both Alluxio and the under storage system, whereas action
+`free` will just free the file from Alluxio.
 
-For example, `setTtl` can be used to clean up files the administrator knows are unnecessary after a
-period of time.
+For example, `setTtl` with action `delete` can be used to clean up files the administrator knows are
+unnecessary after a period of time, or can be used to just remove the contents from Alluxio to make room
+for more space in Alluxio.
 
 {% include Command-Line-Interface/setTtl.md %}
 

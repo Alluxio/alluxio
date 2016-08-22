@@ -13,6 +13,7 @@ package alluxio.master.file;
 
 import alluxio.AlluxioURI;
 import alluxio.Constants;
+import alluxio.TtlExpiryAction;
 import alluxio.exception.FileDoesNotExistException;
 import alluxio.master.file.options.CompleteFileOptions;
 import alluxio.master.file.options.CreateFileOptions;
@@ -252,6 +253,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     params.put("path", uri.toString());
     params.put("pinned", "true");
     params.put("ttl", "100000");
+    params.put("ttlExpiryAction", TtlExpiryAction.DELETE.toString());
     params.put("persisted", "true");
     params.put("recursive", "false");
 
@@ -263,6 +265,7 @@ public final class FileSystemMasterClientRestApiTest extends RestApiTest {
     Assert.assertEquals(uri.toString(), fileInfo.getPath());
     Assert.assertTrue(fileInfo.isPinned());
     Assert.assertEquals(100000, fileInfo.getTtl());
+    Assert.assertEquals(TtlExpiryAction.DELETE, fileInfo.getTtlExpiryAction());
     Assert.assertTrue(fileInfo.isPersisted());
   }
 

@@ -14,6 +14,7 @@ package alluxio.master.file.options;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.TtlExpiryAction;
 import alluxio.security.authorization.Permission;
 import alluxio.thrift.CreateFileTOptions;
 
@@ -30,6 +31,7 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions> {
   private long mBlockSizeBytes;
   private long mTtl;
+  private TtlExpiryAction mTtlExpiryAction;
 
   /**
    * @return the default {@link CreateFileOptions}
@@ -51,6 +53,8 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     mPersisted = options.isPersisted();
     mRecursive = options.isRecursive();
     mTtl = options.getTtl();
+    mTtlExpiryAction = (options.getTtlExpiryAction() == alluxio.thrift.TtlExpiryAction.Free)
+        ? TtlExpiryAction.FREE : TtlExpiryAction.DELETE;
     mPermission = Permission.defaults().setOwnerFromThriftClient();
   }
 
@@ -58,6 +62,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     super();
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     mTtl = Constants.NO_TTL;
+    mTtlExpiryAction = TtlExpiryAction.DELETE;
   }
 
   /**
@@ -73,6 +78,14 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
    */
   public long getTtl() {
     return mTtl;
+  }
+
+  /**
+   * @return the {@link TtlExpiryAction}; It informs the action to take when Ttl is expired. It can
+   *         be either DELETE/FREE.git che
+   */
+  public TtlExpiryAction getTtlExpiryAction() {
+    return mTtlExpiryAction;
   }
 
   /**
@@ -94,6 +107,16 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return getThis();
   }
 
+  /**
+   * @param ttlExpiryAction the {@link TtlExpiryAction};
+   *        It informs the action to take when Ttl is expired;
+   * @return the updated options object
+   */
+  public CreateFileOptions setTtlExpiryAction(TtlExpiryAction ttlExpiryAction) {
+    mTtlExpiryAction = ttlExpiryAction;
+    return getThis();
+  }
+
   @Override
   protected CreateFileOptions getThis() {
     return this;
@@ -112,12 +135,13 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     }
     CreateFileOptions that = (CreateFileOptions) o;
     return Objects.equal(mBlockSizeBytes, that.mBlockSizeBytes)
-        && Objects.equal(mTtl, that.mTtl);
+        && Objects.equal(mTtl, that.mTtl)
+        && Objects.equal(mTtlExpiryAction, that.mTtlExpiryAction);
   }
 
   @Override
   public int hashCode() {
-    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl);
+    return super.hashCode() + Objects.hashCode(mBlockSizeBytes, mTtl, mTtlExpiryAction);
   }
 
   @Override
@@ -125,6 +149,7 @@ public final class CreateFileOptions extends CreatePathOptions<CreateFileOptions
     return toStringHelper()
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("ttl", mTtl)
+        .add("ttlExpiryAction", mTtlExpiryAction)
         .toString();
   }
 }
