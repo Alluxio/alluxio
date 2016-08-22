@@ -271,7 +271,7 @@ public final class InodeFile extends Inode<InodeFile> {
   @Override
   public String toString() {
     return toStringHelper()
-        .add("blocks", mBlocks) 
+        .add("blocks", mBlocks)
         .add("blockContainerId", mBlockContainerId)
         .add("blockSizeBytes", mBlockSizeBytes)
         .add("cacheable", mCacheable)
