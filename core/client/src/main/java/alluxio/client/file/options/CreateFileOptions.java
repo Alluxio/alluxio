@@ -52,8 +52,8 @@ public final class CreateFileOptions {
     mRecursive = true;
     mBlockSizeBytes = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     try {
-      mLocationPolicy =
-          CommonUtils.createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
+      mLocationPolicy = CommonUtils
+          .createNewClassInstance(Configuration.<FileWriteLocationPolicy>getClass(
               PropertyKey.USER_FILE_WRITE_LOCATION_POLICY), new Class[] {}, new Object[] {});
     } catch (Exception e) {
       throw Throwables.propagate(e);
