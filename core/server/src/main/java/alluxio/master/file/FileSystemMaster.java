@@ -2502,7 +2502,7 @@ public final class FileSystemMaster extends AbstractMaster {
         String ufsUri = resolution.getUri().toString();
         if (CommonUtils.isUfsObjectStorage(ufsUri)) {
           throw new UnsupportedOperationException(
-              "setOwner/setMode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
+              "setOwner/Mode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
         }
         UnderFileSystem ufs = resolution.getUfs();
         if (ownerGroupChanged) {
