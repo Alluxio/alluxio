@@ -90,6 +90,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Determine whether to run JOSS in simulation mode. */
   private boolean mSimulationMode;
 
+  private String mAccountOwner;
+
+  private short mAccountMode;
+
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
    *
@@ -159,6 +163,26 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       container.create();
     }
     mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
+
+    // Assume the Swift user name has 1-1 mapping to Alluxio username.
+    mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
+    short mode = (short) 0;
+    // If there is any container ACL for the Swift user, translates it to Alluxio permission.
+    if (container.getContainerReadPermission().contains(mAccountOwner)
+        || container.getContainerReadPermission().contains("*")) {
+      mode |= (short) 0500;
+    }
+    if (container.getcontainerWritePermission().contains(mAccountOwner)
+        || container.getcontainerWritePermission().contains("*")) {
+      mode |= (short) 0200;
+    }
+    // If there is no container ACL but the user can still access the container, the only
+    // possibility is that the user has the admin role. In this case, the user should have 0700
+    // mode to the Swift container.
+    if (mode == 0 && mAccess.getToken() != null) {
+      mode = (short) 0700;
+    }
+    mAccountMode = mode;
   }
 
   @Override
@@ -479,30 +503,30 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the account owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in Swift ACL, returns the account owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the account owner's permission mode to the Swift container.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mAccountMode;
   }
 
   /**
