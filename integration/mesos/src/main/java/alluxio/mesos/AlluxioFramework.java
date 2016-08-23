@@ -159,6 +159,7 @@ public class AlluxioFramework {
                           "export JAVA_HOME="
                               + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
+                              + "mv alluxio-* alluxio && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
                               "alluxio-master-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
@@ -195,6 +196,7 @@ public class AlluxioFramework {
                           "export JAVA_HOME="
                               + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH)
                               + " && export PATH=$PATH:$JAVA_HOME/bin && "
+                              + "mv alluxio-* alluxio && "
                               + PathUtils.concatPath("alluxio", "integration", "bin",
                               "alluxio-worker-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
