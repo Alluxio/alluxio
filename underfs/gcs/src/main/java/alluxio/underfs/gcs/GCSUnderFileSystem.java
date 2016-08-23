@@ -382,7 +382,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     return mAccountOwner;
   }
 
-  // Returns the account owner's permission mode to the S3 bucket.
+  // Returns the account owner's permission mode to the GCS bucket.
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
