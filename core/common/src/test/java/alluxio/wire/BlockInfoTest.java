@@ -22,7 +22,7 @@ import java.util.Random;
 public class BlockInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     BlockInfo blockInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     BlockInfo other = mapper.readValue(mapper.writeValueAsBytes(blockInfo), BlockInfo.class);
@@ -30,7 +30,7 @@ public class BlockInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     BlockInfo blockInfo = createRandom();
     BlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(blockInfo));
     checkEquality(blockInfo, other);

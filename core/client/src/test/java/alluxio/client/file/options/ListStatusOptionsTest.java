@@ -24,20 +24,20 @@ import org.junit.Test;
  */
 public class ListStatusOptionsTest {
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     ListStatusOptions options = ListStatusOptions.defaults();
 
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
-  public void fieldsTest() {
+  public void fields() {
     ListStatusOptions options = ListStatusOptions.defaults();
     Assert.assertEquals(LoadMetadataType.Once, options.getLoadMetadataType());
   }
 
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     ListStatusOptions options = ListStatusOptions.defaults();
     ListStatusTOptions thriftOptions = options.toThrift();
     Assert.assertEquals(LoadMetadataTType.Once, thriftOptions.getLoadMetadataType());

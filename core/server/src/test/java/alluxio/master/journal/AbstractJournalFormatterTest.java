@@ -334,7 +334,7 @@ public abstract class AbstractJournalFormatterTest {
    * Tests the number of entries written.
    */
   @Test
-  public void checkEntriesNumberTest() {
+  public void checkEntriesNumber() {
     // Subtract one to exclude ENTRY_NOT_SET
     Assert.assertEquals(JournalEntry.EntryCase.values().length - 1, ENTRIES_LIST.size());
   }
@@ -344,7 +344,7 @@ public abstract class AbstractJournalFormatterTest {
    * {@link JournalFormatter#serialize(JournalEntry, OutputStream)} methods.
    */
   @Test
-  public void entriesTest() throws IOException {
+  public void entries() throws IOException {
     for (JournalEntry entry : ENTRIES_LIST) {
       entryTest(entry);
     }

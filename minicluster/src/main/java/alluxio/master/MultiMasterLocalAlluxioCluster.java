@@ -156,7 +156,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
 
   @Override
   protected void startWorker() throws IOException, ConnectionFailedException {
-    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX, "100");
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, "100");
     runWorker();
   }
 

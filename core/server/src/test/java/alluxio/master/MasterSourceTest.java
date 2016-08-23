@@ -142,7 +142,7 @@ public final class MasterSourceTest {
    * {@code DirectoriesCreated} counters when creating a file.
    */
   @Test
-  public void createFileTest() throws Exception {
+  public void createFile() throws Exception {
     mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
 
     Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_FILE_OPS).getCount());
@@ -173,7 +173,7 @@ public final class MasterSourceTest {
    * directory.
    */
   @Test
-  public void mkdirTest() throws Exception {
+  public void mkdir() throws Exception {
     mFileSystemMaster.createDirectory(DIRECTORY_URI, CreateDirectoryOptions.defaults());
 
     Assert.assertEquals(1, mCounters.get(MasterSource.CREATE_DIRECTORY_OPS).getCount());
@@ -196,7 +196,7 @@ public final class MasterSourceTest {
    * about a file.
    */
   @Test
-  public void getFileInfoTest() throws Exception {
+  public void getFileInfo() throws Exception {
     long fileId = mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
 
     mFileSystemMaster.getFileInfo(fileId);
@@ -221,7 +221,7 @@ public final class MasterSourceTest {
    * information about a block of a file.
    */
   @Test
-  public void getFileBlockInfoTest() throws Exception {
+  public void getFileBlockInfo() throws Exception {
     mFileSystemMaster.createFile(ROOT_FILE_URI, sNestedFileOptions);
     writeBlockForFile(ROOT_FILE_URI);
     writeBlockForFile(ROOT_FILE_URI);
@@ -286,7 +286,7 @@ public final class MasterSourceTest {
    * Tests the {@code DeletePathOps} and {@code PathsDeleted} counters when deleting a path.
    */
   @Test
-  public void deletePathTest() throws Exception {
+  public void deletePath() throws Exception {
     // cannot delete root
     try {
       mFileSystemMaster.delete(ROOT_URI, true);
@@ -310,7 +310,7 @@ public final class MasterSourceTest {
    * Tests the {@code GetNewBlockOps} counter when retrieving a new block id for a file.
    */
   @Test
-  public void getNewBlockIdForFileTest() throws Exception {
+  public void getNewBlockIdForFile() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     long blockId = mFileSystemMaster.getNewBlockIdForFile(NESTED_FILE_URI);
     FileInfo fileInfo = mFileSystemMaster.getFileInfo(NESTED_FILE_URI);
@@ -323,7 +323,7 @@ public final class MasterSourceTest {
    * Tests the {@code SetAttributeOps} counter when setting an attribute of a file.
    */
   @Test
-  public void setAttributeTest() throws Exception {
+  public void setAttribute() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
 
     mFileSystemMaster.setAttribute(NESTED_FILE_URI, SetAttributeOptions.defaults());
@@ -335,7 +335,7 @@ public final class MasterSourceTest {
    * Tests the {@code FilesPersisted} counter when setting a file to persisted.
    */
   @Test
-  public void filePersistedTest() throws Exception {
+  public void filePersisted() throws Exception {
     createCompleteFileWithSingleBlock(NESTED_FILE_URI);
 
     mFileSystemMaster
@@ -348,7 +348,7 @@ public final class MasterSourceTest {
    * Tests the {@code RenamePathOps} and {@code PathsRenamed} counters when renaming a file.
    */
   @Test
-  public void renameTest() throws Exception {
+  public void rename() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
 
     // try to rename a file to root
@@ -373,7 +373,7 @@ public final class MasterSourceTest {
    * Tests the {@code FreeFileOps} and {@code FielsFreed} counters when freeing a file.
    */
   @Test
-  public void freeTest() throws Exception {
+  public void free() throws Exception {
     mFileSystemMaster.createFile(NESTED_FILE_URI, sNestedFileOptions);
     long blockId = writeBlockForFile(NESTED_FILE_URI);
     Assert.assertEquals(1, mBlockMaster.getBlockInfo(blockId).getLocations().size());
@@ -403,7 +403,7 @@ public final class MasterSourceTest {
    * path.
    */
   @Test
-  public void mountUnmountTest() throws Exception {
+  public void mountUnmount() throws Exception {
 
     mUfs.mkdirs(MOUNT_URI.getPath(), false);
 

@@ -44,7 +44,7 @@ public class OutStreamOptionsTest {
    * Tests that building an {@link OutStreamOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     AlluxioStorageType alluxioType = AlluxioStorageType.STORE;
     UnderStorageType ufsType = UnderStorageType.SYNC_PERSIST;
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, "64MB");
@@ -66,7 +66,7 @@ public class OutStreamOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     long blockSize = random.nextLong();
     FileWriteLocationPolicy policy = new RoundRobinPolicy();

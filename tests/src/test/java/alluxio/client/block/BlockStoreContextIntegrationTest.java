@@ -39,7 +39,7 @@ public final class BlockStoreContextIntegrationTest {
    * occurred preventing the release of the master clients.
    */
   @Test(timeout = 10000)
-  public void acquireMasterLimitTest() throws Exception {
+  public void acquireMasterLimit() throws Exception {
     final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
@@ -93,7 +93,7 @@ public final class BlockStoreContextIntegrationTest {
   @Test(timeout = 10000)
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
-  public void acquireWorkerLimitTest() throws Exception {
+  public void acquireWorkerLimit() throws Exception {
     final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Acquire all the clients
@@ -140,7 +140,7 @@ public final class BlockStoreContextIntegrationTest {
   }
 
   @Test
-  public void hasLocalWorkerTest() throws Exception {
+  public void hasLocalWorker() throws Exception {
     Assert.assertTrue(BlockStoreContext.INSTANCE.hasLocalWorker());
   }
 }

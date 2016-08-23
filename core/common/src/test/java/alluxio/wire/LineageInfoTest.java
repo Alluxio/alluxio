@@ -24,7 +24,7 @@ import java.util.Random;
 public class LineageInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     LineageInfo lineageInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     LineageInfo other = mapper.readValue(mapper.writeValueAsBytes(lineageInfo), LineageInfo.class);
@@ -32,7 +32,7 @@ public class LineageInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     LineageInfo lineageInfo = createRandom();
     LineageInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(lineageInfo));
     checkEquality(lineageInfo, other);

@@ -21,7 +21,7 @@ import org.junit.Test;
  */
 public class ExistsOptionsTest {
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     ExistsOptions options = ExistsOptions.defaults();
 
     Assert.assertNotNull(options);

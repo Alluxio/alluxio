@@ -46,7 +46,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void setTtlWithDelete() throws Exception {
+  public void setTtlWithDeleteTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
@@ -62,7 +62,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void setTtlWithFree() throws Exception {
+  public void setTtlWithFreeTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
@@ -78,7 +78,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void setTtlWithNoOperationValue() throws Exception {
+  public void setTtlWithNoOperationValueTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,
@@ -89,7 +89,7 @@ public final class SetTtlCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void setTtlWithInvalidOperationValue() throws Exception {
+  public void setTtlWithInvalidOperationValueTest() throws Exception {
     String filePath = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);
     Assert.assertEquals(Constants.NO_TTL,

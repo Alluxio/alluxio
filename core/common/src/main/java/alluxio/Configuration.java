@@ -60,8 +60,6 @@ import javax.annotation.concurrent.NotThreadSafe;
 public final class Configuration {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  /** File to set default properties. */
-  private static final String DEFAULT_PROPERTIES = "alluxio-default.properties";
   /** File to set customized properties for Alluxio server (both master and worker) and client. */
   private static final String SITE_PROPERTIES = "alluxio-site.properties";
 
@@ -91,10 +89,12 @@ public final class Configuration {
    */
   private static void init(String sitePropertiesFile) {
     // Load default
-    Properties defaultProps = ConfigurationUtils.loadPropertiesFromResource(DEFAULT_PROPERTIES);
-    if (defaultProps == null) {
-      throw new RuntimeException(
-          ExceptionMessage.DEFAULT_PROPERTIES_FILE_DOES_NOT_EXIST.getMessage());
+    Properties defaultProps = new Properties();
+    for (PropertyKey key : PropertyKey.values()) {
+      String value = key.getDefaultValue();
+      if (value != null) {
+        defaultProps.setProperty(key.toString(), value);
+      }
     }
     // Override runtime default
     defaultProps.setProperty(PropertyKey.MASTER_HOSTNAME.toString(),

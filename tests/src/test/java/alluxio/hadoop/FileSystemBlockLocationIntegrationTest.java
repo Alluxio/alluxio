@@ -55,7 +55,7 @@ public class FileSystemBlockLocationIntegrationTest {
    * Test the different situations of different start and len.
    */
   @Test
-  public void basicBlockLocationTest() throws Exception {
+  public void basicBlockLocation() throws Exception {
     FileStatus fStatus = sTFS.getFileStatus(new Path("/testFile1"));
 
     // block0.offset = start < start+len < block1.offset

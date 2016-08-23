@@ -75,13 +75,13 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The owner name of the bucket. */
-  private final String mBucketOwner;
+  /** The owner name of the account. */
+  private final String mAccountOwner;
 
-  /** The AWS id of the bucket owner. */
-  private final String mBucketOwnerId;
+  /** The AWS canonical user id of the account owner. */
+  private final String mAccountOwnerId;
 
-  /** The permission mode by the owner to the bucket. */
+  /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
   static {
@@ -153,10 +153,20 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     mClient = new RestS3Service(awsCredentials, null, null, props);
     mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
 
+    mAccountOwnerId = mClient.getAccountOwner().getId();
+    // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
+    // user name.
+    String owner = CommonUtils.getValueFromStaticMapping(
+        Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
+        mAccountOwnerId);
+    // If there is no user-defined mapping, use the display name.
+    if (owner == null) {
+      owner = mClient.getAccountOwner().getDisplayName();
+    }
+    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+
     AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketOwner = acl.getOwner().getDisplayName();
-    mBucketOwnerId = acl.getOwner().getId();
-    mBucketMode = S3Utils.translateBucketAcl(acl, mBucketOwnerId);
+    mBucketMode = S3Utils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
   @Override
@@ -407,13 +417,13 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   // Returns the bucket owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return mBucketOwner;
+    return mAccountOwner;
   }
 
   // No group in S3 ACL, returns the bucket owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return mBucketOwner;
+    return mAccountOwner;
   }
 
   // Returns the translated mode by the owner of the bucket.

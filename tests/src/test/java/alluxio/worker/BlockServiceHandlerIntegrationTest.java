@@ -87,7 +87,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that caching a block successfully persists the block if the block exists
   @Test
-  public void cacheBlockTest() throws Exception {
+  public void cacheBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile"));
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
@@ -116,7 +116,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that cancelling a block will remove the temporary file
   @Test
-  public void cancelBlockTest() throws Exception {
+  public void cancelBlock() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile"));
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
 
@@ -138,7 +138,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that lock block returns the correct path
   @Test
-  public void lockBlockTest() throws Exception {
+  public void lockBlock() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
 
     CreateFileOptions options =
@@ -170,7 +170,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that lock block returns error on failure
   @Test
-  public void lockBlockFailureTest() throws Exception {
+  public void lockBlockFailure() throws Exception {
     mFileSystem.createFile(new AlluxioURI("/testFile"));
     URIStatus file = mFileSystem.getStatus(new AlluxioURI("/testFile"));
     final long blockId = BlockId.createBlockId(BlockId.getContainerId(file.getFileId()), 0);
@@ -188,7 +188,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that files are evicted when there is not enough space in the worker.
   @Test
-  public void evictionTest() throws Exception {
+  public void eviction() throws Exception {
     final int blockSize = (int) WORKER_CAPACITY_BYTES / 2;
     AlluxioURI file1 = new AlluxioURI("/file1");
     FileSystemTestUtils.createByteFile(mFileSystem, file1, WriteType.MUST_CACHE, blockSize);
@@ -223,7 +223,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that space will be allocated when possible
   @Test
-  public void requestSpaceTest() throws Exception {
+  public void requestSpace() throws Exception {
     final long blockId1 = 12345L;
     final long blockId2 = 12346L;
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 10;
@@ -261,7 +261,7 @@ public class BlockServiceHandlerIntegrationTest {
 
   // Tests that multiple users cannot request a combined space greater than worker space
   @Test
-  public void totalOverCapacityRequestSpaceTest() throws Exception {
+  public void totalOverCapacityRequestSpace() throws Exception {
     final int chunkSize = (int) WORKER_CAPACITY_BYTES / 2;
     final long userId1 = SESSION_ID;
     final long userId2 = SESSION_ID + 1;

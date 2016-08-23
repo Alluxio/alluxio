@@ -21,7 +21,7 @@ import org.junit.Test;
  */
 public final class LeaderCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void leaderTest() {
+  public void leader() {
     mFsShell.run("leader");
     String expected = mLocalAlluxioCluster.getMaster().getAddress().getHostName() + "\n";
     Assert.assertEquals(expected, mOutput.toString());

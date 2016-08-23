@@ -94,7 +94,7 @@ public class ServiceSocketBindIntegrationTest {
   }
 
   @Test
-  public void listenEmptyTest() throws Exception {
+  public void listenEmpty() throws Exception {
     startCluster("");
     connectServices();
 
@@ -117,7 +117,7 @@ public class ServiceSocketBindIntegrationTest {
   }
 
   @Test
-  public void listenSameAddressTest() throws Exception {
+  public void listenSameAddress() throws Exception {
     startCluster(NetworkAddressUtils.getLocalHostName(100));
     connectServices();
 
@@ -140,7 +140,7 @@ public class ServiceSocketBindIntegrationTest {
   }
 
   @Test
-  public void connectDifferentAddressTest() throws Exception {
+  public void connectDifferentAddress() throws Exception {
     startCluster("");
 
     // Connect to Master RPC service on loopback, while Master is listening on local hostname.

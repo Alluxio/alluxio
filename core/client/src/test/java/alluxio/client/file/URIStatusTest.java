@@ -23,7 +23,7 @@ import org.junit.Test;
 public class URIStatusTest {
 
   @Test
-  public void constructorTest() {
+  public void constructor() {
     try {
       new URIStatus(null);
       Assert.fail("Cannot create a URIStatus from a null FileInfo");
@@ -38,7 +38,7 @@ public class URIStatusTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     FileInfo fileInfo = FileInfoTest.createRandom();
     URIStatus uriStatus = new URIStatus(fileInfo);
     Assert.assertEquals(uriStatus.getBlockIds(), fileInfo.getBlockIds());

@@ -24,7 +24,7 @@ public class GetLineageInfoListOptionsTest {
    * Tests that the default for this option can successfully be built.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     Assert.assertNotNull("The default options should not be null",
         GetLineageInfoListOptions.defaults());
   }

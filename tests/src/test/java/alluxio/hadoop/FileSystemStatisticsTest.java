@@ -60,7 +60,7 @@ public class FileSystemStatisticsTest {
    * Test the number of bytes read.
    */
   @Test
-  public void bytesReadStatisticsTest() throws Exception {
+  public void bytesReadStatistics() throws Exception {
     long originStat = sStatistics.getBytesRead();
     InputStream is = sTFS.open(new Path("/testFile-read"));
     while (is.read() != -1) {
@@ -73,7 +73,7 @@ public class FileSystemStatisticsTest {
    * Test the number of bytes written.
    */
   @Test
-  public void bytesWrittenStatisticsTest() throws Exception {
+  public void bytesWrittenStatistics() throws Exception {
     long originStat = sStatistics.getBytesWritten();
     OutputStream os = sTFS.create(new Path("/testFile-write"));
     for (int i = 0; i < FILE_LEN; i++) {
@@ -87,7 +87,7 @@ public class FileSystemStatisticsTest {
    * Test the number of read/write operations.
    */
   @Test
-  public void readWriteOperationsStatisticsTest() throws Exception {
+  public void readWriteOperationsStatistics() throws Exception {
     int exceptedReadOps = sStatistics.getReadOps();
     int exceptedWriteOps = sStatistics.getWriteOps();
 

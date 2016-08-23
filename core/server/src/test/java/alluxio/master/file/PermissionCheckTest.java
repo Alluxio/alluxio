@@ -192,7 +192,7 @@ public final class PermissionCheckTest {
    * Tests superuser and supergroup to create directories under root.
    */
   @Test
-  public void createUnderRootAsAdminTest() throws Exception {
+  public void createUnderRootAsAdmin() throws Exception {
     // create "/file_admin" for superuser
     verifyCreateFile(TEST_USER_ADMIN, "/file_admin", false);
 
@@ -204,7 +204,7 @@ public final class PermissionCheckTest {
    * Tests user1 to create directories under root.
    */
   @Test
-  public void createUnderRootFailTest() throws Exception {
+  public void createUnderRootFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/file1", "/")));
@@ -213,13 +213,13 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void createSuccessTest() throws Exception {
+  public void createSuccess() throws Exception {
     // create "/testDir/file1" for user1
     verifyCreateFile(TEST_USER_1, TEST_DIR_URI + "/file1", false);
   }
 
   @Test
-  public void createFailTest() throws Exception {
+  public void createFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI + "/file1",
@@ -243,19 +243,19 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void mkdirUnderRootByAdminTest() throws Exception {
+  public void mkdirUnderRootByAdmin() throws Exception {
     // createDirectory "/dir_admin" for superuser
     verifyCreateDirectory(TEST_USER_ADMIN, "/dir_admin", false);
   }
 
   @Test
-  public void mkdirUnderRootBySupergroupTest() throws Exception {
+  public void mkdirUnderRootBySupergroup() throws Exception {
     // createDirectory "/dir_admin" for superuser
     verifyCreateDirectory(TEST_USER_ADMIN, "/dir_admin", false);
   }
 
   @Test
-  public void mkdirUnderRootByUserTest() throws Exception {
+  public void mkdirUnderRootByUser() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/dir1",
@@ -266,13 +266,13 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void mkdirSuccessTest() throws Exception {
+  public void mkdirSuccess() throws Exception {
     // createDirectory "/testDir/dir1" for user1
     verifyCreateDirectory(TEST_USER_1, TEST_DIR_URI + "/dir1", false);
   }
 
   @Test
-  public void mkdirFailTest() throws Exception {
+  public void mkdirFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI + "/dir1",
@@ -298,19 +298,19 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void renameUnderRootAsAdminTest() throws Exception {
+  public void renameUnderRootAsAdmin() throws Exception {
     // rename "/testFile" to "/testFileRenamed" for superuser
     verifyRename(TEST_USER_ADMIN, TEST_FILE_URI, "/testFileRenamed");
   }
 
   @Test
-  public void renameUnderRootAsSupergroupTest() throws Exception {
+  public void renameUnderRootAsSupergroup() throws Exception {
     // rename "/testFile" to "/testFileRenamed" for user in supergroup
     verifyRename(TEST_USER_SUPERGROUP, TEST_FILE_URI, "/testFileRenamed");
   }
 
   @Test
-  public void renameUnderRootFailTest() throws Exception {
+  public void renameUnderRootFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_FILE_URI, "/")));
@@ -320,13 +320,13 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void renameSuccessTest() throws Exception {
+  public void renameSuccess() throws Exception {
     // rename "/testDir/file" to "/testDir/fileRenamed" for user1
     verifyRename(TEST_USER_1, TEST_DIR_FILE_URI, "/testDir/fileRenamed");
   }
 
   @Test
-  public void renameFailNotByPermissionTest() throws Exception {
+  public void renameFailNotByPermission() throws Exception {
     mThrown.expect(FileDoesNotExistException.class);
     mThrown.expectMessage(ExceptionMessage.PATH_DOES_NOT_EXIST.getMessage("/testDir/notExistDir"));
 
@@ -337,7 +337,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void renameFailBySrcTest() throws Exception {
+  public void renameFailBySrc() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
@@ -348,7 +348,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void renameFailByDstTest() throws Exception {
+  public void renameFailByDst() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, "/fileRenamed", "/")));
@@ -374,7 +374,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteUnderRootFailedTest() throws Exception {
+  public void deleteUnderRootFailed() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
@@ -384,7 +384,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteSuccessBySuperuserTest() throws Exception {
+  public void deleteSuccessBySuperuser() throws Exception {
     // delete file and dir by superuser
     verifyDelete(TEST_USER_ADMIN, TEST_DIR_FILE_URI, false);
     verifyDelete(TEST_USER_ADMIN, TEST_DIR_URI, true);
@@ -392,7 +392,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteSuccessBySupergroupTest() throws Exception {
+  public void deleteSuccessBySupergroup() throws Exception {
     // delete file and dir by user in supergroup
     verifyDelete(TEST_USER_SUPERGROUP, TEST_DIR_FILE_URI, false);
     verifyDelete(TEST_USER_SUPERGROUP, TEST_DIR_URI, true);
@@ -400,7 +400,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteUnderRootFailOnDirTest() throws Exception {
+  public void deleteUnderRootFailOnDir() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_URI, "/")));
@@ -410,7 +410,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteUnderRootFailOnFileTest() throws Exception {
+  public void deleteUnderRootFailOnFile() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_1.getUser(), Mode.Bits.WRITE, TEST_FILE_URI, "/")));
@@ -420,13 +420,13 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void deleteSuccessTest() throws Exception {
+  public void deleteSuccess() throws Exception {
     // user1 can delete its file
     verifyDelete(TEST_USER_1, TEST_DIR_FILE_URI, false);
   }
 
   @Test
-  public void deleteFailTest() throws Exception {
+  public void deleteFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         toExceptionMessage(TEST_USER_2.getUser(), Mode.Bits.WRITE, TEST_DIR_FILE_URI,
@@ -444,7 +444,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readSuccessTest() throws Exception {
+  public void readSuccess() throws Exception {
     verifyRead(TEST_USER_1, TEST_DIR_FILE_URI, true);
     verifyRead(TEST_USER_1, TEST_DIR_URI, false);
     verifyRead(TEST_USER_1, TEST_FILE_URI, true);
@@ -453,7 +453,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readFileIdFailTest() throws Exception {
+  public void readFileIdFail() throws Exception {
     String file = createUnreadableFileOrDir(true);
 
     mThrown.expect(AccessControlException.class);
@@ -463,7 +463,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readFileInfoFailTest() throws Exception {
+  public void readFileInfoFail() throws Exception {
     String file = createUnreadableFileOrDir(true);
 
     mThrown.expect(AccessControlException.class);
@@ -473,7 +473,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readDirIdFailTest() throws Exception {
+  public void readDirIdFail() throws Exception {
     String dir = createUnreadableFileOrDir(false);
 
     mThrown.expect(AccessControlException.class);
@@ -483,7 +483,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readDirInfoFailTest() throws Exception {
+  public void readDirInfoFail() throws Exception {
     String dir = createUnreadableFileOrDir(false);
 
     mThrown.expect(AccessControlException.class);
@@ -493,7 +493,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void readNotExecuteDirTest() throws Exception {
+  public void readNotExecuteDir() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "033");
 
@@ -554,7 +554,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setStateSuccessTest() throws Exception {
+  public void setStateSuccess() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "000");
 
@@ -569,7 +569,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setStateFailTest() throws Exception {
+  public void setStateFail() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
@@ -603,7 +603,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void completeFileSuccessTest() throws Exception {
+  public void completeFileSuccess() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "044");
 
@@ -614,7 +614,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void completeFileFailTest() throws Exception {
+  public void completeFileFail() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
@@ -643,14 +643,14 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void freeFileSuccessTest() throws Exception {
+  public void freeFileSuccess() throws Exception {
     String file = PathUtils.concatPath(TEST_DIR_URI, "testState1");
     verifyCreateFile(TEST_USER_1, file, false);
     verifyFree(TEST_USER_2, file, false);
   }
 
   @Test
-  public void freeNonNullDirectorySuccessTest() throws Exception {
+  public void freeNonNullDirectorySuccess() throws Exception {
     String subDir = PathUtils.concatPath(TEST_DIR_URI, "testState");
     verifyCreateDirectory(TEST_USER_1, subDir, false);
     String file = subDir + "/testState1";
@@ -659,7 +659,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void freeFileFailTest() throws Exception {
+  public void freeFileFail() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
@@ -673,7 +673,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void freeNonNullDirectoryFailTest() throws Exception {
+  public void freeNonNullDirectoryFail() throws Exception {
     // set unmask
     Configuration.set(PropertyKey.SECURITY_AUTHORIZATION_PERMISSION_UMASK, "066");
 
@@ -692,7 +692,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setOwnerSuccessTest() throws Exception {
+  public void setOwnerSuccess() throws Exception {
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
     verifySetAcl(TEST_USER_SUPERGROUP, TEST_DIR_URI, TEST_USER_2.getUser(), null, (short) -1, true);
     FileInfo fileInfo = mFileSystemMaster
@@ -701,14 +701,14 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setOwnerFailTest() throws Exception {
+  public void setOwnerFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
     verifySetAcl(TEST_USER_2, TEST_FILE_URI, TEST_USER_1.getUser(), null, (short) -1, false);
   }
 
   @Test
-  public void setGroupSuccessTest() throws Exception {
+  public void setGroupSuccess() throws Exception {
     // super user
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, TEST_USER_1.getGroups(), (short) -1, false);
 
@@ -727,7 +727,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setGroupFailTest() throws Exception {
+  public void setGroupFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
@@ -736,7 +736,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setPermissionSuccessTest() throws Exception {
+  public void setPermissionSuccess() throws Exception {
     // super user
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, null, null, (short) 0600, false);
 
@@ -757,7 +757,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setPermissionFailTest() throws Exception {
+  public void setPermissionFail() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(ExceptionMessage.PERMISSION_DENIED.getMessage(
         "user=" + TEST_USER_1.getUser() + " is not the owner of path=" + TEST_FILE_URI));
@@ -766,7 +766,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setAclSuccessTest() throws Exception {
+  public void setAclSuccess() throws Exception {
     // super user sets owner, group, and permission
     verifySetAcl(TEST_USER_ADMIN, TEST_FILE_URI, TEST_USER_1.getUser(), TEST_USER_1.getGroups(),
         (short) 0600, false);
@@ -780,7 +780,7 @@ public final class PermissionCheckTest {
   }
 
   @Test
-  public void setAclFailByNotSuperUserTest() throws Exception {
+  public void setAclFailByNotSuperUser() throws Exception {
     mThrown.expect(AccessControlException.class);
     mThrown.expectMessage(TEST_USER_2.getUser() + " is not a super user or in super group");
 
