@@ -90,8 +90,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Determine whether to run JOSS in simulation mode. */
   private boolean mSimulationMode;
 
+  /** The name of the account owner. */
   private String mAccountOwner;
 
+  /** The permission mode that the account owner has to the container. */
   private short mAccountMode;
 
   /**
