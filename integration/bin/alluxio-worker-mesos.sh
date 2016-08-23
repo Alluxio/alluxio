@@ -28,8 +28,5 @@ mkdir -p "${ALLUXIO_LOGS_DIR}"
   -Dalluxio.logger.type="WORKER_LOGGER" \
   -Dalluxio.logs.dir="${ALLUXIO_LOGS_DIR}" \
   -Dalluxio.master.hostname="${ALLUXIO_MASTER_HOSTNAME}" \
-  -Dalluxio.worker.tieredstore.levels=1 \
-  -Dalluxio.worker.tieredstore.level0.alias=MEM \
-  -Dalluxio.worker.tieredstore.level0.dirs.path="/mnt/ramdisk" \
   -Dalluxio.worker.tieredstore.level0.dirs.quota="${ALLUXIO_WORKER_MEMORY_SIZE}" \
   alluxio.mesos.AlluxioWorkerExecutor > "${ALLUXIO_LOGS_DIR}"/worker.out 2>&1
