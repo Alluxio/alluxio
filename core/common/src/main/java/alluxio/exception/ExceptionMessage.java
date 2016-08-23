@@ -166,6 +166,8 @@ public enum ExceptionMessage {
   YARN_NOT_ENOUGH_HOSTS(
       "Not enough usable hosts in the cluster to launch {0} {1} containers. Only {2} hosts "
           + "available"),
+  YARN_NOT_ENOUGH_RESOURCES(
+      "{0} {1} specified above max threshold of cluster, specified={2}, max={3}"),
 
   // mounting
   MOUNT_POINT_ALREADY_EXISTS("Mount point {0} already exists"),
