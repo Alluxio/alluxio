@@ -210,9 +210,8 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         dstPath = dstPath.join(src.getName());
       }
 
-      Closer closer = Closer.create();
       FileOutStream os = null;
-      try {
+      try (Closer closer = Closer.create()) {
         os = closer.register(mFileSystem.createFile(dstPath));
         FileInputStream in = closer.register(new FileInputStream(src));
         FileChannel channel = closer.register(in.getChannel());
@@ -231,8 +230,6 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
           }
         }
         throw e;
-      } finally {
-        closer.close();
       }
     } else {
       mFileSystem.createDirectory(dstPath);

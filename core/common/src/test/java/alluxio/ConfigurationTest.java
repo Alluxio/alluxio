@@ -141,7 +141,7 @@ public class ConfigurationTest {
         Lists.newArrayList("a", "b", "c"), Configuration.getList(PropertyKey.WEB_THREADS, ","));
   }
 
-  private static enum TestEnum {
+  private enum TestEnum {
     VALUE
   }
 
