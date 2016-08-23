@@ -25,7 +25,7 @@ import org.junit.Test;
  */
 public final class UnsetTtlTest extends AbstractAlluxioShellTest {
   @Test
-  public void unsetTtlTest() throws Exception {
+  public void unsetTtl() throws Exception {
     String filePath = "/testFile";
     AlluxioURI uri = new AlluxioURI("/testFile");
     FileSystemTestUtils.createByteFile(mFileSystem, filePath, WriteType.MUST_CACHE, 1);

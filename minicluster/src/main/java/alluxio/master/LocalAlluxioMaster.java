@@ -21,6 +21,8 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Supplier;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -35,6 +37,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class LocalAlluxioMaster {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final String mHostname;
 
   private final String mJournalFolder;
@@ -66,6 +70,8 @@ public final class LocalAlluxioMaster {
         try {
           mAlluxioMaster.start();
         } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start master error", e);
           throw new RuntimeException(e + " \n Start Master Error \n" + e.getMessage(), e);
         }
       }

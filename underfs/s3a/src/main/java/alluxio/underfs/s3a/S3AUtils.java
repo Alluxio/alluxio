@@ -22,33 +22,41 @@ import com.amazonaws.services.s3.model.Permission;
  */
 public final class S3AUtils {
   /**
-   * Translates S3 bucket owner ACL to Alluxio owner mode.
+   * Translates S3 bucket ACL to Alluxio owner mode.
    *
    * @param acl the acl of S3 bucket
-   * @param bucketOwnerId the bucket owner id
+   * @param userId the S3 user id of the Alluxio owner
    * @return the translated posix mode in short format
    */
-  public static short translateBucketAcl(AccessControlList acl, String bucketOwnerId) {
+  public static short translateBucketAcl(AccessControlList acl, String userId) {
     short mode = (short) 0;
     for (Grant grant : acl.getGrantsAsList()) {
       Permission perm = grant.getPermission();
       Grantee grantee = grant.getGrantee();
-      // If the bucket is readable by the owner, add r and x to the owner mode.
-      if (perm.equals(Permission.Read)
-          && (grantee.getIdentifier().equals(bucketOwnerId)
-              || grantee.equals(GroupGrantee.AllUsers)
-              || grantee.equals(GroupGrantee.AuthenticatedUsers))) {
-        mode |= (short) 0500;
-      }
-      // If the bucket is writable by the owner, +w to the owner mode.
-      if (perm.equals(Permission.Write)
-          && (grantee.getIdentifier().equals(bucketOwnerId)
-              || grantee.equals(GroupGrantee.AllUsers)
-              || grantee.equals(GroupGrantee.AuthenticatedUsers))) {
-        mode |= (short) 0200;
+      if (perm.equals(Permission.Read)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the bucket is readable by the user, add r and x to the owner mode.
+          mode |= (short) 0500;
+        }
+      } else if (perm.equals(Permission.Write)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the bucket is writable by the user, +w to the owner mode.
+          mode |= (short) 0200;
+        }
+      } else if (perm.equals(Permission.FullControl)) {
+        if (isUserIdInGrantee(grantee, userId)) {
+          // If the user has full control to the bucket, +rwx to the owner mode.
+          mode |= (short) 0700;
+        }
       }
     }
     return mode;
+  }
+
+  private static boolean isUserIdInGrantee(Grantee grantee, String userId) {
+    return grantee.getIdentifier().equals(userId)
+        || grantee.equals(GroupGrantee.AllUsers)
+        || grantee.equals(GroupGrantee.AuthenticatedUsers);
   }
 
   private S3AUtils() {} // prevent instantiation

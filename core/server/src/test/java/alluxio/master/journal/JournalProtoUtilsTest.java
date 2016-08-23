@@ -29,7 +29,7 @@ public final class JournalProtoUtilsTest {
    * Tests that format returns the sub-message contained in a JournalEntry.
    */
   @Test
-  public void getMessageTest() {
+  public void getMessage() {
     AddMountPointEntry addMountEntry = AddMountPointEntry.newBuilder().build();
     JournalEntry entry = JournalEntry.newBuilder()
         .setAddMountPoint(addMountEntry)
@@ -43,7 +43,7 @@ public final class JournalProtoUtilsTest {
    * Tests that the right exception is thrown when no sub-message is set for a JournalEntry.
    */
   @Test
-  public void getUnknownMessageTest() {
+  public void getUnknownMessage() {
     JournalEntry unknownEntry = JournalEntry.newBuilder().build();
     unknownEntry = unknownEntry.toBuilder()
         .setUnknownFields(

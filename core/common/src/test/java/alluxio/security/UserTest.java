@@ -28,7 +28,7 @@ public final class UserTest {
    * framework.
    */
   @Test
-  public void usedInSecurityContextTest() {
+  public void usedInSecurityContext() {
     // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("realUser"));
@@ -49,7 +49,7 @@ public final class UserTest {
    * This test verifies that full realm format is valid as {@link User} name.
    */
   @Test
-  public void realmAsUserNameTest() {
+  public void realmAsUserName() {
     // Add new users into Subject.
     Subject subject = new Subject();
     subject.getPrincipals().add(new User("admin/admin@EXAMPLE.com"));

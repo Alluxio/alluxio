@@ -72,7 +72,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the user is not set.
    */
   @Test
-  public void userIsNotSetTest() throws Exception {
+  public void userIsNotSet() throws Exception {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: No authentication identity provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("", "anonymous"));
@@ -82,7 +82,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#evaluateResponse(byte[])} method when the password is not set.
    */
   @Test
-  public void passwordIsNotSetTest() throws Exception {
+  public void passwordIsNotSet() throws Exception {
     mThrown.expect(SaslException.class);
     mThrown.expectMessage("Plain authentication failed: No password provided");
     mPlainSaslServer.evaluateResponse(getUserInfo("alluxio", ""));
@@ -92,7 +92,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#getAuthorizationID()} method.
    */
   @Test
-  public void authenticationNotCompleteTest() {
+  public void authenticationNotComplete() {
     mThrown.expect(IllegalStateException.class);
     mThrown.expectMessage("PLAIN authentication not completed");
     mPlainSaslServer.getAuthorizationID();
@@ -102,7 +102,7 @@ public class PlainSaslServerTest{
    * Tests the {@link PlainSaslServer#getAuthorizationID()} to retrieve the correct user.
    */
   @Test
-  public void userPasswordReceiveTest() throws Exception {
+  public void userPasswordReceive() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer.evaluateResponse(getUserInfo(testUser, password));
@@ -140,7 +140,7 @@ public class PlainSaslServerTest{
    * not authorized.
    */
   @Test
-  public void unauthorizedCallbackTest() throws Exception {
+  public void unauthorizedCallback() throws Exception {
     String testUser = "alluxio";
     String password = "anonymous";
     mPlainSaslServer = new PlainSaslServer(new MockCallbackHandlerUnauthorized());

@@ -25,7 +25,7 @@ import java.util.Random;
  */
 public class SetAttributeOptionsTest {
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     SetAttributeOptions options = SetAttributeOptions.defaults();
     Assert.assertFalse(options.hasPersisted());
     Assert.assertFalse(options.hasPinned());
@@ -41,7 +41,7 @@ public class SetAttributeOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     boolean persisted = random.nextBoolean();
     boolean pinned = random.nextBoolean();
@@ -84,7 +84,7 @@ public class SetAttributeOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     Random random = new Random();
     boolean persisted = random.nextBoolean();
     boolean pinned = random.nextBoolean();

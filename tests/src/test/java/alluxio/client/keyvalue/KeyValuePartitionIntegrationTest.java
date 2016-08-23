@@ -90,7 +90,7 @@ public final class KeyValuePartitionIntegrationTest {
    * keys store by the writer.
    */
   @Test
-  public void readerWriterTest() throws Exception {
+  public void readerWriter() throws Exception {
     mKeyValuePartitionWriter = KeyValuePartitionWriter.Factory.create(mPartitionUri);
     mKeyValuePartitionWriter.put(KEY1, VALUE1);
     mKeyValuePartitionWriter.put(KEY2, VALUE2);
@@ -107,7 +107,7 @@ public final class KeyValuePartitionIntegrationTest {
    * Tests that {@link KeyValuePartitionReader#size()} is correct when a new reader is created.
    */
   @Test
-  public void sizeTest() throws Exception {
+  public void size() throws Exception {
     byte[][] keys = new byte[][]{KEY1, KEY2};
     byte[][] values = new byte[][]{VALUE1, VALUE2};
     for (int size = 0; size <= 2; size++) {
@@ -130,7 +130,7 @@ public final class KeyValuePartitionIntegrationTest {
    * partition has no elements to be iterated.
    */
   @Test
-  public void emptyPartitionIteratorTest() throws Exception {
+  public void emptyPartitionIterator() throws Exception {
     // Creates an empty partition.
     KeyValuePartitionWriter.Factory.create(mPartitionUri).close();
     Assert.assertFalse(KeyValuePartitionReader.Factory.create(mPartitionUri).iterator().hasNext());
@@ -143,7 +143,7 @@ public final class KeyValuePartitionIntegrationTest {
    * iterated.
    */
   @Test
-  public void noOrderIteratorTest() throws Exception {
+  public void noOrderIterator() throws Exception {
     List<KeyValuePair> pairs = genKeyValuePairs(BASE_KEY_VALUE_NUMBER);
     List<KeyValuePair> iteratedPairs = Lists.newArrayListWithExpectedSize(pairs.size());
 

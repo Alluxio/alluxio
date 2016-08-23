@@ -99,7 +99,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void createFileFaultTest() throws Exception {
+  public void createFileFault() throws Exception {
     int clients = 10;
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int k = 0; k < clients; k++) {
@@ -116,7 +116,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void deleteFileFaultTest() throws Exception {
+  public void deleteFileFault() throws Exception {
     // Kill leader -> create files -> kill leader -> delete files, repeat.
     List<Pair<Long, AlluxioURI>> answer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
@@ -150,7 +150,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void createFilesTest() throws Exception {
+  public void createFiles() throws Exception {
     int clients = 10;
     CreateFileOptions option =
         CreateFileOptions.defaults().setBlockSizeBytes(1024).setWriteType(WriteType.THROUGH);
@@ -166,7 +166,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void killStandbyTest() throws Exception {
+  public void killStandby() throws Exception {
     // If standby masters are killed(or node failure), current leader should not be affected and the
     // cluster should run properly.
 
@@ -192,7 +192,7 @@ public class MasterFaultToleranceIntegrationTest {
   }
 
   @Test
-  public void workerReRegisterTest() throws Exception {
+  public void workerReRegister() throws Exception {
     Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();

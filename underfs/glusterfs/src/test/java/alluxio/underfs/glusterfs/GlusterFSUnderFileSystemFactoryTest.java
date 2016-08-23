@@ -61,7 +61,7 @@ public class GlusterFSUnderFileSystemFactoryTest {
    * Tests the {@link UnderFileSystemRegistry#find(String)} method.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("glusterfs://localhost/test/path");
     Assert.assertNotNull(

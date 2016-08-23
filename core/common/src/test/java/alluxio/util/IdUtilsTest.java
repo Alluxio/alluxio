@@ -23,7 +23,7 @@ public final class IdUtilsTest {
    * Also tests for randomness property.
    */
   @Test
-  public void getRandomNonNegativeLongTest() throws Exception {
+  public void getRandomNonNegativeLong() throws Exception {
     long first = IdUtils.getRandomNonNegativeLong();
     long second = IdUtils.getRandomNonNegativeLong();
     Assert.assertTrue(first >= 0);
@@ -35,7 +35,7 @@ public final class IdUtilsTest {
    * Tests if output of {@link IdUtils#createFileId(long)} is valid.
    */
   @Test
-  public void createFileIdTest() throws Exception {
+  public void createFileId() throws Exception {
     long containerId = 1;
     long fileId = IdUtils.createFileId(containerId);
     Assert.assertNotEquals(-1, fileId);
@@ -46,7 +46,7 @@ public final class IdUtilsTest {
    * Also tests for randomness property.
    */
   @Test
-  public void createRpcIdTest() throws Exception {
+  public void createRpcId() throws Exception {
     String first = IdUtils.createRpcId();
     Assert.assertTrue(first != null && !first.isEmpty());
     String second = IdUtils.createRpcId();

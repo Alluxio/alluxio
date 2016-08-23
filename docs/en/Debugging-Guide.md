@@ -15,8 +15,8 @@ Feel free to post questions on the [Alluxio Mailing List](https://groups.google.
 
 ## Where are the Alluxio logs?
 
-Alluxio generates Master, Worker and Client logs under the dir `{ALLUXIO_HOME}/logs`. They are
-named as `master.log`, `master.out`, `worker.log`, `worker.out` and `user.log`.
+Alluxio generates Master, Worker and Client logs under the dir `${ALLUXIO_HOME}/logs`. They are
+named as `master.log`, `master.out`, `worker.log`, `worker.out` and `user_${USER}.log`.
 
 The master and worker logs are very useful to understand what happened in Alluxio Master and
 Workers, when you ran into any issues. If you do not understand the error messages,
@@ -27,7 +27,7 @@ in case the problem has been discussed before.
 
 #### Q: I'm new to Alluxio and getting started. I failed to set up Alluxio on my local machine. What shall I do?
 
-A: First check `{ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Follow the clue
+A: First check `${ALLUXIO_HOME}/logs` to see if there are any master or worker logs. Follow the clue
 indicated by the error logs. Otherwise please double check if you missed any configuration
 steps in [Running-Alluxio-Locally](Running-Alluxio-Locally.html).
 
@@ -58,7 +58,7 @@ bucket, without the `s3://`, `s3a://`, or `s3n://` prefix.
 
 ## Usage FAQ
 
-### Q: I'm seeing error messages like "java.io.IOException: Frame size (67108864) larger than max length (16777216)". What is wrong?
+#### Q: I'm seeing error messages like "Frame size (67108864) larger than max length (16777216)". What is wrong?
 
 A: This problem can be caused by different possible reasons.
 
@@ -69,6 +69,24 @@ Alluxio provides different approaches to [authenticate](Security.html#authentica
 This error happens if this property is configured with different values across servers and clients
 (e.g., one uses the default value `NOSASL` while the other is customized to `SIMPLE`).
 Please read [Configuration-Settings](Configuration-Settings.html) for how to customize Alluxio clusters and applications.
+
+#### Q: I'm copying or writing data to Alluxio while seeing error messages like "Failed to cache: Not enough space to store block on worker". Why?
+
+A: This error indicates insufficient space left on Alluxio workers to complete your write request.
+
+- If you are copying a file to Alluxio using `copyFromLocal`, by default this shell command applies `LocalFirstPolicy`
+and stores data on the local worker (see [location policy](File-System-API.html#location-policy)).
+In this case, you will see the above error once the local worker does not have enough space.
+To distribute the data of your file on different workers, you can change this policy to `RoundRobinPolicy` (see below).
+
+```bash
+$ bin/alluxio fs -Dalluxio.user.file.write.location.policy.class=alluxio.client.file.policy.RoundRobinPolicy copyFromLocal foo /alluxio/path/foo
+```
+
+- Check if you have any files unnecessarily pinned in memory and unpin them to release space.
+See [Command-Line-Interface](Command-Line-Interface.html) for more details.
+- Increase the capacity of workers by changing `alluxio.worker.memory.size` property.
+See [Configuration](Configuration-Settings.html#common-configuration) for more description.
 
 ## Performance FAQ
 

@@ -28,7 +28,7 @@ public final class LineageContextTest {
    * Tests the concurrency of the {@link LineageContext}.
    */
   @Test
-  public void concurrencyTest() throws Exception {
+  public void concurrency() throws Exception {
     final List<LineageMasterClient> clients = new ArrayList<>();
 
     // acquire all the clients

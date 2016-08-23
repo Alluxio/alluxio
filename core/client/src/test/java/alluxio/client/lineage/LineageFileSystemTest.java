@@ -63,7 +63,7 @@ public final class LineageFileSystemTest {
    * Tests that a {@link LineageFileOutStream} is returned.
    */
   @Test
-  public void getLineageOutStreamTest() throws Exception {
+  public void getLineageOutStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     Mockito.when(
         mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlExpiryAction.Free))
@@ -80,7 +80,7 @@ public final class LineageFileSystemTest {
    * Tests that a {@link DummyFileOutputStream} is returned.
    */
   @Test
-  public void getDummyOutStreamTest() throws Exception {
+  public void getDummyOutStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     Mockito.when(
         mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0, TtlExpiryAction.Delete))
@@ -97,7 +97,7 @@ public final class LineageFileSystemTest {
    * Tests that a {@link FileOutStream} is returned.
    */
   @Test
-  public void getNonLineageStreamTest() throws Exception {
+  public void getNonLineageStream() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     Mockito
         .when(mLineageMasterClient.reinitializeFile("test", TEST_BLOCK_SIZE, 0,
@@ -118,7 +118,7 @@ public final class LineageFileSystemTest {
    * Tests that reporting a lost file from the file system informs the client about this file.
    */
   @Test
-  public void reportLostFileTest() throws Exception {
+  public void reportLostFile() throws Exception {
     AlluxioURI path = new AlluxioURI("test");
     mAlluxioLineageFileSystem.reportLostFile(path);
     Mockito.verify(mLineageMasterClient).reportLostFile("test");

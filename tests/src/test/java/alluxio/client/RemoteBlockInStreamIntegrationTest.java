@@ -86,7 +86,7 @@ public class RemoteBlockInStreamIntegrationTest {
     mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
-        .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER, reader)
+        .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, reader)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
   }
 
@@ -385,7 +385,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#seek(long)}.
    */
   @Test
-  public void seekTest() throws Exception {
+  public void seek() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -408,7 +408,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests {@link RemoteBlockInStream#skip(long)}.
    */
   @Test
-  public void skipTest() throws Exception {
+  public void skip() throws Exception {
     String uniqPath = PathUtils.uniqPath();
     for (int k = MIN_LEN + DELTA; k <= MAX_LEN; k += DELTA) {
       AlluxioURI uri = new AlluxioURI(uniqPath + "/file_" + k);
@@ -515,7 +515,7 @@ public class RemoteBlockInStreamIntegrationTest {
    * Tests remote read stream lock in {@link RemoteBlockInStream}.
    */
   @Test
-  public void remoteReadLockTest() throws Exception {
+  public void remoteReadLock() throws Exception {
     HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     String uniqPath = PathUtils.uniqPath();

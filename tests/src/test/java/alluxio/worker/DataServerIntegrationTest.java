@@ -83,7 +83,7 @@ public class DataServerIntegrationTest {
             .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, className)
             .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, nettyTransferType)
             .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
-            .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER, blockReader);
+            .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, blockReader);
   }
 
   @ClassRule
@@ -143,7 +143,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void multiReadTest() throws Exception {
+  public void multiRead() throws Exception {
     final int length = 20;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -205,7 +205,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readTest() throws Exception {
+  public void read() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -227,7 +227,7 @@ public class DataServerIntegrationTest {
   }
 
   @Test
-  public void readThroughClientTest() throws Exception {
+  public void readThroughClient() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));
@@ -240,7 +240,7 @@ public class DataServerIntegrationTest {
 
   // TODO(calvin): Make this work with the new BlockReader.
   // @Test
-  public void readThroughClientNonExistentTest() throws Exception {
+  public void readThroughClientNonExistent() throws Exception {
     final int length = 10;
     FileSystemTestUtils.createByteFile(mFileSystem, "/file", WriteType.MUST_CACHE, length);
     BlockInfo block = getFirstBlockInfo(new AlluxioURI("/file"));

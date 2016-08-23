@@ -36,7 +36,7 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
       new ManuallyScheduleHeartbeat(HeartbeatContext.WORKER_BLOCK_SYNC);
 
   @Test
-  public void freeTest() throws IOException, AlluxioException {
+  public void free() throws IOException, AlluxioException {
     String fileName = "/testFile";
     FileSystemTestUtils.createByteFile(mFileSystem, fileName, WriteType.MUST_CACHE, 10);
     long blockId = mFileSystem.getStatus(new AlluxioURI(fileName)).getBlockIds().get(0);
@@ -48,7 +48,7 @@ public final class FreeCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void freeWildCardTest() throws IOException, AlluxioException {
+  public void freeWildCard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     long blockId1 =
         mFileSystem.getStatus(new AlluxioURI(testDir + "/foo/foobar1")).getBlockIds().get(0);

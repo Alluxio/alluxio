@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void copyToLocalDirTest() throws IOException, AlluxioException {
+  public void copyToLocalDir() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret =
         mFsShell.run("copyToLocal", testDir, mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -38,17 +38,17 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalLargeTest() throws IOException {
+  public void copyToLocalLarge() throws IOException {
     copyToLocalWithBytes(SIZE_BYTES);
   }
 
   @Test
-  public void copyToLocalTest() throws IOException {
+  public void copyToLocal() throws IOException {
     copyToLocalWithBytes(10);
   }
 
   @Test
-  public void copyToLocalWildcardExistingDirTest() throws IOException, AlluxioException {
+  public void copyToLocalWildcardExistingDir() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
@@ -62,7 +62,7 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardHierTest() throws IOException, AlluxioException {
+  public void copyToLocalWildcardHier() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell
         .run("copyToLocal", testDir + "/*", mLocalAlluxioCluster.getAlluxioHome() + "/testDir");
@@ -74,7 +74,7 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardNotDirTest() throws IOException, AlluxioException {
+  public void copyToLocalWildcardNotDir() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir").mkdir();
     new File(mLocalAlluxioCluster.getAlluxioHome() + "/testDir/testFile").createNewFile();
@@ -85,7 +85,7 @@ public final class CopyToLocalCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void copyToLocalWildcardTest() throws IOException, AlluxioException {
+  public void copyToLocalWildcard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("copyToLocal", testDir + "/*/foo*",
         mLocalAlluxioCluster.getAlluxioHome() + "/testDir");

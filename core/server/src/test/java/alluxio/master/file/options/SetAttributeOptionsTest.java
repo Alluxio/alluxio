@@ -27,7 +27,7 @@ public class SetAttributeOptionsTest {
    * Tests the {@link SetAttributeOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     SetAttributeOptions options = SetAttributeOptions.defaults();
 
     Assert.assertNull(options.getPinned());
@@ -40,7 +40,7 @@ public class SetAttributeOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     Boolean pinned = random.nextBoolean();
     Long ttl = random.nextLong();

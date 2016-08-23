@@ -242,8 +242,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_WRITE, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void readTest() throws Exception {
+  @Test(timeout = 50000)
+  public void read() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -252,8 +252,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void readRandomTest() throws Exception {
+  @Test(timeout = 50000)
+  public void readRandom() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -263,8 +263,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_RANDOM, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void readBackwardTest() throws Exception {
+  @Test(timeout = 50000)
+  public void readBackward() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -274,8 +274,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_BACKWARD, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void readSkipTest() throws Exception {
+  @Test(timeout = 50000)
+  public void readSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -285,8 +285,8 @@ public class DFSIOIntegrationTest implements Tool {
     sBench.analyzeResult(fs, TestType.TEST_TYPE_READ_SKIP, execTime);
   }
 
-  @Test(timeout = 25000)
-  public void readLargeSkipTest() throws Exception {
+  @Test(timeout = 50000)
+  public void readLargeSkip() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
@@ -297,8 +297,8 @@ public class DFSIOIntegrationTest implements Tool {
   }
 
   // TODO(hy): Should active this unit test after ALLUXIO-25 has been solved
-  // @Test (timeout = 25000)
-  public void appendTest() throws Exception {
+  // @Test (timeout = 50000)
+  public void append() throws Exception {
     org.apache.hadoop.fs.FileSystem fs =
         org.apache.hadoop.fs.FileSystem.get(sLocalAlluxioClusterUri, sBench.getConf());
     long tStart = System.currentTimeMillis();
