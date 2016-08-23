@@ -439,19 +439,15 @@ public final class FileSystemAclIntegrationTest {
 
   @Test
   public void swiftGetPermission() throws Exception {
-    // TODO(chaomin): update Swift permission integration test once the Swift implementation is done
     Assume.assumeTrue(sUfs instanceof SwiftUnderFileSystem);
 
     Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    // Verify the owner, group and permission of Swift UFS is not supported and thus returns default
-    // values.
-    Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
-    Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
-    Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
-        sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 
   @Test
