@@ -30,7 +30,7 @@ public class PairTest {
    * Tests the {@link Pair} constructor.
    */
   @Test
-  public void constructorTest() {
+  public void constructor() {
     mObjs[0] = STR_TYPE;
     mObjs[1] = INTEGER_TYPE;
     mObjs[2] = LONG_TYPE;

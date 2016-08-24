@@ -26,7 +26,7 @@ public class RoundRobinAllocatorTest extends AllocatorTestBase {
    * Tests that blocks are allocated in a round robin fashion.
    */
   @Test
-  public void allocateBlockTest() throws Exception {
+  public void allocateBlock() throws Exception {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, RoundRobinAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //

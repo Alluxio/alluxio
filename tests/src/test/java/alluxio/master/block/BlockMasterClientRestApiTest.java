@@ -42,19 +42,19 @@ public final class BlockMasterClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void serviceNameTest() throws Exception {
+  public void serviceName() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_NAME),
         NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_NAME).run();
   }
 
   @Test
-  public void serviceVersionTest() throws Exception {
+  public void serviceVersion() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(BlockMasterClientRestServiceHandler.SERVICE_VERSION),
         NO_PARAMS, HttpMethod.GET, Constants.BLOCK_MASTER_CLIENT_SERVICE_VERSION).run();
   }
 
   @Test
-  public void getBlockInfoTest() throws Exception {
+  public void getBlockInfo() throws Exception {
     long sessionId = 1;
     long blockId = 2;
     String tierAlias = "MEM";

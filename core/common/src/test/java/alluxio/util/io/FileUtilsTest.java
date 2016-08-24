@@ -56,7 +56,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#changeLocalFilePermission(String, String)} method.
    */
   @Test
-  public void changeLocalFilePermissionTest() throws IOException {
+  public void changeLocalFilePermission() throws IOException {
     File tempFile = mTestFolder.newFile("perm.txt");
     FileUtils.changeLocalFilePermission(tempFile.getAbsolutePath(), "---------");
     Assert.assertFalse(tempFile.canRead() || tempFile.canWrite() || tempFile.canExecute());
@@ -79,7 +79,7 @@ public class FileUtilsTest {
    * file to thrown an exception.
    */
   @Test
-  public void changeNonExistentFileTest() throws IOException {
+  public void changeNonExistentFile() throws IOException {
     // ghostFile is never created, so changing permission should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
@@ -104,7 +104,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#move(String, String)} method.
    */
   @Test
-  public void moveFileTest() throws IOException {
+  public void moveFile() throws IOException {
     File fromFile = mTestFolder.newFile("from.txt");
     File toFile = mTestFolder.newFile("to.txt");
     // Move a file and verify
@@ -118,7 +118,7 @@ public class FileUtilsTest {
    * move a non-existent file.
    */
   @Test
-  public void moveNonExistentFileTest() throws IOException {
+  public void moveNonExistentFile() throws IOException {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     File toFile = mTestFolder.newFile("to.txt");
@@ -131,7 +131,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#delete(String)} method when trying to delete a file and a directory.
    */
   @Test
-  public void deleteFileTest() throws IOException {
+  public void deleteFile() throws IOException {
     File tempFile = mTestFolder.newFile("fileToDelete");
     File tempFolder = mTestFolder.newFolder("dirToDelete");
     // Delete a file and a directory
@@ -146,7 +146,7 @@ public class FileUtilsTest {
    * directories.
    */
   @Test
-  public void deletePathRecursivelyTest() throws IOException {
+  public void deletePathRecursively() throws IOException {
     File tmpDir = mTestFolder.newFolder("dir");
     File tmpDir1 = mTestFolder.newFolder("dir", "dir1");
     File tmpDir2 = mTestFolder.newFolder("dir", "dir2");
@@ -171,7 +171,7 @@ public class FileUtilsTest {
    * non-existent file.
    */
   @Test
-  public void deleteNonExistentFileTest() throws IOException {
+  public void deleteNonExistentFile() throws IOException {
     // ghostFile is never created, so deleting should fail
     File ghostFile = new File(mTestFolder.getRoot(), "ghost.txt");
     mException.expect(IOException.class);
@@ -183,7 +183,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#setLocalDirStickyBit(String)} method.
    */
   @Test
-  public void setLocalDirStickyBitTest() throws IOException {
+  public void setLocalDirStickyBit() throws IOException {
     File tempFolder = mTestFolder.newFolder("dirToModify");
     // Only test this functionality of the absolute path of the temporary directory starts with "/",
     // which implies the host should support "chmod".
@@ -212,7 +212,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#createBlockPath(String)} method.
    */
   @Test
-  public void createBlockPathTest() throws IOException {
+  public void createBlockPath() throws IOException {
     String absolutePath = PathUtils.concatPath(mTestFolder.getRoot(), "tmp", "bar");
     File tempFile = new File(absolutePath);
     FileUtils.createBlockPath(tempFile.getAbsolutePath());
@@ -223,7 +223,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#createFile(String)} method.
    */
   @Test
-  public void createFileTest() throws IOException {
+  public void createFile() throws IOException {
     File tempFile = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createFile(tempFile.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempFile.getAbsolutePath()));
@@ -234,7 +234,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#createDir(String)} method.
    */
   @Test
-  public void createDirTest() throws IOException {
+  public void createDir() throws IOException {
     File tempDir = new File(mTestFolder.getRoot(), "tmp");
     FileUtils.createDir(tempDir.getAbsolutePath());
     Assert.assertTrue(FileUtils.exists(tempDir.getAbsolutePath()));
@@ -245,7 +245,7 @@ public class FileUtilsTest {
    * Tests the {@link FileUtils#getLocalFileMode(String)}} method.
    */
   @Test
-  public void getLocalFileModeTest() throws IOException {
+  public void getLocalFileMode() throws IOException {
     File tmpDir = mTestFolder.newFolder("dir");
     File tmpFile777 = mTestFolder.newFile("dir/0777");
     tmpFile777.setReadable(true, false /* owner only */);
@@ -273,7 +273,7 @@ public class FileUtilsTest {
    * Tests {@link FileUtils#createBlockPath} method when storage dir exists or doesn't exist.
    */
   @Test
-  public void createStorageDirPathTest() throws IOException {
+  public void createStorageDirPath() throws IOException {
     File storageDir = new File(mTestFolder.getRoot(), "storageDir");
     File blockFile = new File(storageDir, "200");
 
@@ -294,7 +294,7 @@ public class FileUtilsTest {
    * when multiple blocks belonging to the same storage dir get created concurrently.
    */
   @Test
-  public void concurrentCreateStorageDirPathTest() throws Exception {
+  public void concurrentCreateStorageDirPath() throws Exception {
     /**
      * A class provides multiple concurrent threads to invoke {@link FileUtils#createBlockPath}.
      */

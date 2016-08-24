@@ -69,7 +69,7 @@ public class EvictorFactoryTest {
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createGreedyEvictorTest() {
+  public void createGreedyEvictor() {
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, GreedyEvictor.class.getName());
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
@@ -83,7 +83,7 @@ public class EvictorFactoryTest {
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createLRUEvictorTest() {
+  public void createLRUEvictor() {
     Configuration.set(PropertyKey.WORKER_EVICTOR_CLASS, LRUEvictor.class.getName());
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
@@ -97,7 +97,7 @@ public class EvictorFactoryTest {
    *        BlockMetadataManagerView, Allocator)}.
    */
   @Test
-  public void createDefaultEvictorTest() {
+  public void createDefaultEvictor() {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, MaxFreeAllocator.class.getName());
     Allocator allocator = Allocator.Factory.create(sBlockMetadataManagerView);
     Evictor evictor = Evictor.Factory.create(sBlockMetadataManagerView, allocator);

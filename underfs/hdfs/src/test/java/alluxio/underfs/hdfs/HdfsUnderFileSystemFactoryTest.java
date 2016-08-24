@@ -26,7 +26,7 @@ public class HdfsUnderFileSystemFactoryTest {
    * This test ensures the HDFS UFS module correctly accepts paths that begin with hdfs://.
    */
   @Test
-  public void factoryTest() {
+  public void factory() {
     UnderFileSystemFactory factory =
         UnderFileSystemRegistry.find("hdfs://localhost/test/path");
     Assert.assertNotNull(

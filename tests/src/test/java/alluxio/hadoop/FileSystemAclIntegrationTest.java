@@ -23,6 +23,7 @@ import alluxio.underfs.oss.OSSUnderFileSystem;
 import alluxio.underfs.s3.S3UnderFileSystem;
 import alluxio.underfs.s3a.S3AUnderFileSystem;
 import alluxio.underfs.swift.SwiftUnderFileSystem;
+import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import org.apache.hadoop.conf.Configuration;
@@ -32,6 +33,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.permission.FsPermission;
 import org.junit.After;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -97,7 +99,7 @@ public final class FileSystemAclIntegrationTest {
    * It will test changing the permission of file using TFS.
    */
   @Test
-  public void chmodTest() throws Exception {
+  public void chmod() throws Exception {
     Path fileA = new Path("/chmodfileA");
 
     create(sTFS, fileA);
@@ -106,6 +108,13 @@ public final class FileSystemAclIntegrationTest {
     // Default permission should be 0644
     Assert.assertEquals((short) 0644, fs.getPermission().toShort());
 
+    if (CommonUtils.isUfsObjectStorage(sUfsRoot)) {
+      // For object storage ufs, setMode is not supported.
+      mThrown.expect(IOException.class);
+      mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
+      sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
+      return;
+    }
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
   }
@@ -116,7 +125,7 @@ public final class FileSystemAclIntegrationTest {
    * owner does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerForLocalTest() throws Exception {
+  public void changeNonexistentOwnerForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -149,7 +158,7 @@ public final class FileSystemAclIntegrationTest {
    * group does not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentGroupForLocalTest() throws Exception {
+  public void changeNonexistentGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -182,7 +191,7 @@ public final class FileSystemAclIntegrationTest {
    * arbitrary owner and group do not exist in the local UFS, the operation would fail.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForLocalTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForLocal() throws Exception {
     if (!(sUfs instanceof LocalUnderFileSystem)) {
       // Skip non-local UFSs.
       return;
@@ -213,7 +222,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the owner of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -249,7 +258,7 @@ public final class FileSystemAclIntegrationTest {
    * changing the group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentGroupForHdfsTest() throws Exception {
+  public void changeNonexistentGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -283,7 +292,7 @@ public final class FileSystemAclIntegrationTest {
    * changing both owner and group of file using TFS and propagate the change to UFS.
    */
   @Test
-  public void changeNonexistentOwnerAndGroupForHdfsTest() throws Exception {
+  public void changeNonexistentOwnerAndGroupForHdfs() throws Exception {
     if (!(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-HDFS UFSs.
       return;
@@ -317,7 +326,7 @@ public final class FileSystemAclIntegrationTest {
    * are null.
    */
   @Test
-  public void checkNullOwnerAndGroupTest() throws Exception {
+  public void checkNullOwnerAndGroup() throws Exception {
     Path fileD = new Path("/chownfileD");
 
     create(sTFS, fileD);
@@ -337,7 +346,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the directory permission propagation to UFS.
    */
   @Test
-  public void directoryPermissionForUfsTest() throws IOException {
+  public void directoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -369,7 +378,7 @@ public final class FileSystemAclIntegrationTest {
    * Tests the parent directory permission when mkdirs recursively.
    */
   @Test
-  public void parentDirectoryPermissionForUfsTest() throws IOException {
+  public void parentDirectoryPermissionForUfs() throws IOException {
     if (!(sUfs instanceof LocalUnderFileSystem) && !(sUfs instanceof HdfsUnderFileSystem)) {
       // Skip non-local and non-HDFS UFSs.
       return;
@@ -395,37 +404,84 @@ public final class FileSystemAclIntegrationTest {
         (int) sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileB.getParent())));
   }
 
-  /**
-   * Tests for the permission of object storage UFS files.
-   */
   @Test
-  public void objectStoragePermissionTest() throws Exception {
-    if (!(sUfs instanceof S3UnderFileSystem) && !(sUfs instanceof S3AUnderFileSystem)
-        && !(sUfs instanceof SwiftUnderFileSystem) && !(sUfs instanceof GCSUnderFileSystem)
-        && !(sUfs instanceof OSSUnderFileSystem)) {
-      // Only test object storage UFSs.
-      return;
-    }
-    Path fileA = new Path("/objectfileA");
-    final String newOwner = "new-user1";
-    final String newGroup = "new-group1";
+  public void s3GetPermission() throws Exception {
+    Assume.assumeTrue((sUfs instanceof S3UnderFileSystem) || (sUfs instanceof S3AUnderFileSystem));
 
+    alluxio.Configuration.set(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING, "");
+    Path fileA = new Path("/objectfileA");
     create(sTFS, fileA);
     Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
 
-    // Verify the owner, group and permission of UFS is not supported and thus returns default
+    // Without providing "alluxio.underfs.s3.canonical.owner.id.to.username.mapping", the default
+    // display name of the S3 owner account is NOT empty.
+    Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
+
+  @Test
+  public void gcsGetPermission() throws Exception {
+    Assume.assumeTrue(sUfs instanceof GCSUnderFileSystem);
+
+    alluxio.Configuration.set(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, "");
+    Path fileA = new Path("/objectfileA");
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Without providing "alluxio.underfs.gcs.owner.id.to.username.mapping", the default
+    // display name of the GCS owner account is empty. The owner will be the GCS account id, which
+    // is not empty.
+    Assert.assertNotEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertEquals((short) 0700, sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
+
+  @Test
+  public void swiftGetPermission() throws Exception {
+    // TODO(chaomin): update Swift permission integration test once the Swift implementation is done
+    Assume.assumeTrue(sUfs instanceof SwiftUnderFileSystem);
+
+    Path fileA = new Path("/objectfileA");
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Verify the owner, group and permission of Swift UFS is not supported and thus returns default
     // values.
     Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
 
-    // chown and chmod to Alluxio file would not affect the permission of UFS file.
-    sTFS.setOwner(fileA, newOwner, newGroup);
-    sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0700));
+  @Test
+  public void ossGetPermission() throws Exception {
+    Assume.assumeTrue(sUfs instanceof OSSUnderFileSystem);
+
+    Path fileA = new Path("/objectfileA");
+    create(sTFS, fileA);
+    Assert.assertTrue(sUfs.exists(PathUtils.concatPath(sUfsRoot, fileA)));
+
+    // Verify the owner, group and permission of OSS UFS is not supported and thus returns default
+    // values.
     Assert.assertEquals("", sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals("", sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
     Assert.assertEquals(Constants.DEFAULT_FILE_SYSTEM_MODE,
         sUfs.getMode(PathUtils.concatPath(sUfsRoot, fileA)));
+  }
+
+  @Test
+  public void objectStoreSetOwner() throws Exception {
+    Assume.assumeTrue(CommonUtils.isUfsObjectStorage(sUfsRoot));
+
+    Path fileA = new Path("/objectfileA");
+    final String newOwner = "new-user1";
+    final String newGroup = "new-group1";
+    create(sTFS, fileA);
+
+    // chown to Alluxio file which is persisted in OSS is not allowed.
+    mThrown.expect(IOException.class);
+    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
+    sTFS.setOwner(fileA, newOwner, newGroup);
   }
 }

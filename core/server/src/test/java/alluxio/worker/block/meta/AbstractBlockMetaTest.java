@@ -72,7 +72,7 @@ public class AbstractBlockMetaTest {
    * Tests the {@link AbstractBlockMeta#getBlockId()} method.
    */
   @Test
-  public void getBlockIdTest() {
+  public void getBlockId() {
     Assert.assertEquals(TEST_BLOCK_ID, mBlockMeta.getBlockId());
   }
 
@@ -80,7 +80,7 @@ public class AbstractBlockMetaTest {
    * Tests the {@link AbstractBlockMeta#getBlockLocation()} method.
    */
   @Test
-  public void getBlockLocationTest() {
+  public void getBlockLocation() {
     BlockStoreLocation expectedLocation =
         new BlockStoreLocation(mTier.getTierAlias(), mDir.getDirIndex());
     Assert.assertEquals(expectedLocation, mBlockMeta.getBlockLocation());
@@ -90,7 +90,7 @@ public class AbstractBlockMetaTest {
    * Tests the {@link AbstractBlockMeta#getParentDir()} method.
    */
   @Test
-  public void getParentDirTest() {
+  public void getParentDir() {
     Assert.assertEquals(mDir, mBlockMeta.getParentDir());
   }
 }

@@ -119,9 +119,7 @@ public final class Constants {
 
   public static final String REST_API_PREFIX = "/v1/api";
 
-  // TODO(binfan): define and reference logger using
-  // private static final Logger LOG = CommonUtils.LOG;
-  public static final String LOGGER_TYPE = PropertyKey.LOGGER_TYPE.toString();
+  public static final String LOGGER_TYPE = PropertyKey.Name.LOGGER_TYPE;
 
   public static final String MASTER_COLUMN_FILE_PREFIX = "COL_";
   public static final String FORMAT_FILE_PREFIX = "_format_";

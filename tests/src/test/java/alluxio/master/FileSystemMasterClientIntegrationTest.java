@@ -35,7 +35,7 @@ public final class FileSystemMasterClientIntegrationTest {
       new LocalAlluxioClusterResource();
 
   @Test
-  public void openCloseTest() throws AlluxioException, IOException {
+  public void openClose() throws AlluxioException, IOException {
     FileSystemMasterClient fsMasterClient = new FileSystemMasterClient(
         mLocalAlluxioClusterResource.get().getMaster().getAddress());
     AlluxioURI file = new AlluxioURI("/file");
@@ -53,7 +53,7 @@ public final class FileSystemMasterClientIntegrationTest {
   }
 
   @Test(timeout = 3000, expected = AlluxioException.class)
-  public void getFileInfoReturnsOnErrorTest() throws IOException, AlluxioException {
+  public void getFileInfoReturnsOnError() throws IOException, AlluxioException {
     // This test was created to show that an infinite loop occurs.
     // The timeout will protect against this, and the change was to throw a IOException
     // in the cases we don't want to disconnect from master

@@ -62,7 +62,7 @@ public class AllocatorContractTest extends AllocatorTestBase {
    * Tests that no allocation happens when the RAM, SSD and HDD size is more than the default one.
    */
   @Test
-  public void shouldNotAllocateTest() throws Exception {
+  public void shouldNotAllocate() throws Exception {
     for (String strategyName : mStrategies) {
       Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();
@@ -79,7 +79,7 @@ public class AllocatorContractTest extends AllocatorTestBase {
    * Tests that allocation happens when the RAM, SSD and HDD size is lower than the default size.
    */
   @Test
-  public void shouldAllocateTest() throws Exception {
+  public void shouldAllocate() throws Exception {
     for (String strategyName : mStrategies) {
       Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, strategyName);
       resetManagerView();

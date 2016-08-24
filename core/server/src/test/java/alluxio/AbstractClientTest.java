@@ -11,7 +11,6 @@
 
 package alluxio;
 
-import alluxio.AbstractClient;
 import alluxio.exception.ExceptionMessage;
 import alluxio.thrift.AlluxioService;
 import alluxio.thrift.AlluxioService.Client;

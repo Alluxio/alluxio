@@ -121,7 +121,7 @@ public class AbstractFileSystemTest {
    * Ensures that Hadoop loads {@link FaultTolerantFileSystem} when configured.
    */
   @Test
-  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfiguredTest() throws Exception {
+  public void hadoopShouldLoadFaultTolerantFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     if (isHadoop1x()) {
       conf.set("fs." + Constants.SCHEME_FT + ".impl", FaultTolerantFileSystem.class.getName());
@@ -141,7 +141,7 @@ public class AbstractFileSystemTest {
    * Ensures that Hadoop loads the Alluxio file system when configured.
    */
   @Test
-  public void hadoopShouldLoadFileSystemWhenConfiguredTest() throws Exception {
+  public void hadoopShouldLoadFileSystemWhenConfigured() throws Exception {
     org.apache.hadoop.conf.Configuration conf = getConf();
 
     URI uri = URI.create(Constants.HEADER + "localhost:19998/tmp/path.txt");
@@ -159,7 +159,7 @@ public class AbstractFileSystemTest {
    * changes to the master address.
    */
   @Test
-  public void resetContextTest() throws Exception {
+  public void resetContext() throws Exception {
     FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
 
@@ -182,7 +182,7 @@ public class AbstractFileSystemTest {
    * initializers during the initialization phase.
    */
   @Test
-  public void concurrentInitializeTest() throws Exception {
+  public void concurrentInitialize() throws Exception {
     FileSystemContext fileSystemContext = PowerMockito.mock(FileSystemContext.class);
     Whitebox.setInternalState(FileSystemContext.class, "INSTANCE", fileSystemContext);
 

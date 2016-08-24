@@ -28,7 +28,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#cloneByteBuffer(ByteBuffer)} method.
    */
   @Test
-  public void cloneByteBufferTest() {
+  public void cloneByteBuffer() {
     final int bufferSize = 10;
     ByteBuffer buf = ByteBuffer.allocate(bufferSize);
     for (byte i = 0; i < bufferSize; i++) {
@@ -42,7 +42,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#cloneByteBufferList(List)} method.
    */
   @Test
-  public void cloneByteBufferListTest() {
+  public void cloneByteBufferList() {
     final int bufferSize = 10;
     final int listLength = 10;
     ArrayList<ByteBuffer> bufList = new ArrayList<>(listLength);
@@ -65,7 +65,7 @@ public class BufferUtilsTest {
    * {@link ByteBuffer#allocateDirect(int)} method.
    */
   @Test
-  public void cloneDirectByteBufferTest() {
+  public void cloneDirectByteBuffer() {
     final int bufferSize = 10;
     ByteBuffer bufDirect = ByteBuffer.allocateDirect(bufferSize);
     for (byte i = 0; i < bufferSize; i++) {
@@ -80,7 +80,7 @@ public class BufferUtilsTest {
    * {@link ByteBuffer#allocateDirect(int)} method.
    */
   @Test
-  public void cloneDirectByteBufferListTest() {
+  public void cloneDirectByteBufferList() {
     final int bufferSize = 10;
     final int listLength = 10;
     ArrayList<ByteBuffer> bufDirectList = new ArrayList<>(listLength);
@@ -102,7 +102,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#generateNewByteBufferFromThriftRPCResults(ByteBuffer)} method.
    */
   @Test
-  public void generateNewByteBufferFromThriftRPCResultsTest() {
+  public void generateNewByteBufferFromThriftRPCResults() {
     final int bufferSize = 10;
     ByteBuffer mockRPCbuf = ByteBuffer.allocate(bufferSize);
     for (byte i = 0; i < bufferSize; i++) {
@@ -121,7 +121,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#putIntByteBuffer(ByteBuffer, int)} method.
    */
   @Test
-  public void putIntByteBufferTest() {
+  public void putIntByteBuffer() {
     class TestCase {
       byte mExpected;
       int mInput;
@@ -150,7 +150,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#getIncreasingByteArray(int, int)} method.
    */
   @Test
-  public void getIncreasingByteArrayTest() {
+  public void getIncreasingByteArray() {
     class TestCase {
       byte[] mExpected;
       int mLength;
@@ -184,7 +184,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#equalIncreasingByteArray(int, int, byte[])} method.
    */
   @Test
-  public void equalIncreasingByteArrayTest() {
+  public void equalIncreasingByteArray() {
     class TestCase {
       boolean mExpected;
       byte[] mArray;
@@ -227,7 +227,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#getIncreasingByteBuffer(int, int)} method.
    */
   @Test
-  public void getIncreasingByteBufferTest() {
+  public void getIncreasingByteBuffer() {
     class TestCase {
       ByteBuffer mExpected;
       int mLength;
@@ -261,7 +261,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#equalIncreasingByteBuffer(int, int, ByteBuffer)} method.
    */
   @Test
-  public void equalIncreasingByteBufferTest() {
+  public void equalIncreasingByteBuffer() {
     class TestCase {
       boolean mExpected;
       ByteBuffer mBuffer;
@@ -304,7 +304,7 @@ public class BufferUtilsTest {
    * Tests the {@link BufferUtils#getIncreasingIntBuffer(int, int)} method.
    */
   @Test
-  public void getIncreasingIntBufferTest() {
+  public void getIncreasingIntBuffer() {
     class TestCase {
       ByteBuffer mExpected;
       int mLength;
@@ -344,7 +344,7 @@ public class BufferUtilsTest {
    * call to cleanDirectBuffer is removed, this test will fail.
    */
   @Test
-  public void cleanDirectBufferTest() {
+  public void cleanDirectBuffer() {
     final int MAX_ITERATIONS = 1024;
     final int BUFFER_SIZE = 16 * 1024 * 1024;
     // bufferArray keeps reference to each buffer to avoid auto GC
@@ -365,7 +365,7 @@ public class BufferUtilsTest {
    * {@link BufferUtils#sliceByteBuffer(ByteBuffer, int)} methods.
    */
   @Test
-  public void sliceByteBufferTest() {
+  public void sliceByteBuffer() {
     final int size = 100;
     final ByteBuffer buf = BufferUtils.getIncreasingByteBuffer(size);
     for (int slicePosition : new int[] {0, 1, size / 2, size - 1}) {

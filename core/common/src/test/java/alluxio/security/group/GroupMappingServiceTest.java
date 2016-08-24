@@ -28,7 +28,7 @@ public final class GroupMappingServiceTest {
    * Tests the {@link GroupMappingService#getGroups(String)} method.
    */
   @Test
-  public void groupTest() throws Throwable {
+  public void group() throws Throwable {
     String userName = "alluxio-user1";
 
     Configuration.set(PropertyKey.SECURITY_GROUP_MAPPING_CLASS,

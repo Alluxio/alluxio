@@ -215,7 +215,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockReadRequestTest() {
+  public void RPCBlockReadRequest() {
     RPCBlockReadRequest msg = new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID,
         SESSION_ID);
     RPCBlockReadRequest decoded = (RPCBlockReadRequest) encodeThenDecode(msg);
@@ -223,7 +223,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockReadResponseTest() {
+  public void RPCBlockReadResponse() {
     ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockReadResponse msg =
         new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload, LENGTH),
@@ -233,7 +233,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockReadResponseEmptyPayloadTest() {
+  public void RPCBlockReadResponseEmptyPayload() {
     RPCBlockReadResponse msg =
         new RPCBlockReadResponse(BLOCK_ID, OFFSET, 0, null, RPCResponse.Status.SUCCESS);
     RPCBlockReadResponse decoded = (RPCBlockReadResponse) encodeThenDecode(msg);
@@ -241,7 +241,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockReadResponseErrorTest() {
+  public void RPCBlockReadResponseError() {
     RPCBlockReadResponse msg =
         RPCBlockReadResponse.createErrorResponse(
             new RPCBlockReadRequest(BLOCK_ID, OFFSET, LENGTH, LOCK_ID, SESSION_ID),
@@ -251,7 +251,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockReadResponseFileChannelTest() throws IOException {
+  public void RPCBlockReadResponseFileChannel() throws IOException {
     try (FileInputStream inputStream = getTempFileInputStream()) {
       FileChannel payload = inputStream.getChannel();
       RPCBlockReadResponse msg = new RPCBlockReadResponse(BLOCK_ID, OFFSET, LENGTH,
@@ -262,7 +262,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockWriteRequestTest() {
+  public void RPCBlockWriteRequest() {
     ByteBuffer payload = BufferUtils.getIncreasingByteBuffer((int) OFFSET, (int) LENGTH);
     RPCBlockWriteRequest msg =
         new RPCBlockWriteRequest(SESSION_ID, BLOCK_ID, OFFSET, LENGTH, new DataByteBuffer(payload,
@@ -272,7 +272,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCBlockWriteResponseTest() {
+  public void RPCBlockWriteResponse() {
     RPCBlockWriteResponse msg =
         new RPCBlockWriteResponse(SESSION_ID, BLOCK_ID, OFFSET, LENGTH, RPCResponse.Status.SUCCESS);
     RPCBlockWriteResponse decoded = (RPCBlockWriteResponse) encodeThenDecode(msg);
@@ -280,7 +280,7 @@ public class RPCMessageIntegrationTest {
   }
 
   @Test
-  public void RPCErrorResponseTest() {
+  public void RPCErrorResponse() {
     for (RPCResponse.Status status : RPCResponse.Status.values()) {
       RPCErrorResponse msg = new RPCErrorResponse(status);
       RPCErrorResponse decoded = (RPCErrorResponse) encodeThenDecode(msg);

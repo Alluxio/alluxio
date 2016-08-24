@@ -165,7 +165,7 @@ public final class EvictorContractTest extends EvictorTestBase {
    * capacity of the directory.
    */
   @Test
-  public void needToEvictTest() throws Exception {
+  public void needToEvict() throws Exception {
     // fill in a dir and request the capacity of the dir, all cached data in the dir should be
     // evicted.
     StorageDir dir = mTestDir;
@@ -183,7 +183,7 @@ public final class EvictorContractTest extends EvictorTestBase {
    * and the request size is the capacity of the largest directory.
    */
   @Test
-  public void needToEvictAnyDirInTierTest() throws Exception {
+  public void needToEvictAnyDirInTier() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in a tier, request size of "capacity" of
     // the last dir(whose capacity is largest) in this tier from anyDirInTier(tier), all blocks
     // cached in the last dir should be in the eviction plan.
@@ -208,7 +208,7 @@ public final class EvictorContractTest extends EvictorTestBase {
    * and the request size is the minimum capacity of all directories.
    */
   @Test
-  public void needToEvictAnyTierTest() throws Exception {
+  public void needToEvictAnyTier() throws Exception {
     // cache data with size of "(capacity - 1)" in each dir in all tiers, request size of minimum
     // "capacity" of all dirs from anyTier
     long minCapacity = Long.MAX_VALUE;
@@ -232,7 +232,7 @@ public final class EvictorContractTest extends EvictorTestBase {
    * Tests that no eviction plan is available when requesting more space than capacity available.
    */
   @Test
-  public void requestSpaceLargerThanCapacityTest() throws Exception {
+  public void requestSpaceLargerThanCapacity() throws Exception {
     // cache data in a dir
     long totalCapacity = mMetaManager.getAvailableBytes(BlockStoreLocation.anyTier());
     StorageDir dir = mTestDir;

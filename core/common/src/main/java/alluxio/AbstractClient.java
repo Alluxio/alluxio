@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.regex.Pattern;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,6 +45,11 @@ import javax.annotation.concurrent.ThreadSafe;
 public abstract class AbstractClient implements Client {
 
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
+  /** The pattern of exception message when client and server transport frame sizes do not match. */
+  private static final Pattern FRAME_SIZE_EXCEPTION_PATTERN =
+      Pattern.compile("Frame size \\((\\d+)\\) larger than max length");
+
   /** The number of times to retry a particular RPC. */
   protected static final int RPC_MAX_NUM_RETRY = 30;
 
@@ -108,7 +114,7 @@ public abstract class AbstractClient implements Client {
       try {
         mServiceVersion = client.getServiceVersion();
       } catch (TException e) {
-        throw new IOException(e.toString());
+        throw new IOException(e);
       }
       if (mServiceVersion != version) {
         throw new IOException(ExceptionMessage.INCOMPATIBLE_VERSION.getMessage(getServiceName(),
@@ -173,6 +179,18 @@ public abstract class AbstractClient implements Client {
         afterConnect();
         checkVersion(getClient(), getServiceVersion());
         return;
+      } catch (IOException e) {
+        if (FRAME_SIZE_EXCEPTION_PATTERN.matcher(e.getMessage()).find()) {
+          // See an error like "Frame size (67108864) larger than max length (16777216)!",
+          // pointing to the helper page.
+          String message = String.format("Failed to connect to %s %s @ %s: %s. "
+              + "This exception may be caused by incorrect network configuration. "
+              + "Please consult %s for common solutions to address this problem.",
+              getServiceName(), mMode, mAddress, e.getMessage(),
+              RuntimeConstants.ALLUXIO_DEBUG_DOCS_URL);
+          throw new IOException(message, e);
+        }
+        throw e;
       } catch (TTransportException e) {
         LOG.error("Failed to connect (" + retry.getRetryCount() + ") to " + getServiceName() + " "
             + mMode + " @ " + mAddress + " : " + e.getMessage());

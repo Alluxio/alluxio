@@ -94,7 +94,7 @@ public class AllocatorTestBase {
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
-    if (avail == false) {
+    if (!avail) {
       Assert.assertTrue(tempBlockMeta == null);
     } else {
       Assert.assertTrue(tempBlockMeta != null);
@@ -118,7 +118,7 @@ public class AllocatorTestBase {
     TempBlockMeta tempBlockMeta =
         dirView == null ? null : dirView.createTempBlockMeta(SESSION_ID, mTestBlockId, blockSize);
 
-    if (avail == false) {
+    if (!avail) {
       Assert.assertTrue(tempBlockMeta == null);
     } else {
       Assert.assertTrue(tempBlockMeta != null);

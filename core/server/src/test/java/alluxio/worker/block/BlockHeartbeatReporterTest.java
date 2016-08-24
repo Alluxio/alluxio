@@ -49,7 +49,7 @@ public class BlockHeartbeatReporterTest {
    * Tests the {@link BlockHeartbeatReporter#generateReport()} method for an empty report.
    */
   @Test
-  public void generateReportEmptyTest() {
+  public void generateReportEmpty() {
     BlockHeartbeatReport report = mReporter.generateReport();
     Assert.assertTrue(report.getAddedBlocks().isEmpty());
     Assert.assertTrue(report.getRemovedBlocks().isEmpty());
@@ -60,7 +60,7 @@ public class BlockHeartbeatReporterTest {
    * after moving block.
    */
   @Test
-  public void generateReportMoveTest() {
+  public void generateReportMove() {
     Long block1 = 1L;
     Long block2 = 2L;
     Long block3 = 3L;
@@ -91,7 +91,7 @@ public class BlockHeartbeatReporterTest {
    * clears the state of the reporter.
    */
   @Test
-  public void generateReportStateClearTest() {
+  public void generateReportStateClear() {
     Long block1 = 1L;
     moveBlock(block1, MEM_LOC);
 
@@ -110,7 +110,7 @@ public class BlockHeartbeatReporterTest {
    * after removing blocks.
    */
   @Test
-  public void generateReportRemoveTest() {
+  public void generateReportRemove() {
     Long block1 = 1L;
     Long block2 = 2L;
     Long block3 = 3L;
@@ -136,7 +136,7 @@ public class BlockHeartbeatReporterTest {
    * after moving a block and the removing it.
    */
   @Test
-  public void generateReportMoveThenRemoveTest() {
+  public void generateReportMoveThenRemove() {
     Long block1 = 1L;
     moveBlock(block1, MEM_LOC);
     removeBlock(block1);

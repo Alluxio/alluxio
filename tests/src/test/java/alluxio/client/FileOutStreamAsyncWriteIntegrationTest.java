@@ -32,7 +32,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
     extends AbstractFileOutStreamIntegrationTest {
 
   @Test
-  public void asyncWriteTest() throws Exception {
+  public void asyncWrite() throws Exception {
 
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     final int length = 2;
@@ -57,7 +57,7 @@ public final class FileOutStreamAsyncWriteIntegrationTest
   }
 
   @Test
-  public void asyncWriteEmptyFileTest() throws Exception {
+  public void asyncWriteEmptyFile() throws Exception {
     AlluxioURI filePath = new AlluxioURI(PathUtils.uniqPath());
     mFileSystem.createFile(filePath, CreateFileOptions.defaults()
         .setWriteType(WriteType.ASYNC_THROUGH)).close();

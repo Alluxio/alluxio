@@ -25,7 +25,7 @@ public final class CreateLineageOptionsTest {
    * Tests that building a {@link CreateLineageOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CreateLineageOptions options = CreateLineageOptions.defaults();
     Assert.assertNotNull(options);
   }

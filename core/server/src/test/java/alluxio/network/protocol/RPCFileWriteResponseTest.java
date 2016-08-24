@@ -64,7 +64,7 @@ public class RPCFileWriteResponseTest {
    * Tests the {@link RPCFileWriteResponse#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCFileWriteResponse resp = new RPCFileWriteResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, STATUS);
     int encodedLength = resp.getEncodedLength();
     resp.encode(mBuffer);
@@ -76,7 +76,7 @@ public class RPCFileWriteResponseTest {
    * {@link RPCFileWriteResponse#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCFileWriteResponse resp = new RPCFileWriteResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, STATUS);
     resp.encode(mBuffer);
     RPCFileWriteResponse resp2 = RPCFileWriteResponse.decode(mBuffer);
@@ -88,7 +88,7 @@ public class RPCFileWriteResponseTest {
    * Tests the {@link RPCBlockReadResponse#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCFileWriteResponse resp = new RPCFileWriteResponse(TEMP_UFS_FILE_ID, OFFSET, LENGTH, STATUS);
     assertValid(resp);
   }
@@ -99,7 +99,7 @@ public class RPCFileWriteResponseTest {
    * method.
    */
   @Test
-  public void createErrorResponseTest() {
+  public void createErrorResponse() {
     RPCFileWriteRequest req = new RPCFileWriteRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH, null);
 
     for (RPCResponse.Status status : RPCResponse.Status.values()) {

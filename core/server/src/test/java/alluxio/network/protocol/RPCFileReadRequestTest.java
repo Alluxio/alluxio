@@ -63,7 +63,7 @@ public class RPCFileReadRequestTest {
    * Tests the {@link RPCFileReadRequest#getEncodedLength()} method.
    */
   @Test
-  public void encodedLengthTest() {
+  public void encodedLength() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
     int encodedLength = req.getEncodedLength();
     req.encode(mBuffer);
@@ -75,7 +75,7 @@ public class RPCFileReadRequestTest {
    * {@link RPCFileReadRequest#decode(ByteBuf)} methods.
    */
   @Test
-  public void encodeDecodeTest() {
+  public void encodeDecode() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
     req.encode(mBuffer);
     RPCFileReadRequest req2 = RPCFileReadRequest.decode(mBuffer);
@@ -87,7 +87,7 @@ public class RPCFileReadRequestTest {
    * Tests the {@link RPCFileReadRequest#validate()} method.
    */
   @Test
-  public void validateTest() {
+  public void validate() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
     assertValid(req);
   }
@@ -97,7 +97,7 @@ public class RPCFileReadRequestTest {
    * valid length.
    */
   @Test
-  public void validLengthTest() {
+  public void validLength() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, LENGTH);
     assertValid(req);
     req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, 0);
@@ -109,7 +109,7 @@ public class RPCFileReadRequestTest {
    * negative offset.
    */
   @Test
-  public void negativeOffsetTest() {
+  public void negativeOffset() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, -1, LENGTH);
     assertInvalid(req);
   }
@@ -119,7 +119,7 @@ public class RPCFileReadRequestTest {
    * constructor with an invalid length.
    */
   @Test
-  public void invalidLengthTest() {
+  public void invalidLength() {
     RPCFileReadRequest req = new RPCFileReadRequest(TEMP_UFS_FILE_ID, OFFSET, -100);
     assertInvalid(req);
   }

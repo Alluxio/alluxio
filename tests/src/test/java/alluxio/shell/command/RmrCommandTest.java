@@ -26,7 +26,7 @@ import java.io.IOException;
  */
 public final class RmrCommandTest extends AbstractAlluxioShellTest {
   @Test
-  public void rmrTest() throws IOException {
+  public void rmr() throws IOException {
     StringBuilder toCompare = new StringBuilder();
     mFsShell.run("mkdir", "/testFolder1/testFolder2");
     toCompare.append(getCommandOutput(new String[] {"mkdir", "/testFolder1/testFolder2"}));
@@ -56,7 +56,7 @@ public final class RmrCommandTest extends AbstractAlluxioShellTest {
   }
 
   @Test
-  public void rmrWildCardTest() throws IOException, AlluxioException {
+  public void rmrWildCard() throws IOException, AlluxioException {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
 
     mFsShell.run("rmr", testDir + "/foo/foo*");

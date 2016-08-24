@@ -41,7 +41,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#getCurrentMs()} and {@link CommonUtils#sleepMs(long)} methods.
    */
   @Test
-  public void getCurrentMsAndSleepMsTest() {
+  public void getCurrentMsAndSleepMs() {
     long delta = 100;
     long startTime = CommonUtils.getCurrentMs();
     CommonUtils.sleepMs(delta);
@@ -56,7 +56,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#argsToString(String, Object[])} method.
    */
   @Test
-  public void argsToStringTest() {
+  public void argsToString() {
     Assert.assertEquals("", CommonUtils.argsToString(".", ""));
     Assert.assertEquals("foo", CommonUtils.argsToString(".", "foo"));
     Assert.assertEquals("foo,bar", CommonUtils.argsToString(",", "foo", "bar"));
@@ -68,7 +68,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#listToString(List)} method.
    */
   @Test
-  public void listToStringTest() {
+  public void listToString() {
     class TestCase {
       List<Object> mInput;
       String mExpected;
@@ -95,7 +95,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#toStringArray(ArrayList)} method.
    */
   @Test
-  public void toStringArrayTest() {
+  public void toStringArray() {
     class TestCase {
       String[] mExpected;
 
@@ -124,7 +124,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#createNewClassInstance(Class, Class[], Object[])} method.
    */
   @Test
-  public void createNewClassInstanceTest() {
+  public void createNewClassInstance() {
     class TestCase {
       Class<?> mCls;
       Class<?>[] mCtorClassArgs;
@@ -192,7 +192,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#getUnixGroups(String)} method.
    */
   @Test
-  public void userGroupTest() throws Throwable {
+  public void userGroup() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
@@ -214,7 +214,7 @@ public class CommonUtilsTest {
    * {@link CommonUtils#getPrimaryGroupName(String)} method.
    */
   @Test
-  public void getGroupsTest() throws Throwable {
+  public void getGroups() throws Throwable {
     String userName = "alluxio-user1";
     String userGroup1 = "alluxio-user1-group1";
     String userGroup2 = "alluxio-user1-group2";
@@ -239,7 +239,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#stripSuffixIfPresent(String,String)} method.
    */
   @Test
-  public void stripSuffixIfPresentTest() throws Exception {
+  public void stripSuffixIfPresent() throws Exception {
     final String[] inputs = new String[]{
         "ufs://bucket/",
         "ufs://bucket/",
@@ -277,7 +277,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#stripPrefixIfPresent(String, String)} method.
    */
   @Test
-  public void stripPrefixIfPresentTest() throws Exception {
+  public void stripPrefixIfPresent() throws Exception {
     final String[] inputs = new String[]{
         "ufs://bucket/",
         "ufs://bucket",
@@ -315,7 +315,7 @@ public class CommonUtilsTest {
    * Tests the {@link CommonUtils#isUfsObjectStorage(String)} method.
    */
   @Test
-  public void isUfsObjectStorageTest() throws Exception {
+  public void isUfsObjectStorage() throws Exception {
     Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3://bucket/"));
     Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3n://bucket"));
     Assert.assertEquals(true, CommonUtils.isUfsObjectStorage("s3a://bucket/"));
@@ -326,5 +326,19 @@ public class CommonUtilsTest {
     Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("/dir/"));
     Assert.assertEquals(false, CommonUtils.isUfsObjectStorage("/"));
     Assert.assertEquals(false, CommonUtils.isUfsObjectStorage(""));
+  }
+
+  @Test
+  public void getValueFromStaticMapping() throws Exception {
+    String mapping = "k=v; a=a; alice=bob; id1=userA; foo=bar";
+    Assert.assertEquals("v",     CommonUtils.getValueFromStaticMapping(mapping, "k"));
+    Assert.assertEquals("a",     CommonUtils.getValueFromStaticMapping(mapping, "a"));
+    Assert.assertEquals("bob",   CommonUtils.getValueFromStaticMapping(mapping, "alice"));
+    Assert.assertEquals("userA", CommonUtils.getValueFromStaticMapping(mapping, "id1"));
+    Assert.assertEquals("bar",   CommonUtils.getValueFromStaticMapping(mapping, "foo"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, ""));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "/"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "v"));
+    Assert.assertEquals(null,    CommonUtils.getValueFromStaticMapping(mapping, "nonexist"));
   }
 }
