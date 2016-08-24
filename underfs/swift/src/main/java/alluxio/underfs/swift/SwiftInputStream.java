@@ -11,10 +11,16 @@
 
 package alluxio.underfs.swift;
 
-import org.javaswift.joss.headers.object.range.ExcludeStartRange;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -25,6 +31,8 @@ import java.io.InputStream;
  */
 @NotThreadSafe
 public class SwiftInputStream extends InputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** JOSS Swift account. */
   private final Account mAccount;
   /** Name of container the object resides in. */
@@ -35,11 +43,10 @@ public class SwiftInputStream extends InputStream {
   /** The backing input stream. */
   private InputStream mStream;
   /** The current position of the stream. */
-  private int mPos;
+  private long mPos;
 
   /**
    * Constructor for an input stream to an object in a Swift API based store.
-   *
    * @param account JOSS account with authentication credentials
    * @param container the name of container where the object resides
    * @param object path of the object in the container
@@ -92,9 +99,12 @@ public class SwiftInputStream extends InputStream {
     if (n <= 0) {
       return 0;
     }
+
+    LOG.info("<<SWIFTPERF {} skipping {} bytes", this.hashCode(), n);
     closeStream();
     mPos += n;
     openStream();
+    LOG.info(">>SWIFTPERF {} done skipping", this.hashCode());
     return n;
   }
 
@@ -102,23 +112,32 @@ public class SwiftInputStream extends InputStream {
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
   private void openStream() {
+    LOG.info("<<SWIFTPERF {} open stream at pos {}", this.hashCode(), mPos);
+
     if (mStream != null) { // stream is already open
+      LOG.info("SWIFTPERF {} stream is already open", this.hashCode());
       return;
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    downloadInstructions.setRange(new ExcludeStartRange(mPos));
+    long blockSize = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    long endPos = mPos + blockSize;
+    downloadInstructions.setRange(new SwiftRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
+    LOG.info(">>SWIFTPERF {} stream open till end pos {}", this.hashCode(), endPos);
   }
 
   /**
    * Closes the current stream.
    */
   private void closeStream() throws IOException {
+    LOG.info("<<SWIFTPERF {} closing stream with pos {}", this.hashCode(), mPos);
     if (mStream == null) {
+      LOG.info("SWIFTPERF {} stream already closed", this.hashCode());
       return;
     }
     mStream.close();
     mStream = null;
+    LOG.info(">>SWIFTPERF {} stream closed", this.hashCode());
   }
 }
