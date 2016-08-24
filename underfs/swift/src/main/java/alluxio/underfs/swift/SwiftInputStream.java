@@ -100,11 +100,11 @@ public class SwiftInputStream extends InputStream {
       return 0;
     }
 
-    LOG.info("<<SWIFTPERF {} skipping {} bytes", this.hashCode(), n);
+    LOG.debug("Swift InputStream {}: skipping {} bytes", this.hashCode(), n);
     closeStream();
     mPos += n;
     openStream();
-    LOG.info(">>SWIFTPERF {} done skipping", this.hashCode());
+    LOG.debug("Swift InputStream {}: done skipping", this.hashCode());
     return n;
   }
 
@@ -112,10 +112,10 @@ public class SwiftInputStream extends InputStream {
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
   private void openStream() {
-    LOG.info("<<SWIFTPERF {} open stream at pos {}", this.hashCode(), mPos);
+    LOG.debug("Swift InputStream {}: open stream at pos {}", this.hashCode(), mPos);
 
     if (mStream != null) { // stream is already open
-      LOG.info("SWIFTPERF {} stream is already open", this.hashCode());
+      LOG.debug("Swift InputStream {}: stream is already open", this.hashCode());
       return;
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
@@ -124,20 +124,20 @@ public class SwiftInputStream extends InputStream {
     long endPos = mPos + blockSize;
     downloadInstructions.setRange(new SwiftRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
-    LOG.info(">>SWIFTPERF {} stream open till end pos {}", this.hashCode(), endPos);
+    LOG.debug("Swift InputStream {}: stream open till end pos {}", this.hashCode(), endPos);
   }
 
   /**
    * Closes the current stream.
    */
   private void closeStream() throws IOException {
-    LOG.info("<<SWIFTPERF {} closing stream with pos {}", this.hashCode(), mPos);
+    LOG.debug("Swift InputStream {}: closing stream with pos {}", this.hashCode(), mPos);
     if (mStream == null) {
-      LOG.info("SWIFTPERF {} stream already closed", this.hashCode());
+      LOG.debug("Swift InputStream {}: stream already closed", this.hashCode());
       return;
     }
     mStream.close();
     mStream = null;
-    LOG.info(">>SWIFTPERF {} stream closed", this.hashCode());
+    LOG.debug("Swift InputStream {}: stream closed", this.hashCode());
   }
 }
