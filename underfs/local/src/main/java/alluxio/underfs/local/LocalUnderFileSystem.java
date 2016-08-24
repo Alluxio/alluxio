@@ -91,6 +91,9 @@ public class LocalUnderFileSystem extends UnderFileSystem {
     boolean success = true;
     if (recursive && file.isDirectory()) {
       String[] files = file.list();
+
+      // File.list() will return null if an I/O error occurs.
+      // e.g.: Reading an non-readable directory
       if (files != null) {
         for (String child : files) {
           success = success && delete(PathUtils.concatPath(path, child), true);
