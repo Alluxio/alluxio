@@ -87,13 +87,15 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
    */
   private void copyFromLocalDir(File srcDir, AlluxioURI dstPath)
       throws AlluxioException, IOException {
-    if (!srcDir.canRead()) {
-      throw new IOException(srcDir + " (Permission denied)");
-    }
     boolean dstExistedBefore = mFileSystem.exists(dstPath);
     createDstDir(dstPath);
     List<String> errorMessages = new ArrayList<>();
     File[] fileList = srcDir.listFiles();
+    if (fileList == null) {
+      String errMsg = String.format("copyFromLocal %s %s failed!",
+              srcDir.toString(), dstPath.toString());
+      throw new IOException(errMsg);
+    }
     int misFiles = 0;
     for (File srcFile : fileList) {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
@@ -238,12 +240,14 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
         closer.close();
       }
     } else {
-      if (!src.canRead()) {
-        throw new IOException(src + " (Permission denied)");
-      }
       mFileSystem.createDirectory(dstPath);
       List<String> errorMessages = new ArrayList<>();
       File[] fileList = src.listFiles();
+      if (fileList == null) {
+        String errMsg = String.format("copyFromLocal %s %s partially failed!",
+                src.toString(), dstPath.toString());
+        throw new IOException(errMsg);
+      }
       int misFiles = 0;
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
