@@ -35,7 +35,8 @@ public final class RoundRobinPolicyTest {
   public void getWorker() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
-        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, 0));
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB,
+        2 * (long) Constants.GB));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker2")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 2 * (long) Constants.GB, 0));
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker3")
@@ -45,6 +46,12 @@ public final class RoundRobinPolicyTest {
     Assert.assertNotEquals(
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
+
+    for (int i = 0; i < 10; i++) {
+      // Make sure we don't get worker1 as it doesn't have enough capacity.
+      Assert.assertNotEquals("worker1",
+          policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
+    }
   }
 
   @Test
