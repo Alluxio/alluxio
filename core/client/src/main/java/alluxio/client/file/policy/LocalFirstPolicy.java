@@ -42,7 +42,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
     // first try the local host
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
-          && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+          && workerInfo.getAvailableCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
     }
@@ -50,7 +50,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
     // otherwise randomly pick a worker that has enough availability
     Collections.shuffle(workerInfoList);
     for (BlockWorkerInfo workerInfo : workerInfoList) {
-      if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
+      if (workerInfo.getAvailableCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
     }

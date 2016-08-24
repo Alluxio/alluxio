@@ -40,8 +40,8 @@ public final class MostAvailableFirstPolicy implements FileWriteLocationPolicy {
     long mostAvailableBytes = -1;
     WorkerNetAddress result = null;
     for (BlockWorkerInfo workerInfo : inputList) {
-      if (workerInfo.getCapacityBytes() - workerInfo.getUsedBytes() > mostAvailableBytes) {
-        mostAvailableBytes = workerInfo.getCapacityBytes() - workerInfo.getUsedBytes();
+      if (workerInfo.getAvailableCapacityBytes() > mostAvailableBytes) {
+        mostAvailableBytes = workerInfo.getAvailableCapacityBytes();
         result = workerInfo.getNetAddress();
       }
     }

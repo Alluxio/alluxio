@@ -61,7 +61,7 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
       mIndex = (mIndex + 1) % mWorkerInfoList.size();
-      if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+      if (workerInfo != null && workerInfo.getAvailableCapacityBytes() >= blockSizeBytes) {
         return candidate;
       }
     }
