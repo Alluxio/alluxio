@@ -14,7 +14,7 @@ package alluxio.underfs.swift;
 import org.javaswift.joss.headers.object.range.AbstractRange;
 
 /**
- * A range of a Swift object. This class is a substitute for JOSS MidPartRange which takes 'int'
+ * A range in a Swift object. This class is a substitute for JOSS MidPartRange which takes 'int'
  * parameters that might overflow for large objects.
  */
 public class SwiftRange extends AbstractRange {
