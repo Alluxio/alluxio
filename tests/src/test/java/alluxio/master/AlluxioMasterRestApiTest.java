@@ -44,33 +44,33 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getCapacityBytesTest() throws Exception {
+  public void getCapacityBytes() throws Exception {
     long memorySize = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_CAPACITY_BYTES),
         NO_PARAMS, HttpMethod.GET, memorySize).run();
   }
 
   @Test
-  public void getUsedBytesTest() throws Exception {
+  public void getUsedBytes() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_USED_BYTES),
         NO_PARAMS, HttpMethod.GET, 0).run();
   }
 
   @Test
-  public void getFreeBytesTest() throws Exception {
+  public void getFreeBytes() throws Exception {
     long freeBytes = Configuration.getBytes(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_FREE_BYTES),
         NO_PARAMS, HttpMethod.GET, freeBytes).run();
   }
 
   @Test
-  public void getWorkerCountTest() throws Exception {
+  public void getWorkerCount() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_WORKER_COUNT),
         NO_PARAMS, HttpMethod.GET, 1).run();
   }
 
   @Test
-  public void getWorkerInfoListTest() throws Exception {
+  public void getWorkerInfoList() throws Exception {
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_WORKER_INFO_LIST), NO_PARAMS,
         HttpMethod.GET, null).call();
@@ -83,7 +83,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getConfigurationTest() throws Exception {
+  public void getConfiguration() throws Exception {
     Configuration.set(PropertyKey.METRICS_CONF_FILE, "abc");
     String result = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_CONFIGURATION), NO_PARAMS, HttpMethod.GET,
@@ -95,7 +95,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getRpcAddressTest() throws Exception {
+  public void getRpcAddress() throws Exception {
     // Don't check the exact value, which could differ between systems.
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_RPC_ADDRESS),
@@ -105,19 +105,19 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getMetricsTest() throws Exception {
+  public void getMetrics() throws Exception {
     String result =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_METRICS),
             NO_PARAMS, HttpMethod.GET, null).call();
     @SuppressWarnings("unchecked")
-    Map<String, Long> metrics = (Map<String, Long>) new ObjectMapper().readValue(result,
+    Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
     Assert.assertEquals(Long.valueOf(0), metrics.get("master.CompleteFileOps"));
   }
 
   @Test
-  public void getStartTimeMsTest() throws Exception {
+  public void getStartTimeMs() throws Exception {
     String startTime = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_START_TIME_MS), NO_PARAMS, HttpMethod.GET,
         null).call();
@@ -125,7 +125,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUptimeMsTest() throws Exception {
+  public void getUptimeMs() throws Exception {
     String uptime =
         new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UPTIME_MS),
             NO_PARAMS, HttpMethod.GET, null).call();
@@ -134,13 +134,13 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getVersionTest() throws Exception {
+  public void getVersion() throws Exception {
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_VERSION),
         NO_PARAMS, HttpMethod.GET, RuntimeConstants.VERSION).run();
   }
 
   @Test
-  public void getUfsCapacityBytesTest() throws Exception {
+  public void getUfsCapacityBytes() throws Exception {
     String ufsCapacity = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_CAPACITY_BYTES), NO_PARAMS,
         HttpMethod.GET, null).call();
@@ -149,14 +149,14 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUfsUsedBytesTest() throws Exception {
+  public void getUfsUsedBytes() throws Exception {
     // Don't check the exact value, which could differ between systems.
     new TestCase(mHostname, mPort, getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_USED_BYTES),
         NO_PARAMS, HttpMethod.GET, null).call();
   }
 
   @Test
-  public void getUfsFreeBytesTest() throws Exception {
+  public void getUfsFreeBytes() throws Exception {
     String ufsFreeBytes = new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_UFS_FREE_BYTES), NO_PARAMS, HttpMethod.GET,
         null).call();
@@ -165,7 +165,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getCapacityBytesOnTiersTest() throws Exception {
+  public void getCapacityBytesOnTiers() throws Exception {
     Long memorySize = Configuration.getLong(PropertyKey.WORKER_MEMORY_SIZE);
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_CAPACITY_BYTES_ON_TIERS), NO_PARAMS,
@@ -173,7 +173,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void getUsedBytesOnTiersTest() throws Exception {
+  public void getUsedBytesOnTiers() throws Exception {
     new TestCase(mHostname, mPort,
         getEndpoint(AlluxioMasterRestServiceHandler.GET_USED_BYTES_ON_TIERS), NO_PARAMS,
         HttpMethod.GET, ImmutableMap.of("MEM", 0)).run();

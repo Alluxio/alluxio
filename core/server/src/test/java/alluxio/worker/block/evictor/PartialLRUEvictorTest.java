@@ -48,7 +48,7 @@ public class PartialLRUEvictorTest extends EvictorTestBase {
    * Tests that the eviction in the bottom tier works.
    */
   @Test
-  public void evictInBottomTierTest() throws Exception {
+  public void evictInBottomTier() throws Exception {
     int bottomTierLevel =
         TieredBlockStoreTestUtils.TIER_ORDINAL[TieredBlockStoreTestUtils.TIER_ORDINAL.length - 1];
     // capacity increases with index

@@ -82,7 +82,7 @@ public class WebServerIntegrationTest {
    * Tests whether the master and worker web homepage is up.
    */
   @Test
-  public void serverUpTest() throws Exception {
+  public void serverUp() throws Exception {
     for (Entry<ServiceType, String> entry : PAGES.entries()) {
       verifyWebService(entry.getKey(), entry.getValue());
     }

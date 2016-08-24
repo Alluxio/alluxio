@@ -209,7 +209,7 @@ public class NetworkAddressUtilsTest {
    * Tests the {@link NetworkAddressUtils#replaceHostName(AlluxioURI)} method.
    */
   @Test
-  public void replaceHostNameTest() throws UnknownHostException {
+  public void replaceHostName() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(AlluxioURI.EMPTY_URI),
         AlluxioURI.EMPTY_URI);
     Assert.assertEquals(NetworkAddressUtils.replaceHostName(null), null);
@@ -229,7 +229,7 @@ public class NetworkAddressUtilsTest {
    * Tests the {@link NetworkAddressUtils#resolveHostName(String)} method.
    */
   @Test
-  public void resolveHostNameTest() throws UnknownHostException {
+  public void resolveHostName() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(""), null);
     Assert.assertEquals(NetworkAddressUtils.resolveHostName(null), null);
     Assert.assertEquals(NetworkAddressUtils.resolveHostName("localhost"), "localhost");
@@ -240,7 +240,7 @@ public class NetworkAddressUtilsTest {
    * {@link NetworkAddressUtils#getFqdnHost(WorkerNetAddress)} methods.
    */
   @Test
-  public void getFqdnHostTest() throws UnknownHostException {
+  public void getFqdnHost() throws UnknownHostException {
     Assert.assertEquals(NetworkAddressUtils.getFqdnHost(new InetSocketAddress("localhost", 0)),
         "localhost");
     Assert.assertEquals(

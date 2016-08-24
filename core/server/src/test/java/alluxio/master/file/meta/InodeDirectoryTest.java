@@ -32,7 +32,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#addChild(Inode)} method.
    */
   @Test
-  public void addChildrenTest() {
+  public void addChildren() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     InodeFile inodeFile1 = createInodeFile(2);
     InodeFile inodeFile2 = createInodeFile(3);
@@ -47,7 +47,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * added.
    */
   @Test
-  public void batchRemoveChildTest() {
+  public void batchRemoveChild() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     InodeFile inodeFile1 = createInodeFile(1);
     InodeFile inodeFile2 = createInodeFile(2);
@@ -78,7 +78,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#getId()} method.
    */
   @Test
-  public void getIdTest() {
+  public void getId() {
     Assert.assertEquals(1, createInodeDirectory().getId());
   }
 
@@ -86,7 +86,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#isDirectory()} method.
    */
   @Test
-  public void isDirectoryTest() {
+  public void isDirectory() {
     Assert.assertTrue(createInodeDirectory().isDirectory());
   }
 
@@ -94,7 +94,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#isFile()} method.
    */
   @Test
-  public void isFileTest() {
+  public void isFile() {
     Assert.assertFalse(createInodeDirectory().isFile());
   }
 
@@ -102,7 +102,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#removeChild(Inode)} method.
    */
   @Test
-  public void removeChildTest() {
+  public void removeChild() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
@@ -115,7 +115,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#removeChild(Inode)} method with a non-existent child.
    */
   @Test
-  public void removeNonExistentChildTest() {
+  public void removeNonExistentChild() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     InodeFile inodeFile1 = createInodeFile(2);
     InodeFile inodeFile2 = createInodeFile(3);
@@ -129,7 +129,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#setDeleted(boolean)} method.
    */
   @Test
-  public void deleteInodeTest() {
+  public void deleteInode() {
     InodeDirectory inode1 = createInodeDirectory();
     Assert.assertFalse(inode1.isDeleted());
     inode1.setDeleted(true);
@@ -143,7 +143,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * same id.
    */
   @Test
-  public void sameIdChildrenTest() {
+  public void sameIdChildren() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     InodeFile inodeFile1 = createInodeFile(1);
     inodeDirectory.addChild(inodeFile1);
@@ -156,7 +156,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#setLastModificationTimeMs(long)} method.
    */
   @Test
-  public void setLastModificationTimeTest() {
+  public void setLastModificationTime() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     // This is not perfect, since time could have passed between creation and this call.
     long createTimeMs = System.currentTimeMillis();
@@ -171,7 +171,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#setName(String)} method.
    */
   @Test
-  public void setNameTest() {
+  public void setName() {
     InodeDirectory inode1 = createInodeDirectory();
     Assert.assertEquals("test1", inode1.getName());
     inode1.setName("test2");
@@ -182,7 +182,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#setParentId(long)} method.
    */
   @Test
-  public void setParentIdTest() {
+  public void setParentId() {
     InodeDirectory inode1 = createInodeDirectory();
     Assert.assertEquals(0, inode1.getParentId());
     inode1.setParentId(2);
@@ -193,7 +193,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#getChild(String)} methods.
    */
   @Test
-  public void getChildTest() {
+  public void getChild() {
     // large number of small files
     InodeDirectory inodeDirectory = createInodeDirectory();
     int nFiles = (int) 1E5;
@@ -219,7 +219,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#getMode()} method.
    */
   @Test
-  public void permissionStatusTest() {
+  public void permissionStatus() {
     InodeDirectory inode2 = createInodeDirectory();
     Assert.assertEquals(TEST_USER_NAME, inode2.getOwner());
     Assert.assertEquals(TEST_GROUP_NAME, inode2.getGroup());
@@ -231,7 +231,7 @@ public final class InodeDirectoryTest extends AbstractInodeTest {
    * Tests the {@link InodeDirectory#generateClientFileInfo(String)} method.
    */
   @Test
-  public void generateClientFileInfoTest() {
+  public void generateClientFileInfo() {
     InodeDirectory inodeDirectory = createInodeDirectory();
     String path = "/test/path";
     FileInfo info = inodeDirectory.generateClientFileInfo(path);

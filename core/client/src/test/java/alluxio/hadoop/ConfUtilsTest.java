@@ -30,7 +30,7 @@ public final class ConfUtilsTest {
    * Test for the {@link ConfUtils#mergeHadoopConfiguration} method for an empty configuration.
    */
   @Test
-  public void mergeEmptyHadoopConfigurationTest() {
+  public void mergeEmptyHadoopConfiguration() {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
 
@@ -44,7 +44,7 @@ public final class ConfUtilsTest {
    * Test for the {@link ConfUtils#mergeHadoopConfiguration} method.
    */
   @Test
-  public void mergeHadoopConfigurationTest() {
+  public void mergeHadoopConfiguration() {
     Configuration.defaultInit();
     org.apache.hadoop.conf.Configuration hadoopConfig = new org.apache.hadoop.conf.Configuration();
     hadoopConfig.set(PropertyKey.S3N_ACCESS_KEY.toString(), TEST_S3_ACCCES_KEY);

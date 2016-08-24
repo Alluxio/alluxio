@@ -26,7 +26,7 @@ import java.util.Random;
 public class FileBlockInfoTest {
 
   @Test
-  public void jsonTest() throws Exception {
+  public void json() throws Exception {
     FileBlockInfo fileBlockInfo = createRandom();
     ObjectMapper mapper = new ObjectMapper();
     FileBlockInfo other =
@@ -35,7 +35,7 @@ public class FileBlockInfoTest {
   }
 
   @Test
-  public void thriftTest() {
+  public void thrift() {
     FileBlockInfo fileBlockInfo = createRandom();
     FileBlockInfo other = ThriftUtils.fromThrift(ThriftUtils.toThrift(fileBlockInfo));
     checkEquality(fileBlockInfo, other);

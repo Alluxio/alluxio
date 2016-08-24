@@ -42,7 +42,7 @@ public class InStreamOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     ReadType readType = ReadType.NO_CACHE;
     FileWriteLocationPolicy policy = new RoundRobinPolicy();
 
@@ -62,7 +62,7 @@ public class InStreamOptionsTest {
    * Tests that building a {@link InStreamOptions} with a modified configuration works.
    */
   @Test
-  public void modifiedConfTest() {
+  public void modifiedConf() {
     Configuration.set(PropertyKey.USER_FILE_READ_TYPE_DEFAULT, ReadType.NO_CACHE.toString());
     try {
       InStreamOptions options = InStreamOptions.defaults();

@@ -72,11 +72,7 @@ public final class FileSystemMasterWorkerServiceHandler
       throws AlluxioTException, TException {
     try {
       return mFileSystemMaster.workerHeartbeat(workerId, persistedFiles);
-    } catch (FileDoesNotExistException e) {
-      throw e.toThrift();
-    } catch (InvalidPathException e) {
-      throw e.toThrift();
-    } catch (AccessControlException e) {
+    } catch (FileDoesNotExistException | InvalidPathException | AccessControlException e) {
       throw e.toThrift();
     }
   }

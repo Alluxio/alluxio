@@ -55,7 +55,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * Tests {@link ByteBufferKeyValuePartitionReader#get} can retrieve values stored before.
    */
   @Test
-  public void getTest() throws Exception {
+  public void get() throws Exception {
     Assert.assertArrayEquals(VALUE1, mReader.get(KEY1));
     Assert.assertArrayEquals(VALUE2, mReader.get(KEY2));
     Assert.assertNull(mReader.get("NoSuchKey".getBytes()));
@@ -67,7 +67,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * Tests {@link ByteBufferKeyValuePartitionReader#close} works.
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mReader.close();
     // Expect close to be no-op
     mReader.close();
@@ -78,7 +78,7 @@ public final class ByteBufferKeyValuePartitionReaderTest {
    * {@link ByteBufferKeyValuePartitionReader#close}, expect an exception thrown.
    */
   @Test
-  public void getAfterCloseTest() throws Exception {
+  public void getAfterClose() throws Exception {
     mReader.close();
     mThrown.expect(IllegalStateException.class);
     mReader.get(KEY1);

@@ -33,6 +33,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Matchers;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -101,6 +102,28 @@ public final class ContainerAllocatorTest {
     mThrown.expect(RuntimeException.class);
     mThrown.expectMessage(
         ExceptionMessage.YARN_NOT_ENOUGH_HOSTS.getMessage(numContainers, CONTAINER_NAME, numHosts));
+    containerAllocator.allocateContainers();
+  }
+
+  @Test(timeout = 1000)
+  public void allocateMasterInAnyHost() throws Exception {
+    ContainerAllocator containerAllocator = new ContainerAllocator(CONTAINER_NAME, 1,
+        1, mResource, mYarnClient, mRMClient, "any");
+    doAnswer(allocateFirstHostAnswer(containerAllocator))
+        .when(mRMClient).addContainerRequest(Matchers.argThat(
+          new ArgumentMatcher<ContainerRequest>() {
+            @Override
+            public boolean matches(Object o) {
+              ContainerRequest request = (ContainerRequest) o;
+              if (request.getRelaxLocality() == true
+                  && request.getNodes().size() == 1
+                  && request.getNodes().get(0).equals("any")) {
+                return true;
+              }
+              return false;
+            }
+          }
+        ));
     containerAllocator.allocateContainers();
   }
 

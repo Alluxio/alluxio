@@ -239,6 +239,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean exists(String path) throws IOException {
+    LOG.debug("Check if {} exists", path);
     // TODO(adit): remove special treatment of the _temporary suffix
     // To get better performance Swift driver does not create a _temporary folder.
     // This optimization should be hidden from Spark, therefore exists _temporary will return true.
@@ -262,6 +263,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    LOG.debug("Get block size for {}", path);
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 
@@ -292,6 +294,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public long getModificationTimeMs(String path) throws IOException {
+    LOG.debug("Get modification time for {}", path);
     return getObject(path).getLastModifiedAsDate().getTime();
   }
 

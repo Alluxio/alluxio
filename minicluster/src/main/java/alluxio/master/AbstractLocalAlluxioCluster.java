@@ -239,8 +239,8 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
     Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
-    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
-    Configuration.set(PropertyKey.WORKER_WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
+    Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
     Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_WORKER_THREADS, Integer.toString(2));
 
     Configuration.set(PropertyKey.WORKER_BIND_HOST, mHostname);
@@ -301,6 +301,8 @@ public abstract class AbstractLocalAlluxioCluster {
           mWorker.start();
 
         } catch (Exception e) {
+          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+          LOG.error("Start worker error", e);
           throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
         }
       }
@@ -339,8 +341,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Sets alluxio home.
-   *
-   * @throws IOException when the operation fails
    */
   protected void setAlluxioHome() {
     mHome = AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();

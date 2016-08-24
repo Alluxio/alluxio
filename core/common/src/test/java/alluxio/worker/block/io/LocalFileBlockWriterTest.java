@@ -55,7 +55,7 @@ public class LocalFileBlockWriterTest {
    * Test for the {@link LocalFileBlockWriter#getChannel()} method.
    */
   @Test
-  public void getChannelTest() throws Exception {
+  public void getChannel() throws Exception {
     WritableByteChannel channel = mWriter.getChannel();
     Assert.assertNotNull(channel);
 
@@ -69,7 +69,7 @@ public class LocalFileBlockWriterTest {
    * Test for the {@link LocalFileBlockWriter#append(ByteBuffer)} method.
    */
   @Test
-  public void appendTest() throws Exception {
+  public void append() throws Exception {
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
     Assert.assertEquals(TEST_BLOCK_SIZE, mWriter.append(buf));
@@ -84,7 +84,7 @@ public class LocalFileBlockWriterTest {
    * closing it.
    */
   @Test
-  public void closeTest() throws Exception {
+  public void close() throws Exception {
     mThrown.expect(ClosedChannelException.class);
 
     ByteBuffer buf = BufferUtils.getIncreasingByteBuffer((int) TEST_BLOCK_SIZE);

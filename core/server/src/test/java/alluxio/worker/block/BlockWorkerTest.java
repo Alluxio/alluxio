@@ -109,7 +109,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#abortBlock(long, long)} method.
    */
   @Test
-  public void abortBlockTest() throws Exception {
+  public void abortBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.abortBlock(sessionId, blockId);
@@ -120,7 +120,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#accessBlock(long, long)} method.
    */
   @Test
-  public void accessBlockTest() throws Exception {
+  public void accessBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.accessBlock(sessionId, blockId);
@@ -131,7 +131,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#commitBlock(long, long)} method.
    */
   @Test
-  public void commitBlockTest() throws Exception {
+  public void commitBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long length = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -165,7 +165,7 @@ public class BlockWorkerTest {
    * thrown by the block store.
    */
   @Test
-  public void commitBlockOnRetryTest() throws Exception {
+  public void commitBlockOnRetry() throws Exception {
     long blockId = mRandom.nextLong();
     long length = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -195,7 +195,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#createBlock(long, long, String, long)} method.
    */
   @Test
-  public void createBlockTest() throws Exception {
+  public void createBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long initialBytes = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -217,7 +217,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#createBlockRemote(long, long, String, long)} method.
    */
   @Test
-  public void createBlockRemoteTest() throws Exception {
+  public void createBlockRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long initialBytes = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
@@ -238,7 +238,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#freeSpace(long, long, String)} method.
    */
   @Test
-  public void freeSpaceTest() throws Exception {
+  public void freeSpace() throws Exception {
     long sessionId = mRandom.nextLong();
     long availableBytes = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -251,7 +251,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getTempBlockWriterRemote(long, long)} method.
    */
   @Test
-  public void getTempBlockWriterRemoteTest() throws Exception {
+  public void getTempBlockWriterRemote() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.getTempBlockWriterRemote(sessionId, blockId);
@@ -262,7 +262,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getReport()} method.
    */
   @Test
-  public void getReportTest() {
+  public void getReport() {
     BlockHeartbeatReport report = mBlockWorker.getReport();
     assertEquals(0, report.getAddedBlocks().size());
     assertEquals(0, report.getRemovedBlocks().size());
@@ -273,7 +273,7 @@ public class BlockWorkerTest {
    *
    */
   @Test
-  public void getStoreMetaTest() {
+  public void getStoreMeta() {
     mBlockWorker.getStoreMeta();
     mBlockWorker.getStoreMetaFull();
     verify(mBlockStore).getBlockStoreMeta();
@@ -284,7 +284,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getVolatileBlockMeta(long)} method.
    */
   @Test
-  public void getVolatileBlockMetaTest() throws Exception {
+  public void getVolatileBlockMeta() throws Exception {
     long blockId = mRandom.nextLong();
     mBlockWorker.getVolatileBlockMeta(blockId);
     verify(mBlockStore).getVolatileBlockMeta(blockId);
@@ -294,7 +294,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getBlockMeta(long, long, long)} method.
    */
   @Test
-  public void getBlockMetaTest() throws Exception {
+  public void getBlockMeta() throws Exception {
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -306,7 +306,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#hasBlockMeta(long)} method.
    */
   @Test
-  public void hasBlockMetaTest() {
+  public void hasBlockMeta() {
     long blockId = mRandom.nextLong();
     mBlockWorker.hasBlockMeta(blockId);
     verify(mBlockStore).hasBlockMeta(blockId);
@@ -316,7 +316,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#lockBlock(long, long)} method.
    */
   @Test
-  public void lockBlockTest() throws Exception {
+  public void lockBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.lockBlock(sessionId, blockId);
@@ -327,7 +327,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#moveBlock(long, long, String)} method.
    */
   @Test
-  public void moveBlockTest() throws Exception {
+  public void moveBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -347,7 +347,7 @@ public class BlockWorkerTest {
    * already at the destination location.
    */
   @Test
-  public void moveBlockNoopTest() throws Exception {
+  public void moveBlockNoop() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     String tierAlias = "MEM";
@@ -366,7 +366,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#readBlock(long, long, long)} method.
    */
   @Test
-  public void readBlockTest() throws Exception {
+  public void readBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long lockId = mRandom.nextLong();
@@ -399,7 +399,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#removeBlock(long, long)} method.
    */
   @Test
-  public void removeBlockTest() throws Exception {
+  public void removeBlock() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     mBlockWorker.removeBlock(sessionId, blockId);
@@ -410,7 +410,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#requestSpace(long, long, long)} method.
    */
   @Test
-  public void requestSpaceTest() throws Exception {
+  public void requestSpace() throws Exception {
     long blockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long additionalBytes = mRandom.nextLong();
@@ -423,7 +423,7 @@ public class BlockWorkerTest {
    * {@link BlockWorker#unlockBlock(long, long)} method.
    */
   @Test
-  public void unlockBlockTest() throws Exception {
+  public void unlockBlock() throws Exception {
     long lockId = mRandom.nextLong();
     long sessionId = mRandom.nextLong();
     long blockId = mRandom.nextLong();
@@ -436,14 +436,14 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long, List<long>)} method.
+   * Tests the {@link BlockWorker#sessionHeartbeat(long, List)}  method.
    */
   @Test
-  public void sessionHeartbeatTest() {
+  public void sessionHeartbeat() {
     long sessionId = mRandom.nextLong();
     long metricIncrease = 3;
     List<Long> metrics = Arrays.asList(new Long[Constants.CLIENT_METRICS_SIZE]);
-    Collections.fill(metrics, Long.valueOf(metricIncrease));
+    Collections.fill(metrics, metricIncrease);
     metrics.set(0, Constants.CLIENT_METRICS_VERSION);
 
     mBlockWorker.sessionHeartbeat(sessionId, metrics);
@@ -454,10 +454,10 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#updatePinList(Set<long>)} method.
+   * Tests the {@link BlockWorker#updatePinList(Set)} method.
    */
   @Test
-  public void updatePinListTest() {
+  public void updatePinList() {
     Set<Long> pinnedInodes = new HashSet<>();
     pinnedInodes.add(mRandom.nextLong());
 
@@ -469,7 +469,7 @@ public class BlockWorkerTest {
    * Tests the {@link BlockWorker#getFileInfo(long)} method.
    */
   @Test
-  public void getFileInfoTest() throws Exception {
+  public void getFileInfo() throws Exception {
     long fileId = mRandom.nextLong();
 
     mBlockWorker.getFileInfo(fileId);

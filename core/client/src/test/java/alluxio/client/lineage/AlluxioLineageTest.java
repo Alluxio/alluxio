@@ -59,7 +59,7 @@ public final class AlluxioLineageTest {
   }
 
   @Test
-  public void createLineageTest() throws Exception {
+  public void createLineage() throws Exception {
     List<AlluxioURI> inputFiles = Lists.newArrayList(new AlluxioURI("input"));
     List<AlluxioURI> outputFiles = Lists.newArrayList(new AlluxioURI("output"));
     CommandLineJob job = new CommandLineJob("cmd", new JobConf("out"));
@@ -71,7 +71,7 @@ public final class AlluxioLineageTest {
   }
 
   @Test
-  public void deleteLineageTest() throws Exception {
+  public void deleteLineage() throws Exception {
     DeleteLineageOptions options = DeleteLineageOptions.defaults().setCascade(true);
     mAlluxioLineage.deleteLineage(0, options);
     Mockito.verify(mLineageMasterClient).deleteLineage(0, true);

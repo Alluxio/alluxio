@@ -59,7 +59,7 @@ public final class RecomputePlannerTest {
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost file.
    */
   @Test
-  public void oneLineageTest() throws Exception {
+  public void oneLineage() throws Exception {
     long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
@@ -74,7 +74,7 @@ public final class RecomputePlannerTest {
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for two lost files.
    */
   @Test
-  public void twoLostLineagesTest() throws Exception {
+  public void twoLostLineages() throws Exception {
     long l1 = mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
@@ -92,7 +92,7 @@ public final class RecomputePlannerTest {
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one chechpointed lineage.
    */
   @Test
-  public void oneCheckointedLineageTest() throws Exception {
+  public void oneCheckointedLineage() throws Exception {
     mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))
         .thenReturn(PersistenceState.PERSISTED);
@@ -105,7 +105,7 @@ public final class RecomputePlannerTest {
    * Tests the {@link RecomputePlan#getLineageToRecompute()} method for one lost lineage.
    */
   @Test
-  public void oneLostLineageTest() throws Exception {
+  public void oneLostLineage() throws Exception {
     mLineageStore.createLineage(new ArrayList<Long>(), Lists.newArrayList(1L), mJob);
     long l2 = mLineageStore.createLineage(Lists.newArrayList(1L), Lists.newArrayList(2L), mJob);
     Mockito.when(mFileSystemMaster.getPersistenceState(1L))

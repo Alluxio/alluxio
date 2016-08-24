@@ -26,7 +26,7 @@ public class CompleteFileOptionsTest {
    * Tests the {@link CompleteFileOptions#defaults()} method.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
@@ -36,7 +36,7 @@ public class CompleteFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     Random random = new Random();
     long ufsLength = random.nextLong();
     long operationTimeMs = random.nextLong();

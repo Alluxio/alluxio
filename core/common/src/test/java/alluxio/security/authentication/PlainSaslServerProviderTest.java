@@ -44,7 +44,7 @@ public final class PlainSaslServerProviderTest {
    * work with the {@link PlainSaslServerProvider#MECHANISM} successfully.
    */
   @Test
-  public void createPlainSaslServerTest() throws Exception {
+  public void createPlainSaslServer() throws Exception {
     // create plainSaslServer
     SaslServer server = Sasl.createSaslServer(PlainSaslServerProvider.MECHANISM, "", "",
         new HashMap<String, String>(), null);
@@ -57,7 +57,7 @@ public final class PlainSaslServerProviderTest {
    * be null when the provider is not plain.
    */
   @Test
-  public void createNoSupportSaslServerTest() throws Exception {
+  public void createNoSupportSaslServer() throws Exception {
     // create a SaslServer which SecurityProvider has not supported
     SaslServer server = Sasl.createSaslServer("NO_PLAIN", "", "",
         new HashMap<String, String>(), null);

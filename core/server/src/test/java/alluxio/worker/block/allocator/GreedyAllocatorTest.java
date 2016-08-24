@@ -26,7 +26,7 @@ public class GreedyAllocatorTest extends AllocatorTestBase {
    * Tests that blocks are allocated in the first storage directory which has enough free space.
    */
   @Test
-  public void allocateBlockTest() throws Exception {
+  public void allocateBlock() throws Exception {
     Configuration.set(PropertyKey.WORKER_ALLOCATOR_CLASS, GreedyAllocator.class.getName());
     mAllocator = Allocator.Factory.create(getManagerView());
     //

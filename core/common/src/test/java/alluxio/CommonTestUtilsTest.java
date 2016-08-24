@@ -142,7 +142,7 @@ public final class CommonTestUtilsTest {
   }
 
   @Test
-  public void testEqualsTest() throws Exception {
+  public void testEquals() throws Exception {
     CommonTestUtils.testEquals(Basic.class);
     CommonTestUtils.testEquals(ManyFields.class);
 

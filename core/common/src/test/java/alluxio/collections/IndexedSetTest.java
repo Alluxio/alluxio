@@ -80,7 +80,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#contains(IndexDefinition, Object) } method.
    */
   @Test
-  public void UniqueContainsTest() {
+  public void UniqueContains() {
     for (int i = 0; i < 3; i++) {
       Assert.assertTrue(mSet.contains(mNonUniqueIntIndex, i));
     }
@@ -91,7 +91,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#contains(IndexDefinition, Object)} method.
    */
   @Test
-  public void NonUniqueContainsTest() {
+  public void NonUniqueContains() {
     for (long l = 0; l < 9; l++) {
       Assert.assertTrue(mSet.contains(mUniqueLongIndex, l));
     }
@@ -102,7 +102,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#getByField(IndexDefinition, Object)} method.
    */
   @Test
-  public void nonUniqueGetTest() {
+  public void nonUniqueGet() {
     for (int i = 0; i < 3; i++) {
       Set<Pair> set = mSet.getByField(mNonUniqueIntIndex, i);
       Assert.assertEquals(3, set.size());
@@ -121,7 +121,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#getByField(IndexDefinition, Object)} method.
    */
   @Test
-  public void uniqueGetTest() {
+  public void uniqueGet() {
     for (int i = 0; i < 9; i++) {
       Set<Pair> set = mSet.getByField(mUniqueLongIndex, i);
       Assert.assertEquals(0, set.size()); // i is integer, must be in the same type
@@ -137,7 +137,7 @@ public class IndexedSetTest {
    * remove the data.
    */
   @Test
-  public void removeTest() {
+  public void remove() {
     Pair toRemove = mSet.getFirstByField(mUniqueLongIndex, 1L);
     Assert.assertEquals(1, mSet.getByField(mUniqueLongIndex, toRemove.longValue()).size());
     Assert.assertEquals(9, mSet.size());
@@ -178,7 +178,7 @@ public class IndexedSetTest {
    * non-existent item.
    */
   @Test
-  public void removeNonExistTest() {
+  public void removeNonExist() {
     Assert.assertFalse(mSet.remove(new Pair(-1, -1)));
     Assert.assertEquals(0, mSet.removeByField(mNonUniqueIntIndex, -1));
     Assert.assertEquals(0, mSet.removeByField(mUniqueLongIndex, -1L));
@@ -188,7 +188,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#removeByField(IndexDefinition, Object)} method.
    */
   @Test
-  public void nonUniqueRemoveByFieldTest() {
+  public void nonUniqueRemoveByField() {
     Assert.assertEquals(3, mSet.getByField(mNonUniqueIntIndex, 1).size());
     Assert.assertEquals(9, mSet.size());
     Assert.assertEquals(3, mSet.removeByField(mNonUniqueIntIndex, 1));
@@ -205,7 +205,7 @@ public class IndexedSetTest {
    * Tests the {@link IndexedSet#removeByField(IndexDefinition, Object)} method.
    */
   @Test
-  public void uniqueRemoveByFieldTest() {
+  public void uniqueRemoveByField() {
     Assert.assertEquals(9, mSet.size());
     Assert.assertEquals(1, mSet.removeByField(mUniqueLongIndex, 1L));
     Assert.assertEquals(8, mSet.size());
@@ -221,7 +221,7 @@ public class IndexedSetTest {
    * Tests that the {@link IndexedSet} works correctly when adding the same object multiple times.
    */
   @Test
-  public void addTheSameObjectMultipleTimesTest() {
+  public void addTheSameObjectMultipleTimes() {
     final ExpectedException exception = ExpectedException.none();
     for (int i = 0; i < 3; i++) {
       Assert.assertEquals(9, mSet.size());
@@ -248,7 +248,7 @@ public class IndexedSetTest {
    * {@link IndexedSet#iterator()} method.
    */
   @Test
-  public void iteratorRemoveTest() {
+  public void iteratorRemove() {
     Iterator<Pair> it = mSet.iterator();
     Assert.assertTrue(it.hasNext());
     final Pair first = it.next();
@@ -272,7 +272,7 @@ public class IndexedSetTest {
    * {@link IndexedSet#iterator()} method.
    */
   @Test
-  public void iteratorForeachTest() {
+  public void iteratorForeach() {
     long removed = 0;
     Iterator<Pair> it = mSet.iterator();
     Assert.assertTrue(it.hasNext());
@@ -307,7 +307,7 @@ public class IndexedSetTest {
    * method.
    */
   @Test
-  public void iteratorNextTest() {
+  public void iteratorNext() {
     Iterator<Pair> it = mSet.iterator();
     int intSum = 0;
     int expectedIntSum = 0;
@@ -340,7 +340,7 @@ public class IndexedSetTest {
    * method.
    */
   @Test
-  public void iteratorhasNextTest() {
+  public void iteratorhasNext() {
     Iterator<Pair> it = mSet.iterator();
     long size = mSet.size();
     try {

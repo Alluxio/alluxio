@@ -39,7 +39,7 @@ public final class TestRecomputeExecutor {
    * @throws Exception if anything wrong happens
    */
   @Test
-  public void recomputeLauncherTest() throws Exception {
+  public void recomputeLauncher() throws Exception {
     long fileId = 5L;
     // mock planner
     RecomputePlanner planner = Mockito.mock(RecomputePlanner.class);

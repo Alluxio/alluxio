@@ -27,7 +27,7 @@ public class CompleteFileOptionsTest {
    * Tests that building a {@link CompleteFileOptions} with the defaults works.
    */
   @Test
-  public void defaultsTest() {
+  public void defaults() {
     CompleteFileOptions options = CompleteFileOptions.defaults();
 
     Assert.assertEquals(0, options.getUfsLength());
@@ -37,7 +37,7 @@ public class CompleteFileOptionsTest {
    * Tests getting and setting fields.
    */
   @Test
-  public void fieldsTest() {
+  public void fields() {
     long len = new Random().nextLong();
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);
@@ -48,7 +48,7 @@ public class CompleteFileOptionsTest {
    * Tests conversion to thrift representation.
    */
   @Test
-  public void toThriftTest() {
+  public void toThrift() {
     long len = new Random().nextLong();
     CompleteFileOptions options = CompleteFileOptions.defaults();
     options.setUfsLength(len);

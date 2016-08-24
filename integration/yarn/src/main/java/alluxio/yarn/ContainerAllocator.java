@@ -145,7 +145,7 @@ public final class ContainerAllocator {
     Priority priority;
     if (mPreferredHost != null) {
       hosts = new String[]{mPreferredHost};
-      relaxLocality = false;
+      relaxLocality = mPreferredHost.equals("any");
       priority = Priority.newInstance(100);
     } else {
       hosts = getPotentialWorkerHosts();
@@ -161,8 +161,9 @@ public final class ContainerAllocator {
     ContainerRequest containerRequest = new ContainerRequest(mResource, hosts,
         null /* any racks */, priority, relaxLocality);
     LOG.info(
-        "Making {} resource request(s) for Alluxio workers with cpu {} memory {}MB on hosts {}",
-        numContainersToRequest, mResource.getVirtualCores(), mResource.getMemory(), hosts);
+        "Making {} resource request(s) for Alluxio {}s with cpu {} memory {}MB on hosts {}",
+        numContainersToRequest, mContainerName,
+        mResource.getVirtualCores(), mResource.getMemory(), hosts);
     for (int i = 0; i < numContainersToRequest; i++) {
       mRMClient.addContainerRequest(containerRequest);
     }

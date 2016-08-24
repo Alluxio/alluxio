@@ -32,7 +32,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests copying a file to a new location.
    */
   @Test
-  public void copyFileNewTest() throws Exception {
+  public void copyFileNew() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", testDir + "/foobar4", "/copy");
     Assert.assertEquals(0, ret);
@@ -45,7 +45,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests copying a file to an existing directory.
    */
   @Test
-  public void copyFileExistingTest() throws Exception {
+  public void copyFileExisting() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", testDir + "/foobar4", testDir + "/bar");
     Assert.assertEquals(0, ret);
@@ -59,7 +59,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests recursively copying a directory to a new location.
    */
   @Test
-  public void copyDirNewTest() throws Exception {
+  public void copyDirNew() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", "-R", testDir, "/copy");
     Assert.assertEquals(0, ret);
@@ -85,7 +85,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests recursively copying a directory to an existing directory.
    */
   @Test
-  public void copyDirExistingTest() throws Exception {
+  public void copyDirExisting() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", "-R", testDir, testDir);
     Assert.assertEquals(0, ret);
@@ -111,7 +111,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests copying a list of files specified through a wildcard expression.
    */
   @Test
-  public void copyWildcardTest() throws Exception {
+  public void copyWildcard() throws Exception {
     String testDir = AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret = mFsShell.run("cp", testDir + "/*/foo*", "/copy");
     Assert.assertEquals(0, ret);
@@ -133,7 +133,7 @@ public final class CpCommandTest extends AbstractAlluxioShellTest {
    * Tests invalid input arguments.
    */
   @Test
-  public void copyInvalidArgsTest() throws Exception {
+  public void copyInvalidArgs() throws Exception {
     AlluxioShellUtilsTest.resetFileHierarchy(mFileSystem);
     int ret;
     // cannot copy a directory without -R
