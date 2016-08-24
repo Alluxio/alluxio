@@ -126,6 +126,22 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     mBucketMode = GCSUtils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
+  protected GCSUnderFileSystem(AlluxioURI uri,
+                            GoogleStorageService googleStorageService,
+                            String bucketName,
+                            String bucketPrefix,
+                            short bucketMode,
+                            String accountOwner,
+                            String accountOwnerId) {
+    super(uri);
+    mClient = googleStorageService;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
+    mBucketMode = bucketMode;
+    mAccountOwner = accountOwner;
+    mAccountOwnerId = accountOwnerId;
+  }
+
   @Override
   public UnderFSType getUnderFSType() {
     return UnderFSType.GCS;
@@ -161,12 +177,12 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      String[] internalPaths = listInternal(path, false);
-      if (internalPaths == null) {
+      String[] children = listInternal(path, false);
+      if (children == null) {
         LOG.error("Unable to delete {} because listInternal returns null", path);
         return false;
       }
-      if (isFolder(path) && internalPaths.length != 0) {
+      if (isFolder(path) && children.length != 0) {
         LOG.error("Unable to delete {} because it is a non empty directory. Specify "
                 + "recursive as true in order to delete non empty directories.", path);
         return false;
@@ -356,8 +372,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
       if (children == null) {
-        LOG.error("list({}) is returning null. "
-                + "Rename operation partially completed. Exiting...", src);
+        LOG.error("Failed to list path {}, aborting rename.", src);
         return false;
       }
       for (String child : children) {
