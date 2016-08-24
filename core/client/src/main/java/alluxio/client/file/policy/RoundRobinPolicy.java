@@ -56,7 +56,9 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
       mInitialized = true;
     }
 
-    // at most try all the workers
+    // TODO(peis): Make the implementation more efficient. The current one doesn't scale.
+
+    // Find workers with enough availability first.
     for (int i = 0; i < mWorkerInfoList.size(); i++) {
       WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
       BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
@@ -65,6 +67,16 @@ public final class RoundRobinPolicy implements FileWriteLocationPolicy {
         return candidate;
       }
     }
+    // Find workers with enough capacity next.
+    for (int i = 0; i < mWorkerInfoList.size(); i++) {
+      WorkerNetAddress candidate = mWorkerInfoList.get(mIndex).getNetAddress();
+      BlockWorkerInfo workerInfo = findBlockWorkerInfo(workerInfoList, candidate);
+      mIndex = (mIndex + 1) % mWorkerInfoList.size();
+      if (workerInfo != null && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+        return candidate;
+      }
+    }
+
     return null;
   }
 

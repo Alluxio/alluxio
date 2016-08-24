@@ -32,7 +32,7 @@ public final class RoundRobinPolicyTest {
    * Tests that the correct workers are chosen when round robin is used.
    */
   @Test
-  public void getWorker() {
+  public void getWorkerWithAvailbility() {
     List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
     workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
         .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), 3 * (long) Constants.GB,
@@ -47,11 +47,41 @@ public final class RoundRobinPolicyTest {
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
         policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 100; i++) {
       // Make sure we don't get worker1 as it doesn't have enough capacity.
       Assert.assertNotEquals("worker1",
           policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
     }
+  }
+
+  /**
+   * Tests that the correct worker is chosen when all workers are full.
+   */
+  @Test
+  public void getWorkerWithoutAvailbility() {
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
+    workerInfoList.add(new BlockWorkerInfo(
+        new WorkerNetAddress().setHost("worker1").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT), 3 * (long) Constants.GB, 2 * (long) Constants.GB));
+    workerInfoList.add(new BlockWorkerInfo(
+        new WorkerNetAddress().setHost("worker2").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT), 2 * (long) Constants.GB, 2 * (long) Constants.GB));
+    workerInfoList.add(new BlockWorkerInfo(
+        new WorkerNetAddress().setHost("worker3").setRpcPort(PORT).setDataPort(PORT)
+            .setWebPort(PORT), 3 * (long) Constants.GB, 2 * (long) Constants.GB));
+    RoundRobinPolicy policy = new RoundRobinPolicy();
+
+    Assert.assertNotEquals(
+        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost(),
+        policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost());
+
+    boolean worker1Chosen = false;
+    for (int i = 0; i < 100; i++) {
+      worker1Chosen =
+          policy.getWorkerForNextBlock(workerInfoList, 2 * (long) Constants.GB).getHost()
+              .equals("worker1");
+    }
+    Assert.assertTrue(worker1Chosen);
   }
 
   @Test

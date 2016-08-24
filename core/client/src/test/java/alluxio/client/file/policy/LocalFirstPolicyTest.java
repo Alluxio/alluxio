@@ -61,6 +61,39 @@ public final class LocalFirstPolicyTest {
         policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
   }
 
+  /**
+   * Tests that local host is picked if none of the workers has enough availability.
+   */
+  @Test
+  public void getLocalWhenNoneHasSpace() {
+    String localhostName = NetworkAddressUtils.getLocalHostName();
+    LocalFirstPolicy policy = new LocalFirstPolicy();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
+    Assert.assertEquals(localhostName,
+        policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
+  }
+
+  /**
+   * Tests that another worker is picked when none of the workers has enough availability and
+   * the local host doesn't has enough capacity.
+   */
+  @Test
+  public void getOthersWhenNoneHasSpaceAndLocalIsSmall() {
+    String localhostName = NetworkAddressUtils.getLocalHostName();
+    LocalFirstPolicy policy = new LocalFirstPolicy();
+    List<BlockWorkerInfo> workerInfoList = new ArrayList<>();
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost("worker1")
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.GB, Constants.MB));
+    workerInfoList.add(new BlockWorkerInfo(new WorkerNetAddress().setHost(localhostName)
+        .setRpcPort(PORT).setDataPort(PORT).setWebPort(PORT), Constants.MB, Constants.MB));
+    Assert.assertEquals("worker1",
+        policy.getWorkerForNextBlock(workerInfoList, Constants.GB).getHost());
+  }
+
   @Test
   public void equalsTest() throws Exception {
     CommonTestUtils.testEquals(LocalFirstPolicy.class);

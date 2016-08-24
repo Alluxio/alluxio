@@ -24,6 +24,7 @@ import javax.annotation.concurrent.ThreadSafe;
 /**
  * A policy that returns local host first, and if the local worker doesn't have enough availability,
  * it randomly picks a worker from the active workers list for each block write.
+ * If none of the host has availability, pick the one with enough total capacity. Local first.
  */
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy {
@@ -39,7 +40,7 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
   @Override
   public WorkerNetAddress getWorkerForNextBlock(List<BlockWorkerInfo> workerInfoList,
       long blockSizeBytes) {
-    // first try the local host
+    // Try the local host first.
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
           && workerInfo.getAvailableCapacityBytes() >= blockSizeBytes) {
@@ -47,13 +48,28 @@ public final class LocalFirstPolicy implements FileWriteLocationPolicy {
       }
     }
 
-    // otherwise randomly pick a worker that has enough availability
+    // Otherwise randomly pick a worker that has enough availability.
     Collections.shuffle(workerInfoList);
     for (BlockWorkerInfo workerInfo : workerInfoList) {
       if (workerInfo.getAvailableCapacityBytes() >= blockSizeBytes) {
         return workerInfo.getNetAddress();
       }
     }
+
+    // None of the workers has available capacity. Pick the one with enough total capacity.
+    // Local first.
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      if (workerInfo.getNetAddress().getHost().equals(mLocalHostName)
+          && workerInfo.getCapacityBytes() >= blockSizeBytes) {
+        return workerInfo.getNetAddress();
+      }
+    }
+    for (BlockWorkerInfo workerInfo : workerInfoList) {
+      if (workerInfo.getCapacityBytes() >= blockSizeBytes) {
+        return workerInfo.getNetAddress();
+      }
+    }
+
     return null;
   }
 
