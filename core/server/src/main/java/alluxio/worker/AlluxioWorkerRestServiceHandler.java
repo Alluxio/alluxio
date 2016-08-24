@@ -235,8 +235,7 @@ public final class AlluxioWorkerRestServiceHandler {
     // spaces, those statistics can be gotten via other REST apis.
     String blocksCachedProperty = CommonUtils.argsToString(".",
         MetricsSystem.buildSourceRegistryName(MetricsSystem.WORKER_INSTANCE,
-              WorkerContext.getWorkerSource()),
-        WorkerSource.BLOCKS_CACHED);
+              WorkerContext.getWorkerSource()), WorkerSource.BLOCKS_CACHED);
     @SuppressWarnings("unchecked")
     Gauge<Integer> blocksCached =
         (Gauge<Integer>) metricRegistry.getGauges().get(blocksCachedProperty);

@@ -20,6 +20,7 @@ import alluxio.util.network.NetworkAddressUtils;
 
 import com.codahale.metrics.MetricRegistry;
 import com.google.common.base.Joiner;
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,7 +136,7 @@ public class MetricsSystem {
     if (instance.equals(MASTER_INSTANCE)) {
       return Joiner.on(".").join(instance, source.getName());
     } else {
-      return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', ','),
+      return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
           source.getName());
     }
   }
@@ -262,9 +263,7 @@ public class MetricsSystem {
    */
   public static String stripInstanceAndHost(String metricsName) {
     String[] pieces = metricsName.split("\\.");
-    if (pieces.length <= 1) {
-      throw new IllegalArgumentException("Incorrect metrics name: " + metricsName);
-    }
+    Preconditions.checkArgument(pieces.length > 1, "Incorrect metrics name: " + metricsName);
 
     // Master metrics doesn't have hostname included.
     if (!pieces[0].equals(MASTER_INSTANCE)) {
