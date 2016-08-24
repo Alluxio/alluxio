@@ -144,7 +144,7 @@ public final class MetricsConfig {
 
   /**
    * Sets the default properties. The MetricsServlet is enabled and the path is /metrics/json
-   * by default on master.
+   * by default on servers.
    */
   public void setServletProperties() {
     mProperties.setProperty("master.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
