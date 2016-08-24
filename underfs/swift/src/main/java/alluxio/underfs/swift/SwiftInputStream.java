@@ -120,8 +120,7 @@ public class SwiftInputStream extends InputStream {
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    long blockSize = Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
-    long endPos = mPos + blockSize;
+    final long endPos = mPos + Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
     downloadInstructions.setRange(new SwiftRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
     LOG.debug("Swift InputStream {}: stream open till end pos {}", this.hashCode(), endPos);
