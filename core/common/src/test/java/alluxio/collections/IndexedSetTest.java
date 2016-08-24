@@ -249,7 +249,6 @@ public class IndexedSetTest {
    */
   @Test
   public void iteratorRemove() {
-    long removed = 0;
     Iterator<Pair> it = mSet.iterator();
     Assert.assertTrue(it.hasNext());
     final Pair first = it.next();
@@ -261,7 +260,6 @@ public class IndexedSetTest {
     Assert.assertTrue("Element should be in the set", valueSet.contains(first));
 
     it.remove();
-    removed++;
     valueSet = mSet.getByField(mNonUniqueIntIndex, first.intValue());
     Assert.assertFalse("Element should not be in the set", valueSet.contains(first));
 
