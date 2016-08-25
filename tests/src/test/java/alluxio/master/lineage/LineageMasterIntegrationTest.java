@@ -53,12 +53,12 @@ import java.util.List;
  * Integration tests for the lineage module.
  */
 public class LineageMasterIntegrationTest {
-  protected static final int BLOCK_SIZE_BYTES = 128;
-  protected static final long WORKER_CAPACITY_BYTES = Constants.GB;
-  protected static final int BUFFER_BYTES = 100;
-  protected static final String OUT_FILE = "/test";
-  protected static final int RECOMPUTE_INTERVAL_MS = 1000;
-  protected static final int CHECKPOINT_INTERVAL_MS = 100;
+  private static final int BLOCK_SIZE_BYTES = 128;
+  private static final long WORKER_CAPACITY_BYTES = Constants.GB;
+  private static final int BUFFER_BYTES = 100;
+  private static final String OUT_FILE = "/test";
+  private static final int RECOMPUTE_INTERVAL_MS = 1000;
+  private static final int CHECKPOINT_INTERVAL_MS = 100;
 
   @Rule
   public TemporaryFolder mFolder = new TemporaryFolder();
@@ -75,7 +75,7 @@ public class LineageMasterIntegrationTest {
           .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS,
               Integer.toString(CHECKPOINT_INTERVAL_MS));
 
-  protected CommandLineJob mJob;
+  private CommandLineJob mJob;
 
   @Before
   public void before() throws Exception {
@@ -210,11 +210,11 @@ public class LineageMasterIntegrationTest {
     tl.deleteLineage(lineageId, options);
   }
 
-  protected LineageMasterClient getLineageMasterClient() {
+  private LineageMasterClient getLineageMasterClient() {
     return new LineageMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 
-  protected FileSystemMasterClient getFileSystemMasterClient() {
+  private FileSystemMasterClient getFileSystemMasterClient() {
     return new FileSystemMasterClient(mLocalAlluxioClusterResource.get().getMaster().getAddress());
   }
 }
