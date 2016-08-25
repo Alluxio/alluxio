@@ -92,8 +92,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     List<String> errorMessages = new ArrayList<>();
     File[] fileList = srcDir.listFiles();
     if (fileList == null) {
-      String errMsg = String.format("copyFromLocal %s %s failed!",
-              srcDir.toString(), dstPath.toString());
+      String errMsg = String.format("Failed to list files for directory %s", srcDir);
       throw new IOException(errMsg);
     }
     int misFiles = 0;
@@ -244,8 +243,7 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       List<String> errorMessages = new ArrayList<>();
       File[] fileList = src.listFiles();
       if (fileList == null) {
-        String errMsg = String.format("copyFromLocal %s %s partially failed!",
-                src.toString(), dstPath.toString());
+        String errMsg = String.format("Failed to list files for directory %s", src);
         throw new IOException(errMsg);
       }
       int misFiles = 0;
