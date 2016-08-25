@@ -61,7 +61,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
-            BufferUtils.getIncreasingByteArray(30));
+        BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
@@ -76,7 +76,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
     localDir.mkdir();
     File testFile =
-            generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
+        generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
     File testDir = testFile.getParentFile();
     AlluxioURI alluxioDirPath = new AlluxioURI("/testDir");
     // Create the destination directory before call command of 'copyFromLocal'.
@@ -103,7 +103,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
-            BufferUtils.getIncreasingByteArray(30));
+        BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
@@ -187,8 +187,8 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
     Assert.assertEquals(-1, ret);
-    Assert.assertEquals("copyFromLocal " + srcOuterDir.getAbsolutePath() + " /dstDir failed!\n",
-            mOutput.toString());
+    Assert.assertEquals("Failed to list files for directory "
+        + srcOuterDir.getAbsolutePath() + "\n", mOutput.toString());
   }
 
   @Test
@@ -208,9 +208,8 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
 
     Assert.assertEquals(-1, ret);
-    Assert.assertEquals("copyFromLocal " + srcInnerDir.getAbsolutePath()
-                    + " /dstDir/innerDir partially failed!\n",
-            mOutput.toString());
+    Assert.assertEquals("Failed to list files for directory "
+        + srcInnerDir.getAbsolutePath() + "\n", mOutput.toString());
   }
 
   @Test
