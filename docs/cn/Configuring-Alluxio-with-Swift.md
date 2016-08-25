@@ -35,9 +35,6 @@ priority: 1
   	
 `<swift-use-public>`的值为`true`或`false`。
 `<swift-auth-model>`的值为`keystone`、`tempauth`或`swiftauth`。
-當使用` keystone`認證，以下參數可以任選地設置
-
-{% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}
 
 在成功授权情况下，Keystone会返回两个访问URL：公共的和私有的。如果Alluxio是在公司网络中使用，并且Swift也在同一个网络中，建议设置`<swift-use-public>`的值为`false`。
 
