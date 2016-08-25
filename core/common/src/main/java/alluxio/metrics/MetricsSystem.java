@@ -117,13 +117,6 @@ public class MetricsSystem {
   }
 
   /**
-   * @return the MetricsServlet sink
-   */
-  public Sink getMetricsServlet() {
-    return mMetricsServlet;
-  }
-
-  /**
    * Build unique metric registry names. The pattern is [master|worker|client].hostname.sourceName.
    * The hostname is skipped for master.
    *
@@ -188,11 +181,7 @@ public class MetricsSystem {
           Sink sink =
               (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
                   .newInstance(entry.getValue(), mMetricRegistry);
-          if (entry.getKey().equals("servlet")) {
-            mMetricsServlet = sink;
-          } else {
-            mSinks.add(sink);
-          }
+          mSinks.add(sink);
         } catch (Exception e) {
           LOG.error("Sink class {} cannot be instantiated", classPath, e);
         }

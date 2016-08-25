@@ -17,6 +17,7 @@ import alluxio.PropertyKey;
 import alluxio.RuntimeConstants;
 import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.Sink;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.util.CommonUtils;
 import alluxio.util.network.NetworkAddressUtils;
@@ -207,7 +208,12 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     // Start serving the web server, this will not block
     // Requirement: metrics system started so we could add the metrics servlet to the web server
     // Consequence: when starting webserver, the webport will be updated.
-    mWebServer.addHandler(((MetricsServlet) mWorkerMetricsSystem.getMetricsServlet()).getHandler());
+    for (Sink sink : mWorkerMetricsSystem.getSinks()) {
+      if (sink instanceof MetricsServlet) {
+        mWebServer.addHandler(((MetricsServlet) sink).getHandler());
+        break;
+      }
+    }
     mWebServer.startWebServer();
 
     // Start each worker
