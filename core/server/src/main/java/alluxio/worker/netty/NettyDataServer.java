@@ -12,6 +12,7 @@
 package alluxio.worker.netty;
 
 import alluxio.Configuration;
+import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.network.ChannelType;
 import alluxio.util.network.NettyUtils;
@@ -26,6 +27,8 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.ServerChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -38,6 +41,8 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 public final class NettyDataServer implements DataServer {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   private final ServerBootstrap mBootstrap;
   private final ChannelFuture mChannelFuture;
   // Use a shared handler for all pipelines.
@@ -63,14 +68,39 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
+    boolean completed;
+
     int quietPeriodSecs =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
     int timeoutSecs = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-    mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
-    mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-        .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
-    mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
-        .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+
+    // The following steps are needed to shut down the data server:
+    //
+    // 1) its channel needs to be closed
+    // 2) its main EventLoopGroup needs to be shut down
+    // 3) its child EventLoopGroup needs to be shut down
+    //
+    // Each of the above steps can time out. If 1) times out, we simply give up on closing the
+    // channel. If 2) or 3) times out, the respective EventLoopGroup failed to shut down
+    // gracefully and its shutdown is forced.
+
+    completed =
+        mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    if (!completed) {
+      LOG.warn("Closing the channel timed out.");
+    }
+    completed =
+        mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
+            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    if (!completed) {
+      LOG.warn("Forced group shutdown because graceful shutdown timed out.");
+    }
+    completed =
+        mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
+            .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    if (!completed) {
+      LOG.warn("Forced child group shutdown because graceful shutdown timed out.");
+    }
   }
 
   private ServerBootstrap createBootstrap() {
