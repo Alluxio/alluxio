@@ -139,7 +139,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Expect a IOException for not able to setOwner for UFS with invalid owner name.
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not set owner for UFS file");
+    mThrown.expectMessage("Could not setOwner for UFS file");
     sTFS.setOwner(fileA, nonexistentOwner, null);
   }
 
@@ -172,7 +172,7 @@ public final class FileSystemAclIntegrationTest {
 
     // Expect a IOException for not able to setOwner for UFS with invalid group name.
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not set owner for UFS file");
+    mThrown.expectMessage("Could not setOwner for UFS file");
     sTFS.setOwner(fileB, null, nonexistentGroup);
   }
 
@@ -204,7 +204,7 @@ public final class FileSystemAclIntegrationTest {
     Assert.assertNotEquals(defaultGroup, nonexistentGroup);
 
     mThrown.expect(IOException.class);
-    mThrown.expectMessage("Could not set owner for UFS file");
+    mThrown.expectMessage("Could not setOwner for UFS file");
     sTFS.setOwner(fileC, nonexistentOwner, nonexistentGroup);
   }
 
