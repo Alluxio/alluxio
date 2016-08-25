@@ -49,18 +49,17 @@ public class S3UnderFileSystemTest {
     mClient = Mockito.mock(S3Service.class);
 
     mS3UnderFileSystem = new S3UnderFileSystem(new AlluxioURI(""),
-            mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID);
+        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID);
   }
 
   /**
    * Test case for {@link S3UnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteNonRecursive() throws IOException, ServiceException {
+  public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mS3UnderFileSystem.delete(PATH, false);
     Assert.assertFalse(result);
@@ -68,13 +67,12 @@ public class S3UnderFileSystemTest {
 
   /**
    * Test case for {@link S3UnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteRecursive() throws IOException, ServiceException {
+  public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mS3UnderFileSystem.delete(PATH, true);
     Assert.assertFalse(result);
@@ -82,13 +80,12 @@ public class S3UnderFileSystemTest {
 
   /**
    * Test case for {@link S3UnderFileSystem#rename(String, String)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void rename() throws IOException, ServiceException {
+  public void renameOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mS3UnderFileSystem.rename(SRC, DST);
     Assert.assertFalse(result);

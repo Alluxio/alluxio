@@ -126,13 +126,24 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     mBucketMode = GCSUtils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
+  /**
+   * Constructor used in test case only.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param googleStorageService the Jets3t GCS client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   * @param accountOwnerId the GCS user id of the account owner
+   */
   protected GCSUnderFileSystem(AlluxioURI uri,
-                            GoogleStorageService googleStorageService,
-                            String bucketName,
-                            String bucketPrefix,
-                            short bucketMode,
-                            String accountOwner,
-                            String accountOwnerId) {
+      GoogleStorageService googleStorageService,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner,
+      String accountOwnerId) {
     super(uri);
     mClient = googleStorageService;
     mBucketName = bucketName;

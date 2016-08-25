@@ -48,18 +48,17 @@ public class GCSUnderFileSystemTest {
     mClient = Mockito.mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""),
-            mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID);
+        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID);
   }
 
   /**
    * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteNonRecursive() throws IOException, ServiceException {
+  public void deleteNonRecursiveOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.delete(PATH, false);
     Assert.assertFalse(result);
@@ -67,13 +66,12 @@ public class GCSUnderFileSystemTest {
 
   /**
    * Test case for {@link GCSUnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteRecursive() throws IOException, ServiceException {
+  public void deleteRecursiveOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.delete(PATH, true);
     Assert.assertFalse(result);
@@ -81,13 +79,12 @@ public class GCSUnderFileSystemTest {
 
   /**
    * Test case for {@link GCSUnderFileSystem#rename(String, String)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void rename() throws IOException, ServiceException {
+  public void renameOnServiceException() throws IOException, ServiceException {
     Mockito.when(mClient.listObjectsChunked(Matchers.anyString(), Matchers.anyString(),
-            Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
-            .thenThrow(ServiceException.class);
+        Matchers.anyString(), Matchers.anyLong(), Matchers.anyString()))
+        .thenThrow(ServiceException.class);
 
     boolean result = mGCSUnderFileSystem.rename(SRC, DST);
     Assert.assertFalse(result);
