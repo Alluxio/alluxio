@@ -36,9 +36,6 @@ A configuração seguinte deve ser informado dentro do `conf/alluxio-env.sh`
   	
 Os possíveis valores de `<swift-use-public>` são `true`, `false`.
 Os possíveis valores de `<swift-auth-model>` são `keystone`, `tempauth`, `swiftauth`
-Ao usar autenticação `keystone`, o seguinte parâmetro pode, opcionalmente, ser configurado
-
-{% include Configuring-Alluxio-with-Swift/keystone-region-configuration.md %}
 
 No sucesso da autenticação, `Keystone` irá retornar dois acessos `URLs`: `public` e `private`. 
 Se o Alluxio estiver sendo usado dentro da rede da sua companhia e o `Swift` está localizado 
