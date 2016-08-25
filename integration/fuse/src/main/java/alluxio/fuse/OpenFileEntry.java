@@ -62,7 +62,7 @@ final class OpenFileEntry implements Closeable {
   /**
    * Closes the underlying open streams.
    *
-   * @throws IOException
+   * @throws IOException if the {@link FileInStream} cannot be closed
    */
   @Override
   public void close() throws IOException {
