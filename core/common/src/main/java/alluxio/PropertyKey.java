@@ -108,7 +108,6 @@ public enum PropertyKey {
   S3N_SECRET_KEY(Name.S3N_SECRET_KEY, null),
   SWIFT_API_KEY(Name.SWIFT_API_KEY, null),
   SWIFT_AUTH_METHOD_KEY(Name.SWIFT_AUTH_METHOD_KEY, null),
-  SWIFT_AUTH_PORT_KEY(Name.SWIFT_AUTH_PORT_KEY, null),
   SWIFT_AUTH_URL_KEY(Name.SWIFT_AUTH_URL_KEY, null),
   SWIFT_PASSWORD_KEY(Name.SWIFT_PASSWORD_KEY, null),
   SWIFT_SIMULATION(Name.SWIFT_SIMULATION, null),
@@ -402,7 +401,6 @@ public enum PropertyKey {
     public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
-    public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
     public static final String SWIFT_SIMULATION = "fs.swift.simulation";
