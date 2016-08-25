@@ -257,20 +257,12 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     mDataServer.close();
     mThriftServer.stop();
     mThriftServerSocket.close();
-    mWorkerMetricsSystem.stop();
     try {
       mWebServer.shutdownWebServer();
     } catch (Exception e) {
       LOG.error("Failed to stop web server", e);
     }
     mWorkerMetricsSystem.stop();
-
-    // TODO(binfan): investigate why we need to close dataserver again. There used to be a comment
-    // saying the reason to stop and close again is due to some issues in Thrift.
-    while (!mDataServer.isClosed()) {
-      mDataServer.close();
-      CommonUtils.sleepMs(100);
-    }
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
