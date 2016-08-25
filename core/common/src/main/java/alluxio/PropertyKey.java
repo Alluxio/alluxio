@@ -115,6 +115,7 @@ public enum PropertyKey {
   SWIFT_TENANT_KEY(Name.SWIFT_TENANT_KEY, null),
   SWIFT_USE_PUBLIC_URI_KEY(Name.SWIFT_USE_PUBLIC_URI_KEY, null),
   SWIFT_USER_KEY(Name.SWIFT_USER_KEY, null),
+  SWIFT_REGION_KEY(Name.SWIFT_REGION_KEY, null),
 
   //
   // Master related properties
@@ -408,6 +409,7 @@ public enum PropertyKey {
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+    public static final String SWIFT_REGION_KEY = "fs.swift.region";
 
     //
     // Master related properties
