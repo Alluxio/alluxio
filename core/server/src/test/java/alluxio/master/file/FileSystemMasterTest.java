@@ -1005,6 +1005,17 @@ public final class FileSystemMasterTest {
   }
 
   /**
+   * Tests mounting to an Alluxio path whose parent dir does not exist.
+   */
+  @Test
+  public void mountNonExistingParentDir() throws Exception {
+    AlluxioURI alluxioURI = new AlluxioURI("/non-existing/hello");
+    AlluxioURI ufsURI = createTempUfsDir("ufs/hello");
+    mThrown.expect(FileDoesNotExistException.class);
+    mFileSystemMaster.mount(alluxioURI, ufsURI, MountOptions.defaults());
+  }
+
+  /**
    * Tests mounting a shadow Alluxio dir.
    */
   @Test
