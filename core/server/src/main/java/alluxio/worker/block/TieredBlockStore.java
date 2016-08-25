@@ -741,6 +741,8 @@ public final class TieredBlockStore implements BlockStore {
         mMetaManager.moveBlockMeta(srcBlockMeta, dstTempBlock);
       } catch (BlockAlreadyExistsException | BlockDoesNotExistException
           | WorkerOutOfSpaceException e) {
+        // WorkerOutOfSpaceException is only possible if session id gets cleaned between
+        // createBlockMetaInternal and moveBlockMeta.
         throw Throwables.propagate(e); // we shall never reach here
       }
 
