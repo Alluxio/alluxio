@@ -91,6 +91,11 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
     createDstDir(dstPath);
     List<String> errorMessages = new ArrayList<>();
     File[] fileList = srcDir.listFiles();
+    if (fileList == null) {
+      String errMsg = String.format("Failed to list files for directory %s", srcDir);
+      errorMessages.add(errMsg);
+      fileList = new File[0];
+    }
     int misFiles = 0;
     for (File srcFile : fileList) {
       AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));
@@ -235,6 +240,11 @@ public final class CopyFromLocalCommand extends AbstractShellCommand {
       mFileSystem.createDirectory(dstPath);
       List<String> errorMessages = new ArrayList<>();
       File[] fileList = src.listFiles();
+      if (fileList == null) {
+        String errMsg = String.format("Failed to list files for directory %s", src);
+        errorMessages.add(errMsg);
+        fileList = new File[0];
+      }
       int misFiles = 0;
       for (File srcFile : fileList) {
         AlluxioURI newURI = new AlluxioURI(dstPath, new AlluxioURI(srcFile.getName()));

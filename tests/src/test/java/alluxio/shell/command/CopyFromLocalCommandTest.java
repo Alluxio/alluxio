@@ -61,7 +61,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
-            BufferUtils.getIncreasingByteArray(30));
+        BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
@@ -76,7 +76,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File localDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir");
     localDir.mkdir();
     File testFile =
-            generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
+        generateFileContent("/localDir/testFile", BufferUtils.getIncreasingByteArray(10));
     File testDir = testFile.getParentFile();
     AlluxioURI alluxioDirPath = new AlluxioURI("/testDir");
     // Create the destination directory before call command of 'copyFromLocal'.
@@ -103,7 +103,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     File innerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/localDir/innerDir");
     innerDir.mkdir();
     File innerFile = generateFileContent("/localDir/innerDir/innerFile1",
-            BufferUtils.getIncreasingByteArray(30));
+        BufferUtils.getIncreasingByteArray(30));
     innerFile.setReadable(false);
     Assert.assertEquals(-1, mFsShell.run(cmd));
     Assert.assertTrue(mFileSystem.exists(alluxioDirPath));
@@ -168,6 +168,48 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
     Assert.assertNotNull(mFileSystem.getStatus(dstURI1));
     Assert.assertNotNull(mFileSystem.getStatus(dstURI2));
     Assert.assertNotNull(mFileSystem.getStatus(dstURI3));
+  }
+
+  @Test
+  public void copyFromLocalDirNotReadable() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
+    // before.
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/emptyDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    emptyDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+
+    srcOuterDir.setReadable(false);
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
+
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals("Failed to list files for directory "
+        + srcOuterDir.getAbsolutePath() + "\n", mOutput.toString());
+  }
+
+  @Test
+  public void copyFromLocalDirNotReadableInnerDir() throws IOException, AlluxioException {
+    // Copy a directory from local to Alluxio filesystem, which the destination uri was not created
+    // before.
+    File srcOuterDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    File srcInnerDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir/innerDir");
+    File emptyDir = new File(mLocalAlluxioCluster.getAlluxioHome() + "/outerDir");
+    srcOuterDir.mkdir();
+    srcInnerDir.mkdir();
+    emptyDir.mkdir();
+    generateFileContent("/outerDir/srcFile1", BufferUtils.getIncreasingByteArray(10));
+    generateFileContent("/outerDir/innerDir/srcFile2", BufferUtils.getIncreasingByteArray(10));
+
+    srcInnerDir.setReadable(false);
+    int ret = mFsShell.run("copyFromLocal", srcOuterDir.getPath() + "/", "/dstDir");
+
+    Assert.assertEquals(-1, ret);
+    Assert.assertEquals("Failed to list files for directory "
+        + srcInnerDir.getAbsolutePath() + "\n", mOutput.toString());
   }
 
   @Test
