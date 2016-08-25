@@ -58,7 +58,6 @@ public class MetricsSystem {
   private MetricRegistry mMetricRegistry = new MetricRegistry();
   private MetricsConfig mMetricsConfig;
   private boolean mRunning = false;
-  private Sink mMetricsServlet;
 
   /**
    * Gets the sinks.
