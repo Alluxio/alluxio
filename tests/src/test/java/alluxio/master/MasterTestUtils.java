@@ -16,12 +16,13 @@ import alluxio.PropertyKey;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.Journal;
+import alluxio.master.journal.ReadOnlyJournal;
 import alluxio.master.journal.ReadWriteJournal;
 
 import java.io.IOException;
 
 public class MasterTestUtils {
-  public static FileSystemMaster createFileSystemMasterFromJournal()
+  public static FileSystemMaster createLeaderFileSystemMasterFromJournal()
       throws IOException {
     String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
     Journal blockJournal = new ReadWriteJournal(BlockMaster.getJournalDirectory(masterJournal));
@@ -31,6 +32,19 @@ public class MasterTestUtils {
     FileSystemMaster fsMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
     blockMaster.start(true);
     fsMaster.start(true);
+    return fsMaster;
+  }
+
+  public static FileSystemMaster createStandbyFileSystemMasterFromJournal()
+      throws IOException {
+    String masterJournal = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
+    Journal blockJournal = new ReadOnlyJournal(BlockMaster.getJournalDirectory(masterJournal));
+    Journal fsJournal = new ReadOnlyJournal(FileSystemMaster.getJournalDirectory(masterJournal));
+    MasterContext masterContext = new MasterContext(new MasterSource());
+    BlockMaster blockMaster = new BlockMaster(masterContext, blockJournal);
+    FileSystemMaster fsMaster = new FileSystemMaster(masterContext, blockMaster, fsJournal);
+    blockMaster.start(false);
+    fsMaster.start(false);
     return fsMaster;
   }
 }
