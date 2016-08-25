@@ -186,7 +186,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
-   * @param accountOwnerId the AWS canonical user id of the account owner.
+   * @param accountOwnerId the AWS canonical user id of the account owner
    * @param transferManager Transfer Manager for efficient I/O to s3
    */
   protected S3AUnderFileSystem(AlluxioURI uri,
