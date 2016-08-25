@@ -66,11 +66,11 @@ public final class NettyDataServer implements DataServer {
     int quietPeriodSecs =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
     int timeoutSecs = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
-    // TODO(binfan): investigate when timeoutSecs is zero (e.g., set in integration tests), does
-    // this still complete successfully.
     mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
-    mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
-    mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS);
+    mBootstrap.group().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
+        .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
+    mBootstrap.childGroup().shutdownGracefully(quietPeriodSecs, timeoutSecs, TimeUnit.SECONDS)
+        .awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
   }
 
   private ServerBootstrap createBootstrap() {
