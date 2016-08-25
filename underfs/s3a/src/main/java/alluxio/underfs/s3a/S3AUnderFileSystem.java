@@ -90,7 +90,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
 
-  /** The owner name of the account. */
+  /** The name of the account owner. */
   private final String mAccountOwner;
 
   /** The AWS canonical user id of the account owner. */
@@ -177,14 +177,26 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketMode = S3AUtils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
+  /**
+   * Constructor used in test case only.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param amazonS3Client AWS-SDK S3 client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   * @param accountOwnerId the AWS canonical user id of the account owner.
+   * @param transferManager Transfer Manager for efficient I/O to s3
+   */
   protected S3AUnderFileSystem(AlluxioURI uri,
-                            AmazonS3Client amazonS3Client,
-                            String bucketName,
-                            String bucketPrefix,
-                            short bucketMode,
-                            String accountOwner,
-                            String accountOwnerId,
-                            TransferManager transferManager) {
+      AmazonS3Client amazonS3Client,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner,
+      String accountOwnerId,
+      TransferManager transferManager) {
     super(uri);
     mClient = amazonS3Client;
     mBucketName = bucketName;

@@ -75,7 +75,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The owner name of the account. */
+  /** The name of the account owner. */
   private final String mAccountOwner;
 
   /** The AWS canonical user id of the account owner. */
@@ -169,13 +169,24 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     mBucketMode = S3Utils.translateBucketAcl(acl, mAccountOwnerId);
   }
 
+  /**
+   * Constructor used in test case only.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param s3Service Jets3t S3 client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   * @param accountOwnerId the AWS canonical user id of the account owner.
+   */
   protected S3UnderFileSystem(AlluxioURI uri,
-                           S3Service s3Service,
-                           String bucketName,
-                           String bucketPrefix,
-                           short bucketMode,
-                           String accountOwner,
-                           String accountOwnerId) {
+      S3Service s3Service,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner,
+      String accountOwnerId) {
     super(uri);
     mClient = s3Service;
     mBucketName = bucketName;

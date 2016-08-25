@@ -96,13 +96,24 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
   }
 
+  /**
+   * Constructor used in test case only.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param ossClient Aliyun OSS client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param accessId the accessId to connect OSS
+   * @param accessKey the accessKey to connect OSS
+   * @param endPoint the OSS endpoint
+   */
   protected OSSUnderFileSystem(AlluxioURI uri,
-                            OSSClient ossClient,
-                            String bucketName,
-                            String bucketPrefix,
-                            String accessId,
-                            String accessKey,
-                            String endPoint) {
+      OSSClient ossClient,
+      String bucketName,
+      String bucketPrefix,
+      String accessId,
+      String accessKey,
+      String endPoint) {
     super(uri);
     mClient = ossClient;
     mBucketName = bucketName;

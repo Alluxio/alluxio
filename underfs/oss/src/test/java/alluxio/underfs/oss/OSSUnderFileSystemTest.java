@@ -50,17 +50,16 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient,
-            BUCKET_NAME, BUCKET_PREFIX, ACCESS_ID, ACCESS_KEY, ENDPOINT);
+        BUCKET_NAME, BUCKET_PREFIX, ACCESS_ID, ACCESS_KEY, ENDPOINT);
   }
 
   /**
    * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteNonRecursive() throws IOException {
+  public void deleteNonRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ServiceException.class);
+        .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.delete(PATH, false);
     Assert.assertFalse(result);
@@ -68,12 +67,11 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Test case for {@link OSSUnderFileSystem#delete(String, boolean)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void deleteRecursive() throws IOException {
+  public void deleteRecursiveOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ServiceException.class);
+        .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.delete(PATH, true);
     Assert.assertFalse(result);
@@ -81,12 +79,11 @@ public class OSSUnderFileSystemTest {
 
   /**
    * Test case for {@link OSSUnderFileSystem#rename(String, String)}.
-   * when {@link ServiceException} is thrown.
    */
   @Test
-  public void rename() throws IOException {
+  public void renameOnServiceException() throws IOException {
     Mockito.when(mClient.listObjects(Matchers.any(ListObjectsRequest.class)))
-            .thenThrow(ServiceException.class);
+        .thenThrow(ServiceException.class);
 
     boolean result = mOSSUnderFileSystem.rename(SRC, DST);
     Assert.assertFalse(result);
