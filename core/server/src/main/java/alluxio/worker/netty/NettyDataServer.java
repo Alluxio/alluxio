@@ -68,8 +68,6 @@ public final class NettyDataServer implements DataServer {
 
   @Override
   public void close() throws IOException {
-    boolean completed;
-
     int quietPeriodSecs =
         Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_QUIET_PERIOD);
     int timeoutSecs = Configuration.getInt(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT);
@@ -84,6 +82,7 @@ public final class NettyDataServer implements DataServer {
     // channel. If 2) or 3) times out, the respective EventLoopGroup failed to shut down
     // gracefully and its shutdown is forced.
 
+    boolean completed;
     completed =
         mChannelFuture.channel().close().awaitUninterruptibly(timeoutSecs, TimeUnit.SECONDS);
     if (!completed) {
