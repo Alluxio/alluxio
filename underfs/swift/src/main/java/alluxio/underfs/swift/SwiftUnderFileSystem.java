@@ -423,7 +423,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return true if the path is the root, false otherwise
    */
   private boolean isRoot(final String path) {
-    return addFolderSuffixIfNotPresent(path).equals(mContainerPrefix);
+    final String pathWithSuffix = addFolderSuffixIfNotPresent(path);
+    return pathWithSuffix.equals(mContainerPrefix) || pathWithSuffix.equals(PATH_SEPARATOR);
   }
 
   @Override
@@ -594,7 +595,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       }
     }
 
-    if (self.length() == 0) {
+    if (isRoot(self)) {
       foundSelf = true;
     }
 
