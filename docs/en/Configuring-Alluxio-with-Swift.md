@@ -88,3 +88,9 @@ To run functional tests execute
 In case of failures, logs located under `tests/target/logs`. You may also activate heap dump via
 
 {% include Configuring-Alluxio-with-Swift/heap-dump.md %}
+
+# Swift Access Control
+
+The Swift crendentials specified in Alluxio (`fs.swift.user`, `fs.swift.tenant` and `fs.swift.password`) represents a Swift user. Swift service backend checks the user permission to the container. When Alluxio security is enabled, Alluxio loads the container ACL to Alluxio permission on the first time when the metadata is loaded to Alluxio namespace. It checks the container READ/WRITE ACL to see if the Swift user or "*" is in the access control list. Swift user permission to the container is mapped to Alluxio permission to mounted directories and files. If necessary, you can customize the Swift container ACL checking in `SwiftUnderFileSystem.java`.
+
+In addition, chown/chgrp/chmod are not allowed to Alluxio directories and files which are persisited to underlying Swift object store.
