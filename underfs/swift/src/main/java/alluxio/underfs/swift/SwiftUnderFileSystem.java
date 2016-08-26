@@ -578,7 +578,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
     String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
-    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+    prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
 
     Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
     Set<String> children = new HashSet<>();
@@ -592,6 +592,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       } else {
         foundSelf = true;
       }
+    }
+
+    if (self.length() == 0) {
+      foundSelf = true;
     }
 
     if (!foundSelf) {
