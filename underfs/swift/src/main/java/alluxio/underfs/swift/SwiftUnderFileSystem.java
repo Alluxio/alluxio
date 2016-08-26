@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -65,6 +66,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
+
+  /** Regexp for Swift container ACL separator, including optional whitespaces. */
+  private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
 
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
@@ -172,13 +176,15 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     // Assume the Swift user name has 1-1 mapping to Alluxio username.
     mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
     short mode = (short) 0;
+    List<String> readAcl = Arrays.asList(
+        container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
     // If there is any container ACL for the Swift user, translates it to Alluxio permission.
-    if (container.getContainerReadPermission().contains(mAccountOwner)
-        || container.getContainerReadPermission().contains("*")) {
+    if (readAcl.contains(mAccountOwner) || readAcl.contains("*") || readAcl.contains(".r:*")) {
       mode |= (short) 0500;
     }
-    if (container.getcontainerWritePermission().contains(mAccountOwner)
-        || container.getcontainerWritePermission().contains("*")) {
+    List<String> writeAcl = Arrays.asList(
+        container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
+    if (writeAcl.contains(mAccountOwner) || writeAcl.contains("*") || writeAcl.contains(".w:*")) {
       mode |= (short) 0200;
     }
     // If there is no container ACL but the user can still access the container, the only
