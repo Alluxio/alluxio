@@ -69,7 +69,9 @@ public class SwiftInputStream extends InputStream {
     int value = mStream.read();
     if (value != -1) { // valid data read
       mPos++;
+      checkStream();
     }
+
     return value;
   }
 
@@ -89,6 +91,7 @@ public class SwiftInputStream extends InputStream {
     int read = mStream.read(b, offset, length);
     if (read != -1) {
       mPos += read;
+      checkStream();
     }
     return read;
   }
@@ -119,7 +122,8 @@ public class SwiftInputStream extends InputStream {
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    final long endPos = mPos + Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
+    final long blockSize = getBlockSize();
+    final long endPos = mPos + blockSize - (mPos % blockSize);
     downloadInstructions.setRange(new SwiftRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
     LOG.debug("Swift InputStream {}: stream open till end pos {}", this.hashCode(), endPos);
@@ -137,5 +141,22 @@ public class SwiftInputStream extends InputStream {
     mStream.close();
     mStream = null;
     LOG.debug("Swift InputStream {}: stream closed", this.hashCode());
+  }
+
+  /**
+   * An object is read in chunks of clock size. Check if a boundary has been reached.
+   */
+  private void checkStream() {
+    if (mPos % getBlockSize() == 0) {
+      mStream = null;
+    }
+  }
+
+  /**
+   * Block size for reading an object in chunks.
+   * @return block size in bytes
+   */
+  private long getBlockSize() {
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 }
