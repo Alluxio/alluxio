@@ -48,7 +48,7 @@ public final class MetricsConfig {
   public MetricsConfig(String configFile) {
     mConfigFile = configFile;
     mProperties = new Properties();
-    setDefaultProperties();
+    setServletProperties();
     loadConfigFile();
     parseConfiguration();
   }
@@ -60,7 +60,7 @@ public final class MetricsConfig {
    */
   public MetricsConfig(Properties properties) {
     mProperties = new Properties();
-    setDefaultProperties();
+    setServletProperties();
     mProperties.putAll(properties);
     parseConfiguration();
   }
@@ -144,11 +144,13 @@ public final class MetricsConfig {
 
   /**
    * Sets the default properties. The MetricsServlet is enabled and the path is /metrics/json
-   * by default.
+   * by default on servers.
    */
-  private void setDefaultProperties() {
-    mProperties.setProperty("*.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
-    mProperties.setProperty("*.sink.servlet.path", "/metrics/json");
+  public void setServletProperties() {
+    mProperties.setProperty("master.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
+    mProperties.setProperty("worker.sink.servlet.class", "alluxio.metrics.sink.MetricsServlet");
+    mProperties.setProperty("master.sink.servlet.path", "/metrics/json");
+    mProperties.setProperty("worker.sink.servlet.path", "/metrics/json");
   }
 
   /**
