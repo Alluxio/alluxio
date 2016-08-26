@@ -36,7 +36,7 @@ public enum PropertyKey {
   INTEGRATION_MESOS_PRINCIPAL(Name.INTEGRATION_MESOS_PRINCIPAL, "alluxio"),
   INTEGRATION_MESOS_ROLE(Name.INTEGRATION_MESOS_ROLE, "*"),
   INTEGRATION_MESOS_SECRET(Name.INTEGRATION_MESOS_SECRET, null),
-  INTEGRATION_MESOS_USER(Name.INTEGRATION_MESOS_USER, "root"),
+  INTEGRATION_MESOS_USER(Name.INTEGRATION_MESOS_USER, ""),
   INTEGRATION_WORKER_RESOURCE_CPU(Name.INTEGRATION_WORKER_RESOURCE_CPU, 1),
   INTEGRATION_WORKER_RESOURCE_MEM(Name.INTEGRATION_WORKER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_YARN_WORKERS_PER_HOST_MAX(Name.INTEGRATION_YARN_WORKERS_PER_HOST_MAX, 1),
@@ -108,13 +108,13 @@ public enum PropertyKey {
   S3N_SECRET_KEY(Name.S3N_SECRET_KEY, null),
   SWIFT_API_KEY(Name.SWIFT_API_KEY, null),
   SWIFT_AUTH_METHOD_KEY(Name.SWIFT_AUTH_METHOD_KEY, null),
-  SWIFT_AUTH_PORT_KEY(Name.SWIFT_AUTH_PORT_KEY, null),
   SWIFT_AUTH_URL_KEY(Name.SWIFT_AUTH_URL_KEY, null),
   SWIFT_PASSWORD_KEY(Name.SWIFT_PASSWORD_KEY, null),
   SWIFT_SIMULATION(Name.SWIFT_SIMULATION, null),
   SWIFT_TENANT_KEY(Name.SWIFT_TENANT_KEY, null),
   SWIFT_USE_PUBLIC_URI_KEY(Name.SWIFT_USE_PUBLIC_URI_KEY, null),
   SWIFT_USER_KEY(Name.SWIFT_USER_KEY, null),
+  SWIFT_REGION_KEY(Name.SWIFT_REGION_KEY, null),
 
   //
   // Master related properties
@@ -401,13 +401,13 @@ public enum PropertyKey {
     public static final String S3N_SECRET_KEY = "fs.s3n.awsSecretAccessKey";
     public static final String SWIFT_API_KEY = "fs.swift.apikey";
     public static final String SWIFT_AUTH_METHOD_KEY = "fs.swift.auth.method";
-    public static final String SWIFT_AUTH_PORT_KEY = "fs.swift.auth.port";
     public static final String SWIFT_AUTH_URL_KEY = "fs.swift.auth.url";
     public static final String SWIFT_PASSWORD_KEY = "fs.swift.password";
     public static final String SWIFT_SIMULATION = "fs.swift.simulation";
     public static final String SWIFT_TENANT_KEY = "fs.swift.tenant";
     public static final String SWIFT_USER_KEY = "fs.swift.user";
     public static final String SWIFT_USE_PUBLIC_URI_KEY = "fs.swift.use.public.url";
+    public static final String SWIFT_REGION_KEY = "fs.swift.region";
 
     //
     // Master related properties

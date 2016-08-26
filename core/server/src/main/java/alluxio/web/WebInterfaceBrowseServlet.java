@@ -80,12 +80,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
   private void displayFile(AlluxioURI path, HttpServletRequest request, long offset)
       throws FileDoesNotExistException, InvalidPathException, IOException, AlluxioException {
     FileSystem fs = FileSystem.Factory.get();
-    String fileData = null;
+    String fileData;
     URIStatus status = fs.getStatus(path);
     if (status.isCompleted()) {
       OpenFileOptions options = OpenFileOptions.defaults().setReadType(ReadType.NO_CACHE);
-      FileInStream is = fs.openFile(path, options);
-      try {
+      try (FileInStream is = fs.openFile(path, options)) {
         int len = (int) Math.min(5 * Constants.KB, status.getLength() - offset);
         byte[] data = new byte[len];
         long skipped = is.skip(offset);
@@ -105,13 +104,11 @@ public final class WebInterfaceBrowseServlet extends HttpServlet {
             fileData = WebUtils.convertByteArrayToStringWithoutEscape(data, 0, read);
           }
         }
-      } finally {
-        is.close();
       }
     } else {
       fileData = "The requested file is not complete yet.";
     }
-    List<UIFileBlockInfo> uiBlockInfo = new ArrayList<UIFileBlockInfo>();
+    List<UIFileBlockInfo> uiBlockInfo = new ArrayList<>();
     for (FileBlockInfo fileBlockInfo : mMaster.getFileSystemMaster().getFileBlockInfoList(path)) {
       uiBlockInfo.add(new UIFileBlockInfo(fileBlockInfo));
     }

@@ -341,9 +341,9 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultTotalCapacityBytes() {
     long totalCapacity = 0;
-    for (int i = 0; i < TIER_CAPACITY_BYTES.length; i++) {
-      for (int j = 0; j < TIER_CAPACITY_BYTES[i].length; j++) {
-        totalCapacity += TIER_CAPACITY_BYTES[i][j];
+    for (long[] tierCapacityBytes : TIER_CAPACITY_BYTES) {
+      for (long tierCapacityByte : tierCapacityBytes) {
+        totalCapacity += tierCapacityByte;
       }
     }
     return totalCapacity;
@@ -356,8 +356,8 @@ public class TieredBlockStoreTestUtils {
    */
   public static long getDefaultDirNum() {
     int dirNum = 0;
-    for (int i = 0; i < TIER_PATH.length; i++) {
-      dirNum += TIER_PATH[i].length;
+    for (String[] tierPath : TIER_PATH) {
+      dirNum += tierPath.length;
     }
     return dirNum;
   }
