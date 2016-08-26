@@ -71,7 +71,6 @@ public class SwiftInputStream extends InputStream {
       mPos++;
       checkStream();
     }
-
     return value;
   }
 
