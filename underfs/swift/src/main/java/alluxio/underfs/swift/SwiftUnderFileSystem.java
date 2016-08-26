@@ -131,6 +131,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+            if (Configuration.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(Configuration.get(PropertyKey.SWIFT_REGION_KEY));
+            }
             break;
           case Constants.SWIFT_AUTH_SWIFTAUTH:
             // swiftauth authenticates directly against swift
@@ -235,13 +238,22 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
     final String strippedPath = stripContainerPrefixIfPresent(path);
     Container container = mAccount.getContainer(mContainerName);
     if (recursive) {
+      boolean deletedSelf = false;
+
       // For a file, recursive delete will not find any children
       PaginationMap paginationMap = container.getPaginationMap(
-          addFolderSuffixIfNotPresent(strippedPath), DIR_PAGE_SIZE);
+          PathUtils.normalizePath(strippedPath, PATH_SEPARATOR), DIR_PAGE_SIZE);
       for (int page = 0; page < paginationMap.getNumberOfPages(); page++) {
         for (StoredObject childObject : container.list(paginationMap, page)) {
           deleteObject(childObject);
+          if (childObject.getName().equals(addFolderSuffixIfNotPresent(strippedPath))) {
+            // As PATH_SEPARATOR and FOLDER_SUFFIX are the same the folder would be fetched
+            deletedSelf = true;
+          }
         }
+      }
+      if (deletedSelf) {
+        return true;
       }
     } else {
       String[] children = list(path);
@@ -273,10 +285,13 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       return true;
     }
 
-    // Query file or folder using single listing query
-    Collection<DirectoryOrObject> objects =
-        listInternal(stripFolderSuffixIfPresent(stripContainerPrefixIfPresent(path)), false);
-    return objects != null && objects.size() != 0;
+    if (path.endsWith(FOLDER_SUFFIX)) {
+      // If path ends with the folder suffix, we do not check for the existence of a file
+      return isDirectory(path);
+    }
+
+    // If path does not have folder suffix we check for both a file or a folder
+    return isFile(path) || isDirectory(path);
   }
 
   /**
@@ -289,6 +304,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   @Override
   public long getBlockSizeByte(String path) throws IOException {
+    LOG.debug("Get block size for {}", path);
     return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 

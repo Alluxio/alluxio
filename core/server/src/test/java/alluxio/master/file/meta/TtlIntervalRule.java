@@ -23,7 +23,7 @@ public class TtlIntervalRule implements TestRule {
   private final long mIntervalMs;
 
   /**
-   * @param interval the global checking interval (in ms) to temporarily set
+   * @param intervalMs the global checking interval (in ms) to temporarily set
    */
   public TtlIntervalRule(long intervalMs) {
     mIntervalMs = intervalMs;

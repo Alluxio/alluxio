@@ -66,62 +66,39 @@ public class SwiftUnderFileSystemFactory implements UnderFileSystemFactory {
    * Adds Swift credentials from system properties to the Alluxio configuration if they are not
    * already present.
    *
-   * @return true if simulation mode or if both access and secret key are present, false otherwise
+   * @return true if simulation mode or if all required authentication credentials are present
    */
   private boolean addAndCheckSwiftCredentials() {
-    PropertyKey tenantApiKeyConf = PropertyKey.SWIFT_API_KEY;
-    if (System.getProperty(tenantApiKeyConf.toString()) != null && (
-        !Configuration.containsKey(tenantApiKeyConf)
-            || Configuration.get(tenantApiKeyConf) == null)) {
-      Configuration.set(tenantApiKeyConf, System.getProperty(tenantApiKeyConf.toString()));
-    }
-    PropertyKey tenantKeyConf = PropertyKey.SWIFT_TENANT_KEY;
-    if (System.getProperty(tenantKeyConf.toString()) != null && (
-        !Configuration.containsKey(tenantKeyConf) || Configuration.get(tenantKeyConf) == null)) {
-      Configuration.set(tenantKeyConf, System.getProperty(tenantKeyConf.toString()));
-    }
-    PropertyKey tenantUserConf = PropertyKey.SWIFT_USER_KEY;
-    if (System.getProperty(tenantUserConf.toString()) != null && (
-        !Configuration.containsKey(tenantUserConf) || Configuration.get(tenantUserConf) == null)) {
-      Configuration.set(tenantUserConf, System.getProperty(tenantUserConf.toString()));
-    }
-    PropertyKey tenantAuthURLKeyConf = PropertyKey.SWIFT_AUTH_URL_KEY;
-    if (System.getProperty(tenantAuthURLKeyConf.toString()) != null && (
-        !Configuration.containsKey(tenantAuthURLKeyConf)
-            || Configuration.get(tenantAuthURLKeyConf) == null)) {
-      Configuration.set(tenantAuthURLKeyConf, System.getProperty(tenantAuthURLKeyConf.toString()));
-    }
-    PropertyKey authMethodKeyConf = PropertyKey.SWIFT_AUTH_METHOD_KEY;
-    if (System.getProperty(authMethodKeyConf.toString()) != null && (
-        !Configuration.containsKey(authMethodKeyConf)
-            || Configuration.get(authMethodKeyConf) == null)) {
-      Configuration.set(authMethodKeyConf, System.getProperty(authMethodKeyConf.toString()));
-    }
-    PropertyKey passwordKeyConf = PropertyKey.SWIFT_PASSWORD_KEY;
-    if (System.getProperty(passwordKeyConf.toString()) != null && (
-        !Configuration.containsKey(passwordKeyConf)
-            || Configuration.get(passwordKeyConf) == null)) {
-      Configuration.set(passwordKeyConf, System.getProperty(passwordKeyConf.toString()));
-    }
+    PropertyKey[] propertiesToRead = {PropertyKey.SWIFT_API_KEY, PropertyKey.SWIFT_TENANT_KEY,
+        PropertyKey.SWIFT_USER_KEY, PropertyKey.SWIFT_AUTH_URL_KEY,
+        PropertyKey.SWIFT_AUTH_METHOD_KEY, PropertyKey.SWIFT_PASSWORD_KEY,
+        PropertyKey.SWIFT_SIMULATION, PropertyKey.SWIFT_REGION_KEY};
 
-    PropertyKey swiftSimulationConf = PropertyKey.SWIFT_SIMULATION;
-    if (System.getProperty(swiftSimulationConf.toString()) != null && (
-        !Configuration.containsKey(swiftSimulationConf)
-            || Configuration.get(swiftSimulationConf) == null)) {
-      Configuration.set(swiftSimulationConf, System.getProperty(swiftSimulationConf.toString()));
-    }
-
-    boolean simulation = false;
-    if (Configuration.containsKey(swiftSimulationConf)) {
-      simulation = Configuration.getBoolean(swiftSimulationConf);
+    for (PropertyKey property : propertiesToRead) {
+      if (System.getProperty(property.toString()) != null
+          && (!Configuration.containsKey(property) || Configuration.get(property) == null)) {
+        Configuration.set(property, System.getProperty(property.toString()));
+      }
     }
 
     // We do not need authentication credentials in simulation mode
-    return simulation || (((Configuration.containsKey(tenantApiKeyConf)
-        && Configuration.get(tenantApiKeyConf) != null) || (
-        Configuration.containsKey(passwordKeyConf) && Configuration.get(passwordKeyConf) != null))
-        && Configuration.get(tenantKeyConf) != null
-        && Configuration.get(tenantAuthURLKeyConf) != null
-        && Configuration.get(tenantUserConf) != null);
+    if (Configuration.containsKey(PropertyKey.SWIFT_SIMULATION)
+        && Configuration.getBoolean(PropertyKey.SWIFT_SIMULATION)) {
+      return true;
+    }
+
+    // API or Password Key is required
+    PropertyKey apiOrPasswordKey = Configuration.containsKey(PropertyKey.SWIFT_API_KEY)
+        ? PropertyKey.SWIFT_API_KEY : PropertyKey.SWIFT_PASSWORD_KEY;
+
+    // Check if required credentials exist
+    PropertyKey[] requiredProperties = {apiOrPasswordKey, PropertyKey.SWIFT_TENANT_KEY,
+        PropertyKey.SWIFT_AUTH_URL_KEY, PropertyKey.SWIFT_USER_KEY};
+    for (PropertyKey propertyName : requiredProperties) {
+      if (Configuration.get(propertyName) == null) {
+        return false;
+      }
+    }
+    return true;
   }
 }
