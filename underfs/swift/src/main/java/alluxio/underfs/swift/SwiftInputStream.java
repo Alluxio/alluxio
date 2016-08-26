@@ -102,11 +102,9 @@ public class SwiftInputStream extends InputStream {
       return 0;
     }
 
-    //LOG.debug("Swift InputStream {}: skipping {} bytes", this.hashCode(), n);
     closeStream();
     mPos += n;
     openStream();
-    //LOG.debug("Swift InputStream {}: done skipping", this.hashCode());
     return n;
   }
 
@@ -117,7 +115,6 @@ public class SwiftInputStream extends InputStream {
     LOG.debug("Swift InputStream {}: open stream at pos {}", this.hashCode(), mPos);
 
     if (mStream != null) { // stream is already open
-      //LOG.debug("Swift InputStream {}: stream is already open", this.hashCode());
       return;
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
@@ -135,7 +132,6 @@ public class SwiftInputStream extends InputStream {
   private void closeStream() throws IOException {
     LOG.debug("Swift InputStream {}: closing stream with pos {}", this.hashCode(), mPos);
     if (mStream == null) {
-      //LOG.debug("Swift InputStream {}: stream already closed", this.hashCode());
       return;
     }
     mStream.close();
