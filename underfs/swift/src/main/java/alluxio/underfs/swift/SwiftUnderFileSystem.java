@@ -125,6 +125,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
         switch (authMethod) {
           case Constants.SWIFT_AUTH_KEYSTONE:
             config.setAuthenticationMethod(AuthenticationMethod.KEYSTONE);
+            if (Configuration.containsKey(PropertyKey.SWIFT_REGION_KEY)) {
+              config.setPreferredRegion(Configuration.get(PropertyKey.SWIFT_REGION_KEY));
+            }
             break;
           case Constants.SWIFT_AUTH_SWIFTAUTH:
             // swiftauth authenticates directly against swift
