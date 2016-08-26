@@ -101,7 +101,6 @@ public class SwiftInputStream extends InputStream {
     if (n <= 0) {
       return 0;
     }
-
     closeStream();
     mPos += n;
     openStream();
