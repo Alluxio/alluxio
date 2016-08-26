@@ -16,6 +16,8 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
@@ -24,7 +26,9 @@ import javax.annotation.concurrent.NotThreadSafe;
 @PublicApi
 @NotThreadSafe
 // TODO(jiri): Consolidate with alluxio.job.CommandLineJob.
-public final class CommandLineJobInfo {
+public final class CommandLineJobInfo implements Serializable {
+  private static final long serialVersionUID = 1058314411139470750L;
+
   private String mCommand = "";
   private JobConfInfo mConf = new JobConfInfo();
 

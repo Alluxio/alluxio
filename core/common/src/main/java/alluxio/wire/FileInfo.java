@@ -14,6 +14,7 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,9 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @NotThreadSafe
 // TODO(jiri): Consolidate with URIStatus.
-public final class FileInfo {
+public final class FileInfo implements Serializable {
+  private static final long serialVersionUID = 7119966306934831779L;
+
   private long mFileId;
   private String mName = "";
   private String mPath = "";
@@ -37,7 +40,7 @@ public final class FileInfo {
   private boolean mPinned;
   private boolean mCacheable;
   private boolean mPersisted;
-  private List<Long> mBlockIds = new ArrayList<>();
+  private ArrayList<Long> mBlockIds = new ArrayList<>();
   private int mInMemoryPercentage;
   private long mLastModificationTimeMs;
   private long mTtl;
@@ -46,7 +49,7 @@ public final class FileInfo {
   private int mMode;
   private String mPersistenceState = "";
   private boolean mMountPoint;
-  private List<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
+  private ArrayList<FileBlockInfo> mFileBlockInfos = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileInfo}.
@@ -71,7 +74,7 @@ public final class FileInfo {
     mPinned = fileInfo.isPinned();
     mCacheable = fileInfo.isCacheable();
     mPersisted = fileInfo.isPersisted();
-    mBlockIds = fileInfo.getBlockIds();
+    mBlockIds = new ArrayList<>(fileInfo.getBlockIds());
     mInMemoryPercentage = fileInfo.getInMemoryPercentage();
     mLastModificationTimeMs = fileInfo.getLastModificationTimeMs();
     mTtl = fileInfo.getTtl();
@@ -359,7 +362,7 @@ public final class FileInfo {
    */
   public FileInfo setBlockIds(List<Long> blockIds) {
     Preconditions.checkNotNull(blockIds);
-    mBlockIds = blockIds;
+    mBlockIds = new ArrayList<>(blockIds);
     return this;
   }
 
@@ -443,7 +446,7 @@ public final class FileInfo {
    * @return the file descriptor
    */
   public FileInfo setFileBlockInfos(List<FileBlockInfo> fileBlockInfos) {
-    mFileBlockInfos = fileBlockInfos;
+    mFileBlockInfos = new ArrayList<>(fileBlockInfos);
     return this;
   }
 

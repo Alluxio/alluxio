@@ -14,13 +14,17 @@ package alluxio.wire;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
+
 import javax.annotation.concurrent.NotThreadSafe;
 
 /**
  * The worker descriptor.
  */
 @NotThreadSafe
-public final class WorkerInfo {
+public final class WorkerInfo implements Serializable {
+  private static final long serialVersionUID = -454711814438216780L;
+
   private long mId;
   private WorkerNetAddress mAddress = new WorkerNetAddress();
   private int mLastContactSec;
