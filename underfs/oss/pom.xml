@@ -51,5 +51,11 @@
       <artifactId>httpcore</artifactId>
       <version>4.4</version>
     </dependency>
+
+    <!-- Dependency for findbugs (SuppressFBWarnings) -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>annotations</artifactId>
+    </dependency>
   </dependencies>
 </project>
