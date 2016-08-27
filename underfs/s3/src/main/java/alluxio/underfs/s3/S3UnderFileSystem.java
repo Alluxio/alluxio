@@ -22,6 +22,7 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -79,6 +80,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   private final String mAccountOwner;
 
   /** The AWS canonical user id of the account owner. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mAccountOwnerId;
 
   /** The permission mode that the account owner has to the bucket. */
@@ -474,16 +476,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
-  }
-
-  /**
-   * Gets the owner ID of the given path.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   */
-  public String getOwnerId(String path) {
-    return mAccountOwnerId;
   }
 
   /**

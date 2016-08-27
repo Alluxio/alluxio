@@ -29,6 +29,7 @@ import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,9 +64,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   private final OSSClient mClient;
 
   /** The accessId to connect OSS. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mAccessId;
 
   /** The accessKey to connect OSS. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mAccessKey;
 
   /** Bucket name of user's configured Alluxio bucket. */
@@ -75,6 +78,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   private final String mBucketPrefix;
 
   /** The OSS endpoint. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mEndPoint;
 
   /**
@@ -115,7 +119,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @param accessKey the accessKey to connect OSS
    * @param endPoint the OSS endpoint
    */
-  public OSSUnderFileSystem(AlluxioURI uri,
+  protected OSSUnderFileSystem(AlluxioURI uri,
       OSSClient ossClient,
       String bucketName,
       String bucketPrefix,
@@ -389,36 +393,6 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return Constants.DEFAULT_FILE_SYSTEM_MODE;
-  }
-
-  /**
-   * Gets the access ID of the given path.
-   *
-   * @param path the path of the file
-   * @return the access ID of the file
-   */
-  public String getAccessId(String path) {
-    return mAccessId;
-  }
-
-  /**
-   * Gets the access key of the given path.
-   *
-   * @param path the path of the file
-   * @return the access key of the file
-   */
-  public String getAccessKey(String path) {
-    return mAccessKey;
-  }
-
-  /**
-   * Gets the {@link OSSClient} of the given path.
-   *
-   * @param path the path of the file
-   * @return the {@link OSSClient} of the file
-   */
-  public String getEndPoint(String path) {
-    return mEndPoint;
   }
 
   /**

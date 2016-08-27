@@ -42,6 +42,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +95,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   private final String mAccountOwner;
 
   /** The AWS canonical user id of the account owner. */
+  @SuppressFBWarnings("URF_UNREAD_FIELD")
   private final String mAccountOwnerId;
 
   /** The permission mode that the account owner has to the bucket. */
@@ -493,16 +495,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
-  }
-
-  /**
-   * Gets the owner ID of the given path.
-   *
-   * @param path the path of the file
-   * @return the owner of the file
-   */
-  public String getOwnerId(String path) {
-    return mAccountOwnerId;
   }
 
   /**
