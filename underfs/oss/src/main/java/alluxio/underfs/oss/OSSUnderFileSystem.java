@@ -77,8 +77,14 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** The OSS endpoint. */
   private final String mEndPoint;
 
-  protected OSSUnderFileSystem(AlluxioURI uri) throws Exception {
-    super(uri);
+  /**
+   * Constructs a new instance of {@link OSSUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link OSSUnderFileSystem} instance
+   * @throws Exception when a connection to GCS could not be created
+   */
+  public static OSSUnderFileSystem createOSSUnderFileSystem(AlluxioURI uri) throws Exception {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
@@ -86,18 +92,20 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
         "Property " + PropertyKey.OSS_SECRET_KEY + " is required to connect to OSS");
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ENDPOINT_KEY),
         "Property " + PropertyKey.OSS_ENDPOINT_KEY + " is required to connect to OSS");
-    mAccessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
-    mAccessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
-    mBucketName = bucketName;
-    mBucketPrefix = Constants.HEADER_OSS + mBucketName + PATH_SEPARATOR;
-    mEndPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
+    String accessId = Configuration.get(PropertyKey.OSS_ACCESS_KEY);
+    String accessKey = Configuration.get(PropertyKey.OSS_SECRET_KEY);
+    String bucketPrefix = Constants.HEADER_OSS + bucketName + PATH_SEPARATOR;
+    String endPoint = Configuration.get(PropertyKey.OSS_ENDPOINT_KEY);
 
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
-    mClient = new OSSClient(mEndPoint, mAccessId, mAccessKey, ossClientConf);
+    OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
+
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix,
+        accessId, accessKey, endPoint);
   }
 
   /**
-   * Constructor used in test case only.
+   * Constructor of {@link OSSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ossClient Aliyun OSS client
@@ -107,7 +115,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @param accessKey the accessKey to connect OSS
    * @param endPoint the OSS endpoint
    */
-  protected OSSUnderFileSystem(AlluxioURI uri,
+  public OSSUnderFileSystem(AlluxioURI uri,
       OSSClient ossClient,
       String bucketName,
       String bucketPrefix,
@@ -384,6 +392,36 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   /**
+   * Gets the access ID of the given path.
+   *
+   * @param path the path of the file
+   * @return the access ID of the file
+   */
+  public String getAccessId(String path) {
+    return mAccessId;
+  }
+
+  /**
+   * Gets the access key of the given path.
+   *
+   * @param path the path of the file
+   * @return the access key of the file
+   */
+  public String getAccessKey(String path) {
+    return mAccessKey;
+  }
+
+  /**
+   * Gets the {@link OSSClient} of the given path.
+   *
+   * @param path the path of the file
+   * @return the {@link OSSClient} of the file
+   */
+  public String getEndPoint(String path) {
+    return mEndPoint;
+  }
+
+  /**
    * Appends the directory suffix to the key.
    *
    * @param key the key to convert
@@ -478,7 +516,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    *
    * @return the OSS {@link ClientConfiguration}
    */
-  private ClientConfiguration initializeOSSClientConfig() {
+  private static ClientConfiguration initializeOSSClientConfig() {
     ClientConfiguration ossClientConf = new ClientConfiguration();
     ossClientConf.setConnectionTimeout(
         Configuration.getInt(PropertyKey.UNDERFS_OSS_CONNECT_TIMEOUT));

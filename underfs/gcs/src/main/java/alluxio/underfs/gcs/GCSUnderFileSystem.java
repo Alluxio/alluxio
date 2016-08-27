@@ -94,10 +94,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public GCSUnderFileSystem(AlluxioURI uri) throws ServiceException {
-    super(uri);
+  public static GCSUnderFileSystem createGCSUnderFileSystem(AlluxioURI uri)
+      throws ServiceException {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
         "Property " + PropertyKey.GCS_ACCESS_KEY + " is required to connect to GCS");
@@ -106,24 +107,27 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     GSCredentials googleCredentials = new GSCredentials(
         Configuration.get(PropertyKey.GCS_ACCESS_KEY),
         Configuration.get(PropertyKey.GCS_SECRET_KEY));
-    mBucketName = bucketName;
 
     // TODO(chaomin): maybe add proxy support for GCS.
-    mClient = new GoogleStorageService(googleCredentials);
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + mBucketName, PATH_SEPARATOR);
+    GoogleStorageService googleStorageService = new GoogleStorageService(googleCredentials);
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_GCS + bucketName,
+        PATH_SEPARATOR);
 
-    mAccountOwnerId = mClient.getAccountOwner().getId();
+    String accountOwnerId = googleStorageService.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from GCS account id to Alluxio user name.
     String owner = CommonUtils.getValueFromStaticMapping(
-        Configuration.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), mAccountOwnerId);
+        Configuration.get(PropertyKey.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING), accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
-      owner = mClient.getAccountOwner().getDisplayName();
+      owner = googleStorageService.getAccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+    String accountOwner = owner == null ? accountOwnerId : owner;
 
-    GSAccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketMode = GCSUtils.translateBucketAcl(acl, mAccountOwnerId);
+    GSAccessControlList acl = googleStorageService.getBucketAcl(bucketName);
+    short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
+
+    return new GCSUnderFileSystem(uri, googleStorageService, bucketName,
+        bucketPrefix, bucketMode, accountOwner, accountOwnerId);
   }
 
   /**
@@ -427,6 +431,16 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
+  }
+
+  /**
+   * Gets the owner ID of the given path.
+   *
+   * @param path the path of the file
+   * @return the owner of the file
+   */
+  public String getOwnerId(String path) {
+    return mAccountOwnerId;
   }
 
   /**

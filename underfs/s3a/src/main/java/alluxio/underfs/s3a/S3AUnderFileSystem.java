@@ -108,11 +108,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link S3AUnderFileSystem} instance
    */
-  public S3AUnderFileSystem(AlluxioURI uri) {
-    super(uri);
-    mBucketName = uri.getHost();
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
+  public static S3AUnderFileSystem createS3AUnderFileSystem(AlluxioURI uri) {
+
+    String bucketName = uri.getHost();
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + bucketName,
+        PATH_SEPARATOR);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
     if (Configuration.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
@@ -151,34 +153,37 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       clientConf.setProxyPort(Configuration.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
 
-    mClient = new AmazonS3Client(credentials, clientConf);
+    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      mClient.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+      amazonS3Client.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
-    mManager = new TransferManager(mClient);
+    TransferManager transferManager = new TransferManager(amazonS3Client);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
-    mManager.setConfiguration(transferConf);
+    transferManager.setConfiguration(transferConf);
 
-    mAccountOwnerId = mClient.getS3AccountOwner().getId();
+    String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
         Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
-        mAccountOwnerId);
+        accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
-      owner = mClient.getS3AccountOwner().getDisplayName();
+      owner = amazonS3Client.getS3AccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+    String accountOwner = owner == null ? accountOwnerId : owner;
 
-    AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketMode = S3AUtils.translateBucketAcl(acl, mAccountOwnerId);
+    AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
+    short bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+
+    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketPrefix,
+        bucketMode, accountOwner, accountOwnerId, transferManager);
   }
 
   /**
-   * Constructor used in test case only.
+   * Constructor for {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param amazonS3Client AWS-SDK S3 client
@@ -488,6 +493,16 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
+  }
+
+  /**
+   * Gets the owner ID of the given path.
+   *
+   * @param path the path of the file
+   * @return the owner of the file
+   */
+  public String getOwnerId(String path) {
+    return mAccountOwnerId;
   }
 
   /**
