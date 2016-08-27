@@ -96,10 +96,10 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link S3UnderFileSystem} instance
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri) throws ServiceException {
-    super(uri);
+  public static S3UnderFileSystem createS3UnderFileSystem(AlluxioURI uri) throws ServiceException {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY),
         "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
@@ -108,7 +108,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     AWSCredentials awsCredentials = new AWSCredentials(
         Configuration.get(PropertyKey.S3N_ACCESS_KEY),
         Configuration.get(PropertyKey.S3N_SECRET_KEY));
-    mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
@@ -150,27 +149,31 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           Configuration.get(PropertyKey.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
-    mClient = new RestS3Service(awsCredentials, null, null, props);
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+    RestS3Service restS3Service = new RestS3Service(awsCredentials, null, null, props);
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + bucketName,
+        PATH_SEPARATOR);
 
-    mAccountOwnerId = mClient.getAccountOwner().getId();
+    String accountOwnerId = restS3Service.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
         Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
-        mAccountOwnerId);
+        accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
-      owner = mClient.getAccountOwner().getDisplayName();
+      owner = restS3Service.getAccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+    String accountOwner = owner == null ? accountOwnerId : owner;
 
-    AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketMode = S3Utils.translateBucketAcl(acl, mAccountOwnerId);
+    AccessControlList acl = restS3Service.getBucketAcl(bucketName);
+    short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
+
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketPrefix,
+        bucketMode, accountOwner, accountOwnerId);
   }
 
   /**
-   * Constructor used in test case only.
+   * Constructor for {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param s3Service Jets3t S3 client
@@ -471,6 +474,16 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
+  }
+
+  /**
+   * Gets the owner ID of the given path.
+   *
+   * @param path the path of the file
+   * @return the owner of the file
+   */
+  public String getOwnerId(String path) {
+    return mAccountOwnerId;
   }
 
   /**

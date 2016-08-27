@@ -47,7 +47,7 @@ public final class GCSUnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (addAndCheckGoogleCredentials()) {
       try {
-        return new GCSUnderFileSystem(new AlluxioURI(path));
+        return GCSUnderFileSystem.createGCSUnderFileSystem(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create GCSUnderFileSystem.", e);
         throw Throwables.propagate(e);
