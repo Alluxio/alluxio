@@ -26,7 +26,8 @@ Therefore, the configuration of Alluxio is done mostly in HBase configuration fi
 
 #### Set property in `hbase-site.xml`
 
-You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory:
+You need to add the following three properties to `hbase-site.xml` in your HBase installation `conf` directory
+(make sure these properties are configured in all HBase cluster nodes):
 
 Tips:You do not need to create the /hbase directory in Alluxio, HBase will do this for you.
 
@@ -34,10 +35,6 @@ Tips:You do not need to create the /hbase directory in Alluxio, HBase will do th
 <property>
   <name>fs.alluxio.impl</name>
   <value>alluxio.hadoop.FileSystem</value>
-</property>
-<property>
-  <name>fs.alluxio-ft.impl</name>
-  <value>alluxio.hadoop.FaultTolerantFileSystem</value>
 </property>
 <property>
   <name>fs.AbstractFileSystem.alluxio.impl</name>
@@ -51,14 +48,14 @@ Tips:You do not need to create the /hbase directory in Alluxio, HBase will do th
 
 # Distribute the Alluxio Client jar
 
-We need to make the Alluxio `jar` file available to HBase, because it contains the configured
+We need to make the Alluxio client `jar` file available to HBase, because it contains the configured
 `alluxio.hadoop.FileSystem` class.
 
 There are two ways to achieve that:
 - Put the `alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar` file into the
   `lib` directory of HBase.
 - Specify the location of the jar file in the `HBASE_CLASSPATH` environment variable (make sure it's available
-on all cluster nodes). For example like this:
+on all cluster nodes). For example:
 
 ```bash
 export HBASE_CLASSPATH=/<PATH_TO_ALLUXIO>/core/client/target/alluxio-core-client-{{site.ALLUXIO_RELEASED_VERSION}}-jar-with-dependencies.jar:${HBASE_CLASSPATH}
