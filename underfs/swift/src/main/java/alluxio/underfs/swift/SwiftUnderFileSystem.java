@@ -458,7 +458,8 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    * @return true if the path is the root, false otherwise
    */
   private boolean isRoot(final String path) {
-    return addFolderSuffixIfNotPresent(path).equals(mContainerPrefix);
+    final String pathWithSuffix = addFolderSuffixIfNotPresent(path);
+    return pathWithSuffix.equals(mContainerPrefix) || pathWithSuffix.equals(PATH_SEPARATOR);
   }
 
   @Override
@@ -613,7 +614,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
    */
   private String[] listHelper(String path, boolean recursive) throws IOException {
     String prefix = PathUtils.normalizePath(stripContainerPrefixIfPresent(path), PATH_SEPARATOR);
-    prefix = prefix.equals(PATH_SEPARATOR) ? "" : prefix;
+    prefix = CommonUtils.stripPrefixIfPresent(prefix, PATH_SEPARATOR);
 
     Collection<DirectoryOrObject> objects = listInternal(prefix, recursive);
     Set<String> children = new HashSet<>();
@@ -627,6 +628,10 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       } else {
         foundSelf = true;
       }
+    }
+
+    if (isRoot(self)) {
+      foundSelf = true;
     }
 
     if (!foundSelf) {
