@@ -38,7 +38,6 @@ public class GCSUnderFileSystemTest {
   private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
-  private static final String ACCOUNT_OWNER_ID = "account owner id";
 
   /**
    * Set up.
@@ -48,7 +47,7 @@ public class GCSUnderFileSystemTest {
     mClient = Mockito.mock(GoogleStorageService.class);
 
     mGCSUnderFileSystem = new GCSUnderFileSystem(new AlluxioURI(""),
-        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID);
+        mClient, BUCKET_NAME, BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER);
   }
 
   /**

@@ -29,7 +29,6 @@ import com.aliyun.oss.model.OSSObjectSummary;
 import com.aliyun.oss.model.ObjectListing;
 import com.aliyun.oss.model.ObjectMetadata;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,23 +62,11 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   /** Aliyun OSS client. */
   private final OSSClient mClient;
 
-  /** The accessId to connect OSS. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mAccessId;
-
-  /** The accessKey to connect OSS. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mAccessKey;
-
   /** Bucket name of user's configured Alluxio bucket. */
   private final String mBucketName;
 
   /** Prefix of the bucket, for example oss://bucket-name/ . */
   private final String mBucketPrefix;
-
-  /** The OSS endpoint. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mEndPoint;
 
   /**
    * Constructs a new instance of {@link OSSUnderFileSystem}.
@@ -88,7 +75,7 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
    * @return the created {@link OSSUnderFileSystem} instance
    * @throws Exception when a connection to GCS could not be created
    */
-  public static OSSUnderFileSystem createOSSUnderFileSystem(AlluxioURI uri) throws Exception {
+  public static OSSUnderFileSystem createInstance(AlluxioURI uri) throws Exception {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.OSS_ACCESS_KEY),
         "Property " + PropertyKey.OSS_ACCESS_KEY + " is required to connect to OSS");
@@ -104,35 +91,25 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
     ClientConfiguration ossClientConf = initializeOSSClientConfig();
     OSSClient ossClient = new OSSClient(endPoint, accessId, accessKey, ossClientConf);
 
-    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix,
-        accessId, accessKey, endPoint);
+    return new OSSUnderFileSystem(uri, ossClient, bucketName, bucketPrefix);
   }
 
   /**
-   * Constructor of {@link OSSUnderFileSystem}.
+   * Constructor for {@link OSSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param ossClient Aliyun OSS client
    * @param bucketName bucket name of user's configured Alluxio bucket
    * @param bucketPrefix prefix of the bucket
-   * @param accessId the accessId to connect OSS
-   * @param accessKey the accessKey to connect OSS
-   * @param endPoint the OSS endpoint
    */
   protected OSSUnderFileSystem(AlluxioURI uri,
       OSSClient ossClient,
       String bucketName,
-      String bucketPrefix,
-      String accessId,
-      String accessKey,
-      String endPoint) {
+      String bucketPrefix) {
     super(uri);
     mClient = ossClient;
     mBucketName = bucketName;
     mBucketPrefix = bucketPrefix;
-    mAccessId = accessId;
-    mAccessKey = accessKey;
-    mEndPoint = endPoint;
   }
 
   @Override

@@ -41,7 +41,6 @@ public class S3AUnderFileSystemTest {
   private static final String BUCKET_PREFIX = "prefix";
   private static final short BUCKET_MODE = 0;
   private static final String ACCOUNT_OWNER = "account owner";
-  private static final String ACCOUNT_OWNER_ID = "account owner id";
 
   /**
    * Set up.
@@ -51,7 +50,7 @@ public class S3AUnderFileSystemTest {
     mClient = Mockito.mock(AmazonS3Client.class);
     mManager = Mockito.mock(TransferManager.class);
     mS3UnderFileSystem = new S3AUnderFileSystem(new AlluxioURI(""), mClient, BUCKET_NAME,
-        BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, ACCOUNT_OWNER_ID, mManager);
+        BUCKET_PREFIX, BUCKET_MODE, ACCOUNT_OWNER, mManager);
   }
 
   /**

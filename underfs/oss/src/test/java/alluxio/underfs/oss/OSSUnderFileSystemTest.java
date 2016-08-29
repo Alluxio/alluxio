@@ -38,9 +38,6 @@ public class OSSUnderFileSystemTest {
 
   private static final String BUCKET_NAME = "bucket";
   private static final String BUCKET_PREFIX = "prefix";
-  private static final String ACCESS_ID = "access id";
-  private static final String ACCESS_KEY = "access key";
-  private static final String ENDPOINT = "endpoint";
 
   /**
    * Set up.
@@ -50,7 +47,7 @@ public class OSSUnderFileSystemTest {
     mClient = Mockito.mock(OSSClient.class);
 
     mOSSUnderFileSystem = new OSSUnderFileSystem(new AlluxioURI(""), mClient,
-        BUCKET_NAME, BUCKET_PREFIX, ACCESS_ID, ACCESS_KEY, ENDPOINT);
+        BUCKET_NAME, BUCKET_PREFIX);
   }
 
   /**
