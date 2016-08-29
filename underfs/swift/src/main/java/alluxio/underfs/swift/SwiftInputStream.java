@@ -112,7 +112,7 @@ public class SwiftInputStream extends InputStream {
   }
 
   /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
   private void openStream() {
     if (mStream != null) { // stream is already open
