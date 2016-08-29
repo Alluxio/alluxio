@@ -370,19 +370,19 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // Returns the bucket owner.
+  // Returns the account owner.
   @Override
   public String getOwner(String path) throws IOException {
     return mAccountOwner;
   }
 
-  // No group in GCS ACL, returns the bucket owner.
+  // No group in GCS ACL, returns the account owner.
   @Override
   public String getGroup(String path) throws IOException {
     return mAccountOwner;
   }
 
-  // Returns the translated mode by the owner of the bucket.
+  // Returns the account owner's permission mode to the GCS bucket.
   @Override
   public short getMode(String path) throws IOException {
     return mBucketMode;
