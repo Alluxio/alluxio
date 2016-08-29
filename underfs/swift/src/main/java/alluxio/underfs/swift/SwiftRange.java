@@ -20,6 +20,7 @@ import org.javaswift.joss.headers.object.range.AbstractRange;
 public class SwiftRange extends AbstractRange {
   /**
    * Constructor for a range in a Swift object.
+   *
    * @param startPos starting position in bytes
    * @param endPos ending position in bytes
    */
