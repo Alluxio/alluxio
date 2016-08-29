@@ -57,7 +57,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * S3 {@link alluxio.underfs.UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
+ * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
  */
 @ThreadSafe
 public class S3AUnderFileSystem extends UnderFileSystem {
@@ -90,11 +90,8 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** Transfer Manager for efficient I/O to s3. */
   private final TransferManager mManager;
 
-  /** The owner name of the account. */
+  /** The name of the account owner. */
   private final String mAccountOwner;
-
-  /** The AWS canonical user id of the account owner. */
-  private final String mAccountOwnerId;
 
   /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
@@ -108,11 +105,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3AUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link S3AUnderFileSystem} instance
    */
-  public S3AUnderFileSystem(AlluxioURI uri) {
-    super(uri);
-    mBucketName = uri.getHost();
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + mBucketName, PATH_SEPARATOR);
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri) {
+
+    String bucketName = uri.getHost();
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + bucketName,
+        PATH_SEPARATOR);
 
     // Set the aws credential system properties based on Alluxio properties, if they are set
     if (Configuration.containsKey(PropertyKey.S3A_ACCESS_KEY)) {
@@ -151,30 +150,60 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       clientConf.setProxyPort(Configuration.getInt(PropertyKey.UNDERFS_S3_PROXY_PORT));
     }
 
-    mClient = new AmazonS3Client(credentials, clientConf);
+    AmazonS3Client amazonS3Client = new AmazonS3Client(credentials, clientConf);
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_ENDPOINT)) {
-      mClient.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
+      amazonS3Client.setEndpoint(Configuration.get(PropertyKey.UNDERFS_S3_ENDPOINT));
     }
-    mManager = new TransferManager(mClient);
+    TransferManager transferManager = new TransferManager(amazonS3Client);
 
     TransferManagerConfiguration transferConf = new TransferManagerConfiguration();
     transferConf.setMultipartCopyThreshold(MULTIPART_COPY_THRESHOLD);
-    mManager.setConfiguration(transferConf);
+    transferManager.setConfiguration(transferConf);
 
-    mAccountOwnerId = mClient.getS3AccountOwner().getId();
+    String accountOwnerId = amazonS3Client.getS3AccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id  to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
         Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
-        mAccountOwnerId);
+        accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
-      owner = mClient.getS3AccountOwner().getDisplayName();
+      owner = amazonS3Client.getS3AccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+    String accountOwner = owner == null ? accountOwnerId : owner;
 
-    AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketMode = S3AUtils.translateBucketAcl(acl, mAccountOwnerId);
+    AccessControlList acl = amazonS3Client.getBucketAcl(bucketName);
+    short bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
+
+    return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketPrefix,
+        bucketMode, accountOwner, transferManager);
+  }
+
+  /**
+   * Constructor for {@link S3AUnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param amazonS3Client AWS-SDK S3 client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   * @param transferManager Transfer Manager for efficient I/O to s3
+   */
+  protected S3AUnderFileSystem(AlluxioURI uri,
+      AmazonS3Client amazonS3Client,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner,
+      TransferManager transferManager) {
+    super(uri);
+    mClient = amazonS3Client;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
+    mBucketMode = bucketMode;
+    mAccountOwner = accountOwner;
+    mManager = transferManager;
   }
 
   @Override
@@ -212,15 +241,24 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -404,8 +442,13 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -674,13 +717,16 @@ public class S3AUnderFileSystem extends UnderFileSystem {
         for (String commonPrefix : result.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          // Remove any portion after the last path delimiter
-          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty() && !children.contains(child)) {
-            // This directory has not been created through Alluxio.
-            mkdirsInternal(commonPrefix);
-            children.add(child);
+
+          if (child != null) {
+            // Remove any portion after the last path delimiter
+            int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+            child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+            if (!child.isEmpty() && !children.contains(child)) {
+              // This directory has not been created through Alluxio.
+              mkdirsInternal(commonPrefix);
+              children.add(child);
+            }
           }
         }
       }

@@ -75,11 +75,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** Prefix of the bucket, for example s3n://my-bucket-name/ . */
   private final String mBucketPrefix;
 
-  /** The owner name of the account. */
+  /** The name of the account owner. */
   private final String mAccountOwner;
-
-  /** The AWS canonical user id of the account owner. */
-  private final String mAccountOwnerId;
 
   /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
@@ -96,10 +93,10 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * Constructs a new instance of {@link S3UnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
+   * @return the created {@link S3UnderFileSystem} instance
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public S3UnderFileSystem(AlluxioURI uri) throws ServiceException {
-    super(uri);
+  public static S3UnderFileSystem createInstance(AlluxioURI uri) throws ServiceException {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY),
         "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
@@ -108,7 +105,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     AWSCredentials awsCredentials = new AWSCredentials(
         Configuration.get(PropertyKey.S3N_ACCESS_KEY),
         Configuration.get(PropertyKey.S3N_SECRET_KEY));
-    mBucketName = bucketName;
 
     Jets3tProperties props = new Jets3tProperties();
     if (Configuration.containsKey(PropertyKey.UNDERFS_S3_PROXY_HOST)) {
@@ -150,23 +146,51 @@ public final class S3UnderFileSystem extends UnderFileSystem {
           Configuration.get(PropertyKey.UNDERFS_S3_THREADS_MAX));
     }
     LOG.debug("Initializing S3 underFs with properties: {}", props.getProperties());
-    mClient = new RestS3Service(awsCredentials, null, null, props);
-    mBucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + mBucketName, PATH_SEPARATOR);
+    RestS3Service restS3Service = new RestS3Service(awsCredentials, null, null, props);
+    String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3N + bucketName,
+        PATH_SEPARATOR);
 
-    mAccountOwnerId = mClient.getAccountOwner().getId();
+    String accountOwnerId = restS3Service.getAccountOwner().getId();
     // Gets the owner from user-defined static mapping from S3 canonical user id to Alluxio
     // user name.
     String owner = CommonUtils.getValueFromStaticMapping(
         Configuration.get(PropertyKey.UNDERFS_S3_OWNER_ID_TO_USERNAME_MAPPING),
-        mAccountOwnerId);
+        accountOwnerId);
     // If there is no user-defined mapping, use the display name.
     if (owner == null) {
-      owner = mClient.getAccountOwner().getDisplayName();
+      owner = restS3Service.getAccountOwner().getDisplayName();
     }
-    mAccountOwner = owner == null ? mAccountOwnerId : owner;
+    String accountOwner = owner == null ? accountOwnerId : owner;
 
-    AccessControlList acl = mClient.getBucketAcl(mBucketName);
-    mBucketMode = S3Utils.translateBucketAcl(acl, mAccountOwnerId);
+    AccessControlList acl = restS3Service.getBucketAcl(bucketName);
+    short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
+
+    return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketPrefix,
+        bucketMode, accountOwner);
+  }
+
+  /**
+   * Constructor for {@link S3UnderFileSystem}.
+   *
+   * @param uri the {@link AlluxioURI} for this UFS
+   * @param s3Service Jets3t S3 client
+   * @param bucketName bucket name of user's configured Alluxio bucket
+   * @param bucketPrefix prefix of the bucket
+   * @param bucketMode the permission mode that the account owner has to the bucket
+   * @param accountOwner the name of the account owner
+   */
+  protected S3UnderFileSystem(AlluxioURI uri,
+      S3Service s3Service,
+      String bucketName,
+      String bucketPrefix,
+      short bucketMode,
+      String accountOwner) {
+    super(uri);
+    mClient = s3Service;
+    mBucketName = bucketName;
+    mBucketPrefix = bucketPrefix;
+    mBucketMode = bucketMode;
+    mAccountOwner = accountOwner;
   }
 
   @Override
@@ -204,15 +228,24 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   @Override
   public boolean delete(String path, boolean recursive) throws IOException {
     if (!recursive) {
-      if (isFolder(path) && listInternal(path, false).length != 0) {
-        LOG.error("Unable to delete " + path + " because it is a non empty directory. Specify "
-            + "recursive as true in order to delete non empty directories.");
+      String[] children = listInternal(path, false);
+      if (children == null) {
+        LOG.error("Unable to delete {} because listInternal returns null", path);
+        return false;
+      }
+      if (isFolder(path) && children.length != 0) {
+        LOG.error("Unable to delete {} because it is a non empty directory. Specify "
+                + "recursive as true in order to delete non empty directories.", path);
         return false;
       }
       return deleteInternal(path);
     }
     // Get all relevant files
     String[] pathsToDelete = listInternal(path, true);
+    if (pathsToDelete == null) {
+      LOG.error("Unable to delete {} because listInternal returns null", path);
+      return false;
+    }
     for (String pathToDelete : pathsToDelete) {
       // If we fail to deleteInternal one file, stop
       if (!deleteInternal(PathUtils.concatPath(path, pathToDelete))) {
@@ -390,8 +423,13 @@ public final class S3UnderFileSystem extends UnderFileSystem {
       }
       // Rename each child in the src folder to destination/child
       String [] children = list(src);
-      for (String child: children) {
+      if (children == null) {
+        LOG.error("Failed to list path {}, aborting rename.", src);
+        return false;
+      }
+      for (String child : children) {
         if (!rename(PathUtils.concatPath(src, child), PathUtils.concatPath(dst, child))) {
+          LOG.error("Failed to rename path {}, aborting rename.", child);
           return false;
         }
       }
@@ -644,13 +682,16 @@ public final class S3UnderFileSystem extends UnderFileSystem {
         for (String commonPrefix : chunk.getCommonPrefixes()) {
           // Remove parent portion of the key
           String child = getChildName(commonPrefix, path);
-          // Remove any portion after the last path delimiter
-          int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
-          child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
-          if (!child.isEmpty() && !children.contains(child)) {
-            // This directory has not been created through Alluxio.
-            mkdirsInternal(commonPrefix);
-            children.add(child);
+
+          if (child != null) {
+            // Remove any portion after the last path delimiter
+            int childNameIndex = child.lastIndexOf(PATH_SEPARATOR);
+            child = childNameIndex != -1 ? child.substring(0, childNameIndex) : child;
+            if (!child.isEmpty() && !children.contains(child)) {
+              // This directory has not been created through Alluxio.
+              mkdirsInternal(commonPrefix);
+              children.add(child);
+            }
           }
         }
         done = chunk.isListingComplete();
