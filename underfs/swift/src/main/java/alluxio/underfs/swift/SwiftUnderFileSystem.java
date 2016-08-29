@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -66,6 +67,9 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   /** Value used to indicate nested structure in Swift. */
   private static final String PATH_SEPARATOR = String.valueOf(PATH_SEPARATOR_CHAR);
 
+  /** Regexp for Swift container ACL separator, including optional whitespaces. */
+  private static final String ACL_SEPARATOR_REGEXP = "\\s*,\\s*";
+
   /** Suffix for an empty file to flag it as a directory. */
   private static final String FOLDER_SUFFIX = PATH_SEPARATOR;
 
@@ -89,6 +93,12 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   /** Determine whether to run JOSS in simulation mode. */
   private boolean mSimulationMode;
+
+  /** The name of the account owner. */
+  private String mAccountOwner;
+
+  /** The permission mode that the account owner has to the container. */
+  private short mAccountMode;
 
   /**
    * Constructs a new Swift {@link UnderFileSystem}.
@@ -162,6 +172,28 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
       container.create();
     }
     mContainerPrefix = Constants.HEADER_SWIFT + mContainerName + PATH_SEPARATOR;
+
+    // Assume the Swift user name has 1-1 mapping to Alluxio username.
+    mAccountOwner = Configuration.get(PropertyKey.SWIFT_USER_KEY);
+    short mode = (short) 0;
+    List<String> readAcl = Arrays.asList(
+        container.getContainerReadPermission().split(ACL_SEPARATOR_REGEXP));
+    // If there is any container ACL for the Swift user, translates it to Alluxio permission.
+    if (readAcl.contains(mAccountOwner) || readAcl.contains("*") || readAcl.contains(".r:*")) {
+      mode |= (short) 0500;
+    }
+    List<String> writeAcl = Arrays.asList(
+        container.getcontainerWritePermission().split(ACL_SEPARATOR_REGEXP));
+    if (writeAcl.contains(mAccountOwner) || writeAcl.contains("*") || writeAcl.contains(".w:*")) {
+      mode |= (short) 0200;
+    }
+    // If there is no container ACL but the user can still access the container, the only
+    // possibility is that the user has the admin role. In this case, the user should have 0700
+    // mode to the Swift container.
+    if (mode == 0 && mAccess.getToken() != null) {
+      mode = (short) 0700;
+    }
+    mAccountMode = mode;
   }
 
   @Override
@@ -495,30 +527,30 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   @Override
   public void setConf(Object conf) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift owner via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setOwner(String path, String user, String group) {}
 
-  // No ACL integration currently, no-op
+  // Setting Swift mode via Alluxio is not supported yet. This is a no-op.
   @Override
   public void setMode(String path, short mode) throws IOException {}
 
-  // No ACL integration currently, returns default empty value
+  // Returns the account owner.
   @Override
   public String getOwner(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default empty value
+  // No group in Swift ACL, returns the account owner.
   @Override
   public String getGroup(String path) throws IOException {
-    return "";
+    return mAccountOwner;
   }
 
-  // No ACL integration currently, returns default value
+  // Returns the account owner's permission mode to the Swift container.
   @Override
   public short getMode(String path) throws IOException {
-    return Constants.DEFAULT_FILE_SYSTEM_MODE;
+    return mAccountMode;
   }
 
   /**
