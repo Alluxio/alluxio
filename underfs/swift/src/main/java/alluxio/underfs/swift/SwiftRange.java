@@ -25,7 +25,7 @@ public class SwiftRange extends AbstractRange {
    * @param endPos ending position in bytes
    */
   public SwiftRange(long startPos, long endPos) {
-    super(startPos, endPos);
+    super(startPos, endPos - startPos);
   }
 
   @Override
@@ -35,6 +35,6 @@ public class SwiftRange extends AbstractRange {
 
   @Override
   public long getTo(int byteArrayLength) {
-    return this.length;
+    return this.offset + this.length;
   }
 }
