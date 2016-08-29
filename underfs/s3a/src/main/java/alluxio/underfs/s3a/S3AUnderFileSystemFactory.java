@@ -42,7 +42,7 @@ public class S3AUnderFileSystemFactory implements UnderFileSystemFactory {
     Preconditions.checkNotNull(path);
 
     try {
-      return S3AUnderFileSystem.createS3AUnderFileSystem(new AlluxioURI(path));
+      return S3AUnderFileSystem.createInstance(new AlluxioURI(path));
     } catch (AmazonClientException e) {
       LOG.error("Failed to create S3AUnderFileSystem.", e);
       throw Throwables.propagate(e);

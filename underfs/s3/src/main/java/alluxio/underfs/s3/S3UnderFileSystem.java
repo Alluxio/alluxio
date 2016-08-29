@@ -22,7 +22,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jets3t.service.Jets3tProperties;
 import org.jets3t.service.S3Service;
 import org.jets3t.service.ServiceException;
@@ -79,10 +78,6 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /** The AWS canonical user id of the account owner. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mAccountOwnerId;
-
   /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
@@ -101,7 +96,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * @return the created {@link S3UnderFileSystem} instance
    * @throws ServiceException when a connection to S3 could not be created
    */
-  public static S3UnderFileSystem createS3UnderFileSystem(AlluxioURI uri) throws ServiceException {
+  public static S3UnderFileSystem createInstance(AlluxioURI uri) throws ServiceException {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.S3N_ACCESS_KEY),
         "Property " + PropertyKey.S3N_ACCESS_KEY + " is required to connect to S3");
@@ -171,7 +166,7 @@ public final class S3UnderFileSystem extends UnderFileSystem {
     short bucketMode = S3Utils.translateBucketAcl(acl, accountOwnerId);
 
     return new S3UnderFileSystem(uri, restS3Service, bucketName, bucketPrefix,
-        bucketMode, accountOwner, accountOwnerId);
+        bucketMode, accountOwner);
   }
 
   /**
@@ -183,22 +178,19 @@ public final class S3UnderFileSystem extends UnderFileSystem {
    * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
-   * @param accountOwnerId the AWS canonical user id of the account owner
    */
   protected S3UnderFileSystem(AlluxioURI uri,
       S3Service s3Service,
       String bucketName,
       String bucketPrefix,
       short bucketMode,
-      String accountOwner,
-      String accountOwnerId) {
+      String accountOwner) {
     super(uri);
     mClient = s3Service;
     mBucketName = bucketName;
     mBucketPrefix = bucketPrefix;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
-    mAccountOwnerId = accountOwnerId;
   }
 
   @Override

@@ -22,7 +22,6 @@ import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jets3t.service.ServiceException;
 import org.jets3t.service.StorageObjectsChunk;
 import org.jets3t.service.acl.gs.GSAccessControlList;
@@ -77,10 +76,6 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /** The GCS user id of the account owner. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mAccountOwnerId;
-
   /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
@@ -99,7 +94,7 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @return the created {@link GCSUnderFileSystem} instance
    * @throws ServiceException when a connection to GCS could not be created
    */
-  public static GCSUnderFileSystem createGCSUnderFileSystem(AlluxioURI uri)
+  public static GCSUnderFileSystem createInstance(AlluxioURI uri)
       throws ServiceException {
     String bucketName = uri.getHost();
     Preconditions.checkArgument(Configuration.containsKey(PropertyKey.GCS_ACCESS_KEY),
@@ -129,11 +124,11 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
     short bucketMode = GCSUtils.translateBucketAcl(acl, accountOwnerId);
 
     return new GCSUnderFileSystem(uri, googleStorageService, bucketName,
-        bucketPrefix, bucketMode, accountOwner, accountOwnerId);
+        bucketPrefix, bucketMode, accountOwner);
   }
 
   /**
-   * Constructor used in test case only.
+   * Constructor for {@link GCSUnderFileSystem}.
    *
    * @param uri the {@link AlluxioURI} for this UFS
    * @param googleStorageService the Jets3t GCS client
@@ -141,22 +136,19 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
    * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
-   * @param accountOwnerId the GCS user id of the account owner
    */
   protected GCSUnderFileSystem(AlluxioURI uri,
       GoogleStorageService googleStorageService,
       String bucketName,
       String bucketPrefix,
       short bucketMode,
-      String accountOwner,
-      String accountOwnerId) {
+      String accountOwner) {
     super(uri);
     mClient = googleStorageService;
     mBucketName = bucketName;
     mBucketPrefix = bucketPrefix;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
-    mAccountOwnerId = accountOwnerId;
   }
 
   @Override

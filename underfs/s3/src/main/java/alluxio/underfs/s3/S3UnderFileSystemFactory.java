@@ -47,7 +47,7 @@ public class S3UnderFileSystemFactory implements UnderFileSystemFactory {
 
     if (checkAWSCredentials()) {
       try {
-        return S3UnderFileSystem.createS3UnderFileSystem(new AlluxioURI(path));
+        return S3UnderFileSystem.createInstance(new AlluxioURI(path));
       } catch (ServiceException e) {
         LOG.error("Failed to create S3UnderFileSystem.", e);
         throw Throwables.propagate(e);

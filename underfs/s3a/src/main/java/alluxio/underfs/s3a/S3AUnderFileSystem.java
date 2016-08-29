@@ -42,7 +42,6 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerConfiguration;
 import com.amazonaws.util.Base64;
 import com.google.common.base.Preconditions;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +57,7 @@ import java.util.Set;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * S3 {@link alluxio.underfs.UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
+ * S3 {@link UnderFileSystem} implementation based on the aws-java-sdk-s3 library.
  */
 @ThreadSafe
 public class S3AUnderFileSystem extends UnderFileSystem {
@@ -94,10 +93,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   /** The name of the account owner. */
   private final String mAccountOwner;
 
-  /** The AWS canonical user id of the account owner. */
-  @SuppressFBWarnings("URF_UNREAD_FIELD")
-  private final String mAccountOwnerId;
-
   /** The permission mode that the account owner has to the bucket. */
   private final short mBucketMode;
 
@@ -112,7 +107,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * @param uri the {@link AlluxioURI} for this UFS
    * @return the created {@link S3AUnderFileSystem} instance
    */
-  public static S3AUnderFileSystem createS3AUnderFileSystem(AlluxioURI uri) {
+  public static S3AUnderFileSystem createInstance(AlluxioURI uri) {
 
     String bucketName = uri.getHost();
     String bucketPrefix = PathUtils.normalizePath(Constants.HEADER_S3A + bucketName,
@@ -181,7 +176,7 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     short bucketMode = S3AUtils.translateBucketAcl(acl, accountOwnerId);
 
     return new S3AUnderFileSystem(uri, amazonS3Client, bucketName, bucketPrefix,
-        bucketMode, accountOwner, accountOwnerId, transferManager);
+        bucketMode, accountOwner, transferManager);
   }
 
   /**
@@ -193,7 +188,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
    * @param bucketPrefix prefix of the bucket
    * @param bucketMode the permission mode that the account owner has to the bucket
    * @param accountOwner the name of the account owner
-   * @param accountOwnerId the AWS canonical user id of the account owner
    * @param transferManager Transfer Manager for efficient I/O to s3
    */
   protected S3AUnderFileSystem(AlluxioURI uri,
@@ -202,7 +196,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
       String bucketPrefix,
       short bucketMode,
       String accountOwner,
-      String accountOwnerId,
       TransferManager transferManager) {
     super(uri);
     mClient = amazonS3Client;
@@ -210,7 +203,6 @@ public class S3AUnderFileSystem extends UnderFileSystem {
     mBucketPrefix = bucketPrefix;
     mBucketMode = bucketMode;
     mAccountOwner = accountOwner;
-    mAccountOwnerId = accountOwnerId;
     mManager = transferManager;
   }
 
