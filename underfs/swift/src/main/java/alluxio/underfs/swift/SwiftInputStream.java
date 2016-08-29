@@ -70,7 +70,9 @@ public class SwiftInputStream extends InputStream {
     int value = mStream.read();
     if (value != -1) { // valid data read
       mPos++;
-      checkStream();
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
     }
     return value;
   }
@@ -91,7 +93,9 @@ public class SwiftInputStream extends InputStream {
     int read = mStream.read(b, offset, length);
     if (read != -1) {
       mPos += read;
-      checkStream();
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
     }
     return read;
   }
@@ -129,7 +133,7 @@ public class SwiftInputStream extends InputStream {
    * Closes the current stream.
    */
   private void closeStream() throws IOException {
-    LOG.debug("Swift InputStream {}: closing stream with pos {}", this.hashCode(), mPos);
+    LOG.debug("Swift InputStream {}: closing stream at pos {}", this.hashCode(), mPos);
     if (mStream == null) {
       return;
     }
@@ -139,16 +143,8 @@ public class SwiftInputStream extends InputStream {
   }
 
   /**
-   * An object is read in chunks of clock size. Check if a boundary has been reached.
-   */
-  private void checkStream() {
-    if (mPos % getBlockSize() == 0) {
-      mStream = null;
-    }
-  }
-
-  /**
    * Block size for reading an object in chunks.
+   *
    * @return block size in bytes
    */
   private long getBlockSize() {
