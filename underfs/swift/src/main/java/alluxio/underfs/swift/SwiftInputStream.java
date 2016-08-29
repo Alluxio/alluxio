@@ -115,8 +115,6 @@ public class SwiftInputStream extends InputStream {
    * Opens a new stream at mPos if the wrapped stream mIn is null.
    */
   private void openStream() {
-    LOG.debug("Swift InputStream {}: open stream at pos {}", this.hashCode(), mPos);
-
     if (mStream != null) { // stream is already open
       return;
     }
@@ -126,20 +124,17 @@ public class SwiftInputStream extends InputStream {
     final long endPos = mPos + blockSize - (mPos % blockSize);
     downloadInstructions.setRange(new SwiftRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
-    LOG.debug("Swift InputStream {}: stream open till end pos {}", this.hashCode(), endPos);
   }
 
   /**
    * Closes the current stream.
    */
   private void closeStream() throws IOException {
-    LOG.debug("Swift InputStream {}: closing stream at pos {}", this.hashCode(), mPos);
     if (mStream == null) {
       return;
     }
     mStream.close();
     mStream = null;
-    LOG.debug("Swift InputStream {}: stream closed", this.hashCode());
   }
 
   /**
