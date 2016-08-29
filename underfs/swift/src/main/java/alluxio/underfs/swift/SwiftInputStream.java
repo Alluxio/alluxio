@@ -27,6 +27,8 @@ import java.io.InputStream;
 
 /**
  * A stream for reading data from a Swift API based object store.
+ * This class maintains the following invariant: mStream is set to null whenever a read operation
+ * increments mPos to a chunk boundary.
  */
 @NotThreadSafe
 public class SwiftInputStream extends InputStream {
