@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-git status
+git status >> /dev/null 2>&1
 if [[ $? -ne 0 ]]; then
     # we aren't in a git repo, no need to run this check
     exit 0
