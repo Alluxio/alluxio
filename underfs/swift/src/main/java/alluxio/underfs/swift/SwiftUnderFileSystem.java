@@ -376,6 +376,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
 
   @Override
   public boolean mkdirs(String path, MkdirsOptions options) throws IOException {
+    LOG.debug("Make directory {}", path);
     if (path == null) {
       LOG.error("Attempting to create directory with a null path");
       return false;
