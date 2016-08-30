@@ -27,7 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 public final class LocalFirstPolicy implements FileWriteLocationPolicy {
-  private String mLocalHostName = null;
+  private String mLocalHostName;
 
   /**
    * Constructs a {@link LocalFirstPolicy}.
