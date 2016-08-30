@@ -219,6 +219,14 @@ public final class BlockWorkerClient extends AbstractClient {
         LOG.error(e.getMessage(), e);
         return;
       }
+
+      // Send a heartbeat to the worker to register the new session id
+      try {
+        mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
+      } catch (Exception e) {
+        LOG.error(e.getMessage(), e);
+        return;
+      }
       mConnected = true;
 
       // only start the heartbeat thread if the connection is successful and if there is not
