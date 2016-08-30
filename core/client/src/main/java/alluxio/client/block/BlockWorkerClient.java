@@ -225,6 +225,8 @@ public final class BlockWorkerClient extends AbstractClient {
         mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
       } catch (Exception e) {
         LOG.error(e.getMessage(), e);
+        // Directly close the transport instead of disconnecting because we are not connected yet
+        mProtocol.getTransport().close();
         return;
       }
       mConnected = true;
