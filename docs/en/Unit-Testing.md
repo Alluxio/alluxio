@@ -88,20 +88,41 @@ public void detectLostWorker() throws Exception {
 4. Avoid slow tests. Mock expensive dependencies and aim to keep individual test times under 100ms.
 
 # Managing Global State
-All tests in a project run in the same JVM, so it's important to properly manage JVM-global state so that tests don't interfere with each other. Our solution to this issue is to use JUnit `@Rule` to manage global state.
+All tests in a module run in the same JVM, so it's important to properly manage global state so that tests don't interfere with each other. Global state includes system properties, Alluxio configuration, and any static fields. Our solution to managing global state is to use JUnit's support for `@Rules`.
 
-### Changing Alluxio configuration during a test
-Some unit tests want to test Alluxio under different configurations. This requires modifying the global `Configuration` object. When all tests in a suite need configuration parameters set a certain way, use `ConfigurationRule` to set them. For configuration changes needed for an individual test, use `Configuration.set(key, value`, and create an `@After` method to clean up the configuration change after the test:
+### Changing Alluxio configuration during tests
+Some unit tests want to test Alluxio under different configurations. This requires modifying the global `Configuration` object. When all tests in a suite need configuration parameters set a certain way, use `ConfigurationRule` to set them.
+
+```java
+@Rule
+public ConfigurationRule mConfigurationRule = new ConfigurationRule(ImmutableMap.of(
+    PropertyKey.key1, "value1",
+    PropertyKey.key2, "value2"));
+```
+For configuration changes needed for an individual test, use `Configuration.set(key, value)`, and create an `@After` method to clean up the configuration change after the test:
 
 ```java
 @After
 public void after() {
   ConfigurationTestUtils.resetConfiguration();
 }
+
+@Test
+public void testSomething() {
+  Configuration.set(PropertyKey.key, "value");
+  ...
+}
 ```
 
-### Changing System properties during a test
-If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`. To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
+### Changing System properties during tests
+If you need to change a system property for the duration of a test suite, use `SystemPropertyRule`.
+
+```java
+@Rule
+public SystemPropertyRule mSystemPropertyRule = new SystemPropertyRule("propertyName", "value");
+```
+
+To set a system property during a specific test, use `SetAndRestoreSystemProperty` in a try-catch statement:
 
 ```java
 @Test
