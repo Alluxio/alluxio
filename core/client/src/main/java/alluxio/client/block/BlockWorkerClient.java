@@ -220,19 +220,20 @@ public final class BlockWorkerClient extends AbstractClient {
         return;
       }
 
-      // Send a heartbeat to the worker to register the new session id
+      // Send a heartbeat to the worker to register the new session id.
       try {
         mClient.sessionHeartbeat(mSessionId, mClientMetrics.getHeartbeatData());
       } catch (Exception e) {
         LOG.error("Failed to send initial heartbeat to register a session with the worker.", e);
-        // Directly close the transport instead of disconnecting because we are not connected yet
+        // Directly close the transport instead of calling disconnect() because we do not consider
+        // ourselves connected yet.
         mProtocol.getTransport().close();
         return;
       }
       mConnected = true;
 
       // Only start the heartbeat thread if the connection is successful and if there is not
-      // another heartbeat thread running
+      // another heartbeat thread running.
       if (mHeartbeat == null || mHeartbeat.isCancelled() || mHeartbeat.isDone()) {
         final int interval = Configuration.getInt(Constants.USER_HEARTBEAT_INTERVAL_MS);
         mHeartbeat =
