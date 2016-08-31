@@ -16,6 +16,8 @@
 package tachyon.master.file;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -775,6 +777,21 @@ public final class FileSystemMaster extends MasterBase {
   private FileBlockInfo generateFileBlockInfo(InodeFile file, BlockInfo blockInfo)
       throws InvalidPathException {
     // This function should only be called from within synchronized (mInodeTree) blocks.
+
+    // Duplicates BlockInfo with address represented as IP address, for data locality based on IP
+    // address in computation frameworks, like Spark.
+    List<BlockLocation> locations = Lists.newArrayList(blockInfo.locations);
+    for (BlockLocation location : locations) {
+      try {
+        BlockLocation locationWithHostResolved = new BlockLocation(location);
+        NetAddress address = locationWithHostResolved.getWorkerAddress();
+        address.setHost(InetAddress.getByName(address.getHost()).getHostAddress());
+        blockInfo.addToLocations(locationWithHostResolved);
+      } catch (UnknownHostException e) {
+        LOG.error("IP not found for block host address " + location.getWorkerAddress().getHost());
+      }
+    }
+
     FileBlockInfo fileBlockInfo = new FileBlockInfo();
     fileBlockInfo.blockInfo = blockInfo;
     fileBlockInfo.ufsLocations = new ArrayList<NetAddress>();
