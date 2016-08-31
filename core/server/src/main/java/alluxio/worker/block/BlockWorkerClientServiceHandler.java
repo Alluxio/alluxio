@@ -80,12 +80,6 @@ public final class BlockWorkerClientServiceHandler implements BlockWorkerClientS
     });
   }
 
-  // TODO(calvin): Make this supported again.
-  @Override
-  public boolean asyncCheckpoint(long fileId) throws AlluxioTException {
-    return false;
-  }
-
   /**
    * Used to cache a block into Alluxio space, worker will move the temporary block file from
    * session folder to data folder, and update the space usage information related. then update the
