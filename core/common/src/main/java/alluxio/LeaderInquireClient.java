@@ -107,7 +107,7 @@ public final class LeaderInquireClient {
       }
     } catch (Exception e) {
       LOG.error("Error getting the master address from zookeeper. Zookeeper address: {}",
-          mZookeeperAddress, e.getMessage());
+          mZookeeperAddress, e);
     }
 
     return null;
