@@ -19,9 +19,14 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.common.base.Preconditions;
 
+import tachyon.Constants;
 import tachyon.Sessions;
+import tachyon.StorageLevelAlias;
 import tachyon.client.UnderStorageType;
 import tachyon.client.WorkerBlockMasterClient;
 import tachyon.client.WorkerFileSystemMasterClient;
@@ -36,7 +41,6 @@ import tachyon.test.Tester;
 import tachyon.thrift.FileInfo;
 import tachyon.thrift.TachyonTException;
 import tachyon.underfs.UnderFileSystem;
-import tachyon.util.io.FileUtils;
 import tachyon.util.io.PathUtils;
 import tachyon.worker.WorkerContext;
 import tachyon.worker.WorkerIdRegistry;
@@ -51,6 +55,8 @@ import tachyon.worker.block.meta.TempBlockMeta;
  * thread-safe.
  */
 public final class BlockDataManager implements Testable<BlockDataManager> {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** Block store delta reporter for master heartbeat */
   private BlockHeartbeatReporter mHeartbeatReporter;
   /** Block Store manager */
@@ -146,7 +152,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Completes the process of persisting a file by renaming it to its final destination.
    *
    * This method is normally triggered from {@link tachyon.client.file.FileOutStream#close()} if and
-   * only if {@link UnderStorageType#isPersist()} ()} is true. The current implementation of
+   * only if {@link UnderStorageType#isSyncPersist()} ()} is true. The current implementation of
    * persistence is that through {@link tachyon.client.UnderStorageType} operations write to
    * {@link tachyon.underfs.UnderFileSystem} on the client's write path, but under a temporary file.
    *
@@ -236,7 +242,6 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to create
-   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
    * @param initialBytes The initial amount of bytes to be allocated
    * @return A string representing the path to the local file
    * @throws IllegalArgumentException if location does not belong to tiered storage
@@ -245,34 +250,21 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
    * @throws IOException if blocks in eviction plan fail to be moved or deleted
    */
-  public String createBlock(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc =
-        tierAlias == -1 ? BlockStoreLocation.anyTier() : BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    return createdBlock.getPath();
-  }
-
-  /**
-   * Creates a block. This method is only called from a data server.
-   *
-   * Call {@link #getTempBlockWriterRemote(long, long)} to get a writer for writing to the block.
-   *
-   * @param sessionId The id of the client
-   * @param blockId The id of the block to be created
-   * @param tierAlias The alias of the tier to place the new block in, -1 for any tier
-   * @param initialBytes The initial amount of bytes to be allocated
-   * @throws IllegalArgumentException if location does not belong to tiered storage
-   * @throws BlockAlreadyExistsException if blockId already exists, either temporary or committed,
-   *         or block in eviction plan already exists
-   * @throws WorkerOutOfSpaceException if this Store has no more space than the initialBlockSize
-   * @throws IOException if blocks in eviction plan fail to be moved or deleted
-   */
-  public void createBlockRemote(long sessionId, long blockId, int tierAlias, long initialBytes)
-      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, IOException {
-    BlockStoreLocation loc = BlockStoreLocation.anyDirInTier(tierAlias);
-    TempBlockMeta createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, loc, initialBytes);
-    FileUtils.createBlockPath(createdBlock.getPath());
+  public String createBlock(long sessionId, long blockId, long initialBytes)
+      throws BlockAlreadyExistsException, WorkerOutOfSpaceException, BlockDoesNotExistException,
+      IOException, InvalidWorkerStateException {
+    BlockStoreLocation location = BlockStoreLocation.anyDirInTier(StorageLevelAlias.MEM.getValue());
+    TempBlockMeta createdBlock;
+    try {
+      createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, location, initialBytes);
+      return createdBlock.getPath();
+    } catch (WorkerOutOfSpaceException e) {
+      LOG.info("MEM tier is full and eviction also fails, try to create block {} of {} bytes in " +
+          "any tier for session {}", blockId, initialBytes, sessionId);
+      createdBlock = mBlockStore.createBlockMeta(sessionId, blockId, BlockStoreLocation.anyTier(),
+          initialBytes);
+      return createdBlock.getPath();
+    }
   }
 
   /**
@@ -298,7 +290,7 @@ public final class BlockDataManager implements Testable<BlockDataManager> {
    * Opens a {@link BlockWriter} for an existing temporary block. This method is only called from a
    * data server.
    *
-   * The temporary block must already exist with {@link #createBlockRemote(long, long, int, long)}.
+   * The temporary block must already exist with {@link #createBlock(long, long, long)}.
    *
    * @param sessionId The id of the client
    * @param blockId The id of the block to be opened for writing

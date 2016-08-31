@@ -300,27 +300,34 @@ public final class TieredBlockStoreTests {
     Assert.assertEquals(mTestDir1, tempBlockMeta.getParentDir());
   }
 
-  // When creating a block, if the space of the target location is currently taken by another block
-  // being locked, this creation operation will fail until the lock released.
   @Test
-  public void createBlockMetaWithBlockLockedTest() throws Exception {
+  public void createBlockMetaOutOfSpaceTest() throws Exception {
+    // When creating a block, if the space of the target location is currently taken by another
+    // block being locked.
     TieredBlockStoreTestUtils.cache(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1, mMetaManager,
         mEvictor);
 
     // session1 locks a block first
-    long lockId = mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
+    mBlockStore.lockBlock(SESSION_ID1, BLOCK_ID1);
 
     // Expect an exception because no eviction plan is feasible
     mThrown.expect(WorkerOutOfSpaceException.class);
     mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
+  }
 
-    // Expect createBlockMeta to succeed after unlocking this block.
-    mBlockStore.unlockBlock(lockId);
+  @Test
+  public void createBlockMetaOutOfSpaceTest2() throws Exception {
+    // When creating a block, if the space of the target location is currently taken by a temp block
+    // which can not be evicted.
+    TieredBlockStoreTestUtils.createTempBlock(SESSION_ID1, BLOCK_ID1, BLOCK_SIZE, mTestDir1);
+
+    // Expect an exception because no eviction plan is feasible
+    mThrown.expect(WorkerOutOfSpaceException.class);
+    mThrown.expectMessage(ExceptionMessage.NO_EVICTION_PLAN_TO_FREE_SPACE.getMessage());
     mBlockStore.createBlockMeta(SESSION_ID1, TEMP_BLOCK_ID, mTestDir1.toBlockStoreLocation(),
         mTestDir1.getCapacityBytes());
-    Assert.assertEquals(0, mTestDir1.getAvailableBytes());
   }
 
   // When moving a block from src location to dst, if the space of the dst location is currently

@@ -193,7 +193,7 @@ public class BlockDataManagerTest implements Tester<BlockDataManager> {
         .thenReturn(meta);
     Mockito.when(storageDir.getDirPath()).thenReturn("/tmp");
     Assert.assertEquals(PathUtils.concatPath("/tmp", sessionId, blockId),
-        mHarness.mManager.createBlock(sessionId, blockId, tierAlias, initialBytes));
+        mHarness.mManager.createBlock(sessionId, blockId, initialBytes));
   }
 
   // TODO(jiri): Write unit tests for untested public methods.
