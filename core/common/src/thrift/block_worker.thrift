@@ -16,12 +16,6 @@ service BlockWorkerClientService extends common.AlluxioService {
   void accessBlock( /** the id of the block being accessed */ 1: i64 blockId)
 
   /**
-   * Asynchronously checkpoints a file: returns whether the checkpoint operation succeeded.
-   */
-  bool asyncCheckpoint( /** the id of the file being accessed */ 1: i64 fileId)
-    throws (1: exception.AlluxioTException e)
-
-  /**
    * Used to cache a block into Alluxio space, worker will move the temporary block file from session
    * folder to data folder, and update the space usage information related. then update the block
    * information to master.
