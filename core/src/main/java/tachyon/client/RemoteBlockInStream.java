@@ -219,7 +219,7 @@ public class RemoteBlockInStream extends BlockInStream {
       mBlockPos += bytesToRead;
     }
 
-    if (bytesLeft > 0) {
+    if (!UnderFileSystem.isDummyUnderFS(mTachyonConf) && bytesLeft > 0) {
       // Unable to read from worker memory, reading this block from underfs in the future.
       mAttemptReadFromWorkers = false;
       // We failed to read everything from mCurrentBuffer, so we need to stream the rest from the

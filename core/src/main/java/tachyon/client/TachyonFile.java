@@ -488,9 +488,12 @@ public class TachyonFile implements Comparable<TachyonFile> {
    * @throws IOException
    */
   boolean recache(int blockIndex) throws IOException {
+    if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      LOG.info("not re-cache from UnderFS since it is a DummyUnderFileSystem");
+      return false;
+    }
     String path = getUfsPath();
     UnderFileSystem underFsClient = UnderFileSystem.get(path, mTachyonConf);
-
     InputStream inputStream = null;
     BlockOutStream bos = null;
     try {

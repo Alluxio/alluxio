@@ -277,6 +277,10 @@ public class TachyonFS extends AbstractTachyonFS {
    * @throws IOException
    */
   synchronized String createAndGetUserUfsTempFolder(Object ufsConf) throws IOException {
+    if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      LOG.info("Using DummyUnderFileSystem and thus not creating UserUfsTempFolder");
+      return null;
+    }
     String tmpFolder = mWorkerClient.getUserUfsTempFolder();
     if (tmpFolder == null) {
       return null;

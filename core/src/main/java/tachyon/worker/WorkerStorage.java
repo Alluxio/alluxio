@@ -228,7 +228,9 @@ public class WorkerStorage {
                   writeLen = byteBuffer.remaining();
                 }
                 byteBuffer.get(buf, 0, writeLen);
-                os.write(buf, 0, writeLen);
+                if (os != null) {
+                  os.write(buf, 0, writeLen);
+                }
               }
               CommonUtils.cleanDirectBuffer(byteBuffer);
             }
@@ -355,9 +357,12 @@ public class WorkerStorage {
     mUfs = UnderFileSystem.get(ufsAddress, mTachyonConf);
     mUsers = new Users(mUfsWorkerFolder, mTachyonConf);
 
-    int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
-    for (int k = 0; k < checkpointThreads; k ++) {
-      mCheckpointExecutor.submit(new CheckpointThread(k));
+    // no need to start checkpoint thread if underFS is a dummy
+    if (!UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      int checkpointThreads = mTachyonConf.getInt(Constants.WORKER_CHECKPOINT_THREADS, 1);
+      for (int k = 0; k < checkpointThreads; k++) {
+        mCheckpointExecutor.submit(new CheckpointThread(k));
+      }
     }
 
     try {
@@ -402,6 +407,10 @@ public class WorkerStorage {
    */
   public void addCheckpoint(long userId, int fileId) throws FileDoesNotExistException,
       SuspectedFileSizeException, FailedToCheckpointException, BlockInfoException, IOException {
+    if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      LOG.info("not adding checkpoint since underFS is DummyUnderFileSystem");
+      return;
+    }
     // TODO This part need to be changed.
     String srcPath = CommonUtils.concat(getUserUfsTempFolder(userId), fileId);
     String ufsDataFolder = mTachyonConf.get(Constants.UNDERFS_DATA_FOLDER, "/tachyon/data");
@@ -1018,6 +1027,10 @@ public class WorkerStorage {
    * later. Its cleanup only happens while formating the mTachyonFS.
    */
   private void swapoutOrphanBlocks(StorageDir storageDir, long blockId) throws IOException {
+    if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      LOG.info("Using a DummyUnderFileSystem thus not swapping out orphan blocks");
+      return;
+    }
     ByteBuffer buf = storageDir.getBlockData(blockId, 0, -1);
     String ufsOrphanBlock = CommonUtils.concat(mUfsOrphansFolder, blockId);
     OutputStream os = mUfs.create(ufsOrphanBlock);

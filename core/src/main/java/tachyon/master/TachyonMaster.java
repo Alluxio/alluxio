@@ -185,6 +185,10 @@ public class TachyonMaster {
   }
 
   private boolean isFormatted(String folder, String path) throws IOException {
+    if (UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
+      LOG.info("This is a dummy UnderFileSystem");
+      return true;
+    }
     if (!folder.endsWith(TachyonURI.SEPARATOR)) {
       folder += TachyonURI.SEPARATOR;
     }

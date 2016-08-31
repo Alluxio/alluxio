@@ -70,7 +70,7 @@ public class FileOutStream extends OutStream {
     mPreviousBlockOutStreams = new ArrayList<BlockOutStream>();
     mCachedBytes = 0;
 
-    if (mWriteType.isThrough()) {
+    if (mWriteType.isThrough() && !UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
       mUnderFsFile = CommonUtils.concat(mTachyonFS.createAndGetUserUfsTempFolder(ufsConf),
           mFile.mFileId);
       UnderFileSystem underfsClient = UnderFileSystem.get(mUnderFsFile, ufsConf, tachyonConf);
@@ -96,7 +96,7 @@ public class FileOutStream extends OutStream {
       }
 
       Boolean canComplete = false;
-      if (mWriteType.isThrough()) {
+      if (mWriteType.isThrough() && !UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
         if (mCancel) {
           mCheckpointOutputStream.close();
           UnderFileSystem underFsClient = UnderFileSystem.get(mUnderFsFile, mTachyonConf);
@@ -145,7 +145,7 @@ public class FileOutStream extends OutStream {
   @Override
   public void flush() throws IOException {
     // TODO We only flush the checkpoint output stream. Flush for RAMFS block streams.
-    if (mWriteType.isThrough()) {
+    if (mWriteType.isThrough() && !UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
       mCheckpointOutputStream.flush();
     }
   }
@@ -217,7 +217,7 @@ public class FileOutStream extends OutStream {
       }
     }
 
-    if (mWriteType.isThrough()) {
+    if (mWriteType.isThrough() && !UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
       mCheckpointOutputStream.write(b, off, len);
     }
   }
@@ -243,7 +243,7 @@ public class FileOutStream extends OutStream {
       }
     }
 
-    if (mWriteType.isThrough()) {
+    if (mWriteType.isThrough() && !UnderFileSystem.isDummyUnderFS(mTachyonConf)) {
       mCheckpointOutputStream.write(b);
     }
   }

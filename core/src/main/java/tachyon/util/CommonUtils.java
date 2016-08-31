@@ -503,6 +503,10 @@ public final class CommonUtils {
    * @throws IOException
    */
   public static void touch(String path, TachyonConf tachyonConf) throws IOException {
+    if (UnderFileSystem.isDummyUnderFS(tachyonConf)) {
+      LOG.info("Using DummyUnderFileSystem and thus not touching it");
+      return;
+    }
     UnderFileSystem ufs = UnderFileSystem.get(path, tachyonConf);
     OutputStream os = ufs.create(path);
     os.close();
