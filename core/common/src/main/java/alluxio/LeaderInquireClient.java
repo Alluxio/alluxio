@@ -106,7 +106,8 @@ public final class LeaderInquireClient {
         CommonUtils.sleepMs(LOG, Constants.SECOND_MS);
       }
     } catch (Exception e) {
-      LOG.error("Error with zookeeper: {} message: {}", mZookeeperAddress, e.getMessage());
+      LOG.error("Error getting the master address from zookeeper. Zookeeper address: {}",
+          mZookeeperAddress, e.getMessage());
     }
 
     return null;
