@@ -124,7 +124,7 @@ public class SwiftInputStream extends InputStream {
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
     final long blockSize = getBlockSize();
     final long endPos = mPos + blockSize - (mPos % blockSize);
-    downloadInstructions.setRange(new SwiftRange(mPos, endPos));
+    downloadInstructions.setRange(new MidPartLongRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
   }
 
