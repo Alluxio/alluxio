@@ -284,8 +284,6 @@ public class AlluxioMaster implements Server {
       // reference to this class.
       mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
           NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
-      // reset master web port
-      Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
     } catch (Exception e) {
       LOG.error(e.getMessage(), e);
       throw Throwables.propagate(e);
@@ -469,6 +467,8 @@ public class AlluxioMaster implements Server {
     }
     // start web ui
     mWebServer.startWebServer();
+    // reset master web port
+    Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
   }
 
   private void registerServices(TMultiplexedProcessor processor, Map<String, TProcessor> services) {
