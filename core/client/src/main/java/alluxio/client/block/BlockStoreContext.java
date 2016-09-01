@@ -24,11 +24,11 @@ import alluxio.worker.ClientMetrics;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
- * A shared context in each client JVM for common block master client functionality such as a pool
+ * A shared context for each master for common block master client functionality such as a pool
  * of master clients and a pool of local worker clients. Any remote clients will be created and
  * destroyed on a per use basis.
  * <p/>
@@ -49,9 +49,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * {@link BlockStoreContext}.
  */
 @ThreadSafe
-public enum BlockStoreContext {
-  INSTANCE;
-
+public final class BlockStoreContext {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private BlockMasterClientPool mBlockMasterClientPool;
 
@@ -63,13 +61,45 @@ public enum BlockStoreContext {
   private final Map<WorkerNetAddress, BlockWorkerClientPool> mLocalBlockWorkerClientPoolMap =
       new ConcurrentHashMap<>();
 
+  /**
+   * Only one context will be kept for each master address.
+   */
+  private static final Map<InetSocketAddress, BlockStoreContext> CACHED_CONTEXTS =
+      new ConcurrentHashMap<>();
+
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
-   * Creates a new block store context.
+   * Creates a new block store context. This is not supposed to be called outside of the class.
    */
-  BlockStoreContext() {
-    reset();
+  private BlockStoreContext(InetSocketAddress masterAddress) {
+    mBlockMasterClientPool = new BlockMasterClientPool(masterAddress);
+    mLocalBlockWorkerClientPoolInitialized = false;
+    CACHED_CONTEXTS.put(masterAddress, this);
+  }
+
+  /**
+   * Gets a context with the specified master address from the cache if it's created before.
+   * Otherwise creates a new one and puts it in the cache.
+   *
+   * @param masterAddress the master's address
+   * @return the context created or cached before
+   */
+  public static synchronized BlockStoreContext get(InetSocketAddress masterAddress) {
+    BlockStoreContext context = CACHED_CONTEXTS.get(masterAddress);
+    if (context != null) {
+      return context;
+    }
+    return new BlockStoreContext(masterAddress);
+  }
+
+  /**
+   * Gets a context using the master address got from config.
+   *
+   * @return the context created or cached before
+   */
+  public static synchronized BlockStoreContext get() {
+    return get(ClientContext.getMasterAddress());
   }
 
   /**
@@ -231,22 +261,5 @@ public enum BlockStoreContext {
   public boolean hasLocalWorker() {
     initializeLocalBlockWorkerClientPool();
     return !mLocalBlockWorkerClientPoolMap.isEmpty();
-  }
-
-  /**
-   * Re-initializes the {@link BlockStoreContext}. This method should only be used in
-   * {@link ClientContext}.
-   */
-  @SuppressFBWarnings
-  public void reset() {
-    if (mBlockMasterClientPool != null) {
-      mBlockMasterClientPool.close();
-    }
-    for (BlockWorkerClientPool pool : mLocalBlockWorkerClientPoolMap.values()) {
-      pool.close();
-    }
-    mLocalBlockWorkerClientPoolMap.clear();
-    mBlockMasterClientPool = new BlockMasterClientPool(ClientContext.getMasterAddress());
-    mLocalBlockWorkerClientPoolInitialized = false;
   }
 }

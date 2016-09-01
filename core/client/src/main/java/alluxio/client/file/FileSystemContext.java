@@ -45,8 +45,10 @@ import javax.annotation.concurrent.ThreadSafe;
 public enum FileSystemContext {
   INSTANCE;
 
+  private BlockStoreContext mBlockStoreContext;
+
   private FileSystemMasterClientPool mFileSystemMasterClientPool;
-  private final AlluxioBlockStore mAlluxioBlockStore;
+  private AlluxioBlockStore mAlluxioBlockStore;
 
   /** A list of valid workers, if there is a local worker, only the local worker addresses. */
   @GuardedBy("mWorkerAddressesLock")
@@ -58,9 +60,9 @@ public enum FileSystemContext {
    * Creates a new file stream context.
    */
   FileSystemContext() {
-    mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+    mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());
     mAlluxioBlockStore = AlluxioBlockStore.get();
+    mBlockStoreContext = BlockStoreContext.get();
   }
 
   /**
@@ -109,13 +111,22 @@ public enum FileSystemContext {
   }
 
   /**
+   * @return the block store context
+   */
+  public BlockStoreContext getBlockStoreContext() {
+    return mBlockStoreContext;
+  }
+
+  /**
    * Re-initializes the Block Store context. This method should only be used in
    * {@link ClientContext}.
    */
   public void reset() {
+    mAlluxioBlockStore = AlluxioBlockStore.get();
+    mBlockStoreContext = BlockStoreContext.get();
+
     mFileSystemMasterClientPool.close();
-    mFileSystemMasterClientPool =
-        new FileSystemMasterClientPool(ClientContext.getMasterAddress());
+    mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());
     synchronized (mWorkerAddressesLock) {
       mWorkerAddresses = null;
     }
@@ -129,7 +140,7 @@ public enum FileSystemContext {
   private List<WorkerNetAddress> getWorkerAddresses() throws IOException {
     List<WorkerInfo> infos;
     try (CloseableResource<BlockMasterClient> masterClientResource =
-        BlockStoreContext.INSTANCE.acquireMasterClientResource()) {
+        mBlockStoreContext.acquireMasterClientResource()) {
       infos = masterClientResource.get().getWorkerInfoList();
     } catch (AlluxioException e) {
       throw new IOException(e);

@@ -40,15 +40,23 @@ public final class BlockStoreContextIntegrationTest {
    */
   @Test(timeout = 10000)
   public void acquireMasterLimit() throws Exception {
+    final BlockStoreContext context = BlockStoreContext.get();
+
     final List<CloseableResource<BlockMasterClient>> clients = new ArrayList<>();
 
     // Acquire all the clients
     for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_MASTER_CLIENT_THREADS); i++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireMasterClientResource());
+      clients.add(context.acquireMasterClientResource());
     }
 
     // Spawn another thread to acquire a master client
-    Thread acquireThread = new Thread(new AcquireMasterClient());
+    Thread acquireThread = new Thread() {
+      @Override
+      public void run() {
+        CloseableResource<BlockMasterClient> client = context.acquireMasterClientResource();
+        client.close();
+      }
+    };
     acquireThread.start();
 
     // Wait for the spawned thread to complete. If it is able to acquire a master client before
@@ -75,15 +83,6 @@ public final class BlockStoreContextIntegrationTest {
     }
   }
 
-  class AcquireMasterClient implements Runnable {
-    @Override
-    public void run() {
-      CloseableResource<BlockMasterClient> client =
-          BlockStoreContext.INSTANCE.acquireMasterClientResource();
-      client.close();
-    }
-  }
-
   /**
    * This test ensures acquiring all the available BlockStore worker clients blocks further requests
    * for clients. It also ensures clients are available for reuse after they are released by the
@@ -94,15 +93,23 @@ public final class BlockStoreContextIntegrationTest {
   @LocalAlluxioClusterResource.Config(
       confParams = {PropertyKey.Name.USER_BLOCK_WORKER_CLIENT_THREADS, "10"})
   public void acquireWorkerLimit() throws Exception {
+    final BlockStoreContext context = BlockStoreContext.get();
+
     final List<BlockWorkerClient> clients = new ArrayList<>();
 
     // Acquire all the clients
     for (int i = 0; i < Configuration.getInt(PropertyKey.USER_BLOCK_WORKER_CLIENT_THREADS); i++) {
-      clients.add(BlockStoreContext.INSTANCE.acquireLocalWorkerClient());
+      clients.add(context.acquireLocalWorkerClient());
     }
 
     // Spawn another thread to acquire a worker client
-    Thread acquireThread = new Thread(new AcquireWorkerClient());
+    Thread acquireThread = new Thread() {
+      @Override
+      public void run() {
+        BlockWorkerClient client = context.acquireLocalWorkerClient();
+        context.releaseWorkerClient(client);
+      }
+    };
     acquireThread.start();
 
     // Wait for the spawned thread to complete. If it is able to acquire a worker client before
@@ -118,7 +125,7 @@ public final class BlockStoreContextIntegrationTest {
     // Set the RPC number of retries to -1 to prevent the worker client from trying to send a
     // heartbeat message when it is released.
     for (BlockWorkerClient client : clients) {
-      BlockStoreContext.INSTANCE.releaseWorkerClient(client);
+      context.releaseWorkerClient(client);
     }
 
     // Wait for the spawned thread to complete. If it is unable to acquire a worker client before
@@ -131,16 +138,9 @@ public final class BlockStoreContextIntegrationTest {
     }
   }
 
-  class AcquireWorkerClient implements Runnable {
-    @Override
-    public void run() {
-      BlockWorkerClient client = BlockStoreContext.INSTANCE.acquireLocalWorkerClient();
-      BlockStoreContext.INSTANCE.releaseWorkerClient(client);
-    }
-  }
-
   @Test
   public void hasLocalWorker() throws Exception {
-    Assert.assertTrue(BlockStoreContext.INSTANCE.hasLocalWorker());
+    final BlockStoreContext context = BlockStoreContext.get();
+    Assert.assertTrue(context.hasLocalWorker());
   }
 }

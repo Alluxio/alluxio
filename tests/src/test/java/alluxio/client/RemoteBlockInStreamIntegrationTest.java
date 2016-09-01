@@ -251,7 +251,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
-          workerAddr, BlockStoreContext.INSTANCE);
+          workerAddr, BlockStoreContext.get());
       byte[] ret = new byte[k];
       int value = is.read();
       int cnt = 0;
@@ -282,7 +282,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
-          workerAddr, BlockStoreContext.INSTANCE);
+          workerAddr, BlockStoreContext.get());
       byte[] ret = new byte[k];
       int start = 0;
       while (start < k) {
@@ -309,7 +309,7 @@ public class RemoteBlockInStreamIntegrationTest {
       BlockInfo info = AlluxioBlockStore.get().getInfo(blockId);
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
-          workerAddr, BlockStoreContext.INSTANCE);
+          workerAddr, BlockStoreContext.get());
       byte[] ret = new byte[k / 2];
       int start = 0;
       while (start < k / 2) {
@@ -530,7 +530,7 @@ public class RemoteBlockInStreamIntegrationTest {
 
       WorkerNetAddress workerAddr = info.getLocations().get(0).getWorkerAddress();
       RemoteBlockInStream is = new RemoteBlockInStream(info.getBlockId(), info.getLength(),
-          workerAddr, BlockStoreContext.INSTANCE);
+          workerAddr, BlockStoreContext.get());
       Assert.assertEquals(0, is.read());
       mFileSystem.delete(uri);
       HeartbeatScheduler.schedule(HeartbeatContext.WORKER_BLOCK_SYNC);
@@ -548,7 +548,7 @@ public class RemoteBlockInStreamIntegrationTest {
       RemoteBlockInStream is2 = null;
       try {
         is2 = new RemoteBlockInStream(info.getBlockId(), info.getLength(), workerAddr,
-            BlockStoreContext.INSTANCE);
+            BlockStoreContext.get());
       } catch (IOException e) {
         Assert.assertTrue(e.getCause() instanceof BlockDoesNotExistException);
       } finally {

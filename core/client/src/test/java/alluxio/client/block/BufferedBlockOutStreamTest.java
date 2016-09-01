@@ -44,7 +44,7 @@ public class BufferedBlockOutStreamTest {
    */
   @Before
   public void before() {
-    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH);
+    mTestStream = new TestBufferedBlockOutStream(1L, BLOCK_LENGTH, BlockStoreContext.get());
   }
 
   /**
