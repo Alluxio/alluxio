@@ -170,7 +170,7 @@ public class AbstractFileSystemTest {
     // Make sure all contexts are using the new address
     InetSocketAddress newAddress = new InetSocketAddress("otherhost", 410);
     Assert.assertEquals(newAddress, ClientContext.getMasterAddress());
-    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.INSTANCE,
+    Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(BlockStoreContext.get(),
         "mBlockMasterClientPool", "mMasterAddress"));
     Mockito.verify(fileSystemContext).reset();
     Assert.assertEquals(newAddress, CommonTestUtils.getInternalState(LineageContext.INSTANCE,

@@ -14,7 +14,6 @@ package alluxio.client.util;
 import alluxio.Configuration;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileSystemContext;
 import alluxio.client.lineage.LineageContext;
 import alluxio.hadoop.HadoopClientTestUtils;
@@ -51,7 +50,6 @@ public final class ClientTestUtils {
   }
 
   private static void resetContexts() {
-    BlockStoreContext.INSTANCE.reset();
     FileSystemContext.INSTANCE.reset();
     LineageContext.INSTANCE.reset();
   }

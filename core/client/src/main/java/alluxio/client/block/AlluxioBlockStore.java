@@ -12,6 +12,7 @@
 package alluxio.client.block;
 
 import alluxio.Constants;
+import alluxio.client.ClientContext;
 import alluxio.exception.AlluxioException;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
@@ -26,8 +27,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -40,20 +44,37 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  private static AlluxioBlockStore sClient = null;
+  // Only one block store will be kept for each master.
+  private static final Map<InetSocketAddress, AlluxioBlockStore> CACHED_BLOCK_STORES =
+      new ConcurrentHashMap<>();
 
   /**
+   * Gets a block store using the master address got from config.
+   *
    * @return the Alluxio block store instance
    */
   public static synchronized AlluxioBlockStore get() {
-    if (sClient == null) {
-      sClient =
-          new AlluxioBlockStore(BlockStoreContext.INSTANCE, NetworkAddressUtils.getLocalHostName());
-    }
-    return sClient;
+    return get(ClientContext.getMasterAddress());
   }
 
-  private final BlockStoreContext mContext;
+  /**
+   * Gets a block store with the specified master address from the cache if it's created before.
+   * Otherwise creates a new one and puts it in the cache.
+   *
+   * @param masterAddress the master's address
+   * @return the block store created or cached before
+   */
+  public static synchronized AlluxioBlockStore get(InetSocketAddress masterAddress) {
+    AlluxioBlockStore store = CACHED_BLOCK_STORES.get(masterAddress);
+    if (store == null) {
+      store = new AlluxioBlockStore(BlockStoreContext.get(masterAddress),
+          NetworkAddressUtils.getLocalHostName());
+      CACHED_BLOCK_STORES.put(masterAddress, store);
+    }
+    return store;
+  }
+
+  private BlockStoreContext mContext;
   private final String mLocalHostName;
 
   /**
@@ -65,7 +86,6 @@ public final class AlluxioBlockStore {
   AlluxioBlockStore(BlockStoreContext context, String localHostName) {
     mContext = context;
     mLocalHostName = localHostName;
-
   }
 
   /**
@@ -173,10 +193,10 @@ public final class AlluxioBlockStore {
     }
     // Location is local.
     if (mLocalHostName.equals(address.getHost())) {
-      return new LocalBlockOutStream(blockId, blockSize, address);
+      return new LocalBlockOutStream(blockId, blockSize, address, mContext);
     }
     // Location is specified and it is remote.
-    return new RemoteBlockOutStream(blockId, blockSize, address);
+    return new RemoteBlockOutStream(blockId, blockSize, address, mContext);
   }
 
   /**
