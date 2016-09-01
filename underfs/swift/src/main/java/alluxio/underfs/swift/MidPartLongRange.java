@@ -17,15 +17,15 @@ import org.javaswift.joss.headers.object.range.AbstractRange;
  * A range in a Swift object. This class is a substitute for JOSS MidPartRange which takes 'int'
  * parameters that might overflow for large objects.
  */
-public class SwiftRange extends AbstractRange {
+public class MidPartLongRange extends AbstractRange {
   /**
    * Constructor for a range in a Swift object.
    *
    * @param startPos starting position in bytes
    * @param endPos ending position in bytes
    */
-  public SwiftRange(long startPos, long endPos) {
-    super(startPos, endPos - startPos);
+  public MidPartLongRange(long startPos, long endPos) {
+    super(startPos, endPos);
   }
 
   @Override
@@ -35,6 +35,6 @@ public class SwiftRange extends AbstractRange {
 
   @Override
   public long getTo(int byteArrayLength) {
-    return this.offset + this.length;
+    return this.length;
   }
 }
