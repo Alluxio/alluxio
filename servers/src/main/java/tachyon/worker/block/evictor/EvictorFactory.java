@@ -33,7 +33,7 @@ public class EvictorFactory {
   public static Evictor create(EvictorType evictorType, BlockMetadataManagerView view) {
     switch (evictorType) {
       case GREEDY:
-        return new GreedyEvictor(view);
+        return new GreedyEvictor();
       case LRU:
         return new LRUEvictor(view);
       default:
