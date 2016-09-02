@@ -35,7 +35,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
   private static final long INVALID_BLOCK_ID = -1;
 
   /** The block store client. */
-  private AlluxioBlockStore mBlockStore;
+  private final AlluxioBlockStore mBlockStore;
   // TODO(cc): Use the concept of partition ID in the future.
   /** The ID of the block represented by this split. */
   private long mBlockId;
@@ -86,7 +86,6 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
 
   @Override
   public void readFields(DataInput dataInput) throws IOException {
-    mBlockStore = AlluxioBlockStore.get();
     mBlockId = dataInput.readLong();
   }
 
