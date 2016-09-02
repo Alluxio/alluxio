@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +81,13 @@ public abstract class UIWebServer {
     mServerConnector.setHost(mAddress.getAddress().getHostAddress());
 
     mServer.addConnector(mServerConnector);
+
+    // Open the connector here so we can resolve the port if we are selecting a free port.
+    try {
+      mServerConnector.open();
+    } catch (IOException e) {
+      Throwables.propagate(e);
+    }
 
     System.setProperty("org.apache.jasper.compiler.disablejsr199", "false");
 

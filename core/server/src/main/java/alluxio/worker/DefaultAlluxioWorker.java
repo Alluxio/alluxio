@@ -127,6 +127,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
           NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
           NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
+      // Reset worker web port based on assigned port number
+      Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
@@ -213,9 +215,6 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       }
     }
     mWebServer.startWebServer();
-
-    // Reset worker web port based on assigned port number
-    Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
 
     // Start each worker
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
