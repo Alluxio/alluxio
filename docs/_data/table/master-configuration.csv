@@ -12,7 +12,7 @@ alluxio.master.journal.tailer.sleep.time.ms,1000
 alluxio.master.lineage.checkpoint.interval.ms,600000
 alluxio.master.lineage.checkpoint.class,alluxio.master.lineage.checkpoint.&#8203;CheckpointLatestScheduler
 alluxio.master.lineage.recompute.interval.ms,600000
-alluxio.master.lineage.recompute.log.path,${alluxio.home}/logs/recompute.log
+alluxio.master.lineage.recompute.log.path,${alluxio.logs.dir}/recompute.log
 alluxio.master.port,19998
 alluxio.master.retry,29
 alluxio.master.ttl.checker.interval.ms,3600000
