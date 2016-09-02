@@ -380,8 +380,8 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String alluxioStartPath =
-        PathUtils.concatPath(Configuration.get(PropertyKey.INSTALL_HOME), "bin", "alluxio-start.sh");
+    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.INSTALL_HOME),
+        "bin", "alluxio-start.sh");
     String startMasterCommand = String.format("%s master", alluxioStartPath);
     try {
       Runtime.getRuntime().exec(startMasterCommand).waitFor();
