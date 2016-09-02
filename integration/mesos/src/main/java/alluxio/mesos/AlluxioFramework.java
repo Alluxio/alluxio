@@ -384,8 +384,8 @@ public class AlluxioFramework {
   }
 
   private static Protos.Credential createCredential() {
-
-    if (!Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
+    if (!(Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
+        && Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_SECRET))) {
       return null;
     }
 
