@@ -19,8 +19,11 @@ import java.util.Map;
  * you change or add Alluxio configuration properties.
  */
 public enum PropertyKey {
+  CONF_DIRECTORY(Name.CONF_DIRECTORY, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
+  @Deprecated // Use INSTALL_HOME, CONF_DIRECTORY, or WORK_DIRECTORY instead.
   HOME(Name.HOME, "/mnt/alluxio_default_home"),
+  INSTALL_HOME(Name.INSTALL_HOME, "${alluxio.home}"),
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
   INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
@@ -43,15 +46,16 @@ public enum PropertyKey {
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
-  LOGS_DIR(Name.LOGS_DIR, "${alluxio.home}/logs"),
-  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.home}/conf/metrics.properties"),
+  LOGS_DIR(Name.LOGS_DIR, "${alluxio.work.directory}/logs"),
+  METRICS_CONF_FILE(Name.METRICS_CONF_FILE, "${alluxio.conf.directory}/metrics.properties"),
   NETWORK_HOST_RESOLUTION_TIMEOUT_MS(Name.NETWORK_HOST_RESOLUTION_TIMEOUT_MS, 5000),
   NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX(Name.NETWORK_THRIFT_FRAME_SIZE_BYTES_MAX, "16MB"),
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
   VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
+  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.install.home}/core/server/src/main/webapp"),
   WEB_THREADS(Name.WEB_THREADS, 1),
+  WORK_DIRECTORY(Name.WORK_DIRECTORY, "${alluxio.home}"),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
   ZOOKEEPER_ELECTION_PATH(Name.ZOOKEEPER_ELECTION_PATH, "/election"),
   ZOOKEEPER_ENABLED(Name.ZOOKEEPER_ENABLED, false),
@@ -61,14 +65,15 @@ public enum PropertyKey {
   //
   // UFS related properties
   //
-  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.home}/underFSStorage"),
+  UNDERFS_ADDRESS(Name.UNDERFS_ADDRESS, "${alluxio.work.directory}/underFSStorage"),
   UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING(Name.UNDERFS_GCS_OWNER_ID_TO_USERNAME_MAPPING, ""),
   UNDERFS_GLUSTERFS_IMPL(Name.UNDERFS_GLUSTERFS_IMPL,
       "org.apache.hadoop.fs.glusterfs.GlusterFileSystem"),
   UNDERFS_GLUSTERFS_MOUNTS(Name.UNDERFS_GLUSTERFS_MOUNTS, null),
   UNDERFS_GLUSTERFS_MR_DIR(Name.UNDERFS_GLUSTERFS_MR_DIR, "glusterfs:///mapred/system"),
   UNDERFS_GLUSTERFS_VOLUMES(Name.UNDERFS_GLUSTERFS_VOLUMES, null),
-  UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION, "${alluxio.home}/conf/core-site.xml"),
+  UNDERFS_HDFS_CONFIGURATION(Name.UNDERFS_HDFS_CONFIGURATION,
+      "${alluxio.conf.directory}/core-site.xml"),
   UNDERFS_HDFS_IMPL(Name.UNDERFS_HDFS_IMPL, "org.apache.hadoop.hdfs.DistributedFileSystem"),
   UNDERFS_HDFS_PREFIXES(Name.UNDERFS_HDFS_PREFIXES, "hdfs://,glusterfs:///"),
   UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY(Name.UNDERFS_OBJECT_STORE_MOUNT_SHARED_PUBLICLY,
@@ -127,7 +132,7 @@ public enum PropertyKey {
   MASTER_HEARTBEAT_INTERVAL_MS(Name.MASTER_HEARTBEAT_INTERVAL_MS, 1000),
   MASTER_HOSTNAME(Name.MASTER_HOSTNAME, null),
   MASTER_JOURNAL_FLUSH_BATCH_TIME_MS(Name.MASTER_JOURNAL_FLUSH_BATCH_TIME_MS, 5),
-  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.home}/journal/"),
+  MASTER_JOURNAL_FOLDER(Name.MASTER_JOURNAL_FOLDER, "${alluxio.work.directory}/journal"),
   MASTER_JOURNAL_FORMATTER_CLASS(Name.MASTER_JOURNAL_FORMATTER_CLASS,
       "alluxio.master.journal.ProtoBufJournalFormatter"),
   MASTER_JOURNAL_LOG_SIZE_BYTES_MAX(Name.MASTER_JOURNAL_LOG_SIZE_BYTES_MAX, "10MB"),
@@ -294,8 +299,10 @@ public enum PropertyKey {
    * Used for setting configuration in integration tests.
    */
   public static final class Name {
+    public static final String CONF_DIRECTORY = "alluxio.conf.directory";
     public static final String DEBUG = "alluxio.debug";
     public static final String HOME = "alluxio.home";
+    public static final String INSTALL_HOME = "alluxio.install.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
     public static final String INTEGRATION_MASTER_RESOURCE_MEM =
@@ -335,6 +342,7 @@ public enum PropertyKey {
     public static final String VERSION = "alluxio.version";
     public static final String WEB_RESOURCES = "alluxio.web.resources";
     public static final String WEB_THREADS = "alluxio.web.threads";
+    public static final String WORK_DIRECTORY = "alluxio.work.directory";
     public static final String ZOOKEEPER_ADDRESS = "alluxio.zookeeper.address";
     public static final String ZOOKEEPER_ELECTION_PATH = "alluxio.zookeeper.election.path";
     public static final String ZOOKEEPER_ENABLED = "alluxio.zookeeper.enabled";

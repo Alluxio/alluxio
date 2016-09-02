@@ -56,13 +56,8 @@ public final class LocalAlluxioMaster {
 
   private LocalAlluxioMaster() throws IOException {
     mHostname = NetworkAddressUtils.getConnectHost(ServiceType.MASTER_RPC);
-
     mJournalFolder = Configuration.get(PropertyKey.MASTER_JOURNAL_FOLDER);
-
     mAlluxioMaster = AlluxioMaster.Factory.create(new MasterContext(new MasterSource()));
-
-    // Reset the master port
-    Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(getRPCLocalPort()));
 
     Runnable runMaster = new Runnable() {
       @Override
@@ -81,32 +76,30 @@ public final class LocalAlluxioMaster {
   }
 
   /**
-   * Creates a new local alluxio master with a isolated home and port.
+   * Creates a new local Alluxio master with an isolated work directory and port.
    *
    * @throws IOException when unable to do file operation or listen on port
    * @return an instance of Alluxio master
    */
   public static LocalAlluxioMaster create() throws IOException {
-    final String alluxioHome = uniquePath();
-    UnderFileSystemUtils.deleteDir(alluxioHome);
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
+    String workDirectory = uniquePath();
+    UnderFileSystemUtils.deleteDir(workDirectory);
+    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
-    // Update Alluxio home in the passed Alluxio configuration instance.
-    Configuration.set(PropertyKey.HOME, alluxioHome);
+    Configuration.set(PropertyKey.WORK_DIRECTORY, workDirectory);
 
     return new LocalAlluxioMaster();
   }
 
   /**
-   * Creates a new local alluxio master with a isolated port.
+   * Creates a new local Alluxio master with a isolated port.
    *
-   * @param alluxioHome Alluxio home directory, if the directory already exists, this method will
-   *        reuse any directory/file if possible, no deletion will be made
-   * @return an instance of Alluxio master
+   * @param workDirectory Alluxio work directory, this method will create it if it doesn't exist yet
+   * @return the created Alluxio master
    * @throws IOException when unable to do file operation or listen on port
    */
-  public static LocalAlluxioMaster create(final String alluxioHome) throws IOException {
-    UnderFileSystemUtils.mkdirIfNotExists(alluxioHome);
+  public static LocalAlluxioMaster create(final String workDirectory) throws IOException {
+    UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
     return new LocalAlluxioMaster();
   }
