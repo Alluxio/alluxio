@@ -21,7 +21,10 @@ import java.util.Map;
 public enum PropertyKey {
   CONF_DIRECTORY(Name.CONF_DIRECTORY, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
-  @Deprecated // Use INSTALL_HOME, CONF_DIRECTORY, or WORK_DIRECTORY instead.
+  /**
+   * @deprecated use INSTALL_HOME or WORK_DIRECTORY instead
+   */
+  @Deprecated
   HOME(Name.HOME, "/mnt/alluxio_default_home"),
   INSTALL_HOME(Name.INSTALL_HOME, "${alluxio.home}"),
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
