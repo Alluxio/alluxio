@@ -75,7 +75,6 @@ public final class BlockStoreContext {
   private BlockStoreContext(InetSocketAddress masterAddress) {
     mBlockMasterClientPool = new BlockMasterClientPool(masterAddress);
     mLocalBlockWorkerClientPoolInitialized = false;
-    CACHED_CONTEXTS.put(masterAddress, this);
   }
 
   /**
@@ -87,10 +86,11 @@ public final class BlockStoreContext {
    */
   public static synchronized BlockStoreContext get(InetSocketAddress masterAddress) {
     BlockStoreContext context = CACHED_CONTEXTS.get(masterAddress);
-    if (context != null) {
-      return context;
+    if (context == null) {
+      context = new BlockStoreContext(masterAddress);
+      CACHED_CONTEXTS.put(masterAddress, context);
     }
-    return new BlockStoreContext(masterAddress);
+    return context;
   }
 
   /**
