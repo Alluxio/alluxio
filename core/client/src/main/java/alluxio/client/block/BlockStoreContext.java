@@ -70,7 +70,7 @@ public final class BlockStoreContext {
   private boolean mLocalBlockWorkerClientPoolInitialized = false;
 
   /**
-   * Creates a new block store context. This is not supposed to be called outside of the class.
+   * Creates a new block store context.
    */
   private BlockStoreContext(InetSocketAddress masterAddress) {
     mBlockMasterClientPool = new BlockMasterClientPool(masterAddress);

@@ -36,7 +36,7 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
    */
   public GetUsedBytesCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override

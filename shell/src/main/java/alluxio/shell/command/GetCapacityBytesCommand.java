@@ -36,7 +36,7 @@ public final class GetCapacityBytesCommand extends AbstractShellCommand {
    */
   public GetCapacityBytesCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
