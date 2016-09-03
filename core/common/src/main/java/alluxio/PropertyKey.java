@@ -21,12 +21,7 @@ import java.util.Map;
 public enum PropertyKey {
   CONF_DIRECTORY(Name.CONF_DIRECTORY, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
-  /**
-   * @deprecated use INSTALL_HOME or WORK_DIRECTORY instead
-   */
-  @Deprecated
   HOME(Name.HOME, "/mnt/alluxio_default_home"),
-  INSTALL_HOME(Name.INSTALL_HOME, "${alluxio.home}"),
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
   INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
@@ -56,7 +51,7 @@ public enum PropertyKey {
   SITE_CONF_DIR(Name.SITE_CONF_DIR, "${user.home}/.alluxio/,/etc/alluxio/"),
   TEST_MODE(Name.TEST_MODE, false),
   VERSION(Name.VERSION, ProjectConstants.VERSION),
-  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.install.home}/core/server/src/main/webapp"),
+  WEB_RESOURCES(Name.WEB_RESOURCES, "${alluxio.home}/core/server/src/main/webapp"),
   WEB_THREADS(Name.WEB_THREADS, 1),
   WORK_DIRECTORY(Name.WORK_DIRECTORY, "${alluxio.home}"),
   ZOOKEEPER_ADDRESS(Name.ZOOKEEPER_ADDRESS, null),
@@ -305,7 +300,6 @@ public enum PropertyKey {
     public static final String CONF_DIRECTORY = "alluxio.conf.directory";
     public static final String DEBUG = "alluxio.debug";
     public static final String HOME = "alluxio.home";
-    public static final String INSTALL_HOME = "alluxio.install.home";
     public static final String INTEGRATION_MASTER_RESOURCE_CPU =
         "alluxio.integration.master.resource.cpu";
     public static final String INTEGRATION_MASTER_RESOURCE_MEM =

@@ -28,7 +28,7 @@ public final class HdfsUnderFileSystemUtilsTest {
    */
   @Test
   public void addKeyFromAlluxioConf() {
-    PropertyKey key = PropertyKey.INSTALL_HOME;
+    PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
     Configuration.set(key, "alluxioKey");
 
@@ -43,7 +43,7 @@ public final class HdfsUnderFileSystemUtilsTest {
    */
   @Test
   public void addKeyFromSystemProperty() {
-    PropertyKey key = PropertyKey.INSTALL_HOME;
+    PropertyKey key = PropertyKey.HOME;
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
 
     System.setProperty(key.toString(), "systemKey");
