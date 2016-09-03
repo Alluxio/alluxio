@@ -38,7 +38,7 @@ public final class FileInfoCommand extends WithWildCardPathCommand {
    */
   public FileInfoCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override

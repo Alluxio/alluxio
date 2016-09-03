@@ -41,7 +41,7 @@ public final class LocationCommand extends WithWildCardPathCommand {
    */
   public LocationCommand(FileSystem fs) {
     super(fs);
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override

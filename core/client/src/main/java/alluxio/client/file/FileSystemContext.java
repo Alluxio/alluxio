@@ -61,8 +61,8 @@ public enum FileSystemContext {
    */
   FileSystemContext() {
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());
-    mAlluxioBlockStore = AlluxioBlockStore.get();
     mBlockStoreContext = BlockStoreContext.get();
+    mAlluxioBlockStore = new AlluxioBlockStore(mBlockStoreContext);
   }
 
   /**
@@ -122,8 +122,8 @@ public enum FileSystemContext {
    * {@link ClientContext}.
    */
   public void reset() {
-    mAlluxioBlockStore = AlluxioBlockStore.get();
     mBlockStoreContext = BlockStoreContext.get();
+    mAlluxioBlockStore = new AlluxioBlockStore(mBlockStoreContext);
 
     mFileSystemMasterClientPool.close();
     mFileSystemMasterClientPool = new FileSystemMasterClientPool(ClientContext.getMasterAddress());

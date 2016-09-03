@@ -30,8 +30,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -44,38 +42,33 @@ import javax.annotation.concurrent.ThreadSafe;
 public final class AlluxioBlockStore {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
-  // Only one block store will be kept for each master.
-  private static final Map<InetSocketAddress, AlluxioBlockStore> CACHED_BLOCK_STORES =
-      new ConcurrentHashMap<>();
+  private final BlockStoreContext mContext;
+  private final String mLocalHostName;
 
   /**
-   * Gets a block store using the master address got from config.
-   *
-   * @return the Alluxio block store instance
+   * Creates a block store using the master address got from config.
    */
-  public static synchronized AlluxioBlockStore get() {
-    return get(ClientContext.getMasterAddress());
+  public AlluxioBlockStore() {
+    this(ClientContext.getMasterAddress());
   }
 
   /**
-   * Gets a block store with the specified master address from the cache if it's created before.
-   * Otherwise creates a new one and puts it in the cache.
+   * Creates a block store with the specified master address.
    *
    * @param masterAddress the master's address
-   * @return the block store created or cached before
    */
-  public static synchronized AlluxioBlockStore get(InetSocketAddress masterAddress) {
-    AlluxioBlockStore store = CACHED_BLOCK_STORES.get(masterAddress);
-    if (store == null) {
-      store = new AlluxioBlockStore(BlockStoreContext.get(masterAddress),
-          NetworkAddressUtils.getLocalHostName());
-      CACHED_BLOCK_STORES.put(masterAddress, store);
-    }
-    return store;
+  public AlluxioBlockStore(InetSocketAddress masterAddress) {
+    this(BlockStoreContext.get(masterAddress), NetworkAddressUtils.getLocalHostName());
   }
 
-  private BlockStoreContext mContext;
-  private final String mLocalHostName;
+  /**
+   * Creates a block store with the given block store context.
+   *
+   * @param context the block store context
+   */
+  public AlluxioBlockStore(BlockStoreContext context) {
+    this(context, NetworkAddressUtils.getLocalHostName());
+  }
 
   /**
    * Creates an Alluxio block store.

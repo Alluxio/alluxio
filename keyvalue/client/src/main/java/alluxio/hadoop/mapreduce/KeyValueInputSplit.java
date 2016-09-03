@@ -45,7 +45,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    * de-serializing {@link KeyValueInputSplit}.
    */
   public KeyValueInputSplit() {
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
     mBlockId = INVALID_BLOCK_ID;
   }
 
@@ -55,7 +55,7 @@ final class KeyValueInputSplit extends InputSplit implements Writable {
    * @param partitionInfo the partition info
    */
   public KeyValueInputSplit(PartitionInfo partitionInfo) {
-    mBlockStore = AlluxioBlockStore.get();
+    mBlockStore = new AlluxioBlockStore();
     mBlockId = partitionInfo.getBlockId();
   }
 

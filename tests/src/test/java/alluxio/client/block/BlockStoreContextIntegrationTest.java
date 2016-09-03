@@ -15,12 +15,14 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.client.ClientContext;
 import alluxio.resource.CloseableResource;
 
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -142,5 +144,15 @@ public final class BlockStoreContextIntegrationTest {
   public void hasLocalWorker() throws Exception {
     final BlockStoreContext context = BlockStoreContext.get();
     Assert.assertTrue(context.hasLocalWorker());
+  }
+
+  @Test
+  public void testCachedBlockStoreContext() throws Exception {
+    BlockStoreContext context1 = BlockStoreContext.get();
+    BlockStoreContext context2 = BlockStoreContext.get(ClientContext.getMasterAddress());
+    Assert.assertTrue(context1 == context2);
+
+    BlockStoreContext context3 = BlockStoreContext.get(new InetSocketAddress("x.com", 123));
+    Assert.assertTrue(context1 != context3);
   }
 }
