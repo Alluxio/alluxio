@@ -380,7 +380,7 @@ public final class JournalCrashTest {
    * Starts Alluxio Master by executing the launch script.
    */
   private static void startMaster() {
-    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.INSTALL_HOME),
+    String alluxioStartPath = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
         "bin", "alluxio-start.sh");
     String startMasterCommand = String.format("%s master", alluxioStartPath);
     try {
@@ -397,7 +397,7 @@ public final class JournalCrashTest {
    */
   private static void stopCluster() {
     String alluxioStopPath =
-        PathUtils.concatPath(Configuration.get(PropertyKey.INSTALL_HOME), "bin", "alluxio-stop.sh");
+        PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "bin", "alluxio-stop.sh");
     String stopClusterCommand = String.format("%s all", alluxioStopPath);
     try {
       Runtime.getRuntime().exec(stopClusterCommand).waitFor();
