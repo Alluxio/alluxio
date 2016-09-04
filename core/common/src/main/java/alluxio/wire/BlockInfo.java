@@ -16,6 +16,7 @@ import alluxio.annotation.PublicApi;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,10 +27,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class BlockInfo {
+public final class BlockInfo implements Serializable {
+  private static final long serialVersionUID = 5646834366222004646L;
+
   private long mBlockId;
   private long mLength;
-  private List<BlockLocation> mLocations = new ArrayList<>();
+  private ArrayList<BlockLocation> mLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link BlockInfo}.
@@ -95,7 +98,7 @@ public final class BlockInfo {
    */
   public BlockInfo setLocations(List<BlockLocation> locations) {
     Preconditions.checkNotNull(locations);
-    mLocations = locations;
+    mLocations = new ArrayList<>(locations);
     return this;
   }
 

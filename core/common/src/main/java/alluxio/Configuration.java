@@ -202,7 +202,7 @@ public final class Configuration {
     String rawValue = PROPERTIES.get(key.toString());
     if (rawValue == null) {
       // if key is not found among the default properties
-      throw new RuntimeException(ExceptionMessage.INVALID_CONFIGURATION_KEY.getMessage(key));
+      throw new RuntimeException(ExceptionMessage.UNDEFINED_CONFIGURATION_KEY.getMessage(key));
     }
     return lookup(rawValue);
   }

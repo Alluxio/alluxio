@@ -21,6 +21,10 @@ import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * ClientMetrics is used to pass client metrics from client to worker by session heartbeat.
+ * TODO(peis): This method limits the types and amount of metrics we can collect. And it is not able
+ * to break the metrics by client applications. It is also error-prone because we need to keep the
+ * client and server code in sync. Refactor this to collect client metrics directly on
+ * the client side without passing to worker.
  */
 @ThreadSafe
 public final class ClientMetrics {
@@ -148,5 +152,23 @@ public final class ClientMetrics {
   public synchronized void incBytesWrittenUfs(long n) {
     mMetrics.set(Constants.BYTES_WRITTEN_UFS_INDEX,
         mMetrics.get(Constants.BYTES_WRITTEN_UFS_INDEX) + n);
+  }
+
+  /**
+   * Increments SEEKS_LOCAL counter by the amount specified.
+   *
+   * @param n amount to increment
+   */
+  public synchronized void incSeeksLocal(long n) {
+    mMetrics.set(Constants.SEEKS_LOCAL_INDEX, mMetrics.get(Constants.SEEKS_LOCAL_INDEX) + n);
+  }
+
+  /**
+   * Increments SEEKS_REMOTE counter by the amount specified.
+   *
+   * @param n amount to increment
+   */
+  public synchronized void incSeeksRemote(long n) {
+    mMetrics.set(Constants.SEEKS_REMOTE_INDEX, mMetrics.get(Constants.SEEKS_REMOTE_INDEX) + n);
   }
 }

@@ -16,13 +16,16 @@ import alluxio.underfs.UnderFileSystem;
 import com.google.common.base.Objects;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * The mount point descriptor.
  */
-public class MountPointInfo {
+public class MountPointInfo implements Serializable {
+  private static final long serialVersionUID = -2912330427506888886L;
+
   private static final long UNKNOWN_CAPACITY_BYTES = -1;
   private static final long UNKNOWN_USED_BYTES = -1;
 
@@ -31,7 +34,7 @@ public class MountPointInfo {
   private long mUfsCapacityBytes = UNKNOWN_CAPACITY_BYTES;
   private long mUfsUsedBytes = UNKNOWN_USED_BYTES;
   private boolean mReadOnly;
-  private Map<String, String> mProperties = new HashMap<>();
+  private HashMap<String, String> mProperties = new HashMap<>();
   private boolean mShared;
 
   /**
@@ -138,7 +141,7 @@ public class MountPointInfo {
    * @return the mount point descriptor
    */
   public MountPointInfo setProperties(Map<String, String> properties) {
-    mProperties = properties;
+    mProperties = new HashMap<>(properties);
     return this;
   }
 

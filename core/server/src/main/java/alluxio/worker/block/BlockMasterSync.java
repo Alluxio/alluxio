@@ -99,10 +99,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
     try {
       registerWithMaster();
       mLastSuccessfulHeartbeatMs = System.currentTimeMillis();
-    } catch (IOException e) {
+    } catch (IOException | ConnectionFailedException e) {
       // If failed to register when the thread starts, no retry will happen.
-      throw new RuntimeException("Failed to register with master.", e);
-    } catch (ConnectionFailedException e) {
       throw new RuntimeException("Failed to register with master.", e);
     }
   }

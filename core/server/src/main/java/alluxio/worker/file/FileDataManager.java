@@ -255,9 +255,7 @@ public final class FileDataManager {
         BufferUtils.fastCopy(inputChannel, outputChannel);
         reader.close();
       }
-    } catch (BlockDoesNotExistException e) {
-      errors.add(e);
-    } catch (InvalidWorkerStateException e) {
+    } catch (BlockDoesNotExistException | InvalidWorkerStateException e) {
       errors.add(e);
     } finally {
       // make sure all the locks are released

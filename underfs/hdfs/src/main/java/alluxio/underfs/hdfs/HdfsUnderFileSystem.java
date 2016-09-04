@@ -213,7 +213,7 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       FileStatus fStatus = mFileSystem.getFileStatus(new Path(path));
       BlockLocation[] bLocations = mFileSystem.getFileBlockLocations(fStatus, offset, 1);
       if (bLocations.length > 0) {
-        String[] names = bLocations[0].getNames();
+        String[] names = bLocations[0].getHosts();
         Collections.addAll(ret, names);
       }
     } catch (IOException e) {

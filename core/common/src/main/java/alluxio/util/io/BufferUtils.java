@@ -314,11 +314,8 @@ public final class BufferUtils {
    * @throws IOException if the operation fails
    */
   public static void writeBufferToFile(String path, byte[] buffer) throws IOException {
-    FileOutputStream os = new FileOutputStream(path);
-    try {
+    try (FileOutputStream os = new FileOutputStream(path)) {
       os.write(buffer);
-    } finally {
-      os.close();
     }
   }
 

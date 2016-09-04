@@ -96,8 +96,7 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
     }
     response.addHeader("Content-Disposition", "attachment;filename=" + fileName);
 
-    InputStream is = new FileInputStream(file);
-    try {
+    try (InputStream is = new FileInputStream(file)) {
       ServletOutputStream out = response.getOutputStream();
       try {
         ByteStreams.copy(is, out);
@@ -108,8 +107,6 @@ public final class WebInterfaceDownloadLocalServlet extends HttpServlet {
           out.close();
         }
       }
-    } finally {
-      is.close();
     }
   }
 }

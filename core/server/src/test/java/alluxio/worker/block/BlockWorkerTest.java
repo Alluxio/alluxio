@@ -436,14 +436,14 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#sessionHeartbeat(long, List<long>)} method.
+   * Tests the {@link BlockWorker#sessionHeartbeat(long, List)}  method.
    */
   @Test
   public void sessionHeartbeat() {
     long sessionId = mRandom.nextLong();
     long metricIncrease = 3;
     List<Long> metrics = Arrays.asList(new Long[Constants.CLIENT_METRICS_SIZE]);
-    Collections.fill(metrics, Long.valueOf(metricIncrease));
+    Collections.fill(metrics, metricIncrease);
     metrics.set(0, Constants.CLIENT_METRICS_VERSION);
 
     mBlockWorker.sessionHeartbeat(sessionId, metrics);
@@ -454,7 +454,7 @@ public class BlockWorkerTest {
   }
 
   /**
-   * Tests the {@link BlockWorker#updatePinList(Set<long>)} method.
+   * Tests the {@link BlockWorker#updatePinList(Set)} method.
    */
   @Test
   public void updatePinList() {

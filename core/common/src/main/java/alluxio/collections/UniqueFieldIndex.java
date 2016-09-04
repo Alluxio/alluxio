@@ -46,7 +46,7 @@ public class UniqueFieldIndex<T> implements FieldIndex<T> {
     T previousObject = mIndexMap.putIfAbsent(fieldValue, object);
 
     if (previousObject != null && previousObject != object) {
-      throw new IllegalStateException("Adding more than one value to a unique index:"
+      throw new IllegalStateException("Adding more than one value to a unique index: "
           + fieldValue.toString());
     }
   }
