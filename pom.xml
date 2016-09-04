@@ -149,10 +149,11 @@
     <hadoop.version>2.2.0</hadoop.version>
     <java.version>1.7</java.version>
     <jersey.version>2.22</jersey.version>
-    <jetty.version>7.6.15.v20140411</jetty.version>
+    <jetty.version>9.2.16.v20160414</jetty.version>
     <junit.version>4.12</junit.version>
     <libthrift.version>0.9.3</libthrift.version>
     <license.header.path>build/license/</license.header.path>
+    <build.path>build</build.path>
     <log4j.version>1.2.17</log4j.version>
     <metrics.version>3.1.2</metrics.version>
     <powermock.version>1.6.1</powermock.version>
@@ -576,6 +577,25 @@
             <goals>
               <goal>check</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>exec-maven-plugin</artifactId>
+        <groupId>org.codehaus.mojo</groupId>
+        <version>1.4.0</version>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>Check that there are no Windows line endings</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${build.path}/style/check_no_windows_line_endings.sh</executable>
+            </configuration>
           </execution>
         </executions>
       </plugin>

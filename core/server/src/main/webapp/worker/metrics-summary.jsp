@@ -68,6 +68,13 @@
               <th>Underfs Bytes Written</th>
               <th><%= request.getAttribute("worker.BytesWrittenUfs") %></th>
             </tr>
+            <tr>
+              <th>Seek Remotely</th>
+              <th><%= request.getAttribute("worker.SeeksRemote") %></th>
+              <th>Seek Locally</th>
+              <th><%= request.getAttribute("worker.SeeksLocal") %></th>
+              </tr>
+            </tr>
           </tbody>
         </table>
       </div>

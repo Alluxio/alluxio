@@ -190,9 +190,7 @@ public class BlockMasterTest {
 
     // Check that the worker heartbeat tells the worker to remove the block.
     Map<String, Long> memUsage = ImmutableMap.of("MEM", 0L);
-    List<Long> removedBlocks = NO_BLOCKS;
-    Map<String, List<Long>> addedBlocks = NO_BLOCKS_ON_TIERS;
-    Command heartBeat = mMaster.workerHeartbeat(worker1, memUsage, removedBlocks, addedBlocks);
+    Command heartBeat = mMaster.workerHeartbeat(worker1, memUsage, NO_BLOCKS, NO_BLOCKS_ON_TIERS);
     Assert.assertEquals(ImmutableList.of(1L), heartBeat.getData());
   }
 

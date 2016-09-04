@@ -269,9 +269,7 @@ public final class LineageMaster extends AbstractMaster {
   private void deleteLineageFromEntry(DeleteLineageEntry entry) {
     try {
       deleteLineageInternal(entry.getLineageId(), entry.getCascade());
-    } catch (LineageDoesNotExistException e) {
-      LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
-    } catch (LineageDeletionException e) {
+    } catch (LineageDoesNotExistException | LineageDeletionException e) {
       LOG.error("Failed to delete lineage {}", entry.getLineageId(), e);
     }
   }

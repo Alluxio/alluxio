@@ -105,7 +105,7 @@ public final class InodeTree implements JournalCheckpointStreamable {
 
   @SuppressWarnings("unchecked")
   /** use UniqueFieldIndex directly for Id index rather than using IndexedSet */
-  private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<Inode<?>>(ID_INDEX);
+  private final FieldIndex<Inode<?>> mInodes = new UniqueFieldIndex<>(ID_INDEX);
   /** A set of inode ids representing pinned inode files. */
   private final Set<Long> mPinnedInodeFileIds = new ConcurrentHashSet<>(64, 0.90f, 64);
 

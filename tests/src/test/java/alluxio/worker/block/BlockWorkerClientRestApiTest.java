@@ -80,16 +80,6 @@ public final class BlockWorkerClientRestApiTest extends RestApiTest {
   }
 
   @Test
-  public void asyncCheckpoint() throws Exception {
-    Map<String, String> params = new HashMap<>();
-    params.put("fileId", "1");
-
-    new TestCase(mHostname, mPort,
-        getEndpoint(BlockWorkerClientRestServiceHandler.ASYNC_CHECKPOINT), params, HttpMethod.POST,
-        false).run();
-  }
-
-  @Test
   public void cacheBlock() throws Exception {
     mBlockWorker.createBlock(SESSION_ID, BLOCK_ID, TIER_ALIAS, INITIAL_BYTES);
     mBlockWorker.commitBlock(SESSION_ID, BLOCK_ID);

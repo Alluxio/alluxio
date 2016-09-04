@@ -17,6 +17,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.net.HostAndPort;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,10 +28,12 @@ import javax.annotation.concurrent.NotThreadSafe;
  */
 @PublicApi
 @NotThreadSafe
-public final class FileBlockInfo {
+public final class FileBlockInfo implements Serializable {
+  private static final long serialVersionUID = -3313640897617385301L;
+
   private BlockInfo mBlockInfo = new BlockInfo();
   private long mOffset;
-  private List<String> mUfsLocations = new ArrayList<>();
+  private ArrayList<String> mUfsLocations = new ArrayList<>();
 
   /**
    * Creates a new instance of {@link FileBlockInfo}.
@@ -46,7 +49,7 @@ public final class FileBlockInfo {
     mBlockInfo = new BlockInfo(fileBlockInfo.getBlockInfo());
     mOffset = fileBlockInfo.getOffset();
     if (fileBlockInfo.getUfsStringLocationsSize() != 0) {
-      mUfsLocations = fileBlockInfo.getUfsStringLocations();
+      mUfsLocations = new ArrayList<>(fileBlockInfo.getUfsStringLocations());
     } else if (fileBlockInfo.getUfsLocationsSize() != 0) {
       for (alluxio.thrift.WorkerNetAddress address : fileBlockInfo.getUfsLocations()) {
         mUfsLocations
@@ -101,7 +104,7 @@ public final class FileBlockInfo {
    */
   public FileBlockInfo setUfsLocations(List<String> ufsLocations) {
     Preconditions.checkNotNull(ufsLocations);
-    mUfsLocations = ufsLocations;
+    mUfsLocations = new ArrayList<>(ufsLocations);
     return this;
   }
 

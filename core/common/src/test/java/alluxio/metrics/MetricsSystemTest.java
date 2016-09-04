@@ -11,9 +11,10 @@
 
 package alluxio.metrics;
 
-import alluxio.master.MasterSource;
-import alluxio.worker.WorkerSource;
+import alluxio.metrics.source.Source;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.MetricRegistry;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,35 +36,51 @@ public class MetricsSystemTest {
     metricsProps.setProperty("*.sink.console.class", "alluxio.metrics.sink.ConsoleSink");
     metricsProps.setProperty("*.sink.console.period", "15");
     metricsProps.setProperty("*.source.jvm.class", "alluxio.metrics.source.JvmSource");
-    metricsProps.setProperty("master.sink.console.period", "20");
-    metricsProps.setProperty("master.sink.console.unit", "minutes");
-    metricsProps.setProperty("master.sink.jmx.class", "alluxio.metrics.sink.JmxSink");
+    metricsProps.setProperty("dummy.sink.console.period", "20");
+    metricsProps.setProperty("dummy.sink.console.unit", "minutes");
+    metricsProps.setProperty("dummy.sink.jmx.class", "alluxio.metrics.sink.JmxSink");
     mMetricsConfig = new MetricsConfig(metricsProps);
+  }
+
+  /**
+   * A dummy source to test MetricsSystem.
+   */
+  public final class DummySource implements Source {
+    private MetricRegistry mMetricRegistry;
+    private final Counter mCounter;
+
+    /**
+     * Creates a DummySource instance.
+     */
+    public DummySource() {
+      mMetricRegistry = new MetricRegistry();
+      mCounter = mMetricRegistry.counter("dummyCounter");
+      mCounter.inc();
+    }
+
+    @Override
+    public String getName() {
+      return "dummy";
+    }
+
+    @Override
+    public MetricRegistry getMetricRegistry() {
+      return mMetricRegistry;
+    }
   }
 
   /**
    * Tests the metrics for a master and a worker.
    */
   @Test
-  public void metricsSystem() {
-    MetricsSystem masterMetricsSystem = new MetricsSystem("master", mMetricsConfig);
+  public void metricsSystemTest() {
+    MetricsSystem masterMetricsSystem = new MetricsSystem("dummy", mMetricsConfig);
     masterMetricsSystem.start();
 
-    Assert.assertNotNull(masterMetricsSystem.getServletHandler());
     Assert.assertEquals(2, masterMetricsSystem.getSinks().size());
     Assert.assertEquals(1, masterMetricsSystem.getSources().size());
-    masterMetricsSystem.registerSource(new MasterSource());
+    masterMetricsSystem.registerSource(new DummySource());
     Assert.assertEquals(2, masterMetricsSystem.getSources().size());
     masterMetricsSystem.stop();
-
-    MetricsSystem workerMetricsSystem = new MetricsSystem("worker", mMetricsConfig);
-    workerMetricsSystem.start();
-
-    Assert.assertNotNull(workerMetricsSystem.getServletHandler());
-    Assert.assertEquals(1, workerMetricsSystem.getSinks().size());
-    Assert.assertEquals(1, workerMetricsSystem.getSources().size());
-    workerMetricsSystem.registerSource(new WorkerSource());
-    Assert.assertEquals(2, workerMetricsSystem.getSources().size());
-    workerMetricsSystem.stop();
   }
 }

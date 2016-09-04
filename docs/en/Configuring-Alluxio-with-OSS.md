@@ -6,7 +6,7 @@ group: Under Store
 priority: 4
 ---
 
-This guide describes how to configure Alluxio with [Aliyun OSS](http://www.aliyun.com/product/oss/?lang=en) as the under storage system. Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
+This guide describes how to configure Alluxio with [Aliyun OSS](https://intl.aliyun.com/product/oss) as the under storage system. Object Storage Service (OSS) is a massive, secure and highly reliable cloud storage service provided by Aliyun.
 
 ## Initial Setup
 
@@ -21,7 +21,7 @@ Alternatively, you can also create the configuration file from the template and 
 
 {% include Common-Commands/copy-alluxio-env.md %}
 
-Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an oss endpoint to specify which range your bucket is on. The endpoint here is called OSS_ENDPOINT, and to learn more about the endpoints for special range you can see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/domain-region). For more information about OSS Bucket, Please see [here](http://intl.aliyun.com/docs#/pub/oss_en_us/product-documentation/function&bucket)
+Also, in preparation for using OSS with alluxio, create a bucket or use an existing bucket. You should also note that the directory you want to use in that bucket, either by creating a new directory in the bucket, or using an existing one. For the purposes of this guide, the OSS bucket name is called OSS_BUCKET, and the directory in that bucket is called OSS_DIRECTORY. Also, for using the OSS Service, you should provide an OSS endpoint to specify which range your bucket is on. The endpoint here is called OSS_ENDPOINT, and to learn more about the endpoints for special range you can see [here](https://intl.aliyun.com/help/en/doc-detail/31834.htm). For more information about OSS Bucket, Please see [here](https://intl.aliyun.com/help/doc-detail/31885.htm)
 
 ## Confugurating Alluxio
 

@@ -46,6 +46,7 @@ import org.junit.rules.TemporaryFolder;
 import org.mockito.Mockito;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -525,13 +526,13 @@ public final class InodeTreeTest {
     InodeDirectory nested = (InodeDirectory) root.getChild("nested");
     InodeDirectory test = (InodeDirectory) nested.getChild("test");
     Inode<?> file = test.getChild("file");
-    verifyJournal(mTree, Lists.newArrayList(root, nested, test, file));
+    verifyJournal(mTree, Arrays.asList(root, nested, test, file));
 
     // add a sibling of test and verify journaling is in correct order (breadth first)
     createPath(mTree, new AlluxioURI("/nested/test1/file1"), sNestedFileOptions);
     InodeDirectory test1 = (InodeDirectory) nested.getChild("test1");
     Inode<?> file1 = test1.getChild("file1");
-    verifyJournal(mTree, Lists.newArrayList(root, nested, test, test1, file, file1));
+    verifyJournal(mTree, Arrays.asList(root, nested, test, test1, file, file1));
   }
 
   /**

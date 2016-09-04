@@ -144,15 +144,7 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
           "Error: offset or offset + limit is out of bound, " + e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;
-    } catch (IllegalArgumentException e) {
-      request.setAttribute("fatalError", e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-      return;
-    } catch (BlockDoesNotExistException e) {
-      request.setAttribute("fatalError", e.getLocalizedMessage());
-      getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
-      return;
-    } catch (AlluxioException e) {
+    } catch (IllegalArgumentException | AlluxioException e) {
       request.setAttribute("fatalError", e.getLocalizedMessage());
       getServletContext().getRequestDispatcher("/worker/blockInfo.jsp").forward(request, response);
       return;

@@ -15,8 +15,15 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
+import alluxio.client.file.FileSystem;
+import alluxio.client.file.options.CreateDirectoryOptions;
+import alluxio.client.file.options.CreateFileOptions;
+import alluxio.client.file.options.ListStatusOptions;
+import alluxio.exception.ExceptionMessage;
+import alluxio.exception.FileAlreadyExistsException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
+import alluxio.wire.LoadMetadataType;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -118,8 +125,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     mUfs.delete(config.getTopLevelDirectory(), true);
 
     String[] children = config.getChildren();
-    for (int i = 0; i < children.length; ++i) {
-      Assert.assertFalse(mUfs.exists(children[i]));
+    for (String child : children) {
+      Assert.assertFalse(mUfs.exists(child));
     }
   }
 
@@ -373,6 +380,54 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     }
   }
 
+  /**
+   * Tests load metadata on list.
+   */
+  @Test
+  public void loadMetadata() throws Exception {
+    String dirName = "loadMetaDataRoot";
+
+    String rootDir = PathUtils.concatPath(mUnderfsAddress, dirName);
+    mUfs.mkdirs(rootDir, true);
+
+    String rootFile1 = PathUtils.concatPath(rootDir, "file1");
+    createEmptyFile(rootFile1);
+
+    String rootFile2 = PathUtils.concatPath(rootDir, "file2");
+    createEmptyFile(rootFile2);
+
+    AlluxioURI rootAlluxioURI = new AlluxioURI("/" + dirName);
+    FileSystem client = mLocalAlluxioClusterResource.get().getClient();
+    client.listStatus(rootAlluxioURI,
+        ListStatusOptions.defaults().setLoadMetadataType(LoadMetadataType.Always));
+
+    try {
+      client.createDirectory(rootAlluxioURI, CreateDirectoryOptions.defaults());
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(rootAlluxioURI), e.getMessage());
+    }
+
+    AlluxioURI file1URI = rootAlluxioURI.join("file1");
+    try {
+      client.createFile(file1URI, CreateFileOptions.defaults());
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file1URI), e.getMessage());
+    }
+
+    AlluxioURI file2URI = rootAlluxioURI.join("file2");
+    try {
+      client.createFile(file2URI, CreateFileOptions.defaults());
+      Assert.fail("create is expected to fail with FileAlreadyExistsException");
+    } catch (FileAlreadyExistsException e) {
+      Assert.assertEquals(
+          ExceptionMessage.FILE_ALREADY_EXISTS.getMessage(file2URI), e.getMessage());
+    }
+  }
+
   private void createEmptyFile(String path) throws IOException {
     OutputStream o = mUfs.create(path);
     o.close();
@@ -392,9 +447,8 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
     String topLevelDirectory = PathUtils.concatPath(mUnderfsAddress, "topLevelDir");
 
     final int numFiles = 1500;
-    final int numFolders = numFiles;
 
-    String[] children = new String[numFiles + numFolders];
+    String[] children = new String[numFiles + numFiles];
 
     // Make top level directory
     mUfs.mkdirs(topLevelDirectory, false);
@@ -406,7 +460,7 @@ public final class UnderStorageSystemInterfaceIntegrationTest {
       createEmptyFile(children[i]);
     }
     // Make the children folders
-    for (int i = 0; i < numFolders; ++i) {
+    for (int i = 0; i < numFiles; ++i) {
       children[numFiles + i] = PathUtils.concatPath(topLevelDirectory, folderPrefix
           + String.format("%04d", i));
       mUfs.mkdirs(children[numFiles + i], false);

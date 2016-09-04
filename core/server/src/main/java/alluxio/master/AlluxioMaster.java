@@ -22,6 +22,8 @@ import alluxio.master.file.FileSystemMaster;
 import alluxio.master.journal.ReadWriteJournal;
 import alluxio.master.lineage.LineageMaster;
 import alluxio.metrics.MetricsSystem;
+import alluxio.metrics.sink.MetricsServlet;
+import alluxio.metrics.sink.Sink;
 import alluxio.security.authentication.TransportProvider;
 import alluxio.underfs.UnderFileSystem;
 import alluxio.util.CommonUtils;
@@ -275,7 +277,7 @@ public class AlluxioMaster implements Server {
       }
 
       masterContext.getMasterSource().registerGauges(this);
-      mMasterMetricsSystem = new MetricsSystem("master");
+      mMasterMetricsSystem = new MetricsSystem(MetricsSystem.MASTER_INSTANCE);
       mMasterMetricsSystem.registerSource(masterContext.getMasterSource());
 
       // The web server needs to be created at the end of the constructor because it needs a
@@ -459,7 +461,12 @@ public class AlluxioMaster implements Server {
 
   protected void startServingWebServer() {
     // Add the metrics servlet to the web server, this must be done after the metrics system starts
-    mWebServer.addHandler(mMasterMetricsSystem.getServletHandler());
+    for (Sink sink : mMasterMetricsSystem.getSinks()) {
+      if (sink instanceof MetricsServlet) {
+        mWebServer.addHandler(((MetricsServlet) sink).getHandler());
+        break;
+      }
+    }
     // start web ui
     mWebServer.startWebServer();
   }

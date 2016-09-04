@@ -48,9 +48,9 @@ public final class IdUtilsTest {
   @Test
   public void createRpcId() throws Exception {
     String first = IdUtils.createRpcId();
-    Assert.assertTrue(first != null && !first.isEmpty());
+    Assert.assertTrue(!first.isEmpty());
     String second = IdUtils.createRpcId();
-    Assert.assertTrue(second != null && !second.isEmpty());
+    Assert.assertTrue(!second.isEmpty());
     Assert.assertNotEquals(first, second);
   }
 }

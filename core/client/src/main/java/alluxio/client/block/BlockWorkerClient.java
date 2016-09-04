@@ -41,16 +41,6 @@ public interface BlockWorkerClient extends Client {
   void accessBlock(final long blockId) throws ConnectionFailedException, IOException;
 
   /**
-   * Notifies the worker to checkpoint the file asynchronously.
-   *
-   * @param fileId The id of the file
-   * @return true if success, false otherwise
-   * @throws IOException if an I/O error occurs
-   * @throws AlluxioException if an Alluxio error occurs
-   */
-  boolean asyncCheckpoint(final long fileId) throws IOException, AlluxioException;
-
-  /**
    * Notifies the worker the block is cached.
    *
    * @param blockId The id of the block

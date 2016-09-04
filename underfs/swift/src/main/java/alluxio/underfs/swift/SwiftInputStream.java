@@ -11,10 +11,15 @@
 
 package alluxio.underfs.swift;
 
-import org.javaswift.joss.headers.object.range.ExcludeStartRange;
+import alluxio.Configuration;
+import alluxio.Constants;
+import alluxio.PropertyKey;
+
 import org.javaswift.joss.instructions.DownloadInstructions;
 import org.javaswift.joss.model.Account;
 import org.javaswift.joss.model.StoredObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.concurrent.NotThreadSafe;
 import java.io.IOException;
@@ -22,9 +27,13 @@ import java.io.InputStream;
 
 /**
  * A stream for reading data from a Swift API based object store.
+ * This class maintains the following invariant: mStream is set to null whenever a read operation
+ * increments mPos to a chunk boundary.
  */
 @NotThreadSafe
 public class SwiftInputStream extends InputStream {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
+
   /** JOSS Swift account. */
   private final Account mAccount;
   /** Name of container the object resides in. */
@@ -35,7 +44,7 @@ public class SwiftInputStream extends InputStream {
   /** The backing input stream. */
   private InputStream mStream;
   /** The current position of the stream. */
-  private int mPos;
+  private long mPos;
 
   /**
    * Constructor for an input stream to an object in a Swift API based store.
@@ -63,6 +72,9 @@ public class SwiftInputStream extends InputStream {
     int value = mStream.read();
     if (value != -1) { // valid data read
       mPos++;
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
     }
     return value;
   }
@@ -83,6 +95,9 @@ public class SwiftInputStream extends InputStream {
     int read = mStream.read(b, offset, length);
     if (read != -1) {
       mPos += read;
+      if (mPos % getBlockSize() == 0) {
+        closeStream();
+      }
     }
     return read;
   }
@@ -99,7 +114,7 @@ public class SwiftInputStream extends InputStream {
   }
 
   /**
-   * Opens a new stream at mPos if the wrapped stream mIn is null.
+   * Opens a new stream at mPos if the wrapped stream mStream is null.
    */
   private void openStream() {
     if (mStream != null) { // stream is already open
@@ -107,7 +122,9 @@ public class SwiftInputStream extends InputStream {
     }
     StoredObject storedObject = mAccount.getContainer(mContainerName).getObject(mObjectPath);
     DownloadInstructions downloadInstructions  = new DownloadInstructions();
-    downloadInstructions.setRange(new ExcludeStartRange(mPos));
+    final long blockSize = getBlockSize();
+    final long endPos = mPos + blockSize - (mPos % blockSize);
+    downloadInstructions.setRange(new MidPartLongRange(mPos, endPos));
     mStream = storedObject.downloadObjectAsInputStream(downloadInstructions);
   }
 
@@ -120,5 +137,14 @@ public class SwiftInputStream extends InputStream {
     }
     mStream.close();
     mStream = null;
+  }
+
+  /**
+   * Block size for reading an object in chunks.
+   *
+   * @return block size in bytes
+   */
+  private long getBlockSize() {
+    return Configuration.getBytes(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT);
   }
 }
