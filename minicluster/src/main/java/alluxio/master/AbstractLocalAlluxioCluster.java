@@ -203,7 +203,7 @@ public abstract class AbstractLocalAlluxioCluster {
     setHostname();
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
-    Configuration.set(PropertyKey.WORK_DIRECTORY, mWorkDirectory);
+    Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
