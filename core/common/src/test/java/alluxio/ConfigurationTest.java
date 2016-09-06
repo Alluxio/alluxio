@@ -19,6 +19,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+import java.io.File;
+
 /**
  * Unit tests for the {@link Configuration} class.
  */
@@ -32,9 +34,18 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void defaultHomeCorrectlyLoaded() {
-    String alluxioHome = Configuration.get(PropertyKey.HOME);
-    Assert.assertEquals("/mnt/alluxio_default_home", alluxioHome);
+  public void defaultLoggerCorrectlyLoaded() throws Exception {
+    // Avoid interference from alluxio-site.properties.
+    File emptyProperties = File.createTempFile("empty-alluxio-site", ".properties");
+    emptyProperties.createNewFile();
+
+    // Avoid interference from system properties.
+    try (SetAndRestoreSystemProperty p =
+        new SetAndRestoreSystemProperty(PropertyKey.LOGGER_TYPE.toString(), null)) {
+      Configuration.init(emptyProperties.getAbsolutePath());
+      String loggerType = Configuration.get(PropertyKey.LOGGER_TYPE);
+      Assert.assertEquals("Console", loggerType);
+    }
   }
 
   @Test
@@ -224,10 +235,10 @@ public class ConfigurationTest {
   @Test
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
-        PropertyKey.HOME, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.home}"));
-    String substitution = Configuration.get(PropertyKey.HOME);
-    Assert.assertEquals("value", substitution);
+        PropertyKey.WORK_DIRECTORY, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.directory}/logs"));
+    String substitution = Configuration.get(PropertyKey.LOGS_DIR);
+    Assert.assertEquals("value/logs", substitution);
   }
 
   @Test
@@ -243,11 +254,11 @@ public class ConfigurationTest {
   @Test
   public void recursiveVariableSubstitution() {
     Configuration.merge(ImmutableMap.of(
-        PropertyKey.HOME, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.home}",
-        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}"));
+        PropertyKey.WORK_DIRECTORY, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.directory}/logs",
+        PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"));
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
-    Assert.assertEquals("value", substitution2);
+    Assert.assertEquals("value/logs/conf", substitution2);
   }
 
   @Test
