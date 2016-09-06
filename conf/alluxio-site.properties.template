@@ -16,7 +16,7 @@
 # alluxio.debug=false
 # alluxio.home=/mnt/alluxio_default_home
 # alluxio.test.mode=false
-# alluxio.underfs.address=${alluxio.home}/underFSStorage
+# alluxio.underfs.address=${alluxio.work.directory}/underFSStorage
 # alluxio.web.threads=1
 
 # Integration properties
