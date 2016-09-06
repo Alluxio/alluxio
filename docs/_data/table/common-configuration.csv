@@ -1,20 +1,20 @@
 propertyName,defaultValue
-alluxio.conf.directory,${alluxio.home}/conf
+alluxio.conf.dir,${alluxio.home}/conf
 alluxio.debug,false
 alluxio.home,/mnt/alluxio_default_home
 alluxio.logs.dir,${alluxio.home}/logs
 alluxio.keyvalue.enabled,false
 alluxio.keyvalue.partition.size.bytes.max,512MB
-alluxio.metrics.conf.file,${alluxio.conf.directory}/metrics.properties
+alluxio.metrics.conf.file,${alluxio.conf.dir}/metrics.properties
 alluxio.network.host.resolution.&#8203;timeout.ms,5000
 alluxio.network.thrift.frame.&#8203;size.bytes.max,16MB
 alluxio.site.conf.dir,"${user.home}/.alluxio/,/etc/alluxio/"
 alluxio.test.mode,false
-alluxio.underfs.address,${alluxio.work.directory}/underFSStorage
+alluxio.underfs.address,${alluxio.work.dir}/underFSStorage
 alluxio.underfs.gcs.owner.id.to.username.mapping,No default
 alluxio.underfs.glusterfs.impl,org.apache.hadoop.fs.glusterfs.&#8203;GlusterFileSystem
 alluxio.underfs.glusterfs.mapred.&#8203;system.dir,glusterfs:///mapred/system
-alluxio.underfs.hdfs.configuration,${alluxio.conf.directory}/core-site.xml
+alluxio.underfs.hdfs.configuration,${alluxio.conf.dir}/core-site.xml
 alluxio.underfs.hdfs.impl,org.apache.hadoop.hdfs.&#8203;DistributedFileSystem
 alluxio.underfs.hdfs.prefixes,"hdfs://,glusterfs:///"
 alluxio.underfs.object.store.mount.shared.publicly,false
@@ -31,7 +31,7 @@ alluxio.underfs.s3a.server.side.encryption.enabled,false
 alluxio.underfs.s3a.socket.timeout.ms,50000
 alluxio.web.resources,${alluxio.home}/core/server/src/main/webapp
 alluxio.web.threads,1
-alluxio.work.directory,${alluxio.home}
+alluxio.work.dir,${alluxio.home}
 alluxio.zookeeper.address,No default
 alluxio.zookeeper.election.path,/election
 alluxio.zookeeper.enabled,false
