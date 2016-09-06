@@ -193,7 +193,8 @@ public class MasterFaultToleranceIntegrationTest {
 
   @Test
   public void workerReRegister() throws Exception {
-    Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
+    AlluxioBlockStore store = new AlluxioBlockStore();
+    Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
 
     List<Pair<Long, AlluxioURI>> emptyAnswer = new ArrayList<>();
     for (int kills = 0; kills < MASTERS - 1; kills++) {
@@ -204,7 +205,7 @@ public class MasterFaultToleranceIntegrationTest {
       faultTestDataCheck(emptyAnswer);
 
       // If worker is successfully re-registered, the capacity bytes should not change.
-      Assert.assertEquals(WORKER_CAPACITY_BYTES, AlluxioBlockStore.get().getCapacityBytes());
+      Assert.assertEquals(WORKER_CAPACITY_BYTES, store.getCapacityBytes());
     }
   }
 }
