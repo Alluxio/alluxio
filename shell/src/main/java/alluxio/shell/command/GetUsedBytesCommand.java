@@ -26,6 +26,9 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public final class GetUsedBytesCommand extends AbstractShellCommand {
 
+  /** The block store client. */
+  private final AlluxioBlockStore mBlockStore;
+
   /**
    * Constructs a new instance to get the number of bytes used in the {@link FileSystem}.
    *
@@ -33,6 +36,7 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
    */
   public GetUsedBytesCommand(FileSystem fs) {
     super(fs);
+    mBlockStore = new AlluxioBlockStore();
   }
 
   @Override
@@ -47,7 +51,7 @@ public final class GetUsedBytesCommand extends AbstractShellCommand {
 
   @Override
   public void run(CommandLine cl) throws IOException {
-    long usedBytes = AlluxioBlockStore.get().getUsedBytes();
+    long usedBytes = mBlockStore.getUsedBytes();
     System.out.println("Used Bytes: " + usedBytes);
   }
 

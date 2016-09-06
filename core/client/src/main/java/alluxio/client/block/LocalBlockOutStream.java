@@ -48,11 +48,14 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    * @param blockId the block id
    * @param blockSize the block size
    * @param workerNetAddress the address of the local worker
+   * @param blockStoreContext the block store context
    * @throws IOException if an I/O error occurs
    */
-  public LocalBlockOutStream(long blockId, long blockSize, WorkerNetAddress workerNetAddress)
-      throws IOException {
-    super(blockId, blockSize);
+  public LocalBlockOutStream(long blockId,
+      long blockSize,
+      WorkerNetAddress workerNetAddress,
+      BlockStoreContext blockStoreContext) throws IOException {
+    super(blockId, blockSize, blockStoreContext);
     if (!NetworkAddressUtils.getLocalHostName().equals(workerNetAddress.getHost())) {
       throw new IOException(ExceptionMessage.NO_LOCAL_WORKER.getMessage(workerNetAddress));
     }

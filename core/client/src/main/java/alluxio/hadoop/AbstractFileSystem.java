@@ -16,7 +16,6 @@ import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.client.ClientContext;
-import alluxio.client.block.BlockStoreContext;
 import alluxio.client.file.FileOutStream;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.FileSystemContext;
@@ -425,7 +424,6 @@ abstract class AbstractFileSystem extends org.apache.hadoop.fs.FileSystem {
       // TODO(andrew): We should reset key value system in this situation - see ALLUXIO-1706.
       ClientContext.init();
       FileSystemContext.INSTANCE.reset();
-      BlockStoreContext.INSTANCE.reset();
       LineageContext.INSTANCE.reset();
 
       sFileSystem = FileSystem.Factory.get();
