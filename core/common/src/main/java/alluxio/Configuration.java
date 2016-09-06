@@ -83,11 +83,14 @@ public final class Configuration {
   }
 
   /**
-   * Constructor a {@link Configuration} instance.
+   * Initializes the {@link Configuration} class with Alluxio configuration properties.
    *
-   * @param sitePropertiesFile site-wide properties
+   * The order of preference is (1) system properties, (2) properties in the specified file, (3)
+   * default property values.
+   *
+   * @param sitePropertiesFile path to a file containing site-wide Alluxio properties
    */
-  private static void init(String sitePropertiesFile) {
+  public static void init(String sitePropertiesFile) {
     // Load default
     Properties defaultProps = new Properties();
     for (PropertyKey key : PropertyKey.values()) {

@@ -60,7 +60,7 @@ public abstract class AbstractLocalAlluxioCluster {
   protected AlluxioWorkerService mWorker;
   protected UnderFileSystemCluster mUfsCluster;
 
-  protected String mHome;
+  protected String mWorkDirectory;
   protected String mHostname;
 
   protected Thread mWorkerThread;
@@ -115,13 +115,13 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when creating or deleting dirs failed
    */
   protected void setupTest() throws IOException {
-    String alluxioHome = Configuration.get(PropertyKey.HOME);
+    String underfsAddress = Configuration.get(PropertyKey.UNDERFS_ADDRESS);
 
-    // Deletes the alluxio home dir for this test from ufs to avoid permission problems
-    UnderFileSystemUtils.deleteDir(alluxioHome);
+    // Deletes the ufs dir for this test from to avoid permission problems
+    UnderFileSystemUtils.deleteDir(underfsAddress);
 
     // Creates ufs dir. This must be called before starting UFS with UnderFileSystemCluster.get().
-    UnderFileSystemUtils.mkdirIfNotExists(Configuration.get(PropertyKey.UNDERFS_ADDRESS));
+    UnderFileSystemUtils.mkdirIfNotExists(underfsAddress);
 
     // Creates storage dirs for worker
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
@@ -137,7 +137,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // Starts the UFS for integration tests. If this is for HDFS profiles, it starts miniDFSCluster
     // (see also {@link alluxio.LocalMiniDFSCluster} and sets up the folder like
     // "hdfs://xxx:xxx/alluxio*".
-    mUfsCluster = UnderFileSystemCluster.get(mHome);
+    mUfsCluster = UnderFileSystemCluster.get(mWorkDirectory);
 
     // Sets the journal folder
     String journalFolder =
@@ -156,7 +156,7 @@ public abstract class AbstractLocalAlluxioCluster {
     // we need to update the UNDERFS_ADDRESS to point to the cluster's current address.
     // This must happen after UFS is started with UnderFileSystemCluster.get().
     if (!mUfsCluster.getClass().getName().equals(LocalFileSystemCluster.class.getName())) {
-      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mHome;
+      String ufsAddress = mUfsCluster.getUnderFilesystemAddress() + mWorkDirectory;
       Configuration.set(PropertyKey.UNDERFS_ADDRESS, ufsAddress);
     }
   }
@@ -199,11 +199,11 @@ public abstract class AbstractLocalAlluxioCluster {
    * @throws IOException when the operation fails
    */
   public void initConfiguration() throws IOException {
-    setAlluxioHome();
+    setAlluxioWorkDirectory();
     setHostname();
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
-    Configuration.set(PropertyKey.HOME, mHome);
+    Configuration.set(PropertyKey.WORK_DIRECTORY, mWorkDirectory);
     Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
@@ -229,7 +229,7 @@ public abstract class AbstractLocalAlluxioCluster {
         PathUtils.concatPath(System.getProperty("user.dir"), "../core/server/src/main/webapp"));
 
     // default write type becomes MUST_CACHE, set this value to CACHE_THROUGH for tests.
-    // default alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
+    // default Alluxio storage is STORE, and under storage is SYNC_PERSIST for tests.
     // TODO(binfan): eliminate this setting after updating integration tests
     Configuration.set(PropertyKey.USER_FILE_WRITE_TYPE_DEFAULT, "CACHE_THROUGH");
 
@@ -252,7 +252,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_NETWORK_NETTY_SHUTDOWN_TIMEOUT, Integer.toString(0));
 
     // Sets up the tiered store
-    String ramdiskPath = PathUtils.concatPath(mHome, "ramdisk");
+    String ramdiskPath = PathUtils.concatPath(mWorkDirectory, "ramdisk");
     Configuration.set(
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(0), "MEM");
     Configuration.set(
@@ -269,7 +269,7 @@ public abstract class AbstractLocalAlluxioCluster {
       String[] dirPaths = Configuration.get(tierLevelDirPath).split(",");
       List<String> newPaths = new ArrayList<>();
       for (String dirPath : dirPaths) {
-        String newPath = mHome + dirPath;
+        String newPath = mWorkDirectory + dirPath;
         newPaths.add(newPath);
       }
       Configuration.set(
@@ -340,9 +340,10 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Sets alluxio home.
+   * Sets Alluxio work directory.
    */
-  protected void setAlluxioHome() {
-    mHome = AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
+  protected void setAlluxioWorkDirectory() {
+    mWorkDirectory =
+        AlluxioTestDirectory.createTemporaryDirectory("test-cluster").getAbsolutePath();
   }
 }

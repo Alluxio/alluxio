@@ -85,7 +85,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    * @return the home path to Alluxio
    */
   public String getAlluxioHome() {
-    return mHome;
+    return mWorkDirectory;
   }
 
   /**
@@ -108,7 +108,7 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   @Override
   protected void startMaster() throws IOException {
-    mMaster = LocalAlluxioMaster.create(mHome);
+    mMaster = LocalAlluxioMaster.create(mWorkDirectory);
     mMaster.start();
   }
 
