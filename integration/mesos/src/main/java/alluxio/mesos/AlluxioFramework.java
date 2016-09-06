@@ -97,8 +97,14 @@ public class AlluxioFramework {
     }
 
     @Override
-    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId,
+    public void registered(final SchedulerDriver driver, Protos.FrameworkID frameworkId,
         Protos.MasterInfo masterInfo) {
+      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+        @Override
+        public void run() {
+          driver.stop();
+        }
+      }));
       LOG.info("Registered framework {} with master {}:{}",
           frameworkId.getValue(), masterInfo.getHostname(), masterInfo.getPort());
     }
@@ -467,9 +473,6 @@ public class AlluxioFramework {
     }
 
     int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
-
-    // Ensure that the driver process terminates.
-    driver.stop();
 
     System.exit(status);
   }
