@@ -21,7 +21,7 @@ import java.util.Map;
 public enum PropertyKey {
   CONF_DIR(Name.CONF_DIR, "${alluxio.home}/conf"),
   DEBUG(Name.DEBUG, false),
-  HOME(Name.HOME, "/mnt/alluxio_default_home"),
+  HOME(Name.HOME, "/opt/alluxio"),
   KEY_VALUE_ENABLED(Name.KEY_VALUE_ENABLED, false),
   KEY_VALUE_PARTITION_SIZE_BYTES_MAX(Name.KEY_VALUE_PARTITION_SIZE_BYTES_MAX, "512MB"),
   LOGGER_TYPE(Name.LOGGER_TYPE, "Console"),
