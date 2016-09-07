@@ -33,13 +33,15 @@ this="$config_bin/$script"
 if [[ -z "$ALLUXIO_SYSTEM_INSTALLATION" ]]; then
   VERSION=1.3.0-SNAPSHOT
   ALLUXIO_HOME=$(dirname $(dirname "${this}"))
-  ALLUXIO_CONF_DIR="${ALLUXIO_HOME}/conf"
-  ALLUXIO_LOGS_DIR="${ALLUXIO_HOME}/logs"
+  ALLUXIO_CONF_DIR="${ALLUXIO_CONF_DIR:-${ALLUXIO_HOME}/conf}"
+  ALLUXIO_LOGS_DIR="${ALLUXIO_LOGS_DIR:-${ALLUXIO_HOME}/logs}"
   ALLUXIO_JARS="${ALLUXIO_HOME}/assembly/target/alluxio-assemblies-${VERSION}-jar-with-dependencies.jar"
 fi
 
 JAVA_HOME=${JAVA_HOME:-"$(dirname $(which java))/.."}
+echo $JAVA_HOME
 JAVA=${JAVA:-"${JAVA_HOME}/bin/java"}
+echo $JAVA
 
 # Make sure alluxio-env.sh exists
 if [[ ! -e ${ALLUXIO_CONF_DIR}/alluxio-env.sh ]]; then
@@ -65,9 +67,16 @@ if [[ -n "${ALLUXIO_LOGS_DIR}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.logs.dir=${ALLUXIO_LOGS_DIR}"
 fi
 
-if [[ -n "${ALLUXIO_RAM_FOLDER}" ]]; then
-  ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
+if [[ -z "${ALLUXIO_RAM_FOLDER}" ]]; then
+    if [[ $(uname -s) == Darwin ]]; then
+        # Assuming Mac OS X
+        ALLUXIO_RAM_FOLDER="/Volumes/ramdisk"
+    else
+        # Assuming Linux
+        ALLUXIO_RAM_FOLDER="/mnt/ramdisk"
+    fi
 fi
+ALLUXIO_JAVA_OPTS+=" -Dalluxio.worker.tieredstore.level0.dirs.path=${ALLUXIO_RAM_FOLDER}"
 
 if [[ -n "${ALLUXIO_MASTER_HOSTNAME}" ]]; then
   ALLUXIO_JAVA_OPTS+=" -Dalluxio.master.hostname=${ALLUXIO_MASTER_HOSTNAME}"
