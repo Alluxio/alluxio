@@ -27,7 +27,7 @@ alluxio.site.conf.dir:
 alluxio.test.mode:
   Flag used only during tests to allow special behavior.
 alluxio.underfs.address:
-  Alluxio directory in the underlayer file system.
+  Alluxio directory in the under file system.
 alluxio.underfs.gcs.owner.id.to.username.mapping:
   Optionally, specify a preset gcs owner id to Alluxio username static mapping in the
   format "id1=user1;id2=user2". The Google Cloud Storage IDs can be found at the console address
