@@ -43,11 +43,22 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private LocalAlluxioMaster mMaster;
 
   /**
+   * Runs a test Alluxio cluster with a single Alluxio worker.
+   *
    * @param workerCapacityBytes the capacity of the worker in bytes
    * @param userBlockSize the block size for a user
    */
   public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+    super(workerCapacityBytes, userBlockSize, 1);
+  }
+
+  /**
+   * @param workerCapacityBytes the capacity of the worker in bytes
+   * @param userBlockSize the block size for a user
+   * @param numWorkers the number of workers to run
+   */
+  public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize, int numWorkers) {
+    super(workerCapacityBytes, userBlockSize, numWorkers);
   }
 
   @Override
@@ -89,10 +100,10 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the worker
+   * @return the first worker
    */
   public AlluxioWorkerService getWorker() {
-    return mWorker;
+    return mWorkers.get(0);
   }
 
   /**
@@ -113,18 +124,20 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startWorker() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    runWorker();
+    runWorkers();
   }
 
   @Override
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
 
-    // Stopping Worker before stopping master speeds up tests
-    mWorker.stop();
+    // Stopping Workers before stopping master speeds up tests
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     mMaster.stop();
   }
 
@@ -135,7 +148,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
    */
   public void stopWorker() throws Exception {
     mMaster.clearClients();
-    mWorker.stop();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
   }
 
   @Override

@@ -54,21 +54,24 @@ public abstract class AbstractLocalAlluxioCluster {
   protected long mWorkerCapacityBytes;
   protected int mUserBlockSize;
 
-  protected AlluxioWorkerService mWorker;
+  protected List<AlluxioWorkerService> mWorkers;
+
   protected UnderFileSystemCluster mUfsCluster;
 
   protected String mWorkDirectory;
   protected String mHostname;
 
-  protected Thread mWorkerThread;
+  private int mNumWorkers;
 
   /**
    * @param workerCapacityBytes the capacity of the worker in bytes
    * @param userBlockSize the block size for a user
+   * @param numWorkers the number of workers to run
    */
-  public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
+  public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize, int numWorkers) {
     mWorkerCapacityBytes = workerCapacityBytes;
     mUserBlockSize = userBlockSize;
+    mNumWorkers = numWorkers;
   }
 
   /**
@@ -84,8 +87,10 @@ public abstract class AbstractLocalAlluxioCluster {
     setupTest();
     startMaster();
     getMaster().getInternalMaster().waitForReady();
-    startWorker();
-    mWorker.waitForReady();
+    startWorkers();
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.waitForReady();
+    }
 
     // Reset contexts so that they pick up the master and worker configuration.
     reset();
@@ -99,12 +104,9 @@ public abstract class AbstractLocalAlluxioCluster {
   protected abstract void startMaster() throws IOException;
 
   /**
-   * Configures and starts a worker.
-   *
-   * @throws IOException if an I/O error occurs
-   * @throws ConnectionFailedException if network connection failed
+   * Configures and starts the workers.
    */
-  protected abstract void startWorker() throws IOException, ConnectionFailedException;
+  protected abstract void startWorkers() throws IOException, ConnectionFailedException;
 
   /**
    * Sets up corresponding directories for tests.
@@ -282,30 +284,35 @@ public abstract class AbstractLocalAlluxioCluster {
   }
 
   /**
-   * Runs a worker.
+   * Runs workers.
    *
    * @throws IOException if an I/O error occurs
    * @throws ConnectionFailedException if network connection failed
    */
-  protected void runWorker() throws IOException, ConnectionFailedException {
-    mWorker = new DefaultAlluxioWorker();
-    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorker);
+  protected void runWorkers() throws IOException, ConnectionFailedException {
+    mWorkers = new ArrayList<>();
+    for (int i = 0; i < mNumWorkers; i++) {
+      mWorkers.add(new DefaultAlluxioWorker());
+    }
 
-    Runnable runWorker = new Runnable() {
-      @Override
-      public void run() {
-        try {
-          mWorker.start();
+    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorkers.get(0));
 
-        } catch (Exception e) {
-          // Log the exception as the RuntimeException will be caught and handled silently by JUnit
-          LOG.error("Start worker error", e);
-          throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+    for (final AlluxioWorkerService worker : mWorkers) {
+      Runnable runWorker = new Runnable() {
+        @Override
+        public void run() {
+          try {
+            worker.start();
+
+          } catch (Exception e) {
+            // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+            LOG.error("Start worker error", e);
+            throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
+          }
         }
-      }
-    };
-    mWorkerThread = new Thread(runWorker);
-    mWorkerThread.start();
+      };
+      new Thread(runWorker).start();
+    }
   }
 
   /**
