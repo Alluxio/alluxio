@@ -13,6 +13,7 @@ package alluxio.worker;
 
 import alluxio.Server;
 import alluxio.metrics.MetricsSystem;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;
 
@@ -96,4 +97,9 @@ public interface AlluxioWorkerService extends Server {
    * Waits until the worker is ready to server requests.
    */
   void waitForReady();
+
+  /**
+   * @return the connect information for this worker
+   */
+  WorkerNetAddress getAddress();
 }

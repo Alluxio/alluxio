@@ -24,6 +24,7 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.web.UIWebServer;
 import alluxio.web.WorkerUIWebServer;
+import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.block.DefaultBlockWorker;
 import alluxio.worker.file.DefaultFileSystemWorker;
@@ -344,5 +345,14 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       }
       CommonUtils.sleepMs(10);
     }
+  }
+
+  @Override
+  public WorkerNetAddress getAddress() {
+    return new WorkerNetAddress()
+        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
+        .setRpcPort(mRpcAddress.getPort())
+        .setDataPort(mDataServer.getPort())
+        .setWebPort(mWebServer.getLocalPort());
   }
 }
