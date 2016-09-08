@@ -226,7 +226,5 @@ public final class WebInterfaceWorkersServlet extends HttpServlet {
     Set<WorkerInfo> lostWorkerInfos = mBlockMaster.getLostWorkersInfo();
     NodeInfo[] failedNodeInfos = generateOrderedNodeInfos(lostWorkerInfos);
     request.setAttribute("failedNodeInfos", failedNodeInfos);
-
-    request.setAttribute("workerWebPort", Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
   }
 }
