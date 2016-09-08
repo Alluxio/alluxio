@@ -86,7 +86,7 @@ public final class LocalAlluxioMaster {
     UnderFileSystemUtils.deleteDir(workDirectory);
     UnderFileSystemUtils.mkdirIfNotExists(workDirectory);
 
-    Configuration.set(PropertyKey.WORK_DIRECTORY, workDirectory);
+    Configuration.set(PropertyKey.WORK_DIR, workDirectory);
 
     return new LocalAlluxioMaster();
   }

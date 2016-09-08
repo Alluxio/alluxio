@@ -235,8 +235,8 @@ public class ConfigurationTest {
   @Test
   public void variableSubstitution() {
     Configuration.merge(ImmutableMap.of(
-        PropertyKey.WORK_DIRECTORY, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.work.directory}/logs"));
+        PropertyKey.WORK_DIR, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs"));
     String substitution = Configuration.get(PropertyKey.LOGS_DIR);
     Assert.assertEquals("value/logs", substitution);
   }
@@ -254,8 +254,8 @@ public class ConfigurationTest {
   @Test
   public void recursiveVariableSubstitution() {
     Configuration.merge(ImmutableMap.of(
-        PropertyKey.WORK_DIRECTORY, "value",
-        PropertyKey.LOGS_DIR, "${alluxio.work.directory}/logs",
+        PropertyKey.WORK_DIR, "value",
+        PropertyKey.LOGS_DIR, "${alluxio.work.dir}/logs",
         PropertyKey.SITE_CONF_DIR, "${alluxio.logs.dir}/conf"));
     String substitution2 = Configuration.get(PropertyKey.SITE_CONF_DIR);
     Assert.assertEquals("value/logs/conf", substitution2);
