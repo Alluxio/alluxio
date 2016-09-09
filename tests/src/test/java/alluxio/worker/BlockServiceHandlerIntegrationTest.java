@@ -64,6 +64,7 @@ public class BlockServiceHandlerIntegrationTest {
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Constants.MB)
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
           .build();
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
