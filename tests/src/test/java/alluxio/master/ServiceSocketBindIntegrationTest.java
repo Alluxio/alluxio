@@ -11,11 +11,9 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
-import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
@@ -23,6 +21,7 @@ import alluxio.client.block.RetryHandlingBlockMasterClient;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
+import alluxio.wire.WorkerNetAddress;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -73,12 +72,10 @@ public class ServiceSocketBindIntegrationTest {
     mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
     mBlockWorkerClient.connect();
 
-    // the local test cluster uses port 0, so we need to reflect the chosen port in configuration
-    Configuration.set(PropertyKey.WORKER_DATA_PORT,
-        Integer.toString(mLocalAlluxioCluster.getWorkerAddress().getDataPort()));
+    WorkerNetAddress workerAddress = mLocalAlluxioCluster.getWorkerAddress();
     // connect Worker data service
     mWorkerDataService = SocketChannel
-        .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA));
+        .open(new InetSocketAddress(workerAddress.getHost(), workerAddress.getDataPort()));
 
     // connect Master Web service
     InetSocketAddress masterWebAddr =
@@ -88,12 +85,9 @@ public class ServiceSocketBindIntegrationTest {
             + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
     mMasterWebService.connect();
 
-    // the local test cluster uses port 0, so we need to reflect the chosen port in configuration
-    Configuration.set(PropertyKey.WORKER_WEB_PORT,
-        Integer.toString(mLocalAlluxioCluster.getWorkerAddress().getWebPort()));
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
-        NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB);
+        new InetSocketAddress(workerAddress.getHost(), workerAddress.getWebPort());
     mWorkerWebService =
         (HttpURLConnection) new URL("http://" + workerWebAddr.getAddress().getHostAddress() + ":"
             + workerWebAddr.getPort() + "/css/custom.min.css").openConnection();
