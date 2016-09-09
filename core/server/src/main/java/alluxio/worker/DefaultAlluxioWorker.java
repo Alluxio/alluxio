@@ -125,11 +125,8 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
-      mWebServer = new WorkerUIWebServer(ServiceType.WORKER_WEB,
-          NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
-          NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_RPC), mStartTimeMs);
-      // Reset worker web port based on assigned port number
-      Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));
+      mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
+          NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC), mStartTimeMs);
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();
@@ -138,16 +135,12 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       String rpcBindHost = NetworkAddressUtils.getThriftSocket(mThriftServerSocket)
           .getInetAddress().getHostAddress();
       mRpcAddress = new InetSocketAddress(rpcBindHost, rpcPort);
-      // Reset worker RPC port based on assigned port number
-      Configuration.set(PropertyKey.WORKER_RPC_PORT, Integer.toString(rpcPort));
       mThriftServer = createThriftServer();
 
       // Setup Data server
       mDataServer =
           DataServer.Factory.create(
               NetworkAddressUtils.getBindAddress(ServiceType.WORKER_DATA), this);
-      // Reset data server port
-      Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(mDataServer.getPort()));
     } catch (Exception e) {
       LOG.error("Failed to initialize {}", this.getClass().getName(), e);
       System.exit(-1);
