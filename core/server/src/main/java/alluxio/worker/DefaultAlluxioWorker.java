@@ -244,6 +244,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   }
 
   private void startWorkers() throws Exception {
+    mBlockWorker.init(getAddress());
     mBlockWorker.start();
     mFileSystemWorker.start();
     // start additional workers
