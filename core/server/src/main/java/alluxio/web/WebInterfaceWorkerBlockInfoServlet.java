@@ -12,6 +12,7 @@
 package alluxio.web;
 
 import alluxio.AlluxioURI;
+import alluxio.Constants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.client.file.FileSystem;
 import alluxio.client.file.URIStatus;
@@ -25,6 +26,8 @@ import alluxio.worker.block.meta.BlockMeta;
 
 import com.google.common.base.Preconditions;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +48,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ThreadSafe
 public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
+  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   private static final long serialVersionUID = 4148506607369321012L;
   private final transient BlockWorker mBlockWorker;
 
@@ -127,7 +131,12 @@ public final class WebInterfaceWorkerBlockInfoServlet extends HttpServlet {
       List<Long> subFileIds = fileIds.subList(offset, offset + limit);
       List<UIFileInfo> uiFileInfos = new ArrayList<>(subFileIds.size());
       for (long fileId : subFileIds) {
-        uiFileInfos.add(getUiFileInfo(fileId));
+        try {
+          uiFileInfos.add(getUiFileInfo(fileId));
+        } catch (IOException e) {
+          // The file might have been deleted, log a warning and ignore this file.
+          LOG.warn("Unable to get file info for fileId {}. {}", fileId, e);
+        }
       }
       request.setAttribute("fileInfos", uiFileInfos);
     } catch (FileDoesNotExistException e) {
