@@ -11,8 +11,11 @@
 
 package alluxio.master;
 
+import alluxio.Configuration;
+import alluxio.ConfigurationTestUtils;
 import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
+import alluxio.PropertyKey;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
 import alluxio.client.block.BlockWorkerClient;
@@ -21,6 +24,7 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,6 +49,11 @@ public class ServiceSocketBindIntegrationTest {
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
 
+  @After
+  public void after() {
+    ConfigurationTestUtils.resetConfiguration();
+  }
+
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
       mLocalAlluxioClusterResource.setProperty(service.getBindHostKey(), bindHost);
@@ -57,13 +66,16 @@ public class ServiceSocketBindIntegrationTest {
     // connect Master RPC service
     mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioCluster.getHostname(),
-            mLocalAlluxioCluster.getMasterPort()));
+            mLocalAlluxioCluster.getMasterRpcPort()));
     mBlockMasterClient.connect();
 
     // connect Worker RPC service
     mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
     mBlockWorkerClient.connect();
 
+    // the local test cluster uses port 0, so we need to reflect the chosen port in configuration
+    Configuration.set(PropertyKey.WORKER_DATA_PORT,
+        Integer.toString(mLocalAlluxioCluster.getWorkerAddress().getDataPort()));
     // connect Worker data service
     mWorkerDataService = SocketChannel
         .open(NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_DATA));
@@ -76,6 +88,9 @@ public class ServiceSocketBindIntegrationTest {
             + masterWebAddr.getPort() + "/css/custom.min.css").openConnection();
     mMasterWebService.connect();
 
+    // the local test cluster uses port 0, so we need to reflect the chosen port in configuration
+    Configuration.set(PropertyKey.WORKER_WEB_PORT,
+        Integer.toString(mLocalAlluxioCluster.getWorkerAddress().getWebPort()));
     // connect Worker Web service
     InetSocketAddress workerWebAddr =
         NetworkAddressUtils.getConnectAddress(ServiceType.WORKER_WEB);

@@ -350,7 +350,7 @@ public final class CopyFromLocalCommandTest extends AbstractAlluxioShellTest {
   public void copyFromLocalTestWithFullURI() throws IOException, AlluxioException {
     File testFile = generateFileContent("/srcFileURI", BufferUtils.getIncreasingByteArray(10));
     String alluxioURI = "alluxio://" + mLocalAlluxioCluster.getHostname() + ":"
-        + mLocalAlluxioCluster.getMasterPort() + "/destFileURI";
+        + mLocalAlluxioCluster.getMasterRpcPort() + "/destFileURI";
     // when
     mFsShell.run("copyFromLocal", testFile.getPath(), alluxioURI);
     String cmdOut =

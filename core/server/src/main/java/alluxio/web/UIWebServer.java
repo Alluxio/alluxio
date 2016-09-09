@@ -15,7 +15,6 @@ import alluxio.AlluxioURI;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
@@ -49,7 +48,7 @@ public abstract class UIWebServer {
 
   protected final WebAppContext mWebAppContext;
   private final Server mServer;
-  private final ServiceType mService;
+  private final String mServiceName;
   private InetSocketAddress mAddress;
   private final ServerConnector mServerConnector;
 
@@ -57,15 +56,15 @@ public abstract class UIWebServer {
    * Creates a new instance of {@link UIWebServer}. It pairs URLs with servlets and sets the webapp
    * folder.
    *
-   * @param service name of the web service
+   * @param serviceName name of the web service
    * @param address address of the server
    */
-  public UIWebServer(ServiceType service, InetSocketAddress address) {
-    Preconditions.checkNotNull(service, "Service type cannot be null");
+  public UIWebServer(String serviceName, InetSocketAddress address) {
+    Preconditions.checkNotNull(serviceName, "Service name cannot be null");
     Preconditions.checkNotNull(address, "Server address cannot be null");
 
     mAddress = address;
-    mService = service;
+    mServiceName = serviceName;
 
     QueuedThreadPool threadPool = new QueuedThreadPool();
     int webThreadCount = Configuration.getInt(PropertyKey.WEB_THREADS);
@@ -187,7 +186,7 @@ public abstract class UIWebServer {
   public void startWebServer() {
     try {
       mServer.start();
-      LOG.info("{} started @ {}", mService.getServiceName(), mAddress);
+      LOG.info("{} started @ {}", mServiceName, mAddress);
     } catch (Exception e) {
       throw Throwables.propagate(e);
     }

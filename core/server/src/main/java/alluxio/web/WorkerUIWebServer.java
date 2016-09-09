@@ -13,7 +13,6 @@ package alluxio.web;
 
 import alluxio.Constants;
 import alluxio.util.io.PathUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.BlockWorker;
 
@@ -35,19 +34,19 @@ public final class WorkerUIWebServer extends UIWebServer {
   /**
    * Creates a new instance of {@link WorkerUIWebServer}.
    *
-   * @param serviceType the service type
    * @param webAddress the service address
    * @param alluxioWorker Alluxio worker
    * @param blockWorker block worker to manage blocks
    * @param workerAddress the worker address
    * @param startTimeMs start time milliseconds
    */
-  public WorkerUIWebServer(ServiceType serviceType, InetSocketAddress webAddress,
-      AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, InetSocketAddress workerAddress,
+  public WorkerUIWebServer(InetSocketAddress webAddress,
+      AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
       long startTimeMs) {
-    super(serviceType, webAddress);
+    super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
-    Preconditions.checkNotNull(workerAddress, "Worker address cannot be null");
+
+    InetSocketAddress workerAddress = new InetSocketAddress(connectHost, getLocalPort());
 
     mWebAppContext.addServlet(new ServletHolder(new WebInterfaceWorkerGeneralServlet(
         blockWorker, workerAddress, startTimeMs)), "/home");

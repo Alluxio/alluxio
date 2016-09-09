@@ -82,9 +82,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the port of the master
+   * @return the RPC port of the master
    */
-  public int getMasterPort() {
+  public int getMasterRpcPort() {
     return mMaster.getRPCLocalPort();
   }
 

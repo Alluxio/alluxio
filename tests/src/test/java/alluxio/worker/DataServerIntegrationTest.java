@@ -97,7 +97,7 @@ public class DataServerIntegrationTest {
     mBlockWorkerClient = BlockStoreContext.get().acquireLocalWorkerClient();
     mBlockMasterClient = new RetryHandlingBlockMasterClient(
         new InetSocketAddress(mLocalAlluxioClusterResource.get().getHostname(),
-            mLocalAlluxioClusterResource.get().getMasterPort()));
+            mLocalAlluxioClusterResource.get().getMasterRpcPort()));
   }
 
   @After
