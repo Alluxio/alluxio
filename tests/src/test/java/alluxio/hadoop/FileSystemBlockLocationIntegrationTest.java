@@ -11,7 +11,6 @@
 
 package alluxio.hadoop;
 
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
@@ -35,7 +34,7 @@ public class FileSystemBlockLocationIntegrationTest {
   private static final int FILE_LEN = BLOCK_SIZE * 3;
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(Constants.GB, BLOCK_SIZE);
+      new LocalAlluxioClusterResource.Builder().build();
   private static org.apache.hadoop.fs.FileSystem sTFS;
 
   @BeforeClass

@@ -104,7 +104,7 @@ public class DFSIOIntegrationTest implements Tool {
 
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private static URI sLocalAlluxioClusterUri = null;
 
   static {

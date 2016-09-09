@@ -44,7 +44,7 @@ public class ReadOnlyMountIntegrationTest {
   private static final String SUB_FILE_PATH = PathUtils.concatPath(SUB_DIR_PATH, "subfile");
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
 
   private String mAlternateUfsRoot;

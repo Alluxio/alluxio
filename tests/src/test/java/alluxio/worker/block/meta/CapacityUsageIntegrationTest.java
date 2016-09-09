@@ -35,12 +35,13 @@ import java.nio.ByteOrder;
 public class CapacityUsageIntegrationTest {
   private static final int MEM_CAPACITY_BYTES = 20 * Constants.MB;
   private static final int DISK_CAPACITY_BYTES = Constants.GB;
-  private static final int USER_QUOTA_UNIT_BYTES = Constants.MB;
   private static final int HEARTBEAT_INTERVAL_MS = 30;
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, MEM_CAPACITY_BYTES / 2)
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, MEM_CAPACITY_BYTES / 2)
           .setProperty(PropertyKey.WORKER_TIERED_STORE_LEVELS, "2")
           .setProperty(
               PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_ALIAS_FORMAT.format(1), "HDD")
@@ -50,7 +51,8 @@ public class CapacityUsageIntegrationTest {
               PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(1),
               String.valueOf(DISK_CAPACITY_BYTES))
           .setProperty(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS,
-              String.valueOf(HEARTBEAT_INTERVAL_MS));
+              String.valueOf(HEARTBEAT_INTERVAL_MS))
+          .build();
   private FileSystem mFileSystem = null;
 
   @Before

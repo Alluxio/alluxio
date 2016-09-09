@@ -55,7 +55,6 @@ import java.util.concurrent.TimeUnit;
 public class BlockServiceHandlerIntegrationTest {
   private static final long WORKER_CAPACITY_BYTES = 10 * Constants.MB;
   private static final long SESSION_ID = 1L;
-  private static final int USER_QUOTA_UNIT_BYTES = 100;
 
   @ClassRule
   public static ManuallyScheduleHeartbeat sManuallySchedule =
@@ -63,8 +62,10 @@ public class BlockServiceHandlerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, Constants.MB)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .build();
   private BlockWorkerClientServiceHandler mBlockWorkerServiceHandler = null;
   private FileSystem mFileSystem = null;
   private BlockMasterClient mBlockMasterClient;

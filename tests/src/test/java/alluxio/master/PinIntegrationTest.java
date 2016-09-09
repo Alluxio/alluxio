@@ -36,7 +36,7 @@ import java.util.HashSet;
 public final class PinIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
   private FileSystemMasterClient mFSMasterClient;
   private SetAttributeOptions mSetPinned;

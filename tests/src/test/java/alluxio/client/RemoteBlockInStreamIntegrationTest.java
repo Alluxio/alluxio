@@ -12,7 +12,6 @@
 package alluxio.client;
 
 import alluxio.AlluxioURI;
-import alluxio.Constants;
 import alluxio.IntegrationTestConstants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.PropertyKey;
@@ -83,11 +82,12 @@ public class RemoteBlockInStreamIntegrationTest {
   }
 
   public RemoteBlockInStreamIntegrationTest(String dataServer, String transferType, String reader) {
-    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource(Constants.GB, Constants.GB)
+    mLocalAlluxioClusterResource = new LocalAlluxioClusterResource.Builder()
         .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS, dataServer)
         .setProperty(PropertyKey.WORKER_NETWORK_NETTY_FILE_TRANSFER_TYPE, transferType)
         .setProperty(PropertyKey.USER_BLOCK_REMOTE_READER_CLASS, reader)
-        .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100");
+        .setProperty(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, "100")
+        .build();
   }
 
   @Rule
