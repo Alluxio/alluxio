@@ -88,6 +88,7 @@ public class FileSystemMasterIntegrationTest {
       new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
               String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, 1000)
           .build();
 
   @Rule

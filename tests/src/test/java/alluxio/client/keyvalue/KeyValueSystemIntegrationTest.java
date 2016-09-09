@@ -45,7 +45,6 @@ public final class KeyValueSystemIntegrationTest {
   private static final int BLOCK_SIZE = 512 * Constants.MB;
   private static final String BASE_KEY = "base_key";
   private static final String BASE_VALUE = "base_value";
-  private static final int BASE_KEY_VALUE_NUMBER = 100;
   private static final byte[] KEY1 = "key1".getBytes();
   private static final byte[] KEY2 = "key2_foo".getBytes();
   private static final byte[] VALUE1 = "value1".getBytes();
@@ -62,6 +61,8 @@ public final class KeyValueSystemIntegrationTest {
   @ClassRule
   public static LocalAlluxioClusterResource sLocalAlluxioClusterResource =
       new LocalAlluxioClusterResource.Builder()
+      .setProperty(PropertyKey.WORKER_MEMORY_SIZE, Constants.GB)
+      .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE)
           /* ensure key-value service is turned on */
           .setProperty(PropertyKey.KEY_VALUE_ENABLED, "true")
           .build();
