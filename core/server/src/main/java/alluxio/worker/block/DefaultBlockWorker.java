@@ -43,6 +43,7 @@ import alluxio.worker.block.meta.BlockMeta;
 import alluxio.worker.block.meta.TempBlockMeta;
 import alluxio.worker.file.FileSystemMasterClient;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import org.apache.thrift.TProcessor;
 import org.slf4j.Logger;
@@ -95,6 +96,7 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   private Sessions mSessions;
   /** Block Store manager. */
   private BlockStore mBlockStore;
+  private WorkerNetAddress mAddress;
 
   @Override
   public BlockStore getBlockStore() {
@@ -143,6 +145,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   }
 
   @Override
+  public void init(WorkerNetAddress workerNetAddress) {
+    mAddress = workerNetAddress;
+  }
+
+  @Override
   public Map<String, TProcessor> getServices() {
     Map<String, TProcessor> services = new HashMap<>();
     services.put(Constants.BLOCK_WORKER_CLIENT_SERVICE_NAME,
@@ -158,22 +165,16 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start() throws IOException {
-    WorkerNetAddress netAddress;
+    Preconditions.checkNotNull(mAddress, "mAddress");
     try {
-      netAddress = new WorkerNetAddress()
-          .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-          .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
-          .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
-          .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
-
-      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, netAddress);
+      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mAddress);
     } catch (ConnectionFailedException e) {
       LOG.error("Failed to get a worker id from block master", e);
       throw Throwables.propagate(e);
     }
 
     // Setup BlockMasterSync
-    mBlockMasterSync = new BlockMasterSync(this, netAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(this, mAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
