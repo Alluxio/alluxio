@@ -37,7 +37,7 @@ import javax.security.sasl.AuthenticationException;
 public final class MasterClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

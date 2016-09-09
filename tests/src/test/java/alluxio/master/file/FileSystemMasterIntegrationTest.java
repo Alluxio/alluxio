@@ -85,9 +85,10 @@ public class FileSystemMasterIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(1000, Constants.GB)
+      new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.MASTER_TTL_CHECKER_INTERVAL_MS,
-              String.valueOf(TTL_CHECKER_INTERVAL_MS));
+              String.valueOf(TTL_CHECKER_INTERVAL_MS))
+          .build();
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();

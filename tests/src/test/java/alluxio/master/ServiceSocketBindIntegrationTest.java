@@ -12,7 +12,6 @@
 package alluxio.master;
 
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
@@ -40,7 +39,7 @@ import java.nio.channels.SocketChannel;
 public class ServiceSocketBindIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(100, Constants.GB, false);
+      new LocalAlluxioClusterResource.Builder().setStartCluster(false).build();
   private LocalAlluxioCluster mLocalAlluxioCluster = null;
   private BlockMasterClient mBlockMasterClient;
   private HttpURLConnection mMasterWebService;

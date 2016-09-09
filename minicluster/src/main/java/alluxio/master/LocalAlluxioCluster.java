@@ -40,21 +40,16 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
 
   /**
    * Runs a test Alluxio cluster with a single Alluxio worker.
-   *
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
    */
-  public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize, 1);
+  public LocalAlluxioCluster() {
+    super(1);
   }
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
    * @param numWorkers the number of workers to run
    */
-  public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize, int numWorkers) {
-    super(workerCapacityBytes, userBlockSize, numWorkers);
+  public LocalAlluxioCluster(int numWorkers) {
+    super(numWorkers);
   }
 
   @Override

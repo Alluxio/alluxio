@@ -51,9 +51,6 @@ public abstract class AbstractLocalAlluxioCluster {
 
   private static final Random RANDOM_GENERATOR = new Random();
 
-  protected long mWorkerCapacityBytes;
-  protected int mUserBlockSize;
-
   protected List<AlluxioWorkerService> mWorkers;
 
   protected UnderFileSystemCluster mUfsCluster;
@@ -64,13 +61,9 @@ public abstract class AbstractLocalAlluxioCluster {
   private int mNumWorkers;
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
    * @param numWorkers the number of workers to run
    */
-  public AbstractLocalAlluxioCluster(long workerCapacityBytes, int userBlockSize, int numWorkers) {
-    mWorkerCapacityBytes = workerCapacityBytes;
-    mUserBlockSize = userBlockSize;
+  public AbstractLocalAlluxioCluster(int numWorkers) {
     mNumWorkers = numWorkers;
   }
 
@@ -203,7 +196,7 @@ public abstract class AbstractLocalAlluxioCluster {
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(mUserBlockSize));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(Constants.KB));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
@@ -236,7 +229,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(mWorkerCapacityBytes));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(100 * Constants.MB));
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));
@@ -257,9 +250,6 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(
         PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_PATH_FORMAT.format(0),
         ramdiskPath);
-    Configuration.set(
-        PropertyKeyFormat.WORKER_TIERED_STORE_LEVEL_DIRS_QUOTA_FORMAT.format(0),
-        Long.toString(mWorkerCapacityBytes));
 
     int numLevel = Configuration.getInt(PropertyKey.WORKER_TIERED_STORE_LEVELS);
     for (int level = 1; level < numLevel; level++) {

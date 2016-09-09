@@ -45,7 +45,7 @@ public final class AlluxioShellUtilsTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private FileSystem mFileSystem = null;
 
   @Before

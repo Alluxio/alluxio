@@ -54,7 +54,6 @@ import java.util.List;
  */
 public class LineageMasterIntegrationTest {
   private static final int BLOCK_SIZE_BYTES = 128;
-  private static final long WORKER_CAPACITY_BYTES = Constants.GB;
   private static final int BUFFER_BYTES = 100;
   private static final String OUT_FILE = "/test";
   private static final int RECOMPUTE_INTERVAL_MS = 1000;
@@ -65,7 +64,7 @@ public class LineageMasterIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(WORKER_CAPACITY_BYTES, BLOCK_SIZE_BYTES)
+      new LocalAlluxioClusterResource.Builder()
           .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(BUFFER_BYTES))
           .setProperty(PropertyKey.WORKER_DATA_SERVER_CLASS,
               IntegrationTestConstants.NETTY_DATA_SERVER)
@@ -73,7 +72,8 @@ public class LineageMasterIntegrationTest {
           .setProperty(PropertyKey.MASTER_LINEAGE_RECOMPUTE_INTERVAL_MS,
               Integer.toString(RECOMPUTE_INTERVAL_MS))
           .setProperty(PropertyKey.MASTER_LINEAGE_CHECKPOINT_INTERVAL_MS,
-              Integer.toString(CHECKPOINT_INTERVAL_MS));
+              Integer.toString(CHECKPOINT_INTERVAL_MS))
+          .build();
 
   private CommandLineJob mJob;
 

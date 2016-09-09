@@ -12,7 +12,9 @@
 package alluxio.master;
 
 import alluxio.AlluxioURI;
+import alluxio.Configuration;
 import alluxio.Constants;
+import alluxio.PropertyKey;
 import alluxio.client.FileSystemTestUtils;
 import alluxio.client.WriteType;
 import alluxio.client.block.AlluxioBlockStore;
@@ -55,7 +57,9 @@ public class MasterFaultToleranceIntegrationTest {
   public final void before() throws Exception {
     // TODO(gpang): Implement multi-master cluster as a resource.
     mMultiMasterLocalAlluxioCluster =
-        new MultiMasterLocalAlluxioCluster(WORKER_CAPACITY_BYTES, MASTERS, BLOCK_SIZE);
+        new MultiMasterLocalAlluxioCluster(MASTERS);
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, WORKER_CAPACITY_BYTES);
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, BLOCK_SIZE);
     mMultiMasterLocalAlluxioCluster.initConfiguration();
     mMultiMasterLocalAlluxioCluster.start();
     mFileSystem = mMultiMasterLocalAlluxioCluster.getClient();

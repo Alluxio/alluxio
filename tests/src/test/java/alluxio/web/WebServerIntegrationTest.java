@@ -43,7 +43,7 @@ public class WebServerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {

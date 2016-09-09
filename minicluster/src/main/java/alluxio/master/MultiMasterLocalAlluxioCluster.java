@@ -43,12 +43,10 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   /**
    * Runs a multi master local Alluxio cluster with a single worker.
    *
-   * @param workerCapacityBytes the capacity of the worker in bytes
    * @param masters the number of the master
-   * @param userBlockSize the block size for a user
    */
-  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize, 1);
+  public MultiMasterLocalAlluxioCluster(int masters) {
+    super(1);
     mNumOfMasters = masters;
 
     try {
@@ -60,14 +58,12 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
    * @param masters the number of the master
-   * @param userBlockSize the block size for a user
    * @param numWorkers the number of workers to run
    */
   public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize,
       int numWorkers) {
-    super(workerCapacityBytes, userBlockSize, numWorkers);
+    super(numWorkers);
     mNumOfMasters = masters;
 
     try {
