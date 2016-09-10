@@ -13,7 +13,6 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.underfs.UnderFileSystem.UnderFSType;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -39,7 +38,7 @@ public final class HdfsUnderFileSystemTest {
    */
   @Test
   public void getUnderFSType() throws Exception {
-    Assert.assertEquals(UnderFSType.HDFS, mMockHdfsUnderFileSystem.getUnderFSType());
+    Assert.assertEquals("hdfs", mMockHdfsUnderFileSystem.getUnderFSType());
   }
 
   /**

@@ -199,35 +199,9 @@ public abstract class UnderFileSystem {
   }
 
   /**
-   * Type of under filesystem, to be used by {@link #getUnderFSType()} to determine which concrete
-   * under filesystem implementation is being used. New types of under filesystem should be added
-   * below and returned by the implementation of {@link #getUnderFSType()}.
+   * @return name of the under filesystem implementation
    */
-  public enum UnderFSType {
-    LOCAL("local"),
-    HDFS("hdfs"),
-    S3("s3"),
-    GLUSTERFS("glusterfs"),
-    SWIFT("swift"),
-    OSS("oss"),
-    GCS("gcs");
-
-    private String mType;
-
-    UnderFSType(String type) {
-      mType = type;
-    }
-
-    @Override
-    public String toString() {
-      return mType;
-    }
-  }
-
-  /**
-   * @return type of concrete under filesystem implementation
-   */
-  public abstract UnderFSType getUnderFSType();
+  public abstract String getUnderFSType();
 
   /**
    * Determines if the given path is on a Hadoop under file system
