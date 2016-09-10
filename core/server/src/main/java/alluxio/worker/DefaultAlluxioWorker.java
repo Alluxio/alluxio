@@ -48,6 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -97,13 +98,20 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   private long mStartTimeMs;
 
   /**
+   * The worker ID for this worker. This is set when the block worker is initialized and may be
+   * updated by the block sync thread if the master requests re-registration.
+   */
+  private AtomicReference<Long> mWorkerId;
+
+  /**
    * Constructs a {@link DefaultAlluxioWorker}.
    */
   public DefaultAlluxioWorker() {
+    mWorkerId = new AtomicReference<>();
     try {
       mStartTimeMs = System.currentTimeMillis();
-      mBlockWorker = new DefaultBlockWorker();
-      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker);
+      mBlockWorker = new DefaultBlockWorker(mWorkerId);
+      mFileSystemWorker = new DefaultFileSystemWorker(mBlockWorker, mWorkerId);
 
       mAdditionalWorkers = new ArrayList<>();
       List<? extends Worker> workers = Lists.newArrayList(mBlockWorker, mFileSystemWorker);
@@ -214,7 +222,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
     // Requirement: NetAddress set in WorkerContext, so block worker can initialize BlockMasterSync
     // Consequence: worker id is granted
     startWorkers();
-    LOG.info("Started Alluxio worker with id {}", WorkerIdRegistry.getWorkerId());
+    LOG.info("Started Alluxio worker with id {}", mWorkerId.get());
 
     mIsServingRPC = true;
 
@@ -333,7 +341,7 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
   public void waitForReady() {
     while (true) {
       if (mThriftServer.isServing()
-          && WorkerIdRegistry.getWorkerId() != WorkerIdRegistry.INVALID_WORKER_ID
+          && mWorkerId.get() != null
           && mWebServer.getServer().isRunning()) {
         return;
       }

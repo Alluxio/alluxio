@@ -36,7 +36,6 @@ import alluxio.worker.AbstractWorker;
 import alluxio.worker.SessionCleaner;
 import alluxio.worker.SessionCleanupCallback;
 import alluxio.worker.WorkerContext;
-import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.io.BlockReader;
 import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
@@ -55,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -97,6 +97,51 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
   /** Block Store manager. */
   private BlockStore mBlockStore;
   private WorkerNetAddress mAddress;
+  /**
+   * The worker ID for this worker. This is initialized in {@link #init(WorkerNetAddress)} and may
+   * be updated by the block sync thread if the master requests re-registration.
+   */
+  private AtomicReference<Long> mWorkerId;
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @param workerId a reference for the id of this worker
+   *
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(AtomicReference<Long> workerId) throws IOException {
+    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
+        new Sessions(), new TieredBlockStore(), workerId);
+  }
+
+  /**
+   * Constructs a default block worker.
+   *
+   * @param blockMasterClient a client for talking to the block master
+   * @param fileSystemMasterClient a client for talking to the file system master
+   * @param sessions an object for tracking and cleaning up client sessions
+   * @param blockStore an Alluxio block store
+   * @param workerId a reference for the id of this worker
+   * @throws IOException if an IO exception occurs
+   */
+  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
+      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore,
+      AtomicReference<Long> workerId) throws IOException {
+    super(Executors.newFixedThreadPool(4,
+        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
+    mBlockMasterClient = blockMasterClient;
+    mFileSystemMasterClient = fileSystemMasterClient;
+    mHeartbeatReporter = new BlockHeartbeatReporter();
+    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
+    mSessions = sessions;
+    mBlockStore = blockStore;
+    mWorkerId = workerId;
+
+    mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
+    mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
+  }
 
   @Override
   public BlockStore getBlockStore() {
@@ -108,45 +153,15 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
     return new BlockWorkerClientServiceHandler(this);
   }
 
-  /**
-   * Constructs a default block worker.
-   *
-   * @throws IOException if an IO exception occurs
-   */
-  public DefaultBlockWorker() throws IOException {
-    this(new BlockMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new FileSystemMasterClient(NetworkAddressUtils.getConnectAddress(ServiceType.MASTER_RPC)),
-        new Sessions(), new TieredBlockStore());
-  }
-
-  /**
-   * Constructs a default block worker.
-   *
-   * @param blockMasterClient a client for talking to the block master
-   * @param fileSystemMasterClient a client for talking to the file system master
-   * @param sessions an object for tracking and cleaning up client sessions
-   * @param blockStore an Alluxio block store
-   * @throws IOException if an IO exception occurs
-   */
-  public DefaultBlockWorker(BlockMasterClient blockMasterClient,
-      FileSystemMasterClient fileSystemMasterClient, Sessions sessions, BlockStore blockStore)
-          throws IOException {
-    super(Executors.newFixedThreadPool(4,
-        ThreadFactoryUtils.build("block-worker-heartbeat-%d", true)));
-    mBlockMasterClient = blockMasterClient;
-    mFileSystemMasterClient = fileSystemMasterClient;
-    mHeartbeatReporter = new BlockHeartbeatReporter();
-    mMetricsReporter = new BlockMetricsReporter(WorkerContext.getWorkerSource());
-    mSessions = sessions;
-    mBlockStore = blockStore;
-
-    mBlockStore.registerBlockStoreEventListener(mHeartbeatReporter);
-    mBlockStore.registerBlockStoreEventListener(mMetricsReporter);
-  }
-
   @Override
-  public void init(WorkerNetAddress workerNetAddress) {
-    mAddress = workerNetAddress;
+  public void init(WorkerNetAddress workerAddress) {
+    mAddress = workerAddress;
+    try {
+      mWorkerId.set(mBlockMasterClient.getId(workerAddress));
+    } catch (Exception e) {
+      LOG.error("Failed to get a worker id from block master", e);
+      throw Throwables.propagate(e);
+    }
   }
 
   @Override
@@ -165,16 +180,11 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @Override
   public void start() throws IOException {
+    Preconditions.checkNotNull(mWorkerId, "mWorkerId");
     Preconditions.checkNotNull(mAddress, "mAddress");
-    try {
-      WorkerIdRegistry.registerWithBlockMaster(mBlockMasterClient, mAddress);
-    } catch (ConnectionFailedException e) {
-      LOG.error("Failed to get a worker id from block master", e);
-      throw Throwables.propagate(e);
-    }
 
     // Setup BlockMasterSync
-    mBlockMasterSync = new BlockMasterSync(this, mAddress, mBlockMasterClient);
+    mBlockMasterSync = new BlockMasterSync(this, mWorkerId, mAddress, mBlockMasterClient);
 
     // Setup PinListSyncer
     mPinListSync = new PinListSync(this, mFileSystemMasterClient);
@@ -260,8 +270,8 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
       Long length = meta.getBlockSize();
       BlockStoreMeta storeMeta = mBlockStore.getBlockStoreMeta();
       Long bytesUsedOnTier = storeMeta.getUsedBytesOnTiers().get(loc.tierAlias());
-      mBlockMasterClient.commitBlock(WorkerIdRegistry.getWorkerId(), bytesUsedOnTier,
-          loc.tierAlias(), blockId, length);
+      mBlockMasterClient.commitBlock(mWorkerId.get(), bytesUsedOnTier, loc.tierAlias(), blockId,
+          length);
     } catch (AlluxioTException | IOException | ConnectionFailedException e) {
       throw new IOException(ExceptionMessage.FAILED_COMMIT_BLOCK_TO_MASTER.getMessage(blockId), e);
     } finally {
