@@ -745,7 +745,7 @@ public class SwiftUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.SWIFT;
+  public String getUnderFSType() {
+    return "swift";
   }
 }

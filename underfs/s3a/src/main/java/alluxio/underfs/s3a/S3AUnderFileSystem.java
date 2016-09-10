@@ -54,6 +54,7 @@ import java.io.OutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.concurrent.ThreadSafe;
 
 /**
@@ -207,8 +208,8 @@ public class S3AUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.S3;
+  public String getUnderFSType() {
+    return "s3";
   }
 
   @Override

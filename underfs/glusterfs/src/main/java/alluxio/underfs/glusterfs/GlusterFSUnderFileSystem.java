@@ -45,8 +45,8 @@ public class GlusterFSUnderFileSystem extends HdfsUnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.GLUSTERFS;
+  public String getUnderFSType() {
+    return "glusterfs";
   }
 
   @Override
