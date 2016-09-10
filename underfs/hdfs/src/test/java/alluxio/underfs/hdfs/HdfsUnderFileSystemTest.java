@@ -58,15 +58,13 @@ public final class HdfsUnderFileSystemTest {
 
   /**
    * Tests the HDFS client caching is disabled.
-   *
-   * @throws Exception
    */
   public void disableHdfsCacheTest() throws Exception {
     // create a default hadoop configuration
     org.apache.hadoop.conf.Configuration hadoopConf = new org.apache.hadoop.conf.Configuration();
     String underfsAddress = "hdfs://localhost";
-    URI u = new URI(underfsAddress);
-    org.apache.hadoop.fs.FileSystem hadoopFs = org.apache.hadoop.fs.FileSystem.get(u, hadoopConf);
+    URI uri = new URI(underfsAddress);
+    org.apache.hadoop.fs.FileSystem hadoopFs = org.apache.hadoop.fs.FileSystem.get(uri, hadoopConf);
     // use the replication to test the default value
     Assert.assertEquals("3", hadoopFs.getConf().get("dfs.replication"));
 
