@@ -20,7 +20,6 @@ import alluxio.thrift.CommandType;
 import alluxio.thrift.FileSystemCommand;
 import alluxio.thrift.PersistFile;
 import alluxio.util.ThreadFactoryUtils;
-import alluxio.worker.WorkerIdRegistry;
 import alluxio.worker.block.BlockMasterSync;
 
 import com.google.common.base.Preconditions;
@@ -31,6 +30,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.annotation.concurrent.NotThreadSafe;
 
@@ -56,6 +56,8 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
   private final FileSystemMasterClient mMasterClient;
   /** The thread pool to persist file. */
   private final ExecutorService mPersistFileService;
+  /** This worker's id. May be updated by other threads if worker re-registration occurs. */
+  private final AtomicReference<Long> mWorkerId;
 
   /**
    * Creates a new instance of {@link FileWorkerMasterSyncExecutor}.
@@ -64,9 +66,10 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
    * @param masterClient a {@link FileSystemMasterClient}
    */
   public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
-      FileSystemMasterClient masterClient) {
-    mFileDataManager = Preconditions.checkNotNull(fileDataManager);
-    mMasterClient = Preconditions.checkNotNull(masterClient);
+      FileSystemMasterClient masterClient, AtomicReference<Long> workerId) {
+    mFileDataManager = Preconditions.checkNotNull(fileDataManager, "fileDataManager");
+    mMasterClient = Preconditions.checkNotNull(masterClient, "masterClient");
+    mWorkerId = Preconditions.checkNotNull(workerId, "workerId");
     mPersistFileService = Executors.newFixedThreadPool(
         Configuration.getInt(PropertyKey.WORKER_FILE_PERSIST_POOL_SIZE),
         ThreadFactoryUtils.build("persist-file-service-%d", true));
@@ -81,7 +84,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
 
     FileSystemCommand command;
     try {
-      command = mMasterClient.heartbeat(WorkerIdRegistry.getWorkerId(), persistedFiles);
+      command = mMasterClient.heartbeat(mWorkerId.get(), persistedFiles);
     } catch (IOException | ConnectionFailedException e) {
       LOG.error("Failed to heartbeat to master", e);
       return;
