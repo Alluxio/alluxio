@@ -115,7 +115,8 @@ public class HdfsUnderFileSystem extends UnderFileSystem {
       hadoopConf.set("fs.hdfs.impl", ufsHdfsImpl);
     }
 
-    // Disable the instance cache to use the input configuration. Configurable from system property
+    // Disable hdfs client caching so that input configuration is respected. Configurable from
+    // system property
     hadoopConf.set("fs.hdfs.impl.disable.cache",
         System.getProperty("fs.hdfs.impl.disable.cache", "true"));
 
