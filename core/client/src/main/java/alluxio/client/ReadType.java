@@ -39,7 +39,8 @@ public enum ReadType {
    * Read the file and cache it in a local worker. Additionally, if the file was in Alluxio
    * storage, it will be promoted to the top storage layer.
    */
-  CACHE_PROMOTE(3);
+  CACHE_PROMOTE(3),
+  ;
 
   private final int mValue;
 

@@ -193,7 +193,11 @@ public final class AlluxioShellUtils {
       return res;
     }
     if (pFile.isDirectory() && pFile.canRead()) {
-      for (File file : pFile.listFiles()) {
+      File[] fileList = pFile.listFiles();
+      if (fileList == null) {
+        return res;
+      }
+      for (File file : fileList) {
         if (match(file.getPath(), inputPath)) { // if it matches
           res.add(file);
         } else {
