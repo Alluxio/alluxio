@@ -199,6 +199,10 @@ public abstract class UnderFileSystem {
   }
 
   /**
+   * Returns the name of the under filesystem implementation.
+   *
+   * The name should be lowercase and not include any spaces, e.g. "hdfs", "s3".
+   *
    * @return name of the under filesystem implementation
    */
   public abstract String getUnderFSType();
