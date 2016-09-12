@@ -24,6 +24,7 @@ import alluxio.client.file.URIStatus;
 import alluxio.client.file.options.CreateFileOptions;
 import alluxio.client.file.policy.RoundRobinPolicy;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,13 +46,16 @@ public final class MultiWorkerIntegrationTest {
           .build();
 
   @Test
-  public void workerCount() throws Exception {
+  public void writeLargeFile() throws Exception {
+    int fileSize = NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES;
+    AlluxioURI file = new AlluxioURI("/test");
     FileSystem fs = mResource.get().getClient();
-    System.out.println(FileSystemTestUtils.listFiles(fs, "/"));
-    FileSystemTestUtils.createByteFile(fs, "/test", NUM_WORKERS * WORKER_MEMORY_SIZE_BYTES,
+    // Write a file large enough to fill all the memory of all the workers.
+    FileSystemTestUtils.createByteFile(fs, file.getPath(), fileSize,
         CreateFileOptions.defaults().setWriteType(WriteType.MUST_CACHE)
             .setLocationPolicy(new RoundRobinPolicy()));
-    URIStatus status = fs.getStatus(new AlluxioURI("/test"));
+    URIStatus status = fs.getStatus(file);
     assertEquals(100, status.getInMemoryPercentage());
+    assertEquals(fileSize, IOUtils.toByteArray(fs.openFile(file)).length);
   }
 }
