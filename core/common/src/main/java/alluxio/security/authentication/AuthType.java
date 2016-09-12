@@ -42,7 +42,8 @@ public enum AuthType {
    * User is aware in Alluxio. The user is verified by Kerberos authentication. NOTE: this
    * authentication is not supported.
    */
-  KERBEROS;
+  KERBEROS,
+  ;
 
   /**
    * @return the string value of AuthType

@@ -38,7 +38,8 @@ public final class Mode {
     READ("r--"),
     READ_EXECUTE("r-x"),
     READ_WRITE("rw-"),
-    ALL("rwx");
+    ALL("rwx"),
+    ;
 
     /** String representation of the bits. */
     private final String mString;

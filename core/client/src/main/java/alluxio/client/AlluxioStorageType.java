@@ -37,7 +37,8 @@ public enum AlluxioStorageType {
   /**
    * Same as {@link #STORE} for writes. Will move the data to highest tier before access for reads.
    */
-  PROMOTE(3);
+  PROMOTE(3),
+  ;
 
   private final int mValue;
 

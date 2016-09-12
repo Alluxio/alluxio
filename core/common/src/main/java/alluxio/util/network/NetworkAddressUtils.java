@@ -94,7 +94,8 @@ public final class NetworkAddressUtils {
      */
     WORKER_WEB("Alluxio Worker Web service", PropertyKey.WORKER_WEB_HOSTNAME,
         PropertyKey.WORKER_WEB_BIND_HOST, PropertyKey.WORKER_WEB_PORT,
-        Constants.DEFAULT_WORKER_WEB_PORT);
+        Constants.DEFAULT_WORKER_WEB_PORT),
+    ;
 
     // service name
     private final String mServiceName;
