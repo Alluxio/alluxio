@@ -80,7 +80,8 @@ public abstract class UnderFileSystem {
     /**
      * Indicates the amount of space used in the under file system.
      */
-    SPACE_USED(2);
+    SPACE_USED(2),
+    ;
 
     private final int mValue;
 
@@ -210,7 +211,8 @@ public abstract class UnderFileSystem {
     GLUSTERFS("glusterfs"),
     SWIFT("swift"),
     OSS("oss"),
-    GCS("gcs");
+    GCS("gcs"),
+    ;
 
     private String mType;
 
