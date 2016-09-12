@@ -32,7 +32,8 @@ public enum UnderStorageType {
   NO_PERSIST(2),
 
   /** Persist data to Under Storage asynchronously. */
-  ASYNC_PERSIST(3);
+  ASYNC_PERSIST(3),
+  ;
 
   private final int mValue;
 
