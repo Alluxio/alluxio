@@ -23,26 +23,6 @@ import java.net.InetSocketAddress;
  * A worker in the Alluxio system.
  */
 public interface AlluxioWorkerService extends Server {
-
-  /**
-   * Factory for acquiring an AlluxioWorker.
-   */
-  class Factory {
-    private static AlluxioWorkerService sAlluxioWorker;
-
-    /**
-     * @return the default Alluxio worker
-     */
-    public static synchronized AlluxioWorkerService get() {
-      if (sAlluxioWorker == null) {
-        sAlluxioWorker = new DefaultAlluxioWorker();
-      }
-      return sAlluxioWorker;
-    }
-
-    private Factory() {} // Not intended for instantiation
-  }
-
   /**
    * @return the block worker for this Alluxio worker
    */

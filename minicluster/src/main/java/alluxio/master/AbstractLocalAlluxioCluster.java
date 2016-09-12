@@ -31,7 +31,6 @@ import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.DefaultAlluxioWorker;
 
 import com.google.common.base.Joiner;
-import org.powermock.reflect.Whitebox;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -291,8 +290,6 @@ public abstract class AbstractLocalAlluxioCluster {
       mWorkers.add(new DefaultAlluxioWorker());
     }
 
-    Whitebox.setInternalState(AlluxioWorkerService.Factory.class, "sAlluxioWorker", mWorkers.get(0));
-
     for (final AlluxioWorkerService worker : mWorkers) {
       Runnable runWorker = new Runnable() {
         @Override
@@ -301,7 +298,8 @@ public abstract class AbstractLocalAlluxioCluster {
             worker.start();
 
           } catch (Exception e) {
-            // Log the exception as the RuntimeException will be caught and handled silently by JUnit
+            // Log the exception as the RuntimeException will be caught and handled silently by
+            // JUnit
             LOG.error("Start worker error", e);
             throw new RuntimeException(e + " \n Start Worker Error \n" + e.getMessage(), e);
           }
