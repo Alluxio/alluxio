@@ -133,8 +133,9 @@ public final class DefaultAlluxioWorker implements AlluxioWorkerService {
       mWorkerMetricsSystem.registerSource(workerSource);
 
       // Setup web server
-      mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB), this, mBlockWorker,
-          NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC), mStartTimeMs);
+      mWebServer = new WorkerUIWebServer(NetworkAddressUtils.getBindAddress(ServiceType.WORKER_WEB),
+          this, mBlockWorker, NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC),
+          mStartTimeMs);
 
       // Setup Thrift server
       mTransportProvider = TransportProvider.Factory.create();

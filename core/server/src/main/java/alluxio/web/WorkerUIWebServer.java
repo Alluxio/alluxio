@@ -24,6 +24,7 @@ import org.glassfish.jersey.servlet.ServletContainer;
 import java.net.InetSocketAddress;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletException;
 
 /**
  * A worker's UI web server.
@@ -31,17 +32,19 @@ import javax.annotation.concurrent.NotThreadSafe;
 @NotThreadSafe
 public final class WorkerUIWebServer extends UIWebServer {
 
+  public static final String ALLUXIO_WORKER_SERVLET_RESOURCE_KEY = "Alluxio Worker";
+
   /**
    * Creates a new instance of {@link WorkerUIWebServer}.
    *
    * @param webAddress the service address
    * @param alluxioWorker Alluxio worker
    * @param blockWorker block worker to manage blocks
-   * @param workerAddress the worker address
+   * @param connectHost the connect host for the web server
    * @param startTimeMs start time milliseconds
    */
   public WorkerUIWebServer(InetSocketAddress webAddress,
-      AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
+      final AlluxioWorkerService alluxioWorker, BlockWorker blockWorker, String connectHost,
       long startTimeMs) {
     super("Alluxio worker web service", webAddress);
     Preconditions.checkNotNull(blockWorker, "Block worker cannot be null");
@@ -62,7 +65,18 @@ public final class WorkerUIWebServer extends UIWebServer {
 
     // REST configuration
     ResourceConfig config = new ResourceConfig().packages("alluxio.worker", "alluxio.worker.block");
-    ServletContainer servlet = new ServletContainer(config);
+    // Override the init method to inject a reference to AlluxioWorker into the servlet context.
+    // ServletContext may not be modified until after super.init() is called.
+    ServletContainer servlet = new ServletContainer(config) {
+      private static final long serialVersionUID = -7586014404855912954L;
+
+      @Override
+      public void init() throws ServletException {
+        super.init();
+        getServletContext().setAttribute(ALLUXIO_WORKER_SERVLET_RESOURCE_KEY, alluxioWorker);
+      }
+    };
+
     ServletHolder servletHolder = new ServletHolder("Alluxio Worker Web Service", servlet);
     mWebAppContext.addServlet(servletHolder, PathUtils.concatPath(Constants.REST_API_PREFIX, "*"));
   }

@@ -46,23 +46,14 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
    * @param masters the number masters to run
    */
   public MultiMasterLocalAlluxioCluster(int masters) {
-    super(1);
-    mNumOfMasters = masters;
-
-    try {
-      mCuratorServer = new TestingServer(-1, AlluxioTestDirectory.createTemporaryDirectory("zk"));
-      LOG.info("Started testing zookeeper: {}", mCuratorServer.getConnectString());
-    } catch (Exception e) {
-      throw Throwables.propagate(e);
-    }
+    this(masters, 1);
   }
 
   /**
    * @param masters the number of masters to run
    * @param numWorkers the number of workers to run
    */
-  public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize,
-      int numWorkers) {
+  public MultiMasterLocalAlluxioCluster(int masters, int numWorkers) {
     super(numWorkers);
     mNumOfMasters = masters;
 

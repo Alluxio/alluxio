@@ -18,6 +18,7 @@ import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
+import alluxio.web.WorkerUIWebServer;
 import alluxio.worker.block.BlockStoreMeta;
 
 import com.codahale.metrics.Counter;
@@ -33,9 +34,11 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -61,13 +64,17 @@ public final class AlluxioWorkerRestServiceHandler {
   public static final String GET_VERSION = "version";
   public static final String GET_METRICS = "metrics";
 
-  private final AlluxioWorkerService mWorker = AlluxioWorkerService.Factory.get();
-  private final BlockStoreMeta mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+  private final AlluxioWorkerService mWorker;
+  private final BlockStoreMeta mStoreMeta;
 
   /**
-   * Constructs a new {@link AlluxioWorkerRestServiceHandler}.
+   * @param context context for the servlet
    */
-  public AlluxioWorkerRestServiceHandler() {}
+  public AlluxioWorkerRestServiceHandler(@Context ServletContext context) {
+    mWorker = (AlluxioWorkerService) context
+        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY);
+    mStoreMeta = mWorker.getBlockWorker().getStoreMeta();
+  }
 
   /**
    * @summary get the configuration map, the keys are ordered alphabetically.
