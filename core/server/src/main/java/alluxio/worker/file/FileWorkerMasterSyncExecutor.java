@@ -64,6 +64,7 @@ final class FileWorkerMasterSyncExecutor implements HeartbeatExecutor {
    *
    * @param fileDataManager a {@link FileDataManager} handle
    * @param masterClient a {@link FileSystemMasterClient}
+   * @param workerId a reference to the id for this worker
    */
   public FileWorkerMasterSyncExecutor(FileDataManager fileDataManager,
       FileSystemMasterClient masterClient, AtomicReference<Long> workerId) {

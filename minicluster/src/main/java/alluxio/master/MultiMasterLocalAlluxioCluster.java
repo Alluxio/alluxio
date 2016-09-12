@@ -43,7 +43,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   /**
    * Runs a multi master local Alluxio cluster with a single worker.
    *
-   * @param masters the number of the master
+   * @param masters the number masters to run
    */
   public MultiMasterLocalAlluxioCluster(int masters) {
     super(1);
@@ -58,7 +58,7 @@ public final class MultiMasterLocalAlluxioCluster extends AbstractLocalAlluxioCl
   }
 
   /**
-   * @param masters the number of the master
+   * @param masters the number of masters to run
    * @param numWorkers the number of workers to run
    */
   public MultiMasterLocalAlluxioCluster(long workerCapacityBytes, int masters, int userBlockSize,

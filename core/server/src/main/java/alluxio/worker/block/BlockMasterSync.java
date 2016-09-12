@@ -88,8 +88,8 @@ public final class BlockMasterSync implements HeartbeatExecutor {
    * Creates a new instance of {@link BlockMasterSync}.
    *
    * @param blockWorker the {@link BlockWorker} this syncer is updating to
-   * @param workerAddress the net address of the worker
    * @param workerId the worker id of the worker, assigned by the block master
+   * @param workerAddress the net address of the worker
    * @param masterClient the Alluxio master client
    */
   BlockMasterSync(BlockWorker blockWorker, AtomicReference<Long> workerId,

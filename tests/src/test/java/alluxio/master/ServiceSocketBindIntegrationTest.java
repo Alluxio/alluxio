@@ -11,7 +11,6 @@
 
 package alluxio.master;
 
-import alluxio.ConfigurationTestUtils;
 import alluxio.LocalAlluxioClusterResource;
 import alluxio.client.block.BlockMasterClient;
 import alluxio.client.block.BlockStoreContext;
@@ -22,7 +21,6 @@ import alluxio.util.network.NetworkAddressUtils;
 import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,11 +44,6 @@ public class ServiceSocketBindIntegrationTest {
   private BlockWorkerClient mBlockWorkerClient;
   private SocketChannel mWorkerDataService;
   private HttpURLConnection mWorkerWebService;
-
-  @After
-  public void after() {
-    ConfigurationTestUtils.resetConfiguration();
-  }
 
   private void startCluster(String bindHost) throws Exception {
     for (ServiceType service : ServiceType.values()) {
