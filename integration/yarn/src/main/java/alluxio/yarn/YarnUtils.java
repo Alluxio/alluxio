@@ -104,7 +104,8 @@ public final class YarnUtils {
   public enum YarnContainerType {
     APPLICATION_MASTER("application-master"),
     ALLUXIO_MASTER("alluxio-master"),
-    ALLUXIO_WORKER("alluxio-worker");
+    ALLUXIO_WORKER("alluxio-worker"),
+    ;
 
     private final String mName;
 

@@ -19,7 +19,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 public enum BlockLockType {
   READ(0), // A read lock
-  WRITE(1); // A write lock
+  WRITE(1), // A write lock
+  ;
 
   private final int mValue;
 
