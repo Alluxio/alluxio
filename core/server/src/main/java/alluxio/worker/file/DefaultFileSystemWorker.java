@@ -74,7 +74,7 @@ public final class DefaultFileSystemWorker extends AbstractWorker implements Fil
    * Creates a new instance of {@link FileSystemWorker}.
    *
    * @param blockWorker the block worker handle
-   * @param workerId the block worker ID
+   * @param workerId a reference to the id of this worker
    * @throws IOException if an I/O error occurs
    */
   public DefaultFileSystemWorker(BlockWorker blockWorker, AtomicReference<Long> workerId)

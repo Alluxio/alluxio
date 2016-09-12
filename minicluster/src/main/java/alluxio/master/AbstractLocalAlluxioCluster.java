@@ -50,6 +50,8 @@ public abstract class AbstractLocalAlluxioCluster {
   protected static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   private static final Random RANDOM_GENERATOR = new Random();
+  private static final int DEFAULT_BLOCK_SIZE_BYTES = Constants.KB;
+  private static final long DEFAULT_WORKER_MEMORY_BYTES = 100 * Constants.MB;
 
   protected List<AlluxioWorkerService> mWorkers;
 
@@ -98,6 +100,9 @@ public abstract class AbstractLocalAlluxioCluster {
 
   /**
    * Configures and starts the workers.
+   *
+   * @throws IOException if an I/O error occurs
+   * @throws ConnectionFailedException if network connection failed
    */
   protected abstract void startWorkers() throws IOException, ConnectionFailedException;
 
@@ -196,7 +201,8 @@ public abstract class AbstractLocalAlluxioCluster {
 
     Configuration.set(PropertyKey.TEST_MODE, "true");
     Configuration.set(PropertyKey.WORK_DIR, mWorkDirectory);
-    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, Integer.toString(Constants.KB));
+    Configuration.set(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT,
+        Integer.toString(DEFAULT_BLOCK_SIZE_BYTES));
     Configuration.set(PropertyKey.USER_BLOCK_REMOTE_READ_BUFFER_SIZE_BYTES, Integer.toString(64));
     Configuration.set(PropertyKey.MASTER_HOSTNAME, mHostname);
     Configuration.set(PropertyKey.MASTER_RPC_PORT, Integer.toString(0));
@@ -229,7 +235,7 @@ public abstract class AbstractLocalAlluxioCluster {
     Configuration.set(PropertyKey.WORKER_DATA_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_WEB_PORT, Integer.toString(0));
     Configuration.set(PropertyKey.WORKER_DATA_FOLDER, "/datastore");
-    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(100 * Constants.MB));
+    Configuration.set(PropertyKey.WORKER_MEMORY_SIZE, Long.toString(DEFAULT_WORKER_MEMORY_BYTES));
     Configuration.set(PropertyKey.WORKER_BLOCK_HEARTBEAT_INTERVAL_MS, Integer.toString(15));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MIN, Integer.toString(1));
     Configuration.set(PropertyKey.WORKER_BLOCK_THREADS_MAX, Integer.toString(2048));

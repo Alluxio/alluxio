@@ -93,7 +93,6 @@ public class JournalShutdownIntegrationTest {
     }
   }
 
-  private static final int TEST_BLOCK_SIZE = 128;
   private static final String TEST_FILE_DIR = "/files/";
   private static final int TEST_NUM_MASTERS = 3;
   private static final long TEST_TIME_MS = Constants.SECOND_MS;

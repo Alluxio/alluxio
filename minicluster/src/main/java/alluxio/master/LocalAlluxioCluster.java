@@ -128,18 +128,6 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
     mMaster.stop();
   }
 
-  /**
-   * Cleans up the worker state from the master and stops the worker.
-   *
-   * @throws Exception when the operation fails
-   */
-  public void stopWorker() throws Exception {
-    mMaster.clearClients();
-    for (AlluxioWorkerService worker : mWorkers) {
-      worker.stop();
-    }
-  }
-
   @Override
   public void stop() throws Exception {
     super.stop();
