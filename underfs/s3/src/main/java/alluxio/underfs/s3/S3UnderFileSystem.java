@@ -194,8 +194,8 @@ public final class S3UnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.S3;
+  public String getUnderFSType() {
+    return "s3";
   }
 
   @Override

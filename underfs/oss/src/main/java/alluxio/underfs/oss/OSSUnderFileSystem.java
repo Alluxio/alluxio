@@ -113,8 +113,8 @@ public final class OSSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.OSS;
+  public String getUnderFSType() {
+    return "oss";
   }
 
   @Override
