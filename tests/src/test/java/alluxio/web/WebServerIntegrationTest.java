@@ -51,7 +51,7 @@ public class WebServerIntegrationTest {
     if (serviceType == ServiceType.MASTER_WEB) {
       port = mLocalAlluxioClusterResource.get().getMaster().getWebLocalPort();
     } else {
-      port = mLocalAlluxioClusterResource.get().getWorkerAddress().getWebPort();
+      port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
     }
     InetSocketAddress webAddr =
         new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
