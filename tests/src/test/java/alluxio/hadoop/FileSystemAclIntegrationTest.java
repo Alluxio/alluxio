@@ -108,13 +108,6 @@ public final class FileSystemAclIntegrationTest {
     // Default permission should be 0644
     Assert.assertEquals((short) 0644, fs.getPermission().toShort());
 
-    if (CommonUtils.isUfsObjectStorage(sUfsRoot)) {
-      // For object storage ufs, setMode is not supported.
-      mThrown.expect(IOException.class);
-      mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
-      sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
-      return;
-    }
     sTFS.setPermission(fileA, FsPermission.createImmutable((short) 0755));
     Assert.assertEquals((short) 0755, sTFS.getFileStatus(fileA).getPermission().toShort());
   }
@@ -475,9 +468,9 @@ public final class FileSystemAclIntegrationTest {
     final String newGroup = "new-group1";
     create(sTFS, fileA);
 
-    // chown to Alluxio file which is persisted in OSS is not allowed.
-    mThrown.expect(IOException.class);
-    mThrown.expectMessage("setOwner/setMode is not supported to object storage UFS via Alluxio.");
+    // Set owner to Alluxio files that are persisted in UFS will NOT propagate to underlying object.
     sTFS.setOwner(fileA, newOwner, newGroup);
+    Assert.assertNotEquals(newOwner, sUfs.getOwner(PathUtils.concatPath(sUfsRoot, fileA)));
+    Assert.assertNotEquals(newGroup, sUfs.getGroup(PathUtils.concatPath(sUfsRoot, fileA)));
   }
 }

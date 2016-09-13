@@ -2501,22 +2501,23 @@ public final class FileSystemMaster extends AbstractMaster {
         MountTable.Resolution resolution = mMountTable.resolve(inodePath.getUri());
         String ufsUri = resolution.getUri().toString();
         if (CommonUtils.isUfsObjectStorage(ufsUri)) {
-          throw new UnsupportedOperationException(
-              "setOwner/Mode is not supported to object storage UFS via Alluxio. UFS: " + ufsUri);
-        }
-        UnderFileSystem ufs = resolution.getUfs();
-        if (ownerGroupChanged) {
-          try {
-            ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
-          } catch (IOException e) {
-            throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+          LOG.warn("setOwner/setMode is not supported to object storage UFS via Alluxio. "
+              + "UFS: " + ufsUri + ". This has no effect on the underlying object.");
+        } else {
+          UnderFileSystem ufs = resolution.getUfs();
+          if (ownerGroupChanged) {
+            try {
+              ufs.setOwner(ufsUri, inode.getOwner(), inode.getGroup());
+            } catch (IOException e) {
+              throw new AccessControlException("Could not setOwner for UFS file " + ufsUri, e);
+            }
           }
-        }
-        if (permissionChanged) {
-          try {
-            ufs.setMode(ufsUri, inode.getMode());
-          } catch (IOException e) {
-            throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+          if (permissionChanged) {
+            try {
+              ufs.setMode(ufsUri, inode.getMode());
+            } catch (IOException e) {
+              throw new AccessControlException("Could not setMode for UFS file " + ufsUri, e);
+            }
           }
         }
       }
