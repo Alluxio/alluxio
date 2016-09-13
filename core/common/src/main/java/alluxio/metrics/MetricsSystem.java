@@ -266,7 +266,7 @@ public class MetricsSystem {
    * @param <T> the type
    */
   public synchronized static <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
-    if (!mGauges.contains(name)) {
+    if (!METRIC_REGISTRY.getGauges().containsKey(name)) {
       mGauges.add(name);
       METRIC_REGISTRY.register(name, metric);
     }

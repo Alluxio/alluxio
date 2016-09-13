@@ -32,7 +32,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.block.BlockId;
 import alluxio.master.block.BlockMaster;
 import alluxio.master.file.async.AsyncPersistHandler;
@@ -244,26 +243,24 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
-   * @param masterContext the master context
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
    */
-  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal) {
-    this(masterContext, blockMaster, journal,
+  public FileSystemMaster(BlockMaster blockMaster, Journal journal) {
+    this(blockMaster, journal,
         Executors.newFixedThreadPool(2, ThreadFactoryUtils.build("FileSystemMaster-%d", true)));
   }
 
   /**
    * Creates a new instance of {@link FileSystemMaster}.
    *
-   * @param masterContext the master context
    * @param blockMaster the {@link BlockMaster} to use
    * @param journal the journal to use for tracking master operations
    * @param executorService the executor service to use for running maintenance threads
    */
-  public FileSystemMaster(MasterContext masterContext, BlockMaster blockMaster, Journal journal,
+  public FileSystemMaster(BlockMaster blockMaster, Journal journal,
       ExecutorService executorService) {
-    super(masterContext, journal, new SystemClock(), executorService);
+    super(journal, new SystemClock(), executorService);
     mBlockMaster = blockMaster;
 
     mDirectoryIdGenerator = new InodeDirectoryIdGenerator(mBlockMaster);
@@ -2728,6 +2725,7 @@ public final class FileSystemMaster extends AbstractMaster {
     private static final Counter UNMOUNT_OPS_COUNTER =
         MetricsSystem.masterCounter(UNMOUNT_OPS);
 
+    public static String FILES_PINNED = "FilesPinned";
     public static String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
     public static String UFS_CAPACITY_USED = "UfsCapacityUsed";
     public static String UFS_CAPACITY_FREE = "UfsCapacityFree";
@@ -2736,7 +2734,7 @@ public final class FileSystemMaster extends AbstractMaster {
      * Register some file system master related gauges.
      */
     private static void registerGauges(final FileSystemMaster master) {
-      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName("FilesPinned"),
+      MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(FILES_PINNED),
           new Gauge<Integer>() {
             @Override
             public Integer getValue() {

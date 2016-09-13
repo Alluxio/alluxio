@@ -32,20 +32,17 @@ import javax.servlet.http.HttpServletResponse;
  */
 @NotThreadSafe
 public class MetricsServlet implements Sink {
-  private static final String SERVLET_KEY_PATH = "path";
+  private static final String SERVLET_PATH = "/metrics/json";
 
-  private Properties mProperties;
   private MetricRegistry mMetricsRegistry;
   private ObjectMapper mObjectMapper;
 
   /**
    * Creates a new {@link MetricsServlet} with a {@link Properties} and {@link MetricRegistry}.
    *
-   * @param properties the properties which may contain path property
    * @param registry the metric registry to register
    */
-  public MetricsServlet(Properties properties, MetricRegistry registry) {
-    mProperties = properties;
+  public MetricsServlet(MetricRegistry registry) {
     mMetricsRegistry = registry;
     mObjectMapper =
         new ObjectMapper().registerModule(new MetricsModule(TimeUnit.SECONDS,
@@ -75,8 +72,7 @@ public class MetricsServlet implements Sink {
    */
   public ServletContextHandler getHandler() {
     ServletContextHandler contextHandler = new ServletContextHandler();
-    String servletPath = mProperties.getProperty(SERVLET_KEY_PATH);
-    contextHandler.setContextPath(servletPath);
+    contextHandler.setContextPath(SERVLET_PATH);
     contextHandler.addServlet(new ServletHolder(createServlet()), "/");
     return contextHandler;
   }

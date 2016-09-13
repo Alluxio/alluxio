@@ -42,8 +42,7 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
   /** The zookeeper client that handles selecting the leader. */
   private LeaderSelectorClient mLeaderSelectorClient = null;
 
-  public FaultTolerantAlluxioMaster(MasterContext masterContext) {
-    super(masterContext);
+  public FaultTolerantAlluxioMaster() {
     Preconditions.checkArgument(Configuration.getBoolean(PropertyKey.ZOOKEEPER_ENABLED));
 
     // Set up zookeeper specific functionality.
@@ -97,11 +96,10 @@ final class FaultTolerantAlluxioMaster extends AlluxioMaster {
 
           // When transitioning from master to standby, recreate the masters with a read-only
           // journal.
-          mBlockMaster = new BlockMaster(mMasterContext,
-              new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
-          mFileSystemMaster = new FileSystemMaster(mMasterContext,
-              mBlockMaster, new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
-          mLineageMaster = new LineageMaster(mMasterContext,
+          mBlockMaster = new BlockMaster(new ReadOnlyJournal(mBlockMasterJournal.getDirectory()));
+          mFileSystemMaster = new FileSystemMaster(mBlockMaster,
+              new ReadOnlyJournal(mFileSystemMasterJournal.getDirectory()));
+          mLineageMaster = new LineageMaster(
               mFileSystemMaster, new ReadOnlyJournal(mLineageMasterJournal.getDirectory()));
           startMasters(false);
           started = true;
