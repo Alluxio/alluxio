@@ -14,23 +14,32 @@ package alluxio.metrics;
 import alluxio.Configuration;
 import alluxio.Constants;
 import alluxio.PropertyKey;
+import alluxio.collections.ConcurrentHashSet;
 import alluxio.metrics.sink.Sink;
-import alluxio.metrics.source.Source;
 import alluxio.util.network.NetworkAddressUtils;
 
+import com.codahale.metrics.Counter;
+import com.codahale.metrics.Gauge;
+import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricRegistry;
+import com.codahale.metrics.Timer;
+import com.codahale.metrics.jvm.GarbageCollectorMetricSet;
+import com.codahale.metrics.jvm.MemoryUsageGaugeSet;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.GuardedBy;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * A MetricsSystem is created by a specific instance(master, worker). It polls the metrics sources
@@ -39,42 +48,121 @@ import javax.annotation.concurrent.NotThreadSafe;
  * The syntax of the metrics configuration file is:
  * [instance].[sink|source].[name].[options]=[value]
  */
-@NotThreadSafe
+@ThreadSafe
 public class MetricsSystem {
   private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
 
   // Supported special instance names.
   public static final String MASTER_INSTANCE = "master";
   public static final String WORKER_INSTANCE = "worker";
+  public static final String CLIENT_INSTANCE = "client";
+
+  public static final MetricRegistry METRIC_REGISTRY = initMetricRegistry();
+
+  private static final ReentrantLock mSinksLock = new ReentrantLock();
+  @GuardedBy("mSinksLock")
+  private static List<Sink> mSinks;
 
   public static final String SINK_REGEX = "^sink\\.(.+)\\.(.+)";
-  public static final String SOURCE_REGEX = "^source\\.(.+)\\.(.+)";
   private static final TimeUnit MINIMAL_POLL_UNIT = TimeUnit.SECONDS;
   private static final int MINIMAL_POLL_PERIOD = 1;
 
-  private String mInstance;
-  private List<Sink> mSinks = new ArrayList<>();
-  private List<Source> mSources = new ArrayList<>();
-  private MetricRegistry mMetricRegistry = new MetricRegistry();
-  private MetricsConfig mMetricsConfig;
-  private boolean mRunning = false;
+  /**
+   * All the gauges registered.
+   */
+  private static HashSet<String> mGauges = new HashSet<>();
 
   /**
-   * Gets the sinks.
-   *
-   * @return a list of registered Sinks
+   * Start sinks specified in the configuration. This is an no-op if the sinks have already been
+   * started.
+   * Note: This has to be called after Alluxio configuration is initialized.
    */
-  public List<Sink> getSinks() {
-    return mSinks;
+  public static void startSinks() {
+    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
+    MetricsConfig config = new MetricsConfig(metricsConfFile);
+    startSinksFromConfig(config);
   }
 
   /**
-   * Gets the sources. Used by unit tests only.
+   * Start sinks from a given metrics configuration. This is made public for unit test.
    *
-   * @return a list of registered Sources
+   * @param config the metrics config
    */
-  public List<Source> getSources() {
-    return mSources;
+  public static void startSinksFromConfig(MetricsConfig config) {
+    mSinksLock.lock();
+    if (mSinks != null) {
+      LOG.warn("Sinks have already been started.");
+      mSinksLock.unlock();
+      return;
+    }
+
+    Map<String, Properties> sinkConfigs =
+        MetricsConfig.subProperties(config.getProperties(), SINK_REGEX);
+    for (Map.Entry<String, Properties> entry : sinkConfigs.entrySet()) {
+      String classPath = entry.getValue().getProperty("class");
+      if (classPath != null) {
+        try {
+          Sink sink =
+              (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
+                  .newInstance(entry.getValue(), METRIC_REGISTRY);
+          mSinks.add(sink);
+        } catch (Exception e) {
+          LOG.error("Sink class {} cannot be instantiated", classPath, e);
+        }
+      }
+    }
+
+    mSinksLock.unlock();
+  }
+
+  /**
+   * Stop all the sinks.
+   */
+  public static void stopSinks() {
+    mSinksLock.lock();
+    if (mSinks != null) {
+      for (Sink sink : mSinks) {
+        sink.stop();
+      }
+    }
+    mSinks = null;
+    mSinksLock.unlock();
+  }
+
+  /**
+   * @return the number of sinks started
+   */
+  public static int getNumSinks() {
+    int sz = 0;
+    mSinksLock.lock();
+    if (mSinks != null) {
+      sz = mSinks.size();
+    }
+    mSinksLock.unlock();
+    return sz;
+  }
+
+  /**
+   * Build metric registry names without unique ID. The pattern is instance.metricName.
+   *
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getMasterMetricName(String name) {
+    return Joiner.on(".").join(MASTER_INSTANCE, name);
+  }
+
+  /**
+   * Build unique metric registry names with unique ID (set to host name). The pattern is
+   * instance.hostname.metricName.
+   *
+   * @param instance the instance name
+   * @param name the metric name
+   * @return the metric registry name
+   */
+  public static String getMetricName(String instance, String name) {
+    return Joiner.on(".")
+        .join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'), name);
   }
 
   /**
@@ -94,157 +182,6 @@ public class MetricsSystem {
   }
 
   /**
-   * Creates a {@code MetricsSystem} using the default metrics config.
-   *
-   * @param instance the instance name
-   */
-  public MetricsSystem(String instance) {
-    mInstance = instance;
-    String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
-    mMetricsConfig = new MetricsConfig(metricsConfFile);
-  }
-
-  /**
-   * Creates a {@code MetricsSystem} using the given {@code MetricsConfig}.
-   *
-   * @param instance the instance name
-   * @param metricsConfig the {@code MetricsConfig} object
-   */
-  public MetricsSystem(String instance, MetricsConfig metricsConfig) {
-    mInstance = instance;
-    mMetricsConfig = metricsConfig;
-  }
-
-  /**
-   * Build unique metric registry names. The pattern is [master|worker|client].hostname.sourceName.
-   * The hostname is skipped for master.
-   *
-   * @param instance the instance name
-   * @param source the metrics source (e.g. JvmSource, MasterSource)
-   * @return the registry name
-   */
-  public static String buildSourceRegistryName(String instance, Source source) {
-    // Do not add hostname to the master metrics.
-    if (instance.equals(MASTER_INSTANCE)) {
-      return Joiner.on(".").join(instance, source.getName());
-    } else {
-      return Joiner.on(".").join(instance, NetworkAddressUtils.getLocalHostName().replace('.', '_'),
-          source.getName());
-    }
-  }
-
-  /**
-   * Registers a {@link Source}.
-   *
-   * @param source the source to register
-   */
-  public void registerSource(Source source) {
-    mSources.add(source);
-    try {
-      mMetricRegistry
-          .register(buildSourceRegistryName(mInstance, source), source.getMetricRegistry());
-    } catch (IllegalArgumentException e) {
-      LOG.warn("Metrics already registered. Exception: {}", e.getMessage());
-    }
-  }
-
-  /**
-   * Registers all the sources configured in the metrics config.
-   */
-  private void registerSources() {
-    Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
-    Map<String, Properties> sourceConfigs = mMetricsConfig.subProperties(instConfig, SOURCE_REGEX);
-    for (Map.Entry<String, Properties> entry : sourceConfigs.entrySet()) {
-      String classPath = entry.getValue().getProperty("class");
-      if (classPath != null) {
-        try {
-          Source source = (Source) Class.forName(classPath).newInstance();
-          registerSource(source);
-        } catch (Exception e) {
-          LOG.error("Source class {} cannot be instantiated", classPath, e);
-        }
-      }
-    }
-  }
-
-  /**
-   * Registers all the sinks configured in the metrics config.
-   */
-  private void registerSinks() {
-    Properties instConfig = mMetricsConfig.getInstanceProperties(mInstance);
-    Map<String, Properties> sinkConfigs = mMetricsConfig.subProperties(instConfig, SINK_REGEX);
-    for (Map.Entry<String, Properties> entry : sinkConfigs.entrySet()) {
-      String classPath = entry.getValue().getProperty("class");
-      if (classPath != null) {
-        try {
-          Sink sink =
-              (Sink) Class.forName(classPath).getConstructor(Properties.class, MetricRegistry.class)
-                  .newInstance(entry.getValue(), mMetricRegistry);
-          mSinks.add(sink);
-        } catch (Exception e) {
-          LOG.error("Sink class {} cannot be instantiated", classPath, e);
-        }
-      }
-    }
-  }
-
-  /**
-   * Removes a {@link Source}.
-   *
-   * @param source the source to remove
-   */
-  public void removeSource(Source source) {
-    mSources.remove(source);
-    mMetricRegistry.remove(source.getName());
-  }
-
-  /**
-   * Reports metrics values to all sinks.
-   */
-  public void report() {
-    for (Sink sink : mSinks) {
-      sink.report();
-    }
-  }
-
-  /**
-   * Starts the metrics system.
-   */
-  public void start() {
-    if (!mRunning) {
-      registerSources();
-      registerSinks();
-      for (Sink sink : mSinks) {
-        sink.start();
-      }
-      mRunning = true;
-    } else {
-      LOG.warn("Attempting to start a MetricsSystem that is already running");
-    }
-  }
-
-  /**
-   * Stops the metrics system.
-   */
-  public void stop() {
-    if (mRunning) {
-      for (Sink sink : mSinks) {
-        sink.stop();
-      }
-      mRunning = false;
-    } else {
-      LOG.warn("Stopping a MetricsSystem that is not running");
-    }
-  }
-
-  /**
-   * @return the metric registry
-   */
-  public MetricRegistry getMetricRegistry() {
-    return mMetricRegistry;
-  }
-
-  /**
    * Util function to remove get the metrics name without instance and host.
    * @param metricsName the long metrics name with instance and host name
    * @return the metrics name without instance and host name
@@ -259,5 +196,85 @@ public class MetricsSystem {
     }
     pieces[0] = null;
     return Joiner.on(".").skipNulls().join(pieces);
+  }
+
+  // Some helper functions.
+
+  /**
+   * @param name the metric name
+   * @return the timer
+   */
+  public static Timer masterTimer(String name) {
+    return METRIC_REGISTRY.timer(getMasterMetricName(name));
+  }
+  /**
+   * @param name the metric name
+   * @return the counter
+   */
+  public static Counter masterCounter(String name) {
+    return METRIC_REGISTRY.counter((getMasterMetricName(name)));
+  }
+
+  /**
+   * @param name the metric name
+   * @return the timer
+   */
+  public static Timer workerTimer(String name) {
+    return METRIC_REGISTRY.timer(getMetricName(WORKER_INSTANCE, name));
+  }
+  /**
+   * @param name the metric name
+   * @return the counter
+   */
+  public static Counter workerCounter(String name) {
+    return METRIC_REGISTRY.counter((getMetricName(WORKER_INSTANCE, name)));
+  }
+
+  /**
+   * @param name the metric name
+   * @return the timer
+   */
+  public static Timer clientTimer(String name) {
+    return METRIC_REGISTRY.timer(getMetricName(CLIENT_INSTANCE, name));
+  }
+  /**
+   * @param name the metric name
+   * @return the counter
+   */
+  public static Counter clientCounter(String name) {
+    return METRIC_REGISTRY.counter(getMetricName(CLIENT_INSTANCE, name));
+  }
+
+  /**
+   * Initialize the metric registry.
+   *
+   * @return the metric registry
+   */
+  private static MetricRegistry initMetricRegistry() {
+    MetricRegistry metricRegistry = new MetricRegistry();
+    metricRegistry.registerAll(new GarbageCollectorMetricSet());
+    metricRegistry.registerAll(new MemoryUsageGaugeSet());
+    return metricRegistry;
+  }
+
+  /**
+   * Register a gauge if it has not been registered. Register all the gauges with this
+   * function to avoid register the same one multiple times.
+   *
+   * @param name the gauge name
+   * @param metric the gauge
+   * @param <T> the type
+   */
+  public synchronized static <T> void registerGaugeIfAbsent(String name, Gauge<T> metric) {
+    if (!mGauges.contains(name)) {
+      mGauges.add(name);
+      METRIC_REGISTRY.register(name, metric);
+    }
+  }
+
+  /**
+   * Disallow any explicit initialization.
+   */
+  private MetricsSystem() {
   }
 }
