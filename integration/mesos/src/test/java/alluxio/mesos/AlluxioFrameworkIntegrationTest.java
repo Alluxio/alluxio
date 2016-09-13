@@ -41,6 +41,12 @@ import java.util.Map.Entry;
  * running locally and take
  */
 public class AlluxioFrameworkIntegrationTest {
+  private static final String JDK_URL =
+      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
+  private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
+  private static final String ALLUXIO_URL =
+      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/alluxio-1.3.0-SNAPSHOT-bin.tar.gz";
+
   private static void runTests(String mesosAddress) throws Exception {
     System.out.println("Testing preinstalled alluxio + java deployment");
     testMesosDeploy(mesosAddress, ImmutableMap.of(
@@ -48,17 +54,14 @@ public class AlluxioFrameworkIntegrationTest {
         PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED"));
     System.out.println("Testing downloaded alluxio + java deployment");
     testMesosDeploy(mesosAddress,
-        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL,
-            "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz",
-            PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
-            "https://s3-us-west-2.amazonaws.com/alluxio-mesos/alluxio-1.3.0-SNAPSHOT-bin.tar.gz",
-            PropertyKey.INTEGRATION_MESOS_JRE_PATH, "jdk1.7.0_79.jdk/Contents/Home"));
+        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
+            PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, ALLUXIO_URL,
+            PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
     System.out.println("Testing downloaded alluxio + preinstalled java deployment");
     testMesosDeploy(mesosAddress,
-        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL,
-            "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz",
+        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
             PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED",
-            PropertyKey.INTEGRATION_MESOS_JRE_PATH, "jdk1.7.0_79.jdk/Contents/Home"));
+            PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
     System.out.println("Testing downloaded java + preinstalled alluxio deployment");
     testMesosDeploy(mesosAddress,
         ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
@@ -138,6 +141,13 @@ public class AlluxioFrameworkIntegrationTest {
     CommonUtils.sleepMs(10000);
   }
 
+  private static void stopAlluxio() throws Exception {
+    String stopScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
+        "bin", "alluxio-stop.sh");
+    ProcessBuilder pb = new ProcessBuilder(stopScript, "all");
+    pb.start().waitFor();
+  }
+
   public static void main(String[] args) throws Exception {
     if (args.length == 0) {
       System.out.println("Usage: AlluxioFrameworkIntegrationTest MESOS_MASTER_ADDRESS");
@@ -145,6 +155,7 @@ public class AlluxioFrameworkIntegrationTest {
       System.exit(1);
     }
     String mesosAddress = args[0];
+    stopAlluxio();
     stopAlluxioFramework();
     runTests(mesosAddress);
     System.out.println("All tests passed!");
