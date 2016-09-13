@@ -277,14 +277,14 @@ public enum PropertyKey {
   //
   INTEGRATION_MASTER_RESOURCE_CPU(Name.INTEGRATION_MASTER_RESOURCE_CPU, 1),
   INTEGRATION_MASTER_RESOURCE_MEM(Name.INTEGRATION_MASTER_RESOURCE_MEM, "1024MB"),
+  INTEGRATION_MESOS_ALLUXIO_JAR_URL(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
+      "http://downloads.alluxio.org/downloads/files/${alluxio.version}/"
+      + "alluxio-${alluxio.version}-bin.tar.gz"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NAME,
       "AlluxioMaster"),
   INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT(Name.INTEGRATION_MESOS_ALLUXIO_MASTER_NODE_COUNT, 1),
   INTEGRATION_MESOS_ALLUXIO_WORKER_NAME(Name.INTEGRATION_MESOS_ALLUXIO_WORKER_NAME,
       "AlluxioWorker"),
-  INTEGRATION_MESOS_ALLUXIO_JAR_URL(Name.INTEGRATION_MESOS_ALLUXIO_JAR_URL,
-      "http://downloads.alluxio.org/downloads/files/${alluxio.version}/"
-      + "alluxio-${alluxio.version}-bin.tar.gz"),
   INTEGRATION_MESOS_JRE_PATH(Name.INTEGRATION_MESOS_JRE_PATH, "jre1.7.0_79"),
   INTEGRATION_MESOS_JRE_URL(Name.INTEGRATION_MESOS_JRE_URL,
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jre-7u79-linux-x64.tar.gz"),
