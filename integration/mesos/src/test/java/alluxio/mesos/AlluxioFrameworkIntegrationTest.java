@@ -28,6 +28,8 @@ import alluxio.exception.ConnectionFailedException;
 import alluxio.util.CommonUtils;
 import alluxio.util.io.PathUtils;
 
+import com.beust.jcommander.JCommander;
+import com.beust.jcommander.Parameter;
 import com.google.common.base.Function;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
@@ -37,38 +39,49 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * Integration tests for {@link AlluxioFramework}. These tests assume that a mesos cluster is
- * running locally and take
+ * Integration tests for {@link AlluxioFramework}. These tests assume that a Mesos cluster is
+ * running locally.
  */
 public class AlluxioFrameworkIntegrationTest {
   private static final String JDK_URL =
       "https://s3-us-west-2.amazonaws.com/alluxio-mesos/jdk-7u79-macosx-x64.tar.gz";
   private static final String JDK_PATH = "jdk1.7.0_79.jdk/Contents/Home";
-  private static final String ALLUXIO_URL =
-      "https://s3-us-west-2.amazonaws.com/alluxio-mesos/alluxio-1.3.0-SNAPSHOT-bin.tar.gz";
 
-  private static void runTests(String mesosAddress) throws Exception {
-    System.out.println("Testing preinstalled alluxio + java deployment");
-    testMesosDeploy(mesosAddress, ImmutableMap.of(
-        PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
-        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED"));
-    System.out.println("Testing downloaded alluxio + java deployment");
-    testMesosDeploy(mesosAddress,
-        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
-            PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, ALLUXIO_URL,
-            PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
-    System.out.println("Testing downloaded alluxio + preinstalled java deployment");
-    testMesosDeploy(mesosAddress,
-        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
-            PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED",
-            PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
-    System.out.println("Testing downloaded java + preinstalled alluxio deployment");
-    testMesosDeploy(mesosAddress,
-        ImmutableMap.of(PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
-            PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED"));
+  @Parameter(names = {"-m", "--mesos"}, required = true,
+      description = "Address for locally-running Mesos, e.g. localhost:5050")
+  private String mMesosAddress;
+
+  @Parameter(names = {"-a", "--alluxio"}, description = "URL of an Alluxio tarball to test")
+  private String mAlluxioUrl;
+
+  public AlluxioFrameworkIntegrationTest() {}
+
+  private void run() throws Exception {
+    stopAlluxio();
+    stopAlluxioFramework();
+    runTests();
+    System.out.println("All tests passed!");
   }
 
-  private static void testMesosDeploy(String mesosAddress, Map<PropertyKey, String> properties)
+  private void runTests() throws Exception {
+    System.out.println("Testing preinstalled alluxio + java deployment");
+    testMesosDeploy(ImmutableMap.of(
+        PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
+        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED"));
+    System.out.println("Testing preinstalled alluxio + downloaded java deployment");
+    testMesosDeploy(ImmutableMap.of(
+        PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
+        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED",
+        PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
+    if (mAlluxioUrl != null) {
+      System.out.println("Testing downloaded alluxio + preinstalled java deployment");
+      testMesosDeploy(ImmutableMap.of(
+          PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
+          PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, mAlluxioUrl));
+    }
+  }
+
+  private void testMesosDeploy(Map<PropertyKey, String> properties)
       throws Exception {
     StringBuilder alluxioJavaOpts = new StringBuilder(System.getProperty("ALLUXIO_JAVA_OPTS", ""));
     for (Entry<PropertyKey, String> entry : properties.entrySet()) {
@@ -77,7 +90,7 @@ public class AlluxioFrameworkIntegrationTest {
     }
     Map<String, String> env = ImmutableMap.of("ALLUXIO_JAVA_OPTS", alluxioJavaOpts.toString());
     try {
-      startAlluxioFramework(mesosAddress, env);
+      startAlluxioFramework(env);
       System.out.println("Launched Alluxio cluster, waiting for worker to register with master");
       try (final BlockMasterClient client =
           new RetryHandlingBlockMasterClient(ClientContext.getMasterAddress())) {
@@ -105,10 +118,10 @@ public class AlluxioFrameworkIntegrationTest {
     }
   }
 
-  private static void startAlluxioFramework(String mesosAddress, Map<String, String> extraEnv) {
+  private void startAlluxioFramework(Map<String, String> extraEnv) {
     String startScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
         "integration", "bin", "alluxio-mesos.sh");
-    ProcessBuilder pb = new ProcessBuilder(startScript, mesosAddress, "-w");
+    ProcessBuilder pb = new ProcessBuilder(startScript, mMesosAddress, "-w");
     Map<String, String> env = pb.environment();
     env.putAll(extraEnv);
     try {
@@ -137,8 +150,8 @@ public class AlluxioFrameworkIntegrationTest {
         "integration", "bin", "stop-mesos.sh");
     ProcessBuilder pb = new ProcessBuilder(stopScript);
     pb.start().waitFor();
-    // Wait for mesos to unregister and shut down the Alluxio Framework.
-    CommonUtils.sleepMs(10000);
+    // Wait for Mesos to unregister and shut down the Alluxio Framework.
+    CommonUtils.sleepMs(5000);
   }
 
   private static void stopAlluxio() throws Exception {
@@ -149,15 +162,8 @@ public class AlluxioFrameworkIntegrationTest {
   }
 
   public static void main(String[] args) throws Exception {
-    if (args.length == 0) {
-      System.out.println("Usage: AlluxioFrameworkIntegrationTest MESOS_MASTER_ADDRESS");
-      System.out.println("MESOS_MASTER_ADDRESS is of the form 'mesosMasterHostname:5050'");
-      System.exit(1);
-    }
-    String mesosAddress = args[0];
-    stopAlluxio();
-    stopAlluxioFramework();
-    runTests(mesosAddress);
-    System.out.println("All tests passed!");
+    AlluxioFrameworkIntegrationTest test = new AlluxioFrameworkIntegrationTest();
+    new JCommander(test, args);
+    test.run();
   }
 }
