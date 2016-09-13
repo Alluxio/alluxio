@@ -152,8 +152,8 @@ public final class GCSUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.GCS;
+  public String getUnderFSType() {
+    return "gcs";
   }
 
   @Override

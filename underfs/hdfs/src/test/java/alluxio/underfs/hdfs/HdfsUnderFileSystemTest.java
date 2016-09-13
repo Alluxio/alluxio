@@ -13,7 +13,6 @@ package alluxio.underfs.hdfs;
 
 import alluxio.AlluxioURI;
 import alluxio.PropertyKey;
-import alluxio.underfs.UnderFileSystem.UnderFSType;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -26,11 +25,11 @@ import java.net.URI;
  */
 public final class HdfsUnderFileSystemTest {
 
-  private HdfsUnderFileSystem mMockHdfsUnderFileSystem;
+  private HdfsUnderFileSystem mHdfsUnderFileSystem;
 
   @Before
   public final void before() throws Exception {
-    mMockHdfsUnderFileSystem = new HdfsUnderFileSystem(new AlluxioURI("file:///"), null);
+    mHdfsUnderFileSystem = new HdfsUnderFileSystem(new AlluxioURI("file:///"), null);
   }
 
   /**
@@ -39,7 +38,7 @@ public final class HdfsUnderFileSystemTest {
    */
   @Test
   public void getUnderFSType() throws Exception {
-    Assert.assertEquals(UnderFSType.HDFS, mMockHdfsUnderFileSystem.getUnderFSType());
+    Assert.assertEquals("hdfs", mHdfsUnderFileSystem.getUnderFSType());
   }
 
   /**
@@ -50,7 +49,7 @@ public final class HdfsUnderFileSystemTest {
   @Test
   public void prepareConfiguration() throws Exception {
     org.apache.hadoop.conf.Configuration conf = new org.apache.hadoop.conf.Configuration();
-    mMockHdfsUnderFileSystem.prepareConfiguration("", conf);
+    mHdfsUnderFileSystem.prepareConfiguration("", conf);
     Assert.assertEquals("org.apache.hadoop.hdfs.DistributedFileSystem", conf.get("fs.hdfs.impl"));
     Assert.assertTrue(conf.getBoolean("fs.hdfs.impl.disable.cache", false));
     Assert.assertNotNull(conf.get(PropertyKey.UNDERFS_HDFS_CONFIGURATION.toString()));

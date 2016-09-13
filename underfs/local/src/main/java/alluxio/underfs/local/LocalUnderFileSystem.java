@@ -59,8 +59,8 @@ public class LocalUnderFileSystem extends UnderFileSystem {
   }
 
   @Override
-  public UnderFSType getUnderFSType() {
-    return UnderFSType.LOCAL;
+  public String getUnderFSType() {
+    return "local";
   }
 
   @Override
