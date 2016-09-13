@@ -72,7 +72,7 @@ public final class FormatUtils {
   }
 
   /**
-   * Parses a byte array into a space separates hex string where each byte is represented in the
+   * Parses a byte array into a space separated hex string where each byte is represented in the
    * format {@code 0x%02x}.
    *
    * @param bytes the byte array to be transformed
