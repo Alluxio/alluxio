@@ -84,7 +84,7 @@ public final class LineageMasterTest {
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     mLineageMaster.createLineage(Lists.newArrayList(new AlluxioURI("/test1")),
         Lists.newArrayList(new AlluxioURI("/test2")), mJob);
-    Mockito.when(mFileSystemMaster.getPath(Mockito.anyLong())).thenReturn(new AlluxioURI("test"));
+    Mockito.doReturn(new AlluxioURI("test")).when(mFileSystemMaster).getPath(Mockito.anyLong());
     List<LineageInfo> info = mLineageMaster.getLineageInfoList();
     Assert.assertEquals(2, info.size());
   }
@@ -96,7 +96,7 @@ public final class LineageMasterTest {
   @Test
   public void createLineageWithNonExistingFileTest() throws Exception {
     AlluxioURI missingInput = new AlluxioURI("/test1");
-    Mockito.when(mFileSystemMaster.getFileId(missingInput)).thenReturn(-1L);
+    Mockito.doReturn(-1L).when(mFileSystemMaster).getFileId(missingInput);
     // try catch block used because ExpectedExceptionRule conflicts with Powermock
     try {
       mLineageMaster.createLineage(Lists.newArrayList(missingInput),
@@ -166,7 +166,7 @@ public final class LineageMasterTest {
         Lists.newArrayList(new AlluxioURI("/test1")), mJob);
     FileInfo fileInfo = new FileInfo();
     fileInfo.setCompleted(false);
-    Mockito.when(mFileSystemMaster.getFileInfo(Mockito.any(Long.class))).thenReturn(fileInfo);
+    Mockito.doReturn(fileInfo).when(mFileSystemMaster).getFileInfo(Mockito.any(Long.class));
     mLineageMaster.reinitializeFile("/test1", 500L, 10L);
     Mockito.verify(mFileSystemMaster).reinitializeFile(new AlluxioURI("/test1"), 500L, 10L);
   }
