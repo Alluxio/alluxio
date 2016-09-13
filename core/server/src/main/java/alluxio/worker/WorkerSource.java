@@ -11,6 +11,7 @@
 
 package alluxio.worker;
 
+import alluxio.metrics.MetricsSystem;
 import alluxio.metrics.source.Source;
 import alluxio.worker.block.BlockWorker;
 
@@ -51,8 +52,7 @@ public class WorkerSource implements Source {
 
   private boolean mGaugesRegistered = false;
   private final MetricRegistry mMetricRegistry = new MetricRegistry();
-  private final Counter mBlocksAccessed =
-      mMetricRegistry.counter(MetricRegistry.name(BLOCKS_ACCESSED));
+  private static final Counter mBlocksAccessed = MetricsSystem.workerCounter(BLOCKS_ACCESSED);
   private final Counter mBlocksCanceled =
       mMetricRegistry.counter(MetricRegistry.name(BLOCKS_CANCELED));
   private final Counter mBlocksDeleted =
