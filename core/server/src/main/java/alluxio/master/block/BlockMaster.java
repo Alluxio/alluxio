@@ -28,7 +28,6 @@ import alluxio.heartbeat.HeartbeatContext;
 import alluxio.heartbeat.HeartbeatExecutor;
 import alluxio.heartbeat.HeartbeatThread;
 import alluxio.master.AbstractMaster;
-import alluxio.master.MasterContext;
 import alluxio.master.block.meta.MasterBlockInfo;
 import alluxio.master.block.meta.MasterBlockLocation;
 import alluxio.master.block.meta.MasterWorkerInfo;
@@ -178,11 +177,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param masterContext context for the master
    * @param journal the journal to use for tracking master operations
    */
-  public BlockMaster(MasterContext masterContext, Journal journal) {
-    super(masterContext, journal, new SystemClock(), Executors.newFixedThreadPool(2,
+  public BlockMaster(Journal journal) {
+    super(journal, new SystemClock(), Executors.newFixedThreadPool(2,
         ThreadFactoryUtils.build("BlockMaster-%d", true)));
     Metrics.registerGauges(this);
   }
@@ -190,16 +188,14 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Creates a new instance of {@link BlockMaster}.
    *
-   * @param masterContext the master context
    * @param journal the journal to use for tracking master operations
    * @param clock the clock to use for determining the time
    * @param executorService the executor service to use for launching maintenance threads; the
    *        {@link BlockMaster} becomes the owner of the executorService and will shut it down when
    *        the master stops
    */
-  public BlockMaster(MasterContext masterContext, Journal journal, Clock clock,
-      ExecutorService executorService) {
-    super(masterContext, journal, clock, executorService);
+  public BlockMaster(Journal journal, Clock clock, ExecutorService executorService) {
+    super(journal, clock, executorService);
     Metrics.registerGauges(this);
   }
 

@@ -11,7 +11,8 @@
 
 package alluxio.web;
 
-import alluxio.master.MasterSource;
+import alluxio.master.block.BlockMaster;
+import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
 import alluxio.util.CommonUtils;
 
@@ -19,7 +20,6 @@ import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
 import com.codahale.metrics.MetricFilter;
 import com.codahale.metrics.MetricRegistry;
-import com.google.common.base.Preconditions;
 
 import java.io.IOException;
 import java.util.Map;
@@ -37,17 +37,6 @@ import javax.servlet.http.HttpServletResponse;
 public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {
 
   private static final long serialVersionUID = -1481253168100363787L;
-  private final transient MetricsSystem mMasterMetricsSystem;
-
-  /**
-   * Creates a new instance of {@link WebInterfaceMasterMetricsServlet}.
-   *
-   * @param masterMetricsSystem Alluxio master metric system
-   */
-  public WebInterfaceMasterMetricsServlet(MetricsSystem masterMetricsSystem) {
-    super();
-    mMasterMetricsSystem = Preconditions.checkNotNull(masterMetricsSystem);
-  }
 
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.
@@ -78,14 +67,13 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
    * @throws IOException if an I/O error occurs
    */
   private void populateValues(HttpServletRequest request) throws IOException {
-    MetricRegistry mr = mMasterMetricsSystem.getMetricRegistry();
-
-    String registryName =  MetricsSystem.MASTER_INSTANCE + "." + MasterSource.MASTER_SOURCE_NAME;
+    MetricRegistry mr = MetricsSystem.METRIC_REGISTRY;
+    String registryName =  MetricsSystem.MASTER_INSTANCE;
 
     Long masterCapacityTotal = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", registryName, MasterSource.CAPACITY_TOTAL)).getValue();
+        .get(CommonUtils.argsToString(".", registryName, BlockMaster.Metrics.CAPACITY_TOTAL)).getValue();
     Long masterCapacityUsed = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", registryName, MasterSource.CAPACITY_USED)).getValue();
+        .get(CommonUtils.argsToString(".", registryName, BlockMaster.Metrics.CAPACITY_USED)).getValue();
 
     int masterCapacityUsedPercentage =
         (masterCapacityTotal > 0) ? (int) (100L * masterCapacityUsed / masterCapacityTotal) : 0;
@@ -93,10 +81,10 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     request.setAttribute("masterCapacityFreePercentage", 100 - masterCapacityUsedPercentage);
 
     Long masterUnderfsCapacityTotal = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", registryName, MasterSource.UFS_CAPACITY_TOTAL))
+        .get(CommonUtils.argsToString(".", registryName, FileSystemMaster.Metrics.UFS_CAPACITY_TOTAL))
         .getValue();
     Long masterUnderfsCapacityUsed = (Long) mr.getGauges()
-        .get(CommonUtils.argsToString(".", registryName, MasterSource.UFS_CAPACITY_USED))
+        .get(CommonUtils.argsToString(".", registryName, FileSystemMaster.Metrics.UFS_CAPACITY_USED))
         .getValue();
 
     int masterUnderfsCapacityUsedPercentage = (masterUnderfsCapacityTotal > 0)
@@ -127,7 +115,7 @@ public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstract
     }
     operations.putAll(counters);
     String filesPinnedProperty =
-        CommonUtils.argsToString(".", registryName, MasterSource.FILES_PINNED);
+        CommonUtils.argsToString(".", registryName, FileSystemMaster.Metrics.FILES_PINNED);
     operations.put(MetricsSystem.stripInstanceAndHost(filesPinnedProperty),
         mr.getGauges().get(filesPinnedProperty));
 
