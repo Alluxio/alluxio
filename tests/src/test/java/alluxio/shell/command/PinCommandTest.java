@@ -36,7 +36,7 @@ public final class PinCommandTest extends AbstractAlluxioShellTest {
       HeartbeatContext.WORKER_PIN_LIST_SYNC);
 
   /**
-   * Tests the "pin" and "unpin" commands. Creates a file and tests if unpinning it , then pinning
+   * Tests the "pin" and "unpin" commands. Creates a file and tests unpinning it, then pinning
    * it and finally unpinning
    */
   @Test
