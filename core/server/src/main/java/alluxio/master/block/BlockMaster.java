@@ -851,9 +851,9 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
    * Class that contains metrics related to BlockMaster.
    */
   public final static class Metrics {
-    public static String CAPACITY_TOTAL = "CapacityTotal";
-    public static String CAPACITY_USED = "CapacityUsed";
-    public static String CAPACITY_FREE = "CapacityFree";
+    public static final String CAPACITY_TOTAL = "CapacityTotal";
+    public static final String CAPACITY_USED = "CapacityUsed";
+    public static final String CAPACITY_FREE = "CapacityFree";
 
     private static void registerGauges(final BlockMaster master) {
       MetricsSystem.registerGaugeIfAbsent(MetricsSystem.getMasterMetricName(CAPACITY_TOTAL),
@@ -888,5 +888,10 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
             }
           });
     }
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }

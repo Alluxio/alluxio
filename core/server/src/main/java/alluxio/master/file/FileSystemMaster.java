@@ -230,8 +230,6 @@ public final class FileSystemMaster extends AbstractMaster {
   @SuppressFBWarnings("URF_UNREAD_FIELD")
   private Future<?> mLostFilesDetectionService;
 
-
-
   /**
    * @param baseDirectory the base journal directory
    * @return the journal directory for this master
@@ -274,7 +272,7 @@ public final class FileSystemMaster extends AbstractMaster {
     mPermissionChecker = new PermissionChecker(mInodeTree);
 
     Metrics.registerGauges(this);
- }
+  }
 
   @Override
   public Map<String, TProcessor> getServices() {
@@ -2681,10 +2679,10 @@ public final class FileSystemMaster extends AbstractMaster {
     private static final Counter SET_ATTRIBUTE_OPS = MetricsSystem.masterCounter("SetAttributeOps");
     private static final Counter UNMOUNT_OPS = MetricsSystem.masterCounter("UnmountOps");
 
-    public static String FILES_PINNED = "FilesPinned";
-    public static String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
-    public static String UFS_CAPACITY_USED = "UfsCapacityUsed";
-    public static String UFS_CAPACITY_FREE = "UfsCapacityFree";
+    public static final String FILES_PINNED = "FilesPinned";
+    public static final String UFS_CAPACITY_TOTAL = "UfsCapacityTotal";
+    public static final String UFS_CAPACITY_USED = "UfsCapacityUsed";
+    public static final String UFS_CAPACITY_FREE = "UfsCapacityFree";
 
     /**
      * Register some file system master related gauges.
@@ -2748,5 +2746,10 @@ public final class FileSystemMaster extends AbstractMaster {
             }
           });
     }
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }

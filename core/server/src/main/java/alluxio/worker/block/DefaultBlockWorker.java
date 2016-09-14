@@ -446,10 +446,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
    */
   @ThreadSafe
   public static final class Metrics {
-    public static String CAPACITY_TOTAL = "CapacityTotal";
-    public static String CAPACITY_USED = "CapacityUsed";
-    public static String CAPACITY_FREE = "CapacityFree";
-    public static String BLOCKS_CACHED = "BlocksCached";
+    public static final String CAPACITY_TOTAL = "CapacityTotal";
+    public static final String CAPACITY_USED = "CapacityUsed";
+    public static final String CAPACITY_FREE = "CapacityFree";
+    public static final String BLOCKS_CACHED = "BlocksCached";
 
     /**
      * Registers metric gauges.
@@ -490,5 +490,10 @@ public final class DefaultBlockWorker extends AbstractWorker implements BlockWor
             }
           });
     }
+
+    /**
+     * No instantiation.
+     */
+    private Metrics() {}
   }
 }
