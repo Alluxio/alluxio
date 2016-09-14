@@ -16,7 +16,6 @@ import static alluxio.worker.block.DefaultBlockWorker.Metrics.CAPACITY_TOTAL;
 import static alluxio.worker.block.DefaultBlockWorker.Metrics.CAPACITY_USED;
 
 import alluxio.metrics.MetricsSystem;
-import alluxio.worker.block.DefaultBlockWorker;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
@@ -36,6 +35,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 public final class WebInterfaceWorkerMetricsServlet extends WebInterfaceAbstractMetricsServlet {
   private static final long serialVersionUID = -1481253168100363787L;
+
+  /**
+   * Creates a {@link WebInterfaceWorkerMetricsServlet} instance.
+   */
+  public WebInterfaceWorkerMetricsServlet() {
+    super();
+  }
 
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.

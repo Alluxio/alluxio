@@ -113,7 +113,7 @@ public final class AlluxioMasterRestApiTest extends RestApiTest {
     Map<String, Long> metrics = new ObjectMapper().readValue(result,
         new TypeReference<Map<String, Long>>() {});
 
-    Assert.assertEquals(Long.valueOf(0), metrics.get("master.master.CompleteFileOps"));
+    Assert.assertEquals(Long.valueOf(0), metrics.get("master.CompleteFileOps"));
   }
 
   @Test
