@@ -17,9 +17,7 @@ import static alluxio.master.file.FileSystemMaster.Metrics.FILES_PINNED;
 import static alluxio.master.file.FileSystemMaster.Metrics.UFS_CAPACITY_TOTAL;
 import static alluxio.master.file.FileSystemMaster.Metrics.UFS_CAPACITY_USED;
 
-import alluxio.master.file.FileSystemMaster;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
 
 import com.codahale.metrics.Counter;
 import com.codahale.metrics.Metric;
@@ -40,8 +38,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 @ThreadSafe
 public final class WebInterfaceMasterMetricsServlet extends WebInterfaceAbstractMetricsServlet {
-
   private static final long serialVersionUID = -1481253168100363787L;
+
+  /**
+   * Create a {@link WebInterfaceMasterMetricsServlet} instance.
+   */
+  public WebInterfaceMasterMetricsServlet() {
+    super();
+  }
 
   /**
    * Redirects the request to a JSP after populating attributes via populateValues.

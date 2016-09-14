@@ -159,8 +159,10 @@ public final class LocalBlockOutStream extends BufferedBlockOutStream {
    */
   @ThreadSafe
   private static final class Metrics {
-    private static final Counter BLOCKS_WRITTEN_LOCAL = MetricsSystem.clientCounter("BlocksWrittenLocal");
-    private static final Counter BYTES_WRITTEN_LOCAL = MetricsSystem.clientCounter("BytesWrittenLocal");
+    private static final Counter BLOCKS_WRITTEN_LOCAL =
+        MetricsSystem.clientCounter("BlocksWrittenLocal");
+    private static final Counter BYTES_WRITTEN_LOCAL =
+        MetricsSystem.clientCounter("BytesWrittenLocal");
 
     /**
      * No instantiation.

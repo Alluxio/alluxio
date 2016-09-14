@@ -20,7 +20,6 @@ import alluxio.worker.Worker;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 /**
  * Interface representing a file system worker.
