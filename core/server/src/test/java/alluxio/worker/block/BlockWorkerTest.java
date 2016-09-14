@@ -20,7 +20,6 @@ import static org.mockito.Mockito.when;
 
 import alluxio.Configuration;
 import alluxio.ConfigurationTestUtils;
-import alluxio.Constants;
 import alluxio.PropertyKey;
 import alluxio.Sessions;
 import alluxio.exception.BlockAlreadyExistsException;
@@ -47,8 +46,6 @@ import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -442,11 +439,8 @@ public class BlockWorkerTest {
   public void sessionHeartbeat() {
     long sessionId = mRandom.nextLong();
     long metricIncrease = 3;
-    List<Long> metrics = Arrays.asList(new Long[Constants.CLIENT_METRICS_SIZE]);
-    Collections.fill(metrics, metricIncrease);
-    metrics.set(0, Constants.CLIENT_METRICS_VERSION);
 
-    mBlockWorker.sessionHeartbeat(sessionId, metrics);
+    mBlockWorker.sessionHeartbeat(sessionId, null);
     verify(mSessions).sessionHeartbeat(sessionId);
     Counter counter = WorkerContext.getWorkerSource().getMetricRegistry().getCounters()
         .get(WorkerSource.BLOCKS_READ_LOCAL);

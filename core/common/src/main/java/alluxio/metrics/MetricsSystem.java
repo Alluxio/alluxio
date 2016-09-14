@@ -79,6 +79,10 @@ public class MetricsSystem {
    */
   public static void startSinks() {
     String metricsConfFile = Configuration.get(PropertyKey.METRICS_CONF_FILE);
+    if (metricsConfFile.isEmpty()) {
+      LOG.info("Metrics is not enabled.");
+      return;
+    }
     MetricsConfig config = new MetricsConfig(metricsConfFile);
     startSinksFromConfig(config);
   }

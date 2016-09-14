@@ -14,15 +14,18 @@ package alluxio.client.block;
 import alluxio.client.RemoteBlockReader;
 import alluxio.exception.ConnectionFailedException;
 import alluxio.exception.ExceptionMessage;
+import alluxio.metrics.MetricsSystem;
 import alluxio.wire.LockBlockResult;
 import alluxio.wire.WorkerNetAddress;
-import alluxio.worker.ClientMetrics;
+
+import com.codahale.metrics.Counter;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.annotation.concurrent.ThreadSafe;
 
 /**
  * This class provides a streaming API to read a block in Alluxio. The data will be transferred
@@ -41,7 +44,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   private final BlockWorkerClient mBlockWorkerClient;
   /** The block store context which provides block worker clients. */
   private final BlockStoreContext mContext;
-  private final ClientMetrics mMetrics;
 
   /**
    * Creates a new remote block input stream.
@@ -68,7 +70,6 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
         throw new IOException(ExceptionMessage.BLOCK_UNAVAILABLE.getMessage(blockId));
       }
       mLockId = result.getLockId();
-      mMetrics = mBlockWorkerClient.getClientMetrics();
     } catch (IOException e) {
       mContext.releaseWorkerClient(mBlockWorkerClient);
       throw e;
@@ -78,7 +79,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
   @Override
   public void seek(long pos) throws IOException {
     super.seek(pos);
-    mMetrics.incSeeksRemote(1);
+    Metrics.SEEKS_REMOTE.inc();
   }
 
   @Override
@@ -88,7 +89,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
 
     if (mBlockIsRead) {
-      mMetrics.incBlocksReadRemote(1);
+      Metrics.BLOCKS_READ_REMOTE.inc();
     }
     try {
       mBlockWorkerClient.unlockBlock(mBlockId);
@@ -119,7 +120,7 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
    */
   @Override
   protected void incrementBytesReadMetric(int bytes) {
-    mMetrics.incBytesReadRemote(bytes);
+    Metrics.BYTES_READ_REMOTE.inc(bytes);
   }
 
   /**
@@ -155,5 +156,16 @@ public final class RemoteBlockInStream extends BufferedBlockInStream {
     }
 
     return toRead;
+  }
+
+  /**
+   * Class that contains metrics about RemoteBlockInStream.
+   */
+  @ThreadSafe
+  static final class Metrics {
+    private static final Counter BLOCKS_READ_REMOTE =
+        MetricsSystem.clientCounter("BlocksReadRemote");
+    private static final Counter BYTES_READ_REMOTE = MetricsSystem.clientCounter("BytesReadRemote");
+    private static final Counter SEEKS_REMOTE = MetricsSystem.clientCounter("SeeksRemote");
   }
 }

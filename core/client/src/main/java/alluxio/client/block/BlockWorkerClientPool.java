@@ -31,7 +31,6 @@ import javax.annotation.concurrent.ThreadSafe;
  */
 @ThreadSafe
 final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
-  private static final Logger LOG = LoggerFactory.getLogger(Constants.LOGGER_TYPE);
   /**
    * The capacity for this pool must be large, since each block written will hold a client until
    * the block is committed at the end of the file completion.
@@ -55,12 +54,6 @@ final class BlockWorkerClientPool extends ResourcePool<BlockWorkerClient> {
 
   @Override
   public void release(BlockWorkerClient blockWorkerClient) {
-    try {
-      // Heartbeat to send the client metrics.
-      blockWorkerClient.sessionHeartbeat();
-    } catch (Exception e) {
-      LOG.warn("Failed sending client metrics before releasing the worker client", e);
-    }
     blockWorkerClient.createNewSession(IdUtils.getRandomNonNegativeLong());
     super.release(blockWorkerClient);
   }
