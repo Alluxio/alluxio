@@ -51,7 +51,8 @@ public class AlluxioFrameworkIntegrationTest {
       description = "Address for locally-running Mesos, e.g. localhost:5050")
   private String mMesosAddress;
 
-  @Parameter(names = {"-a", "--alluxio"}, description = "URL of an Alluxio tarball to test")
+  @Parameter(names = {"-a", "--alluxio"},
+      description = "URL of an Alluxio tarball to test. Otherwise only test local Alluxio")
   private String mAlluxioUrl;
 
   public AlluxioFrameworkIntegrationTest() {}
@@ -64,19 +65,19 @@ public class AlluxioFrameworkIntegrationTest {
   }
 
   private void runTests() throws Exception {
-    System.out.println("Testing preinstalled alluxio + java deployment");
+    System.out.println("Testing deployment with preinstalled alluxio and jdk");
     testMesosDeploy(ImmutableMap.of(
-        PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
-        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED"));
-    System.out.println("Testing preinstalled alluxio + downloaded java deployment");
+        PropertyKey.INTEGRATION_MESOS_JRE_URL, Constants.MESOS_LOCAL_INSTALL,
+        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL));
+    System.out.println("Testing deployment with downloaded jdk");
     testMesosDeploy(ImmutableMap.of(
         PropertyKey.INTEGRATION_MESOS_JRE_URL, JDK_URL,
-        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, "PREINSTALLED",
+        PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, Constants.MESOS_LOCAL_INSTALL,
         PropertyKey.INTEGRATION_MESOS_JRE_PATH, JDK_PATH));
     if (mAlluxioUrl != null) {
-      System.out.println("Testing downloaded alluxio + preinstalled java deployment");
+      System.out.println("Testing deployment with download Alluxio");
       testMesosDeploy(ImmutableMap.of(
-          PropertyKey.INTEGRATION_MESOS_JRE_URL, "PREINSTALLED",
+          PropertyKey.INTEGRATION_MESOS_JRE_URL, Constants.MESOS_LOCAL_INSTALL,
           PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL, mAlluxioUrl));
     }
   }
@@ -109,7 +110,7 @@ public class AlluxioFrameworkIntegrationTest {
               throw Throwables.propagate(e);
             }
           }
-        }, 300 * Constants.SECOND_MS);
+        }, 900 * Constants.SECOND_MS);
       }
       System.out.println("Worker registered");
       basicAlluxioTests();
@@ -147,7 +148,7 @@ public class AlluxioFrameworkIntegrationTest {
 
   private static void stopAlluxioFramework() throws Exception {
     String stopScript = PathUtils.concatPath(Configuration.get(PropertyKey.HOME),
-        "integration", "bin", "stop-mesos.sh");
+        "integration", "bin", "stop-alluxio-framework.sh");
     ProcessBuilder pb = new ProcessBuilder(stopScript);
     pb.start().waitFor();
     // Wait for Mesos to unregister and shut down the Alluxio Framework.

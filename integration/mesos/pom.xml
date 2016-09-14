@@ -58,6 +58,11 @@
       <artifactId>alluxio-underfs-hdfs</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.beust</groupId>
+      <artifactId>jcommander</artifactId>
+      <scope>test</scope>
+    </dependency>
 
     <!-- Other projects' test-jars -->
     <dependency>
@@ -67,7 +72,6 @@
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
 
   <build>
