@@ -17,11 +17,11 @@ import alluxio.PropertyKey;
 import alluxio.util.FormatUtils;
 import alluxio.util.io.PathUtils;
 
-import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.CommandInfo;
+import org.apache.mesos.Protos.CommandInfo.URI;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.slf4j.Logger;
@@ -97,8 +97,14 @@ public class AlluxioFramework {
     }
 
     @Override
-    public void registered(SchedulerDriver driver, Protos.FrameworkID frameworkId,
+    public void registered(final SchedulerDriver driver, Protos.FrameworkID frameworkId,
         Protos.MasterInfo masterInfo) {
+      Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+        @Override
+        public void run() {
+          driver.stop();
+        }
+      }));
       LOG.info("Registered framework {} with master {}:{}",
           frameworkId.getValue(), masterInfo.getHostname(), masterInfo.getPort());
     }
@@ -155,13 +161,7 @@ public class AlluxioFramework {
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
-                      .setValue(
-                          "export JAVA_HOME="
-                              + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH)
-                              + " && export PATH=$PATH:$JAVA_HOME/bin && "
-                              + "mv alluxio-* alluxio && "
-                              + PathUtils.concatPath("alluxio", "integration", "bin",
-                              "alluxio-master-mesos.sh"))
+                      .setValue(createStartAlluxioCommand("alluxio-master-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
                           Protos.Environment
@@ -192,13 +192,7 @@ public class AlluxioFramework {
               .setCommand(
                   Protos.CommandInfo
                       .newBuilder()
-                      .setValue(
-                          "export JAVA_HOME="
-                              + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH)
-                              + " && export PATH=$PATH:$JAVA_HOME/bin && "
-                              + "mv alluxio-* alluxio && "
-                              + PathUtils.concatPath("alluxio", "integration", "bin",
-                              "alluxio-worker-mesos.sh"))
+                      .setValue(createStartAlluxioCommand("alluxio-worker-mesos.sh"))
                       .addAllUris(getExecutorDependencyURIList())
                       .setEnvironment(
                           Protos.Environment
@@ -257,6 +251,27 @@ public class AlluxioFramework {
         Protos.Filters filters = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
         driver.acceptOffers(offerIds, operations, filters);
       }
+    }
+
+    private String createStartAlluxioCommand(String command) {
+      StringBuilder cmd = new StringBuilder();
+      cmd.append(String.format("echo 'Starting Alluxio with %s'", command));
+      if (installJavaFromUrl()) {
+        cmd.append(
+            " && export JAVA_HOME=" + Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_PATH));
+        cmd.append(" && export PATH=$PATH:$JAVA_HOME/bin");
+      }
+
+      // If a jar is supplied, start Alluxio from the jar. Otherwise assume that Alluxio is already
+      // installed at PropertyKey.HOME.
+      if (installAlluxioFromUrl()) {
+        cmd.append(" && mv alluxio-* alluxio");
+        cmd.append(" && " + PathUtils.concatPath("alluxio", "integration", "bin", command));
+      } else {
+        cmd.append(" && " + PathUtils.concatPath(Configuration.get(PropertyKey.HOME), "integration",
+            "bin", command));
+      }
+      return cmd.toString();
     }
 
     @Override
@@ -373,19 +388,34 @@ public class AlluxioFramework {
   }
 
   private static List<CommandInfo.URI> getExecutorDependencyURIList() {
-    String dependencyPath =
-        Configuration.get(PropertyKey.INTEGRATION_MESOS_EXECUTOR_DEPENDENCY_PATH);
-    return Lists.newArrayList(
-        CommandInfo.URI.newBuilder()
-            .setValue(PathUtils.concatPath(dependencyPath, "alluxio.tar.gz")).setExtract(true)
-            .build(), CommandInfo.URI.newBuilder()
-            .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_URL)).setExtract(true)
-            .build());
+    List<URI> dependencies = new ArrayList<>();
+    if (installJavaFromUrl()) {
+      dependencies.add(CommandInfo.URI.newBuilder()
+          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_JRE_URL)).setExtract(true)
+          .build());
+    }
+    if (installAlluxioFromUrl()) {
+      dependencies.add(CommandInfo.URI.newBuilder()
+          .setValue(Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL))
+          .setExtract(true).build());
+    }
+    return dependencies;
+  }
+
+  private static boolean installJavaFromUrl() {
+    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_JRE_URL) && !Configuration
+        .get(PropertyKey.INTEGRATION_MESOS_JRE_URL).equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
+  }
+
+  private static boolean installAlluxioFromUrl() {
+    return Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
+        && !Configuration.get(PropertyKey.INTEGRATION_MESOS_ALLUXIO_JAR_URL)
+            .equalsIgnoreCase(Constants.MESOS_LOCAL_INSTALL);
   }
 
   private static Protos.Credential createCredential() {
-
-    if (!Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)) {
+    if (!(Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_PRINCIPAL)
+        && Configuration.containsKey(PropertyKey.INTEGRATION_MESOS_SECRET))) {
       return null;
     }
 
@@ -443,9 +473,6 @@ public class AlluxioFramework {
     }
 
     int status = driver.run() == Protos.Status.DRIVER_STOPPED ? 0 : 1;
-
-    // Ensure that the driver process terminates.
-    driver.stop();
 
     System.exit(status);
   }
