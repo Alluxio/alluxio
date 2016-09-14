@@ -38,7 +38,7 @@ import java.util.concurrent.Executors;
 public final class BlockWorkerClientAuthenticationIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
   private ExecutorService mExecutorService;
 
   @Rule

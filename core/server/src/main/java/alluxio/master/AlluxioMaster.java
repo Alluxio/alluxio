@@ -282,7 +282,7 @@ public class AlluxioMaster implements Server {
 
       // The web server needs to be created at the end of the constructor because it needs a
       // reference to this class.
-      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB,
+      mWebServer = new MasterUIWebServer(ServiceType.MASTER_WEB.getServiceName(),
           NetworkAddressUtils.getBindAddress(ServiceType.MASTER_WEB), this);
       // reset master web port
       Configuration.set(PropertyKey.MASTER_WEB_PORT, Integer.toString(mWebServer.getLocalPort()));

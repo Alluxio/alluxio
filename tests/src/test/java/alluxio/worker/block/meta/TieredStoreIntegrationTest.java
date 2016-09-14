@@ -55,10 +55,14 @@ public class TieredStoreIntegrationTest {
 
   @Rule
   public ExpectedException mThrown = ExpectedException.none();
+
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource(MEM_CAPACITY_BYTES, 1000)
-          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100));
+      new LocalAlluxioClusterResource.Builder()
+          .setProperty(PropertyKey.WORKER_MEMORY_SIZE, MEM_CAPACITY_BYTES)
+          .setProperty(PropertyKey.USER_BLOCK_SIZE_BYTES_DEFAULT, 1000)
+          .setProperty(PropertyKey.USER_FILE_BUFFER_BYTES, String.valueOf(100))
+          .build();
 
   @Before
   public final void before() throws Exception {
@@ -72,7 +76,7 @@ public class TieredStoreIntegrationTest {
    */
   @Test
   public void deleteWhileRead() throws Exception {
-    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10,    TimeUnit.SECONDS);
+    HeartbeatScheduler.await(HeartbeatContext.WORKER_BLOCK_SYNC, 10, TimeUnit.SECONDS);
 
     AlluxioURI file = new AlluxioURI("/test1");
     FileSystemTestUtils.createByteFile(mFileSystem, file, WriteType.MUST_CACHE, MEM_CAPACITY_BYTES);

@@ -32,7 +32,7 @@ import java.util.List;
 public final class BlockStoreContextIntegrationTest {
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   /**
    * This test ensures acquiring all the available BlockStore master clients blocks further

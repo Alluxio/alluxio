@@ -43,11 +43,18 @@ public class WebServerIntegrationTest {
 
   @Rule
   public LocalAlluxioClusterResource mLocalAlluxioClusterResource =
-      new LocalAlluxioClusterResource();
+      new LocalAlluxioClusterResource.Builder().build();
 
   private void verifyWebService(ServiceType serviceType, String path)
       throws IOException {
-    InetSocketAddress webAddr = NetworkAddressUtils.getConnectAddress(serviceType);
+    int port;
+    if (serviceType == ServiceType.MASTER_WEB) {
+      port = mLocalAlluxioClusterResource.get().getMaster().getWebLocalPort();
+    } else {
+      port = mLocalAlluxioClusterResource.get().getWorker().getWebLocalPort();
+    }
+    InetSocketAddress webAddr =
+        new InetSocketAddress(NetworkAddressUtils.getConnectHost(serviceType), port);
     HttpURLConnection webService = (HttpURLConnection) new URL(
         "http://" + webAddr.getAddress().getHostAddress() + ":"
         + webAddr.getPort() + path).openConnection();

@@ -11,12 +11,8 @@
 
 package alluxio.master;
 
-import alluxio.Configuration;
-import alluxio.PropertyKey;
 import alluxio.client.file.FileSystem;
 import alluxio.exception.ConnectionFailedException;
-import alluxio.util.network.NetworkAddressUtils;
-import alluxio.util.network.NetworkAddressUtils.ServiceType;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.AlluxioWorkerService;
 
@@ -43,11 +39,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   private LocalAlluxioMaster mMaster;
 
   /**
-   * @param workerCapacityBytes the capacity of the worker in bytes
-   * @param userBlockSize the block size for a user
+   * Runs a test Alluxio cluster with a single Alluxio worker.
    */
-  public LocalAlluxioCluster(long workerCapacityBytes, int userBlockSize) {
-    super(workerCapacityBytes, userBlockSize);
+  public LocalAlluxioCluster() {
+    super(1);
+  }
+
+  /**
+   * @param numWorkers the number of workers to run
+   */
+  public LocalAlluxioCluster(int numWorkers) {
+    super(numWorkers);
   }
 
   @Override
@@ -75,9 +77,9 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the port of the master
+   * @return the RPC port of the master
    */
-  public int getMasterPort() {
+  public int getMasterRpcPort() {
     return mMaster.getRPCLocalPort();
   }
 
@@ -89,21 +91,17 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   /**
-   * @return the worker
+   * @return the first worker
    */
   public AlluxioWorkerService getWorker() {
-    return mWorker;
+    return mWorkers.get(0);
   }
 
   /**
-   * @return the address of the worker
+   * @return the address of the first worker
    */
   public WorkerNetAddress getWorkerAddress() {
-    return new WorkerNetAddress()
-        .setHost(NetworkAddressUtils.getConnectHost(ServiceType.WORKER_RPC))
-        .setRpcPort(Configuration.getInt(PropertyKey.WORKER_RPC_PORT))
-        .setDataPort(Configuration.getInt(PropertyKey.WORKER_DATA_PORT))
-        .setWebPort(Configuration.getInt(PropertyKey.WORKER_WEB_PORT));
+    return getWorker().getAddress();
   }
 
   @Override
@@ -113,29 +111,21 @@ public final class LocalAlluxioCluster extends AbstractLocalAlluxioCluster {
   }
 
   @Override
-  protected void startWorker() throws IOException, ConnectionFailedException {
+  protected void startWorkers() throws IOException, ConnectionFailedException {
     // We need to update the worker context with the most recent configuration so they know the
     // correct port to connect to master.
-    runWorker();
+    runWorkers();
   }
 
   @Override
   public void stopFS() throws Exception {
     LOG.info("stop Alluxio filesystem");
 
-    // Stopping Worker before stopping master speeds up tests
-    mWorker.stop();
+    // Stopping Workers before stopping master speeds up tests
+    for (AlluxioWorkerService worker : mWorkers) {
+      worker.stop();
+    }
     mMaster.stop();
-  }
-
-  /**
-   * Cleans up the worker state from the master and stops the worker.
-   *
-   * @throws Exception when the operation fails
-   */
-  public void stopWorker() throws Exception {
-    mMaster.clearClients();
-    mWorker.stop();
   }
 
   @Override

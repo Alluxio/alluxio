@@ -17,6 +17,7 @@ import alluxio.Sessions;
 import alluxio.StorageTierAssoc;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.exception.AlluxioException;
+import alluxio.web.WorkerUIWebServer;
 import alluxio.wire.LockBlockResult;
 import alluxio.worker.AlluxioWorkerService;
 import alluxio.worker.block.io.BlockReader;
@@ -31,12 +32,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import javax.servlet.ServletContext;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -63,14 +66,17 @@ public final class BlockWorkerClientRestServiceHandler {
   public static final String UNLOCK_BLOCK = "unlock_block";
   public static final String WRITE_BLOCK = "write_block";
 
-  private final BlockWorker mBlockWorker = AlluxioWorkerService.Factory.get().getBlockWorker();
-  private final StorageTierAssoc mStorageTierAssoc = new WorkerStorageTierAssoc();
+  private final BlockWorker mBlockWorker;
+  private final StorageTierAssoc mStorageTierAssoc;
 
   /**
-   * Constructs a new {@link BlockWorkerClientRestServiceHandler}.
+   * @param context context for the servlet
    */
-  public BlockWorkerClientRestServiceHandler() {}
-
+  public BlockWorkerClientRestServiceHandler(@Context ServletContext context) {
+    mBlockWorker = ((AlluxioWorkerService) context
+        .getAttribute(WorkerUIWebServer.ALLUXIO_WORKER_SERVLET_RESOURCE_KEY)).getBlockWorker();
+    mStorageTierAssoc = new WorkerStorageTierAssoc();
+  }
   /**
    * @summary get the service name
    * @return the response object
