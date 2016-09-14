@@ -2647,7 +2647,7 @@ public final class FileSystemMaster extends AbstractMaster {
   /**
    * Class that contains metrics for FileSystemMaster.
    */
-  public final static class Metrics {
+  public static final class Metrics {
     private static final Counter DIRECTORIES_CREATED =
         MetricsSystem.masterCounter("DirectoriesCreated");
     private static final Counter FILE_BLOCK_INFOS_GOT =

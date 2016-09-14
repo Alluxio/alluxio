@@ -850,7 +850,7 @@ public final class BlockMaster extends AbstractMaster implements ContainerIdGene
   /**
    * Class that contains metrics related to BlockMaster.
    */
-  public final static class Metrics {
+  public static final class Metrics {
     public static final String CAPACITY_TOTAL = "CapacityTotal";
     public static final String CAPACITY_USED = "CapacityUsed";
     public static final String CAPACITY_FREE = "CapacityFree";

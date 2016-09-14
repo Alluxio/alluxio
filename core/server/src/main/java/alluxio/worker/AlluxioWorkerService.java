@@ -12,7 +12,6 @@
 package alluxio.worker;
 
 import alluxio.Server;
-import alluxio.metrics.MetricsSystem;
 import alluxio.wire.WorkerNetAddress;
 import alluxio.worker.block.BlockWorker;
 import alluxio.worker.file.FileSystemWorker;

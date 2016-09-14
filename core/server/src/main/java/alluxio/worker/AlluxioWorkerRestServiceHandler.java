@@ -17,7 +17,6 @@ import alluxio.RestUtils;
 import alluxio.RuntimeConstants;
 import alluxio.WorkerStorageTierAssoc;
 import alluxio.metrics.MetricsSystem;
-import alluxio.util.CommonUtils;
 import alluxio.web.WorkerUIWebServer;
 import alluxio.worker.block.BlockStoreMeta;
 import alluxio.worker.block.DefaultBlockWorker;

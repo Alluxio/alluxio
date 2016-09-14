@@ -23,7 +23,6 @@ import alluxio.worker.block.io.BlockWriter;
 import alluxio.worker.block.meta.BlockMeta;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Set;
 
 /**
